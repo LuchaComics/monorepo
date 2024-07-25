@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams, Navigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTasks,
@@ -13,6 +13,13 @@ import { useRecoilState } from "recoil";
 import { topAlertMessageState, topAlertStatusState } from "../../AppState";
 
 function RetailerDashboard() {
+  ////
+  //// URL Parameters.
+  ////
+
+  const [searchParams] = useSearchParams(); // Special thanks via https://stackoverflow.com/a/65451140
+  const cpsrn = searchParams.get("cpsrn");
+
   ////
   //// Global state.
   ////
@@ -57,6 +64,11 @@ function RetailerDashboard() {
   ////
   //// Component rendering.
   ////
+
+  // If the `cpsrn` url parameter exists then redirect the user to the registry page.
+  if (cpsrn) {
+      return <Navigate to={`/registry/${cpsrn}`} />;
+  }
 
   return (
     <>

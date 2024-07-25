@@ -88,6 +88,7 @@ export default (props) => {
     "/cpsrn-registry",
     "/terms",
     "/privacy",
+    "/cpsrn"
   ];
   const location = useLocation();
   var arrayLength = ignorePathsArr.length;

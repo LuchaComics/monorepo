@@ -226,7 +226,7 @@ function RetailerComicSubmissionDetailForPDFFile() {
           {/* Page */}
           <nav class="box">
             <p class="title is-4">
-              <FontAwesomeIcon className="fas" icon={faTasks} />
+              <FontAwesomeIcon className="fas" icon={faBookOpen} />
               &nbsp;Comic Submission
             </p>
             <FormErrorBox errors={errors} />

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"log/slog"
@@ -25,6 +26,10 @@ func (c *ComicSubmissionControllerImpl) GetByID(ctx context.Context, id primitiv
 	if err != nil {
 		c.Logger.Error("database get by id error", slog.Any("error", err))
 		return nil, err
+	}
+	if m == nil {
+		c.Logger.Warn("submission does not exist for id lookup validation error", slog.Any("id", id))
+		return nil, httperror.NewForBadRequestWithSingleField("message", fmt.Sprintf("registry entry does not exist for id: %v", id.Hex()))
 	}
 
 	// Variable controls if we need to update the record before we return it.

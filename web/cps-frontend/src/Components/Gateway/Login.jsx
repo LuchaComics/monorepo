@@ -20,6 +20,7 @@ import LoginDesktop from "./LoginDesktop";
 import LoginMobile from "./LoginMobile";
 import { USER_ROLE_ROOT, USER_ROLE_RETAILER, USER_ROLE_CUSTOMER } from "../../Constants/App";
 
+
 function Login() {
   ////
   //// URL Parameters.
@@ -27,6 +28,7 @@ function Login() {
 
   const [searchParams] = useSearchParams(); // Special thanks via https://stackoverflow.com/a/65451140
   const isUnauthorized = searchParams.get("unauthorized");
+  const cpsrn = searchParams.get("cpsrn");
 
   ////
   //// Global state.
@@ -211,7 +213,11 @@ function Login() {
   ////
 
   if (forceURL !== "") {
-    return <Navigate to={forceURL} />;
+    if (cpsrn) {
+        return <Navigate to={`${forceURL}?cpsrn=${cpsrn}`} />;
+    } else {
+        return <Navigate to={forceURL} />;
+    }
   }
 
   return (

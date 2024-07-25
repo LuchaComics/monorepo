@@ -35,6 +35,8 @@ type ComicSubmissionController interface {
 	SetCustomer(ctx context.Context, submissionID primitive.ObjectID, customerID primitive.ObjectID) (*submission_s.ComicSubmission, error)
 	CreateComment(ctx context.Context, submissionID primitive.ObjectID, content string) (*submission_s.ComicSubmission, error)
 	// CreateFileAttachment(ctx context.Context, req *ComicSubmissionFileAttachmentCreateRequestIDO) (*submission_s.ComicSubmission, error)
+	GetQRCodePNGImage(ctx context.Context, payload string) ([]byte, error)
+	GetQRCodePNGImageOfRegisteryURLByCPSRN(ctx context.Context, cpsrn string) ([]byte, error)
 }
 
 type ComicSubmissionControllerImpl struct {

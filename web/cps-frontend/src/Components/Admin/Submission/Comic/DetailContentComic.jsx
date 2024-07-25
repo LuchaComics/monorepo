@@ -149,7 +149,7 @@ function AdminComicSubmissionDetailContentComic({
           {/* Page */}
           <nav class="box">
             <p class="title is-4">
-              <FontAwesomeIcon className="fas" icon={faTasks} />
+              <FontAwesomeIcon className="fas" icon={faBookOpen} />
               &nbsp;Online Comic Submission
             </p>
             <FormErrorBox errors={errors} />

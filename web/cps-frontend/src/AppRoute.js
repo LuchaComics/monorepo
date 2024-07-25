@@ -171,6 +171,7 @@ import Topbar from "./Components/Menu/Top";
 // Redirectors.
 import AnonymousCurrentUserRedirector from "./Components/Misc/AnonymousCurrentUserRedirector";
 import TwoFactorAuthenticationRedirector from "./Components/Misc/TwoFactorAuthenticationRedirector";
+import CPSRNRedirector from "./Components/Gateway/CPSRNRedirector";
 
 // Public Registery
 import PublicRegistrySearch from "./Components/Gateway/RegistrySearch";
@@ -953,6 +954,11 @@ function AppRoute() {
                     exact
                     path="/help"
                     element={<DashboardHelp />}
+                  />
+                  <Route
+                    exact
+                    path="/cpsrn"
+                    element={<CPSRNRedirector />}
                   />
                   <Route exact path="/" element={<Index />} />
                   <Route path="*" element={<NotFoundError />} />

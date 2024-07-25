@@ -167,11 +167,13 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 	case n == 4 && p[1] == "v1" && p[2] == "otp" && p[3] == "recovery" && r.Method == http.MethodPost:
 		port.Gateway.RecoveryOTP(w, r)
 
-		// --- REGISTRY --- // (TODO)
+	// --- REGISTRY --- // (TODO)
 	case n == 4 && p[1] == "v1" && p[2] == "cpsrn" && r.Method == http.MethodGet:
 		port.ComicSubmission.GetRegistryByCPSRN(w, r, p[3])
+	case n == 5 && p[1] == "v1" && p[2] == "cpsrn" && p[4] == "qr-code" && r.Method == http.MethodGet:
+		port.ComicSubmission.GetQRCodePNGImageOfRegisteryURLByCPSRN(w, r, p[3])
 
-		// --- SUBMISSIONS --- //
+	// --- SUBMISSIONS --- //
 	case n == 3 && p[1] == "v1" && p[2] == "comic-submissions" && r.Method == http.MethodGet:
 		port.ComicSubmission.List(w, r)
 	case n == 3 && p[1] == "v1" && p[2] == "comic-submissions" && r.Method == http.MethodPost:

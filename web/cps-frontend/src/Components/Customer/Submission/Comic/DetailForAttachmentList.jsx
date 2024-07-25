@@ -373,7 +373,7 @@ function CustomerComicSubmissionDetailForAttachmentList() {
             <div class="columns">
               <div class="column">
                 <p class="title is-4">
-                  <FontAwesomeIcon className="fas" icon={faTasks} />
+                  <FontAwesomeIcon className="fas" icon={faBookOpen} />
                   &nbsp;Comic Submission
                 </p>
               </div>

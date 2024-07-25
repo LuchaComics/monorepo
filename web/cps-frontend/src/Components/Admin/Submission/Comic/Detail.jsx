@@ -55,6 +55,8 @@ import DataDisplayRowSelect from "../../../Reusable/DataDisplayRowSelect";
 import FormTextChoiceRow from "../../../Reusable/FormRowTextChoice";
 import DataDisplayRowText from "../../../Reusable/DataDisplayRowText";
 import DataDisplayRowURL from "../../../Reusable/DataDisplayRowURL";
+import DataDisplayRowImage from "../../../Reusable/DataDisplayRowImage";
+
 
 function AdminComicSubmissionDetail() {
   ////
@@ -750,6 +752,23 @@ function AdminComicSubmissionDetail() {
                         value={submission.cpsrn}
                         helpText="The unique identifier used by CPS for all submissions"
                       />
+
+                      {submission && (
+                          <>
+                              <DataDisplayRowImage
+                                 label={`QR Code`}
+                                 src={`${process.env.REACT_APP_API_PROTOCOL}://${process.env.REACT_APP_API_DOMAIN}/api/v1/cpsrn/${submission.cpsrn}/qr-code`}
+                                 alt="QR Code"
+                              />
+                              <DataDisplayRowURL
+                                  label="QR Code Payload Content"
+                                  urlKey={`${process.env.REACT_APP_WWW_PROTOCOL}://${process.env.REACT_APP_WWW_DOMAIN}/cpsrn?v=${submission.cpsrn}`}
+                                  urlValue={`${process.env.REACT_APP_WWW_PROTOCOL}://${process.env.REACT_APP_WWW_DOMAIN}/cpsrn?v=${submission.cpsrn}`}
+                                  type={`external`}
+                                  helpText={`This is the URL that is encoded in the QR image. If you want to use your own QR code generator, you can copy and paste this URL.`}
+                              />
+                          </>
+                      )}
 
                       <DataDisplayRowSelect
                         label="Status"

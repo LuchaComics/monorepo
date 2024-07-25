@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import Scroll from "react-scroll";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -37,8 +37,11 @@ import { topAlertMessageState, topAlertStatusState } from "../../../AppState";
 
 function RegisterLaunchpad() {
   ////
+  //// URL Parameters.
   ////
-  ////
+
+  const [searchParams] = useSearchParams(); // Special thanks via https://stackoverflow.com/a/65451140
+  const cpsrn = searchParams.get("cpsrn");
 
   ////
   //// Global state.
@@ -113,7 +116,7 @@ function RegisterLaunchpad() {
                         <Link
                           class="button is-medium is-block is-fullwidth is-primary"
                           type="button"
-                          to="/register/store"
+                          to={cpsrn ? `/register/store?cpsrn=${cpsrn}` : `/register/store`}
                           style={{ backgroundColor: "#FF0000" }}
                         >
                           Register as business user{" "}
@@ -123,7 +126,7 @@ function RegisterLaunchpad() {
                         <Link
                           class="button is-medium is-block is-fullwidth is-info"
                           type="button"
-                          to="/register/user"
+                          to={cpsrn ? `/register/user?cpsrn=${cpsrn}` : `/register/user?`}
                         >
                           Register as regular user{" "}
                           <FontAwesomeIcon icon={faArrowRight} />
