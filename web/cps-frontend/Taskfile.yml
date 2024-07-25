@@ -1,0 +1,23 @@
+version: "3"
+
+tasks:
+  desc: "start the project (for web-development only)"
+  start:
+    cmds:
+      - npm run start:dev
+
+  # Note: Only executed by devops team.
+  buildprod:
+    desc: "build the production version of the project"
+    cmds:
+      - npm run build:prod
+      - cp -Rf ./build/* ../../../cps-frontend-static
+      - rm -Rf ./build
+
+  # Note: Only executed by devops team.
+  buildqa:
+    desc: "build the quality assurance version of the project"
+    cmds:
+      - npm run build:qa
+      - cp -Rf ./build/* ../../../cps-frontend-static
+      - rm -Rf ./build

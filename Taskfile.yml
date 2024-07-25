@@ -1,0 +1,17 @@
+version: "3"
+
+tasks:
+  initworkspace:
+    desc: (Do not run) Init the go workspace
+    cmds:
+      - go work init
+
+  updateworkspace:
+    desc: Update the go workspace for this project
+    cmds:
+      - go work use -r .
+
+  usebackend:
+    desc: Load up the go workspace for the `cps-backend` module.
+    cmds:
+      - go work use ./cloud/cps-backend

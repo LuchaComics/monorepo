@@ -1,0 +1,135 @@
+package controller
+
+import (
+	"context"
+	"fmt"
+	"mime/multipart"
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"log/slog"
+
+	a_d "github.com/LuchaComics/monorepo/cloud/cps-backend/app/attachment/datastore"
+	submission_s "github.com/LuchaComics/monorepo/cloud/cps-backend/app/comicsub/datastore"
+	"github.com/LuchaComics/monorepo/cloud/cps-backend/config/constants"
+	"github.com/LuchaComics/monorepo/cloud/cps-backend/utils/httperror"
+)
+
+type ComicSubmissionFileAttachmentCreateRequestIDO struct {
+	SubmissionID primitive.ObjectID
+	Name         string
+	Description  string
+	FileName     string
+	FileType     string
+	File         multipart.File
+}
+
+func ValidateCreateFileRequest(dirtyData *ComicSubmissionFileAttachmentCreateRequestIDO) error {
+	e := make(map[string]string)
+
+	if dirtyData.Name == "" {
+		e["name"] = "missing value"
+	}
+	if dirtyData.Description == "" {
+		e["description"] = "missing value"
+	}
+	if dirtyData.FileName == "" {
+		e["file"] = "missing value"
+	}
+	if len(e) != 0 {
+		return httperror.NewForBadRequest(&e)
+	}
+	return nil
+}
+
+func (c *ComicSubmissionControllerImpl) CreateFileAttachment(ctx context.Context, req *ComicSubmissionFileAttachmentCreateRequestIDO) (*submission_s.ComicSubmission, error) {
+	if err := ValidateCreateFileRequest(req); err != nil {
+		return nil, err
+	}
+
+	// Fetch the original submission.
+	s, err := c.ComicSubmissionStorer.GetByID(ctx, req.SubmissionID)
+	if err != nil {
+		c.Logger.Error("database get by id error", slog.Any("error", err))
+		return nil, err
+	}
+	if s == nil {
+		return nil, nil
+	}
+
+	// The following code will choose the directory we will upload based on the image type.
+	var directory = "submission"
+
+	// Generate the key of our upload.
+	objectKey := fmt.Sprintf("%v/%v/%v", directory, s.ID.Hex(), req.FileName)
+
+	// For debugging purposes only.
+	c.Logger.Debug("pre-upload meta",
+		slog.String("FileName", req.FileName),
+		slog.String("FileType", req.FileType),
+		slog.String("Directory", directory),
+		slog.String("ObjectKey", objectKey),
+		slog.String("Name", req.Name),
+		slog.String("Desc", req.Description),
+	)
+
+	go func(file multipart.File, objkey string) {
+		c.Logger.Debug("beginning private s3 image upload...")
+		if err := c.S3.UploadContentFromMulipart(context.Background(), objkey, file); err != nil {
+			c.Logger.Error("private s3 upload error", slog.Any("error", err))
+			// Do not return an error, simply continue this function as there might
+			// be a case were the file was removed on the s3 bucket by ourselves
+			// or some other reason.
+		}
+		c.Logger.Debug("Finished private s3 image upload")
+	}(req.File, objectKey)
+
+	// Extract from our session the following data.
+	orgID := ctx.Value(constants.SessionUserStoreID).(primitive.ObjectID)
+	orgName := ctx.Value(constants.SessionUserStoreName).(string)
+	userID := ctx.Value(constants.SessionUserID).(primitive.ObjectID)
+	userName := ctx.Value(constants.SessionUserName).(string)
+
+	// Generate the object URL.
+	oneDayDur := 24 * time.Hour
+	objectURLExpiry := time.Now().Add(oneDayDur)
+	objectURL, err := c.S3.GetPresignedURL(ctx, objectKey, oneDayDur)
+	if err != nil {
+		c.Logger.Error("s3 failed get presigned url error", slog.Any("error", err))
+		return nil, err
+	}
+
+	// Create our meta record in the database.
+	file := &submission_s.ComicSubmissionFileAttachment{
+		StoreID:     orgID,
+		StoreName:   orgName,
+		SubmissionID:       s.ID,
+		ID:                 primitive.NewObjectID(),
+		CreatedAt:          time.Now(),
+		CreatedByUserName:  userName,
+		CreatedByUserID:    userID,
+		ModifiedAt:         time.Now(),
+		ModifiedByUserName: userName,
+		ModifiedByUserID:   userID,
+		Name:               req.Name,
+		Description:        req.Description,
+		Filename:           req.FileName,
+		ObjectKey:          objectKey,
+		ObjectURL:          objectURL,
+		ObjectURLExpiry:    objectURLExpiry,
+		Status:             a_d.StatusActive,
+	}
+
+	// Add our file to the file attachments.
+	s.ModifiedByUserID = ctx.Value(constants.SessionUserID).(primitive.ObjectID)
+	s.ModifiedAt = time.Now()
+	s.FileAttachments = append(s.FileAttachments, file)
+
+	// Save to the database the modified submission.
+	if err := c.ComicSubmissionStorer.UpdateByID(ctx, s); err != nil {
+		c.Logger.Error("database update by id error", slog.Any("error", err))
+		return nil, err
+	}
+
+	return s, nil
+}
