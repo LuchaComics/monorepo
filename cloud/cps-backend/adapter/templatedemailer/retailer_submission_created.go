@@ -10,7 +10,7 @@ import (
 	"log/slog"
 )
 
-func (impl *templatedEmailer) SendNewComicSubmissionEmailToRetailers(retailerEmails []string, submissionID string, storeName string, item string, cpsrn string) error {
+func (impl *templatedEmailer) SendNewComicSubmissionEmailToRetailers(retailerEmails []string, submissionID string, storeName string, item string, cpsrn string, serviceTypeName string) error {
 	impl.Logger.Debug("sending `Submitted to CPS` to retailer", slog.String("submissionID", submissionID))
 
 	for _, retailerEmail := range retailerEmails {
@@ -26,15 +26,17 @@ func (impl *templatedEmailer) SendNewComicSubmissionEmailToRetailers(retailerEma
 
 		// Render the HTML template with our data.
 		data := struct {
-			StoreName string
-			Item             string
-			CPSRN            string
-			DetailLink       string
+			StoreName       string
+			Item            string
+			CPSRN           string
+			ServiceTypeName string
+			DetailLink      string
 		}{
-			StoreName: storeName,
-			Item:             item,
-			CPSRN:            cpsrn,
-			DetailLink:       fmt.Sprintf("https://%v/submission/%v", impl.Emailer.GetDomainName(), submissionID),
+			StoreName:       storeName,
+			Item:            item,
+			CPSRN:           cpsrn,
+			ServiceTypeName: serviceTypeName,
+			DetailLink:      fmt.Sprintf("https://%v/submission/%v", impl.Emailer.GetDomainName(), submissionID),
 		}
 		if err := tmpl.Execute(&processed, data); err != nil {
 			impl.Logger.Error("template execution error", slog.Any("error", err))

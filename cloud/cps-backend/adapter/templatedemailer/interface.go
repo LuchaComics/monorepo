@@ -17,8 +17,8 @@ type TemplatedEmailer interface {
 	SendBusinessVerificationEmail(email, verificationCode, firstName string) error
 	SendCustomerVerificationEmail(email, verificationCode, firstName string) error
 	SendForgotPasswordEmail(email, verificationCode, firstName string) error
-	SendNewComicSubmissionEmailToStaff(staffEmails []string, submissionID string, storeName string, item string, cpsrn string) error
-	SendNewComicSubmissionEmailToRetailers(retailerEmails []string, submissionID string, storeName string, item string, cpsrn string) error
+	SendNewComicSubmissionEmailToStaff(staffEmails []string, submissionID string, storeName string, item string, cpsrn string, serviceTypeName string) error
+	SendNewComicSubmissionEmailToRetailers(retailerEmails []string, submissionID string, storeName string, item string, cpsrn string, serviceTypeName string) error
 	SendNewStoreEmailToStaff(staffEmails []string, storeID string) error
 	SendRetailerStoreActiveEmailToRetailers(retailerEmails []string, storeName string) error
 }
