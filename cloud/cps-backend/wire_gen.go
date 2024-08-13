@@ -48,6 +48,7 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/config"
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/inputport/http"
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/inputport/http/middleware"
+	"github.com/LuchaComics/monorepo/cloud/cps-backend/provider/blacklist"
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/provider/cpsrn"
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/provider/jwt"
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/provider/kmutex"
@@ -70,6 +71,7 @@ func InitializeEvent() Application {
 	provider := uuid.NewProvider()
 	timeProvider := time.NewProvider()
 	jwtProvider := jwt.NewProvider(conf)
+	blacklistProvider := blacklist.NewProvider()
 	kmutexProvider := kmutex.NewProvider()
 	passwordProvider := password.NewProvider()
 	client := mongodb.NewStorage(conf, slogLogger)
@@ -80,7 +82,7 @@ func InitializeEvent() Application {
 	userStorer := datastore.NewDatastore(conf, slogLogger, client)
 	storeStorer := datastore2.NewDatastore(conf, slogLogger, client)
 	gatewayController := controller.NewController(conf, slogLogger, provider, jwtProvider, kmutexProvider, passwordProvider, cacher, client, templatedEmailer, paymentProcessor, userStorer, storeStorer)
-	middlewareMiddleware := middleware.NewMiddleware(conf, slogLogger, provider, timeProvider, jwtProvider, gatewayController)
+	middlewareMiddleware := middleware.NewMiddleware(conf, slogLogger, provider, timeProvider, jwtProvider, blacklistProvider, gatewayController)
 	handler := httptransport.NewHandler(slogLogger, gatewayController)
 	comicSubmissionStorer := datastore3.NewDatastore(conf, slogLogger, client)
 	creditStorer := datastore4.NewDatastore(conf, slogLogger, client)

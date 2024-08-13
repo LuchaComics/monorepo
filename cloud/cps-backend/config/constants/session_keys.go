@@ -7,6 +7,7 @@ const (
 	SessionSkipAuthorization
 	SessionID
 	SessionIPAddress
+	SessionProxies
 	SessionUser
 	SessionUserCompanyName
 	SessionUserRole

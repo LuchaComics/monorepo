@@ -54,6 +54,7 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/provider/password"
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/provider/time"
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/provider/uuid"
+	"github.com/LuchaComics/monorepo/cloud/cps-backend/provider/blacklist"
 )
 
 func InitializeEvent() Application {
@@ -72,6 +73,7 @@ func InitializeEvent() Application {
 		password.NewProvider,
 		cpsrn.NewProvider,
 		mongodb.NewStorage,
+		blacklist.NewProvider,
 		mongodbcache.NewCache,
 		s3_storage.NewStorage,
 		pdfbuilder.NewCBFFBuilder,

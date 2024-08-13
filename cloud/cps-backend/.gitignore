@@ -208,3 +208,7 @@ static/Pedigree.pdf
 # Executable
 bin/
 cps-backend
+
+# Blacklist - Don't share items we banned from the server.
+static/blacklist/ips.json
+static/blacklist/urls.json

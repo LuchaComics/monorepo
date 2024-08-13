@@ -14,6 +14,7 @@ import (
 	gateway_c "github.com/LuchaComics/monorepo/cloud/cps-backend/app/gateway/controller"
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/config"
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/config/constants"
+	"github.com/LuchaComics/monorepo/cloud/cps-backend/provider/blacklist"
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/provider/jwt"
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/provider/time"
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/provider/uuid"
@@ -29,6 +30,7 @@ type middleware struct {
 	Time              time.Provider
 	JWT               jwt.Provider
 	UUID              uuid.Provider
+	Blacklist         blacklist.Provider
 	GatewayController gateway_c.GatewayController
 }
 
@@ -38,6 +40,7 @@ func NewMiddleware(
 	uuidp uuid.Provider,
 	timep time.Provider,
 	jwtp jwt.Provider,
+	blp blacklist.Provider,
 	gatewayController gateway_c.GatewayController,
 ) Middleware {
 	return &middleware{
@@ -45,6 +48,7 @@ func NewMiddleware(
 		UUID:              uuidp,
 		Time:              timep,
 		JWT:               jwtp,
+		Blacklist:         blp,
 		GatewayController: gatewayController,
 	}
 }
@@ -53,13 +57,14 @@ func NewMiddleware(
 func (mid *middleware) Attach(fn http.HandlerFunc) http.HandlerFunc {
 	// Attach our middleware handlers here. Please note that all our middleware
 	// will start from the bottom and proceed upwards.
-	// Ex: `URLProcessorMiddleware` will be executed first and
-	//     `PostJWTProcessorMiddleware` will be executed last.
+	// Ex: `RateLimitMiddleware` will be executed first and
+	//     `ProtectedURLsMiddleware` will be executed last.
 	fn = mid.ProtectedURLsMiddleware(fn)
-	fn = mid.IPAddressMiddleware(fn)
 	fn = mid.PostJWTProcessorMiddleware(fn) // Note: Must be above `JWTProcessorMiddleware`.
 	fn = mid.JWTProcessorMiddleware(fn)     // Note: Must be above `PreJWTProcessorMiddleware`.
-	fn = mid.PreJWTProcessorMiddleware(fn)  // Note: Must be above `URLProcessorMiddleware`.
+	fn = mid.PreJWTProcessorMiddleware(fn)  // Note: Must be above `URLProcessorMiddleware` and `IPAddressMiddleware`.
+	fn = mid.EnforceBlacklistMiddleware(fn)
+	fn = mid.IPAddressMiddleware(fn)
 	fn = mid.URLProcessorMiddleware(fn)
 	fn = mid.RateLimitMiddleware(fn)
 
@@ -102,6 +107,63 @@ func (mid *middleware) RateLimitMiddleware(fn http.HandlerFunc) http.HandlerFunc
 
 		// Flow to the next middleware.
 		fn(w, r.WithContext(ctx))
+	}
+}
+
+// Note: This middleware must have `IPAddressMiddleware` executed first before running.
+func (mid *middleware) EnforceBlacklistMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Open our program's context based on the request and save the
+		// slash-seperated array from our URL path.
+		ctx := r.Context()
+
+		ipAddress, _ := ctx.Value(constants.SessionIPAddress).(string)
+		proxies, _ := ctx.Value(constants.SessionProxies).(string)
+
+		// Case 1 of 2: Check banned IP addresses.
+		if mid.Blacklist.IsBannedIPAddress(ipAddress) {
+
+			// If the client IP address is banned, check to see if the client
+			// is making a call to a URL which is not banned, and if the URL
+			// is not banned (has not been banned before) then print it to
+			// the console logs for future analysis. Else if the URL is banned
+			// then don't bother printing to console. The purpose of this code
+			// is to not clog the console log with warnings.
+			if !mid.Blacklist.IsBannedURL(r.URL.Path) {
+				mid.Logger.Warn("rejected request by ip",
+					slog.Any("url", r.URL.Path),
+					slog.String("ip_address", ipAddress),
+					slog.String("proxies", proxies),
+					slog.Any("middleware", "EnforceBlacklistMiddleware"))
+			}
+			http.Error(w, "forbidden at this time", http.StatusForbidden)
+			return
+		}
+
+		// Case 2 of 2: Check banned URL.
+		if mid.Blacklist.IsBannedURL(r.URL.Path) {
+
+			// If the URL is banned, check to see if the client IP address is
+			// banned, and if the client has not been banned before then print
+			// to console the new offending client ip. Else do not print if
+			// the offending client IP address has been banned before. The
+			// purpose of this code is to not clog the console log with warnings.
+			if !mid.Blacklist.IsBannedIPAddress(ipAddress) {
+				mid.Logger.Warn("rejected request by url",
+					slog.Any("url", r.URL.Path),
+					slog.String("ip_address", ipAddress),
+					slog.String("proxies", proxies),
+					slog.Any("middleware", "EnforceBlacklistMiddleware"))
+			}
+
+			// DEVELOPERS NOTE:
+			// Simply return a 404, but in our console log we can see the IP
+			// address whom made this call.
+			http.Error(w, "does not exist at this time", http.StatusNotFound)
+			return
+		}
+
+		next(w, r.WithContext(ctx))
 	}
 }
 
