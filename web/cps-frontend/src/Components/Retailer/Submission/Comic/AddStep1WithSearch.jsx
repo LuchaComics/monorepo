@@ -218,6 +218,18 @@ function RetailerComicSubmissionAddStep1WithSearch() {
             </ul>
           </nav>
 
+          {/* Progress Wizard */}
+          <nav className="box has-background-light">
+            <p className="subtitle is-5">Step 1 of 4</p>
+            <progress
+              class="progress is-success"
+              value="25"
+              max="100"
+            >
+              25%
+            </progress>
+          </nav>
+
           {/* Page */}
           <nav class="box">
             <div class={`modal ${showCancelWarning ? "is-active" : ""}`}>
