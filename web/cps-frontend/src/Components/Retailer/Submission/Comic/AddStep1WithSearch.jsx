@@ -72,7 +72,7 @@ function RetailerComicSubmissionAddStep1WithSearch() {
 
   const onSearchButtonClicked = (e) => {
     console.log("searchButtonClick: Starting...");
-    let aURL = "/submissions/comics/add/results";
+    let aURL = "/submissions/comics/add/step-1/results";
     if (searchKeyword !== "") {
       aURL += "?search=" + searchKeyword;
     }
@@ -290,7 +290,7 @@ function RetailerComicSubmissionAddStep1WithSearch() {
               <br />
               <Link
                 class="is-medium is-danger"
-                to="/submissions/comics/add/starred"
+                to="/submissions/comics/add/step-1/starred"
               >
                 Select from starred customers&nbsp;
                 <FontAwesomeIcon className="fas" icon={faArrowRight} />
@@ -298,7 +298,7 @@ function RetailerComicSubmissionAddStep1WithSearch() {
               &nbsp;&nbsp;
               <br />
               <br />
-              <Link class="is-medium is-danger" to="/submissions/comics/add">
+              <Link class="is-medium is-danger" to="/submissions/comics/add/step-2">
                 Skip selecting a customer&nbsp;
                 <FontAwesomeIcon className="fas" icon={faArrowRight} />
               </Link>

@@ -98,6 +98,9 @@ import RetailerComicSubmissionAddStep1WithStarredCustomer from "./Components/Ret
 import RetailerComicSubmissionAddStep2 from "./Components/Retailer/Submission/Comic/AddStep2";
 import RetailerComicSubmissionAddStep3 from "./Components/Retailer/Submission/Comic/AddStep3";
 import RetailerComicSubmissionAddStep4 from "./Components/Retailer/Submission/Comic/AddStep4";
+import RetailerComicSubmissionAddStep5 from "./Components/Retailer/Submission/Comic/AddStep5";
+import RetailerComicSubmissionAddStep6 from "./Components/Retailer/Submission/Comic/AddStep6";
+import RetailerComicSubmissionAddStep7 from "./Components/Retailer/Submission/Comic/AddStep7";
 import RetailerComicSubmissionDetail from "./Components/Retailer/Submission/Comic/Detail";
 import RetailerSubmissionLaunchpad from "./Components/Retailer/Submission/Launchpad";
 import RetailerSubmissionAttachmentAdd from "./Components/Retailer/Submission/Comic/Attachment/Add";
@@ -570,35 +573,45 @@ function AppRoute() {
                   />
                   <Route
                     exact
-                    path="/submissions/comics/add/search"
+                    path="/submissions/comics/add/step-1/search"
                     element={<RetailerComicSubmissionAddStep1WithSearch />}
                   />
                   <Route
                     exact
-                    path="/submissions/comics/add/results"
+                    path="/submissions/comics/add/step-1/results"
                     element={<RetailerComicSubmissionAddStep1WithResult />}
                   />
                   <Route
                     exact
-                    path="/submissions/comics/add/starred"
+                    path="/submissions/comics/add/step-1/starred"
                     element={
                       <RetailerComicSubmissionAddStep1WithStarredCustomer />
                     }
                   />
                   <Route
                     exact
-                    path="/submissions/comics/add"
+                    path="/submissions/comics/add/step-2"
                     element={<RetailerComicSubmissionAddStep2 />}
                   />
                   <Route
                     exact
-                    path="/submissions/comics/add/:id"
+                    path="/submissions/comics/add/step-3"
                     element={<RetailerComicSubmissionAddStep3 />}
                   />
                   <Route
                     exact
-                    path="/submissions/comics/add/:id/confirmation"
+                    path="/submissions/comics/add/step-4"
                     element={<RetailerComicSubmissionAddStep4 />}
+                  />
+                  <Route
+                    exact
+                    path="/submissions/comics/add/:id"
+                    element={<RetailerComicSubmissionAddStep6 />}
+                  />
+                  <Route
+                    exact
+                    path="/submissions/comics/add/:id/confirmation"
+                    element={<RetailerComicSubmissionAddStep7 />}
                   />
                   <Route
                     exact

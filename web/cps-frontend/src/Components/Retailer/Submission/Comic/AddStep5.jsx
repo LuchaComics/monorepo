@@ -56,7 +56,7 @@ import {
   currentUserState,
 } from "../../../../AppState";
 
-function RetailerComicSubmissionAddStep4() {
+function RetailerComicSubmissionAddStep5() {
   ////
   //// URL Parameters.
   ////
@@ -489,18 +489,6 @@ function RetailerComicSubmissionAddStep4() {
             </div>
           </div>
 
-          {/* Progress Wizard */}
-          <nav className="box has-background-success-light">
-            <p className="subtitle is-5">Step 4 of 4</p>
-            <progress
-              class="progress is-success"
-              value="100"
-              max="100"
-            >
-              75%
-            </progress>
-          </nav>
-
           {/* Page */}
           <nav class="box">
             <p class="title is-4">
@@ -517,6 +505,312 @@ function RetailerComicSubmissionAddStep4() {
                   form.
                 </p>
                 <div class="container">
+                  <p class="subtitle is-6">
+                    <FontAwesomeIcon className="fas" icon={faCog} />
+                    &nbsp;Settings
+                  </p>
+                  <hr />
+
+                  <FormInputField
+                    label="Store"
+                    name="store"
+                    placeholder="Text input"
+                    value={currentUser.storeName}
+                    helpText="Your organization that you will submit under this submission."
+                    isRequired={true}
+                    maxWidth="380px"
+                    disabled={true}
+                  />
+
+                  <FormSelectField
+                    label="Service Type"
+                    name="serviceType"
+                    selectedValue={serviceType}
+                    errorText={errors && errors.serviceType}
+                    onChange={(e) => {
+                      setServiceType(parseInt(e.target.value));
+                    }}
+                    options={conditionalServiceTypeOptions}
+                    maxWidth="400px"
+                  />
+
+                  <p class="subtitle is-6">
+                    <FontAwesomeIcon className="fas" icon={faBookOpen} />
+                    &nbsp;Book Information
+                  </p>
+                  <hr />
+
+                  <FormInputField
+                    label="Series Title"
+                    name="seriesTitle"
+                    placeholder="Text input"
+                    value={seriesTitle}
+                    errorText={errors && errors.seriesTitle}
+                    helpText=""
+                    onChange={(e) => setSeriesTitle(e.target.value)}
+                    isRequired={true}
+                    maxWidth="380px"
+                  />
+
+                  <FormInputField
+                    label="Issue Vol"
+                    name="issueVol"
+                    placeholder="Text input"
+                    value={issueVol}
+                    errorText={errors && errors.issueVol}
+                    helpText=""
+                    onChange={(e) => setIssueVol(e.target.value)}
+                    isRequired={true}
+                    maxWidth="180px"
+                  />
+
+                  <FormInputField
+                    label="Issue No"
+                    name="issueNo"
+                    placeholder="Text input"
+                    value={issueNo}
+                    errorText={errors && errors.issueNo}
+                    helpText=""
+                    onChange={(e) => setIssueNo(e.target.value)}
+                    isRequired={true}
+                    maxWidth="180px"
+                  />
+
+                  <FormSelectField
+                    label="Issue Cover Year"
+                    name="issueCoverYear"
+                    placeholder="Issue Cover Year"
+                    selectedValue={issueCoverYear}
+                    errorText={errors && errors.issueCoverYear}
+                    helpText=""
+                    onChange={(e) =>
+                      setIssueCoverYear(parseInt(e.target.value))
+                    }
+                    options={ISSUE_COVER_YEAR_OPTIONS}
+                    isRequired={true}
+                    maxWidth="200px"
+                  />
+
+                  {issueCoverYear !== 0 && (
+                    <FormSelectField
+                      label="Issue Cover Month"
+                      name="issueCoverMonth"
+                      placeholder="Issue Cover Month"
+                      selectedValue={issueCoverMonth}
+                      errorText={errors && errors.issueCoverMonth}
+                      helpText=""
+                      onChange={(e) =>
+                        setIssueCoverMonth(parseInt(e.target.value))
+                      }
+                      options={ISSUE_COVER_MONTH_WITH_EMPTY_OPTIONS}
+                      isRequired={true}
+                      maxWidth="210px"
+                    />
+                  )}
+
+                  <FormSelectField
+                    label="Publisher Name"
+                    name="publisherName"
+                    placeholder="Publisher Name"
+                    selectedValue={publisherName}
+                    errorText={errors && errors.publisherName}
+                    helpText=""
+                    onChange={(e) => setPublisherName(parseInt(e.target.value))}
+                    options={PUBLISHER_NAME_WITH_EMPTY_OPTIONS}
+                  />
+
+                  {publisherName === 1 && (
+                    <FormInputField
+                      label="Publisher Name (Other)"
+                      name="publisherNameOther"
+                      placeholder="Text input"
+                      value={publisherNameOther}
+                      errorText={errors && errors.publisherNameOther}
+                      helpText=""
+                      onChange={(e) => setPublisherNameOther(e.target.value)}
+                      isRequired={true}
+                      maxWidth="280px"
+                    />
+                  )}
+
+                  <FormCheckboxField
+                    label="Is Key Issue?"
+                    name="isKeyIssue"
+                    checked={isKeyIssue}
+                    errorText={errors && errors.isKeyIssue}
+                    onChange={(e) => setIsKeyIssue(!isKeyIssue)}
+                    maxWidth="180px"
+                  />
+
+                  {isKeyIssue && (
+                    <>
+                      <FormSelectField
+                        label="Key Issue"
+                        name="keyIssue"
+                        placeholder="Text input"
+                        selectedValue={keyIssue}
+                        errorText={errors && errors.keyIssue}
+                        helpText=""
+                        onChange={(e) => setKeyIssue(parseInt(e.target.value))}
+                        options={SUBMISSION_KEY_ISSUE_WITH_EMPTY_OPTIONS}
+                      />
+                      {keyIssue === 1 && (
+                        <>
+                          <FormTextareaField
+                            label="Key Issue Other"
+                            name="keyIssueOther"
+                            placeholder="Text input"
+                            value={keyIssueOther}
+                            errorText={errors && errors.keyIssueOther}
+                            helpText=""
+                            onChange={(e) => setKeyIssueOther(e.target.value)}
+                            isRequired={true}
+                            maxWidth="280px"
+                            helpText={"Max 638 characters"}
+                            rows={4}
+                          />
+                        </>
+                      )}
+                      {keyIssue !== 1 && (
+                        <FormInputField
+                          label="Key Issue Detail"
+                          name="keyIssueDetail"
+                          placeholder="Text input"
+                          value={keyIssueDetail}
+                          errorText={errors && errors.keyIssueDetail}
+                          helpText=""
+                          onChange={(e) => setKeyIssueDetail(e.target.value)}
+                          isRequired={true}
+                          maxWidth="280px"
+                        />
+                      )}
+                    </>
+                  )}
+
+                  <FormCheckboxField
+                    label="Is this an International Edition?"
+                    name="isInternationalEdition"
+                    checked={isInternationalEdition}
+                    errorText={errors && errors.isInternationalEdition}
+                    onChange={(e) =>
+                      setIsInternationalEdition(!isInternationalEdition)
+                    }
+                    maxWidth="180px"
+                  />
+
+                  <FormCheckboxField
+                    label="Is variant cover?"
+                    name="isVariantCover"
+                    checked={isVariantCover}
+                    errorText={errors && errors.isVariantCover}
+                    onChange={(e) => setIsVariantCover(!isVariantCover)}
+                    maxWidth="180px"
+                  />
+
+                  {isVariantCover === true && (
+                    <FormTextareaField
+                      label="Variant cover detail"
+                      name="variantCoverDetail"
+                      placeholder="Text input"
+                      value={variantCoverDetail}
+                      errorText={errors && errors.variantCoverDetail}
+                      helpText=""
+                      onChange={(e) => setVariantCoverDetail(e.target.value)}
+                      isRequired={true}
+                      maxWidth="280px"
+                      helpText={"Max 638 characters"}
+                      rows={4}
+                    />
+                  )}
+
+                  <FormSelectField
+                    label="Which printing is this?"
+                    name="printing"
+                    placeholder="Text input"
+                    selectedValue={printing}
+                    errorText={errors && errors.printing}
+                    helpText=""
+                    onChange={(e) => setPrinting(parseInt(e.target.value))}
+                    options={SUBMISSION_PRINTING_WITH_EMPTY_OPTIONS}
+                  />
+
+                  <FormSelectField
+                    label="Primary Label Details"
+                    name="primaryLabelDetails"
+                    placeholder="Text input"
+                    selectedValue={primaryLabelDetails}
+                    errorText={errors && errors.primaryLabelDetails}
+                    helpText=""
+                    onChange={(e) =>
+                      setPrimaryLabelDetails(parseInt(e.target.value))
+                    }
+                    options={SPECIAL_DETAILS_WITH_EMPTY_OPTIONS}
+                  />
+
+                  {primaryLabelDetails === 1 && (
+                    <FormInputField
+                      label="Primary Label Details (Other)"
+                      name="primaryLabelDetailsOther"
+                      placeholder="Text input"
+                      value={primaryLabelDetailsOther}
+                      errorText={errors && errors.primaryLabelDetailsOther}
+                      helpText=""
+                      onChange={(e) =>
+                        setPrimaryLabelDetailsOther(e.target.value)
+                      }
+                      isRequired={true}
+                      maxWidth="280px"
+                    />
+                  )}
+
+                  <FormTextareaField
+                    label="Special Note (Optional)"
+                    name="specialNotes"
+                    placeholder="Text input"
+                    value={specialNotes}
+                    errorText={errors && errors.specialNotesLine1}
+                    helpText=""
+                    onChange={(e) => setSpecialNotes(e.target.value)}
+                    isRequired={true}
+                    maxWidth="280px"
+                    helpText={"Max 638 characters"}
+                    rows={4}
+                  />
+
+                  {primaryLabelDetails === 1 && (
+                    <FormInputField
+                      label="Primary Label Details (Other)"
+                      name="primaryLabelDetailsOther"
+                      placeholder="Text input"
+                      value={primaryLabelDetailsOther}
+                      errorText={errors && errors.primaryLabelDetailsOther}
+                      helpText=""
+                      onChange={(e) =>
+                        setPrimaryLabelDetailsOther(e.target.value)
+                      }
+                      isRequired={true}
+                      maxWidth="280px"
+                    />
+                  )}
+
+                  <FormComicSignaturesTable
+                    data={signatures}
+                    onDataChange={setSignatures}
+                    disabled={true}
+                    helpText={
+                      <>
+                        Only available to CPS,{" "}
+                        <a href="mailto:support@cpscapsule.com">
+                          contact us&nbsp;
+                          <FontAwesomeIcon
+                            className="mdi"
+                            icon={faArrowUpRightFromSquare}
+                          />
+                        </a>{" "}
+                        if you are interested in learning more.
+                      </>
+                    }
+                  />
 
                   {serviceType !== SERVICE_TYPE_CPS_CAPSULE_INDIE_MINT_GEM && (
                     <>
@@ -870,4 +1164,4 @@ function RetailerComicSubmissionAddStep4() {
   );
 }
 
-export default RetailerComicSubmissionAddStep4;
+export default RetailerComicSubmissionAddStep5;

@@ -211,7 +211,7 @@ function RetailerSubmissionPickTypeForAdd() {
                     <br />
                     <br />
                     {customerName === null ? (
-                      <Link to={`/submissions/comics/add/search`}>
+                      <Link to={`/submissions/comics/add/step-1/search`}>
                         Select&nbsp;
                         <FontAwesomeIcon className="fas" icon={faArrowRight} />
                       </Link>

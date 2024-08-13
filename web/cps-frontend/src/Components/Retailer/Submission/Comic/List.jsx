@@ -365,7 +365,7 @@ function RetailerComicSubmissionList() {
                 </button>
                 &nbsp;
                 <Link
-                  to={`/submissions/comics/add/search`}
+                  to={`/submissions/comics/add/step-1/search`}
                   class="button is-small is-primary is-fullwidth"
                   type="button"
                 >
@@ -402,7 +402,7 @@ function RetailerComicSubmissionList() {
                 </button>
                 &nbsp;
                 <Link
-                  to={`/submissions/comics/add/search`}
+                  to={`/submissions/comics/add/step-1/search`}
                   class="button is-small is-primary"
                   type="button"
                 >
@@ -540,7 +540,7 @@ function RetailerComicSubmissionList() {
                       <p class="subtitle">
                         No comic submissions.{" "}
                         <b>
-                          <Link to="/submissions/comics/add/search">
+                          <Link to="/submissions/comics/add/step-1/search">
                             Click here&nbsp;
                             <FontAwesomeIcon
                               className="mdi"

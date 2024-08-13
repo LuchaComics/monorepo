@@ -278,7 +278,7 @@ function RetailerComicSubmissionAddStep1WithStarredCustomer() {
                                 <br />
                                 <Link
                                   class="button is-medium is-primary"
-                                  to={`/submissions/comics/add?customer_id=${customer.id}`}
+                                  to={`/submissions/comics/add/step-2?customer_id=${customer.id}`}
                                 >
                                   <FontAwesomeIcon
                                     className="fas"
@@ -316,7 +316,7 @@ function RetailerComicSubmissionAddStep1WithStarredCustomer() {
                           to create a new customer or{" "}
                           <Link
                             class="is-medium is-danger"
-                            to="/submissions/comics/add"
+                            to="/submissions/comics/add/step-2"
                           >
                             click here&nbsp;
                             <FontAwesomeIcon
@@ -337,7 +337,7 @@ function RetailerComicSubmissionAddStep1WithStarredCustomer() {
               <div class="column is-half">
                 <Link
                   class="button is-medium is-fullwidth-mobile"
-                  to="/submissions/comics/add/search"
+                  to="/submissions/comics/add/step-1/search"
                 >
                   <FontAwesomeIcon className="fas" icon={faArrowLeft} />
                   &nbsp;Back
@@ -345,9 +345,9 @@ function RetailerComicSubmissionAddStep1WithStarredCustomer() {
               </div>
               <div class="column is-half has-text-right">
                 {/*
-                                <button class="button is-primary is-hidden-touch" onClick={null}><FontAwesomeIcon className="fas" icon={faCheckCircle} />&nbsp;Next</button>
-                                <button class="button is-primary is-fullwidth is-hidden-desktop" onClick={null}><FontAwesomeIcon className="fas" icon={faCheckCircle} />&nbsp;Next</button>
-                                */}
+                <button class="button is-primary is-hidden-touch" onClick={null}><FontAwesomeIcon className="fas" icon={faCheckCircle} />&nbsp;Next</button>
+                <button class="button is-primary is-fullwidth is-hidden-desktop" onClick={null}><FontAwesomeIcon className="fas" icon={faCheckCircle} />&nbsp;Next</button>
+                */}
               </div>
             </div>
           </nav>
