@@ -844,10 +844,13 @@ function RetailerComicSubmissionAddStep4() {
                     <div class="column is-half">
                       <button
                         class="button is-medium is-fullwidth-mobile"
-                        onClick={(e) => setShowCancelWarning(true)}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            setForceURL("/submissions/comics/add/step-3");
+                        }}
                       >
-                        <FontAwesomeIcon className="fas" icon={faTimesCircle} />
-                        &nbsp;Cancel
+                        <FontAwesomeIcon className="fas" icon={faArrowLeft} />
+                        &nbsp;Back to Step 3
                       </button>
                     </div>
                     <div class="column is-half has-text-right">

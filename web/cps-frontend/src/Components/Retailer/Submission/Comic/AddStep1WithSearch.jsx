@@ -35,6 +35,11 @@ import {
   topAlertMessageState,
   topAlertStatusState,
 } from "../../../../AppState";
+import {
+  addComicSubmissionState,
+  ADD_COMIC_SUBMISSION_STATE_DEFAULT,
+} from "../../../../AppState";
+
 
 function RetailerComicSubmissionAddStep1WithSearch() {
   ////
@@ -49,6 +54,7 @@ function RetailerComicSubmissionAddStep1WithSearch() {
     useRecoilState(topAlertMessageState);
   const [topAlertStatus, setTopAlertStatus] =
     useRecoilState(topAlertStatusState);
+  const [addComicSubmission, setAddComicSubmission] = useRecoilState(addComicSubmissionState);
 
   ////
   //// Component states.
@@ -116,6 +122,11 @@ function RetailerComicSubmissionAddStep1WithSearch() {
       var scroll = Scroll.animateScroll;
       scroll.scrollToTop();
     } else {
+      // Delete the previous submission filling details.
+      console.log("deleting previous addComicSubmission:", addComicSubmission);
+      setAddComicSubmission(ADD_COMIC_SUBMISSION_STATE_DEFAULT);
+
+      // Redirect to the URL.
       setForceURL(aURL);
     }
   };
@@ -290,7 +301,16 @@ function RetailerComicSubmissionAddStep1WithSearch() {
               <br />
               <Link
                 class="is-medium is-danger"
-                to="/submissions/comics/add/step-1/starred"
+                onClick={(e)=>{
+                    e.preventDefault();
+
+                    // Delete the previous submission filling details.
+                    console.log("selecting starred customer and deleting previous addComicSubmission:", addComicSubmission);
+                    setAddComicSubmission(ADD_COMIC_SUBMISSION_STATE_DEFAULT);
+
+                    // Redirect to the URL.
+                    setForceURL("/submissions/comics/add/step-1/starred");
+                }}
               >
                 Select from starred customers&nbsp;
                 <FontAwesomeIcon className="fas" icon={faArrowRight} />
@@ -298,7 +318,18 @@ function RetailerComicSubmissionAddStep1WithSearch() {
               &nbsp;&nbsp;
               <br />
               <br />
-              <Link class="is-medium is-danger" to="/submissions/comics/add/step-2">
+              <Link
+                class="is-medium is-danger"
+                onClick={(e)=>{
+                    e.preventDefault();
+
+                    // Delete the previous submission filling details.
+                    console.log("skipping selecting customer and deleting previous addComicSubmission:", addComicSubmission);
+                    setAddComicSubmission(ADD_COMIC_SUBMISSION_STATE_DEFAULT);
+
+                    // Redirect to the URL.
+                    setForceURL("/submissions/comics/add/step-2");
+                }}>
                 Skip selecting a customer&nbsp;
                 <FontAwesomeIcon className="fas" icon={faArrowRight} />
               </Link>

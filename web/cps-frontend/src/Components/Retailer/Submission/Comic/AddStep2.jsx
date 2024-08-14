@@ -55,6 +55,11 @@ import {
   topAlertStatusState,
   currentUserState,
 } from "../../../../AppState";
+import {
+  addComicSubmissionState,
+  ADD_COMIC_SUBMISSION_STATE_DEFAULT,
+} from "../../../../AppState";
+
 
 function RetailerComicSubmissionAddStep2() {
   ////
@@ -74,6 +79,7 @@ function RetailerComicSubmissionAddStep2() {
   const [topAlertStatus, setTopAlertStatus] =
     useRecoilState(topAlertStatusState);
   const [currentUser] = useRecoilState(currentUserState);
+  const [addComicSubmission, setAddComicSubmission] = useRecoilState(addComicSubmissionState);
 
   ////
   //// Component states.
@@ -82,48 +88,9 @@ function RetailerComicSubmissionAddStep2() {
   const [errors, setErrors] = useState({});
   const [isFetching, setFetching] = useState(false);
   const [forceURL, setForceURL] = useState("");
-  const [seriesTitle, setSeriesTitle] = useState("");
-  const [issueVol, setIssueVol] = useState("");
-  const [issueNo, setIssueNo] = useState("");
-  const [issueCoverYear, setIssueCoverYear] = useState(0);
-  const [issueCoverMonth, setIssueCoverMonth] = useState(0);
-  const [publisherName, setPublisherName] = useState(0);
-  const [publisherNameOther, setPublisherNameOther] = useState("");
-  const [isKeyIssue, setIsKeyIssue] = useState(false);
-  const [keyIssue, setKeyIssue] = useState(0);
-  const [keyIssueOther, setKeyIssueOther] = useState("");
   const [keyIssueDetail, setKeyIssueDetail] = useState("");
-  const [isInternationalEdition, setIsInternationalEdition] = useState(false);
-  const [isVariantCover, setIsVariantCover] = useState(false);
-  const [variantCoverDetail, setVariantCoverDetail] = useState("");
-  const [printing, setPrinting] = useState(1);
-  const [primaryLabelDetails, setPrimaryLabelDetails] = useState(2); // 2=Regular Edition
-  const [primaryLabelDetailsOther, setPrimaryLabelDetailsOther] = useState("");
-  const [creasesFinding, setCreasesFinding] = useState("");
-  const [tearsFinding, setTearsFinding] = useState("");
-  const [missingPartsFinding, setMissingPartsFinding] = useState("");
-  const [stainsFinding, setStainsFinding] = useState("");
-  const [distortionFinding, setDistortionFinding] = useState("");
-  const [paperQualityFinding, setPaperQualityFinding] = useState("");
-  const [spineFinding, setSpineFinding] = useState("");
-  const [coverFinding, setCoverFinding] = useState("");
-  const [gradingScale, setGradingScale] = useState(0);
-  const [overallLetterGrade, setOverallLetterGrade] = useState("");
-  const [overallNumberGrade, setOverallNumberGrade] = useState("");
-  const [cpsPercentageGrade, setCpsPercentageGrade] = useState("");
-  const [specialNotes, setSpecialNotes] = useState("");
-  const [gradingNotes, setGradingNotes] = useState("");
-  const [
-    showsSignsOfTamperingOrRestoration,
-    setShowsSignsOfTamperingOrRestoration,
-  ] = useState(2); // 2=no
   const [showCancelWarning, setShowCancelWarning] = useState(false);
-  const [
-    isOverallLetterGradeNearMintPlus,
-    setIsOverallLetterGradeNearMintPlus,
-  ] = useState(false);
-  const [serviceType, setServiceType] = useState(0);
-  const [signatures, setSignatures] = useState([]);
+  const [serviceType, setServiceType] = useState(addComicSubmission.serviceType);
 
   ////
   //// Event handling.
@@ -131,11 +98,50 @@ function RetailerComicSubmissionAddStep2() {
 
   const onSubmitClick = (e) => {
     console.log("onSubmitClick: Beginning...");
-    console.log("onSubmitClick: Generating payload for submission.");
-    setFetching(true);
-    setErrors({});
 
-    setFetching(false);
+    let newErrors = {};
+    let hasErrors = false;
+
+    if (serviceType === undefined || serviceType === null || serviceType === 0 || serviceType === "") {
+      newErrors["serviceType"] = "missing value";
+      hasErrors = true;
+    }
+
+    //
+    // CASE 1 of 2: Has errors.
+    //
+
+    if (hasErrors) {
+      console.log("onSubmitClick: Aboring because of error(s)");
+
+      // Set the associate based error validation.
+      setErrors(newErrors);
+
+      // The following code will cause the screen to scroll to the top of
+      // the page. Please see ``react-scroll`` for more information:
+      // https://github.com/fisshy/react-scroll
+      var scroll = Scroll.animateScroll;
+      scroll.scrollToTop();
+
+      return;
+    }
+
+    //
+    // CASE 2 of 2: Has no errors.
+    //
+
+    console.log("onSubmitClick: Saving step 2 and redirecting to step 3.");
+
+    // Variable holds a complete clone of the submission.
+    let modifiedAddComicSubmission = { ...addComicSubmission };
+
+    // Update our clone.
+    modifiedAddComicSubmission.serviceType = serviceType;
+
+    // Save to persistent storage.
+    setAddComicSubmission(modifiedAddComicSubmission);
+
+    // Redirect to the next page.
     setForceURL("/submissions/comics/add/step-3")
   };
 
@@ -259,19 +265,6 @@ function RetailerComicSubmissionAddStep2() {
   if (forceURL !== "") {
     return <Navigate to={forceURL} />;
   }
-
-  // The following code will check to see if we need to grant the 'is NM+' option is available to the user.
-  let isNMPlusOpen = gradingScale === 1 && overallLetterGrade === "nm";
-
-  // Apply the custom function to your options
-  const cpsPercentageGradeFilteredOptions = cpsPercentageGradeFilterOptions(
-    CPS_PERCENTAGE_GRADE_WITH_EMPTY_OPTIONS,
-    currentUser.storeLevel,
-  );
-  const overallNumberGradeFilteredOptions = overallNumberGradeFilterOptions(
-    OVERALL_NUMBER_GRADE_WITH_EMPTY_OPTIONS,
-    currentUser.storeLevel,
-  );
 
   // Apply service type limitation based on the retailer store's level.
   const conditionalServiceTypeOptions = ((currentUser) => {
@@ -493,10 +486,6 @@ function RetailerComicSubmissionAddStep2() {
                     options={conditionalServiceTypeOptions}
                     maxWidth="400px"
                   />
-
-
-
-
 
                   <div class="columns pt-5">
                     <div class="column is-half">

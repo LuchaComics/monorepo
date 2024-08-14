@@ -220,3 +220,54 @@ export const offersFilterStatusState = atom({
   default: 2,
   effects_UNSTABLE: [persistAtom],
 });
+
+// --- Submissions --- //
+
+export const ADD_COMIC_SUBMISSION_STATE_DEFAULT = {
+    seriesTitle: "",
+    issueVol: "",
+    issueNo: "",
+    issueCoverYear: "",
+    issueCoverMonth: "",
+    publisherName: "",
+    publisherNameOther: "",
+    isKeyIssue: "",
+    keyIssue: "",
+    keyIssueOther: "",
+    keyIssueDetail: "",
+    isInternationalEdition: "",
+    isVariantCover: "",
+    variantCoverDetail: "",
+    printing: "",
+    primaryLabelDetails: "",
+    primaryLabelDetailsOther: "",
+    specialNotes: "",
+    gradingNotes: "",
+    signatures: "",
+    creasesFinding: "",
+    tearsFinding: "",
+    missingPartsFinding: "",
+    stainsFinding: "",
+    distortionFinding: "",
+    paperQualityFinding: "",
+    spineFinding: "",
+    coverFinding: "",
+    gradingScale: "",
+    overallLetterGrade: "",
+    isOverallLetterGradeNearMintPlus: "",
+    overallNumberGrade: "",
+    cpsPercentageGrade: "",
+    showsSignsOfTamperingOrRestoration: "",
+    status: "",
+    serviceType: "",
+    storeID: "",
+    collectibleType: 1, // 1=Comic, 2=Card
+    customerID: "",
+}
+
+// Control whether to show filters for the list.
+export const addComicSubmissionState = atom({
+  key: "addComicSubmission",
+  default: ADD_COMIC_SUBMISSION_STATE_DEFAULT,
+  effects_UNSTABLE: [persistAtom],
+});
