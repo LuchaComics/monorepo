@@ -36,7 +36,7 @@ import {
 } from "../../../../AppState";
 import { SERVICE_TYPE_PRE_SCREENING_SERVICE } from "../../../../Constants/App";
 
-function RetailerComicSubmissionAddStep6() {
+function RetailerComicSubmissionAddStepYYY() {
   ////
   //// URL Arguments.
   ////
@@ -438,4 +438,4 @@ function RetailerComicSubmissionAddStep6() {
   );
 }
 
-export default RetailerComicSubmissionAddStep6;
+export default RetailerComicSubmissionAddStepYYY;

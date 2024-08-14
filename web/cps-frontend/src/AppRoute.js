@@ -99,8 +99,10 @@ import RetailerComicSubmissionAddStep2 from "./Components/Retailer/Submission/Co
 import RetailerComicSubmissionAddStep3 from "./Components/Retailer/Submission/Comic/AddStep3";
 import RetailerComicSubmissionAddStep4 from "./Components/Retailer/Submission/Comic/AddStep4";
 import RetailerComicSubmissionAddStep5 from "./Components/Retailer/Submission/Comic/AddStep5";
-import RetailerComicSubmissionAddStep6 from "./Components/Retailer/Submission/Comic/AddStepX";
-import RetailerComicSubmissionAddStep7 from "./Components/Retailer/Submission/Comic/AddStepY";
+import RetailerComicSubmissionAddStep6 from "./Components/Retailer/Submission/Comic/AddStep6";
+import RetailerComicSubmissionAddStep7 from "./Components/Retailer/Submission/Comic/AddStep7";
+import RetailerComicSubmissionAddStepXXX from "./Components/Retailer/Submission/Comic/AddStepX";
+import RetailerComicSubmissionAddStepYYY from "./Components/Retailer/Submission/Comic/AddStepY";
 import RetailerComicSubmissionDetail from "./Components/Retailer/Submission/Comic/Detail";
 import RetailerSubmissionLaunchpad from "./Components/Retailer/Submission/Launchpad";
 import RetailerSubmissionAttachmentAdd from "./Components/Retailer/Submission/Comic/Attachment/Add";
@@ -610,13 +612,23 @@ function AppRoute() {
                   />
                   <Route
                     exact
-                    path="/submissions/comics/add/:id"
+                    path="/submissions/comics/add/step-6"
                     element={<RetailerComicSubmissionAddStep6 />}
                   />
                   <Route
                     exact
-                    path="/submissions/comics/add/:id/confirmation"
+                    path="/submissions/comics/add/step-7"
                     element={<RetailerComicSubmissionAddStep7 />}
+                  />
+                  <Route
+                    exact
+                    path="/submissions/comics/add/:id"
+                    element={<RetailerComicSubmissionAddStepXXX />}
+                  />
+                  <Route
+                    exact
+                    path="/submissions/comics/add/:id/confirmation"
+                    element={<RetailerComicSubmissionAddStepYYY />}
                   />
                   <Route
                     exact

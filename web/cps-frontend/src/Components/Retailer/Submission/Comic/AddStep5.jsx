@@ -184,7 +184,7 @@ function RetailerComicSubmissionAddStep3() {
       // CASE 2 of 2: Has no errors.
       //
 
-      console.log("onSaveAndContinueClick: Saving step 3 and redirecting to step 4.");
+      console.log("onSaveAndContinueClick: Saving step 5 and redirecting to step 6.");
 
       // Variable holds a complete clone of the submission.
       let modifiedAddComicSubmission = { ...addComicSubmission };
@@ -204,7 +204,7 @@ function RetailerComicSubmissionAddStep3() {
       setAddComicSubmission(modifiedAddComicSubmission);
 
       // Redirect to the next page.
-      setForceURL("/submissions/comics/add/step-5")
+      setForceURL("/submissions/comics/add/step-6")
   };
 
   ////
