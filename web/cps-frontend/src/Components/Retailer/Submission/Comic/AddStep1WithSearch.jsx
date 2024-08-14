@@ -231,10 +231,10 @@ function RetailerComicSubmissionAddStep1WithSearch() {
 
           {/* Progress Wizard */}
           <nav className="box has-background-light">
-            <p className="subtitle is-5">Step 1 of 4</p>
+            <p className="subtitle is-5">Step 1 of 10</p>
             <progress
               class="progress is-success"
-              value="25"
+              value="10"
               max="100"
             >
               25%

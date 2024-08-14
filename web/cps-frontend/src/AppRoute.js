@@ -95,9 +95,9 @@ import RetailerComicSubmissionList from "./Components/Retailer/Submission/Comic/
 import RetailerComicSubmissionAddStep1WithSearch from "./Components/Retailer/Submission/Comic/AddStep1WithSearch";
 import RetailerComicSubmissionAddStep1WithResult from "./Components/Retailer/Submission/Comic/AddStep1WithResult";
 import RetailerComicSubmissionAddStep1WithStarredCustomer from "./Components/Retailer/Submission/Comic/AddStep1WithStarred";
-import RetailerComicSubmissionAddStep2 from "./Components/Retailer/Submission/Comic/AddStepT";
-import RetailerComicSubmissionAddStep3 from "./Components/Retailer/Submission/Comic/AddStepU";
-import RetailerComicSubmissionAddStep4 from "./Components/Retailer/Submission/Comic/AddStepV";
+import RetailerComicSubmissionAddStep2 from "./Components/Retailer/Submission/Comic/AddStep2";
+import RetailerComicSubmissionAddStep3 from "./Components/Retailer/Submission/Comic/AddStep3";
+import RetailerComicSubmissionAddStep4 from "./Components/Retailer/Submission/Comic/AddStep4";
 import RetailerComicSubmissionAddStep5 from "./Components/Retailer/Submission/Comic/AddStepW";
 import RetailerComicSubmissionAddStep6 from "./Components/Retailer/Submission/Comic/AddStepX";
 import RetailerComicSubmissionAddStep7 from "./Components/Retailer/Submission/Comic/AddStepY";
