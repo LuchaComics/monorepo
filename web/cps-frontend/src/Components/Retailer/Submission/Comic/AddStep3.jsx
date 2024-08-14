@@ -55,6 +55,11 @@ import {
   topAlertStatusState,
   currentUserState,
 } from "../../../../AppState";
+import {
+  addComicSubmissionState,
+  ADD_COMIC_SUBMISSION_STATE_DEFAULT,
+} from "../../../../AppState";
+
 
 function RetailerComicSubmissionAddStep3() {
   ////
@@ -74,166 +79,161 @@ function RetailerComicSubmissionAddStep3() {
   const [topAlertStatus, setTopAlertStatus] =
     useRecoilState(topAlertStatusState);
   const [currentUser] = useRecoilState(currentUserState);
+  const [addComicSubmission, setAddComicSubmission] = useRecoilState(addComicSubmissionState);
 
   ////
   //// Component states.
   ////
 
   const [errors, setErrors] = useState({});
-  const [isFetching, setFetching] = useState(false);
+  const [isFetching, setFetching] = useState(false); // Bool
   const [forceURL, setForceURL] = useState("");
-  const [seriesTitle, setSeriesTitle] = useState("");
-  const [issueVol, setIssueVol] = useState("");
-  const [issueNo, setIssueNo] = useState("");
-  const [issueCoverYear, setIssueCoverYear] = useState(0);
-  const [issueCoverMonth, setIssueCoverMonth] = useState(0);
-  const [publisherName, setPublisherName] = useState(0);
-  const [publisherNameOther, setPublisherNameOther] = useState("");
-  const [isKeyIssue, setIsKeyIssue] = useState(false);
-  const [keyIssue, setKeyIssue] = useState(0);
-  const [keyIssueOther, setKeyIssueOther] = useState("");
-  const [keyIssueDetail, setKeyIssueDetail] = useState("");
-  const [isInternationalEdition, setIsInternationalEdition] = useState(false);
-  const [isVariantCover, setIsVariantCover] = useState(false);
-  const [variantCoverDetail, setVariantCoverDetail] = useState("");
-  const [printing, setPrinting] = useState(1);
-  const [primaryLabelDetails, setPrimaryLabelDetails] = useState(2); // 2=Regular Edition
-  const [primaryLabelDetailsOther, setPrimaryLabelDetailsOther] = useState("");
-  const [creasesFinding, setCreasesFinding] = useState("");
-  const [tearsFinding, setTearsFinding] = useState("");
-  const [missingPartsFinding, setMissingPartsFinding] = useState("");
-  const [stainsFinding, setStainsFinding] = useState("");
-  const [distortionFinding, setDistortionFinding] = useState("");
-  const [paperQualityFinding, setPaperQualityFinding] = useState("");
-  const [spineFinding, setSpineFinding] = useState("");
-  const [coverFinding, setCoverFinding] = useState("");
-  const [gradingScale, setGradingScale] = useState(0);
-  const [overallLetterGrade, setOverallLetterGrade] = useState("");
-  const [overallNumberGrade, setOverallNumberGrade] = useState("");
-  const [cpsPercentageGrade, setCpsPercentageGrade] = useState("");
-  const [specialNotes, setSpecialNotes] = useState("");
-  const [gradingNotes, setGradingNotes] = useState("");
+  const [seriesTitle, setSeriesTitle] = useState(addComicSubmission.seriesTitle);
+  const [issueVol, setIssueVol] = useState(addComicSubmission.issueVol);
+  const [issueNo, setIssueNo] = useState(addComicSubmission.issueNo);
+  const [issueCoverYear, setIssueCoverYear] = useState(parseInt(addComicSubmission.issueCoverYear));
+  const [issueCoverMonth, setIssueCoverMonth] = useState(parseInt(addComicSubmission.issueCoverMonth));
+  const [publisherName, setPublisherName] = useState(parseInt(addComicSubmission.publisherName));
+  const [publisherNameOther, setPublisherNameOther] = useState(addComicSubmission.publisherNameOther);
+  const [isKeyIssue, setIsKeyIssue] = useState(false); // Bool
+  const [keyIssue, setKeyIssue] = useState(parseInt(addComicSubmission.keyIssue));
+  const [keyIssueOther, setKeyIssueOther] = useState(addComicSubmission.serviceType);
+  const [keyIssueDetail, setKeyIssueDetail] = useState(addComicSubmission.serviceType);
+  const [isInternationalEdition, setIsInternationalEdition] = useState(false); // Bool
+  const [isVariantCover, setIsVariantCover] = useState(false); // Bool
+  const [variantCoverDetail, setVariantCoverDetail] = useState(addComicSubmission.serviceType);
+  const [printing, setPrinting] = useState(parseInt(addComicSubmission.printing));
+  const [primaryLabelDetails, setPrimaryLabelDetails] = useState(parseInt(addComicSubmission.primaryLabelDetails)); // 2=Regular Edition
+  const [primaryLabelDetailsOther, setPrimaryLabelDetailsOther] = useState(addComicSubmission.primaryLabelDetailsOther);
+  const [creasesFinding, setCreasesFinding] = useState(addComicSubmission.serviceType);
+  const [tearsFinding, setTearsFinding] = useState(addComicSubmission.serviceType);
+  const [missingPartsFinding, setMissingPartsFinding] = useState(addComicSubmission.serviceType);
+  const [stainsFinding, setStainsFinding] = useState(addComicSubmission.serviceType);
+  const [distortionFinding, setDistortionFinding] = useState(addComicSubmission.serviceType);
+  const [paperQualityFinding, setPaperQualityFinding] = useState(addComicSubmission.serviceType);
+  const [specialNotes, setSpecialNotes] = useState(addComicSubmission.specialNotes);
   const [
     showsSignsOfTamperingOrRestoration,
     setShowsSignsOfTamperingOrRestoration,
-  ] = useState(2); // 2=no
-  const [showCancelWarning, setShowCancelWarning] = useState(false);
+  ] = useState(2); // 2=no  // Bool
+  const [showCancelWarning, setShowCancelWarning] = useState(false); // Bool
   const [
     isOverallLetterGradeNearMintPlus,
     setIsOverallLetterGradeNearMintPlus,
-  ] = useState(false);
-  const [serviceType, setServiceType] = useState(0);
+  ] = useState(false); // Bool
+  const [serviceType, setServiceType] = useState(parseInt(addComicSubmission.serviceType));
   const [signatures, setSignatures] = useState([]);
 
   ////
   //// Event handling.
   ////
 
-  const onSubmitClick = (e) => {
-    console.log("onSubmitClick: Beginning...");
-    console.log("onSubmitClick: Generating payload for submission.");
-    setFetching(true);
-    setErrors({});
+  const onSaveAndContinueClick = (e) => {
+      console.log("onSaveAndContinueClick: Beginning...");
 
-    setForceURL("/submissions/comics/add/step-4");
-  };
+      // Variables used to hold state if we got an error with validation.
+      let newErrors = {};
+      let hasErrors = false;
 
-  // Function will filter the available options based on user's organization level.
-  // Special thanks via:
-  // https://github.com/LuchaComics/cps-frontend/issues/160
-  const cpsPercentageGradeFilterOptions = (options, storeLevel) => {
-    return options.filter((option) => {
-      if (storeLevel === 1) {
-        return option.value <= 96;
+      // Perform validation.
+      if (seriesTitle === undefined || seriesTitle === null || seriesTitle === 0 || seriesTitle === "") {
+        newErrors["seriesTitle"] = "missing value";
+        hasErrors = true;
       }
-      if (storeLevel === 2 || storeLevel === 3) {
-        return option.value <= 98;
+      if (issueVol === undefined || issueVol === null || issueVol === "") {
+        newErrors["issueVol"] = "missing value";
+        hasErrors = true;
       }
-      return false;
-    });
-  };
+      if (issueNo === undefined || issueNo === null || issueNo === "") {
+        newErrors["issueNo"] = "missing value";
+        hasErrors = true;
+      }
+      if (issueCoverYear === undefined || issueCoverYear === null || issueCoverYear === 0 || issueCoverYear === "") {
+        newErrors["issueCoverYear"] = "missing value";
+        hasErrors = true;
+      }
+      if (issueCoverMonth === undefined || issueCoverMonth === null || issueCoverMonth === 0 || issueCoverMonth === "") {
+        newErrors["issueCoverMonth"] = "missing value";
+        hasErrors = true;
+      }
+      if (publisherName === undefined || publisherName === null || publisherName === 0 || publisherName === "") {
+        newErrors["publisherName"] = "missing value";
+        hasErrors = true;
+      } else if (publisherName === 1) { // Is other.
+          if (publisherNameOther === undefined || publisherNameOther === null || publisherNameOther === "") {
+            newErrors["publisherNameOther"] = "missing value";
+            hasErrors = true;
+          }
+      }
+      if (printing === undefined || printing === null || printing === 0 || printing === "") {
+        newErrors["printing"] = "missing value";
+        hasErrors = true;
+      }
+      if (issueVol === undefined || issueVol === null || issueVol === "") {
+        newErrors["issueVol"] = "missing value";
+        hasErrors = true;
+      }
+      if (primaryLabelDetails === undefined || primaryLabelDetails === null || primaryLabelDetails === 0 || primaryLabelDetails === "") {
+        newErrors["primaryLabelDetails"] = "missing value";
+        hasErrors = true;
+      } else if (primaryLabelDetails === 1) {
+          if (primaryLabelDetailsOther === undefined || primaryLabelDetailsOther === null || primaryLabelDetailsOther === 0 || primaryLabelDetailsOther === "") {
+            newErrors["primaryLabelDetailsOther"] = "missing value";
+            hasErrors = true;
+          }
+      }
 
-  // Function will filter the available options based on user's organization level.
-  // Special thanks via:
-  // https://github.com/LuchaComics/cps-frontend/issues/160
-  const overallNumberGradeFilterOptions = (options, storeLevel) => {
-    return options.filter((option) => {
-      if (storeLevel === 1) {
-        return option.value <= 9.6;
+      //
+      // CASE 1 of 2: Has errors.
+      //
+
+      if (hasErrors) {
+        console.log("onSaveAndContinueClick: Aboring because of error(s)");
+
+        // Set the associate based error validation.
+        setErrors(newErrors);
+
+        // The following code will cause the screen to scroll to the top of
+        // the page. Please see ``react-scroll`` for more information:
+        // https://github.com/fisshy/react-scroll
+        var scroll = Scroll.animateScroll;
+        scroll.scrollToTop();
+
+        return;
       }
-      if (storeLevel === 2 || storeLevel === 3) {
-        return option.value <= 9.8;
-      }
-      return false;
-    });
+
+      //
+      // CASE 2 of 2: Has no errors.
+      //
+
+      console.log("onSaveAndContinueClick: Saving step 3 and redirecting to step 4.");
+
+      // Variable holds a complete clone of the submission.
+      let modifiedAddComicSubmission = { ...addComicSubmission };
+
+      // Update our clone.
+      modifiedAddComicSubmission.seriesTitle = seriesTitle;
+      modifiedAddComicSubmission.issueVol = issueVol;
+      modifiedAddComicSubmission.issueNo = issueNo;
+      modifiedAddComicSubmission.issueCoverYear = issueCoverYear;
+      modifiedAddComicSubmission.issueCoverMonth = issueCoverMonth;
+      modifiedAddComicSubmission.publisherName = parseInt(publisherName);
+      modifiedAddComicSubmission.publisherNameOther = publisherNameOther;
+      modifiedAddComicSubmission.printing = parseInt(printing);
+      modifiedAddComicSubmission.issueVol = issueVol;
+      modifiedAddComicSubmission.primaryLabelDetails = primaryLabelDetails;
+      modifiedAddComicSubmission.primaryLabelDetailsOther = primaryLabelDetailsOther
+
+      // Save to persistent storage.
+      setAddComicSubmission(modifiedAddComicSubmission);
+
+      // Redirect to the next page.
+      setForceURL("/submissions/comics/add/step-4")
   };
 
   ////
   //// API.
   ////
-
-  function onComicSubmissionCreateSuccess(response) {
-    // For debugging purposes only.
-    console.log("onComicSubmissionCreateSuccess: Starting...");
-    console.log(response);
-
-    // Add a temporary banner message in the app and then clear itself after 2 seconds.
-    setTopAlertMessage("ComicSubmission created");
-    setTopAlertStatus("success");
-    setTimeout(() => {
-      console.log("onComicSubmissionCreateSuccess: Delayed for 2 seconds.");
-      console.log(
-        "onComicSubmissionCreateSuccess: topAlertMessage, topAlertStatus:",
-        topAlertMessage,
-        topAlertStatus,
-      );
-      setTopAlertMessage("");
-    }, 2000);
-
-    let urlParams = "";
-    if (customerName !== null) {
-      urlParams +=
-        "?customer_id=" + customerID + "&customer_name=" + customerName;
-    }
-
-    // Redirect the user to a new page.
-    setForceURL("/submissions/comics/add/" + response.id + urlParams);
-  }
-
-  function onComicSubmissionCreateError(apiErr) {
-    console.log("onComicSubmissionCreateError: Starting...");
-    setErrors(apiErr);
-
-    // Add a temporary banner message in the app and then clear itself after 2 seconds.
-    setTopAlertMessage("Failed submitting");
-    setTopAlertStatus("danger");
-    setTimeout(() => {
-      console.log("onComicSubmissionCreateError: Delayed for 2 seconds.");
-      console.log(
-        "onComicSubmissionCreateError: topAlertMessage, topAlertStatus:",
-        topAlertMessage,
-        topAlertStatus,
-      );
-      setTopAlertMessage("");
-    }, 2000);
-
-    // The following code will cause the screen to scroll to the top of
-    // the page. Please see ``react-scroll`` for more information:
-    // https://github.com/fisshy/react-scroll
-    var scroll = Scroll.animateScroll;
-    scroll.scrollToTop();
-  }
-
-  function onComicSubmissionCreateDone() {
-    console.log("onComicSubmissionCreateDone: Starting...");
-    setFetching(false);
-  }
-
-  // --- All --- //
-
-  const onUnauthorized = () => {
-    setForceURL("/login?unauthorized=true"); // If token expired or user is not logged in, redirect back to login.
-  };
 
   ////
   //// Misc.
@@ -258,37 +258,6 @@ function RetailerComicSubmissionAddStep3() {
   if (forceURL !== "") {
     return <Navigate to={forceURL} />;
   }
-
-  // The following code will check to see if we need to grant the 'is NM+' option is available to the user.
-  let isNMPlusOpen = gradingScale === 1 && overallLetterGrade === "nm";
-
-  // Apply the custom function to your options
-  const cpsPercentageGradeFilteredOptions = cpsPercentageGradeFilterOptions(
-    CPS_PERCENTAGE_GRADE_WITH_EMPTY_OPTIONS,
-    currentUser.storeLevel,
-  );
-  const overallNumberGradeFilteredOptions = overallNumberGradeFilterOptions(
-    OVERALL_NUMBER_GRADE_WITH_EMPTY_OPTIONS,
-    currentUser.storeLevel,
-  );
-
-  // Apply service type limitation based on the retailer store's level.
-  const conditionalServiceTypeOptions = ((currentUser) => {
-    if (currentUser.storeLevel === 1 || currentUser.storeLevel === 2) {
-      return RETAILER_AVAILABLE_SERVICE_TYPE_WITH_EMPTY_OPTIONS;
-    } else {
-      // DEVELOPERS NOTE: Level 3 retailer stores are allowed to add a
-      // new type of service type.
-      const newServiceTypeOptions = [
-        ...RETAILER_AVAILABLE_SERVICE_TYPE_WITH_EMPTY_OPTIONS,
-        {
-          value: SERVICE_TYPE_CPS_CAPSULE_U_GRADE_SIGNATURE_COLLECTION,
-          label: "CPS Capsule U-Grade Signature Collection",
-        },
-      ];
-      return newServiceTypeOptions;
-    }
-  })(currentUser);
 
   // Render the JSX content.
   return (
@@ -395,46 +364,7 @@ function RetailerComicSubmissionAddStep3() {
           )}
 
           {/* Modals */}
-          <div class={`modal ${showCancelWarning ? "is-active" : ""}`}>
-            <div class="modal-background"></div>
-            <div class="modal-card">
-              <header class="modal-card-head">
-                <p class="modal-card-title">Are you sure?</p>
-                <button
-                  class="delete"
-                  aria-label="close"
-                  onClick={(e) => setShowCancelWarning(false)}
-                ></button>
-              </header>
-              <section class="modal-card-body">
-                Your submission will be cancelled and your work will be lost.
-                This cannot be undone. Do you want to continue?
-              </section>
-              <footer class="modal-card-foot">
-                {customerName === null ? (
-                  <Link
-                    class="button is-medium is-success"
-                    to={`/submissions/comics/add/step-1/search`}
-                  >
-                    Yes
-                  </Link>
-                ) : (
-                  <Link
-                    class="button is-medium is-success"
-                    to={`/customer/${customerID}/sub`}
-                  >
-                    Yes
-                  </Link>
-                )}
-                <button
-                  class="button is-medium "
-                  onClick={(e) => setShowCancelWarning(false)}
-                >
-                  No
-                </button>
-              </footer>
-            </div>
-          </div>
+          {/* ------ */}
 
           {/* Progress Wizard */}
           <nav className="box has-background-light">
@@ -707,22 +637,6 @@ function RetailerComicSubmissionAddStep3() {
                     rows={4}
                   />
 
-                  {primaryLabelDetails === 1 && (
-                    <FormInputField
-                      label="Primary Label Details (Other)"
-                      name="primaryLabelDetailsOther"
-                      placeholder="Text input"
-                      value={primaryLabelDetailsOther}
-                      errorText={errors && errors.primaryLabelDetailsOther}
-                      helpText=""
-                      onChange={(e) =>
-                        setPrimaryLabelDetailsOther(e.target.value)
-                      }
-                      isRequired={true}
-                      maxWidth="280px"
-                    />
-                  )}
-
                   <FormComicSignaturesTable
                     data={signatures}
                     onDataChange={setSignatures}
@@ -758,7 +672,7 @@ function RetailerComicSubmissionAddStep3() {
                     <div class="column is-half has-text-right">
                       <button
                         class="button is-medium is-primary is-fullwidth-mobile"
-                        onClick={onSubmitClick}
+                        onClick={onSaveAndContinueClick}
                       >
                         Save and Continue&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} />
                       </button>

@@ -90,14 +90,14 @@ function RetailerComicSubmissionAddStep2() {
   const [forceURL, setForceURL] = useState("");
   const [keyIssueDetail, setKeyIssueDetail] = useState("");
   const [showCancelWarning, setShowCancelWarning] = useState(false);
-  const [serviceType, setServiceType] = useState(addComicSubmission.serviceType);
+  const [serviceType, setServiceType] = useState(parseInt(addComicSubmission.serviceType));
 
   ////
   //// Event handling.
   ////
 
-  const onSubmitClick = (e) => {
-    console.log("onSubmitClick: Beginning...");
+  const onSaveAndContinueClick = (e) => {
+    console.log("onSaveAndContinueClick: Beginning...");
 
     let newErrors = {};
     let hasErrors = false;
@@ -112,7 +112,7 @@ function RetailerComicSubmissionAddStep2() {
     //
 
     if (hasErrors) {
-      console.log("onSubmitClick: Aboring because of error(s)");
+      console.log("onSaveAndContinueClick: Aboring because of error(s)");
 
       // Set the associate based error validation.
       setErrors(newErrors);
@@ -130,7 +130,7 @@ function RetailerComicSubmissionAddStep2() {
     // CASE 2 of 2: Has no errors.
     //
 
-    console.log("onSubmitClick: Saving step 2 and redirecting to step 3.");
+    console.log("onSaveAndContinueClick: Saving step 2 and redirecting to step 3.");
 
     // Variable holds a complete clone of the submission.
     let modifiedAddComicSubmission = { ...addComicSubmission };
@@ -178,69 +178,6 @@ function RetailerComicSubmissionAddStep2() {
   ////
   //// API.
   ////
-
-  function onComicSubmissionCreateSuccess(response) {
-    // For debugging purposes only.
-    console.log("onComicSubmissionCreateSuccess: Starting...");
-    console.log(response);
-
-    // Add a temporary banner message in the app and then clear itself after 2 seconds.
-    setTopAlertMessage("ComicSubmission created");
-    setTopAlertStatus("success");
-    setTimeout(() => {
-      console.log("onComicSubmissionCreateSuccess: Delayed for 2 seconds.");
-      console.log(
-        "onComicSubmissionCreateSuccess: topAlertMessage, topAlertStatus:",
-        topAlertMessage,
-        topAlertStatus,
-      );
-      setTopAlertMessage("");
-    }, 2000);
-
-    let urlParams = "";
-    if (customerName !== null) {
-      urlParams +=
-        "?customer_id=" + customerID + "&customer_name=" + customerName;
-    }
-
-    // Redirect the user to a new page.
-    setForceURL("/submissions/comics/add/" + response.id + urlParams);
-  }
-
-  function onComicSubmissionCreateError(apiErr) {
-    console.log("onComicSubmissionCreateError: Starting...");
-    setErrors(apiErr);
-
-    // Add a temporary banner message in the app and then clear itself after 2 seconds.
-    setTopAlertMessage("Failed submitting");
-    setTopAlertStatus("danger");
-    setTimeout(() => {
-      console.log("onComicSubmissionCreateError: Delayed for 2 seconds.");
-      console.log(
-        "onComicSubmissionCreateError: topAlertMessage, topAlertStatus:",
-        topAlertMessage,
-        topAlertStatus,
-      );
-      setTopAlertMessage("");
-    }, 2000);
-
-    // The following code will cause the screen to scroll to the top of
-    // the page. Please see ``react-scroll`` for more information:
-    // https://github.com/fisshy/react-scroll
-    var scroll = Scroll.animateScroll;
-    scroll.scrollToTop();
-  }
-
-  function onComicSubmissionCreateDone() {
-    console.log("onComicSubmissionCreateDone: Starting...");
-    setFetching(false);
-  }
-
-  // --- All --- //
-
-  const onUnauthorized = () => {
-    setForceURL("/login?unauthorized=true"); // If token expired or user is not logged in, redirect back to login.
-  };
 
   ////
   //// Misc.
@@ -500,7 +437,7 @@ function RetailerComicSubmissionAddStep2() {
                     <div class="column is-half has-text-right">
                       <button
                         class="button is-medium is-primary is-fullwidth-mobile"
-                        onClick={onSubmitClick}
+                        onClick={onSaveAndContinueClick}
                       >
                         Save and Continue&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} />
                       </button>
