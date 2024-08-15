@@ -258,7 +258,7 @@ export const ADD_COMIC_SUBMISSION_STATE_DEFAULT = {
     overallNumberGrade: "",
     cpsPercentageGrade: "",
     showsSignsOfTamperingOrRestoration: 2,
-    status: "",
+    status: 1, //1=Waiting to Receive, 7=Completed by Retail Partner
     serviceType: 0,
     storeID: "",
     collectibleType: 1, // 1=Comic, 2=Card

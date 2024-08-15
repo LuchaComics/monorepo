@@ -23,6 +23,7 @@ import {
 import { useRecoilState } from "recoil";
 
 import useLocalStorage from "../../../../Hooks/useLocalStorage";
+import { postComicSubmissionCreateAPI } from "../../../../API/ComicSubmission";
 import FormErrorBox from "../../../Reusable/FormErrorBox";
 import FormInputField from "../../../Reusable/FormInputField";
 import FormDateField from "../../../Reusable/FormDateField";
@@ -61,7 +62,7 @@ import {
 } from "../../../../AppState";
 
 
-function RetailerComicSubmissionAddStep2() {
+function RetailerComicSubmissionAddStep9() {
   ////
   //// URL Parameters.
   ////
@@ -88,63 +89,74 @@ function RetailerComicSubmissionAddStep2() {
   const [errors, setErrors] = useState({});
   const [isFetching, setFetching] = useState(false);
   const [forceURL, setForceURL] = useState("");
+  const [gradingScale, setGradingScale] = useState(0);
+  const [overallLetterGrade, setOverallLetterGrade] = useState("");
+  const [overallNumberGrade, setOverallNumberGrade] = useState("");
+  const [cpsPercentageGrade, setCpsPercentageGrade] = useState("");
   const [showCancelWarning, setShowCancelWarning] = useState(false);
+  const [
+    isOverallLetterGradeNearMintPlus,
+    setIsOverallLetterGradeNearMintPlus,
+  ] = useState(false);
+  const [serviceType, setServiceType] = useState(0);
 
   ////
   //// Event handling.
   ////
 
-  const onSaveAndContinueClick = (e) => {
+  const onSubmitClick = (e) => {
     console.log("onSaveAndContinueClick: Beginning...");
 
+    // Variables used to hold state if we got an error with validation.
     let newErrors = {};
     let hasErrors = false;
 
-    // if (serviceType === undefined || serviceType === null || serviceType === 0 || serviceType === "") {
-    //   newErrors["serviceType"] = "missing value";
+    // // Perform validation.
+    // if (seriesTitle === undefined || seriesTitle === null || seriesTitle === 0 || seriesTitle === "") {
+    //   newErrors["seriesTitle"] = "missing value";
     //   hasErrors = true;
     // }
+
     //
-    // //
-    // // CASE 1 of 2: Has errors.
-    // //
+    // CASE 1 of 2: Has errors.
     //
-    // if (hasErrors) {
-    //   console.log("onSaveAndContinueClick: Aboring because of error(s)");
-    //
-    //   // Set the associate based error validation.
-    //   setErrors(newErrors);
-    //
-    //   // The following code will cause the screen to scroll to the top of
-    //   // the page. Please see ``react-scroll`` for more information:
-    //   // https://github.com/fisshy/react-scroll
-    //   var scroll = Scroll.animateScroll;
-    //   scroll.scrollToTop();
-    //
-    //   return;
-    // }
+
+    if (hasErrors) {
+      console.log("onSaveAndContinueClick: Aboring because of error(s)");
+
+      // Set the associate based error validation.
+      setErrors(newErrors);
+
+      // The following code will cause the screen to scroll to the top of
+      // the page. Please see ``react-scroll`` for more information:
+      // https://github.com/fisshy/react-scroll
+      var scroll = Scroll.animateScroll;
+      scroll.scrollToTop();
+
+      return;
+    }
 
     //
     // CASE 2 of 2: Has no errors.
     //
 
-    console.log("onSaveAndContinueClick: Saving step 2 and redirecting to step 3.");
+    console.log("onSaveAndContinueClick: Saving step 9 and redirecting to step 10.");
 
     // Variable holds a complete clone of the submission.
     let modifiedAddComicSubmission = { ...addComicSubmission };
 
-    // storeID: currentUser.storeId,
-    // collectibleType: 1, // 1=Comic, 2=Card
-    // customerID: customerID,
-
-    // // Update our clone.
-    // modifiedAddComicSubmission.serviceType = serviceType;
+    // Update our clone.
+    modifiedAddComicSubmission.gradingScale = parseInt(gradingScale); // 2=Number Grading Scale
+    modifiedAddComicSubmission.overallLetterGrade = overallLetterGrade;
+    modifiedAddComicSubmission.isOverallLetterGradeNearMintPlus = isOverallLetterGradeNearMintPlus;
+    modifiedAddComicSubmission.overallNumberGrade = parseFloat(overallNumberGrade);
+    modifiedAddComicSubmission.cpsPercentageGrade = parseFloat(cpsPercentageGrade);
 
     // Save to persistent storage.
     setAddComicSubmission(modifiedAddComicSubmission);
 
     // Redirect to the next page.
-    setForceURL("/submissions/comics/add/step-3")
+    setForceURL("/submissions/comics/add/step-10")
   };
 
   // Function will filter the available options based on user's organization level.
@@ -181,6 +193,69 @@ function RetailerComicSubmissionAddStep2() {
   //// API.
   ////
 
+  function onComicSubmissionCreateSuccess(response) {
+    // For debugging purposes only.
+    console.log("onComicSubmissionCreateSuccess: Starting...");
+    console.log(response);
+
+    // Add a temporary banner message in the app and then clear itself after 2 seconds.
+    setTopAlertMessage("ComicSubmission created");
+    setTopAlertStatus("success");
+    setTimeout(() => {
+      console.log("onComicSubmissionCreateSuccess: Delayed for 2 seconds.");
+      console.log(
+        "onComicSubmissionCreateSuccess: topAlertMessage, topAlertStatus:",
+        topAlertMessage,
+        topAlertStatus,
+      );
+      setTopAlertMessage("");
+    }, 2000);
+
+    let urlParams = "";
+    if (customerName !== null) {
+      urlParams +=
+        "?customer_id=" + customerID + "&customer_name=" + customerName;
+    }
+
+    // Redirect the user to a new page.
+    setForceURL("/submissions/comics/add/" + response.id + urlParams);
+  }
+
+  function onComicSubmissionCreateError(apiErr) {
+    console.log("onComicSubmissionCreateError: Starting...");
+    setErrors(apiErr);
+
+    // Add a temporary banner message in the app and then clear itself after 2 seconds.
+    setTopAlertMessage("Failed submitting");
+    setTopAlertStatus("danger");
+    setTimeout(() => {
+      console.log("onComicSubmissionCreateError: Delayed for 2 seconds.");
+      console.log(
+        "onComicSubmissionCreateError: topAlertMessage, topAlertStatus:",
+        topAlertMessage,
+        topAlertStatus,
+      );
+      setTopAlertMessage("");
+    }, 2000);
+
+    // The following code will cause the screen to scroll to the top of
+    // the page. Please see ``react-scroll`` for more information:
+    // https://github.com/fisshy/react-scroll
+    var scroll = Scroll.animateScroll;
+    scroll.scrollToTop();
+  }
+
+  function onComicSubmissionCreateDone() {
+    console.log("onComicSubmissionCreateDone: Starting...");
+    setFetching(false);
+  }
+
+  // --- All --- //
+
+  const onUnauthorized = () => {
+    setForceURL("/login?unauthorized=true"); // If token expired or user is not logged in, redirect back to login.
+  };
+
   ////
   //// Misc.
   ////
@@ -204,6 +279,19 @@ function RetailerComicSubmissionAddStep2() {
   if (forceURL !== "") {
     return <Navigate to={forceURL} />;
   }
+
+  // The following code will check to see if we need to grant the 'is NM+' option is available to the user.
+  let isNMPlusOpen = gradingScale === 1 && overallLetterGrade === "nm";
+
+  // Apply the custom function to your options
+  const cpsPercentageGradeFilteredOptions = cpsPercentageGradeFilterOptions(
+    CPS_PERCENTAGE_GRADE_WITH_EMPTY_OPTIONS,
+    currentUser.storeLevel,
+  );
+  const overallNumberGradeFilteredOptions = overallNumberGradeFilterOptions(
+    OVERALL_NUMBER_GRADE_WITH_EMPTY_OPTIONS,
+    currentUser.storeLevel,
+  );
 
   // Apply service type limitation based on the retailer store's level.
   const conditionalServiceTypeOptions = ((currentUser) => {
@@ -371,13 +459,13 @@ function RetailerComicSubmissionAddStep2() {
 
           {/* Progress Wizard */}
           <nav className="box has-background-light">
-            <p className="subtitle is-5">Step 2 of 10</p>
+            <p className="subtitle is-5">Step 9 of 10</p>
             <progress
               class="progress is-success"
-              value="20"
+              value="90"
               max="100"
             >
-              20%
+              90%
             </progress>
           </nav>
 
@@ -397,37 +485,120 @@ function RetailerComicSubmissionAddStep2() {
                   form.
                 </p>
                 <div class="container">
-                  <p class="subtitle is-6">
-                    <FontAwesomeIcon className="fas" icon={faCog} />
-                    &nbsp;Settings
-                  </p>
-                  <hr />
 
-                  <FormInputField
-                    label="Store"
-                    name="store"
-                    placeholder="Text input"
-                    value={currentUser.storeName}
-                    helpText="Your organization that you will submit under this submission."
-                    isRequired={true}
-                    maxWidth="380px"
-                    disabled={true}
-                  />
+                  {serviceType !== SERVICE_TYPE_CPS_CAPSULE_INDIE_MINT_GEM && (
+                    <>
+                      <p class="subtitle is-6">
+                        <FontAwesomeIcon
+                          className="fas"
+                          icon={faBalanceScale}
+                        />
+                        &nbsp;Grading
+                      </p>
+                      <hr />
+
+                      <FormRadioField
+                        label="Which type of grading scale would you prefer?"
+                        name="gradingScale"
+                        value={gradingScale}
+                        opt1Value={1}
+                        opt1Label="Letter Grade (Poor-Near Mint)"
+                        opt2Value={2}
+                        opt2Label="Numbers (0.5-10.0)"
+                        opt3Value={3}
+                        opt3Label="CPS Percentage (5%-100%)"
+                        errorText={errors && errors.gradingScale}
+                        onChange={(e) =>
+                          setGradingScale(parseInt(e.target.value))
+                        }
+                        maxWidth="180px"
+                      />
+
+                      {gradingScale === 1 && (
+                        <>
+                          <FormSelectField
+                            label="Overall Letter Grade"
+                            name="overallLetterGrade"
+                            placeholder="Overall Letter Grade"
+                            selectedValue={overallLetterGrade}
+                            errorText={errors && errors.overallLetterGrade}
+                            helpText=""
+                            onChange={(e) =>
+                              setOverallLetterGrade(e.target.value)
+                            }
+                            options={FINDING_WITH_EMPTY_OPTIONS}
+                          />
+                          {isNMPlusOpen && (
+                            <>
+                              <FormCheckboxField
+                                label="Is Near Mint plus?"
+                                name="isOverallLetterGradeNearMintPlus"
+                                checked={isOverallLetterGradeNearMintPlus}
+                                errorText={
+                                  errors &&
+                                  errors.isOverallLetterGradeNearMintPlus
+                                }
+                                onChange={(e) =>
+                                  setIsOverallLetterGradeNearMintPlus(
+                                    !isOverallLetterGradeNearMintPlus,
+                                  )
+                                }
+                                maxWidth="180px"
+                              />
+                            </>
+                          )}
+                        </>
+                      )}
+
+                      {gradingScale === 2 && (
+                        <FormSelectField
+                          label="Overall Number Grade"
+                          name="overallNumberGrade"
+                          placeholder="Overall Number Grade"
+                          selectedValue={overallNumberGrade}
+                          errorText={errors && errors.overallNumberGrade}
+                          helpText=""
+                          onChange={(e) =>
+                            setOverallNumberGrade(e.target.value)
+                          }
+                          options={overallNumberGradeFilteredOptions}
+                        />
+                      )}
+
+                      {gradingScale === 3 && (
+                        <FormSelectField
+                          label="CPS Percentage Grade"
+                          name="cpsPercentageGrade"
+                          placeholder="CPS Percentage Grade"
+                          selectedValue={cpsPercentageGrade}
+                          errorText={errors && errors.cpsPercentageGrade}
+                          helpText=""
+                          onChange={(e) =>
+                            setCpsPercentageGrade(e.target.value)
+                          }
+                          options={cpsPercentageGradeFilteredOptions}
+                        />
+                      )}
+                    </>
+                  )}
 
                   <div class="columns pt-5">
                     <div class="column is-half">
                       <button
                         class="button is-medium is-fullwidth-mobile"
-                        onClick={(e) => setShowCancelWarning(true)}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            setForceURL("/submissions/comics/add/step-8");
+                        }}
                       >
-                        <FontAwesomeIcon className="fas" icon={faTimesCircle} />
-                        &nbsp;Cancel
+                        <FontAwesomeIcon className="fas" icon={faArrowLeft} />
+                        &nbsp;Back to Step 8
                       </button>
                     </div>
                     <div class="column is-half has-text-right">
                       <button
                         class="button is-medium is-primary is-fullwidth-mobile"
-                        onClick={onSaveAndContinueClick}
+                        onClick={onSubmitClick}
                       >
                         Save and Continue&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} />
                       </button>
@@ -443,4 +614,4 @@ function RetailerComicSubmissionAddStep2() {
   );
 }
 
-export default RetailerComicSubmissionAddStep2;
+export default RetailerComicSubmissionAddStep9;

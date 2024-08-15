@@ -102,6 +102,8 @@ import RetailerComicSubmissionAddStep5 from "./Components/Retailer/Submission/Co
 import RetailerComicSubmissionAddStep6 from "./Components/Retailer/Submission/Comic/AddStep6";
 import RetailerComicSubmissionAddStep7 from "./Components/Retailer/Submission/Comic/AddStep7";
 import RetailerComicSubmissionAddStep8 from "./Components/Retailer/Submission/Comic/AddStep8";
+import RetailerComicSubmissionAddStep9 from "./Components/Retailer/Submission/Comic/AddStep9";
+import RetailerComicSubmissionAddStep10 from "./Components/Retailer/Submission/Comic/AddStep10";
 import RetailerComicSubmissionAddStepXXX from "./Components/Retailer/Submission/Comic/AddStepX";
 import RetailerComicSubmissionAddStepYYY from "./Components/Retailer/Submission/Comic/AddStepY";
 import RetailerComicSubmissionDetail from "./Components/Retailer/Submission/Comic/Detail";
@@ -625,6 +627,16 @@ function AppRoute() {
                     exact
                     path="/submissions/comics/add/step-8"
                     element={<RetailerComicSubmissionAddStep8 />}
+                  />
+                  <Route
+                    exact
+                    path="/submissions/comics/add/step-9"
+                    element={<RetailerComicSubmissionAddStep9 />}
+                  />
+                  <Route
+                    exact
+                    path="/submissions/comics/add/step-10"
+                    element={<RetailerComicSubmissionAddStep10 />}
                   />
                   <Route
                     exact

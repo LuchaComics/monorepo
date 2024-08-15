@@ -18,11 +18,11 @@ import {
   faUser,
   faArrowUpRightFromSquare,
   faCog,
-  faArrowRight
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
 import useLocalStorage from "../../../../Hooks/useLocalStorage";
+import { postComicSubmissionCreateAPI } from "../../../../API/ComicSubmission";
 import FormErrorBox from "../../../Reusable/FormErrorBox";
 import FormInputField from "../../../Reusable/FormInputField";
 import FormDateField from "../../../Reusable/FormDateField";
@@ -55,13 +55,8 @@ import {
   topAlertStatusState,
   currentUserState,
 } from "../../../../AppState";
-import {
-  addComicSubmissionState,
-  ADD_COMIC_SUBMISSION_STATE_DEFAULT,
-} from "../../../../AppState";
 
-
-function RetailerComicSubmissionAddStep2() {
+function RetailerComicSubmissionAddStep10() {
   ////
   //// URL Parameters.
   ////
@@ -79,7 +74,6 @@ function RetailerComicSubmissionAddStep2() {
   const [topAlertStatus, setTopAlertStatus] =
     useRecoilState(topAlertStatusState);
   const [currentUser] = useRecoilState(currentUserState);
-  const [addComicSubmission, setAddComicSubmission] = useRecoilState(addComicSubmissionState);
 
   ////
   //// Component states.
@@ -88,63 +82,113 @@ function RetailerComicSubmissionAddStep2() {
   const [errors, setErrors] = useState({});
   const [isFetching, setFetching] = useState(false);
   const [forceURL, setForceURL] = useState("");
+  const [seriesTitle, setSeriesTitle] = useState("");
+  const [issueVol, setIssueVol] = useState("");
+  const [issueNo, setIssueNo] = useState("");
+  const [issueCoverYear, setIssueCoverYear] = useState(0);
+  const [issueCoverMonth, setIssueCoverMonth] = useState(0);
+  const [publisherName, setPublisherName] = useState(0);
+  const [publisherNameOther, setPublisherNameOther] = useState("");
+  const [isKeyIssue, setIsKeyIssue] = useState(false);
+  const [keyIssue, setKeyIssue] = useState(0);
+  const [keyIssueOther, setKeyIssueOther] = useState("");
+  const [keyIssueDetail, setKeyIssueDetail] = useState("");
+  const [isInternationalEdition, setIsInternationalEdition] = useState(false);
+  const [isVariantCover, setIsVariantCover] = useState(false);
+  const [variantCoverDetail, setVariantCoverDetail] = useState("");
+  const [printing, setPrinting] = useState(1);
+  const [primaryLabelDetails, setPrimaryLabelDetails] = useState(2); // 2=Regular Edition
+  const [primaryLabelDetailsOther, setPrimaryLabelDetailsOther] = useState("");
+  const [creasesFinding, setCreasesFinding] = useState("");
+  const [tearsFinding, setTearsFinding] = useState("");
+  const [missingPartsFinding, setMissingPartsFinding] = useState("");
+  const [stainsFinding, setStainsFinding] = useState("");
+  const [distortionFinding, setDistortionFinding] = useState("");
+  const [paperQualityFinding, setPaperQualityFinding] = useState("");
+  const [spineFinding, setSpineFinding] = useState("");
+  const [coverFinding, setCoverFinding] = useState("");
+  const [gradingScale, setGradingScale] = useState(0);
+  const [overallLetterGrade, setOverallLetterGrade] = useState("");
+  const [overallNumberGrade, setOverallNumberGrade] = useState("");
+  const [cpsPercentageGrade, setCpsPercentageGrade] = useState("");
+  const [specialNotes, setSpecialNotes] = useState("");
+  const [gradingNotes, setGradingNotes] = useState("");
+  const [
+    showsSignsOfTamperingOrRestoration,
+    setShowsSignsOfTamperingOrRestoration,
+  ] = useState(2); // 2=no
   const [showCancelWarning, setShowCancelWarning] = useState(false);
+  const [
+    isOverallLetterGradeNearMintPlus,
+    setIsOverallLetterGradeNearMintPlus,
+  ] = useState(false);
+  const [serviceType, setServiceType] = useState(0);
+  const [signatures, setSignatures] = useState([]);
 
   ////
   //// Event handling.
   ////
 
-  const onSaveAndContinueClick = (e) => {
-    console.log("onSaveAndContinueClick: Beginning...");
+  const onSubmitClick = (e) => {
+    console.log("onSubmitClick: Beginning...");
+    console.log("onSubmitClick: Generating payload for submission.");
+    setFetching(true);
+    setErrors({});
 
-    let newErrors = {};
-    let hasErrors = false;
+    // Generate the payload.
+    const submission = {
+      seriesTitle: seriesTitle,
+      issueVol: issueVol,
+      issueNo: issueNo,
+      issueCoverYear: issueCoverYear,
+      issueCoverMonth: issueCoverMonth,
+      publisherName: publisherName,
+      publisherNameOther: publisherNameOther,
+      isKeyIssue: isKeyIssue,
+      keyIssue: keyIssue,
+      keyIssueOther: keyIssueOther,
+      keyIssueDetail: keyIssueDetail,
+      isInternationalEdition: isInternationalEdition,
+      isVariantCover: isVariantCover,
+      variantCoverDetail: variantCoverDetail,
+      printing: printing,
+      primaryLabelDetails: primaryLabelDetails,
+      primaryLabelDetailsOther: primaryLabelDetailsOther,
+      specialNotes: specialNotes,
+      gradingNotes: gradingNotes,
+      signatures: signatures,
+      creasesFinding: creasesFinding,
+      tearsFinding: tearsFinding,
+      missingPartsFinding: missingPartsFinding,
+      stainsFinding: stainsFinding,
+      distortionFinding: distortionFinding,
+      paperQualityFinding: paperQualityFinding,
+      spineFinding: spineFinding,
+      coverFinding: coverFinding,
+      gradingScale: parseInt(gradingScale), // 2=Number Grading Scale
+      overallLetterGrade: overallLetterGrade,
+      isOverallLetterGradeNearMintPlus: isOverallLetterGradeNearMintPlus,
+      overallNumberGrade: parseFloat(overallNumberGrade),
+      cpsPercentageGrade: parseFloat(cpsPercentageGrade),
+      showsSignsOfTamperingOrRestoration: parseInt(
+        showsSignsOfTamperingOrRestoration,
+      ), // 2=No
+      status: 1, //1=Waiting to Receive, 7=Completed by Retail Partner
+      serviceType: serviceType,
+      storeID: currentUser.storeId,
+      collectibleType: 1, // 1=Comic, 2=Card
+      customerID: customerID,
+    };
 
-    // if (serviceType === undefined || serviceType === null || serviceType === 0 || serviceType === "") {
-    //   newErrors["serviceType"] = "missing value";
-    //   hasErrors = true;
-    // }
-    //
-    // //
-    // // CASE 1 of 2: Has errors.
-    // //
-    //
-    // if (hasErrors) {
-    //   console.log("onSaveAndContinueClick: Aboring because of error(s)");
-    //
-    //   // Set the associate based error validation.
-    //   setErrors(newErrors);
-    //
-    //   // The following code will cause the screen to scroll to the top of
-    //   // the page. Please see ``react-scroll`` for more information:
-    //   // https://github.com/fisshy/react-scroll
-    //   var scroll = Scroll.animateScroll;
-    //   scroll.scrollToTop();
-    //
-    //   return;
-    // }
-
-    //
-    // CASE 2 of 2: Has no errors.
-    //
-
-    console.log("onSaveAndContinueClick: Saving step 2 and redirecting to step 3.");
-
-    // Variable holds a complete clone of the submission.
-    let modifiedAddComicSubmission = { ...addComicSubmission };
-
-    // storeID: currentUser.storeId,
-    // collectibleType: 1, // 1=Comic, 2=Card
-    // customerID: customerID,
-
-    // // Update our clone.
-    // modifiedAddComicSubmission.serviceType = serviceType;
-
-    // Save to persistent storage.
-    setAddComicSubmission(modifiedAddComicSubmission);
-
-    // Redirect to the next page.
-    setForceURL("/submissions/comics/add/step-3")
+    // Submit to the backend.
+    console.log("onSubmitClick: payload:", submission);
+    postComicSubmissionCreateAPI(
+      submission,
+      onComicSubmissionCreateSuccess,
+      onComicSubmissionCreateError,
+      onComicSubmissionCreateDone,
+      onUnauthorized,
+    );
   };
 
   // Function will filter the available options based on user's organization level.
@@ -181,6 +225,69 @@ function RetailerComicSubmissionAddStep2() {
   //// API.
   ////
 
+  function onComicSubmissionCreateSuccess(response) {
+    // For debugging purposes only.
+    console.log("onComicSubmissionCreateSuccess: Starting...");
+    console.log(response);
+
+    // Add a temporary banner message in the app and then clear itself after 2 seconds.
+    setTopAlertMessage("ComicSubmission created");
+    setTopAlertStatus("success");
+    setTimeout(() => {
+      console.log("onComicSubmissionCreateSuccess: Delayed for 2 seconds.");
+      console.log(
+        "onComicSubmissionCreateSuccess: topAlertMessage, topAlertStatus:",
+        topAlertMessage,
+        topAlertStatus,
+      );
+      setTopAlertMessage("");
+    }, 2000);
+
+    let urlParams = "";
+    if (customerName !== null) {
+      urlParams +=
+        "?customer_id=" + customerID + "&customer_name=" + customerName;
+    }
+
+    // Redirect the user to a new page.
+    setForceURL("/submissions/comics/add/" + response.id + urlParams);
+  }
+
+  function onComicSubmissionCreateError(apiErr) {
+    console.log("onComicSubmissionCreateError: Starting...");
+    setErrors(apiErr);
+
+    // Add a temporary banner message in the app and then clear itself after 2 seconds.
+    setTopAlertMessage("Failed submitting");
+    setTopAlertStatus("danger");
+    setTimeout(() => {
+      console.log("onComicSubmissionCreateError: Delayed for 2 seconds.");
+      console.log(
+        "onComicSubmissionCreateError: topAlertMessage, topAlertStatus:",
+        topAlertMessage,
+        topAlertStatus,
+      );
+      setTopAlertMessage("");
+    }, 2000);
+
+    // The following code will cause the screen to scroll to the top of
+    // the page. Please see ``react-scroll`` for more information:
+    // https://github.com/fisshy/react-scroll
+    var scroll = Scroll.animateScroll;
+    scroll.scrollToTop();
+  }
+
+  function onComicSubmissionCreateDone() {
+    console.log("onComicSubmissionCreateDone: Starting...");
+    setFetching(false);
+  }
+
+  // --- All --- //
+
+  const onUnauthorized = () => {
+    setForceURL("/login?unauthorized=true"); // If token expired or user is not logged in, redirect back to login.
+  };
+
   ////
   //// Misc.
   ////
@@ -204,6 +311,19 @@ function RetailerComicSubmissionAddStep2() {
   if (forceURL !== "") {
     return <Navigate to={forceURL} />;
   }
+
+  // The following code will check to see if we need to grant the 'is NM+' option is available to the user.
+  let isNMPlusOpen = gradingScale === 1 && overallLetterGrade === "nm";
+
+  // Apply the custom function to your options
+  const cpsPercentageGradeFilteredOptions = cpsPercentageGradeFilterOptions(
+    CPS_PERCENTAGE_GRADE_WITH_EMPTY_OPTIONS,
+    currentUser.storeLevel,
+  );
+  const overallNumberGradeFilteredOptions = overallNumberGradeFilterOptions(
+    OVERALL_NUMBER_GRADE_WITH_EMPTY_OPTIONS,
+    currentUser.storeLevel,
+  );
 
   // Apply service type limitation based on the retailer store's level.
   const conditionalServiceTypeOptions = ((currentUser) => {
@@ -370,14 +490,14 @@ function RetailerComicSubmissionAddStep2() {
           </div>
 
           {/* Progress Wizard */}
-          <nav className="box has-background-light">
-            <p className="subtitle is-5">Step 2 of 10</p>
+          <nav className="box has-background-success-light">
+            <p className="subtitle is-5">Step 10 of 10</p>
             <progress
               class="progress is-success"
-              value="20"
+              value="100"
               max="100"
             >
-              20%
+              75%
             </progress>
           </nav>
 
@@ -397,39 +517,40 @@ function RetailerComicSubmissionAddStep2() {
                   form.
                 </p>
                 <div class="container">
-                  <p class="subtitle is-6">
-                    <FontAwesomeIcon className="fas" icon={faCog} />
-                    &nbsp;Settings
-                  </p>
-                  <hr />
 
-                  <FormInputField
-                    label="Store"
-                    name="store"
-                    placeholder="Text input"
-                    value={currentUser.storeName}
-                    helpText="Your organization that you will submit under this submission."
-                    isRequired={true}
-                    maxWidth="380px"
-                    disabled={true}
-                  />
+                  {serviceType !== SERVICE_TYPE_CPS_CAPSULE_INDIE_MINT_GEM && (
+                    <>
+                      <p class="subtitle is-6">
+                        <FontAwesomeIcon
+                          className="fas"
+                          icon={faMagnifyingGlass}
+                        />
+                        &nbsp;Summary of Findings
+                      </p>
+                      <hr />
+                    </>
+                  )}
 
                   <div class="columns pt-5">
                     <div class="column is-half">
                       <button
                         class="button is-medium is-fullwidth-mobile"
-                        onClick={(e) => setShowCancelWarning(true)}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            setForceURL("/submissions/comics/add/step-9");
+                        }}
                       >
-                        <FontAwesomeIcon className="fas" icon={faTimesCircle} />
-                        &nbsp;Cancel
+                        <FontAwesomeIcon className="fas" icon={faArrowLeft} />
+                        &nbsp;Back to Step 9
                       </button>
                     </div>
                     <div class="column is-half has-text-right">
                       <button
                         class="button is-medium is-primary is-fullwidth-mobile"
-                        onClick={onSaveAndContinueClick}
+                        onClick={onSubmitClick}
                       >
-                        Save and Continue&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} />
+                        <FontAwesomeIcon className="fas" icon={faCheckCircle} />
+                        &nbsp;Submit and Continue
                       </button>
                     </div>
                   </div>
@@ -443,4 +564,4 @@ function RetailerComicSubmissionAddStep2() {
   );
 }
 
-export default RetailerComicSubmissionAddStep2;
+export default RetailerComicSubmissionAddStep10;
