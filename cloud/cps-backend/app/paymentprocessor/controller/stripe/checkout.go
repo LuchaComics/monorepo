@@ -109,8 +109,8 @@ func (impl *StripePaymentProcessorControllerImpl) CreateStripeCheckoutSessionURL
 		var redirectURL string
 		redirectURL, err = impl.PaymentProcessor.CreateOneTimeCheckoutSessionURL( // TODO: FIX TO SUPPORT URL WITH COMIC SUBMISSION IS DONE.
 			impl.Emailer.GetFrontendDomainName(),
-			"/submissions/comics/add/"+comicSubmissionID.Hex()+"/confirmation",  // Accepted URL
-			"/submissions/comics/add/"+comicSubmissionID.Hex()+"?canceled=true", // Cancelled URL
+			"/submissions/comics/add/confirmation?submission_id="+comicSubmissionID.Hex(),              // Accepted URL
+			"/submissions/comics/add/checkout?submission_id="+comicSubmissionID.Hex()+"&canceled=true", // Cancelled URL
 			u.PaymentProcessorCustomerID,
 			o.StripePriceID,
 			metadata,

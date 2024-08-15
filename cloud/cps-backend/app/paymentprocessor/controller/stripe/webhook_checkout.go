@@ -36,7 +36,7 @@ func (c *StripePaymentProcessorControllerImpl) webhookForCheckoutSessionComplete
 	}()
 
 	// Extract the comic submission id.
-	// For example: https://cpsapp.ca/submissions/comics/add/652a094e09db53b4991d8df5/confirmation?session_id={CHECKOUT_SESSION_ID}
+	// For example: https://cpsapp.ca/submissions/comics/add/confirmation?submission_id=652a094e09db53b4991d8df5&session_id={CHECKOUT_SESSION_ID}
 	// Goes into: [https:  cpsapp.ca submissions comics add 652a094e09db53b4991d8df5 confirmation?session_id={CHECKOUT_SESSION_ID}]
 	//
 	arr := strings.Split(session.SuccessURL, "/")

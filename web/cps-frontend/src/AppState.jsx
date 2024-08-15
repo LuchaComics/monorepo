@@ -243,7 +243,7 @@ export const ADD_COMIC_SUBMISSION_STATE_DEFAULT = {
     primaryLabelDetailsOther: "",
     specialNotes: "",
     gradingNotes: "",
-    signatures: "",
+    signatures: [],
     creasesFinding: "",
     tearsFinding: "",
     missingPartsFinding: "",

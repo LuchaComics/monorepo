@@ -141,55 +141,16 @@ function RetailerComicSubmissionAddStep10() {
     setFetching(true);
     setErrors({});
 
-    // Generate the payload.
-    const submission = {
-      seriesTitle: seriesTitle,
-      issueVol: issueVol,
-      issueNo: issueNo,
-      issueCoverYear: issueCoverYear,
-      issueCoverMonth: issueCoverMonth,
-      publisherName: publisherName,
-      publisherNameOther: publisherNameOther,
-      isKeyIssue: isKeyIssue,
-      keyIssue: keyIssue,
-      keyIssueOther: keyIssueOther,
-      keyIssueDetail: keyIssueDetail,
-      isInternationalEdition: isInternationalEdition,
-      isVariantCover: isVariantCover,
-      variantCoverDetail: variantCoverDetail,
-      printing: printing,
-      primaryLabelDetails: primaryLabelDetails,
-      primaryLabelDetailsOther: primaryLabelDetailsOther,
-      specialNotes: specialNotes,
-      gradingNotes: gradingNotes,
-      signatures: signatures,
-      creasesFinding: creasesFinding,
-      tearsFinding: tearsFinding,
-      missingPartsFinding: missingPartsFinding,
-      stainsFinding: stainsFinding,
-      distortionFinding: distortionFinding,
-      paperQualityFinding: paperQualityFinding,
-      spineFinding: spineFinding,
-      coverFinding: coverFinding,
-      gradingScale: parseInt(gradingScale), // 2=Number Grading Scale
-      overallLetterGrade: overallLetterGrade,
-      isOverallLetterGradeNearMintPlus: isOverallLetterGradeNearMintPlus,
-      overallNumberGrade: parseFloat(overallNumberGrade),
-      cpsPercentageGrade: parseFloat(cpsPercentageGrade),
-      showsSignsOfTamperingOrRestoration: parseInt(
-        showsSignsOfTamperingOrRestoration,
-      ), // 2=No
-      status: 1, //1=Waiting to Receive, 7=Completed by Retail Partner
-      serviceType: serviceType,
-      storeID: currentUser.storeId,
-      collectibleType: 1, // 1=Comic, 2=Card
-      // customerID: customerID,
-    };
+    // Variable holds a complete clone of the submission.
+    let modifiedAddComicSubmission = { ...addComicSubmission };
+
+    // Update our clone.
+    modifiedAddComicSubmission.signatures = []; // Override b/c retailer does not support ability to verify signatures!
 
     // Submit to the backend.
-    console.log("onSubmitClick: payload:", submission);
+    console.log("onSubmitClick: payload:", addComicSubmission);
     postComicSubmissionCreateAPI(
-      submission,
+      modifiedAddComicSubmission,
       onComicSubmissionCreateSuccess,
       onComicSubmissionCreateError,
       onComicSubmissionCreateDone,
@@ -237,7 +198,7 @@ function RetailerComicSubmissionAddStep10() {
     console.log(response);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
-    setTopAlertMessage("ComicSubmission created");
+    setTopAlertMessage("Comic submission created");
     setTopAlertStatus("success");
     setTimeout(() => {
       console.log("onComicSubmissionCreateSuccess: Delayed for 2 seconds.");
@@ -249,14 +210,10 @@ function RetailerComicSubmissionAddStep10() {
       setTopAlertMessage("");
     }, 2000);
 
-    let urlParams = "";
-    // if (customerName !== null) {
-    //   urlParams +=
-    //     "?customer_id=" + customerID + "&customer_name=" + customerName;
-    // }
-    //
-    // // Redirect the user to a new page.
-    // setForceURL("/submissions/comics/add/" + response.id + urlParams);
+    let urlParams = "?from="+addComicSubmission.fromPage + "&submission_id=" + response.id;
+
+    // Redirect the user to a new page.
+    setForceURL("/submissions/comics/add/checkout" + urlParams);
   }
 
   function onComicSubmissionCreateError(apiErr) {
@@ -899,9 +856,6 @@ function RetailerComicSubmissionAddStep10() {
                         options={cpsPercentageGradeFilteredOptions}
                     />
                 )}
-
-
-
 
                   <div class="columns pt-5">
                     <div class="column is-half">

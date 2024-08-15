@@ -209,7 +209,7 @@ function AdminComicSubmissionAddStep2() {
     console.log(response);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
-    setTopAlertMessage("ComicSubmission created");
+    setTopAlertMessage("Comic submission created");
     setTopAlertStatus("success");
     setTimeout(() => {
       console.log("onComicSubmissionCreateSuccess: Delayed for 2 seconds.");

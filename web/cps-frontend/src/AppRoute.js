@@ -104,8 +104,10 @@ import RetailerComicSubmissionAddStep7 from "./Components/Retailer/Submission/Co
 import RetailerComicSubmissionAddStep8 from "./Components/Retailer/Submission/Comic/AddStep08";
 import RetailerComicSubmissionAddStep9 from "./Components/Retailer/Submission/Comic/AddStep09";
 import RetailerComicSubmissionAddStep10 from "./Components/Retailer/Submission/Comic/AddStep10";
-import RetailerComicSubmissionAddStepXXX from "./Components/Retailer/Submission/Comic/AddStepX";
-import RetailerComicSubmissionAddStepYYY from "./Components/Retailer/Submission/Comic/AddStepY";
+import RetailerComicSubmissionAddStep11CheckoutLaunchpad from "./Components/Retailer/Submission/Comic/AddStep11CheckoutLaunchpad";
+import RetailerComicSubmissionAddStep12Confirmation from "./Components/Retailer/Submission/Comic/AddStep12Confirmation";
+// import RetailerComicSubmissionAddStepXXX from "./Components/Retailer/Submission/Comic/AddStepX"; // DEPRECATED: PLEASE REMOVE SOON...
+// import RetailerComicSubmissionAddStepYYY from "./Components/Retailer/Submission/Comic/AddStepY"; // DEPRECATED: PLEASE REMOVE SOON...
 import RetailerComicSubmissionDetail from "./Components/Retailer/Submission/Comic/Detail";
 import RetailerSubmissionLaunchpad from "./Components/Retailer/Submission/Launchpad";
 import RetailerSubmissionAttachmentAdd from "./Components/Retailer/Submission/Comic/Attachment/Add";
@@ -640,6 +642,18 @@ function AppRoute() {
                   />
                   <Route
                     exact
+                    path="/submissions/comics/add/checkout"
+                    element={<RetailerComicSubmissionAddStep11CheckoutLaunchpad />}
+                  />
+                  <Route
+                    exact
+                    path="/submissions/comics/add/confirmation"
+                    element={<RetailerComicSubmissionAddStep12Confirmation />}
+                  />
+                  {/*
+                  ----- DEPRECATED: PLEASE REMOVE SOON... ----
+                  <Route
+                    exact
                     path="/submissions/comics/add/:id"
                     element={<RetailerComicSubmissionAddStepXXX />}
                   />
@@ -648,6 +662,7 @@ function AppRoute() {
                     path="/submissions/comics/add/:id/confirmation"
                     element={<RetailerComicSubmissionAddStepYYY />}
                   />
+                  */}
                   <Route
                     exact
                     path="/submissions/comic/:id"
