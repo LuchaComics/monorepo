@@ -18,6 +18,7 @@ import {
   faUser,
   faArrowUpRightFromSquare,
   faCog,
+  faArrowRight
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
@@ -55,6 +56,10 @@ import {
   topAlertStatusState,
   currentUserState,
 } from "../../../../AppState";
+import {
+  addComicSubmissionState,
+  ADD_COMIC_SUBMISSION_STATE_DEFAULT,
+} from "../../../../AppState";
 
 
 function RetailerComicSubmissionAddStep7() {
@@ -75,6 +80,7 @@ function RetailerComicSubmissionAddStep7() {
   const [topAlertStatus, setTopAlertStatus] =
     useRecoilState(topAlertStatusState);
   const [currentUser] = useRecoilState(currentUserState);
+  const [addComicSubmission, setAddComicSubmission] = useRecoilState(addComicSubmissionState);
 
   ////
   //// Component states.
@@ -83,113 +89,112 @@ function RetailerComicSubmissionAddStep7() {
   const [errors, setErrors] = useState({});
   const [isFetching, setFetching] = useState(false);
   const [forceURL, setForceURL] = useState("");
-  const [seriesTitle, setSeriesTitle] = useState("");
-  const [issueVol, setIssueVol] = useState("");
-  const [issueNo, setIssueNo] = useState("");
-  const [issueCoverYear, setIssueCoverYear] = useState(0);
-  const [issueCoverMonth, setIssueCoverMonth] = useState(0);
-  const [publisherName, setPublisherName] = useState(0);
-  const [publisherNameOther, setPublisherNameOther] = useState("");
-  const [isKeyIssue, setIsKeyIssue] = useState(false);
-  const [keyIssue, setKeyIssue] = useState(0);
-  const [keyIssueOther, setKeyIssueOther] = useState("");
-  const [keyIssueDetail, setKeyIssueDetail] = useState("");
-  const [isInternationalEdition, setIsInternationalEdition] = useState(false);
-  const [isVariantCover, setIsVariantCover] = useState(false);
-  const [variantCoverDetail, setVariantCoverDetail] = useState("");
-  const [printing, setPrinting] = useState(1);
-  const [primaryLabelDetails, setPrimaryLabelDetails] = useState(2); // 2=Regular Edition
-  const [primaryLabelDetailsOther, setPrimaryLabelDetailsOther] = useState("");
-  const [creasesFinding, setCreasesFinding] = useState("");
-  const [tearsFinding, setTearsFinding] = useState("");
-  const [missingPartsFinding, setMissingPartsFinding] = useState("");
-  const [stainsFinding, setStainsFinding] = useState("");
-  const [distortionFinding, setDistortionFinding] = useState("");
-  const [paperQualityFinding, setPaperQualityFinding] = useState("");
-  const [spineFinding, setSpineFinding] = useState("");
-  const [coverFinding, setCoverFinding] = useState("");
-  const [gradingScale, setGradingScale] = useState(0);
-  const [overallLetterGrade, setOverallLetterGrade] = useState("");
-  const [overallNumberGrade, setOverallNumberGrade] = useState("");
-  const [cpsPercentageGrade, setCpsPercentageGrade] = useState("");
-  const [specialNotes, setSpecialNotes] = useState("");
-  const [gradingNotes, setGradingNotes] = useState("");
+  const [creasesFinding, setCreasesFinding] = useState(addComicSubmission.creasesFinding);
+  const [tearsFinding, setTearsFinding] = useState(addComicSubmission.tearsFinding);
+  const [missingPartsFinding, setMissingPartsFinding] = useState(addComicSubmission.missingPartsFinding);
+  const [stainsFinding, setStainsFinding] = useState(addComicSubmission.stainsFinding);
+  const [distortionFinding, setDistortionFinding] = useState(addComicSubmission.distortionFinding);
+  const [paperQualityFinding, setPaperQualityFinding] = useState(addComicSubmission.paperQualityFinding);
+  const [spineFinding, setSpineFinding] = useState(addComicSubmission.spineFinding);
+  const [coverFinding, setCoverFinding] = useState(addComicSubmission.coverFinding);
   const [
     showsSignsOfTamperingOrRestoration,
     setShowsSignsOfTamperingOrRestoration,
-  ] = useState(2); // 2=no
-  const [showCancelWarning, setShowCancelWarning] = useState(false);
-  const [
-    isOverallLetterGradeNearMintPlus,
-    setIsOverallLetterGradeNearMintPlus,
-  ] = useState(false);
-  const [serviceType, setServiceType] = useState(0);
-  const [signatures, setSignatures] = useState([]);
+  ] = useState(parseInt(addComicSubmission.showsSignsOfTamperingOrRestoration));
 
   ////
   //// Event handling.
   ////
 
   const onSubmitClick = (e) => {
-    console.log("onSubmitClick: Beginning...");
-    console.log("onSubmitClick: Generating payload for submission.");
-    setFetching(true);
-    setErrors({});
+      console.log("onSaveAndContinueClick: Beginning...");
 
-    // Generate the payload.
-    const submission = {
-      seriesTitle: seriesTitle,
-      issueVol: issueVol,
-      issueNo: issueNo,
-      issueCoverYear: issueCoverYear,
-      issueCoverMonth: issueCoverMonth,
-      publisherName: publisherName,
-      publisherNameOther: publisherNameOther,
-      isKeyIssue: isKeyIssue,
-      keyIssue: keyIssue,
-      keyIssueOther: keyIssueOther,
-      keyIssueDetail: keyIssueDetail,
-      isInternationalEdition: isInternationalEdition,
-      isVariantCover: isVariantCover,
-      variantCoverDetail: variantCoverDetail,
-      printing: printing,
-      primaryLabelDetails: primaryLabelDetails,
-      primaryLabelDetailsOther: primaryLabelDetailsOther,
-      specialNotes: specialNotes,
-      gradingNotes: gradingNotes,
-      signatures: signatures,
-      creasesFinding: creasesFinding,
-      tearsFinding: tearsFinding,
-      missingPartsFinding: missingPartsFinding,
-      stainsFinding: stainsFinding,
-      distortionFinding: distortionFinding,
-      paperQualityFinding: paperQualityFinding,
-      spineFinding: spineFinding,
-      coverFinding: coverFinding,
-      gradingScale: parseInt(gradingScale), // 2=Number Grading Scale
-      overallLetterGrade: overallLetterGrade,
-      isOverallLetterGradeNearMintPlus: isOverallLetterGradeNearMintPlus,
-      overallNumberGrade: parseFloat(overallNumberGrade),
-      cpsPercentageGrade: parseFloat(cpsPercentageGrade),
-      showsSignsOfTamperingOrRestoration: parseInt(
-        showsSignsOfTamperingOrRestoration,
-      ), // 2=No
-      status: 1, //1=Waiting to Receive, 7=Completed by Retail Partner
-      serviceType: serviceType,
-      storeID: currentUser.storeId,
-      collectibleType: 1, // 1=Comic, 2=Card
-      customerID: customerID,
-    };
+      // Variables used to hold state if we got an error with validation.
+      let newErrors = {};
+      let hasErrors = false;
 
-    // Submit to the backend.
-    console.log("onSubmitClick: payload:", submission);
-    postComicSubmissionCreateAPI(
-      submission,
-      onComicSubmissionCreateSuccess,
-      onComicSubmissionCreateError,
-      onComicSubmissionCreateDone,
-      onUnauthorized,
-    );
+      // Perform validation.
+      if (creasesFinding === undefined || creasesFinding === null || creasesFinding === 0 || creasesFinding === "") {
+        newErrors["creasesFinding"] = "missing value";
+        hasErrors = true;
+      }
+      if (tearsFinding === undefined || tearsFinding === null || tearsFinding === 0 || tearsFinding === "") {
+        newErrors["tearsFinding"] = "missing value";
+        hasErrors = true;
+      }
+      if (missingPartsFinding === undefined || missingPartsFinding === null || missingPartsFinding === 0 || missingPartsFinding === "") {
+        newErrors["missingPartsFinding"] = "missing value";
+        hasErrors = true;
+      }
+      if (stainsFinding === undefined || stainsFinding === null || stainsFinding === 0 || stainsFinding === "") {
+        newErrors["stainsFinding"] = "missing value";
+        hasErrors = true;
+      }
+      if (distortionFinding === undefined || distortionFinding === null || distortionFinding === 0 || distortionFinding === "") {
+        newErrors["distortionFinding"] = "missing value";
+        hasErrors = true;
+      }
+      if (paperQualityFinding === undefined || paperQualityFinding === null || paperQualityFinding === 0 || paperQualityFinding === "") {
+        newErrors["paperQualityFinding"] = "missing value";
+        hasErrors = true;
+      }
+      if (spineFinding === undefined || spineFinding === null || spineFinding === 0 || spineFinding === "") {
+        newErrors["spineFinding"] = "missing value";
+        hasErrors = true;
+      }
+      if (coverFinding === undefined || coverFinding === null || coverFinding === 0 || coverFinding === "") {
+        newErrors["coverFinding"] = "missing value";
+        hasErrors = true;
+      }
+      if (showsSignsOfTamperingOrRestoration === undefined || showsSignsOfTamperingOrRestoration === null || showsSignsOfTamperingOrRestoration === 0 || showsSignsOfTamperingOrRestoration === "") {
+        newErrors["showsSignsOfTamperingOrRestoration"] = "missing value";
+        hasErrors = true;
+      }
+
+      //
+      // CASE 1 of 2: Has errors.
+      //
+
+      if (hasErrors) {
+        console.log("onSaveAndContinueClick: Aboring because of error(s)");
+
+        // Set the associate based error validation.
+        setErrors(newErrors);
+
+        // The following code will cause the screen to scroll to the top of
+        // the page. Please see ``react-scroll`` for more information:
+        // https://github.com/fisshy/react-scroll
+        var scroll = Scroll.animateScroll;
+        scroll.scrollToTop();
+
+        return;
+      }
+
+      //
+      // CASE 2 of 2: Has no errors.
+      //
+
+      console.log("onSaveAndContinueClick: Saving step 7 and redirecting to step 8.");
+
+      // Variable holds a complete clone of the submission.
+      let modifiedAddComicSubmission = { ...addComicSubmission };
+
+      // Update our clone.
+      modifiedAddComicSubmission.creasesFinding = creasesFinding;
+      modifiedAddComicSubmission.tearsFinding = tearsFinding;
+      modifiedAddComicSubmission.missingPartsFinding = missingPartsFinding;
+      modifiedAddComicSubmission.stainsFinding = stainsFinding;
+      modifiedAddComicSubmission.distortionFinding = distortionFinding;
+      modifiedAddComicSubmission.paperQualityFinding = paperQualityFinding;
+      modifiedAddComicSubmission.spineFinding = spineFinding;
+      modifiedAddComicSubmission.coverFinding = coverFinding;
+      modifiedAddComicSubmission.showsSignsOfTamperingOrRestoration = showsSignsOfTamperingOrRestoration;
+
+      // Save to persistent storage.
+      setAddComicSubmission(modifiedAddComicSubmission);
+
+      // Redirect to the next page.
+      setForceURL("/submissions/comics/add/step-8")
   };
 
   // Function will filter the available options based on user's organization level.
@@ -313,37 +318,6 @@ function RetailerComicSubmissionAddStep7() {
     return <Navigate to={forceURL} />;
   }
 
-  // The following code will check to see if we need to grant the 'is NM+' option is available to the user.
-  let isNMPlusOpen = gradingScale === 1 && overallLetterGrade === "nm";
-
-  // Apply the custom function to your options
-  const cpsPercentageGradeFilteredOptions = cpsPercentageGradeFilterOptions(
-    CPS_PERCENTAGE_GRADE_WITH_EMPTY_OPTIONS,
-    currentUser.storeLevel,
-  );
-  const overallNumberGradeFilteredOptions = overallNumberGradeFilterOptions(
-    OVERALL_NUMBER_GRADE_WITH_EMPTY_OPTIONS,
-    currentUser.storeLevel,
-  );
-
-  // Apply service type limitation based on the retailer store's level.
-  const conditionalServiceTypeOptions = ((currentUser) => {
-    if (currentUser.storeLevel === 1 || currentUser.storeLevel === 2) {
-      return RETAILER_AVAILABLE_SERVICE_TYPE_WITH_EMPTY_OPTIONS;
-    } else {
-      // DEVELOPERS NOTE: Level 3 retailer stores are allowed to add a
-      // new type of service type.
-      const newServiceTypeOptions = [
-        ...RETAILER_AVAILABLE_SERVICE_TYPE_WITH_EMPTY_OPTIONS,
-        {
-          value: SERVICE_TYPE_CPS_CAPSULE_U_GRADE_SIGNATURE_COLLECTION,
-          label: "CPS Capsule U-Grade Signature Collection",
-        },
-      ];
-      return newServiceTypeOptions;
-    }
-  })(currentUser);
-
   // Render the JSX content.
   return (
     <>
@@ -449,46 +423,7 @@ function RetailerComicSubmissionAddStep7() {
           )}
 
           {/* Modals */}
-          <div class={`modal ${showCancelWarning ? "is-active" : ""}`}>
-            <div class="modal-background"></div>
-            <div class="modal-card">
-              <header class="modal-card-head">
-                <p class="modal-card-title">Are you sure?</p>
-                <button
-                  class="delete"
-                  aria-label="close"
-                  onClick={(e) => setShowCancelWarning(false)}
-                ></button>
-              </header>
-              <section class="modal-card-body">
-                Your submission will be cancelled and your work will be lost.
-                This cannot be undone. Do you want to continue?
-              </section>
-              <footer class="modal-card-foot">
-                {customerName === null ? (
-                  <Link
-                    class="button is-medium is-success"
-                    to={`/submissions/comics/add/step-1/search`}
-                  >
-                    Yes
-                  </Link>
-                ) : (
-                  <Link
-                    class="button is-medium is-success"
-                    to={`/customer/${customerID}/sub`}
-                  >
-                    Yes
-                  </Link>
-                )}
-                <button
-                  class="button is-medium "
-                  onClick={(e) => setShowCancelWarning(false)}
-                >
-                  No
-                </button>
-              </footer>
-            </div>
-          </div>
+          {/* ------ */}
 
           {/* Progress Wizard */}
           <nav className="box has-background-light">
@@ -519,7 +454,7 @@ function RetailerComicSubmissionAddStep7() {
                 </p>
                 <div class="container">
 
-                  {serviceType !== SERVICE_TYPE_CPS_CAPSULE_INDIE_MINT_GEM && (
+                  {addComicSubmission.serviceType !== SERVICE_TYPE_CPS_CAPSULE_INDIE_MINT_GEM && (
                     <>
                       <p class="subtitle is-6">
                         <FontAwesomeIcon
@@ -732,112 +667,6 @@ function RetailerComicSubmissionAddStep7() {
                         }
                         maxWidth="180px"
                       />
-
-                      <FormTextareaField
-                        label="Grading Notes (Optional)"
-                        name="gradingNotes"
-                        placeholder="Text input"
-                        value={gradingNotes}
-                        errorText={errors && errors.gradingNotes}
-                        helpText=""
-                        onChange={(e) => setGradingNotes(e.target.value)}
-                        isRequired={true}
-                        maxWidth="280px"
-                        helpText={"Max 638 characters"}
-                        rows={4}
-                      />
-
-                      <p class="subtitle is-6">
-                        <FontAwesomeIcon
-                          className="fas"
-                          icon={faBalanceScale}
-                        />
-                        &nbsp;Grading
-                      </p>
-                      <hr />
-
-                      <FormRadioField
-                        label="Which type of grading scale would you prefer?"
-                        name="gradingScale"
-                        value={gradingScale}
-                        opt1Value={1}
-                        opt1Label="Letter Grade (Poor-Near Mint)"
-                        opt2Value={2}
-                        opt2Label="Numbers (0.5-10.0)"
-                        opt3Value={3}
-                        opt3Label="CPS Percentage (5%-100%)"
-                        errorText={errors && errors.gradingScale}
-                        onChange={(e) =>
-                          setGradingScale(parseInt(e.target.value))
-                        }
-                        maxWidth="180px"
-                      />
-
-                      {gradingScale === 1 && (
-                        <>
-                          <FormSelectField
-                            label="Overall Letter Grade"
-                            name="overallLetterGrade"
-                            placeholder="Overall Letter Grade"
-                            selectedValue={overallLetterGrade}
-                            errorText={errors && errors.overallLetterGrade}
-                            helpText=""
-                            onChange={(e) =>
-                              setOverallLetterGrade(e.target.value)
-                            }
-                            options={FINDING_WITH_EMPTY_OPTIONS}
-                          />
-                          {isNMPlusOpen && (
-                            <>
-                              <FormCheckboxField
-                                label="Is Near Mint plus?"
-                                name="isOverallLetterGradeNearMintPlus"
-                                checked={isOverallLetterGradeNearMintPlus}
-                                errorText={
-                                  errors &&
-                                  errors.isOverallLetterGradeNearMintPlus
-                                }
-                                onChange={(e) =>
-                                  setIsOverallLetterGradeNearMintPlus(
-                                    !isOverallLetterGradeNearMintPlus,
-                                  )
-                                }
-                                maxWidth="180px"
-                              />
-                            </>
-                          )}
-                        </>
-                      )}
-
-                      {gradingScale === 2 && (
-                        <FormSelectField
-                          label="Overall Number Grade"
-                          name="overallNumberGrade"
-                          placeholder="Overall Number Grade"
-                          selectedValue={overallNumberGrade}
-                          errorText={errors && errors.overallNumberGrade}
-                          helpText=""
-                          onChange={(e) =>
-                            setOverallNumberGrade(e.target.value)
-                          }
-                          options={overallNumberGradeFilteredOptions}
-                        />
-                      )}
-
-                      {gradingScale === 3 && (
-                        <FormSelectField
-                          label="CPS Percentage Grade"
-                          name="cpsPercentageGrade"
-                          placeholder="CPS Percentage Grade"
-                          selectedValue={cpsPercentageGrade}
-                          errorText={errors && errors.cpsPercentageGrade}
-                          helpText=""
-                          onChange={(e) =>
-                            setCpsPercentageGrade(e.target.value)
-                          }
-                          options={cpsPercentageGradeFilteredOptions}
-                        />
-                      )}
                     </>
                   )}
 
@@ -859,8 +688,7 @@ function RetailerComicSubmissionAddStep7() {
                         class="button is-medium is-primary is-fullwidth-mobile"
                         onClick={onSubmitClick}
                       >
-                        <FontAwesomeIcon className="fas" icon={faCheckCircle} />
-                        &nbsp;Submit and Continue
+                        Save and Continue&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} />
                       </button>
                     </div>
                   </div>

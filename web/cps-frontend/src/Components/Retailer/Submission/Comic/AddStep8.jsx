@@ -61,7 +61,7 @@ import {
 } from "../../../../AppState";
 
 
-function RetailerComicSubmissionAddStep6() {
+function RetailerComicSubmissionAddStep8() {
   ////
   //// URL Parameters.
   ////
@@ -88,7 +88,7 @@ function RetailerComicSubmissionAddStep6() {
   const [errors, setErrors] = useState({});
   const [isFetching, setFetching] = useState(false); // Bool
   const [forceURL, setForceURL] = useState("");
-  const [signatures, setSignatures] = useState(addComicSubmission.signatures);
+  const [gradingNotes, setGradingNotes] = useState(addComicSubmission.gradingNotes);
 
   ////
   //// Event handling.
@@ -102,8 +102,8 @@ function RetailerComicSubmissionAddStep6() {
       let hasErrors = false;
 
       // // Perform validation.
-      // if (seriesTitle === undefined || seriesTitle === null || seriesTitle === 0 || seriesTitle === "") {
-      //   newErrors["seriesTitle"] = "missing value";
+      // if (gradingNotes === undefined || gradingNotes === null || gradingNotes === 0 || gradingNotes === "") {
+      //   newErrors["gradingNotes"] = "missing value";
       //   hasErrors = true;
       // }
 
@@ -130,19 +130,19 @@ function RetailerComicSubmissionAddStep6() {
       // CASE 2 of 2: Has no errors.
       //
 
-      console.log("onSaveAndContinueClick: Saving step 6 and redirecting to step 7.");
+      console.log("onSaveAndContinueClick: Saving step 8 and redirecting to step 9.");
 
       // Variable holds a complete clone of the submission.
       let modifiedAddComicSubmission = { ...addComicSubmission };
 
       // Update our clone.
-      // modifiedAddComicSubmission.seriesTitle = seriesTitle;
+      modifiedAddComicSubmission.gradingNotes = gradingNotes;
 
       // Save to persistent storage.
       setAddComicSubmission(modifiedAddComicSubmission);
 
       // Redirect to the next page.
-      setForceURL("/submissions/comics/add/step-7")
+      setForceURL("/submissions/comics/add/step-9")
   };
 
   ////
@@ -282,13 +282,13 @@ function RetailerComicSubmissionAddStep6() {
 
           {/* Progress Wizard */}
           <nav className="box has-background-light">
-            <p className="subtitle is-5">Step 6 of 10</p>
+            <p className="subtitle is-5">Step 8 of 10</p>
             <progress
               class="progress is-success"
-              value="60"
+              value="80"
               max="100"
             >
-              60%
+              80%
             </progress>
           </nav>
 
@@ -314,23 +314,18 @@ function RetailerComicSubmissionAddStep6() {
                   </p>
                   <hr />
 
-                  <FormComicSignaturesTable
-                    data={signatures}
-                    onDataChange={setSignatures}
-                    disabled={true}
-                    helpText={
-                      <>
-                        Only available to CPS,{" "}
-                        <a href="mailto:support@cpscapsule.com">
-                          contact us&nbsp;
-                          <FontAwesomeIcon
-                            className="mdi"
-                            icon={faArrowUpRightFromSquare}
-                          />
-                        </a>{" "}
-                        if you are interested in learning more.
-                      </>
-                    }
+                  <FormTextareaField
+                    label="Grading Notes (Optional)"
+                    name="gradingNotes"
+                    placeholder="Text input"
+                    value={gradingNotes}
+                    errorText={errors && errors.gradingNotes}
+                    helpText=""
+                    onChange={(e) => setGradingNotes(e.target.value)}
+                    isRequired={true}
+                    maxWidth="280px"
+                    helpText={"Max 638 characters"}
+                    rows={4}
                   />
 
                   <div class="columns pt-5">
@@ -339,11 +334,11 @@ function RetailerComicSubmissionAddStep6() {
                         class="button is-medium is-fullwidth-mobile"
                         onClick={(e) => {
                             e.preventDefault();
-                            setForceURL("/submissions/comics/add/step-5")
+                            setForceURL("/submissions/comics/add/step-7")
                         }}
                       >
                         <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                        &nbsp;Back to Step 5
+                        &nbsp;Back to Step 7
                       </button>
                     </div>
                     <div class="column is-half has-text-right">
@@ -365,4 +360,4 @@ function RetailerComicSubmissionAddStep6() {
   );
 }
 
-export default RetailerComicSubmissionAddStep6;
+export default RetailerComicSubmissionAddStep8;
