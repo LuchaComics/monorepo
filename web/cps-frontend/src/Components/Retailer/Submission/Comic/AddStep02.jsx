@@ -17,6 +17,7 @@ import {
   faBalanceScale,
   faUser,
   faArrowUpRightFromSquare,
+  faIdCard,
   faCog,
   faArrowRight
 } from "@fortawesome/free-solid-svg-icons";
@@ -146,6 +147,7 @@ function RetailerComicSubmissionAddStep2() {
     modifiedAddComicSubmission.customerId = customerID;
     modifiedAddComicSubmission.customerName = customerName;
     modifiedAddComicSubmission.storeID = currentUser.storeId;
+    modifiedAddComicSubmission.storeName = currentUser.storeName
     modifiedAddComicSubmission.fromPage = fromPage
 
     // Save to persistent storage.
@@ -413,8 +415,8 @@ function RetailerComicSubmissionAddStep2() {
                 </p>
                 <div class="container">
                   <p class="subtitle is-6">
-                    <FontAwesomeIcon className="fas" icon={faCog} />
-                    &nbsp;Settings
+                    <FontAwesomeIcon className="fas" icon={faIdCard} />
+                    &nbsp;Ownership
                   </p>
                   <hr />
 

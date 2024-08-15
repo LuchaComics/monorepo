@@ -17,7 +17,11 @@ import {
   faBalanceScale,
   faUser,
   faArrowUpRightFromSquare,
+  faIdCard,
   faCog,
+  faFileSignature,
+  faPencil,
+  faClipboardCheck
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
@@ -32,6 +36,10 @@ import FormMultiSelectField from "../../../Reusable/FormMultiSelectField";
 import FormSelectField from "../../../Reusable/FormSelectField";
 import FormCheckboxField from "../../../Reusable/FormCheckboxField";
 import PageLoadingContent from "../../../Reusable/PageLoadingContent";
+import DataDisplayRowText from "../../../Reusable/DataDisplayRowText";
+import DataDisplayRowSelect from "../../../Reusable/DataDisplayRowSelect";
+import DataDisplayRowCheckbox from "../../../Reusable/DataDisplayRowCheckbox";
+import DataDisplayRowRadio from "../../../Reusable/DataDisplayRowRadio";
 import FormComicSignaturesTable from "../../../Reusable/FormComicSignaturesTable";
 import {
   FINDING_WITH_EMPTY_OPTIONS,
@@ -466,29 +474,434 @@ function RetailerComicSubmissionAddStep10() {
               <FontAwesomeIcon className="fas" icon={faPlus} />
               &nbsp;New Online Comic Submission
             </p>
+
+            <p className="title is-4 pb-2">
+              <FontAwesomeIcon className="fas" icon={faFileSignature} />
+              &nbsp;Review
+            </p>
+            <p className="has-text-grey pb-4">
+              Please review the following comic submission summary before submitting into the system.
+            </p>
+
             {isFetching ? (
               <PageLoadingContent displayMessage={"Submitting..."} />
             ) : (
               <>
                 <FormErrorBox errors={errors} />
-                <p class="has-text-grey pb-4">
-                  Please fill out all the required fields before submitting this
-                  form.
-                </p>
                 <div class="container">
 
-                  {serviceType !== SERVICE_TYPE_CPS_CAPSULE_INDIE_MINT_GEM && (
+                {/* STEP 2 of 10: OWNERSHIP  */}
+                <p className="title is-5 mt-2">
+                  <FontAwesomeIcon className="fas" icon={faIdCard} />
+                  &nbsp;Ownership&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;
+                  <Link to="/submissions/comics/add/step-2">
+                    <FontAwesomeIcon className="fas" icon={faPencil} />
+                    &nbsp;Edit
+                  </Link>
+                </p>
+
+                <DataDisplayRowText
+                  label="Store"
+                  value={addComicSubmission.storeName}
+                />
+
+                {addComicSubmission.customerId &&
+                    <DataDisplayRowText
+                      label="Customer"
+                      value={addComicSubmission.customerName}
+                    />
+                }
+
+                {/* STEP 3 OF 10: SETTINGS */}
+                <p className="title is-5 mt-2">
+                  <FontAwesomeIcon className="fas" icon={faCog} />
+                  &nbsp;Settings&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;
+                  <Link to="/submissions/comics/add/step-3">
+                    <FontAwesomeIcon className="fas" icon={faPencil} />
+                    &nbsp;Edit
+                  </Link>
+                </p>
+
+                <DataDisplayRowSelect
+                  label="Service Type"
+                  selectedValue={addComicSubmission.serviceType}
+                  options={conditionalServiceTypeOptions}
+                />
+
+                {/* STEP 4 OF 10: BOOK INFORMATION */}
+                <p className="title is-5 mt-2">
+                  <FontAwesomeIcon className="fas" icon={faBookOpen} />
+                  &nbsp;Book Information&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;
+                  <Link to="/submissions/comics/add/step-4">
+                    <FontAwesomeIcon className="fas" icon={faPencil} />
+                    &nbsp;Edit
+                  </Link>
+                </p>
+
+                <DataDisplayRowText
+                  label="Series Title"
+                  value={addComicSubmission.seriesTitle}
+                />
+
+                <DataDisplayRowText
+                  label="Issue Vol"
+                  value={addComicSubmission.issueVol}
+                />
+
+                <DataDisplayRowText
+                  label="Issue No"
+                  value={addComicSubmission.issueNo}
+                />
+
+                <DataDisplayRowSelect
+                  label="Issue Cover Year"
+                  selectedValue={addComicSubmission.issueCoverYear}
+                  options={ISSUE_COVER_YEAR_OPTIONS}
+                />
+
+                <DataDisplayRowSelect
+                  label="Issue Cover Month"
+                  selectedValue={addComicSubmission.issueCoverMonth}
+                  options={ISSUE_COVER_MONTH_WITH_EMPTY_OPTIONS}
+                />
+
+                <DataDisplayRowSelect
+                  label="Publisher Name"
+                  selectedValue={addComicSubmission.publisherName}
+                  options={PUBLISHER_NAME_WITH_EMPTY_OPTIONS}
+                />
+                {addComicSubmission.publisherName === 1 && (
+                    <DataDisplayRowText
+                       label="Publisher Name (Other)"
+                       value={addComicSubmission.publisherNameOther}
+                    />
+                )}
+
+                {/* STEP 5 OF 10: ADDITONAL BOOK INFORMATION */}
+                <p className="title is-5 mt-2">
+                  <FontAwesomeIcon className="fas" icon={faBookOpen} />
+                  &nbsp;Additional Book Information&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;
+                  <Link to="/submissions/comics/add/step-5">
+                    <FontAwesomeIcon className="fas" icon={faPencil} />
+                    &nbsp;Edit
+                  </Link>
+                </p>
+
+                <DataDisplayRowCheckbox
+                  label="Is Key Issue?"
+                  checked={addComicSubmission.isKeyIssue}
+                />
+
+                {addComicSubmission.isKeyIssue && (
                     <>
-                      <p class="subtitle is-6">
-                        <FontAwesomeIcon
-                          className="fas"
-                          icon={faMagnifyingGlass}
+                        <DataDisplayRowSelect
+                          label="Key Issue"
+                          selectedValue={addComicSubmission.keyIssue}
+                          options={SUBMISSION_KEY_ISSUE_WITH_EMPTY_OPTIONS}
                         />
-                        &nbsp;Summary of Findings
-                      </p>
-                      <hr />
+                        {addComicSubmission.keyIssue === 1 && (
+                            <DataDisplayRowText
+                              label="Key Issue (Other)"
+                              value={addComicSubmission.keyIssueOther}
+                            />
+                        )}
+                        <DataDisplayRowText
+                          label="Key Issue Detail"
+                          value={addComicSubmission.keyIssueDetail}
+                        />
                     </>
-                  )}
+                )}
+
+                <DataDisplayRowCheckbox
+                  label="Is variant cover?"
+                  checked={addComicSubmission.isVariantCover}
+                />
+                {addComicSubmission.isKeyIssue && (
+                    <DataDisplayRowText
+                      label="Variant cover detail"
+                      value={addComicSubmission.variantCoverDetail}
+                    />
+                )}
+
+                <DataDisplayRowSelect
+                  label="Which printing is this?"
+                  selectedValue={addComicSubmission.printing}
+                  options={SUBMISSION_PRINTING_WITH_EMPTY_OPTIONS}
+                />
+
+                <DataDisplayRowSelect
+                  label="Primary Label Details"
+                  selectedValue={addComicSubmission.primaryLabelDetails}
+                  options={SPECIAL_DETAILS_WITH_EMPTY_OPTIONS}
+                />
+                {addComicSubmission.primaryLabelDetails === 1 && (
+                    <DataDisplayRowText
+                      label="Primary Label Details (Other)"
+                      value={addComicSubmission.primaryLabelDetailsOther}
+                    />
+                )}
+
+                <DataDisplayRowText
+                  label="Special Note (Optional)"
+                  value={addComicSubmission.specialNotes}
+                />
+
+                {/* STEP 6 OF 10: BOOK SIGNATURES*/}
+                <p className="title is-5 mt-2">
+                  <FontAwesomeIcon className="fas" icon={faFileSignature} />
+                  &nbsp;Book Signatures&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;
+                  <Link to="/submissions/comics/add/step-6">
+                    <FontAwesomeIcon className="fas" icon={faPencil} />
+                    &nbsp;Edit
+                  </Link>
+                </p>
+
+                <DataDisplayRowText
+                  label="Comic Signatures (Optional)"
+                  value={`None`}
+                />
+
+                {/* STEP 7 OF 10: SUMMARY OF FINDINGS */}
+                <p className="title is-5 mt-2">
+                  <FontAwesomeIcon className="fas" icon={faMagnifyingGlass} />
+                  &nbsp;Summary of Findings&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;
+                  <Link to="/submissions/comics/add/step-7">
+                    <FontAwesomeIcon className="fas" icon={faPencil} />
+                    &nbsp;Edit
+                  </Link>
+                </p>
+
+                <DataDisplayRowRadio
+                  label="Creases Finding"
+                  value={addComicSubmission.creasesFinding}
+                  opt1Value="pr"
+                  opt1Label="Poor"
+                  opt2Value="fr"
+                  opt2Label="Fair"
+                  opt3Value="gd"
+                  opt3Label="Good"
+                  opt4Value="vg"
+                  opt4Label="Very good"
+                  opt5Value="fn"
+                  opt5Label="Fine"
+                  opt6Value="vf"
+                  opt6Label="Very Fine"
+                  opt7Value="nm"
+                  opt7Label="Near Mint"
+                />
+
+                <DataDisplayRowRadio
+                  label="Tears Finding"
+                  value={addComicSubmission.tearsFinding}
+                  opt1Value="pr"
+                  opt1Label="Poor"
+                  opt2Value="fr"
+                  opt2Label="Fair"
+                  opt3Value="gd"
+                  opt3Label="Good"
+                  opt4Value="vg"
+                  opt4Label="Very good"
+                  opt5Value="fn"
+                  opt5Label="Fine"
+                  opt6Value="vf"
+                  opt6Label="Very Fine"
+                  opt7Value="nm"
+                  opt7Label="Near Mint"
+                />
+
+                <DataDisplayRowRadio
+                  label="Missing Parts Finding"
+                  value={addComicSubmission.missingPartsFinding}
+                  opt1Value="pr"
+                  opt1Label="Poor"
+                  opt2Value="fr"
+                  opt2Label="Fair"
+                  opt3Value="gd"
+                  opt3Label="Good"
+                  opt4Value="vg"
+                  opt4Label="Very good"
+                  opt5Value="fn"
+                  opt5Label="Fine"
+                  opt6Value="vf"
+                  opt6Label="Very Fine"
+                  opt7Value="nm"
+                  opt7Label="Near Mint"
+                />
+
+                <DataDisplayRowRadio
+                  label="Stains/Marks/Substances"
+                  value={addComicSubmission.stainsFinding}
+                  opt1Value="pr"
+                  opt1Label="Poor"
+                  opt2Value="fr"
+                  opt2Label="Fair"
+                  opt3Value="gd"
+                  opt3Label="Good"
+                  opt4Value="vg"
+                  opt4Label="Very good"
+                  opt5Value="fn"
+                  opt5Label="Fine"
+                  opt6Value="vf"
+                  opt6Label="Very Fine"
+                  opt7Value="nm"
+                  opt7Label="Near Mint"
+                />
+
+                <DataDisplayRowRadio
+                  label="Distortion/Colour"
+                  value={addComicSubmission.distortionFinding}
+                  opt1Value="pr"
+                  opt1Label="Poor"
+                  opt2Value="fr"
+                  opt2Label="Fair"
+                  opt3Value="gd"
+                  opt3Label="Good"
+                  opt4Value="vg"
+                  opt4Label="Very good"
+                  opt5Value="fn"
+                  opt5Label="Fine"
+                  opt6Value="vf"
+                  opt6Label="Very Fine"
+                  opt7Value="nm"
+                  opt7Label="Near Mint"
+                />
+
+                <DataDisplayRowRadio
+                  label="Paper Quality Finding"
+                  value={addComicSubmission.paperQualityFinding}
+                  opt1Value="pr"
+                  opt1Label="Poor"
+                  opt2Value="fr"
+                  opt2Label="Fair"
+                  opt3Value="gd"
+                  opt3Label="Good"
+                  opt4Value="vg"
+                  opt4Label="Very good"
+                  opt5Value="fn"
+                  opt5Label="Fine"
+                  opt6Value="vf"
+                  opt6Label="Very Fine"
+                  opt7Value="nm"
+                  opt7Label="Near Mint"
+                />
+
+                <DataDisplayRowRadio
+                  label="Spine/Staples"
+                  value={addComicSubmission.spineFinding}
+                  opt1Value="pr"
+                  opt1Label="Poor"
+                  opt2Value="fr"
+                  opt2Label="Fair"
+                  opt3Value="gd"
+                  opt3Label="Good"
+                  opt4Value="vg"
+                  opt4Label="Very good"
+                  opt5Value="fn"
+                  opt5Label="Fine"
+                  opt6Value="vf"
+                  opt6Label="Very Fine"
+                  opt7Value="nm"
+                  opt7Label="Near Mint"
+                />
+
+                <DataDisplayRowRadio
+                  label="Cover (front and back)"
+                  value={addComicSubmission.coverFinding}
+                  opt1Value="pr"
+                  opt1Label="Poor"
+                  opt2Value="fr"
+                  opt2Label="Fair"
+                  opt3Value="gd"
+                  opt3Label="Good"
+                  opt4Value="vg"
+                  opt4Label="Very good"
+                  opt5Value="fn"
+                  opt5Label="Fine"
+                  opt6Value="vf"
+                  opt6Label="Very Fine"
+                  opt7Value="nm"
+                  opt7Label="Near Mint"
+                />
+
+                <DataDisplayRowRadio
+                  label="Shows signs of tampering/restoration"
+                  value={addComicSubmission.showsSignsOfTamperingOrRestoration}
+                  opt1Value={2}
+                  opt1Label="No"
+                  opt2Value={1}
+                  opt2Label="Yes"
+                />
+
+                {/* STEP 8 OF 10: NOTES ON GRADING */}
+                <p className="title is-5 mt-2">
+                  <FontAwesomeIcon className="fas" icon={faClipboardCheck} />
+                  &nbsp;Notes on Grading&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;
+                  <Link to="/submissions/comics/add/step-8">
+                    <FontAwesomeIcon className="fas" icon={faPencil} />
+                    &nbsp;Edit
+                  </Link>
+                </p>
+
+                <DataDisplayRowText
+                  label="Grading Notes (Optional)"
+                  value={addComicSubmission.gradingNotes}
+                />
+
+                {/* STEP 9 OF 10: GRADING */}
+                <p className="title is-5 mt-2">
+                  <FontAwesomeIcon className="fas" icon={faBalanceScale} />
+                  &nbsp;Grading&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;
+                  <Link to="/submissions/comics/add/step-9">
+                    <FontAwesomeIcon className="fas" icon={faPencil} />
+                    &nbsp;Edit
+                  </Link>
+                </p>
+
+                <DataDisplayRowRadio
+                  label="Which type of grading scale would you prefer?"
+                  value={addComicSubmission.gradingScale}
+                  opt1Value={1}
+                  opt1Label="Letter Grade (Poor-Near Mint)"
+                  opt2Value={2}
+                  opt2Label="Numbers (0.5-10.0)"
+                  opt3Value={3}
+                  opt3Label="Yes"
+                />
+
+                {addComicSubmission.gradingScale === 1 && (
+                    <>
+                        <DataDisplayRowSelect
+                            label="Overall Letter Grade"
+                            selectedValue={addComicSubmission.overallLetterGrade}
+                            options={FINDING_WITH_EMPTY_OPTIONS}
+                        />
+                        {isNMPlusOpen && (
+                            <DataDisplayRowCheckbox
+                              label="Is Near Mint plus?"
+                              checked={addComicSubmission.isOverallLetterGradeNearMintPlus}
+                            />
+                        )}
+                    </>
+                )}
+
+                {addComicSubmission.gradingScale === 2 && (
+                    <DataDisplayRowSelect
+                        label="Overall Number Grade"
+                        selectedValue={addComicSubmission.overallNumberGrade}
+                        options={overallNumberGradeFilteredOptions}
+                    />
+                )}
+
+                {addComicSubmission.gradingScale === 3 && (
+                    <DataDisplayRowSelect
+                        label="CPS Percentage Grade"
+                        selectedValue={addComicSubmission.cpsPercentageGrade}
+                        options={cpsPercentageGradeFilteredOptions}
+                    />
+                )}
+
+
+
 
                   <div class="columns pt-5">
                     <div class="column is-half">

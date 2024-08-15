@@ -19,7 +19,8 @@ import {
   faArrowUpRightFromSquare,
   faCog,
   faArrowRight,
-  faPen
+  faPen,
+  faFileSignature
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
@@ -301,7 +302,7 @@ function RetailerComicSubmissionAddStep6() {
                 </p>
                 <div class="container">
                   <p class="subtitle is-6">
-                    <FontAwesomeIcon className="fas" icon={faPen} />
+                    <FontAwesomeIcon className="fas" icon={faFileSignature} />
                     &nbsp;Book Signatures
                   </p>
                   <hr />

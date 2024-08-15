@@ -150,6 +150,9 @@ function RetailerComicSubmissionAddStep3() {
       console.log("onSaveAndContinueClick: isVariantCover:", isVariantCover);
       console.log("onSaveAndContinueClick: variantCoverDetail:", variantCoverDetail);
       console.log("onSaveAndContinueClick: primaryLabelDetails:", primaryLabelDetails);
+      console.log("onSaveAndContinueClick: primaryLabelDetailsOther:", primaryLabelDetailsOther);
+      console.log("onSaveAndContinueClick: specialNotes:", specialNotes);
+
       console.log("onSaveAndContinueClick: newErrors:", newErrors);
 
       //
@@ -187,9 +190,11 @@ function RetailerComicSubmissionAddStep3() {
       modifiedAddComicSubmission.keyIssueDetail = keyIssueDetail;
       modifiedAddComicSubmission.isInternationalEdition = parseBool(isInternationalEdition);
       modifiedAddComicSubmission.isVariantCover = parseBool(isVariantCover);
+      modifiedAddComicSubmission.variantCoverDetail = variantCoverDetail;
       modifiedAddComicSubmission.printing = parseInt(printing);
       modifiedAddComicSubmission.primaryLabelDetails = primaryLabelDetails;
       modifiedAddComicSubmission.primaryLabelDetailsOther = primaryLabelDetailsOther
+      modifiedAddComicSubmission.specialNotes = specialNotes
 
       // Save to persistent storage.
       setAddComicSubmission(modifiedAddComicSubmission);
