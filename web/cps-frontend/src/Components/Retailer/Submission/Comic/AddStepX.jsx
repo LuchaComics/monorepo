@@ -474,7 +474,7 @@ function RetailerComicSubmissionAddStepXXX() {
                 ) : (
                   <Link
                     class="button is-medium is-success"
-                    to={`/customer/${customerID}/sub`}
+                    to={`/customer/${customerID}/comics`}
                   >
                     Yes
                   </Link>

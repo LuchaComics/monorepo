@@ -63,14 +63,6 @@ import {
 
 function RetailerComicSubmissionAddStep3() {
   ////
-  //// URL Parameters.
-  ////
-
-  const [searchParams] = useSearchParams(); // Special thanks via https://stackoverflow.com/a/65451140
-  const customerID = searchParams.get("customer_id");
-  const customerName = searchParams.get("customer_name");
-
-  ////
   //// Global state.
   ////
 
@@ -223,7 +215,7 @@ function RetailerComicSubmissionAddStep3() {
     <>
       <div class="container">
         <section class="section">
-          {customerName === null ? (
+          {addComicSubmission.fromPage !== "customer" ? (
             <>
               {/* Desktop Breadcrumbs */}
               <nav class="breadcrumb is-hidden-touch" aria-label="breadcrumbs">
@@ -289,7 +281,7 @@ function RetailerComicSubmissionAddStep3() {
                   </li>
                   <li class="">
                     <Link
-                      to={`/customer/${customerID}/comics`}
+                      to={`/customer/${addComicSubmission.customerID}/comics`}
                       aria-current="page"
                     >
                       <FontAwesomeIcon className="fas" icon={faEye} />
@@ -339,7 +331,7 @@ function RetailerComicSubmissionAddStep3() {
                 This cannot be undone. Do you want to continue?
               </section>
               <footer class="modal-card-foot">
-                {customerName === null ? (
+                {addComicSubmission.fromPage !== "customer" ? (
                   <Link
                     class="button is-medium is-success"
                     to={`/submissions/comics/add/step-1/search`}
@@ -349,7 +341,7 @@ function RetailerComicSubmissionAddStep3() {
                 ) : (
                   <Link
                     class="button is-medium is-success"
-                    to={`/customer/${customerID}/sub`}
+                    to={`/customer/${addComicSubmission.customerID}/comics`}
                   >
                     Yes
                   </Link>
@@ -416,7 +408,7 @@ function RetailerComicSubmissionAddStep3() {
                         class="button is-medium is-fullwidth-mobile"
                         onClick={(e) => {
                             e.preventDefault();
-                            setForceURL("/submissions/comics/add/step-2");
+                            setForceURL("/submissions/comics/add/step-2?customer_id=" + addComicSubmission.customerId+ "&customer_name=" + addComicSubmission.customerName + "&from="+addComicSubmission.fromPage);
                         }}
                       >
                         <FontAwesomeIcon className="fas" icon={faArrowLeft} />

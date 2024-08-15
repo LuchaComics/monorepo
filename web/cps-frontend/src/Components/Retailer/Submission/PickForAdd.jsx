@@ -36,6 +36,7 @@ function RetailerSubmissionPickTypeForAdd() {
   const customerID = searchParams.get("customer_id");
   const customerName = searchParams.get("customer_name");
   const orgID = searchParams.get("store_id");
+  const fromPage = searchParams.get("from");
   // const orgName = searchParams.get("store_name");
 
   ////
@@ -83,7 +84,7 @@ function RetailerSubmissionPickTypeForAdd() {
     <>
       <div class="container">
         <section class="section">
-          {customerName === null ? (
+          {fromPage !== "customer" ? (
             <>
               {/* Desktop Breadcrumbs */}
               <nav class="breadcrumb is-hidden-touch" aria-label="breadcrumbs">
@@ -179,6 +180,18 @@ function RetailerSubmissionPickTypeForAdd() {
             </>
           )}
 
+          {/* Progress Wizard */}
+          <nav className="box has-background-light">
+            <p className="subtitle is-5">Step 1 of 10</p>
+            <progress
+              class="progress is-success"
+              value="10"
+              max="100"
+            >
+              10%
+            </progress>
+          </nav>
+
           {/* Page */}
           <nav class="box">
             <p class="title is-4">
@@ -210,14 +223,14 @@ function RetailerSubmissionPickTypeForAdd() {
                     processed at this time).
                     <br />
                     <br />
-                    {customerName === null ? (
+                    {fromPage !== "customer" ? (
                       <Link to={`/submissions/comics/add/step-1/search`}>
                         Select&nbsp;
                         <FontAwesomeIcon className="fas" icon={faArrowRight} />
                       </Link>
                     ) : (
                       <Link
-                        to={`/submissions/comics/add?customer_id=${customerID}&customer_name=${customerName}`}
+                        to={`/submissions/comics/add/step-2?customer_id=${customerID}&customer_name=${customerName}&from=customer&clear=true`}
                       >
                         Select&nbsp;
                         <FontAwesomeIcon className="fas" icon={faArrowRight} />
@@ -246,7 +259,7 @@ function RetailerSubmissionPickTypeForAdd() {
 
               <div class="columns pt-5">
                 <div class="column is-half">
-                  {customerName === null ? (
+                  {fromPage !== "customer" ? (
                     <>
                       <Link
                         to={`/submissions/comics`}
@@ -266,14 +279,14 @@ function RetailerSubmissionPickTypeForAdd() {
                   ) : (
                     <>
                       <Link
-                        to={`/customer/${customerID}/sub`}
+                        to={`/customer/${customerID}/comics`}
                         class="button is-medium is-hidden-touch"
                       >
                         <FontAwesomeIcon className="fas" icon={faTimesCircle} />
                         &nbsp;Cancel
                       </Link>
                       <Link
-                        to={`/customer/${customerID}/sub`}
+                        to={`/customer/${customerID}/comics`}
                         class="button is-medium is-fullwidth is-hidden-desktop"
                       >
                         <FontAwesomeIcon className="fas" icon={faTimesCircle} />
@@ -284,9 +297,9 @@ function RetailerSubmissionPickTypeForAdd() {
                 </div>
                 <div class="column is-half has-text-right">
                   {/*
-                                    <button class="button is-medium is-primary is-hidden-touch" onClick={onSubmitClick}><FontAwesomeIcon className="fas" icon={faCheckCircle} />&nbsp;Save</button>
-                                    <button class="button is-medium is-primary is-fullwidth is-hidden-desktop" onClick={onSubmitClick}><FontAwesomeIcon className="fas" icon={faCheckCircle} />&nbsp;Save</button>
-                                    */}
+                    <button class="button is-medium is-primary is-hidden-touch" onClick={onSubmitClick}><FontAwesomeIcon className="fas" icon={faCheckCircle} />&nbsp;Save</button>
+                    <button class="button is-medium is-primary is-fullwidth is-hidden-desktop" onClick={onSubmitClick}><FontAwesomeIcon className="fas" icon={faCheckCircle} />&nbsp;Save</button>
+                   */}
                 </div>
               </div>
             </div>

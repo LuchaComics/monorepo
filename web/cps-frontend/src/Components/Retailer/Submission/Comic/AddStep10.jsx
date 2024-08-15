@@ -55,16 +55,13 @@ import {
   topAlertStatusState,
   currentUserState,
 } from "../../../../AppState";
+import {
+  addComicSubmissionState,
+  ADD_COMIC_SUBMISSION_STATE_DEFAULT,
+} from "../../../../AppState";
+
 
 function RetailerComicSubmissionAddStep10() {
-  ////
-  //// URL Parameters.
-  ////
-
-  const [searchParams] = useSearchParams(); // Special thanks via https://stackoverflow.com/a/65451140
-  const customerID = searchParams.get("customer_id");
-  const customerName = searchParams.get("customer_name");
-
   ////
   //// Global state.
   ////
@@ -74,6 +71,7 @@ function RetailerComicSubmissionAddStep10() {
   const [topAlertStatus, setTopAlertStatus] =
     useRecoilState(topAlertStatusState);
   const [currentUser] = useRecoilState(currentUserState);
+  const [addComicSubmission, setAddComicSubmission] = useRecoilState(addComicSubmissionState);
 
   ////
   //// Component states.
@@ -177,7 +175,7 @@ function RetailerComicSubmissionAddStep10() {
       serviceType: serviceType,
       storeID: currentUser.storeId,
       collectibleType: 1, // 1=Comic, 2=Card
-      customerID: customerID,
+      // customerID: customerID,
     };
 
     // Submit to the backend.
@@ -244,13 +242,13 @@ function RetailerComicSubmissionAddStep10() {
     }, 2000);
 
     let urlParams = "";
-    if (customerName !== null) {
-      urlParams +=
-        "?customer_id=" + customerID + "&customer_name=" + customerName;
-    }
-
-    // Redirect the user to a new page.
-    setForceURL("/submissions/comics/add/" + response.id + urlParams);
+    // if (customerName !== null) {
+    //   urlParams +=
+    //     "?customer_id=" + customerID + "&customer_name=" + customerName;
+    // }
+    //
+    // // Redirect the user to a new page.
+    // setForceURL("/submissions/comics/add/" + response.id + urlParams);
   }
 
   function onComicSubmissionCreateError(apiErr) {
@@ -348,7 +346,7 @@ function RetailerComicSubmissionAddStep10() {
     <>
       <div class="container">
         <section class="section">
-          {customerName === null ? (
+          {addComicSubmission.fromPage !== "customer" ? (
             <>
               {/* Desktop Breadcrumbs */}
               <nav class="breadcrumb is-hidden-touch" aria-label="breadcrumbs">
@@ -414,7 +412,7 @@ function RetailerComicSubmissionAddStep10() {
                   </li>
                   <li class="">
                     <Link
-                      to={`/customer/${customerID}/comics`}
+                      to={`/customer/${addComicSubmission.customerID}/comics`}
                       aria-current="page"
                     >
                       <FontAwesomeIcon className="fas" icon={faEye} />
@@ -448,46 +446,7 @@ function RetailerComicSubmissionAddStep10() {
           )}
 
           {/* Modals */}
-          <div class={`modal ${showCancelWarning ? "is-active" : ""}`}>
-            <div class="modal-background"></div>
-            <div class="modal-card">
-              <header class="modal-card-head">
-                <p class="modal-card-title">Are you sure?</p>
-                <button
-                  class="delete"
-                  aria-label="close"
-                  onClick={(e) => setShowCancelWarning(false)}
-                ></button>
-              </header>
-              <section class="modal-card-body">
-                Your submission will be cancelled and your work will be lost.
-                This cannot be undone. Do you want to continue?
-              </section>
-              <footer class="modal-card-foot">
-                {customerName === null ? (
-                  <Link
-                    class="button is-medium is-success"
-                    to={`/submissions/comics/add/step-1/search`}
-                  >
-                    Yes
-                  </Link>
-                ) : (
-                  <Link
-                    class="button is-medium is-success"
-                    to={`/customer/${customerID}/sub`}
-                  >
-                    Yes
-                  </Link>
-                )}
-                <button
-                  class="button is-medium "
-                  onClick={(e) => setShowCancelWarning(false)}
-                >
-                  No
-                </button>
-              </footer>
-            </div>
-          </div>
+          {/* ------ */}
 
           {/* Progress Wizard */}
           <nav className="box has-background-success-light">

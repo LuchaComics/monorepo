@@ -370,7 +370,7 @@ function RetailerCustomerDetailForComicSubmissionList() {
               </div>
               <div class="column has-text-right">
                 <Link
-                  to={`/submissions/pick-type-for-add?customer_id=${id}&customer_name=${customer.name}`}
+                  to={`/submissions/pick-type-for-add?customer_id=${id}&customer_name=${customer.name}&from=customer`}
                   class="button is-small is-success is-fullwidth-mobile"
                   type="button"
                 >
@@ -419,10 +419,10 @@ function RetailerCustomerDetailForComicSubmissionList() {
                       previousCursors.length > 0) ? (
                       <div class="container">
                         {/*
-                                                ##################################################################
-                                                EVERYTHING INSIDE HERE WILL ONLY BE DISPLAYED ON A DESKTOP SCREEN.
-                                                ##################################################################
-                                            */}
+                            ##################################################################
+                            EVERYTHING INSIDE HERE WILL ONLY BE DISPLAYED ON A DESKTOP SCREEN.
+                            ##################################################################
+                        */}
                         <div class="is-hidden-touch">
                           <RetailerCustomerDetailForComicSubmissionListDesktop
                             listData={submissions}
@@ -438,10 +438,10 @@ function RetailerCustomerDetailForComicSubmissionList() {
                         </div>
 
                         {/*
-                                                ###########################################################################
-                                                EVERYTHING INSIDE HERE WILL ONLY BE DISPLAYED ON A TABLET OR MOBILE SCREEN.
-                                                ###########################################################################
-                                            */}
+                            ###########################################################################
+                            EVERYTHING INSIDE HERE WILL ONLY BE DISPLAYED ON A TABLET OR MOBILE SCREEN.
+                            ###########################################################################
+                        */}
                         <div class="is-fullwidth is-hidden-desktop">
                           <RetailerCustomerDetailForComicSubmissionListMobile
                             listData={submissions}
@@ -463,7 +463,7 @@ function RetailerCustomerDetailForComicSubmissionList() {
                             No submissions.{" "}
                             <b>
                               <Link
-                                to={`/submissions/pick-type-for-add?customer_id=${id}&customer_name=${customer.name}`}
+                                to={`/submissions/pick-type-for-add?customer_id=${id}&customer_name=${customer.name}&from=customer`}
                               >
                                 Click here&nbsp;
                                 <FontAwesomeIcon
@@ -490,7 +490,7 @@ function RetailerCustomerDetailForComicSubmissionList() {
                       </div>
                       <div class="column is-half has-text-right">
                         <Link
-                          to={`/submissions/pick-type-for-add?customer_id=${id}&customer_name=${customer.name}`}
+                          to={`/submissions/pick-type-for-add?customer_id=${id}&customer_name=${customer.name}&from=customer`}
                           class="button is-primary is-fullwidth-mobile"
                         >
                           <FontAwesomeIcon className="fas" icon={faPlus} />

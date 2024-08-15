@@ -69,6 +69,10 @@ function RetailerComicSubmissionAddStep2() {
   const [searchParams] = useSearchParams(); // Special thanks via https://stackoverflow.com/a/65451140
   const customerID = searchParams.get("customer_id");
   const customerName = searchParams.get("customer_name");
+  const fromPage = searchParams.get("from");
+  const shouldClear = searchParams.get("clear");
+
+  console.log("customer_id:", customerID, "customer_name:", customerName, "from:", fromPage);
 
   ////
   //// Global state.
@@ -138,7 +142,11 @@ function RetailerComicSubmissionAddStep2() {
     // customerID: customerID,
 
     // // Update our clone.
-    // modifiedAddComicSubmission.serviceType = serviceType;
+    modifiedAddComicSubmission.customerID = customerID;
+    modifiedAddComicSubmission.customerId = customerID;
+    modifiedAddComicSubmission.customerName = customerName;
+    modifiedAddComicSubmission.storeID = currentUser.storeId;
+    modifiedAddComicSubmission.fromPage = fromPage
 
     // Save to persistent storage.
     setAddComicSubmission(modifiedAddComicSubmission);
@@ -190,12 +198,20 @@ function RetailerComicSubmissionAddStep2() {
 
     if (mounted) {
       window.scrollTo(0, 0); // Start the page at the top of the page.
+
+      // Developer notes: If we have `clear=true` as URL argument then we clear
+      // the previous inputted submissions.
+      if (shouldClear === "true") {
+          // Delete the previous submission filling details.
+          console.log("deleting previous addComicSubmission:", addComicSubmission);
+          setAddComicSubmission(ADD_COMIC_SUBMISSION_STATE_DEFAULT);
+      }
     }
 
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [shouldClear]);
 
   ////
   //// Component rendering.
@@ -228,7 +244,7 @@ function RetailerComicSubmissionAddStep2() {
     <>
       <div class="container">
         <section class="section">
-          {customerName === null ? (
+          {fromPage !== "customer" ? (
             <>
               {/* Desktop Breadcrumbs */}
               <nav class="breadcrumb is-hidden-touch" aria-label="breadcrumbs">
@@ -344,7 +360,7 @@ function RetailerComicSubmissionAddStep2() {
                 This cannot be undone. Do you want to continue?
               </section>
               <footer class="modal-card-foot">
-                {customerName === null ? (
+                {fromPage !== "customer" ? (
                   <Link
                     class="button is-medium is-success"
                     to={`/submissions/comics/add/step-1/search`}
@@ -354,7 +370,7 @@ function RetailerComicSubmissionAddStep2() {
                 ) : (
                   <Link
                     class="button is-medium is-success"
-                    to={`/customer/${customerID}/sub`}
+                    to={`/customer/${customerID}/comics`}
                   >
                     Yes
                   </Link>
@@ -413,6 +429,19 @@ function RetailerComicSubmissionAddStep2() {
                     maxWidth="380px"
                     disabled={true}
                   />
+
+                  {((customerID !== undefined && customerID !== null && customerID !== "") || addComicSubmission.customerName) && <>
+                      <FormInputField
+                        label="Customer"
+                        name="customerName"
+                        placeholder="Text input"
+                        value={customerName || addComicSubmission.customerName}
+                        helpText="The name of the customer for this submission."
+                        isRequired={true}
+                        maxWidth="380px"
+                        disabled={true}
+                      />
+                  </>}
 
                   <div class="columns pt-5">
                     <div class="column is-half">

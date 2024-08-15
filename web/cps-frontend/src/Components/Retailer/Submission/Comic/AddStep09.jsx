@@ -64,14 +64,6 @@ import {
 
 function RetailerComicSubmissionAddStep9() {
   ////
-  //// URL Parameters.
-  ////
-
-  const [searchParams] = useSearchParams(); // Special thanks via https://stackoverflow.com/a/65451140
-  const customerID = searchParams.get("customer_id");
-  const customerName = searchParams.get("customer_name");
-
-  ////
   //// Global state.
   ////
 
@@ -193,69 +185,6 @@ function RetailerComicSubmissionAddStep9() {
   //// API.
   ////
 
-  function onComicSubmissionCreateSuccess(response) {
-    // For debugging purposes only.
-    console.log("onComicSubmissionCreateSuccess: Starting...");
-    console.log(response);
-
-    // Add a temporary banner message in the app and then clear itself after 2 seconds.
-    setTopAlertMessage("ComicSubmission created");
-    setTopAlertStatus("success");
-    setTimeout(() => {
-      console.log("onComicSubmissionCreateSuccess: Delayed for 2 seconds.");
-      console.log(
-        "onComicSubmissionCreateSuccess: topAlertMessage, topAlertStatus:",
-        topAlertMessage,
-        topAlertStatus,
-      );
-      setTopAlertMessage("");
-    }, 2000);
-
-    let urlParams = "";
-    if (customerName !== null) {
-      urlParams +=
-        "?customer_id=" + customerID + "&customer_name=" + customerName;
-    }
-
-    // Redirect the user to a new page.
-    setForceURL("/submissions/comics/add/" + response.id + urlParams);
-  }
-
-  function onComicSubmissionCreateError(apiErr) {
-    console.log("onComicSubmissionCreateError: Starting...");
-    setErrors(apiErr);
-
-    // Add a temporary banner message in the app and then clear itself after 2 seconds.
-    setTopAlertMessage("Failed submitting");
-    setTopAlertStatus("danger");
-    setTimeout(() => {
-      console.log("onComicSubmissionCreateError: Delayed for 2 seconds.");
-      console.log(
-        "onComicSubmissionCreateError: topAlertMessage, topAlertStatus:",
-        topAlertMessage,
-        topAlertStatus,
-      );
-      setTopAlertMessage("");
-    }, 2000);
-
-    // The following code will cause the screen to scroll to the top of
-    // the page. Please see ``react-scroll`` for more information:
-    // https://github.com/fisshy/react-scroll
-    var scroll = Scroll.animateScroll;
-    scroll.scrollToTop();
-  }
-
-  function onComicSubmissionCreateDone() {
-    console.log("onComicSubmissionCreateDone: Starting...");
-    setFetching(false);
-  }
-
-  // --- All --- //
-
-  const onUnauthorized = () => {
-    setForceURL("/login?unauthorized=true"); // If token expired or user is not logged in, redirect back to login.
-  };
-
   ////
   //// Misc.
   ////
@@ -316,7 +245,7 @@ function RetailerComicSubmissionAddStep9() {
     <>
       <div class="container">
         <section class="section">
-          {customerName === null ? (
+          {addComicSubmission.fromPage !== "customer" ? (
             <>
               {/* Desktop Breadcrumbs */}
               <nav class="breadcrumb is-hidden-touch" aria-label="breadcrumbs">
@@ -382,7 +311,7 @@ function RetailerComicSubmissionAddStep9() {
                   </li>
                   <li class="">
                     <Link
-                      to={`/customer/${customerID}/comics`}
+                      to={`/customer/${addComicSubmission.customerID}/comics`}
                       aria-current="page"
                     >
                       <FontAwesomeIcon className="fas" icon={faEye} />
@@ -416,46 +345,7 @@ function RetailerComicSubmissionAddStep9() {
           )}
 
           {/* Modals */}
-          <div class={`modal ${showCancelWarning ? "is-active" : ""}`}>
-            <div class="modal-background"></div>
-            <div class="modal-card">
-              <header class="modal-card-head">
-                <p class="modal-card-title">Are you sure?</p>
-                <button
-                  class="delete"
-                  aria-label="close"
-                  onClick={(e) => setShowCancelWarning(false)}
-                ></button>
-              </header>
-              <section class="modal-card-body">
-                Your submission will be cancelled and your work will be lost.
-                This cannot be undone. Do you want to continue?
-              </section>
-              <footer class="modal-card-foot">
-                {customerName === null ? (
-                  <Link
-                    class="button is-medium is-success"
-                    to={`/submissions/comics/add/step-1/search`}
-                  >
-                    Yes
-                  </Link>
-                ) : (
-                  <Link
-                    class="button is-medium is-success"
-                    to={`/customer/${customerID}/sub`}
-                  >
-                    Yes
-                  </Link>
-                )}
-                <button
-                  class="button is-medium "
-                  onClick={(e) => setShowCancelWarning(false)}
-                >
-                  No
-                </button>
-              </footer>
-            </div>
-          </div>
+          {/* ------ */}
 
           {/* Progress Wizard */}
           <nav className="box has-background-light">

@@ -278,7 +278,7 @@ function RetailerComicSubmissionAddStep1WithStarredCustomer() {
                                 <br />
                                 <Link
                                   class="button is-medium is-primary"
-                                  to={`/submissions/comics/add/step-2?customer_id=${customer.id}`}
+                                  to={`/submissions/comics/add/step-2?customer_id=${customer.id}&customer_name={customer.name}&from=submission&clear=true`}
                                 >
                                   <FontAwesomeIcon
                                     className="fas"

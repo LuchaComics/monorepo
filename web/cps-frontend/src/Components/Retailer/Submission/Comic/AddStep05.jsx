@@ -64,14 +64,6 @@ import { parseBool } from "../../../../Helpers/boolUtility";
 
 function RetailerComicSubmissionAddStep3() {
   ////
-  //// URL Parameters.
-  ////
-
-  const [searchParams] = useSearchParams(); // Special thanks via https://stackoverflow.com/a/65451140
-  const customerID = searchParams.get("customer_id");
-  const customerName = searchParams.get("customer_name");
-
-  ////
   //// Global state.
   ////
 
@@ -240,7 +232,7 @@ function RetailerComicSubmissionAddStep3() {
     <>
       <div class="container">
         <section class="section">
-          {customerName === null ? (
+          {addComicSubmission.fromPage !== "customer" ? (
             <>
               {/* Desktop Breadcrumbs */}
               <nav class="breadcrumb is-hidden-touch" aria-label="breadcrumbs">
@@ -306,7 +298,7 @@ function RetailerComicSubmissionAddStep3() {
                   </li>
                   <li class="">
                     <Link
-                      to={`/customer/${customerID}/comics`}
+                      to={`/customer/${addComicSubmission.customerID}/comics`}
                       aria-current="page"
                     >
                       <FontAwesomeIcon className="fas" icon={faEye} />

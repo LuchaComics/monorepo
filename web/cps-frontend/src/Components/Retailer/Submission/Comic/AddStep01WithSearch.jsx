@@ -328,7 +328,7 @@ function RetailerComicSubmissionAddStep1WithSearch() {
                     setAddComicSubmission(ADD_COMIC_SUBMISSION_STATE_DEFAULT);
 
                     // Redirect to the URL.
-                    setForceURL("/submissions/comics/add/step-2");
+                    setForceURL("/submissions/comics/add/step-2?from=submission&clear=true");
                 }}>
                 Skip selecting a customer&nbsp;
                 <FontAwesomeIcon className="fas" icon={faArrowRight} />
