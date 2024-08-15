@@ -509,7 +509,7 @@ function RetailerComicSubmissionAddStep10() {
                         onClick={onSubmitClick}
                       >
                         <FontAwesomeIcon className="fas" icon={faCheckCircle} />
-                        &nbsp;Submit and Continue
+                        &nbsp;Submit
                       </button>
                     </div>
                   </div>

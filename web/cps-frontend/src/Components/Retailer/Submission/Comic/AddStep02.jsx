@@ -409,8 +409,7 @@ function RetailerComicSubmissionAddStep2() {
               <>
                 <FormErrorBox errors={errors} />
                 <p class="has-text-grey pb-4">
-                  Please fill out all the required fields before submitting this
-                  form.
+                  You will be filling a comic submission using the following settings:
                 </p>
                 <div class="container">
                   <p class="subtitle is-6">

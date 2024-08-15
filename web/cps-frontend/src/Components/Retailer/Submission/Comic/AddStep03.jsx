@@ -315,46 +315,7 @@ function RetailerComicSubmissionAddStep3() {
           )}
 
           {/* Modals */}
-          <div class={`modal ${showCancelWarning ? "is-active" : ""}`}>
-            <div class="modal-background"></div>
-            <div class="modal-card">
-              <header class="modal-card-head">
-                <p class="modal-card-title">Are you sure?</p>
-                <button
-                  class="delete"
-                  aria-label="close"
-                  onClick={(e) => setShowCancelWarning(false)}
-                ></button>
-              </header>
-              <section class="modal-card-body">
-                Your submission will be cancelled and your work will be lost.
-                This cannot be undone. Do you want to continue?
-              </section>
-              <footer class="modal-card-foot">
-                {addComicSubmission.fromPage !== "customer" ? (
-                  <Link
-                    class="button is-medium is-success"
-                    to={`/submissions/comics/add/step-1/search`}
-                  >
-                    Yes
-                  </Link>
-                ) : (
-                  <Link
-                    class="button is-medium is-success"
-                    to={`/customer/${addComicSubmission.customerID}/comics`}
-                  >
-                    Yes
-                  </Link>
-                )}
-                <button
-                  class="button is-medium "
-                  onClick={(e) => setShowCancelWarning(false)}
-                >
-                  No
-                </button>
-              </footer>
-            </div>
-          </div>
+          {/* ------ */}
 
           {/* Progress Wizard */}
           <nav className="box has-background-light">
@@ -380,8 +341,7 @@ function RetailerComicSubmissionAddStep3() {
               <>
                 <FormErrorBox errors={errors} />
                 <p class="has-text-grey pb-4">
-                  Please fill out all the required fields before submitting this
-                  form.
+                  Please fill out all the required fields before continuing to the next step.
                 </p>
                 <div class="container">
                   <p class="subtitle is-6">

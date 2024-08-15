@@ -87,28 +87,12 @@ function RetailerComicSubmissionAddStep3() {
   const [keyIssueDetail, setKeyIssueDetail] = useState(addComicSubmission.keyIssueDetail);
   const [isInternationalEdition, setIsInternationalEdition] = useState(parseBool(addComicSubmission.isInternationalEdition));
   const [isVariantCover, setIsVariantCover] = useState(parseBool(addComicSubmission.isVariantCover));
-  const [variantCoverDetail, setVariantCoverDetail] = useState(addComicSubmission.serviceType);
+  const [variantCoverDetail, setVariantCoverDetail] = useState(addComicSubmission.variantCoverDetail);
   const [printing, setPrinting] = useState(parseInt(addComicSubmission.printing));
   const [primaryLabelDetails, setPrimaryLabelDetails] = useState(parseInt(addComicSubmission.primaryLabelDetails));
   const [primaryLabelDetailsOther, setPrimaryLabelDetailsOther] = useState(addComicSubmission.primaryLabelDetailsOther);
-  const [creasesFinding, setCreasesFinding] = useState(addComicSubmission.serviceType);
-  const [tearsFinding, setTearsFinding] = useState(addComicSubmission.serviceType);
-  const [missingPartsFinding, setMissingPartsFinding] = useState(addComicSubmission.serviceType);
-  const [stainsFinding, setStainsFinding] = useState(addComicSubmission.serviceType);
-  const [distortionFinding, setDistortionFinding] = useState(addComicSubmission.serviceType);
-  const [paperQualityFinding, setPaperQualityFinding] = useState(addComicSubmission.serviceType);
   const [specialNotes, setSpecialNotes] = useState(addComicSubmission.specialNotes);
-  const [
-    showsSignsOfTamperingOrRestoration,
-    setShowsSignsOfTamperingOrRestoration,
-  ] = useState(2); // 2=no  // Bool
   const [showCancelWarning, setShowCancelWarning] = useState(false); // Bool
-  const [
-    isOverallLetterGradeNearMintPlus,
-    setIsOverallLetterGradeNearMintPlus,
-  ] = useState(false); // Bool
-  const [serviceType, setServiceType] = useState(parseInt(addComicSubmission.serviceType));
-  const [signatures, setSignatures] = useState([]);
 
   ////
   //// Event handling.
@@ -126,16 +110,20 @@ function RetailerComicSubmissionAddStep3() {
           if (keyIssue === undefined || keyIssue === null || keyIssue === 0 || keyIssue === "") {
             newErrors["keyIssue"] = "missing value";
             hasErrors = true;
-        } else if (keyIssue === 1) {
+          } else if (keyIssue === 1) {
             if (keyIssueOther === undefined || keyIssueOther === null || keyIssueOther === 0 || keyIssueOther === "") {
               newErrors["keyIssueOther"] = "missing value";
               hasErrors = true;
             }
-        }
+          }
           if (keyIssueDetail === undefined || keyIssueDetail === null || keyIssueDetail === 0 || keyIssueDetail === "") {
             newErrors["keyIssueDetail"] = "missing value";
             hasErrors = true;
           }
+      }
+      if (printing === undefined || printing === null || printing === 0 || printing === "" || isNaN(printing)) {
+          newErrors["printing"] = "missing value";
+          hasErrors = true;
       }
       if (isVariantCover === true) {
           if (variantCoverDetail === undefined || variantCoverDetail === null || variantCoverDetail === 0 || variantCoverDetail === "") {
@@ -143,7 +131,7 @@ function RetailerComicSubmissionAddStep3() {
             hasErrors = true;
         }
       }
-      if (primaryLabelDetails === undefined || primaryLabelDetails === null || primaryLabelDetails === 0 || primaryLabelDetails === "") {
+      if (primaryLabelDetails === undefined || primaryLabelDetails === null || primaryLabelDetails === 0 || primaryLabelDetails === "" || isNaN(primaryLabelDetails)) {
         newErrors["primaryLabelDetails"] = "missing value";
         hasErrors = true;
       } else if (primaryLabelDetails === 1) {
@@ -152,6 +140,17 @@ function RetailerComicSubmissionAddStep3() {
             hasErrors = true;
           }
       }
+
+      // For debugging purposes only.
+      console.log("onSaveAndContinueClick: isKeyIssue:", isKeyIssue);
+      console.log("onSaveAndContinueClick: keyIssue:", keyIssue);
+      console.log("onSaveAndContinueClick: keyIssueOther:", keyIssueOther);
+      console.log("onSaveAndContinueClick: keyIssueDetail:", keyIssueDetail);
+      console.log("onSaveAndContinueClick: printing:", printing);
+      console.log("onSaveAndContinueClick: isVariantCover:", isVariantCover);
+      console.log("onSaveAndContinueClick: variantCoverDetail:", variantCoverDetail);
+      console.log("onSaveAndContinueClick: primaryLabelDetails:", primaryLabelDetails);
+      console.log("onSaveAndContinueClick: newErrors:", newErrors);
 
       //
       // CASE 1 of 2: Has errors.
@@ -358,11 +357,14 @@ function RetailerComicSubmissionAddStep3() {
               <>
                 <FormErrorBox errors={errors} />
                 <p class="has-text-grey pb-4">
-                  Please fill out all the required fields before submitting this
-                  form.
+                  Please fill out all the required fields before continuing to the next step.
                 </p>
                 <div class="container">
-
+                  <p class="subtitle is-6">
+                    <FontAwesomeIcon className="fas" icon={faBookOpen} />
+                    &nbsp;Additional Book Information
+                  </p>
+                  <hr />
 
                   <FormCheckboxField
                     label="Is Key Issue?"

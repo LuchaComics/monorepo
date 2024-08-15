@@ -81,10 +81,10 @@ function RetailerComicSubmissionAddStep9() {
   const [errors, setErrors] = useState({});
   const [isFetching, setFetching] = useState(false);
   const [forceURL, setForceURL] = useState("");
-  const [gradingScale, setGradingScale] = useState(0);
-  const [overallLetterGrade, setOverallLetterGrade] = useState("");
-  const [overallNumberGrade, setOverallNumberGrade] = useState("");
-  const [cpsPercentageGrade, setCpsPercentageGrade] = useState("");
+  const [gradingScale, setGradingScale] = useState(parseInt(addComicSubmission.gradingScale));
+  const [overallLetterGrade, setOverallLetterGrade] = useState(addComicSubmission.overallLetterGrade);
+  const [overallNumberGrade, setOverallNumberGrade] = useState(parseFloat(addComicSubmission.overallNumberGrade));
+  const [cpsPercentageGrade, setCpsPercentageGrade] = useState(parseFloat(addComicSubmission.cpsPercentageGrade));
   const [showCancelWarning, setShowCancelWarning] = useState(false);
   const [
     isOverallLetterGradeNearMintPlus,
@@ -96,18 +96,49 @@ function RetailerComicSubmissionAddStep9() {
   //// Event handling.
   ////
 
-  const onSubmitClick = (e) => {
+  const onSaveAndContinueClick = (e) => {
     console.log("onSaveAndContinueClick: Beginning...");
 
     // Variables used to hold state if we got an error with validation.
     let newErrors = {};
     let hasErrors = false;
 
-    // // Perform validation.
-    // if (seriesTitle === undefined || seriesTitle === null || seriesTitle === 0 || seriesTitle === "") {
-    //   newErrors["seriesTitle"] = "missing value";
-    //   hasErrors = true;
-    // }
+    // Perform validation.
+    if (gradingScale === undefined || gradingScale === null || gradingScale === 0 || gradingScale === "" || isNaN(gradingScale)) {
+      newErrors["gradingScale"] = "missing value";
+      hasErrors = true;
+    } else {
+        // CASE 1 of 3: Letter Grade
+        if (gradingScale === 1) {
+            if (overallLetterGrade === undefined || overallLetterGrade === null || overallLetterGrade === 0 || overallLetterGrade === "") {
+              newErrors["overallLetterGrade"] = "missing value";
+              hasErrors = true;
+            }
+        }
+
+        // CASE 2 of 3: Numbers
+        if (gradingScale === 2) {
+            if (overallNumberGrade === undefined || overallNumberGrade === null || overallNumberGrade === 0 || overallNumberGrade === "" || isNaN(overallNumberGrade)) {
+              newErrors["overallNumberGrade"] = "missing value";
+              hasErrors = true;
+            }
+        }
+
+        // CASE 3 of 3: Numbers
+        if (gradingScale === 3) {
+            if (cpsPercentageGrade === undefined || cpsPercentageGrade === null || cpsPercentageGrade === 0 || cpsPercentageGrade === "" || isNaN(cpsPercentageGrade)) {
+              newErrors["cpsPercentageGrade"] = "missing value";
+              hasErrors = true;
+            }
+        }
+    }
+
+    // For debuggin purposes only.
+    console.log("onSaveAndContinueClick: gradingScale:", gradingScale);
+    console.log("onSaveAndContinueClick: overallLetterGrade:", overallLetterGrade);
+    console.log("onSaveAndContinueClick: overallNumberGrade:", overallNumberGrade);
+    console.log("onSaveAndContinueClick: cpsPercentageGrade:", cpsPercentageGrade)
+    console.log("onSaveAndContinueClick: hasErrors:", hasErrors);
 
     //
     // CASE 1 of 2: Has errors.
@@ -371,8 +402,7 @@ function RetailerComicSubmissionAddStep9() {
               <>
                 <FormErrorBox errors={errors} />
                 <p class="has-text-grey pb-4">
-                  Please fill out all the required fields before submitting this
-                  form.
+                  Please fill out all the required fields before continuing to the last step.
                 </p>
                 <div class="container">
 
@@ -488,9 +518,9 @@ function RetailerComicSubmissionAddStep9() {
                     <div class="column is-half has-text-right">
                       <button
                         class="button is-medium is-primary is-fullwidth-mobile"
-                        onClick={onSubmitClick}
+                        onClick={onSaveAndContinueClick}
                       >
-                        Save and Continue&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} />
+                        Save and Review&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} />
                       </button>
                     </div>
                   </div>

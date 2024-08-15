@@ -18,7 +18,8 @@ import {
   faUser,
   faArrowUpRightFromSquare,
   faCog,
-  faArrowRight
+  faArrowRight,
+  faPen
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
@@ -296,13 +297,12 @@ function RetailerComicSubmissionAddStep6() {
               <>
                 <FormErrorBox errors={errors} />
                 <p class="has-text-grey pb-4">
-                  Please fill out all the required fields before submitting this
-                  form.
+                  Please fill out all the required fields before continuing to the next step.
                 </p>
                 <div class="container">
                   <p class="subtitle is-6">
-                    <FontAwesomeIcon className="fas" icon={faBookOpen} />
-                    &nbsp;Book Information
+                    <FontAwesomeIcon className="fas" icon={faPen} />
+                    &nbsp;Book Signatures
                   </p>
                   <hr />
 
