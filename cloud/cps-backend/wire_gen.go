@@ -108,7 +108,7 @@ func InitializeEvent() Application {
 	attachmentController := controller6.NewController(conf, slogLogger, provider, s3Storager, emailer, client, attachmentStorer, userStorer, comicSubmissionStorer)
 	handler5 := httptransport6.NewHandler(slogLogger, attachmentController)
 	offerStorer := datastore8.NewDatastore(conf, slogLogger, client)
-	offerontroller := controller7.NewController(conf, slogLogger, provider, client, storeStorer, offerStorer, userStorer)
+	offerontroller := controller7.NewController(conf, slogLogger, provider, client, paymentProcessor, storeStorer, offerStorer, userStorer)
 	handler6 := httptransport7.NewHandler(slogLogger, offerontroller)
 	receiptController := controller8.NewController(conf, slogLogger, provider, client, storeStorer, receiptStorer)
 	handler7 := httptransport8.NewHandler(slogLogger, receiptController)

@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
+	pm "github.com/LuchaComics/monorepo/cloud/cps-backend/adapter/paymentprocessor/stripe"
 	domain "github.com/LuchaComics/monorepo/cloud/cps-backend/app/offer/datastore"
 	store_s "github.com/LuchaComics/monorepo/cloud/cps-backend/app/store/datastore"
 	user_s "github.com/LuchaComics/monorepo/cloud/cps-backend/app/user/datastore"
@@ -27,13 +28,14 @@ type Offerontroller interface {
 }
 
 type OfferControllerImpl struct {
-	Config      *config.Conf
-	Logger      *slog.Logger
-	UUID        uuid.Provider
-	DbClient    *mongo.Client
-	StoreStorer store_s.StoreStorer
-	OfferStorer domain.OfferStorer
-	UserStorer  user_s.UserStorer
+	Config           *config.Conf
+	Logger           *slog.Logger
+	UUID             uuid.Provider
+	DbClient         *mongo.Client
+	PaymentProcessor pm.PaymentProcessor
+	StoreStorer      store_s.StoreStorer
+	OfferStorer      domain.OfferStorer
+	UserStorer       user_s.UserStorer
 }
 
 func NewController(
@@ -41,18 +43,20 @@ func NewController(
 	loggerp *slog.Logger,
 	uuidp uuid.Provider,
 	client *mongo.Client,
+	paymentProcessor pm.PaymentProcessor,
 	org_storer store_s.StoreStorer,
 	sub_storer domain.OfferStorer,
 	usr_storer user_s.UserStorer,
 ) Offerontroller {
 	s := &OfferControllerImpl{
-		Config:      appCfg,
-		Logger:      loggerp,
-		UUID:        uuidp,
-		DbClient:    client,
-		StoreStorer: org_storer,
-		OfferStorer: sub_storer,
-		UserStorer:  usr_storer,
+		Config:           appCfg,
+		Logger:           loggerp,
+		UUID:             uuidp,
+		DbClient:         client,
+		PaymentProcessor: paymentProcessor,
+		StoreStorer:      org_storer,
+		OfferStorer:      sub_storer,
+		UserStorer:       usr_storer,
 	}
 	s.Logger.Debug("offer controller initialization started...")
 	// if err := s.createDefaults(context.Background()); err != nil {

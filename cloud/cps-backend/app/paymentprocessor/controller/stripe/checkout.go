@@ -65,12 +65,22 @@ func (impl *StripePaymentProcessorControllerImpl) CreateStripeCheckoutSessionURL
 		}
 
 		// Defensive code: Prevent executing this function if different processor.
-		if o.PaymentProcessorName != "Stripe, Inimpl." {
-			impl.Logger.Warn("not stripe payment processor assigned to offer.")
+		if o.PaymentProcessorName != "Stripe, Inc." {
+			impl.Logger.Warn("not stripe payment processor assigned to offer.",
+				slog.String("offer_payment_processor_name", o.PaymentProcessorName),
+				slog.String("user_payment_processor_name", u.PaymentProcessorName))
 			return "", errors.New("offer is using payment processor which is not supported")
 		}
-		if u.PaymentProcessorName != "Stripe, Inimpl." {
-			impl.Logger.Warn("not stripe payment processor assigned to user.")
+		if u.FirstName == "Root" {
+			impl.Logger.Warn("not stripe payment processor assigned to user.",
+				slog.String("first_name", u.FirstName))
+			return "", errors.New("system administrator are not allowed to purchase")
+		}
+		if u.PaymentProcessorName != "Stripe, Inc." {
+			impl.Logger.Warn("not stripe payment processor assigned to user.",
+				slog.String("user_id", userID.Hex()),
+				slog.String("offer_payment_processor_name", o.PaymentProcessorName),
+				slog.String("user_payment_processor_name", u.PaymentProcessorName))
 			return "", errors.New("user is using payment processor which is not supported")
 		}
 

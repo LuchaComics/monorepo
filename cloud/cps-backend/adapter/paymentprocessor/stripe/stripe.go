@@ -1,6 +1,8 @@
 package stripe
 
 import (
+	"context"
+	"fmt"
 	"log/slog"
 
 	stripe "github.com/stripe/stripe-go/v75"
@@ -9,6 +11,7 @@ import (
 	"github.com/stripe/stripe-go/v75/invoice"
 	"github.com/stripe/stripe-go/v75/paymentintent"
 	"github.com/stripe/stripe-go/v75/price"
+	"github.com/stripe/stripe-go/v75/product"
 	"github.com/stripe/stripe-go/v75/setupintent"
 
 	c "github.com/LuchaComics/monorepo/cloud/cps-backend/config"
@@ -61,6 +64,7 @@ type PaymentProcessor interface {
 	GetPaymentIntent(paymentIntentID string) (*stripe.PaymentIntent, error)
 	GetLatestInvoiceByCustomerID(customerID string) (*stripe.Invoice, error)
 	GetPrice(priceID string) (*stripe.Price, error)
+	ListAllProducts() ([]*stripe.Product, error)
 }
 
 type stripePaymentProcessor struct {
@@ -439,4 +443,32 @@ func (pm *stripePaymentProcessor) GetLatestInvoiceByCustomerID(customerID string
 		}
 	}
 	return nil, nil
+}
+
+func (pm *stripePaymentProcessor) ListAllProducts() ([]*stripe.Product, error) {
+	// Set up a new context
+	ctx := context.Background()
+
+	// Create a product list params with the context
+	params := &stripe.ProductListParams{}
+	params.Context = ctx
+	params.Limit = stripe.Int64(250) // Adjust the limit as needed
+
+	// Retrieve the products from Stripe
+	i := product.List(params)
+
+	// Iterate over the products and print them
+	arr := make([]*stripe.Product, 0)
+	for i.Next() {
+		p := i.Product()
+		fmt.Printf("Product ID: %s, Name: %s, Description: %s\n", p.ID, p.Name, p.Description)
+		arr = append(arr, p)
+	}
+
+	// Check if there were any errors in the iteration process
+	if err := i.Err(); err != nil {
+		return nil, fmt.Errorf("failed to list products from stripe inc: %v", err)
+	}
+
+	return arr, nil
 }
