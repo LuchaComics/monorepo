@@ -41,8 +41,8 @@ import AdminComicSubmissionList from "./Components/Admin/Submission/Comic/List";
 import AdminComicSubmissionAddStep1WithSearch from "./Components/Admin/Submission/Comic/AddStep1WithSearch";
 import AdminComicSubmissionAddStep1WithResult from "./Components/Admin/Submission/Comic/AddStep1WithResult";
 import AdminComicSubmissionAddStep1WithStarredCustomer from "./Components/Admin/Submission/Comic/AddStep1WithStarred";
-import AdminComicSubmissionAddStep2 from "./Components/Admin/Submission/Comic/AddStep2";
-import AdminComicSubmissionAddStep3 from "./Components/Admin/Submission/Comic/AddStep3";
+import AdminComicSubmissionAddStepX from "./Components/Admin/Submission/Comic/AddStepX";
+import AdminComicSubmissionAddStepY from "./Components/Admin/Submission/Comic/AddStepY";
 import AdminComicSubmissionDetail from "./Components/Admin/Submission/Comic/Detail";
 import AdminComicSubmissionDetailForCommentList from "./Components/Admin/Submission/Comic/DetailForCommentList";
 import AdminComicSubmissionDetailForCustomer from "./Components/Admin/Submission/Comic/DetailForCustomer";
@@ -354,17 +354,17 @@ function AppRoute() {
                   />
                   <Route
                     exact
-                    path="/admin/submissions/comics/add/search"
+                    path="/admin/submissions/comics/add/step-1/search"
                     element={<AdminComicSubmissionAddStep1WithSearch />}
                   />
                   <Route
                     exact
-                    path="/admin/submissions/comics/add/results"
+                    path="/admin/submissions/comics/add/step-1/results"
                     element={<AdminComicSubmissionAddStep1WithResult />}
                   />
                   <Route
                     exact
-                    path="/admin/submissions/comics/add/starred"
+                    path="/admin/submissions/comics/add/step-1/starred"
                     element={
                       <AdminComicSubmissionAddStep1WithStarredCustomer />
                     }
@@ -372,12 +372,12 @@ function AppRoute() {
                   <Route
                     exact
                     path="/admin/submissions/comics/add"
-                    element={<AdminComicSubmissionAddStep2 />}
+                    element={<AdminComicSubmissionAddStepX />}
                   />
                   <Route
                     exact
                     path="/admin/submissions/comics/add/:id/confirmation"
-                    element={<AdminComicSubmissionAddStep3 />}
+                    element={<AdminComicSubmissionAddStepY />}
                   />
                   <Route
                     exact

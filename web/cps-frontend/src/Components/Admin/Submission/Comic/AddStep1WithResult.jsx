@@ -318,7 +318,7 @@ function AdminComicSubmissionAddStep1WithResult() {
                                 <br />
                                 <Link
                                   class="button is-medium is-primary"
-                                  to={`/admin/submissions/comics/add?user_id=${user.id}`}
+                                  to={`/admin/submissions/comics/add/step-2?user_id=${user.id}&user_name=${user.name}&from=comics&clear=true`}
                                 >
                                   <FontAwesomeIcon
                                     className="fas"
@@ -356,7 +356,7 @@ function AdminComicSubmissionAddStep1WithResult() {
                           to create a new customer or{" "}
                           <Link
                             class="is-medium is-danger"
-                            to="/admin/submissions/comics/add"
+                            to="/admin/submissions/comics/add?from=comics&clear=true"
                           >
                             click here&nbsp;
                             <FontAwesomeIcon
@@ -385,9 +385,9 @@ function AdminComicSubmissionAddStep1WithResult() {
               </div>
               <div class="column is-half has-text-right">
                 {/*
-                                <button class="button is-primary is-hidden-touch" onClick={null}><FontAwesomeIcon className="fas" icon={faCheckCircle} />&nbsp;Next</button>
-                                <button class="button is-primary is-fullwidth is-hidden-desktop" onClick={null}><FontAwesomeIcon className="fas" icon={faCheckCircle} />&nbsp;Next</button>
-                                */}
+                    <button class="button is-primary is-hidden-touch" onClick={null}><FontAwesomeIcon className="fas" icon={faCheckCircle} />&nbsp;Next</button>
+                    <button class="button is-primary is-fullwidth is-hidden-desktop" onClick={null}><FontAwesomeIcon className="fas" icon={faCheckCircle} />&nbsp;Next</button>
+                */}
               </div>
             </div>
           </nav>

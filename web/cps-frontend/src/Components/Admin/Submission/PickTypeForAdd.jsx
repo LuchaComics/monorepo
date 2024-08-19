@@ -207,13 +207,13 @@ function AdminSubmissionPickTypeForAdd() {
                     <br />
                     <br />
                     {userName === null ? (
-                      <Link to={`/admin/submissions/comics/add/search`}>
+                      <Link to={`/admin/submissions/comics/add/step-1/search`}>
                         Select&nbsp;
                         <FontAwesomeIcon className="fas" icon={faArrowRight} />
                       </Link>
                     ) : (
                       <Link
-                        to={`/admin/submissions/comics/add?user_id=${userID}`}
+                        to={`/admin/submissions/comics/add/step-1?user_id=${userID}`}
                       >
                         Select&nbsp;
                         <FontAwesomeIcon className="fas" icon={faArrowRight} />

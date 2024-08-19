@@ -45,6 +45,12 @@ export function postLoginAPI(
     .then((successResponse) => {
       const responseData = successResponse.data;
 
+      // Clear the entire local storage on successful login so we won't have
+      // any previous list filters or any other GUI elements affected from
+      // any previous interactions.
+      localStorage.clear();
+      console.log("postLoginAPI: cleared entire local storage.");
+
       // Snake-case from API to camel-case for React.
       let profile = camelizeKeys(responseData);
 
@@ -52,6 +58,9 @@ export function postLoginAPI(
       // STEP BECAUSE OUR TOKEN UTILITY HELPER NEEDS THIS.
       setAccessTokenInLocalStorage(profile.accessToken);
       setRefreshTokenInLocalStorage(profile.refreshToken);
+
+      console.log("postLoginAPI: saved access token.");
+      console.log("postLoginAPI: saved refresh token.");
 
       // Return the callback data.
       onSuccessCallback(profile);

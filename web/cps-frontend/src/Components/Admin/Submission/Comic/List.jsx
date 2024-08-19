@@ -353,7 +353,7 @@ function AdminComicSubmissionList() {
                 </button>
                 &nbsp;
                 <Link
-                  to={`/admin/submissions/comics/add/search`}
+                  to={`/admin/submissions/comics/add/step-1/search`}
                   class="button is-small is-primary is-fullwidth"
                   type="button"
                 >
@@ -390,7 +390,7 @@ function AdminComicSubmissionList() {
                 </button>
                 &nbsp;
                 <Link
-                  to={`/admin/submissions/comics/add/search`}
+                  to={`/admin/submissions/comics/add/step-1/search`}
                   class="button is-small is-primary"
                   type="button"
                 >

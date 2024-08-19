@@ -33,7 +33,8 @@ import {
   topAlertStatusState,
 } from "../../../../AppState";
 
-function AdminComicSubmissionAddStep3() {
+
+function AdminComicSubmissionAddStepY() {
   ////
   //// URL Arguments.
   ////
@@ -400,4 +401,4 @@ function AdminComicSubmissionAddStep3() {
   );
 }
 
-export default AdminComicSubmissionAddStep3;
+export default AdminComicSubmissionAddStepY;

@@ -281,7 +281,7 @@ function AdminComicSubmissionAddStep1WithStarredCustomer() {
                                 <br />
                                 <Link
                                   class="button is-medium is-primary"
-                                  to={`/admin/submissions/comics/add?user_id=${customer.id}`}
+                                  to={`/admin/submissions/comics/add/step-2?user_id=${customer.id}&user_name=${customer.name}&from=comics&clear=true`}
                                 >
                                   <FontAwesomeIcon
                                     className="fas"
@@ -319,7 +319,7 @@ function AdminComicSubmissionAddStep1WithStarredCustomer() {
                           to create a new customer or{" "}
                           <Link
                             class="is-medium is-danger"
-                            to="/admin/submissions/comics/add"
+                            to="/admin/submissions/comics/add/step-2?from=comics&clear=true"
                           >
                             click here&nbsp;
                             <FontAwesomeIcon
@@ -340,7 +340,7 @@ function AdminComicSubmissionAddStep1WithStarredCustomer() {
               <div class="column is-half">
                 <Link
                   class="button is-medium is-fullwidth-mobile"
-                  to="/admin/submissions/comics/add/search"
+                  to="/admin/submissions/comics/add/step-1/search"
                 >
                   <FontAwesomeIcon className="fas" icon={faArrowLeft} />
                   &nbsp;Back
