@@ -17,7 +17,6 @@ import {
   faBalanceScale,
   faUser,
   faArrowUpRightFromSquare,
-  faIdCard,
   faCog,
   faArrowRight
 } from "@fortawesome/free-solid-svg-icons";
@@ -34,7 +33,6 @@ import FormSelectField from "../../../Reusable/FormSelectField";
 import FormCheckboxField from "../../../Reusable/FormCheckboxField";
 import PageLoadingContent from "../../../Reusable/PageLoadingContent";
 import FormComicSignaturesTable from "../../../Reusable/FormComicSignaturesTable";
-import { getStoreSelectOptionListAPI } from "../../../../API/store";
 import {
   FINDING_WITH_EMPTY_OPTIONS,
   OVERALL_NUMBER_GRADE_WITH_EMPTY_OPTIONS,
@@ -63,28 +61,13 @@ import {
 } from "../../../../AppState";
 
 
-function AdminComicSubmissionAddStep2() {
-  ////
-  //// URL Parameters.
-  ////
-
-  const [searchParams] = useSearchParams(); // Special thanks via https://stackoverflow.com/a/65451140
-  const orgID = searchParams.get("store_id");
-  const userID = searchParams.get("user_id");
-  const userName = searchParams.get("user_name");
-  const fromPage = searchParams.get("from");
-  const shouldClear = searchParams.get("clear");
-
-  console.log("user_id:", userID, "user_name:", userName,"store_id:", orgID,  "from:", fromPage);
-
+function AdminComicSubmissionAddStep3() {
   ////
   //// Global state.
   ////
 
-  const [topAlertMessage, setTopAlertMessage] =
-    useRecoilState(topAlertMessageState);
-  const [topAlertStatus, setTopAlertStatus] =
-    useRecoilState(topAlertStatusState);
+  const [topAlertMessage, setTopAlertMessage] = useRecoilState(topAlertMessageState);
+  const [topAlertStatus, setTopAlertStatus] = useRecoilState(topAlertStatusState);
   const [currentUser] = useRecoilState(currentUserState);
   const [addComicSubmission, setAddComicSubmission] = useRecoilState(addComicSubmissionState);
 
@@ -96,8 +79,7 @@ function AdminComicSubmissionAddStep2() {
   const [isFetching, setFetching] = useState(false);
   const [forceURL, setForceURL] = useState("");
   const [showCancelWarning, setShowCancelWarning] = useState(false);
-  const [storeSelectOptions, setStoreSelectOptions] = useState([]);
-  const [storeID, setStoreID] = useState(orgID);
+  const [serviceType, setServiceType] = useState(parseInt(addComicSubmission.serviceType));
 
   ////
   //// Event handling.
@@ -109,8 +91,8 @@ function AdminComicSubmissionAddStep2() {
     let newErrors = {};
     let hasErrors = false;
 
-    if (storeID === undefined || storeID === null || storeID === 0 || storeID === "") {
-      newErrors["storeID"] = "missing value";
+    if (serviceType === undefined || serviceType === null || serviceType === 0 || serviceType === "") {
+      newErrors["serviceType"] = "missing value";
       hasErrors = true;
     }
 
@@ -137,28 +119,19 @@ function AdminComicSubmissionAddStep2() {
     // CASE 2 of 2: Has no errors.
     //
 
-    console.log("onSaveAndContinueClick: Saving step 2 and redirecting to step 3.");
+    console.log("onSaveAndContinueClick: Saving step 3 and redirecting to step 4.");
 
     // Variable holds a complete clone of the submission.
     let modifiedAddComicSubmission = { ...addComicSubmission };
 
-    // storeID: currentUser.storeId,
-    // collectibleType: 1, // 1=Comic, 2=Card
-    // userID: userID,
-
-    // // Update our clone.
-    modifiedAddComicSubmission.userID = userID;
-    modifiedAddComicSubmission.userId = userID;
-    modifiedAddComicSubmission.userName = userName;
-    modifiedAddComicSubmission.storeID = storeID;
-    modifiedAddComicSubmission.storeId = storeID;
-    modifiedAddComicSubmission.fromPage = fromPage
+    // Update our clone.
+    modifiedAddComicSubmission.serviceType = serviceType;
 
     // Save to persistent storage.
     setAddComicSubmission(modifiedAddComicSubmission);
 
     // Redirect to the next page.
-    setForceURL("/admin/submissions/comics/add/step-3")
+    setForceURL("/admin/submissions/comics/add/step-4")
   };
 
   // Function will filter the available options based on user's organization level.
@@ -195,40 +168,6 @@ function AdminComicSubmissionAddStep2() {
   //// API.
   ////
 
-  function onStoreOptionListSuccess(response) {
-    console.log("onStoreOptionListSuccess: Starting...");
-    if (response !== null) {
-      const selectOptions = [
-        { value: 0, label: "Please select" }, // Add empty options.
-        ...response,
-      ];
-      setStoreSelectOptions(selectOptions);
-    }
-  }
-
-  function onStoreOptionListError(apiErr) {
-    console.log("onStoreOptionListError: Starting...");
-    console.log("onStoreOptionListError: apiErr:", apiErr);
-    setErrors(apiErr);
-
-    // The following code will cause the screen to scroll to the top of
-    // the page. Please see ``react-scroll`` for more information:
-    // https://github.com/fisshy/react-scroll
-    var scroll = Scroll.animateScroll;
-    scroll.scrollToTop();
-  }
-
-  function onStoreOptionListDone() {
-    console.log("onStoreOptionListDone: Starting...");
-    setFetching(false);
-  }
-
-  // --- All --- //
-
-  const onUnauthorized = () => {
-    setForceURL("/login?unauthorized=true"); // If token expired or user is not logged in, redirect back to login.
-  };
-
   ////
   //// Misc.
   ////
@@ -238,30 +177,12 @@ function AdminComicSubmissionAddStep2() {
 
     if (mounted) {
       window.scrollTo(0, 0); // Start the page at the top of the page.
-
-      // Developer notes: If we have `clear=true` as URL argument then we clear
-      // the previous inputted submissions.
-      if (shouldClear === "true") {
-          // Delete the previous submission filling details.
-          console.log("deleting previous addComicSubmission:", addComicSubmission);
-          setAddComicSubmission(ADD_COMIC_SUBMISSION_STATE_DEFAULT);
-      }
-
-      let params = new Map();
-      getStoreSelectOptionListAPI(
-        params,
-        onStoreOptionListSuccess,
-        onStoreOptionListError,
-        onStoreOptionListDone,
-        onUnauthorized,
-      );
-      setFetching(true);
     }
 
     return () => {
       mounted = false;
     };
-  }, [shouldClear]);
+  }, []);
 
   ////
   //// Component rendering.
@@ -294,7 +215,7 @@ function AdminComicSubmissionAddStep2() {
     <>
       <div class="container">
         <section class="section">
-          {fromPage !== "user" ? (
+          {addComicSubmission.fromPage !== "user" ? (
             <>
               {/* Desktop Breadcrumbs */}
               <nav class="breadcrumb is-hidden-touch" aria-label="breadcrumbs">
@@ -360,7 +281,7 @@ function AdminComicSubmissionAddStep2() {
                   </li>
                   <li class="">
                     <Link
-                      to={`/admin/user/${userID}/comics`}
+                      to={`/admin/user/${addComicSubmission.userID}/comics`}
                       aria-current="page"
                     >
                       <FontAwesomeIcon className="fas" icon={faEye} />
@@ -394,56 +315,17 @@ function AdminComicSubmissionAddStep2() {
           )}
 
           {/* Modals */}
-          <div class={`modal ${showCancelWarning ? "is-active" : ""}`}>
-            <div class="modal-background"></div>
-            <div class="modal-card">
-              <header class="modal-card-head">
-                <p class="modal-card-title">Are you sure?</p>
-                <button
-                  class="delete"
-                  aria-label="close"
-                  onClick={(e) => setShowCancelWarning(false)}
-                ></button>
-              </header>
-              <section class="modal-card-body">
-                Your submission will be cancelled and your work will be lost.
-                This cannot be undone. Do you want to continue?
-              </section>
-              <footer class="modal-card-foot">
-                {fromPage !== "user" ? (
-                  <Link
-                    class="button is-medium is-success"
-                    to={`/admin/submissions/comics/add/step-1/search`}
-                  >
-                    Yes
-                  </Link>
-                ) : (
-                  <Link
-                    class="button is-medium is-success"
-                    to={`/admin/user/${userID}/comics`}
-                  >
-                    Yes
-                  </Link>
-                )}
-                <button
-                  class="button is-medium "
-                  onClick={(e) => setShowCancelWarning(false)}
-                >
-                  No
-                </button>
-              </footer>
-            </div>
-          </div>
+          {/* ------ */}
 
           {/* Progress Wizard */}
           <nav className="box has-background-light">
-            <p className="subtitle is-5">Step 2 of 10</p>
+            <p className="subtitle is-5">Step 3 of 10</p>
             <progress
               class="progress is-success"
-              value="20"
+              value="30"
               max="100"
             >
-              20%
+              30%
             </progress>
           </nav>
 
@@ -459,52 +341,38 @@ function AdminComicSubmissionAddStep2() {
               <>
                 <FormErrorBox errors={errors} />
                 <p class="has-text-grey pb-4">
-                  You will be filling a comic submission using the following settings:
+                  Please fill out all the required fields before continuing to the next step.
                 </p>
                 <div class="container">
                   <p class="subtitle is-6">
-                    <FontAwesomeIcon className="fas" icon={faIdCard} />
-                    &nbsp;Ownership
+                    <FontAwesomeIcon className="fas" icon={faCog} />
+                    &nbsp;Settings
                   </p>
                   <hr />
 
                   <FormSelectField
-                    label="Store"
-                    name="storeID"
-                    placeholder="Pick"
-                    selectedValue={storeID}
-                    errorText={errors && errors.storeID}
-                    helpText="Pick the store this user belongs to and will be limited by"
-                    isRequired={true}
-                    onChange={(e) => setStoreID(e.target.value)}
-                    options={storeSelectOptions}
-                    disabled={
-                      (orgID !== undefined && orgID !== "" && orgID !== null) ||
-                      storeSelectOptions.length === 0
-                    }
+                    label="Service Type"
+                    name="serviceType"
+                    selectedValue={serviceType}
+                    errorText={errors && errors.serviceType}
+                    onChange={(e) => {
+                      setServiceType(parseInt(e.target.value));
+                    }}
+                    options={conditionalServiceTypeOptions}
+                    maxWidth="400px"
                   />
-
-                  {((userID !== undefined && userID !== null && userID !== "") || addComicSubmission.userName) && <>
-                      <FormInputField
-                        label="Customer"
-                        name="userName"
-                        placeholder="Text input"
-                        value={userName || addComicSubmission.userName}
-                        helpText="The name of the user for this submission."
-                        isRequired={true}
-                        maxWidth="380px"
-                        disabled={true}
-                      />
-                  </>}
 
                   <div class="columns pt-5">
                     <div class="column is-half">
                       <button
                         class="button is-medium is-fullwidth-mobile"
-                        onClick={(e) => setShowCancelWarning(true)}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            setForceURL("/admin/submissions/comics/add/step-2?user_id=" + addComicSubmission.userId+ "&user_name=" + addComicSubmission.userName + "&store_id="+addComicSubmission.storeId + "&from="+addComicSubmission.fromPage);
+                        }}
                       >
-                        <FontAwesomeIcon className="fas" icon={faTimesCircle} />
-                        &nbsp;Cancel
+                        <FontAwesomeIcon className="fas" icon={faArrowLeft} />
+                        &nbsp;Back to Step 2
                       </button>
                     </div>
                     <div class="column is-half has-text-right">
@@ -526,4 +394,4 @@ function AdminComicSubmissionAddStep2() {
   );
 }
 
-export default AdminComicSubmissionAddStep2;
+export default AdminComicSubmissionAddStep3;

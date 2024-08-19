@@ -330,7 +330,7 @@ function AdminComicSubmissionAddStep1WithResult() {
                                 <br />
                                 <Link
                                   class="button is-medium is-primary"
-                                  to={`/admin/submissions/comics/add/step-2?user_id=${user.id}&user_name=${user.name}&from=comics&clear=true`}
+                                  to={`/admin/submissions/comics/add/step-2?user_id=${user.id}&user_name=${user.name}&store_id=${user.storeId}&from=comics&clear=true`}
                                 >
                                   <FontAwesomeIcon
                                     className="fas"
