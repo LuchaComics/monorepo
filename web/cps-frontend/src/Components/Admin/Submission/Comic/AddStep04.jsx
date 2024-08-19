@@ -44,7 +44,6 @@ import {
   RETAILER_AVAILABLE_SERVICE_TYPE_WITH_EMPTY_OPTIONS,
   SUBMISSION_KEY_ISSUE_WITH_EMPTY_OPTIONS,
   SUBMISSION_PRINTING_WITH_EMPTY_OPTIONS,
-  SERVICE_TYPE_WITH_EMPTY_OPTIONS,
 } from "../../../../Constants/FieldOptions";
 import {
   SERVICE_TYPE_PRE_SCREENING_SERVICE,
@@ -62,13 +61,15 @@ import {
 } from "../../../../AppState";
 
 
-function AdminComicSubmissionAddStep3() {
+function AdminComicSubmissionAddStep4() {
   ////
   //// Global state.
   ////
 
-  const [topAlertMessage, setTopAlertMessage] = useRecoilState(topAlertMessageState);
-  const [topAlertStatus, setTopAlertStatus] = useRecoilState(topAlertStatusState);
+  const [topAlertMessage, setTopAlertMessage] =
+    useRecoilState(topAlertMessageState);
+  const [topAlertStatus, setTopAlertStatus] =
+    useRecoilState(topAlertStatusState);
   const [currentUser] = useRecoilState(currentUserState);
   const [addComicSubmission, setAddComicSubmission] = useRecoilState(addComicSubmissionState);
 
@@ -77,70 +78,100 @@ function AdminComicSubmissionAddStep3() {
   ////
 
   const [errors, setErrors] = useState({});
-  const [isFetching, setFetching] = useState(false);
+  const [isFetching, setFetching] = useState(false); // Bool
   const [forceURL, setForceURL] = useState("");
-  const [showCancelWarning, setShowCancelWarning] = useState(false);
-  const [serviceType, setServiceType] = useState(parseInt(addComicSubmission.serviceType));
+  const [seriesTitle, setSeriesTitle] = useState(addComicSubmission.seriesTitle);
+  const [issueVol, setIssueVol] = useState(addComicSubmission.issueVol);
+  const [issueNo, setIssueNo] = useState(addComicSubmission.issueNo);
+  const [issueCoverYear, setIssueCoverYear] = useState(parseInt(addComicSubmission.issueCoverYear));
+  const [issueCoverMonth, setIssueCoverMonth] = useState(parseInt(addComicSubmission.issueCoverMonth));
+  const [publisherName, setPublisherName] = useState(parseInt(addComicSubmission.publisherName));
+  const [publisherNameOther, setPublisherNameOther] = useState(addComicSubmission.publisherNameOther);
 
   ////
   //// Event handling.
   ////
 
   const onSaveAndContinueClick = (e) => {
-    console.log("onSaveAndContinueClick: Beginning...");
+      console.log("onSaveAndContinueClick: Beginning...");
 
-    let newErrors = {};
-    let hasErrors = false;
+      // Variables used to hold state if we got an error with validation.
+      let newErrors = {};
+      let hasErrors = false;
 
-    if (serviceType === undefined || serviceType === null || serviceType === 0 || serviceType === "") {
-      newErrors["serviceType"] = "missing value";
-      hasErrors = true;
-    }
+      // Perform validation.
+      if (seriesTitle === undefined || seriesTitle === null || seriesTitle === 0 || seriesTitle === "") {
+        newErrors["seriesTitle"] = "missing value";
+        hasErrors = true;
+      }
+      if (issueVol === undefined || issueVol === null || issueVol === "") {
+        newErrors["issueVol"] = "missing value";
+        hasErrors = true;
+      }
+      if (issueNo === undefined || issueNo === null || issueNo === "") {
+        newErrors["issueNo"] = "missing value";
+        hasErrors = true;
+      }
+      if (issueCoverYear === undefined || issueCoverYear === null || issueCoverYear === 0 || issueCoverYear === "") {
+        newErrors["issueCoverYear"] = "missing value";
+        hasErrors = true;
+      }
+      if (issueCoverMonth === undefined || issueCoverMonth === null || issueCoverMonth === 0 || issueCoverMonth === "") {
+        newErrors["issueCoverMonth"] = "missing value";
+        hasErrors = true;
+      }
+      if (publisherName === undefined || publisherName === null || publisherName === 0 || publisherName === "") {
+        newErrors["publisherName"] = "missing value";
+        hasErrors = true;
+      } else if (publisherName === 1) { // Is other.
+          if (publisherNameOther === undefined || publisherNameOther === null || publisherNameOther === "") {
+            newErrors["publisherNameOther"] = "missing value";
+            hasErrors = true;
+          }
+      }
 
-    //
-    // CASE 1 of 2: Has errors.
-    //
+      //
+      // CASE 1 of 2: Has errors.
+      //
 
-    if (hasErrors) {
-      console.log("onSaveAndContinueClick: Aboring because of error(s)");
+      if (hasErrors) {
+        console.log("onSaveAndContinueClick: Aboring because of error(s)");
 
-      // Set the associate based error validation.
-      setErrors(newErrors);
+        // Set the associate based error validation.
+        setErrors(newErrors);
 
-      // The following code will cause the screen to scroll to the top of
-      // the page. Please see ``react-scroll`` for more information:
-      // https://github.com/fisshy/react-scroll
-      var scroll = Scroll.animateScroll;
-      scroll.scrollToTop();
+        // The following code will cause the screen to scroll to the top of
+        // the page. Please see ``react-scroll`` for more information:
+        // https://github.com/fisshy/react-scroll
+        var scroll = Scroll.animateScroll;
+        scroll.scrollToTop();
 
-      return;
-    }
+        return;
+      }
 
-    //
-    // CASE 2 of 2: Has no errors.
-    //
+      //
+      // CASE 2 of 2: Has no errors.
+      //
 
-    console.log("onSaveAndContinueClick: Saving step 3 and redirecting to step 4.");
-    console.log("onSaveAndContinueClick: serviceType:", serviceType);
-    console.log("onSaveAndContinueClick: SERVICE_TYPE_CPS_CAPSULE_INDIE_MINT_GEM:", SERVICE_TYPE_CPS_CAPSULE_INDIE_MINT_GEM);
+      console.log("onSaveAndContinueClick: Saving step 3 and redirecting to step 4.");
 
-    // Variable holds a complete clone of the submission.
-    let modifiedAddComicSubmission = { ...addComicSubmission };
+      // Variable holds a complete clone of the submission.
+      let modifiedAddComicSubmission = { ...addComicSubmission };
 
-    // Update our clone.
-    modifiedAddComicSubmission.serviceType = serviceType;
+      // Update our clone.
+      modifiedAddComicSubmission.seriesTitle = seriesTitle;
+      modifiedAddComicSubmission.issueVol = issueVol;
+      modifiedAddComicSubmission.issueNo = issueNo;
+      modifiedAddComicSubmission.issueCoverYear = issueCoverYear;
+      modifiedAddComicSubmission.issueCoverMonth = issueCoverMonth;
+      modifiedAddComicSubmission.publisherName = parseInt(publisherName);
+      modifiedAddComicSubmission.publisherNameOther = publisherNameOther;
 
-    // Handle special case of user selecting indie mint gem.
-    if (serviceType === SERVICE_TYPE_CPS_CAPSULE_INDIE_MINT_GEM) {
-        //TODO: Impl.        
-    }
+      // Save to persistent storage.
+      setAddComicSubmission(modifiedAddComicSubmission);
 
-    // Save to persistent storage.
-    setAddComicSubmission(modifiedAddComicSubmission);
-
-    // Redirect to the next page.
-    setForceURL("/admin/submissions/comics/add/step-4");
-    return;
+      // Redirect to the next page.
+      setForceURL("/admin/submissions/comics/add/step-5")
   };
 
   ////
@@ -176,7 +207,7 @@ function AdminComicSubmissionAddStep3() {
     <>
       <div class="container">
         <section class="section">
-          {addComicSubmission.fromPage !== "user" ? (
+          {addComicSubmission.fromPage !== "customer" ? (
             <>
               {/* Desktop Breadcrumbs */}
               <nav class="breadcrumb is-hidden-touch" aria-label="breadcrumbs">
@@ -235,14 +266,14 @@ function AdminComicSubmissionAddStep3() {
                     </Link>
                   </li>
                   <li class="">
-                    <Link to="/admin/users" aria-current="page">
+                    <Link to="/admin/customers" aria-current="page">
                       <FontAwesomeIcon className="fas" icon={faUsers} />
                       &nbsp;Customers
                     </Link>
                   </li>
                   <li class="">
                     <Link
-                      to={`/admin/user/${addComicSubmission.userID}/comics`}
+                      to={`/customer/${addComicSubmission.customerID}/comics`}
                       aria-current="page"
                     >
                       <FontAwesomeIcon className="fas" icon={faEye} />
@@ -280,13 +311,13 @@ function AdminComicSubmissionAddStep3() {
 
           {/* Progress Wizard */}
           <nav className="box has-background-light">
-            <p className="subtitle is-5">Step 3 of 10</p>
+            <p className="subtitle is-5">Step 4 of 10</p>
             <progress
               class="progress is-success"
-              value="30"
+              value="40"
               max="100"
             >
-              30%
+              40%
             </progress>
           </nav>
 
@@ -306,22 +337,103 @@ function AdminComicSubmissionAddStep3() {
                 </p>
                 <div class="container">
                   <p class="subtitle is-6">
-                    <FontAwesomeIcon className="fas" icon={faCog} />
-                    &nbsp;Settings
+                    <FontAwesomeIcon className="fas" icon={faBookOpen} />
+                    &nbsp;Book Information
                   </p>
                   <hr />
 
-                  <FormSelectField
-                    label="Service Type"
-                    name="serviceType"
-                    selectedValue={serviceType}
-                    errorText={errors && errors.serviceType}
-                    onChange={(e) => {
-                      setServiceType(parseInt(e.target.value));
-                    }}
-                    options={SERVICE_TYPE_WITH_EMPTY_OPTIONS}
-                    maxWidth="400px"
+                  <FormInputField
+                    label="Series Title"
+                    name="seriesTitle"
+                    placeholder="Text input"
+                    value={seriesTitle}
+                    errorText={errors && errors.seriesTitle}
+                    helpText=""
+                    onChange={(e) => setSeriesTitle(e.target.value)}
+                    isRequired={true}
+                    maxWidth="380px"
                   />
+
+                  <FormInputField
+                    label="Issue Vol"
+                    name="issueVol"
+                    placeholder="Text input"
+                    value={issueVol}
+                    errorText={errors && errors.issueVol}
+                    helpText=""
+                    onChange={(e) => setIssueVol(e.target.value)}
+                    isRequired={true}
+                    maxWidth="180px"
+                  />
+
+                  <FormInputField
+                    label="Issue No"
+                    name="issueNo"
+                    placeholder="Text input"
+                    value={issueNo}
+                    errorText={errors && errors.issueNo}
+                    helpText=""
+                    onChange={(e) => setIssueNo(e.target.value)}
+                    isRequired={true}
+                    maxWidth="180px"
+                  />
+
+                  <FormSelectField
+                    label="Issue Cover Year"
+                    name="issueCoverYear"
+                    placeholder="Issue Cover Year"
+                    selectedValue={issueCoverYear}
+                    errorText={errors && errors.issueCoverYear}
+                    helpText=""
+                    onChange={(e) =>
+                      setIssueCoverYear(parseInt(e.target.value))
+                    }
+                    options={ISSUE_COVER_YEAR_OPTIONS}
+                    isRequired={true}
+                    maxWidth="200px"
+                  />
+
+                  {issueCoverYear !== 0 && (
+                    <FormSelectField
+                      label="Issue Cover Month"
+                      name="issueCoverMonth"
+                      placeholder="Issue Cover Month"
+                      selectedValue={issueCoverMonth}
+                      errorText={errors && errors.issueCoverMonth}
+                      helpText=""
+                      onChange={(e) =>
+                        setIssueCoverMonth(parseInt(e.target.value))
+                      }
+                      options={ISSUE_COVER_MONTH_WITH_EMPTY_OPTIONS}
+                      isRequired={true}
+                      maxWidth="210px"
+                    />
+                  )}
+
+                  <FormSelectField
+                    label="Publisher Name"
+                    name="publisherName"
+                    placeholder="Publisher Name"
+                    selectedValue={publisherName}
+                    errorText={errors && errors.publisherName}
+                    helpText=""
+                    onChange={(e) => setPublisherName(parseInt(e.target.value))}
+                    options={PUBLISHER_NAME_WITH_EMPTY_OPTIONS}
+                  />
+
+                  {publisherName === 1 && (
+                    <FormInputField
+                      label="Publisher Name (Other)"
+                      name="publisherNameOther"
+                      placeholder="Text input"
+                      value={publisherNameOther}
+                      errorText={errors && errors.publisherNameOther}
+                      helpText=""
+                      onChange={(e) => setPublisherNameOther(e.target.value)}
+                      isRequired={true}
+                      maxWidth="280px"
+                    />
+                  )}
 
                   <div class="columns pt-5">
                     <div class="column is-half">
@@ -329,11 +441,11 @@ function AdminComicSubmissionAddStep3() {
                         class="button is-medium is-fullwidth-mobile"
                         onClick={(e) => {
                             e.preventDefault();
-                            setForceURL("/admin/submissions/comics/add/step-2?user_id=" + addComicSubmission.userId+ "&user_name=" + addComicSubmission.userName + "&store_id="+addComicSubmission.storeId + "&from="+addComicSubmission.fromPage);
+                            setForceURL("/admin/submissions/comics/add/step-3")
                         }}
                       >
                         <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                        &nbsp;Back to Step 2
+                        &nbsp;Back to Step 3
                       </button>
                     </div>
                     <div class="column is-half has-text-right">
@@ -355,4 +467,4 @@ function AdminComicSubmissionAddStep3() {
   );
 }
 
-export default AdminComicSubmissionAddStep3;
+export default AdminComicSubmissionAddStep4;
