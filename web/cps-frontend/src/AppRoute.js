@@ -38,9 +38,10 @@ import AdminRegistryResult from "./Components/Admin/Registry/Result";
 // Comic Submission
 import AdminSubmissionPickTypeForAdd from "./Components/Admin/Submission/PickTypeForAdd";
 import AdminComicSubmissionList from "./Components/Admin/Submission/Comic/List";
-import AdminComicSubmissionAddStep1WithSearch from "./Components/Admin/Submission/Comic/AddStep1WithSearch";
-import AdminComicSubmissionAddStep1WithResult from "./Components/Admin/Submission/Comic/AddStep1WithResult";
-import AdminComicSubmissionAddStep1WithStarredCustomer from "./Components/Admin/Submission/Comic/AddStep1WithStarred";
+import AdminComicSubmissionAddStep1WithSearch from "./Components/Admin/Submission/Comic/AddStep01WithSearch";
+import AdminComicSubmissionAddStep1WithResult from "./Components/Admin/Submission/Comic/AddStep01WithResult";
+import AdminComicSubmissionAddStep1WithStarredCustomer from "./Components/Admin/Submission/Comic/AddStep01WithStarred";
+import AdminComicSubmissionAddStep2 from "./Components/Admin/Submission/Comic/AddStep02";
 import AdminComicSubmissionAddStepX from "./Components/Admin/Submission/Comic/AddStepX";
 import AdminComicSubmissionAddStepY from "./Components/Admin/Submission/Comic/AddStepY";
 import AdminComicSubmissionDetail from "./Components/Admin/Submission/Comic/Detail";
@@ -371,6 +372,12 @@ function AppRoute() {
                   />
                   <Route
                     exact
+                    path="/admin/submissions/comics/add/step-2"
+                    element={<AdminComicSubmissionAddStep2 />}
+                  />
+                  {/*
+                  <Route
+                    exact
                     path="/admin/submissions/comics/add"
                     element={<AdminComicSubmissionAddStepX />}
                   />
@@ -379,6 +386,7 @@ function AppRoute() {
                     path="/admin/submissions/comics/add/:id/confirmation"
                     element={<AdminComicSubmissionAddStepY />}
                   />
+                  */}
                   <Route
                     exact
                     path="/admin/submissions/comic/:id"

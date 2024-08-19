@@ -19,9 +19,10 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import Select from "react-select";
 import { useRecoilState } from "recoil";
+import { useParams } from "react-router-dom";
 
 import useLocalStorage from "../../../../Hooks/useLocalStorage";
-import { getCustomerListAPI } from "../../../../API/customer";
+import { getUserListAPI } from "../../../../API/user";
 import FormErrorBox from "../../../Reusable/FormErrorBox";
 import FormInputField from "../../../Reusable/FormInputField";
 import FormTextareaField from "../../../Reusable/FormTextareaField";
@@ -30,13 +31,18 @@ import FormMultiSelectField from "../../../Reusable/FormMultiSelectField";
 import FormSelectField from "../../../Reusable/FormSelectField";
 import FormInputFieldWithButton from "../../../Reusable/FormInputFieldWithButton";
 import PageLoadingContent from "../../../Reusable/PageLoadingContent";
-import FormSelectFieldForStore from "../../../Reusable/FormSelectFieldForStore";
 import {
   topAlertMessageState,
   topAlertStatusState,
 } from "../../../../AppState";
 
-function AdminComicSubmissionAddStep1WithStarredCustomer() {
+function AdminComicSubmissionAddStep1WithResult() {
+  ////
+  //// URL Parameters.
+  ////
+
+  const [searchParams] = useSearchParams(); // Special thanks via https://stackoverflow.com/a/65451140
+
   ////
   //// Global state.
   ////
@@ -53,8 +59,7 @@ function AdminComicSubmissionAddStep1WithStarredCustomer() {
   const [errors, setErrors] = useState({});
   const [isFetching, setFetching] = useState(false);
   const [forceURL, setForceURL] = useState("");
-  const [customers, setCustomers] = useState({});
-  const [storeID, setStoreID] = useState("");
+  const [users, setUsers] = useState({});
   const [showCancelWarning, setShowCancelWarning] = useState(false);
 
   ////
@@ -65,15 +70,15 @@ function AdminComicSubmissionAddStep1WithStarredCustomer() {
   //// API.
   ////
 
-  function onCustomerListSuccess(response) {
-    console.log("onCustomerListSuccess: Starting...");
+  function onUserListSuccess(response) {
+    console.log("onUserListSuccess: Starting...");
     if (response.results !== null) {
-      setCustomers(response);
+      setUsers(response);
     }
   }
 
-  function onCustomerListError(apiErr) {
-    console.log("onCustomerListError: Starting...");
+  function onUserListError(apiErr) {
+    console.log("onUserListError: Starting...");
     setErrors(apiErr);
 
     // The following code will cause the screen to scroll to the top of
@@ -83,10 +88,12 @@ function AdminComicSubmissionAddStep1WithStarredCustomer() {
     scroll.scrollToTop();
   }
 
-  function onCustomerListDone() {
-    console.log("onCustomerListDone: Starting...");
+  function onUserListDone() {
+    console.log("onUserListDone: Starting...");
     setFetching(false);
   }
+
+  // --- All --- //
 
   const onUnauthorized = () => {
     setForceURL("/login?unauthorized=true"); // If token expired or user is not logged in, redirect back to login.
@@ -107,17 +114,46 @@ function AdminComicSubmissionAddStep1WithStarredCustomer() {
 
       let queryParams = new Map(); // Create the URL map we'll be using when calling the backend.
 
-      queryParams.set("is_starred", true);
-      if (storeID !== undefined && storeID !== null && storeID !== "") {
-        queryParams.set("store_id", storeID);
+      // CASE 1: Search
+      const searchKeyword = searchParams.get("search");
+      if (
+        searchKeyword !== undefined &&
+        searchKeyword !== null &&
+        searchKeyword !== ""
+      ) {
+        queryParams.set("search", searchKeyword);
+      }
+
+      // CASE 2: First name.
+      const firstName = searchParams.get("first_name");
+      if (firstName !== undefined && firstName !== null && firstName !== "") {
+        queryParams.set("first_name", firstName);
+      }
+
+      // CASE 3: Last name.
+      const lastName = searchParams.get("last_name");
+      if (lastName !== undefined && lastName !== null && lastName !== "") {
+        queryParams.set("last_name", lastName);
+      }
+
+      // CASE 4: Phone.
+      const phone = searchParams.get("phone");
+      if (phone !== undefined && phone !== null && phone !== "") {
+        queryParams.set("phone", phone);
+      }
+
+      // CASE 5: Email.
+      const email = searchParams.get("email");
+      if (email !== undefined && email !== null && email !== "") {
+        queryParams.set("email", email);
       }
 
       // Submit the list request to our backend.
-      getCustomerListAPI(
+      getUserListAPI(
         queryParams,
-        onCustomerListSuccess,
-        onCustomerListError,
-        onCustomerListDone,
+        onUserListSuccess,
+        onUserListError,
+        onUserListDone,
         onUnauthorized,
       );
     }
@@ -125,7 +161,7 @@ function AdminComicSubmissionAddStep1WithStarredCustomer() {
     return () => {
       mounted = false;
     };
-  }, [storeID]);
+  }, []);
 
   ////
   //// Component rendering.
@@ -151,7 +187,7 @@ function AdminComicSubmissionAddStep1WithStarredCustomer() {
               <li class="">
                 <Link to="/admin/submissions" aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faTasks} />
-                  &nbsp;Online Submissions
+                  &nbsp;Submissions
                 </Link>
               </li>
               <li class="">
@@ -181,7 +217,7 @@ function AdminComicSubmissionAddStep1WithStarredCustomer() {
             </ul>
           </nav>
 
-          {/* Modal */}
+          {/* Modals */}
           <div class={`modal ${showCancelWarning ? "is-active" : ""}`}>
             <div class="modal-background"></div>
             <div class="modal-card">
@@ -198,7 +234,7 @@ function AdminComicSubmissionAddStep1WithStarredCustomer() {
                 This cannot be undone. Do you want to continue?
               </section>
               <footer class="modal-card-foot">
-                <Link class="button is-success" to={`/admin/dashboard`}>
+                <Link class="button is-success" to={`/dashboard`}>
                   Yes
                 </Link>
                 <button class="button" onClick={(e) => null}>
@@ -208,6 +244,18 @@ function AdminComicSubmissionAddStep1WithStarredCustomer() {
             </div>
           </div>
 
+          {/* Page Progress Wizard */}
+          <nav className="box has-background-light">
+            <p className="subtitle is-5">Step 1 of 10</p>
+            <progress
+              class="progress is-success"
+              value="10"
+              max="100"
+            >
+              10%
+            </progress>
+          </nav>
+
           {/* Page */}
           <nav class="box">
             <p class="title is-4">
@@ -215,7 +263,7 @@ function AdminComicSubmissionAddStep1WithStarredCustomer() {
               &nbsp;New Online Comic Submission
             </p>
             <p class="has-text-grey pb-4">
-              Please select the customer from the following results.
+              Please select the user from the following results.
             </p>
             <FormErrorBox errors={errors} />
 
@@ -226,35 +274,38 @@ function AdminComicSubmissionAddStep1WithStarredCustomer() {
               </p>
               <hr />
 
-              <FormSelectFieldForStore
-                label="Filter by Store"
-                storeID={storeID}
-                setStoreID={setStoreID}
-                errorText={errors && errors.storeID}
-                helpText="Please select the store to filter by"
-                maxWidth="310px"
-              />
-
               {isFetching ? (
                 <PageLoadingContent displayMessage={"Loading..."} />
               ) : (
                 <>
-                  {customers &&
-                  customers.results &&
-                  customers.results.length > 0 ? (
+                  {users && users.results && users.results.length > 0 ? (
                     <div class="columns is-multiline">
-                      {customers.results.map(function (customer, i) {
+                      {users.results.map(function (user, i) {
                         return (
-                          <div class="column is-one-quarter" key={customer.id}>
+                          <div class="column is-one-quarter" key={user.id}>
+                            <span className="has-text-grey-light is-size-7">
+                              User found via{" "}
+                              <a
+                                href={`/admin/store/${user.storeId}`}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {user.storeName}&nbsp;
+                                <FontAwesomeIcon
+                                  className="fas"
+                                  icon={faArrowUpRightFromSquare}
+                                />
+                              </a>
+                            </span>
                             <article class="message is-primary">
                               <div class="message-body">
                                 <p>
                                   <Link
-                                    to={`/admin/user/${customer.id}`}
+                                    to={`/admin/user/${user.id}`}
                                     target="_blank"
                                     rel="noreferrer"
                                   >
-                                    <b>{customer.name}</b>&nbsp;
+                                    <b>{user.name}</b>&nbsp;
                                     <FontAwesomeIcon
                                       className="fas"
                                       icon={faArrowUpRightFromSquare}
@@ -262,26 +313,24 @@ function AdminComicSubmissionAddStep1WithStarredCustomer() {
                                   </Link>
                                 </p>
                                 <p>
-                                  {customer.country}&nbsp;{customer.region}
-                                  &nbsp;{customer.city}
+                                  {user.country}&nbsp;{user.region}&nbsp;
+                                  {user.city}
                                 </p>
                                 <p>
-                                  {customer.addressLine1}, {customer.postalCode}
+                                  {user.addressLine1}, {user.postalCode}
                                 </p>
                                 <p>
-                                  <a href={`mailto:${customer.email}`}>
-                                    {customer.email}
+                                  <a href={`mailto:${user.email}`}>
+                                    {user.email}
                                   </a>
                                 </p>
                                 <p>
-                                  <a href={`tel:${customer.phone}`}>
-                                    {customer.phone}
-                                  </a>
+                                  <a href={`tel:${user.phone}`}>{user.phone}</a>
                                 </p>
                                 <br />
                                 <Link
                                   class="button is-medium is-primary"
-                                  to={`/admin/submissions/comics/add/step-2?user_id=${customer.id}&user_name=${customer.name}&from=comics&clear=true`}
+                                  to={`/admin/submissions/comics/add/step-2?user_id=${user.id}&user_name=${user.name}&from=comics&clear=true`}
                                 >
                                   <FontAwesomeIcon
                                     className="fas"
@@ -300,13 +349,13 @@ function AdminComicSubmissionAddStep1WithStarredCustomer() {
                       <div class="hero-body">
                         <p class="title">
                           <FontAwesomeIcon className="fas" icon={faTable} />
-                          &nbsp;No Customers
+                          &nbsp;No Users
                         </p>
                         <p class="subtitle">
                           No results were found in the search.{" "}
                           <Link
                             class="is-medium is-warning"
-                            to="/admin/users/add"
+                            to="/admin/customers/add"
                             target="_blank"
                             rel="noreferrer"
                           >
@@ -319,7 +368,7 @@ function AdminComicSubmissionAddStep1WithStarredCustomer() {
                           to create a new customer or{" "}
                           <Link
                             class="is-medium is-danger"
-                            to="/admin/submissions/comics/add/step-2?from=comics&clear=true"
+                            to="/admin/submissions/comics/add?from=comics&clear=true"
                           >
                             click here&nbsp;
                             <FontAwesomeIcon
@@ -340,7 +389,7 @@ function AdminComicSubmissionAddStep1WithStarredCustomer() {
               <div class="column is-half">
                 <Link
                   class="button is-medium is-fullwidth-mobile"
-                  to="/admin/submissions/comics/add/step-1/search"
+                  to="/admin/submissions/comics/add/search"
                 >
                   <FontAwesomeIcon className="fas" icon={faArrowLeft} />
                   &nbsp;Back
@@ -348,9 +397,9 @@ function AdminComicSubmissionAddStep1WithStarredCustomer() {
               </div>
               <div class="column is-half has-text-right">
                 {/*
-                                <button class="button is-primary is-hidden-touch" onClick={null}><FontAwesomeIcon className="fas" icon={faCheckCircle} />&nbsp;Next</button>
-                                <button class="button is-primary is-fullwidth is-hidden-desktop" onClick={null}><FontAwesomeIcon className="fas" icon={faCheckCircle} />&nbsp;Next</button>
-                                */}
+                    <button class="button is-primary is-hidden-touch" onClick={null}><FontAwesomeIcon className="fas" icon={faCheckCircle} />&nbsp;Next</button>
+                    <button class="button is-primary is-fullwidth is-hidden-desktop" onClick={null}><FontAwesomeIcon className="fas" icon={faCheckCircle} />&nbsp;Next</button>
+                */}
               </div>
             </div>
           </nav>
@@ -360,4 +409,4 @@ function AdminComicSubmissionAddStep1WithStarredCustomer() {
   );
 }
 
-export default AdminComicSubmissionAddStep1WithStarredCustomer;
+export default AdminComicSubmissionAddStep1WithResult;

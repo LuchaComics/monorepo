@@ -116,7 +116,7 @@ function AdminSubmissionLaunchpad() {
                   Submit a request to encapsulate your comics by clicking below:
                   <br />
                   <br />
-                  <Link to={"/admin/submissions/comics/add/search"}>
+                  <Link to={"/admin/submissions/comics/add/step-1/search"}>
                     New&nbsp;
                     <FontAwesomeIcon className="fas" icon={faArrowRight} />
                   </Link>

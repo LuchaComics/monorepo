@@ -248,6 +248,18 @@ function AdminComicSubmissionAddStep1WithSearch() {
             </div>
           </div>
 
+          {/* Page Progress Wizard */}
+          <nav className="box has-background-light">
+            <p className="subtitle is-5">Step 1 of 10</p>
+            <progress
+              class="progress is-success"
+              value="10"
+              max="100"
+            >
+              10%
+            </progress>
+          </nav>
+
           {/* Page */}
           <nav class="box">
             <p class="title is-4">
