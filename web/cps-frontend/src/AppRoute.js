@@ -47,6 +47,7 @@ import AdminComicSubmissionAddStep4 from "./Components/Admin/Submission/Comic/Ad
 import AdminComicSubmissionAddStep5 from "./Components/Admin/Submission/Comic/AddStep05";
 import AdminComicSubmissionAddStep6 from "./Components/Admin/Submission/Comic/AddStep06";
 import AdminComicSubmissionAddStep7 from "./Components/Admin/Submission/Comic/AddStep07";
+import AdminComicSubmissionAddStep8 from "./Components/Admin/Submission/Comic/AddStep08";
 import AdminComicSubmissionAddStepX from "./Components/Admin/Submission/Comic/AddStepX";
 import AdminComicSubmissionAddStepY from "./Components/Admin/Submission/Comic/AddStepY";
 import AdminComicSubmissionDetail from "./Components/Admin/Submission/Comic/Detail";
@@ -404,6 +405,11 @@ function AppRoute() {
                     exact
                     path="/admin/submissions/comics/add/step-7"
                     element={<AdminComicSubmissionAddStep7 />}
+                  />
+                  <Route
+                    exact
+                    path="/admin/submissions/comics/add/step-8"
+                    element={<AdminComicSubmissionAddStep8 />}
                   />
                   {/*
                   <Route
