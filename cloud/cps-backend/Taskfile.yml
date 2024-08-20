@@ -26,13 +26,6 @@ tasks:
       - go clean -cache
       - go clean -modcache
 
-  deploy:
-    desc: The following `task` will build our project's containers and push them to the public registry
-    cmds:
-      - docker build -f ./Dockerfile -t rodolfossp/cps-backend:latest --platform linux/amd64 .
-      - docker tag rodolfossp/cps-backend:latest rodolfossp/cps-backend:latest
-      - docker push rodolfossp/cps-backend:latest
-
   vendor:
     desc: Save all the libraries into our code repository
     cmds:
@@ -43,6 +36,11 @@ tasks:
     desc: Update all the golang libraries (https://stackoverflow.com/a/67202539)
     cmds:
       - go get -u ./...
+
+  undelast:
+    desc: Undue last commit which was not pushed. Special thanks to https://www.nobledesktop.com/learn/git/undo-changes.
+    cmds:
+      - git reset --soft HEAD~
 
   genkey:
     desc: Generate a unique key.
@@ -65,18 +63,25 @@ tasks:
       - stripe events resend {{.CLI_ARGS}}
 
   dockerlogin:
-    desc: Command will log in your developer's machine with the private docker registry.
+    desc: (DevOps only) Command will log in your developer's machine with the private docker registry.
     cmds:
       -  docker login registry.digitalocean.com
 
   dockerlogout:
-    desc: Command will log out of the private docker registry. (Important step if you are using other private docker registries)
+    desc: (DevOps only) Command will log out of the private docker registry. (Important step if you are using other private docker registries)
     cmds:
       - docker logout registry.digitalocean.com
 
-  dockerdeploy:
-    desc: Command will build the production container of this project and deploy to the private docker registry
+  dockerdeployprod:
+    desc: (DevOps only) Command will build the production container of this project and deploy to the private docker registry.
     cmds:
-      - docker build -f Dockerfile --rm -t registry.digitalocean.com/ssp/cps-backend:latest --platform linux/amd64 .
-      - docker tag registry.digitalocean.com/ssp/cps-backend:latest registry.digitalocean.com/ssp/cps-backend:latest
-      - docker push registry.digitalocean.com/ssp/cps-backend:latest
+      - docker build -f Dockerfile --rm -t registry.digitalocean.com/ssp/cps-backend:prod --platform linux/amd64 .
+      - docker tag registry.digitalocean.com/ssp/cps-backend:prod registry.digitalocean.com/ssp/cps-backend:prod
+      - docker push registry.digitalocean.com/ssp/cps-backend:prod
+
+  dockerdeployqa:
+    desc: (DevOps only) Command will build the quality assurance (QA) container of this project and deploy to the private docker registry.
+    cmds:
+      - docker build -f Dockerfile --rm -t registry.digitalocean.com/ssp/cps-backend:qa --platform linux/amd64 .
+      - docker tag registry.digitalocean.com/ssp/cps-backend:qa registry.digitalocean.com/ssp/cps-backend:qa
+      - docker push registry.digitalocean.com/ssp/cps-backend:qa
