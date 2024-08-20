@@ -132,7 +132,15 @@ function AdminComicSubmissionAddStep3() {
 
     // Handle special case of user selecting indie mint gem.
     if (serviceType === SERVICE_TYPE_CPS_CAPSULE_INDIE_MINT_GEM) {
-        //TODO: Impl.
+        modifiedAddComicSubmission.creasesFinding = "nm";
+        modifiedAddComicSubmission.tearsFinding = "nm";
+        modifiedAddComicSubmission.missingPartsFinding = "nm";
+        modifiedAddComicSubmission.stainsFinding = "nm";
+        modifiedAddComicSubmission.distortionFinding = "nm";
+        modifiedAddComicSubmission.paperQualityFinding = "nm";
+        modifiedAddComicSubmission.spineFinding = "nm";
+        modifiedAddComicSubmission.coverFinding = "nm";
+        modifiedAddComicSubmission.showsSignsOfTamperingOrRestoration = 1; // 1 = Yes.
     }
 
     // Save to persistent storage.
