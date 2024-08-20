@@ -11,13 +11,26 @@ tasks:
     desc: "build the production version of the project"
     cmds:
       - npm run build:prod
+      - # The following code will do as follows: (1) Checkout a branch called `prod` and if it doesn't exist then create it. (2) Execute this git command in the other folder where the repository lives.
+      - git -C ../../../cps-frontend-static checkout -B prod
       - cp -Rf ./build/* ../../../cps-frontend-static
       - rm -Rf ./build
+      - git -C ../../../cps-frontend-static add --all
+      - git -C ../../../cps-frontend-static commit -m 'Latest production deployment.'
+      - git -C ../../../cps-frontend-static push origin prod
+      - git -C ../../../cps-frontend-static checkout main
+
 
   # Note: Only executed by devops team.
   buildqa:
     desc: "build the quality assurance version of the project"
     cmds:
       - npm run build:qa
+      - # The following code will do as follows: (1) Checkout a branch called `prod` and if it doesn't exist then create it. (2) Execute this git command in the other folder where the repository lives.
+      - git -C ../../../cps-frontend-static checkout -B prod
       - cp -Rf ./build/* ../../../cps-frontend-static
       - rm -Rf ./build
+      - git -C ../../../cps-frontend-static add --all
+      - git -C ../../../cps-frontend-static commit -m 'Latest quality assurance deployment.'
+      - git -C ../../../cps-frontend-static push origin qa
+      - git -C ../../../cps-frontend-static checkout main
