@@ -105,7 +105,7 @@ function AdminComicSubmissionAddStep10() {
 
     // Variable holds a complete clone of the submission.
     let modifiedAddComicSubmission = { ...addComicSubmission };
-    
+
     // Submit to the backend.
     console.log("onSubmitClick: payload:", addComicSubmission);
     postComicSubmissionCreateAPI(
@@ -172,7 +172,7 @@ function AdminComicSubmissionAddStep10() {
     let urlParams = "?from="+addComicSubmission.fromPage + "&submission_id=" + response.id;
 
     // Redirect the user to a new page.
-    setForceURL("/admin/submissions/comics/add/checkout" + urlParams);
+    setForceURL("/admin/submissions/comics/add/step-11/confirmation" + urlParams);
   }
 
   function onComicSubmissionCreateError(apiErr) {
