@@ -340,7 +340,7 @@ function AdminComicSubmissionAddStep3() {
                         class="button is-medium is-fullwidth-mobile"
                         onClick={(e) => {
                             e.preventDefault();
-                            setForceURL("/admin/submissions/comics/add/step-2?user_id=" + addComicSubmission.userId+ "&user_name=" + addComicSubmission.userName + "&store_id="+addComicSubmission.storeId + "&from="+addComicSubmission.fromPage);
+                            setForceURL("/admin/submissions/comics/add/step-2?customer_id=" + addComicSubmission.userId+ "&customer_name=" + addComicSubmission.userName + "&store_id="+addComicSubmission.storeId + "&from="+addComicSubmission.fromPage);
                         }}
                       >
                         <FontAwesomeIcon className="fas" icon={faArrowLeft} />

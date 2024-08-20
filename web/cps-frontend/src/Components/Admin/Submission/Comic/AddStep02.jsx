@@ -15,7 +15,7 @@ import {
   faBookOpen,
   faMagnifyingGlass,
   faBalanceScale,
-  faUser,
+  faCustomer,
   faArrowUpRightFromSquare,
   faIdCard,
   faCog,
@@ -70,12 +70,12 @@ function AdminComicSubmissionAddStep2() {
 
   const [searchParams] = useSearchParams(); // Special thanks via https://stackoverflow.com/a/65451140
   const orgID = searchParams.get("store_id");
-  const userID = searchParams.get("user_id");
-  const userName = searchParams.get("user_name");
+  const customerID = searchParams.get("customer_id");
+  const customerName = searchParams.get("customer_name");
   const fromPage = searchParams.get("from");
   const shouldClear = searchParams.get("clear");
 
-  console.log("user_id:", userID, "user_name:", userName,"store_id:", orgID,  "from:", fromPage);
+  console.log("customer_id:", customerID, "customer_name:", customerName,"store_id:", orgID,  "from:", fromPage);
 
   ////
   //// Global state.
@@ -83,7 +83,7 @@ function AdminComicSubmissionAddStep2() {
 
   const [topAlertMessage, setTopAlertMessage] = useRecoilState(topAlertMessageState);
   const [topAlertStatus, setTopAlertStatus] = useRecoilState(topAlertStatusState);
-  const [currentUser] = useRecoilState(currentUserState);
+  const [currentCustomer] = useRecoilState(currentUserState);
   const [addComicSubmission, setAddComicSubmission] = useRecoilState(addComicSubmissionState);
 
   ////
@@ -91,21 +91,21 @@ function AdminComicSubmissionAddStep2() {
   ////
 
   let modifiedStoreID = orgID;
-  let modifiedUserID = userID;
-  let modifiedUserName = userName;
+  let modifiedCustomerID = customerID;
+  let modifiedCustomerName = customerName;
 
   if (addComicSubmission !== undefined && addComicSubmission !== null && addComicSubmission !== "" && addComicSubmission !== 0) {
       if (addComicSubmission.storeId !== undefined && addComicSubmission.storeId !== null && addComicSubmission.storeId !== "" && addComicSubmission.storeId !== "null" && addComicSubmission.storeId !== 0) {
           modifiedStoreID = addComicSubmission.storeId;
       }
-      if (addComicSubmission.userId !== undefined && addComicSubmission.userId !== null && addComicSubmission.userId !== "" && addComicSubmission.userId !== "null" && addComicSubmission.userId !== 0) {
-          modifiedUserID = addComicSubmission.userId;
+      if (addComicSubmission.customerId !== undefined && addComicSubmission.customerId !== null && addComicSubmission.customerId !== "" && addComicSubmission.customerId !== "null" && addComicSubmission.customerId !== 0) {
+          modifiedCustomerID = addComicSubmission.customerId;
       }
-      if (addComicSubmission.userName !== undefined && addComicSubmission.userName !== null && addComicSubmission.userName !== "" && addComicSubmission.userName !== "null" && addComicSubmission.userName !== 0) {
-          modifiedUserName = addComicSubmission.userName;
+      if (addComicSubmission.customerName !== undefined && addComicSubmission.customerName !== null && addComicSubmission.customerName !== "" && addComicSubmission.customerName !== "null" && addComicSubmission.customerName !== 0) {
+          modifiedCustomerName = addComicSubmission.customerName;
       }
   }
-    console.log("modifiedStoreID:", modifiedStoreID, "modifiedUserID:", modifiedUserID,"modifiedUserName:", modifiedUserName);
+    console.log("modifiedStoreID:", modifiedStoreID, "modifiedCustomerID:", modifiedCustomerID,"modifiedCustomerName:", modifiedCustomerName);
 
   ////
   //// Component states.
@@ -161,14 +161,14 @@ function AdminComicSubmissionAddStep2() {
     // Variable holds a complete clone of the submission.
     let modifiedAddComicSubmission = { ...addComicSubmission };
 
-    // storeID: currentUser.storeId,
+    // storeID: currentCustomer.storeId,
     // collectibleType: 1, // 1=Comic, 2=Card
-    // userID: userID,
+    // customerID: customerID,
 
     // // Update our clone.
-    modifiedAddComicSubmission.userID = userID;
-    modifiedAddComicSubmission.userId = userID;
-    modifiedAddComicSubmission.userName = userName;
+    modifiedAddComicSubmission.customerID = customerID;
+    modifiedAddComicSubmission.customerId = customerID;
+    modifiedAddComicSubmission.customerName = customerName;
     modifiedAddComicSubmission.storeID = storeID;
     modifiedAddComicSubmission.storeId = storeID;
     modifiedAddComicSubmission.fromPage = fromPage
@@ -190,7 +190,7 @@ function AdminComicSubmissionAddStep2() {
     setForceURL("/admin/submissions/comics/add/step-3")
   };
 
-  // Function will filter the available options based on user's organization level.
+  // Function will filter the available options based on customer's organization level.
   // Special thanks via:
   // https://github.com/LuchaComics/cps-frontend/issues/160
   const cpsPercentageGradeFilterOptions = (options, storeLevel) => {
@@ -205,7 +205,7 @@ function AdminComicSubmissionAddStep2() {
     });
   };
 
-  // Function will filter the available options based on user's organization level.
+  // Function will filter the available options based on customer's organization level.
   // Special thanks via:
   // https://github.com/LuchaComics/cps-frontend/issues/160
   const overallNumberGradeFilterOptions = (options, storeLevel) => {
@@ -255,7 +255,7 @@ function AdminComicSubmissionAddStep2() {
   // --- All --- //
 
   const onUnauthorized = () => {
-    setForceURL("/login?unauthorized=true"); // If token expired or user is not logged in, redirect back to login.
+    setForceURL("/login?unauthorized=true"); // If token expired or customer is not logged in, redirect back to login.
   };
 
   ////
@@ -305,7 +305,7 @@ function AdminComicSubmissionAddStep2() {
     <>
       <div class="container">
         <section class="section">
-          {fromPage !== "user" ? (
+          {fromPage !== "customer" ? (
             <>
               {/* Desktop Breadcrumbs */}
               <nav class="breadcrumb is-hidden-touch" aria-label="breadcrumbs">
@@ -364,14 +364,14 @@ function AdminComicSubmissionAddStep2() {
                     </Link>
                   </li>
                   <li class="">
-                    <Link to="/admin/users" aria-current="page">
+                    <Link to="/admin/customers" aria-current="page">
                       <FontAwesomeIcon className="fas" icon={faUsers} />
                       &nbsp;Customers
                     </Link>
                   </li>
                   <li class="">
                     <Link
-                      to={`/admin/user/${userID}/comics`}
+                      to={`/admin/customer/${customerID}/comics`}
                       aria-current="page"
                     >
                       <FontAwesomeIcon className="fas" icon={faEye} />
@@ -421,7 +421,7 @@ function AdminComicSubmissionAddStep2() {
                 This cannot be undone. Do you want to continue?
               </section>
               <footer class="modal-card-foot">
-                {fromPage !== "user" ? (
+                {fromPage !== "customer" ? (
                   <Link
                     class="button is-medium is-success"
                     to={`/admin/submissions/comics/add/step-1/search`}
@@ -431,7 +431,7 @@ function AdminComicSubmissionAddStep2() {
                 ) : (
                   <Link
                     class="button is-medium is-success"
-                    to={`/admin/user/${userID}/comics`}
+                    to={`/admin/customer/${customerID}/comics`}
                   >
                     Yes
                   </Link>
@@ -485,7 +485,7 @@ function AdminComicSubmissionAddStep2() {
                     placeholder="Pick"
                     selectedValue={storeID}
                     errorText={errors && errors.storeID}
-                    helpText="Pick the store this user belongs to and will be limited by"
+                    helpText="Pick the store this customer belongs to and will be limited by"
                     isRequired={true}
                     onChange={(e) => setStoreID(e.target.value)}
                     options={storeSelectOptions}
@@ -495,13 +495,13 @@ function AdminComicSubmissionAddStep2() {
                     }
                   />
 
-                  {(modifiedUserID !== undefined && modifiedUserID !== null && modifiedUserID !== "" && modifiedUserID !== "null"&& modifiedUserID !== 0) && <>
+                  {(modifiedCustomerID !== undefined && modifiedCustomerID !== null && modifiedCustomerID !== "" && modifiedCustomerID !== "null"&& modifiedCustomerID !== 0) && <>
                       <FormInputField
                         label="Customer"
-                        name="userName"
+                        name="customerName"
                         placeholder="Text input"
-                        value={modifiedUserName}
-                        helpText="The name of the user for this submission."
+                        value={modifiedCustomerName}
+                        helpText="The name of the customer for this submission."
                         isRequired={true}
                         maxWidth="380px"
                         disabled={true}

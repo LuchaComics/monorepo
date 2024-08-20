@@ -49,7 +49,7 @@ import AdminComicSubmissionAddStep6 from "./Components/Admin/Submission/Comic/Ad
 import AdminComicSubmissionAddStep7 from "./Components/Admin/Submission/Comic/AddStep07";
 import AdminComicSubmissionAddStep8 from "./Components/Admin/Submission/Comic/AddStep08";
 import AdminComicSubmissionAddStep9 from "./Components/Admin/Submission/Comic/AddStep09";
-import AdminComicSubmissionAddStep10 from "./Components/Admin/Submission/Comic/AddStep10";
+import AdminComicSubmissionAddStep10Review from "./Components/Admin/Submission/Comic/AddStep10Review";
 import AdminComicSubmissionAddStep11Confirmation from "./Components/Admin/Submission/Comic/AddStep11Confirmation";
 import AdminComicSubmissionDetail from "./Components/Admin/Submission/Comic/Detail";
 import AdminComicSubmissionDetailForCommentList from "./Components/Admin/Submission/Comic/DetailForCommentList";
@@ -420,7 +420,7 @@ function AppRoute() {
                   <Route
                     exact
                     path="/admin/submissions/comics/add/step-10"
-                    element={<AdminComicSubmissionAddStep10 />}
+                    element={<AdminComicSubmissionAddStep10Review />}
                   />
                   <Route
                     exact

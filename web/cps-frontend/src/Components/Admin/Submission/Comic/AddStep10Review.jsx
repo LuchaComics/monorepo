@@ -69,7 +69,7 @@ import {
 } from "../../../../AppState";
 
 
-function AdminComicSubmissionAddStep10() {
+function AdminComicSubmissionAddStep10Review() {
   ////
   //// Global state.
   ////
@@ -377,14 +377,13 @@ function AdminComicSubmissionAddStep10() {
               <FontAwesomeIcon className="fas" icon={faFileSignature} />
               &nbsp;Review
             </p>
-            <p className="has-text-grey pb-4">
-              Please review the following comic submission summary before submitting into the system.
-            </p>
-
             {isFetching ? (
               <PageLoadingContent displayMessage={"Submitting..."} />
             ) : (
               <>
+                <p className="has-text-grey pb-4">
+                   Please review the following comic submission summary before submitting into the system.
+                </p>
                 <FormErrorBox errors={errors} />
                 <div class="container">
 
@@ -831,4 +830,4 @@ function AdminComicSubmissionAddStep10() {
   );
 }
 
-export default AdminComicSubmissionAddStep10;
+export default AdminComicSubmissionAddStep10Review;

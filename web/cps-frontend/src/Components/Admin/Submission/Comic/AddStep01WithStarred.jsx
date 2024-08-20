@@ -293,7 +293,7 @@ function AdminComicSubmissionAddStep1WithStarredCustomer() {
                                 <br />
                                 <Link
                                   class="button is-medium is-primary"
-                                  to={`/admin/submissions/comics/add/step-2?user_id=${customer.id}&user_name=${customer.name}&from=comics&clear=true`}
+                                  to={`/admin/submissions/comics/add/step-2?customer_id=${customer.id}&customer_name=${customer.name}&from=comics&clear=true`}
                                 >
                                   <FontAwesomeIcon
                                     className="fas"
