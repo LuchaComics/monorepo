@@ -132,7 +132,7 @@ function AdminComicSubmissionAddStep3() {
 
     // Handle special case of user selecting indie mint gem.
     if (serviceType === SERVICE_TYPE_CPS_CAPSULE_INDIE_MINT_GEM) {
-        //TODO: Impl.        
+        //TODO: Impl.
     }
 
     // Save to persistent storage.
@@ -184,7 +184,7 @@ function AdminComicSubmissionAddStep3() {
                   <li class="">
                     <Link to="/admin/dashboard" aria-current="page">
                       <FontAwesomeIcon className="fas" icon={faGauge} />
-                      &nbsp;Dashboard
+                      &nbsp;Admin Dashboard
                     </Link>
                   </li>
                   <li class="">

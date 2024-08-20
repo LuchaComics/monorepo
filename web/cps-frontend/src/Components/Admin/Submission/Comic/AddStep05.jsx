@@ -244,7 +244,7 @@ function AdminComicSubmissionAddStep3() {
                   <li class="">
                     <Link to="/admin/dashboard" aria-current="page">
                       <FontAwesomeIcon className="fas" icon={faGauge} />
-                      &nbsp;Dashboard
+                      &nbsp;Admin Dashboard
                     </Link>
                   </li>
                   <li class="">

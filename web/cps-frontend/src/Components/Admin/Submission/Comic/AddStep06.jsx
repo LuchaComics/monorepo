@@ -18,7 +18,9 @@ import {
   faUser,
   faArrowUpRightFromSquare,
   faCog,
-  faArrowRight
+  faArrowRight,
+  faPen,
+  faFileSignature
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
@@ -61,7 +63,7 @@ import {
 } from "../../../../AppState";
 
 
-function AdminComicSubmissionAddStep4() {
+function AdminComicSubmissionAddStep6() {
   ////
   //// Global state.
   ////
@@ -80,13 +82,7 @@ function AdminComicSubmissionAddStep4() {
   const [errors, setErrors] = useState({});
   const [isFetching, setFetching] = useState(false); // Bool
   const [forceURL, setForceURL] = useState("");
-  const [seriesTitle, setSeriesTitle] = useState(addComicSubmission.seriesTitle);
-  const [issueVol, setIssueVol] = useState(addComicSubmission.issueVol);
-  const [issueNo, setIssueNo] = useState(addComicSubmission.issueNo);
-  const [issueCoverYear, setIssueCoverYear] = useState(parseInt(addComicSubmission.issueCoverYear));
-  const [issueCoverMonth, setIssueCoverMonth] = useState(parseInt(addComicSubmission.issueCoverMonth));
-  const [publisherName, setPublisherName] = useState(parseInt(addComicSubmission.publisherName));
-  const [publisherNameOther, setPublisherNameOther] = useState(addComicSubmission.publisherNameOther);
+  const [signatures, setSignatures] = useState(addComicSubmission.signatures);
 
   ////
   //// Event handling.
@@ -99,36 +95,11 @@ function AdminComicSubmissionAddStep4() {
       let newErrors = {};
       let hasErrors = false;
 
-      // Perform validation.
-      if (seriesTitle === undefined || seriesTitle === null || seriesTitle === 0 || seriesTitle === "") {
-        newErrors["seriesTitle"] = "missing value";
-        hasErrors = true;
-      }
-      if (issueVol === undefined || issueVol === null || issueVol === "") {
-        newErrors["issueVol"] = "missing value";
-        hasErrors = true;
-      }
-      if (issueNo === undefined || issueNo === null || issueNo === "") {
-        newErrors["issueNo"] = "missing value";
-        hasErrors = true;
-      }
-      if (issueCoverYear === undefined || issueCoverYear === null || issueCoverYear === 0 || issueCoverYear === "") {
-        newErrors["issueCoverYear"] = "missing value";
-        hasErrors = true;
-      }
-      if (issueCoverMonth === undefined || issueCoverMonth === null || issueCoverMonth === 0 || issueCoverMonth === "") {
-        newErrors["issueCoverMonth"] = "missing value";
-        hasErrors = true;
-      }
-      if (publisherName === undefined || publisherName === null || publisherName === 0 || publisherName === "") {
-        newErrors["publisherName"] = "missing value";
-        hasErrors = true;
-      } else if (publisherName === 1) { // Is other.
-          if (publisherNameOther === undefined || publisherNameOther === null || publisherNameOther === "") {
-            newErrors["publisherNameOther"] = "missing value";
-            hasErrors = true;
-          }
-      }
+      // // Perform validation.
+      // if (seriesTitle === undefined || seriesTitle === null || seriesTitle === 0 || seriesTitle === "") {
+      //   newErrors["seriesTitle"] = "missing value";
+      //   hasErrors = true;
+      // }
 
       //
       // CASE 1 of 2: Has errors.
@@ -153,25 +124,19 @@ function AdminComicSubmissionAddStep4() {
       // CASE 2 of 2: Has no errors.
       //
 
-      console.log("onSaveAndContinueClick: Saving step 3 and redirecting to step 4.");
+      console.log("onSaveAndContinueClick: Saving step 6 and redirecting to step 7.");
 
       // Variable holds a complete clone of the submission.
       let modifiedAddComicSubmission = { ...addComicSubmission };
 
       // Update our clone.
-      modifiedAddComicSubmission.seriesTitle = seriesTitle;
-      modifiedAddComicSubmission.issueVol = issueVol;
-      modifiedAddComicSubmission.issueNo = issueNo;
-      modifiedAddComicSubmission.issueCoverYear = issueCoverYear;
-      modifiedAddComicSubmission.issueCoverMonth = issueCoverMonth;
-      modifiedAddComicSubmission.publisherName = parseInt(publisherName);
-      modifiedAddComicSubmission.publisherNameOther = publisherNameOther;
+      modifiedAddComicSubmission.signatures = signatures;
 
       // Save to persistent storage.
       setAddComicSubmission(modifiedAddComicSubmission);
 
       // Redirect to the next page.
-      setForceURL("/admin/submissions/comics/add/step-5")
+      setForceURL("/admin/submissions/comics/add/step-7")
   };
 
   ////
@@ -262,7 +227,7 @@ function AdminComicSubmissionAddStep4() {
                   <li class="">
                     <Link to="/admin/dashboard" aria-current="page">
                       <FontAwesomeIcon className="fas" icon={faGauge} />
-                      &nbsp;Dashboard
+                      &nbsp;Admin Dashboard
                     </Link>
                   </li>
                   <li class="">
@@ -273,7 +238,7 @@ function AdminComicSubmissionAddStep4() {
                   </li>
                   <li class="">
                     <Link
-                      to={`/customer/${addComicSubmission.customerID}/comics`}
+                      to={`/admin/customer/${addComicSubmission.customerID}/comics`}
                       aria-current="page"
                     >
                       <FontAwesomeIcon className="fas" icon={faEye} />
@@ -311,13 +276,13 @@ function AdminComicSubmissionAddStep4() {
 
           {/* Progress Wizard */}
           <nav className="box has-background-light">
-            <p className="subtitle is-5">Step 4 of 10</p>
+            <p className="subtitle is-5">Step 6 of 10</p>
             <progress
               class="progress is-success"
-              value="40"
+              value="60"
               max="100"
             >
-              40%
+              60%
             </progress>
           </nav>
 
@@ -337,103 +302,18 @@ function AdminComicSubmissionAddStep4() {
                 </p>
                 <div class="container">
                   <p class="subtitle is-6">
-                    <FontAwesomeIcon className="fas" icon={faBookOpen} />
-                    &nbsp;Book Information
+                    <FontAwesomeIcon className="fas" icon={faFileSignature} />
+                    &nbsp;Book Signatures
                   </p>
                   <hr />
 
-                  <FormInputField
-                    label="Series Title"
-                    name="seriesTitle"
-                    placeholder="Text input"
-                    value={seriesTitle}
-                    errorText={errors && errors.seriesTitle}
-                    helpText=""
-                    onChange={(e) => setSeriesTitle(e.target.value)}
-                    isRequired={true}
-                    maxWidth="380px"
-                  />
-
-                  <FormInputField
-                    label="Issue Vol"
-                    name="issueVol"
-                    placeholder="Text input"
-                    value={issueVol}
-                    errorText={errors && errors.issueVol}
-                    helpText=""
-                    onChange={(e) => setIssueVol(e.target.value)}
-                    isRequired={true}
-                    maxWidth="180px"
-                  />
-
-                  <FormInputField
-                    label="Issue No"
-                    name="issueNo"
-                    placeholder="Text input"
-                    value={issueNo}
-                    errorText={errors && errors.issueNo}
-                    helpText=""
-                    onChange={(e) => setIssueNo(e.target.value)}
-                    isRequired={true}
-                    maxWidth="180px"
-                  />
-
-                  <FormSelectField
-                    label="Issue Cover Year"
-                    name="issueCoverYear"
-                    placeholder="Issue Cover Year"
-                    selectedValue={issueCoverYear}
-                    errorText={errors && errors.issueCoverYear}
-                    helpText=""
-                    onChange={(e) =>
-                      setIssueCoverYear(parseInt(e.target.value))
+                  <FormComicSignaturesTable
+                    data={signatures}
+                    onDataChange={setSignatures}
+                    helpText={
+                      <></>
                     }
-                    options={ISSUE_COVER_YEAR_OPTIONS}
-                    isRequired={true}
-                    maxWidth="200px"
                   />
-
-                  {issueCoverYear !== 0 && (
-                    <FormSelectField
-                      label="Issue Cover Month"
-                      name="issueCoverMonth"
-                      placeholder="Issue Cover Month"
-                      selectedValue={issueCoverMonth}
-                      errorText={errors && errors.issueCoverMonth}
-                      helpText=""
-                      onChange={(e) =>
-                        setIssueCoverMonth(parseInt(e.target.value))
-                      }
-                      options={ISSUE_COVER_MONTH_WITH_EMPTY_OPTIONS}
-                      isRequired={true}
-                      maxWidth="210px"
-                    />
-                  )}
-
-                  <FormSelectField
-                    label="Publisher Name"
-                    name="publisherName"
-                    placeholder="Publisher Name"
-                    selectedValue={publisherName}
-                    errorText={errors && errors.publisherName}
-                    helpText=""
-                    onChange={(e) => setPublisherName(parseInt(e.target.value))}
-                    options={PUBLISHER_NAME_WITH_EMPTY_OPTIONS}
-                  />
-
-                  {publisherName === 1 && (
-                    <FormInputField
-                      label="Publisher Name (Other)"
-                      name="publisherNameOther"
-                      placeholder="Text input"
-                      value={publisherNameOther}
-                      errorText={errors && errors.publisherNameOther}
-                      helpText=""
-                      onChange={(e) => setPublisherNameOther(e.target.value)}
-                      isRequired={true}
-                      maxWidth="280px"
-                    />
-                  )}
 
                   <div class="columns pt-5">
                     <div class="column is-half">
@@ -441,11 +321,11 @@ function AdminComicSubmissionAddStep4() {
                         class="button is-medium is-fullwidth-mobile"
                         onClick={(e) => {
                             e.preventDefault();
-                            setForceURL("/admin/submissions/comics/add/step-3")
+                            setForceURL("/admin/submissions/comics/add/step-5")
                         }}
                       >
                         <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                        &nbsp;Back to Step 3
+                        &nbsp;Back to Step 5
                       </button>
                     </div>
                     <div class="column is-half has-text-right">
@@ -467,4 +347,4 @@ function AdminComicSubmissionAddStep4() {
   );
 }
 
-export default AdminComicSubmissionAddStep4;
+export default AdminComicSubmissionAddStep6;
