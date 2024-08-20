@@ -91,11 +91,21 @@ function AdminComicSubmissionAddStep2() {
   ////
 
   let modifiedStoreID = orgID;
+  let modifiedUserID = userID;
+  let modifiedUserName = userName;
+
   if (addComicSubmission !== undefined && addComicSubmission !== null && addComicSubmission !== "" && addComicSubmission !== 0) {
       if (addComicSubmission.storeId !== undefined && addComicSubmission.storeId !== null && addComicSubmission.storeId !== "" && addComicSubmission.storeId !== "null" && addComicSubmission.storeId !== 0) {
           modifiedStoreID = addComicSubmission.storeId;
       }
+      if (addComicSubmission.userId !== undefined && addComicSubmission.userId !== null && addComicSubmission.userId !== "" && addComicSubmission.userId !== "null" && addComicSubmission.userId !== 0) {
+          modifiedUserID = addComicSubmission.userId;
+      }
+      if (addComicSubmission.userName !== undefined && addComicSubmission.userName !== null && addComicSubmission.userName !== "" && addComicSubmission.userName !== "null" && addComicSubmission.userName !== 0) {
+          modifiedUserName = addComicSubmission.userName;
+      }
   }
+    console.log("modifiedStoreID:", modifiedStoreID, "modifiedUserID:", modifiedUserID,"modifiedUserName:", modifiedUserName);
 
   ////
   //// Component states.
@@ -162,6 +172,16 @@ function AdminComicSubmissionAddStep2() {
     modifiedAddComicSubmission.storeID = storeID;
     modifiedAddComicSubmission.storeId = storeID;
     modifiedAddComicSubmission.fromPage = fromPage
+
+    // Extract the store name.
+    console.log("onSaveAndContinueClick: storeSelectOptions:", storeSelectOptions);
+    for (const [key, value] of Object.entries(storeSelectOptions)) {
+        console.log("onSaveAndContinueClick: key|value:", key, value);
+        if (value["value"] === storeID) {
+            modifiedAddComicSubmission.storeName = value["label"];
+            console.log("onSaveAndContinueClick: storeName:", modifiedAddComicSubmission.storeName);
+        }
+    }
 
     // Save to persistent storage.
     setAddComicSubmission(modifiedAddComicSubmission);
@@ -475,12 +495,12 @@ function AdminComicSubmissionAddStep2() {
                     }
                   />
 
-                  {((userID !== undefined && userID !== null && userID !== "" && userID !== "null") || addComicSubmission.userName) && <>
+                  {(modifiedUserID !== undefined && modifiedUserID !== null && modifiedUserID !== "" && modifiedUserID !== "null"&& modifiedUserID !== 0) && <>
                       <FormInputField
                         label="Customer"
                         name="userName"
                         placeholder="Text input"
-                        value={userName || addComicSubmission.userName}
+                        value={modifiedUserName}
                         helpText="The name of the user for this submission."
                         isRequired={true}
                         maxWidth="380px"
