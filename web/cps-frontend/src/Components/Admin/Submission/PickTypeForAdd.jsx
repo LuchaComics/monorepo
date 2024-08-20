@@ -34,10 +34,13 @@ function AdminSubmissionPickTypeForAdd() {
   ////
 
   const [searchParams] = useSearchParams(); // Special thanks via https://stackoverflow.com/a/65451140
-  const userID = searchParams.get("user_id");
-  const userName = searchParams.get("user_name");
   const orgID = searchParams.get("store_id");
-  // const orgName = searchParams.get("store_name");
+  const customerID = searchParams.get("customer_id");
+  const customerName = searchParams.get("customer_name");
+  const fromPage = searchParams.get("from");
+  const shouldClear = searchParams.get("clear");
+
+  console.log("customer_id:", customerID, "customer_name:", customerName,"store_id:", orgID,  "from:", fromPage);
 
   ////
   //// Global state.
@@ -85,7 +88,7 @@ function AdminSubmissionPickTypeForAdd() {
       <div class="container">
         <section class="section">
           {/* Conditional Breadcrumbs */}
-          {userName === null ? (
+          {customerName === null ? (
             <>
               {/* Desktop Breadcrumbs */}
               <nav class="breadcrumb is-hidden-touch" aria-label="breadcrumbs">
@@ -144,7 +147,7 @@ function AdminSubmissionPickTypeForAdd() {
                     </Link>
                   </li>
                   <li class="">
-                    <Link to={`/admin/user/${userID}/sub`} aria-current="page">
+                    <Link to={`/admin/user/${customerID}/comics`} aria-current="page">
                       <FontAwesomeIcon className="fas" icon={faEye} />
                       &nbsp;Detail (Comic Submissions)
                     </Link>
@@ -165,7 +168,7 @@ function AdminSubmissionPickTypeForAdd() {
               >
                 <ul>
                   <li class="">
-                    <Link to={`/admin/user/${userID}/sub`} aria-current="page">
+                    <Link to={`/admin/user/${customerID}/comics`} aria-current="page">
                       <FontAwesomeIcon className="fas" icon={faArrowLeft} />
                       &nbsp;Back to Detail (Comic Submissions)
                     </Link>
@@ -206,14 +209,14 @@ function AdminSubmissionPickTypeForAdd() {
                     processed at this time).
                     <br />
                     <br />
-                    {userName === null ? (
+                    {customerName === null ? (
                       <Link to={`/admin/submissions/comics/add/step-1/search`}>
                         Select&nbsp;
                         <FontAwesomeIcon className="fas" icon={faArrowRight} />
                       </Link>
                     ) : (
                       <Link
-                        to={`/admin/submissions/comics/add/step-1?user_id=${userID}`}
+                        to={`/admin/submissions/comics/add/step-1?user_id=${customerID}`}
                       >
                         Select&nbsp;
                         <FontAwesomeIcon className="fas" icon={faArrowRight} />
@@ -242,7 +245,7 @@ function AdminSubmissionPickTypeForAdd() {
 
               <div class="columns pt-5">
                 <div class="column is-half">
-                  {userName === null ? (
+                  {customerName === null ? (
                     <>
                       <Link
                         to={`/admin/submissions/comics`}
@@ -262,14 +265,14 @@ function AdminSubmissionPickTypeForAdd() {
                   ) : (
                     <>
                       <Link
-                        to={`/admin/customer/${userID}/comics`}
+                        to={`/admin/user/${customerID}/comics`}
                         class="button is-medium is-hidden-touch"
                       >
                         <FontAwesomeIcon className="fas" icon={faTimesCircle} />
                         &nbsp;Cancel
                       </Link>
                       <Link
-                        to={`/admin/customer/${userID}/comics`}
+                        to={`/admin/user/${customerID}/comics`}
                         class="button is-medium is-fullwidth is-hidden-desktop"
                       >
                         <FontAwesomeIcon className="fas" icon={faTimesCircle} />
