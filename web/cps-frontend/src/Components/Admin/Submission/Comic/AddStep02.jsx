@@ -81,12 +81,21 @@ function AdminComicSubmissionAddStep2() {
   //// Global state.
   ////
 
-  const [topAlertMessage, setTopAlertMessage] =
-    useRecoilState(topAlertMessageState);
-  const [topAlertStatus, setTopAlertStatus] =
-    useRecoilState(topAlertStatusState);
+  const [topAlertMessage, setTopAlertMessage] = useRecoilState(topAlertMessageState);
+  const [topAlertStatus, setTopAlertStatus] = useRecoilState(topAlertStatusState);
   const [currentUser] = useRecoilState(currentUserState);
   const [addComicSubmission, setAddComicSubmission] = useRecoilState(addComicSubmissionState);
+
+  ////
+  //// Hybrid global state and/or url parameters.
+  ////
+
+  let modifiedStoreID = orgID;
+  if (addComicSubmission !== undefined && addComicSubmission !== null && addComicSubmission !== "" && addComicSubmission !== 0) {
+      if (addComicSubmission.storeId !== undefined && addComicSubmission.storeId !== null && addComicSubmission.storeId !== "" && addComicSubmission.storeId !== "null" && addComicSubmission.storeId !== 0) {
+          modifiedStoreID = addComicSubmission.storeId;
+      }
+  }
 
   ////
   //// Component states.
@@ -97,7 +106,7 @@ function AdminComicSubmissionAddStep2() {
   const [forceURL, setForceURL] = useState("");
   const [showCancelWarning, setShowCancelWarning] = useState(false);
   const [storeSelectOptions, setStoreSelectOptions] = useState([]);
-  const [storeID, setStoreID] = useState(orgID);
+  const [storeID, setStoreID] = useState(modifiedStoreID);
 
   ////
   //// Event handling.
@@ -270,24 +279,6 @@ function AdminComicSubmissionAddStep2() {
   if (forceURL !== "") {
     return <Navigate to={forceURL} />;
   }
-
-  // Apply service type limitation based on the retailer store's level.
-  const conditionalServiceTypeOptions = ((currentUser) => {
-    if (currentUser.storeLevel === 1 || currentUser.storeLevel === 2) {
-      return RETAILER_AVAILABLE_SERVICE_TYPE_WITH_EMPTY_OPTIONS;
-    } else {
-      // DEVELOPERS NOTE: Level 3 retailer stores are allowed to add a
-      // new type of service type.
-      const newServiceTypeOptions = [
-        ...RETAILER_AVAILABLE_SERVICE_TYPE_WITH_EMPTY_OPTIONS,
-        {
-          value: SERVICE_TYPE_CPS_CAPSULE_U_GRADE_SIGNATURE_COLLECTION,
-          label: "CPS Capsule U-Grade Signature Collection",
-        },
-      ];
-      return newServiceTypeOptions;
-    }
-  })(currentUser);
 
   // Render the JSX content.
   return (
@@ -484,7 +475,7 @@ function AdminComicSubmissionAddStep2() {
                     }
                   />
 
-                  {((userID !== undefined && userID !== null && userID !== "") || addComicSubmission.userName) && <>
+                  {((userID !== undefined && userID !== null && userID !== "" && userID !== "null") || addComicSubmission.userName) && <>
                       <FormInputField
                         label="Customer"
                         name="userName"
