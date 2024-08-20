@@ -49,9 +49,9 @@ import {
   ISSUE_COVER_YEAR_OPTIONS,
   ISSUE_COVER_MONTH_WITH_EMPTY_OPTIONS,
   SPECIAL_DETAILS_WITH_EMPTY_OPTIONS,
-  RETAILER_AVAILABLE_SERVICE_TYPE_WITH_EMPTY_OPTIONS,
   SUBMISSION_KEY_ISSUE_WITH_EMPTY_OPTIONS,
   SUBMISSION_PRINTING_WITH_EMPTY_OPTIONS,
+  SERVICE_TYPE_WITH_EMPTY_OPTIONS
 } from "../../../../Constants/FieldOptions";
 import {
   SERVICE_TYPE_PRE_SCREENING_SERVICE,
@@ -105,10 +105,7 @@ function AdminComicSubmissionAddStep10() {
 
     // Variable holds a complete clone of the submission.
     let modifiedAddComicSubmission = { ...addComicSubmission };
-
-    // Update our clone.
-    modifiedAddComicSubmission.signatures = []; // Override b/c retailer does not support ability to verify signatures!
-
+    
     // Submit to the backend.
     console.log("onSubmitClick: payload:", addComicSubmission);
     postComicSubmissionCreateAPI(
@@ -249,24 +246,6 @@ function AdminComicSubmissionAddStep10() {
     OVERALL_NUMBER_GRADE_WITH_EMPTY_OPTIONS,
     currentUser.storeLevel,
   );
-
-  // Apply service type limitation based on the retailer store's level.
-  const conditionalServiceTypeOptions = ((currentUser) => {
-    if (currentUser.storeLevel === 1 || currentUser.storeLevel === 2) {
-      return RETAILER_AVAILABLE_SERVICE_TYPE_WITH_EMPTY_OPTIONS;
-    } else {
-      // DEVELOPERS NOTE: Level 3 retailer stores are allowed to add a
-      // new type of service type.
-      const newServiceTypeOptions = [
-        ...RETAILER_AVAILABLE_SERVICE_TYPE_WITH_EMPTY_OPTIONS,
-        {
-          value: SERVICE_TYPE_CPS_CAPSULE_U_GRADE_SIGNATURE_COLLECTION,
-          label: "CPS Capsule U-Grade Signature Collection",
-        },
-      ];
-      return newServiceTypeOptions;
-    }
-  })(currentUser);
 
   // Render the JSX content.
   return (
@@ -444,7 +423,7 @@ function AdminComicSubmissionAddStep10() {
                 <DataDisplayRowSelect
                   label="Service Type"
                   selectedValue={addComicSubmission.serviceType}
-                  options={conditionalServiceTypeOptions}
+                  options={SERVICE_TYPE_WITH_EMPTY_OPTIONS}
                 />
 
                 {/* STEP 4 OF 10: BOOK INFORMATION */}
