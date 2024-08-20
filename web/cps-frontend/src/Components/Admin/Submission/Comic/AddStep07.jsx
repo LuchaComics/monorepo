@@ -361,8 +361,6 @@ function AdminComicSubmissionAddStep7() {
                   <hr />
                   {addComicSubmission.serviceType !== SERVICE_TYPE_CPS_CAPSULE_INDIE_MINT_GEM ? (
                     <>
-
-
                       <FormRadioField
                         label="Creases Finding"
                         name="creasesFinding"
@@ -571,7 +569,7 @@ function AdminComicSubmissionAddStep7() {
                         <div class="message-body">
                           <p>
                             <FontAwesomeIcon className="fas" icon={faCheckCircle} />
-                            &nbsp;Completed, continue to next page.
+                            &nbsp;Auto-set by <strong>Indie Mint Gem</strong> service type, continue to next page.
                           </p>
                         </div>
                       </article>

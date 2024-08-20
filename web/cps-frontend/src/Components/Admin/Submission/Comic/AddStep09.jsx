@@ -60,6 +60,7 @@ import {
   addComicSubmissionState,
   ADD_COMIC_SUBMISSION_STATE_DEFAULT,
 } from "../../../../AppState";
+import { parseBool } from "../../../../Helpers/boolUtility";
 
 
 function AdminComicSubmissionAddStep9() {
@@ -89,8 +90,8 @@ function AdminComicSubmissionAddStep9() {
   const [
     isOverallLetterGradeNearMintPlus,
     setIsOverallLetterGradeNearMintPlus,
-  ] = useState(false);
-  const [serviceType, setServiceType] = useState(0);
+  ] = useState(parseBool(addComicSubmission.isOverallLetterGradeNearMintPlus));
+  const [serviceType, setServiceType] = useState(addComicSubmission.serviceType);
 
   ////
   //// Event handling.
@@ -405,18 +406,17 @@ function AdminComicSubmissionAddStep9() {
                   Please fill out all the required fields before continuing to the last step.
                 </p>
                 <div class="container">
+                  <p class="subtitle is-6">
+                    <FontAwesomeIcon
+                      className="fas"
+                      icon={faBalanceScale}
+                    />
+                    &nbsp;Grading
+                  </p>
+                  <hr />
 
-                  {serviceType !== SERVICE_TYPE_CPS_CAPSULE_INDIE_MINT_GEM && (
+                  {serviceType !== SERVICE_TYPE_CPS_CAPSULE_INDIE_MINT_GEM ? (
                     <>
-                      <p class="subtitle is-6">
-                        <FontAwesomeIcon
-                          className="fas"
-                          icon={faBalanceScale}
-                        />
-                        &nbsp;Grading
-                      </p>
-                      <hr />
-
                       <FormRadioField
                         label="Which type of grading scale would you prefer?"
                         name="gradingScale"
@@ -500,7 +500,16 @@ function AdminComicSubmissionAddStep9() {
                         />
                       )}
                     </>
-                  )}
+                  ) : (<>
+                      <article class="message">
+                        <div class="message-body">
+                          <p>
+                            <FontAwesomeIcon className="fas" icon={faCheckCircle} />
+                            &nbsp;Auto-set by <strong>Indie Mint Gem</strong> service type, continue to next page.
+                          </p>
+                        </div>
+                      </article>
+                  </>)}
 
                   <div class="columns pt-5">
                     <div class="column is-half">

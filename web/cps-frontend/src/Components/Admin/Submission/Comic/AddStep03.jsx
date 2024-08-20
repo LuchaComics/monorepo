@@ -141,6 +141,9 @@ function AdminComicSubmissionAddStep3() {
         modifiedAddComicSubmission.spineFinding = "nm";
         modifiedAddComicSubmission.coverFinding = "nm";
         modifiedAddComicSubmission.showsSignsOfTamperingOrRestoration = 1; // 1 = Yes.
+        modifiedAddComicSubmission.gradingScale = 1;
+        modifiedAddComicSubmission.overallLetterGrade = "nm";
+        modifiedAddComicSubmission.isNMPlusOpen = true;
     }
 
     // Save to persistent storage.
