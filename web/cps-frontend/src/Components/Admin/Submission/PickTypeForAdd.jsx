@@ -88,7 +88,7 @@ function AdminSubmissionPickTypeForAdd() {
       <div class="container">
         <section class="section">
           {/* Conditional Breadcrumbs */}
-          {customerName === null ? (
+          {fromPage !== "usercomics" ? (
             <>
               {/* Desktop Breadcrumbs */}
               <nav class="breadcrumb is-hidden-touch" aria-label="breadcrumbs">
@@ -209,14 +209,14 @@ function AdminSubmissionPickTypeForAdd() {
                     processed at this time).
                     <br />
                     <br />
-                    {customerName === null ? (
+                    {fromPage !== "usercomics" ? (
                       <Link to={`/admin/submissions/comics/add/step-1/search`}>
                         Select&nbsp;
                         <FontAwesomeIcon className="fas" icon={faArrowRight} />
                       </Link>
                     ) : (
                       <Link
-                        to={`/admin/submissions/comics/add/step-1?user_id=${customerID}`}
+                        to={`/admin/submissions/comics/add/step-2?customer_id=${customerID}&customer_name=${customerName}&store_id=${orgID}&from=usercomics&clear=true`}
                       >
                         Select&nbsp;
                         <FontAwesomeIcon className="fas" icon={faArrowRight} />

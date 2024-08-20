@@ -305,7 +305,7 @@ function AdminComicSubmissionAddStep2() {
     <>
       <div class="container">
         <section class="section">
-          {fromPage !== "customer" ? (
+          {fromPage !== "usercomics" ? (
             <>
               {/* Desktop Breadcrumbs */}
               <nav class="breadcrumb is-hidden-touch" aria-label="breadcrumbs">
@@ -360,18 +360,18 @@ function AdminComicSubmissionAddStep2() {
                   <li class="">
                     <Link to="/admin/dashboard" aria-current="page">
                       <FontAwesomeIcon className="fas" icon={faGauge} />
-                      &nbsp;Dashboard
+                      &nbsp;Admin Dashboard
                     </Link>
                   </li>
                   <li class="">
                     <Link to="/admin/customers" aria-current="page">
                       <FontAwesomeIcon className="fas" icon={faUsers} />
-                      &nbsp;Customers
+                      &nbsp;Users
                     </Link>
                   </li>
                   <li class="">
                     <Link
-                      to={`/admin/customer/${customerID}/comics`}
+                      to={`/admin/user/${customerID}/comics`}
                       aria-current="page"
                     >
                       <FontAwesomeIcon className="fas" icon={faEye} />
@@ -421,7 +421,7 @@ function AdminComicSubmissionAddStep2() {
                 This cannot be undone. Do you want to continue?
               </section>
               <footer class="modal-card-foot">
-                {fromPage !== "customer" ? (
+                {fromPage !== "usercomics" ? (
                   <Link
                     class="button is-medium is-success"
                     to={`/admin/submissions/comics/add/step-1/search`}
@@ -431,7 +431,7 @@ function AdminComicSubmissionAddStep2() {
                 ) : (
                   <Link
                     class="button is-medium is-success"
-                    to={`/admin/customer/${customerID}/comics`}
+                    to={`/admin/user/${customerID}/comics`}
                   >
                     Yes
                   </Link>

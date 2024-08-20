@@ -380,7 +380,7 @@ function AdminUserDetailForComicSubmissionList() {
               </div>
               <div class="column has-text-right">
                 {user && user.status === 1 && <Link
-                  to={`/admin/submissions/pick-type-for-add?customer_id=${user.id}&customer_name=${user.name}&store_id=${user.storeId}&from=comics&clear=true`}
+                  to={`/admin/submissions/pick-type-for-add?customer_id=${user.id}&customer_name=${user.name}&store_id=${user.storeId}&from=usercomics&clear=true`}
                   class="button is-small is-success is-fullwidth-mobile"
                   type="button"
                 >
@@ -487,7 +487,7 @@ function AdminUserDetailForComicSubmissionList() {
                             No submissions.{" "}
                             <b>
                               <Link
-                                to={`/admin/submissions/pick-type-for-add?customer_id=${user.id}&customer_name=${user.name}&store_id=${user.storeId}&from=comics&clear=true`}
+                                to={`/admin/submissions/pick-type-for-add?customer_id=${user.id}&customer_name=${user.name}&store_id=${user.storeId}&from=usercomics&clear=true`}
                               >
                                 Click here&nbsp;
                                 <FontAwesomeIcon
@@ -514,7 +514,7 @@ function AdminUserDetailForComicSubmissionList() {
                       </div>
                       <div class="column is-half has-text-right">
                         {user && user.status === 1 && <Link
-                          to={`/admin/submissions/pick-type-for-add?customer_id=${user.id}&customer_name=${user.name}&store_id=${user.storeId}&from=comics&clear=true`}
+                          to={`/admin/submissions/pick-type-for-add?customer_id=${user.id}&customer_name=${user.name}&store_id=${user.storeId}&from=usercomics&clear=true`}
                           class="button is-primary is-fullwidth-mobile"
                         >
                           <FontAwesomeIcon className="fas" icon={faPlus} />

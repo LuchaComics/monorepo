@@ -169,7 +169,7 @@ function AdminComicSubmissionAddStep10Review() {
       setTopAlertMessage("");
     }, 2000);
 
-    let urlParams = "?from="+addComicSubmission.fromPage + "&submission_id=" + response.id;
+    let urlParams = "?from="+addComicSubmission.fromPage + "&submission_id=" + response.id+"&customer_id="+addComicSubmission.customerId;
 
     // Redirect the user to a new page.
     setForceURL("/admin/submissions/comics/add/step-11/confirmation" + urlParams);
@@ -252,7 +252,7 @@ function AdminComicSubmissionAddStep10Review() {
     <>
       <div class="container">
         <section class="section">
-          {addComicSubmission.fromPage !== "customer" ? (
+          {addComicSubmission.fromPage !== "usercomics" ? (
             <>
               {/* Desktop Breadcrumbs */}
               <nav class="breadcrumb is-hidden-touch" aria-label="breadcrumbs">
@@ -307,18 +307,18 @@ function AdminComicSubmissionAddStep10Review() {
                   <li class="">
                     <Link to="/admin/dashboard" aria-current="page">
                       <FontAwesomeIcon className="fas" icon={faGauge} />
-                      &nbsp;Dashboard
+                      &nbsp;Admin Dashboard
                     </Link>
                   </li>
                   <li class="">
-                    <Link to="/admin/customers" aria-current="page">
+                    <Link to="/admin/users" aria-current="page">
                       <FontAwesomeIcon className="fas" icon={faUsers} />
-                      &nbsp;Customers
+                      &nbsp;Users
                     </Link>
                   </li>
                   <li class="">
                     <Link
-                      to={`/admin/customer/${addComicSubmission.customerID}/comics`}
+                      to={`/admin/user/${addComicSubmission.customerID}/comics`}
                       aria-current="page"
                     >
                       <FontAwesomeIcon className="fas" icon={faEye} />

@@ -171,7 +171,7 @@ function AdminComicSubmissionAddStep8() {
     <>
       <div class="container">
         <section class="section">
-          {addComicSubmission.fromPage !== "customer" ? (
+          {addComicSubmission.fromPage !== "usercomics" ? (
             <>
               {/* Desktop Breadcrumbs */}
               <nav class="breadcrumb is-hidden-touch" aria-label="breadcrumbs">
@@ -226,18 +226,18 @@ function AdminComicSubmissionAddStep8() {
                   <li class="">
                     <Link to="/admin/dashboard" aria-current="page">
                       <FontAwesomeIcon className="fas" icon={faGauge} />
-                      &nbsp;Dashboard
+                      &nbsp;Admin Dashboard
                     </Link>
                   </li>
                   <li class="">
-                    <Link to="/admin/customers" aria-current="page">
+                    <Link to="/admin/users" aria-current="page">
                       <FontAwesomeIcon className="fas" icon={faUsers} />
-                      &nbsp;Customers
+                      &nbsp;Users
                     </Link>
                   </li>
                   <li class="">
                     <Link
-                      to={`/admin/customer/${addComicSubmission.customerID}/comics`}
+                      to={`/admin/user/${addComicSubmission.customerID}/comics`}
                       aria-current="page"
                     >
                       <FontAwesomeIcon className="fas" icon={faEye} />

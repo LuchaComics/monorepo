@@ -43,6 +43,7 @@ function AdminComicSubmissionAddStep11Confirmation() {
   const customerID = searchParams.get("customer_id");
   const customerName = searchParams.get("customer_name");
   const id = searchParams.get("submission_id");
+  const fromPage = searchParams.get("from");
 
   ////
   //// Global state.
@@ -134,7 +135,7 @@ function AdminComicSubmissionAddStep11Confirmation() {
     <>
       <div class="container">
         <section class="section">
-          {customerName === null ? (
+          {fromPage !== "usercomics" ? (
             <>
               {/* Desktop Breadcrumbs */}
               <nav class="breadcrumb is-hidden-touch" aria-label="breadcrumbs">
@@ -182,67 +183,55 @@ function AdminComicSubmissionAddStep11Confirmation() {
               </nav>
             </>
           ) : (
-            <>
-              {/* Desktop Breadcrumbs */}
-              <nav class="breadcrumb is-hidden-touch" aria-label="breadcrumbs">
-                <ul>
-                  <li class="">
-                    <Link to="/admin/dashboard" aria-current="page">
-                      <FontAwesomeIcon className="fas" icon={faGauge} />
-                      &nbsp;Admin Dashboard
-                    </Link>
-                  </li>
-                  <li class="">
-                    <Link to="/admin/customers" aria-current="page">
-                      <FontAwesomeIcon className="fas" icon={faUsers} />
-                      &nbsp;Customers
-                    </Link>
-                  </li>
-                  <li class="">
-                    <Link
-                      to={`/admin/customer/${customerID}`}
-                      aria-current="page"
-                    >
-                      <FontAwesomeIcon className="fas" icon={faEye} />
-                      &nbsp;Detail
-                    </Link>
-                  </li>
-                  <li class="">
-                    <Link
-                      to={`/admin/customer/${customerID}/sub`}
-                      aria-current="page"
-                    >
-                      <FontAwesomeIcon className="fas" icon={faTasks} />
-                      &nbsp;Online Comic Submissions
-                    </Link>
-                  </li>
-                  <li class="is-active">
-                    <Link aria-current="page">
-                      <FontAwesomeIcon className="fas" icon={faPlus} />
-                      &nbsp;New
-                    </Link>
-                  </li>
-                </ul>
-              </nav>
+              <>
+                {/* Desktop Breadcrumbs */}
+                <nav class="breadcrumb is-hidden-touch" aria-label="breadcrumbs">
+                  <ul>
+                    <li class="">
+                      <Link to="/admin/dashboard" aria-current="page">
+                        <FontAwesomeIcon className="fas" icon={faGauge} />
+                        &nbsp;Admin Dashboard
+                      </Link>
+                    </li>
+                    <li class="">
+                      <Link to="/users" aria-current="page">
+                        <FontAwesomeIcon className="fas" icon={faUsers} />
+                        &nbsp;Users
+                      </Link>
+                    </li>
+                    <li class="">
+                      <Link
+                        to={`/admin/user/${customerID}/comics`}
+                        aria-current="page"
+                      >
+                        <FontAwesomeIcon className="fas" icon={faEye} />
+                        &nbsp;Detail (Comics)
+                      </Link>
+                    </li>
+                    <li class="is-active">
+                      <Link aria-current="page">
+                        <FontAwesomeIcon className="fas" icon={faPlus} />
+                        &nbsp;New (Confirmation)
+                      </Link>
+                    </li>
+                  </ul>
+                </nav>
 
-              {/* Mobile Breadcrumbs */}
-              <nav
-                class="breadcrumb is-hidden-desktop"
-                aria-label="breadcrumbs"
-              >
-                <ul>
-                  <li class="">
-                    <Link
-                      to={`/admin/customer/${customerID}/sub`}
-                      aria-current="page"
-                    >
-                      <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                      &nbsp;Back to Detail (Comic Submissions)
-                    </Link>
-                  </li>
-                </ul>
-              </nav>
-            </>
+                {/* Mobile Breadcrumbs */}
+                <nav
+                  class="breadcrumb is-hidden-desktop"
+                  aria-label="breadcrumbs"
+                >
+                  <ul>
+                    <li class="">
+                      <Link to={`/admin/submissions/comics`} aria-current="page">
+                        <FontAwesomeIcon className="fas" icon={faArrowLeft} />
+                        &nbsp;Back to Comics
+                      </Link>
+                    </li>
+                  </ul>
+                </nav>
+              </>
           )}
 
           <nav class="box">
@@ -364,7 +353,7 @@ function AdminComicSubmissionAddStep11Confirmation() {
 
                   <div class="columns pt-5">
                     <div class="column is-half"></div>
-                    {customerName === null ? (
+                    {fromPage !== "usercomics" ? (
                       <div class="column is-half has-text-right">
                         <Link
                           to={`/admin/submissions/comics`}
@@ -377,11 +366,11 @@ function AdminComicSubmissionAddStep11Confirmation() {
                     ) : (
                       <div class="column is-half has-text-right">
                         <Link
-                          to={`/admin/customer/${customerID}/sub`}
+                          to={`/admin/user/${customerID}/comics`}
                           class="button is-medium is-primary is-fullwidth-mobile"
                         >
                           <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                          &nbsp;Back to Customer
+                          &nbsp;Back to Detail (Comics)
                         </Link>
                       </div>
                     )}
