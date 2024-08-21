@@ -11,7 +11,12 @@ tasks:
     cmds:
       - go work use -r .
 
-  usebackend:
+  usecps:
     desc: Load up the go workspace for the `cps-backend` module.
     cmds:
       - go work use ./cloud/cps-backend
+
+  usepinws:
+    desc: Load up the go workspace for the `pinws-backend` module.
+    cmds:
+      - go work use ./cloud/pinws-backend

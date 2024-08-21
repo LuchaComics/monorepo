@@ -47,6 +47,7 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/config"
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/inputport/http"
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/inputport/http/middleware"
+	"github.com/LuchaComics/monorepo/cloud/cps-backend/provider/blacklist"
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/provider/cpsrn"
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/provider/jwt"
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/provider/kmutex"
@@ -54,7 +55,6 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/provider/password"
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/provider/time"
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/provider/uuid"
-	"github.com/LuchaComics/monorepo/cloud/cps-backend/provider/blacklist"
 )
 
 func InitializeEvent() Application {

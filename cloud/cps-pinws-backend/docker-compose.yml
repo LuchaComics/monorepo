@@ -1,0 +1,109 @@
+# HOW TO USE:
+# $ docker-compose -p cps-pinws -f docker-compose.yml up   #
+#
+
+version: "3.8"
+services:
+  caddy:
+    container_name: cps_pinws_backend_caddy
+    image: "caddy:2-alpine"
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "$PWD/Caddyfile:/etc/caddy/Caddyfile"
+      - "caddy_data:/data"
+      - "caddy_config:/config"
+    networks:
+      - web
+      - caddy_internal
+
+  # The purpose of this service is to store our application data.
+  db:
+    container_name: cps-pinws_mongodb
+    image: mongo:6.0.5-jammy
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    restart: unless-stopped
+    logging:
+      driver: none
+    networks:
+      - caddy_internal
+
+  # The main application.
+  app:
+    container_name: cps_pinws_backend_app
+    image: "rodolfossp/cps-pinws-backend:latest"
+    stdin_open: true
+    restart: unless-stopped
+    environment:
+      CPS_PINWS_BACKEND_APP_IS_DEVELOPER_MODE: { CPS_PINWS_BACKEND_APP_IS_DEVELOPER_MODE }
+      CPS_PINWS_BACKEND_IP: 0.0.0.0
+      CPS_PINWS_BACKEND_PORT: 8000
+      CPS_PINWS_BACKEND_HMAC_SECRET: ${CPS_PINWS_BACKEND_HMAC_SECRET}
+      CPS_PINWS_BACKEND_HAS_DEBUGGING: ${CPS_PINWS_BACKEND_HAS_DEBUGGING}
+      CPS_PINWS_BACKEND_DB_URI: ${CPS_PINWS_BACKEND_DB_URI}
+      CPS_PINWS_BACKEND_DB_NAME: ${CPS_PINWS_BACKEND_DB_NAME}
+      CPS_PINWS_BACKEND_CACHE_URI: ${CPS_PINWS_BACKEND_CACHE_URI}
+      CPS_PINWS_BACKEND_CACHE_PASSWORD: ${CPS_PINWS_BACKEND_CACHE_PASSWORD}
+      CPS_PINWS_BACKEND_AWS_ACCESS_KEY: ${CPS_PINWS_BACKEND_AWS_ACCESS_KEY}
+      CPS_PINWS_BACKEND_AWS_SECRET_KEY: ${CPS_PINWS_BACKEND_AWS_SECRET_KEY}
+      CPS_PINWS_BACKEND_AWS_ENDPOINT: ${CPS_PINWS_BACKEND_AWS_ENDPOINT}
+      CPS_PINWS_BACKEND_AWS_REGION: ${CPS_PINWS_BACKEND_AWS_REGION}
+      CPS_PINWS_BACKEND_AWS_BUCKET_NAME: ${CPS_PINWS_BACKEND_AWS_BUCKET_NAME}
+      CPS_PINWS_BACKEND_INITIAL_ADMIN_EMAIL: ${CPS_PINWS_BACKEND_INITIAL_ADMIN_EMAIL} # Required email for root admin when project starts up
+      CPS_PINWS_BACKEND_INITIAL_ADMIN_PASSWORD: ${CPS_PINWS_BACKEND_INITIAL_ADMIN_PASSWORD} # Required password for root admin when project starts up
+      CPS_PINWS_BACKEND_INITIAL_ADMIN_ORG_NAME: ${CPS_PINWS_BACKEND_INITIAL_ADMIN_ORG_NAME}
+      CPS_PINWS_BACKEND_DOMAIN_NAME: ${CPS_PINWS_BACKEND_DOMAIN_NAME}
+      CPS_PINWS_BACKEND_API_DOMAIN_NAME: ${CPS_PINWS_BACKEND_API_DOMAIN_NAME}
+      CPS_PINWS_BACKEND_APP_DOMAIN_NAME: ${CPS_PINWS_BACKEND_APP_DOMAIN_NAME}
+      AWS_ACCESS_KEY: ${CPS_PINWS_BACKEND_AWS_ACCESS_KEY} # AWS SDK requires this exact name.
+      AWS_SECRET_KEY: ${CPS_PINWS_BACKEND_AWS_SECRET_KEY} # AWS SDK requires this exact name.
+      AWS_REGION: ${CPS_PINWS_BACKEND_AWS_REGION} # AWS SDK requires this exact name.
+      CPS_PINWS_BACKEND_PDF_BUILDER_CBFF_TEMPLATE_FILE_PATH: ${CPS_PINWS_BACKEND_PDF_BUILDER_CBFF_TEMPLATE_FILE_PATH}
+      CPS_PINWS_BACKEND_PDF_BUILDER_PC_TEMPLATE_FILE_PATH: ${CPS_PINWS_BACKEND_PDF_BUILDER_PC_TEMPLATE_FILE_PATH}
+      CPS_PINWS_BACKEND_PDF_BUILDER_CCIMG_TEMPLATE_FILE_PATH: ${CPS_PINWS_BACKEND_PDF_BUILDER_CCIMG_TEMPLATE_FILE_PATH}
+      CPS_PINWS_BACKEND_PDF_BUILDER_CCSC_TEMPLATE_FILE_PATH: ${CPS_PINWS_BACKEND_PDF_BUILDER_CCSC_TEMPLATE_FILE_PATH}
+      CPS_PINWS_BACKEND_PDF_BUILDER_CC_TEMPLATE_FILE_PATH: ${CPS_PINWS_BACKEND_PDF_BUILDER_CC_TEMPLATE_FILE_PATH}
+      CPS_PINWS_BACKEND_PDF_BUILDER_CCUG_TEMPLATE_FILE_PATH: ${CPS_PINWS_BACKEND_PDF_BUILDER_CCUG_TEMPLATE_FILE_PATH}
+      CPS_PINWS_BACKEND_PDF_BUILDER_DATA_DIRECTORY_PATH: ${CPS_PINWS_BACKEND_PDF_BUILDER_DATA_DIRECTORY_PATH} # The directory to save our generated PDF files before we upload to S3.
+      CPS_PINWS_BACKEND_MAILGUN_API_KEY: ${CPS_PINWS_BACKEND_MAILGUN_API_KEY}
+      CPS_PINWS_BACKEND_MAILGUN_DOMAIN: ${CPS_PINWS_BACKEND_MAILGUN_DOMAIN}
+      CPS_PINWS_BACKEND_MAILGUN_API_BASE: ${CPS_PINWS_BACKEND_MAILGUN_API_BASE}
+      CPS_PINWS_BACKEND_MAILGUN_SENDER_EMAIL: ${CPS_PINWS_BACKEND_MAILGUN_SENDER_EMAIL}
+      CPS_PINWS_BACKEND_MAILGUN_MAINTENANCE_EMAIL: ${CPS_PINWS_BACKEND_MAILGUN_MAINTENANCE_EMAIL}
+      CPS_PINWS_BACKEND_PAYMENT_PROCESSOR_SECRET_KEY: ${CPS_PINWS_BACKEND_PAYMENT_PROCESSOR_SECRET_KEY}
+      CPS_PINWS_BACKEND_PAYMENT_PROCESSOR_PUBLIC_KEY: ${CPS_PINWS_BACKEND_PAYMENT_PROCESSOR_PUBLIC_KEY}
+      CPS_PINWS_BACKEND_PAYMENT_PROCESSOR_WEBHOOK_SECRET_KEY: ${CPS_PINWS_BACKEND_PAYMENT_PROCESSOR_WEBHOOK_SECRET_KEY}
+      CPS_PINWS_BACKEND_APP_ENABLE_2FA_ON_REGISTRATION: ${CPS_PINWS_BACKEND_APP_ENABLE_2FA_ON_REGISTRATION}
+    depends_on:
+      - db
+    links:
+      - db
+    volumes:
+      - app_data:/data
+    networks:
+      - caddy_internal
+
+networks:
+  web:
+    external: true
+  caddy_internal:
+    external: false
+    driver: bridge
+
+volumes:
+  app_data:
+    external: true
+  mongodb_data:
+    external: true
+  mongodb_config:
+    external: true
+  caddy_data:
+    external: true
+  caddy_config:
+    external: true
