@@ -224,7 +224,7 @@ function AccountTwoFactorAuthenticationBackupCodeGenerate() {
                     phone or experience data loss.
                   </p>
                   <p class="has-text-grey">
-                    Do not share this code with anyone and store it in a safe
+                    Do not share this code with anyone and tenant it in a safe
                     location, as it provides full access to your account.
                   </p>
                   <FormInputField

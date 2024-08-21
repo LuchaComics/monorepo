@@ -4,19 +4,19 @@ import { useState } from "react";
  * Code modified taken from: https://usehooks.com/useLocalStorage/
  */
 export default function useLocalStorage(key, initialValue) {
-  // State to store our value
+  // State to tenant our value
   // Pass initial state function to useState so logic is only executed once
-  const [storedValue, setStoredValue] = useState(() => {
+  const [tenantdValue, setTenantdValue] = useState(() => {
     try {
       // Get from local storage by key
       const item = window.localStorage.getItem(key);
-      // Parse stored json or if none return initialValue
+      // Parse tenantd json or if none return initialValue
       return item ? JSON.parse(item) : initialValue;
     } catch (error) {
       try {
         // Get from local storage by key
         const item = window.localStorage.getItem(key);
-        // Parse stored json or if none return initialValue
+        // Parse tenantd json or if none return initialValue
         return item ? item : initialValue;
       } catch (error2) {
         // If error also return initialValue
@@ -30,16 +30,16 @@ export default function useLocalStorage(key, initialValue) {
   const setValue = (value) => {
     try {
       // Allow value to be a function so we have same API as useState
-      const valueToStore =
-        value instanceof Function ? value(storedValue) : value;
+      const valueToTenant =
+        value instanceof Function ? value(tenantdValue) : value;
       // Save state
-      setStoredValue(valueToStore);
+      setTenantdValue(valueToTenant);
       // Save to local storage
-      window.localStorage.setItem(key, JSON.stringify(valueToStore));
+      window.localStorage.setItem(key, JSON.stringify(valueToTenant));
     } catch (error) {
       // A more advanced implementation would handle the error case
       console.log(error);
     }
   };
-  return [storedValue, setValue];
+  return [tenantdValue, setValue];
 }

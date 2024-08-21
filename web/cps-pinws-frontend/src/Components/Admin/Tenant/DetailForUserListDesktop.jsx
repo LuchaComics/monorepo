@@ -25,10 +25,9 @@ import { useRecoilState } from "recoil";
 import { DateTime } from "luxon";
 
 import FormErrorBox from "../../Reusable/FormErrorBox";
-import PrettyStoreStatus from "../../Reusable/PrettyStoreStatus";
-import { PAGE_SIZE_OPTIONS } from "../../../Constants/FieldOptions";
+import { PAGE_SIZE_OPTIONS, USER_ROLES } from "../../../Constants/FieldOptions";
 
-function AdminStoreListDesktop(props) {
+function AdminTenantDetailForUserListDesktop(props) {
   const {
     listData,
     setPageSize,
@@ -36,6 +35,7 @@ function AdminStoreListDesktop(props) {
     previousCursors,
     onPreviousClicked,
     onNextClicked,
+    onSelectUserForDeletion,
   } = props;
   return (
     <div class="b-table">
@@ -44,7 +44,8 @@ function AdminStoreListDesktop(props) {
           <thead>
             <tr>
               <th>Name</th>
-              <th>Status</th>
+              <th>Email</th>
+              <th>Role</th>
               <th>Created</th>
               <th></th>
             </tr>
@@ -52,24 +53,65 @@ function AdminStoreListDesktop(props) {
           <tbody>
             {listData &&
               listData.results &&
-              listData.results.map(function (store, i) {
+              listData.results.map(function (user, i) {
                 return (
                   <tr>
-                    <td data-label="Name">{store.name}</td>
-                    <td data-label="Created">
-                      <PrettyStoreStatus status={store.status} />
+                    <td data-label="Name">{user.name}</td>
+                    <td data-label="Email">
+                      <a href={`mailto:${user.email}`}>{user.email}</a>
                     </td>
-                    <td data-label="Created">{store.createdAt}</td>
+                    <td data-label="Role">{USER_ROLES[user.role]}</td>
+                    <td data-label="Created">{user.createdAt}</td>
                     <td class="is-actions-cell">
                       <div class="buttons is-right">
                         <Link
-                          to={`/admin/store/${store.id}`}
+                          to={`/admin/submissions/pick-type-for-add?user_id=${user.id}&user_name=${user.name}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          class="button is-small is-success"
+                          type="button"
+                        >
+                          <FontAwesomeIcon className="mdi" icon={faPlus} />
+                          &nbsp;CPS&nbsp;
+                          <FontAwesomeIcon
+                            className="fas"
+                            icon={faArrowUpRightFromSquare}
+                          />
+                        </Link>
+                        <Link
+                          to={`/admin/user/${user.id}`}
+                          target="_blank"
+                          rel="noreferrer"
                           class="button is-small is-primary"
                           type="button"
                         >
-                          <FontAwesomeIcon className="mdi" icon={faEye} />
-                          &nbsp;View
+                          View&nbsp;
+                          <FontAwesomeIcon
+                            className="fas"
+                            icon={faArrowUpRightFromSquare}
+                          />
                         </Link>
+                        <Link
+                          to={`/admin/user/${user.id}/edit`}
+                          target="_blank"
+                          rel="noreferrer"
+                          class="button is-small is-warning"
+                          type="button"
+                        >
+                          Edit&nbsp;
+                          <FontAwesomeIcon
+                            className="fas"
+                            icon={faArrowUpRightFromSquare}
+                          />
+                        </Link>
+                        <button
+                          onClick={(e, ses) => onSelectUserForDeletion(e, user)}
+                          class="button is-small is-danger"
+                          type="button"
+                        >
+                          <FontAwesomeIcon className="mdi" icon={faTrashCan} />
+                          &nbsp;Delete
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -119,4 +161,4 @@ function AdminStoreListDesktop(props) {
   );
 }
 
-export default AdminStoreListDesktop;
+export default AdminTenantDetailForUserListDesktop;

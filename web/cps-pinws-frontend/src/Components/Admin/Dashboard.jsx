@@ -144,13 +144,13 @@ function AdminDashboard() {
               <div class="hero-body">
                 <p class="title">
                   <FontAwesomeIcon className="fas" icon={faTasks} />
-                  &nbsp;Stores
+                  &nbsp;Tenants
                 </p>
                 <p class="subtitle">
-                  Manage the stores that belong to your system.
+                  Manage the tenants that belong to your system.
                   <br />
                   <br />
-                  <Link to={"/admin/stores"}>
+                  <Link to={"/admin/tenants"}>
                     View&nbsp;
                     <FontAwesomeIcon className="fas" icon={faArrowRight} />
                   </Link>

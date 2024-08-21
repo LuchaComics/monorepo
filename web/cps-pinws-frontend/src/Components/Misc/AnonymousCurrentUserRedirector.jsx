@@ -25,7 +25,7 @@ function AnonymousCurrentUserRedirector() {
       "/",
       "/register",
       "/register/user",
-      "/register/store",
+      "/register/tenant",
       "/register-successful",
       "/index",
       "/login",

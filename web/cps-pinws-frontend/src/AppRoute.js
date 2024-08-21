@@ -8,17 +8,17 @@ import { RecoilRoot } from "recoil";
 // Admin Portal //
 //--------------//
 
-// Store
-import AdminStoreList from "./Components/Admin/Store/List";
-import AdminStoreAdd from "./Components/Admin/Store/Add";
-import AdminStoreDetail from "./Components/Admin/Store/Detail";
-import AdminStoreDetailForUserList from "./Components/Admin/Store/DetailForUserList";
-import AdminStoreDetailForCommentList from "./Components/Admin/Store/DetailForCommentList";
-import AdminStoreDetailForAttachmentList from "./Components/Admin/Store/DetailForAttachmentList";
-import AdminStoreAttachmentAdd from "./Components/Admin/Store/Attachment/Add";
-import AdminStoreAttachmentDetail from "./Components/Admin/Store/Attachment/Detail";
-import AdminStoreAttachmentUpdate from "./Components/Admin/Store/Attachment/Update";
-import AdminStoreUpdate from "./Components/Admin/Store/Update";
+// Tenant
+import AdminTenantList from "./Components/Admin/Tenant/List";
+import AdminTenantAdd from "./Components/Admin/Tenant/Add";
+import AdminTenantDetail from "./Components/Admin/Tenant/Detail";
+import AdminTenantDetailForUserList from "./Components/Admin/Tenant/DetailForUserList";
+import AdminTenantDetailForCommentList from "./Components/Admin/Tenant/DetailForCommentList";
+import AdminTenantDetailForAttachmentList from "./Components/Admin/Tenant/DetailForAttachmentList";
+import AdminTenantAttachmentAdd from "./Components/Admin/Tenant/Attachment/Add";
+import AdminTenantAttachmentDetail from "./Components/Admin/Tenant/Attachment/Detail";
+import AdminTenantAttachmentUpdate from "./Components/Admin/Tenant/Attachment/Update";
+import AdminTenantUpdate from "./Components/Admin/Tenant/Update";
 
 // Dashboard
 import AdminDashboard from "./Components/Admin/Dashboard";
@@ -114,53 +114,53 @@ function AppRoute() {
                 <Routes>
                   <Route
                     exact
-                    path="/admin/stores"
-                    element={<AdminStoreList />}
+                    path="/admin/tenants"
+                    element={<AdminTenantList />}
                   />
                   <Route
                     exact
-                    path="/admin/stores/add"
-                    element={<AdminStoreAdd />}
+                    path="/admin/tenants/add"
+                    element={<AdminTenantAdd />}
                   />
                   <Route
                     exact
-                    path="/admin/store/:id"
-                    element={<AdminStoreDetail />}
+                    path="/admin/tenant/:id"
+                    element={<AdminTenantDetail />}
                   />
                   <Route
                     exact
-                    path="/admin/store/:id/users"
-                    element={<AdminStoreDetailForUserList />}
+                    path="/admin/tenant/:id/users"
+                    element={<AdminTenantDetailForUserList />}
                   />
                   <Route
                     exact
-                    path="/admin/store/:id/edit"
-                    element={<AdminStoreUpdate />}
+                    path="/admin/tenant/:id/edit"
+                    element={<AdminTenantUpdate />}
                   />
                   <Route
                     exact
-                    path="/admin/store/:id/comments"
-                    element={<AdminStoreDetailForCommentList />}
+                    path="/admin/tenant/:id/comments"
+                    element={<AdminTenantDetailForCommentList />}
                   />
                   <Route
                     exact
-                    path="/admin/store/:id/attachments"
-                    element={<AdminStoreDetailForAttachmentList />}
+                    path="/admin/tenant/:id/attachments"
+                    element={<AdminTenantDetailForAttachmentList />}
                   />
                   <Route
                     exact
-                    path="/admin/store/:id/attachment/:aid"
-                    element={<AdminStoreAttachmentDetail />}
+                    path="/admin/tenant/:id/attachment/:aid"
+                    element={<AdminTenantAttachmentDetail />}
                   />
                   <Route
                     exact
-                    path="/admin/store/:id/attachments/add"
-                    element={<AdminStoreAttachmentAdd />}
+                    path="/admin/tenant/:id/attachments/add"
+                    element={<AdminTenantAttachmentAdd />}
                   />
                   <Route
                     exact
-                    path="/admin/store/:id/attachment/:aid/edit"
-                    element={<AdminStoreAttachmentUpdate />}
+                    path="/admin/tenant/:id/attachment/:aid/edit"
+                    element={<AdminTenantAttachmentUpdate />}
                   />
                   <Route
                     exact

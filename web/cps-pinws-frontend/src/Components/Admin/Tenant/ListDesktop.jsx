@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import Scroll from "react-scroll";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faDownload,
   faCalendarMinus,
   faCalendarPlus,
   faDumbbell,
@@ -26,21 +25,17 @@ import { useRecoilState } from "recoil";
 import { DateTime } from "luxon";
 
 import FormErrorBox from "../../Reusable/FormErrorBox";
-import {
-  PAGE_SIZE_OPTIONS,
-  ATTACHMENT_STATES,
-} from "../../../Constants/FieldOptions";
+import PrettyTenantStatus from "../../Reusable/PrettyTenantStatus";
+import { PAGE_SIZE_OPTIONS } from "../../../Constants/FieldOptions";
 
-function AdminStoreDetailForAttachmentListDesktop(props) {
+function AdminTenantListDesktop(props) {
   const {
-    storeID,
     listData,
     setPageSize,
     pageSize,
     previousCursors,
     onPreviousClicked,
     onNextClicked,
-    onSelectAttachmentForDeletion,
   } = props;
   return (
     <div class="b-table">
@@ -51,58 +46,30 @@ function AdminStoreDetailForAttachmentListDesktop(props) {
               <th>Name</th>
               <th>Status</th>
               <th>Created</th>
-              <th>File</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             {listData &&
               listData.results &&
-              listData.results.map(function (attachment, i) {
+              listData.results.map(function (tenant, i) {
                 return (
                   <tr>
-                    <td data-label="Title">{attachment.name}</td>
-                    <td data-label="State">
-                      {ATTACHMENT_STATES[attachment.status]}
+                    <td data-label="Name">{tenant.name}</td>
+                    <td data-label="Created">
+                      <PrettyTenantStatus status={tenant.status} />
                     </td>
-                    <td data-label="Created">{attachment.createdAt}</td>
-                    <td data-label="File">
-                      <a
-                        href={attachment.objectUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        class=""
-                      >
-                        <FontAwesomeIcon className="mdi" icon={faDownload} />
-                        &nbsp;Download File
-                      </a>
-                    </td>
+                    <td data-label="Created">{tenant.createdAt}</td>
                     <td class="is-actions-cell">
                       <div class="buttons is-right">
                         <Link
-                          to={`/admin/store/${storeID}/attachment/${attachment.id}`}
+                          to={`/admin/tenant/${tenant.id}`}
                           class="button is-small is-primary"
                           type="button"
                         >
-                          View
+                          <FontAwesomeIcon className="mdi" icon={faEye} />
+                          &nbsp;View
                         </Link>
-                        <Link
-                          to={`/admin/store/${storeID}/attachment/${attachment.id}/edit`}
-                          class="button is-small is-warning"
-                          type="button"
-                        >
-                          Edit
-                        </Link>
-                        <button
-                          onClick={(e, ses) =>
-                            onSelectAttachmentForDeletion(e, attachment)
-                          }
-                          class="button is-small is-danger"
-                          type="button"
-                        >
-                          <FontAwesomeIcon className="mdi" icon={faTrashCan} />
-                          &nbsp;Delete
-                        </button>
                       </div>
                     </td>
                   </tr>
@@ -152,4 +119,4 @@ function AdminStoreDetailForAttachmentListDesktop(props) {
   );
 }
 
-export default AdminStoreDetailForAttachmentListDesktop;
+export default AdminTenantListDesktop;

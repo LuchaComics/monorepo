@@ -28,9 +28,9 @@ import { DateTime } from "luxon";
 
 import useLocalStorage from "../../../Hooks/useLocalStorage";
 import {
-  getStoreDetailAPI,
-  postStoreCreateCommentOperationAPI,
-} from "../../../API/store";
+  getTenantDetailAPI,
+  postTenantCreateCommentOperationAPI,
+} from "../../../API/tenant";
 import FormErrorBox from "../../Reusable/FormErrorBox";
 import FormInputField from "../../Reusable/FormInputField";
 import FormTextareaField from "../../Reusable/FormTextareaField";
@@ -49,7 +49,7 @@ import {
 } from "../../../Constants/FieldOptions";
 import { topAlertMessageState, topAlertStatusState } from "../../../AppState";
 
-function AdminStoreDetailForCommentList() {
+function AdminTenantDetailForCommentList() {
   ////
   //// URL Parameters.
   ////
@@ -72,8 +72,8 @@ function AdminStoreDetailForCommentList() {
   const [errors, setErrors] = useState({});
   const [isFetching, setFetching] = useState(false);
   const [forceURL, setForceURL] = useState("");
-  const [store, setStore] = useState({});
-  const [showStoreEditOptions, setShowStoreEditOptions] = useState(false);
+  const [tenant, setTenant] = useState({});
+  const [showTenantEditOptions, setShowTenantEditOptions] = useState(false);
   const [content, setContent] = useState("");
 
   ////
@@ -82,14 +82,14 @@ function AdminStoreDetailForCommentList() {
 
   const onSubmitClick = (e) => {
     console.log("onSubmitClick: Beginning..."); // Submit to the backend.
-    console.log("onSubmitClick, store:", store);
+    console.log("onSubmitClick, tenant:", tenant);
     setErrors(null);
-    postStoreCreateCommentOperationAPI(
+    postTenantCreateCommentOperationAPI(
       id,
       content,
-      onStoreUpdateSuccess,
-      onStoreUpdateError,
-      onStoreUpdateDone,
+      onTenantUpdateSuccess,
+      onTenantUpdateError,
+      onTenantUpdateDone,
       onUnauthorized,
     );
   };
@@ -98,13 +98,13 @@ function AdminStoreDetailForCommentList() {
   //// API.
   ////
 
-  function onStoreDetailSuccess(response) {
-    console.log("onStoreDetailSuccess: Starting...");
-    setStore(response);
+  function onTenantDetailSuccess(response) {
+    console.log("onTenantDetailSuccess: Starting...");
+    setTenant(response);
   }
 
-  function onStoreDetailError(apiErr) {
-    console.log("onStoreDetailError: Starting...");
+  function onTenantDetailError(apiErr) {
+    console.log("onTenantDetailError: Starting...");
     setErrors(apiErr);
 
     // The following code will cause the screen to scroll to the top of
@@ -114,23 +114,23 @@ function AdminStoreDetailForCommentList() {
     scroll.scrollToTop();
   }
 
-  function onStoreDetailDone() {
-    console.log("onStoreDetailDone: Starting...");
+  function onTenantDetailDone() {
+    console.log("onTenantDetailDone: Starting...");
     setFetching(false);
   }
 
-  function onStoreUpdateSuccess(response) {
+  function onTenantUpdateSuccess(response) {
     // For debugging purposes only.
-    console.log("onStoreUpdateSuccess: Starting...");
+    console.log("onTenantUpdateSuccess: Starting...");
     console.log(response);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
     setTopAlertMessage("Comment created");
     setTopAlertStatus("success");
     setTimeout(() => {
-      console.log("onStoreUpdateSuccess: Delayed for 2 seconds.");
+      console.log("onTenantUpdateSuccess: Delayed for 2 seconds.");
       console.log(
-        "onStoreUpdateSuccess: topAlertMessage, topAlertStatus:",
+        "onTenantUpdateSuccess: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );
@@ -141,26 +141,26 @@ function AdminStoreDetailForCommentList() {
     setContent("");
 
     // Fetch latest data.
-    getStoreDetailAPI(
+    getTenantDetailAPI(
       id,
-      onStoreDetailSuccess,
-      onStoreDetailError,
-      onStoreDetailDone,
+      onTenantDetailSuccess,
+      onTenantDetailError,
+      onTenantDetailDone,
       onUnauthorized,
     );
   }
 
-  function onStoreUpdateError(apiErr) {
-    console.log("onStoreUpdateError: Starting...");
+  function onTenantUpdateError(apiErr) {
+    console.log("onTenantUpdateError: Starting...");
     setErrors(apiErr);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
     setTopAlertMessage("Failed submitting");
     setTopAlertStatus("danger");
     setTimeout(() => {
-      console.log("onStoreUpdateError: Delayed for 2 seconds.");
+      console.log("onTenantUpdateError: Delayed for 2 seconds.");
       console.log(
-        "onStoreUpdateError: topAlertMessage, topAlertStatus:",
+        "onTenantUpdateError: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );
@@ -174,8 +174,8 @@ function AdminStoreDetailForCommentList() {
     scroll.scrollToTop();
   }
 
-  function onStoreUpdateDone() {
-    console.log("onStoreUpdateDone: Starting...");
+  function onTenantUpdateDone() {
+    console.log("onTenantUpdateDone: Starting...");
     setFetching(false);
   }
 
@@ -196,11 +196,11 @@ function AdminStoreDetailForCommentList() {
       window.scrollTo(0, 0); // Start the page at the top of the page.
 
       setFetching(true);
-      getStoreDetailAPI(
+      getTenantDetailAPI(
         id,
-        onStoreDetailSuccess,
-        onStoreDetailError,
-        onStoreDetailDone,
+        onTenantDetailSuccess,
+        onTenantDetailError,
+        onTenantDetailDone,
         onUnauthorized,
       );
     }
@@ -220,35 +220,35 @@ function AdminStoreDetailForCommentList() {
 
   return (
     <>
-      <div class={`modal ${showStoreEditOptions ? "is-active" : ""}`}>
+      <div class={`modal ${showTenantEditOptions ? "is-active" : ""}`}>
         <div class="modal-background"></div>
         <div class="modal-card">
           <header class="modal-card-head">
-            <p class="modal-card-title">Store Edit</p>
+            <p class="modal-card-title">Tenant Edit</p>
             <button
               class="delete"
               aria-label="close"
-              onClick={(e) => setShowStoreEditOptions(false)}
+              onClick={(e) => setShowTenantEditOptions(false)}
             ></button>
           </header>
           <section class="modal-card-body">
-            To edit the store, please select one of the following option:
+            To edit the tenant, please select one of the following option:
             {/*
                             <br /><br />
-                            <Link to={`/store/${store.id}/edit-store`} class="button is-primary" disabled={true}>Edit Current Store</Link> */}
+                            <Link to={`/tenant/${tenant.id}/edit-tenant`} class="button is-primary" disabled={true}>Edit Current Tenant</Link> */}
             <br />
             <br />
             <Link
-              to={`/admin/store/${store.id}/store/search`}
+              to={`/admin/tenant/${tenant.id}/tenant/search`}
               class="button is-primary"
             >
-              Pick a Different Store
+              Pick a Different Tenant
             </Link>
           </section>
           <footer class="modal-card-foot">
             <button
               class="button"
-              onClick={(e) => setShowStoreEditOptions(false)}
+              onClick={(e) => setShowTenantEditOptions(false)}
             >
               Close
             </button>
@@ -268,9 +268,9 @@ function AdminStoreDetailForCommentList() {
                 </Link>
               </li>
               <li class="">
-                <Link to="/admin/stores" aria-current="page">
+                <Link to="/admin/tenants" aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faBuilding} />
-                  &nbsp;Stores
+                  &nbsp;Tenants
                 </Link>
               </li>
               <li class="is-active">
@@ -286,9 +286,9 @@ function AdminStoreDetailForCommentList() {
           <nav class="breadcrumb is-hidden-desktop" aria-label="breadcrumbs">
             <ul>
               <li class="">
-                <Link to={`/admin/stores`} aria-current="page">
+                <Link to={`/admin/tenants`} aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                  &nbsp;Back to Stores
+                  &nbsp;Back to Tenants
                 </Link>
               </li>
             </ul>
@@ -300,14 +300,14 @@ function AdminStoreDetailForCommentList() {
               <div class="column">
                 <p class="title is-4">
                   <FontAwesomeIcon className="fas" icon={faBuilding} />
-                  &nbsp;Store
+                  &nbsp;Tenant
                 </p>
               </div>
               {/* HIDDEN */}
               <div class="is-hidden column has-text-right">
                 {/* Mobile Specific */}
                 <Link
-                  to={`/admin/submissions/comics/add?store_id=${id}&store_name=${store.name}`}
+                  to={`/admin/submissions/comics/add?tenant_id=${id}&tenant_name=${tenant.name}`}
                   class="button is-small is-success is-fullwidth is-hidden-desktop"
                   type="button"
                 >
@@ -316,7 +316,7 @@ function AdminStoreDetailForCommentList() {
                 </Link>
                 {/* Desktop Specific */}
                 <Link
-                  to={`/admin/submissions/comics/add?store_id=${id}&store_name=${store.name}`}
+                  to={`/admin/submissions/comics/add?tenant_id=${id}&tenant_name=${tenant.name}`}
                   class="button is-small is-success is-hidden-touch"
                   type="button"
                 >
@@ -331,15 +331,15 @@ function AdminStoreDetailForCommentList() {
               <PageLoadingContent displayMessage={"Loading..."} />
             ) : (
               <>
-                {store && (
+                {tenant && (
                   <div class="container">
                     <div class="tabs is-medium is-size-7-mobile">
                       <ul>
                         <li>
-                          <Link to={`/admin/store/${id}`}>Detail</Link>
+                          <Link to={`/admin/tenant/${id}`}>Detail</Link>
                         </li>
                         <li>
-                          <Link to={`/admin/store/${store.id}/users`}>
+                          <Link to={`/admin/tenant/${tenant.id}/users`}>
                             Users
                           </Link>
                         </li>
@@ -349,7 +349,7 @@ function AdminStoreDetailForCommentList() {
                           </Link>
                         </li>
                         <li>
-                          <Link to={`/admin/store/${store.id}/attachments`}>
+                          <Link to={`/admin/tenant/${tenant.id}/attachments`}>
                             Attachments
                           </Link>
                         </li>
@@ -362,9 +362,9 @@ function AdminStoreDetailForCommentList() {
                     </p>
                     <hr />
 
-                    {store.comments && store.comments.length > 0 && (
+                    {tenant.comments && tenant.comments.length > 0 && (
                       <>
-                        {store.comments.map(function (comment, i) {
+                        {tenant.comments.map(function (comment, i) {
                           console.log(comment); // For debugging purposes only.
                           return (
                             <div className="pb-3">
@@ -405,11 +405,11 @@ function AdminStoreDetailForCommentList() {
                     <div class="columns pt-4">
                       <div class="column is-half">
                         <Link
-                          to={`/admin/stores`}
+                          to={`/admin/tenants`}
                           class="button is-fullwidth-mobile"
                         >
                           <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                          &nbsp;Back to Stores
+                          &nbsp;Back to Tenants
                         </Link>
                       </div>
                       <div class="column is-half has-text-right">
@@ -433,4 +433,4 @@ function AdminStoreDetailForCommentList() {
   );
 }
 
-export default AdminStoreDetailForCommentList;
+export default AdminTenantDetailForCommentList;

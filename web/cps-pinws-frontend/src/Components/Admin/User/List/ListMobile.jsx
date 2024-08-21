@@ -64,15 +64,15 @@ function AdminUserListMobile(props) {
               )}
               <br />
               <br />
-              <strong>Store:</strong>&nbsp;
-              {datum.storeId !== "000000000000000000000000" && (
+              <strong>Tenant:</strong>&nbsp;
+              {datum.tenantId !== "000000000000000000000000" && (
                 <Link
-                  to={`/admin/store/${datum.storeId}`}
+                  to={`/admin/tenant/${datum.tenantId}`}
                   target="_blank"
                   rel="noreferrer"
                   class="is-small"
                 >
-                  {datum.storeName}&nbsp;
+                  {datum.tenantName}&nbsp;
                   <FontAwesomeIcon
                     className="fas"
                     icon={faArrowUpRightFromSquare}

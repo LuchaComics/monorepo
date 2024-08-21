@@ -58,9 +58,9 @@ function PasswordReset() {
     setTopAlertMessage("Pasword successfully reset");
     setTopAlertStatus("success");
     setTimeout(() => {
-      console.log("onStoreUpdateSuccess: Delayed for 2 seconds.");
+      console.log("onTenantUpdateSuccess: Delayed for 2 seconds.");
       console.log(
-        "onStoreUpdateSuccess: topAlertMessage, topAlertStatus:",
+        "onTenantUpdateSuccess: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );

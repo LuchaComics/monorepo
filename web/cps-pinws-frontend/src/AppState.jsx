@@ -105,13 +105,13 @@ export const submissionFilterJoinedAfterState = atom({
   default: "",
   effects_UNSTABLE: [persistAtom],
 });
-export const submissionFilterStoreIDState = atom({
-  key: "submissionFilterStoreIDState",
+export const submissionFilterTenantIDState = atom({
+  key: "submissionFilterTenantIDState",
   default: "",
   effects_UNSTABLE: [persistAtom],
 });
-export const submissionFilterStoreNameState = atom({
-  key: "submissionFilterStoreNameState",
+export const submissionFilterTenantNameState = atom({
+  key: "submissionFilterTenantNameState",
   default: "",
   effects_UNSTABLE: [persistAtom],
 });
@@ -155,41 +155,41 @@ export const userFilterJoinedAfterState = atom({
   effects_UNSTABLE: [persistAtom],
 });
 
-// --- Store List --- //
+// --- Tenant List --- //
 
 // Control whether to show filters for the list.
-export const storeFilterShowState = atom({
-  key: "storeFilterShowState",
+export const tenantFilterShowState = atom({
+  key: "tenantFilterShowState",
   default: false,
   effects_UNSTABLE: [persistAtom],
 });
 
-export const storeFilterTemporarySearchTextState = atom({
-  key: "storeFilterTemporarySearchTextState",
+export const tenantFilterTemporarySearchTextState = atom({
+  key: "tenantFilterTemporarySearchTextState",
   default: "",
   effects_UNSTABLE: [persistAtom],
 });
 
-export const storeFilterActualSearchTextState = atom({
-  key: "storeFilterActualSearchTextState",
+export const tenantFilterActualSearchTextState = atom({
+  key: "tenantFilterActualSearchTextState",
   default: "",
   effects_UNSTABLE: [persistAtom],
 });
 
-export const storeFilterRoleState = atom({
-  key: "storeFilterRoleState",
+export const tenantFilterRoleState = atom({
+  key: "tenantFilterRoleState",
   default: "",
   effects_UNSTABLE: [persistAtom],
 });
 
-export const storeFilterStatusState = atom({
-  key: "storeFilterStatusState",
+export const tenantFilterStatusState = atom({
+  key: "tenantFilterStatusState",
   default: "",
   effects_UNSTABLE: [persistAtom],
 });
 
-export const storeFilterJoinedAfterState = atom({
-  key: "storeFilterJoinedAfterState",
+export const tenantFilterJoinedAfterState = atom({
+  key: "tenantFilterJoinedAfterState",
   default: "",
   effects_UNSTABLE: [persistAtom],
 });
@@ -260,7 +260,7 @@ export const ADD_COMIC_SUBMISSION_STATE_DEFAULT = {
     showsSignsOfTamperingOrRestoration: 2,
     status: 1, //1=Waiting to Receive, 7=Completed by Retail Partner
     serviceType: 0,
-    storeID: "",
+    tenantID: "",
     collectibleType: 1, // 1=Comic, 2=Card
     customerID: "",
 }

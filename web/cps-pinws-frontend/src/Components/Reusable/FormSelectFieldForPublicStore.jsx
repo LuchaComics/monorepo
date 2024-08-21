@@ -1,25 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { getPublicStoreSelectOptionListAPI } from "../../API/store";
+import { getPublicTenantSelectOptionListAPI } from "../../API/tenant";
 
 /**
 EXAMPLE USAGE:
 
-    <FormStoreField
-      storeID={storeID}
-      setStoreID={setStoreID}
-      storeName={storeName}
-      setStoreName={setStoreName}
-      errorText={errors && errors.storeID}
-      helpText="Please select the store"
+    <FormTenantField
+      tenantID={tenantID}
+      setTenantID={setTenantID}
+      tenantName={tenantName}
+      setTenantName={setTenantName}
+      errorText={errors && errors.tenantID}
+      helpText="Please select the tenant"
       maxWidth="310px"
     />
 */
-function FormSelectFieldForPublicStore({
-  label = "Store",
-  storeID,
-  setStoreID,
-  storeName = null,
-  setStoreName = null,
+function FormSelectFieldForPublicTenant({
+  label = "Tenant",
+  tenantID,
+  setTenantID,
+  tenantName = null,
+  setTenantName = null,
   errorText,
   validationText,
   helpText,
@@ -31,34 +31,34 @@ function FormSelectFieldForPublicStore({
 
   const [errors, setErrors] = useState({});
   const [isFetching, setIsFetching] = useState(false);
-  const [workoutProgramTypeSelectOptions, setStoreSelectOptions] = useState([]);
+  const [workoutProgramTypeSelectOptions, setTenantSelectOptions] = useState([]);
 
   ////
   //// Event handling.
   ////
 
-  const setStoreIDAndStoreName = (oid, on) => {
-    setStoreID(oid);
-    setStoreName(on);
+  const setTenantIDAndTenantName = (oid, on) => {
+    setTenantID(oid);
+    setTenantName(on);
   };
 
   ////
   //// API.
   ////
 
-  function onStoreSelectOptionsSuccess(response) {
-    console.log("onStoreSelectOptionsSuccess: Starting...");
+  function onTenantSelectOptionsSuccess(response) {
+    console.log("onTenantSelectOptionsSuccess: Starting...");
     let b = [{ value: "", label: "Please select" }, ...response];
-    setStoreSelectOptions(b);
+    setTenantSelectOptions(b);
   }
 
-  function onStoreSelectOptionsError(apiErr) {
-    console.log("onStoreSelectOptionsError: Starting...");
+  function onTenantSelectOptionsError(apiErr) {
+    console.log("onTenantSelectOptionsError: Starting...");
     setErrors(apiErr);
   }
 
-  function onStoreSelectOptionsDone() {
-    console.log("onStoreSelectOptionsDone: Starting...");
+  function onTenantSelectOptionsDone() {
+    console.log("onTenantSelectOptionsDone: Starting...");
     setIsFetching(false);
   }
 
@@ -72,11 +72,11 @@ function FormSelectFieldForPublicStore({
     if (mounted) {
       setIsFetching(true);
       setErrors({});
-      getPublicStoreSelectOptionListAPI(
+      getPublicTenantSelectOptionListAPI(
         new Map(),
-        onStoreSelectOptionsSuccess,
-        onStoreSelectOptionsError,
-        onStoreSelectOptionsDone,
+        onTenantSelectOptionsSuccess,
+        onTenantSelectOptionsError,
+        onTenantSelectOptionsDone,
       );
     }
 
@@ -97,10 +97,10 @@ function FormSelectFieldForPublicStore({
         <span class="select">
           <select
             class={`input ${errorText && "is-danger"} ${validationText && "is-success"} has-text-black`}
-            name={`storeID`}
+            name={`tenantID`}
             placeholder={`Pick the workout program type`}
             onChange={(e) =>
-              setStoreIDAndStoreName(
+              setTenantIDAndTenantName(
                 e.target.value,
                 e.target.options[e.target.selectedIndex].text,
               )
@@ -110,13 +110,13 @@ function FormSelectFieldForPublicStore({
             {workoutProgramTypeSelectOptions &&
               workoutProgramTypeSelectOptions.length > 0 &&
               workoutProgramTypeSelectOptions.map(function (option, i) {
-                // console.log("storeID", storeID);
+                // console.log("tenantID", tenantID);
                 // console.log("option.value", option.value);
-                // console.log(storeID, "===", option.value, "->>>", storeID === option.value);
+                // console.log(tenantID, "===", option.value, "->>>", tenantID === option.value);
                 // console.log("");
                 return (
                   <option
-                    selected={storeID === option.value}
+                    selected={tenantID === option.value}
                     value={option.value}
                   >
                     {option.label}
@@ -132,4 +132,4 @@ function FormSelectFieldForPublicStore({
   );
 }
 
-export default FormSelectFieldForPublicStore;
+export default FormSelectFieldForPublicTenant;

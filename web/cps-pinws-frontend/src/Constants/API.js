@@ -36,15 +36,15 @@ export const CPS_PASSWORD_RESET_API_ENDPOINT =
   HTTP_API_SERVER + "/api/v1/password-reset";
 export const CPS_REGISTRY_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/cpsrn/{id}";
 export const CPS_ORGANIZATIONS_API_ENDPOINT =
-  HTTP_API_SERVER + "/api/v1/stores";
+  HTTP_API_SERVER + "/api/v1/tenants";
 export const CPS_ORGANIZATIONS_SELECT_OPTIONS_API_ENDPOINT =
-  HTTP_API_SERVER + "/api/v1/stores/select-options";
+  HTTP_API_SERVER + "/api/v1/tenants/select-options";
 export const CPS_ORGANIZATIONS_PUBLIC_SELECT_OPTIONS_API_ENDPOINT =
-  HTTP_API_SERVER + "/api/v1/public/stores-select-options";
+  HTTP_API_SERVER + "/api/v1/public/tenants-select-options";
 export const CPS_ORGANIZATION_API_ENDPOINT =
-  HTTP_API_SERVER + "/api/v1/store/{id}";
+  HTTP_API_SERVER + "/api/v1/tenant/{id}";
 export const CPS_ORGANIZATION_CREATE_COMMENT_OPERATION_API_ENDPOINT =
-  HTTP_API_SERVER + "/api/v1/stores/operation/create-comment";
+  HTTP_API_SERVER + "/api/v1/tenants/operation/create-comment";
 export const CPS_USERS_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/users";
 export const CPS_USERS_SELECT_OPTIONS_API_ENDPOINT =
   HTTP_API_SERVER + "/api/v1/users/select-options";

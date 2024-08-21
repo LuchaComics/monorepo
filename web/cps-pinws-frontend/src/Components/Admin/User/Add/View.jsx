@@ -26,7 +26,7 @@ import { useRecoilState } from "recoil";
 
 import useLocalStorage from "../../../../Hooks/useLocalStorage";
 import { postUserCreateAPI } from "../../../../API/user";
-import { getStoreSelectOptionListAPI } from "../../../../API/store";
+import { getTenantSelectOptionListAPI } from "../../../../API/tenant";
 import FormErrorBox from "../../../Reusable/FormErrorBox";
 import FormInputField from "../../../Reusable/FormInputField";
 import FormTextareaField from "../../../Reusable/FormTextareaField";
@@ -51,8 +51,8 @@ function AdminUserAdd() {
   ////
 
   const [searchParams] = useSearchParams(); // Special thanks via https://stackoverflow.com/a/65451140
-  const orgID = searchParams.get("store_id");
-  const orgName = searchParams.get("store_name");
+  const orgID = searchParams.get("tenant_id");
+  const orgName = searchParams.get("tenant_name");
 
   ////
   //// Global state.
@@ -86,8 +86,8 @@ function AdminUserAdd() {
   const [howDidYouHearAboutUsOther, setHowDidYouHearAboutUsOther] =
     useState("");
   const [showCancelWarning, setShowCancelWarning] = useState(false);
-  const [storeSelectOptions, setStoreSelectOptions] = useState([]);
-  const [storeID, setStoreID] = useState(orgID);
+  const [tenantSelectOptions, setTenantSelectOptions] = useState([]);
+  const [tenantID, setTenantID] = useState(orgID);
   const [role, setRole] = useState();
   const [hasShippingAddress, setHasShippingAddress] = useState(false);
   const [shippingName, setShippingName] = useState("");
@@ -138,7 +138,7 @@ function AdminUserAdd() {
     setFetching(true);
     setErrors({});
     const user = {
-      StoreID: storeID,
+      TenantID: tenantID,
       Role: role,
       Status: 1, // 1 = UserActiveStatus
       Email: email,
@@ -207,7 +207,7 @@ function AdminUserAdd() {
 
     if (orgName !== undefined && orgName !== null && orgName !== "") {
       // Redirect the user to a new page.
-      setForceURL("/admin/store/" + orgID + "/users");
+      setForceURL("/admin/tenant/" + orgID + "/users");
     } else {
       // Redirect the user to a new page.
       setForceURL("/admin/user/" + response.id);
@@ -240,20 +240,20 @@ function AdminUserAdd() {
     setFetching(false);
   }
 
-  function onStoreOptionListSuccess(response) {
-    console.log("onStoreOptionListSuccess: Starting...");
+  function onTenantOptionListSuccess(response) {
+    console.log("onTenantOptionListSuccess: Starting...");
     if (response !== null) {
       const selectOptions = [
         { value: 0, label: "Please select" }, // Add empty options.
         ...response,
       ];
-      setStoreSelectOptions(selectOptions);
+      setTenantSelectOptions(selectOptions);
     }
   }
 
-  function onStoreOptionListError(apiErr) {
-    console.log("onStoreOptionListError: Starting...");
-    console.log("onStoreOptionListError: apiErr:", apiErr);
+  function onTenantOptionListError(apiErr) {
+    console.log("onTenantOptionListError: Starting...");
+    console.log("onTenantOptionListError: apiErr:", apiErr);
     setErrors(apiErr);
 
     // The following code will cause the screen to scroll to the top of
@@ -263,8 +263,8 @@ function AdminUserAdd() {
     scroll.scrollToTop();
   }
 
-  function onStoreOptionListDone() {
-    console.log("onStoreOptionListDone: Starting...");
+  function onTenantOptionListDone() {
+    console.log("onTenantOptionListDone: Starting...");
     setFetching(false);
   }
 
@@ -284,11 +284,11 @@ function AdminUserAdd() {
     if (mounted) {
       window.scrollTo(0, 0); // Start the page at the top of the page.
       let params = new Map();
-      getStoreSelectOptionListAPI(
+      getTenantSelectOptionListAPI(
         params,
-        onStoreOptionListSuccess,
-        onStoreOptionListError,
-        onStoreOptionListDone,
+        onTenantOptionListSuccess,
+        onTenantOptionListError,
+        onTenantOptionListDone,
         onUnauthorized,
       );
       setFetching(true);
@@ -322,13 +322,13 @@ function AdminUserAdd() {
                   </Link>
                 </li>
                 <li class="">
-                  <Link to="/admin/stores" aria-current="page">
+                  <Link to="/admin/tenants" aria-current="page">
                     <FontAwesomeIcon className="fas" icon={faBuilding} />
-                    &nbsp;Stores
+                    &nbsp;Tenants
                   </Link>
                 </li>
                 <li class="">
-                  <Link to={`/admin/store/${orgID}/users`} aria-current="page">
+                  <Link to={`/admin/tenant/${orgID}/users`} aria-current="page">
                     <FontAwesomeIcon className="fas" icon={faEye} />
                     &nbsp;Detail (Users)
                   </Link>
@@ -369,7 +369,7 @@ function AdminUserAdd() {
             <ul>
               {orgName !== undefined && orgName !== null && orgName !== "" ? (
                 <li class="">
-                  <Link to={`/admin/store/${orgID}/users`} aria-current="page">
+                  <Link to={`/admin/tenant/${orgID}/users`} aria-current="page">
                     <FontAwesomeIcon className="fas" icon={faArrowLeft} />
                     &nbsp;Back to Detail (Users)
                   </Link>
@@ -411,7 +411,7 @@ function AdminUserAdd() {
                   orgName !== "" ? (
                     <Link
                       class="button is-medium is-success"
-                      to={`/admin/store/${orgID}/users`}
+                      to={`/admin/tenant/${orgID}/users`}
                     >
                       Yes
                     </Link>
@@ -453,23 +453,23 @@ function AdminUserAdd() {
                   <hr />
 
                   <FormSelectField
-                    label="Store ID"
-                    name="storeID"
+                    label="Tenant ID"
+                    name="tenantID"
                     placeholder="Pick"
-                    selectedValue={storeID}
-                    errorText={errors && errors.storeID}
-                    helpText="Pick the store this user belongs to and will be limited by"
+                    selectedValue={tenantID}
+                    errorText={errors && errors.tenantID}
+                    helpText="Pick the tenant this user belongs to and will be limited by"
                     isRequired={true}
-                    onChange={(e) => setStoreID(e.target.value)}
-                    options={storeSelectOptions}
-                    disabled={storeSelectOptions.length === 0}
+                    onChange={(e) => setTenantID(e.target.value)}
+                    options={tenantSelectOptions}
+                    disabled={tenantSelectOptions.length === 0}
                   />
                   <FormRadioField
                     label="Role"
                     name="role"
                     value={role}
                     opt1Value={USER_ROLE_RETAILER}
-                    opt1Label="Store Owner/Manager"
+                    opt1Label="Tenant Owner/Manager"
                     opt2Value={USER_ROLE_CUSTOMER}
                     opt2Label="Customer"
                     errorText={errors && errors.role}

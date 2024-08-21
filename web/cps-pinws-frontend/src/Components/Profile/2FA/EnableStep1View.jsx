@@ -269,7 +269,7 @@ function AccountEnableTwoFactorAuthenticationStep1() {
                                 target="_blank"
                                 rel="noreferrer"
                               >
-                                Visit App Store&nbsp;
+                                Visit App Tenant&nbsp;
                                 <FontAwesomeIcon
                                   className="fas"
                                   icon={faArrowUpRightFromSquare}
@@ -279,7 +279,7 @@ function AccountEnableTwoFactorAuthenticationStep1() {
                               <b>Download for Android:</b>&nbsp;
                               <Link
                                 className=""
-                                to="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&pli=1"
+                                to="https://play.google.com/tenant/apps/details?id=com.google.android.apps.authenticator2&pli=1"
                                 target="_blank"
                                 rel="noreferrer"
                               >
@@ -320,11 +320,11 @@ function AccountEnableTwoFactorAuthenticationStep1() {
                               <b>Download for Chrome:</b>&nbsp;
                               <Link
                                 className=""
-                                to="https://chromewebstore.google.com/detail/authenticator/bhghoamapcdpbohphigoooaddinpkbai?pli=1"
+                                to="https://chromewebtenant.google.com/detail/authenticator/bhghoamapcdpbohphigoooaddinpkbai?pli=1"
                                 target="_blank"
                                 rel="noreferrer"
                               >
-                                Visit Chrome web store&nbsp;
+                                Visit Chrome web tenant&nbsp;
                                 <FontAwesomeIcon
                                   className="fas"
                                   icon={faArrowUpRightFromSquare}

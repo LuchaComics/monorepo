@@ -23,7 +23,7 @@ import { useParams } from "react-router-dom";
 import { USER_ROLES, PAGE_SIZE_OPTIONS } from "../../../Constants/FieldOptions";
 
 import useLocalStorage from "../../../Hooks/useLocalStorage";
-import { getStoreDetailAPI } from "../../../API/store";
+import { getTenantDetailAPI } from "../../../API/tenant";
 import { getUserListAPI, deleteUserAPI } from "../../../API/user";
 import FormErrorBox from "../../Reusable/FormErrorBox";
 import FormInputField from "../../Reusable/FormInputField";
@@ -34,10 +34,10 @@ import FormSelectField from "../../Reusable/FormSelectField";
 import FormCheckboxField from "../../Reusable/FormCheckboxField";
 import PageLoadingContent from "../../Reusable/PageLoadingContent";
 import { topAlertMessageState, topAlertStatusState } from "../../../AppState";
-import AdminStoreDetailForUserListDesktop from "./DetailForUserListDesktop";
-import AdminStoreDetailForUserListMobile from "./DetailForUserListMobile";
+import AdminTenantDetailForUserListDesktop from "./DetailForUserListDesktop";
+import AdminTenantDetailForUserListMobile from "./DetailForUserListMobile";
 
-function AdminStoreDetailForUserList() {
+function AdminTenantDetailForUserList() {
   ////
   //// URL Parameters.
   ////
@@ -60,7 +60,7 @@ function AdminStoreDetailForUserList() {
   const [errors, setErrors] = useState({});
   const [isFetching, setFetching] = useState(false);
   const [forceURL, setForceURL] = useState("");
-  const [store, setStore] = useState({});
+  const [tenant, setTenant] = useState({});
   const [tabIndex, setTabIndex] = useState(1);
   const [users, setUsers] = useState("");
   const [selectedUserForDeletion, setSelectedUserForDeletion] = useState("");
@@ -73,12 +73,12 @@ function AdminStoreDetailForUserList() {
   //// Event handling.
   ////
 
-  const fetchUserList = (cur, storeID, limit) => {
+  const fetchUserList = (cur, tenantID, limit) => {
     setFetching(true);
     setErrors({});
 
     let params = new Map();
-    params.set("store_id", id);
+    params.set("tenant_id", id);
     params.set("page_size", limit);
     if (cur !== "") {
       params.set("cursor", cur);
@@ -136,16 +136,16 @@ function AdminStoreDetailForUserList() {
   //// API.
   ////
 
-  // Store details.
+  // Tenant details.
 
-  function onStoreDetailSuccess(response) {
-    console.log("onStoreDetailSuccess: Starting...");
-    setStore(response);
+  function onTenantDetailSuccess(response) {
+    console.log("onTenantDetailSuccess: Starting...");
+    setTenant(response);
     fetchUserList(currentCursor, response.id, pageSize);
   }
 
-  function onStoreDetailError(apiErr) {
-    console.log("onStoreDetailError: Starting...");
+  function onTenantDetailError(apiErr) {
+    console.log("onTenantDetailError: Starting...");
     setErrors(apiErr);
 
     // The following code will cause the screen to scroll to the top of
@@ -155,8 +155,8 @@ function AdminStoreDetailForUserList() {
     scroll.scrollToTop();
   }
 
-  function onStoreDetailDone() {
-    console.log("onStoreDetailDone: Starting...");
+  function onTenantDetailDone() {
+    console.log("onTenantDetailDone: Starting...");
     setFetching(false);
   }
 
@@ -254,11 +254,11 @@ function AdminStoreDetailForUserList() {
       window.scrollTo(0, 0); // Start the page at the top of the page.
 
       setFetching(true);
-      getStoreDetailAPI(
+      getTenantDetailAPI(
         id,
-        onStoreDetailSuccess,
-        onStoreDetailError,
-        onStoreDetailDone,
+        onTenantDetailSuccess,
+        onTenantDetailError,
+        onTenantDetailDone,
         onUnauthorized,
       );
     }
@@ -322,9 +322,9 @@ function AdminStoreDetailForUserList() {
                 </Link>
               </li>
               <li class="">
-                <Link to="/admin/stores" aria-current="page">
+                <Link to="/admin/tenants" aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faBuilding} />
-                  &nbsp;Stores
+                  &nbsp;Tenants
                 </Link>
               </li>
               <li class="is-active">
@@ -340,9 +340,9 @@ function AdminStoreDetailForUserList() {
           <nav class="breadcrumb is-hidden-desktop" aria-label="breadcrumbs">
             <ul>
               <li class="">
-                <Link to={`/admin/stores`} aria-current="page">
+                <Link to={`/admin/tenants`} aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                  &nbsp;Back to Stores
+                  &nbsp;Back to Tenants
                 </Link>
               </li>
             </ul>
@@ -354,12 +354,12 @@ function AdminStoreDetailForUserList() {
               <div class="column">
                 <p class="title is-4">
                   <FontAwesomeIcon className="fas" icon={faBuilding} />
-                  &nbsp;Store
+                  &nbsp;Tenant
                 </p>
               </div>
               <div class="column has-text-right">
                 <Link
-                  to={`/admin/users/add?store_id=${id}&store_name=${store.name}`}
+                  to={`/admin/users/add?tenant_id=${id}&tenant_name=${tenant.name}`}
                   class="button is-small is-success is-fullwidth-mobile"
                   type="button"
                 >
@@ -376,12 +376,12 @@ function AdminStoreDetailForUserList() {
               <PageLoadingContent displayMessage={"Loading..."} />
             ) : (
               <>
-                {store && (
+                {tenant && (
                   <div class="container">
                     <div class="tabs is-medium is-size-7-mobile">
                       <ul>
                         <li>
-                          <Link to={`/admin/store/${store.id}`}>Detail</Link>
+                          <Link to={`/admin/tenant/${tenant.id}`}>Detail</Link>
                         </li>
                         <li class="is-active">
                           <Link>
@@ -389,12 +389,12 @@ function AdminStoreDetailForUserList() {
                           </Link>
                         </li>
                         <li>
-                          <Link to={`/admin/store/${store.id}/comments`}>
+                          <Link to={`/admin/tenant/${tenant.id}/comments`}>
                             Comments
                           </Link>
                         </li>
                         <li>
-                          <Link to={`/admin/store/${store.id}/attachments`}>
+                          <Link to={`/admin/tenant/${tenant.id}/attachments`}>
                             Attachments
                           </Link>
                         </li>
@@ -412,7 +412,7 @@ function AdminStoreDetailForUserList() {
                                                 ##################################################################
                                             */}
                         <div class="is-hidden-touch">
-                          <AdminStoreDetailForUserListDesktop
+                          <AdminTenantDetailForUserListDesktop
                             listData={users}
                             setPageSize={setPageSize}
                             pageSize={pageSize}
@@ -429,7 +429,7 @@ function AdminStoreDetailForUserList() {
                                                 ###########################################################################
                                             */}
                         <div class="is-fullwidth is-hidden-desktop">
-                          <AdminStoreDetailForUserListMobile
+                          <AdminTenantDetailForUserListMobile
                             listData={users}
                             setPageSize={setPageSize}
                             pageSize={pageSize}
@@ -447,7 +447,7 @@ function AdminStoreDetailForUserList() {
                             No users.{" "}
                             <b>
                               <Link
-                                to={`/admin/users/add?store_id=${id}&store_name=${store.name}`}
+                                to={`/admin/users/add?tenant_id=${id}&tenant_name=${tenant.name}`}
                               >
                                 Click here&nbsp;
                                 <FontAwesomeIcon
@@ -466,15 +466,15 @@ function AdminStoreDetailForUserList() {
                       <div class="column is-half">
                         <Link
                           class="button is-fullwidth-mobile"
-                          to={`/admin/stores`}
+                          to={`/admin/tenants`}
                         >
                           <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                          &nbsp;Back to Stores
+                          &nbsp;Back to Tenants
                         </Link>
                       </div>
                       <div class="column is-half has-text-right">
                         <Link
-                          to={`/admin/users/add?store_id=${id}&store_name=${store.name}`}
+                          to={`/admin/users/add?tenant_id=${id}&tenant_name=${tenant.name}`}
                           class="button is-primary is-fullwidth-mobile"
                         >
                           <FontAwesomeIcon className="fas" icon={faPlus} />
@@ -493,4 +493,4 @@ function AdminStoreDetailForUserList() {
   );
 }
 
-export default AdminStoreDetailForUserList;
+export default AdminTenantDetailForUserList;

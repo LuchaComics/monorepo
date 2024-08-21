@@ -83,7 +83,7 @@ function Login() {
       // For debugging purposes only.
       console.log("onLoginSuccess | user postfix:", response.user);
 
-      // Store in persistance storage in the browser.
+      // Tenant in persistance storage in the browser.
       setCurrentUser(response.user);
 
       if (response.user.otpEnabled === false) {

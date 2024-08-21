@@ -26,7 +26,7 @@ function TwoFactorAuthenticationRedirector() {
       "/",
       "/register",
       "/register/user",
-      "/register/store",
+      "/register/tenant",
       "/register-successful",
       "/index",
       "/login",

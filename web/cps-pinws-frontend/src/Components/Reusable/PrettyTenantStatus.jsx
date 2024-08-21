@@ -8,7 +8,7 @@ import {
   faCheckCircle,
 } from "@fortawesome/free-solid-svg-icons";
 
-function PrettyStoreStatus({ status }) {
+function PrettyTenantStatus({ status }) {
   switch (status) {
     case 1:
       return (
@@ -54,4 +54,4 @@ function PrettyStoreStatus({ status }) {
   }
 }
 
-export default PrettyStoreStatus;
+export default PrettyTenantStatus;

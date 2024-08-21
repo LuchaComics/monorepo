@@ -24,7 +24,7 @@ import { useRecoilState } from "recoil";
 import { useParams } from "react-router-dom";
 
 import { getUserDetailAPI, putUserUpdateAPI } from "../../../../API/user";
-import { getStoreSelectOptionListAPI } from "../../../../API/store";
+import { getTenantSelectOptionListAPI } from "../../../../API/tenant";
 import FormErrorBox from "../../../Reusable/FormErrorBox";
 import FormInputField from "../../../Reusable/FormInputField";
 import FormTextareaField from "../../../Reusable/FormTextareaField";
@@ -82,8 +82,8 @@ function AdminUserUpdate() {
   const [howDidYouHearAboutUs, setHowDidYouHearAboutUs] = useState(0);
   const [howDidYouHearAboutUsOther, setHowDidYouHearAboutUsOther] =
     useState("");
-  const [storeSelectOptions, setStoreSelectOptions] = useState([]);
-  const [storeID, setStoreID] = useState();
+  const [tenantSelectOptions, setTenantSelectOptions] = useState([]);
+  const [tenantID, setTenantID] = useState();
   const [role, setRole] = useState();
   const [status, setStatus] = useState();
   const [hasShippingAddress, setHasShippingAddress] = useState(false);
@@ -152,7 +152,7 @@ function AdminUserUpdate() {
       AgreePromotionsEmail: agreePromotionsEmail,
       HowDidYouHearAboutUs: howDidYouHearAboutUs,
       HowDidYouHearAboutUsOther: howDidYouHearAboutUsOther,
-      StoreID: storeID,
+      TenantID: tenantID,
       Role: role,
       Status: status,
       HasShippingAddress: hasShippingAddress,
@@ -204,7 +204,7 @@ function AdminUserUpdate() {
     setHasPromotionalEmail(response.agreePromotionsEmail);
     setHowDidYouHearAboutUs(response.howDidYouHearAboutUs);
     setHowDidYouHearAboutUsOther(response.howDidYouHearAboutUsOther);
-    setStoreID(response.storeID);
+    setTenantID(response.tenantID);
     setRole(response.role);
     setStatus(response.status);
     setHasShippingAddress(response.hasShippingAddress);
@@ -293,20 +293,20 @@ function AdminUserUpdate() {
     setFetching(false);
   }
 
-  function onStoreOptionListSuccess(response) {
-    console.log("onStoreOptionListSuccess: Starting...");
+  function onTenantOptionListSuccess(response) {
+    console.log("onTenantOptionListSuccess: Starting...");
     if (response !== null) {
       const selectOptions = [
         { value: 0, label: "Please select" }, // Add empty options.
         ...response,
       ];
-      setStoreSelectOptions(selectOptions);
+      setTenantSelectOptions(selectOptions);
     }
   }
 
-  function onStoreOptionListError(apiErr) {
-    console.log("onStoreOptionListError: Starting...");
-    console.log("onStoreOptionListError: apiErr:", apiErr);
+  function onTenantOptionListError(apiErr) {
+    console.log("onTenantOptionListError: Starting...");
+    console.log("onTenantOptionListError: apiErr:", apiErr);
     setErrors(apiErr);
 
     // The following code will cause the screen to scroll to the top of
@@ -316,8 +316,8 @@ function AdminUserUpdate() {
     scroll.scrollToTop();
   }
 
-  function onStoreOptionListDone() {
-    console.log("onStoreOptionListDone: Starting...");
+  function onTenantOptionListDone() {
+    console.log("onTenantOptionListDone: Starting...");
     setFetching(false);
   }
 
@@ -346,11 +346,11 @@ function AdminUserUpdate() {
         onUnauthorized,
       );
       let params = new Map();
-      getStoreSelectOptionListAPI(
+      getTenantSelectOptionListAPI(
         params,
-        onStoreOptionListSuccess,
-        onStoreOptionListError,
-        onStoreOptionListDone,
+        onTenantOptionListSuccess,
+        onTenantOptionListError,
+        onTenantOptionListDone,
         onUnauthorized,
       );
     }
@@ -439,16 +439,16 @@ function AdminUserUpdate() {
                   <hr />
 
                   <FormSelectField
-                    label="Store ID"
-                    name="storeID"
+                    label="Tenant ID"
+                    name="tenantID"
                     placeholder="Pick"
-                    selectedValue={storeID}
-                    errorText={errors && errors.storeID}
-                    helpText="Pick the store this user belongs to and will be limited by"
+                    selectedValue={tenantID}
+                    errorText={errors && errors.tenantID}
+                    helpText="Pick the tenant this user belongs to and will be limited by"
                     isRequired={true}
-                    onChange={(e) => setStoreID(e.target.value)}
-                    options={storeSelectOptions}
-                    disabled={storeSelectOptions.length === 0}
+                    onChange={(e) => setTenantID(e.target.value)}
+                    options={tenantSelectOptions}
+                    disabled={tenantSelectOptions.length === 0}
                   />
                   <FormRadioField
                     label="Role"
@@ -457,7 +457,7 @@ function AdminUserUpdate() {
                     opt1Value={USER_ROLE_ROOT}
                     opt1Label="CPS Staff"
                     opt2Value={USER_ROLE_RETAILER}
-                    opt2Label="Store Owner/Manager"
+                    opt2Label="Tenant Owner/Manager"
                     opt3Value={USER_ROLE_CUSTOMER}
                     opt3Label="Customer"
                     errorText={errors && errors.role}

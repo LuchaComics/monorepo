@@ -166,11 +166,11 @@ export default (props) => {
               <li>
                 <Link
                   onClick={onLinkClickCloseHamburgerMenuIfMobile}
-                  to="/admin/stores"
-                  class={`has-text-grey-light ${location.pathname.includes("store") && "is-active"}`}
+                  to="/admin/tenants"
+                  class={`has-text-grey-light ${location.pathname.includes("tenant") && "is-active"}`}
                 >
                   <FontAwesomeIcon className="fas" icon={faBuilding} />
-                  &nbsp;Stores
+                  &nbsp;Tenants
                 </Link>
               </li>
               <li>

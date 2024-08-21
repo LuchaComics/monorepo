@@ -21,16 +21,16 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
-import { getStoreListAPI } from "../../../API/store";
+import { getTenantListAPI } from "../../../API/tenant";
 import {
   topAlertMessageState,
   topAlertStatusState,
   currentUserState,
-  storeFilterShowState,
-  storeFilterTemporarySearchTextState,
-  storeFilterActualSearchTextState,
-  storeFilterStatusState,
-  storeFilterJoinedAfterState,
+  tenantFilterShowState,
+  tenantFilterTemporarySearchTextState,
+  tenantFilterActualSearchTextState,
+  tenantFilterStatusState,
+  tenantFilterJoinedAfterState,
 } from "../../../AppState";
 import FormErrorBox from "../../Reusable/FormErrorBox";
 import PageLoadingContent from "../../Reusable/PageLoadingContent";
@@ -41,10 +41,10 @@ import {
   PAGE_SIZE_OPTIONS,
   ORGANIZATION_STATUS_LIST_OPTIONS,
 } from "../../../Constants/FieldOptions";
-import AdminStoreListDesktop from "./ListDesktop";
-import AdminStoreListMobile from "./ListMobile";
+import AdminTenantListDesktop from "./ListDesktop";
+import AdminTenantListMobile from "./ListMobile";
 
-function AdminStoreList() {
+function AdminTenantList() {
   ////
   //// Global state.
   ////
@@ -54,16 +54,16 @@ function AdminStoreList() {
   const [topAlertStatus, setTopAlertStatus] =
     useRecoilState(topAlertStatusState);
   const [currentUser] = useRecoilState(currentUserState);
-  const [showFilter, setShowFilter] = useRecoilState(storeFilterShowState); // Filtering + Searching
+  const [showFilter, setShowFilter] = useRecoilState(tenantFilterShowState); // Filtering + Searching
   const [temporarySearchText, setTemporarySearchText] = useRecoilState(
-    storeFilterTemporarySearchTextState,
+    tenantFilterTemporarySearchTextState,
   ); // Searching - The search field value as your writes their query.
   const [actualSearchText, setActualSearchText] = useRecoilState(
-    storeFilterActualSearchTextState,
+    tenantFilterActualSearchTextState,
   ); // Searching - The actual search query value to submit to the API.
-  const [status, setStatus] = useRecoilState(storeFilterStatusState); // Filtering
+  const [status, setStatus] = useRecoilState(tenantFilterStatusState); // Filtering
   const [createdAtGTE, setCreatedAtGTE] = useRecoilState(
-    storeFilterJoinedAfterState,
+    tenantFilterJoinedAfterState,
   ); // Filtering
 
   ////
@@ -72,7 +72,7 @@ function AdminStoreList() {
 
   const [errors, setErrors] = useState({});
   const [forceURL, setForceURL] = useState("");
-  const [stores, setStores] = useState("");
+  const [tenants, setTenants] = useState("");
   const [isFetching, setFetching] = useState(false);
   const [pageSize, setPageSize] = useState(10); // Pagination
   const [previousCursors, setPreviousCursors] = useState([]); // Pagination
@@ -84,19 +84,19 @@ function AdminStoreList() {
   //// API.
   ////
 
-  function onStoreListSuccess(response) {
-    console.log("onStoreListSuccess: Starting...");
+  function onTenantListSuccess(response) {
+    console.log("onTenantListSuccess: Starting...");
     console.log("onComicSubmissionListSuccess: response:", response);
     if (response.results !== null) {
-      setStores(response);
+      setTenants(response);
       if (response.hasNextPage) {
         setNextCursor(response.nextCursor); // For pagination purposes.
       }
     }
   }
 
-  function onStoreListError(apiErr) {
-    console.log("onStoreListError: Starting...");
+  function onTenantListError(apiErr) {
+    console.log("onTenantListError: Starting...");
     setErrors(apiErr);
 
     // The following code will cause the screen to scroll to the top of
@@ -106,8 +106,8 @@ function AdminStoreList() {
     scroll.scrollToTop();
   }
 
-  function onStoreListDone() {
-    console.log("onStoreListDone: Starting...");
+  function onTenantListDone() {
+    console.log("onTenantListDone: Starting...");
     setFetching(false);
   }
 
@@ -155,11 +155,11 @@ function AdminStoreList() {
       }
     }
 
-    getStoreListAPI(
+    getTenantListAPI(
       params,
-      onStoreListSuccess,
-      onStoreListError,
-      onStoreListDone,
+      onTenantListSuccess,
+      onTenantListError,
+      onTenantListDone,
       onUnauthorized,
     );
   };
@@ -240,7 +240,7 @@ function AdminStoreList() {
               <li class="is-active">
                 <Link aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faBuilding} />
-                  &nbsp;Stores
+                  &nbsp;Tenants
                 </Link>
               </li>
             </ul>
@@ -264,7 +264,7 @@ function AdminStoreList() {
               <div class="column">
                 <h1 class="title is-4">
                   <FontAwesomeIcon className="fas" icon={faBuilding} />
-                  &nbsp;Stores List
+                  &nbsp;Tenants List
                 </h1>
               </div>
 
@@ -300,12 +300,12 @@ function AdminStoreList() {
                 </button>
                 &nbsp;
                 <Link
-                  to={`/admin/stores/add`}
+                  to={`/admin/tenants/add`}
                   class="button is-small is-primary is-fullwidth"
                   type="button"
                 >
                   <FontAwesomeIcon className="mdi" icon={faPlus} />
-                  &nbsp;New Store
+                  &nbsp;New Tenant
                 </Link>
               </div>
 
@@ -337,12 +337,12 @@ function AdminStoreList() {
                 </button>
                 &nbsp;
                 <Link
-                  to={`/admin/stores/add`}
+                  to={`/admin/tenants/add`}
                   class="button is-small is-primary"
                   type="button"
                 >
                   <FontAwesomeIcon className="mdi" icon={faPlus} />
-                  &nbsp;New Store
+                  &nbsp;New Tenant
                 </Link>
               </div>
             </div>
@@ -427,9 +427,9 @@ function AdminStoreList() {
             ) : (
               <>
                 <FormErrorBox errors={errors} />
-                {stores &&
-                stores.results &&
-                (stores.results.length > 0 || previousCursors.length > 0) ? (
+                {tenants &&
+                tenants.results &&
+                (tenants.results.length > 0 || previousCursors.length > 0) ? (
                   <div class="container">
                     {/*
                                             ##################################################################
@@ -437,8 +437,8 @@ function AdminStoreList() {
                                             ##################################################################
                                         */}
                     <div class="is-hidden-touch">
-                      <AdminStoreListDesktop
-                        listData={stores}
+                      <AdminTenantListDesktop
+                        listData={tenants}
                         setPageSize={setPageSize}
                         pageSize={pageSize}
                         previousCursors={previousCursors}
@@ -453,8 +453,8 @@ function AdminStoreList() {
                                             ###########################################################################
                                         */}
                     <div class="is-fullwidth is-hidden-desktop">
-                      <AdminStoreListMobile
-                        listData={stores}
+                      <AdminTenantListMobile
+                        listData={tenants}
                         setPageSize={setPageSize}
                         pageSize={pageSize}
                         previousCursors={previousCursors}
@@ -468,12 +468,12 @@ function AdminStoreList() {
                     <div class="hero-body">
                       <p class="title">
                         <FontAwesomeIcon className="fas" icon={faTable} />
-                        &nbsp;No Stores
+                        &nbsp;No Tenants
                       </p>
                       <p class="subtitle">
-                        No stores.{" "}
+                        No tenants.{" "}
                         <b>
-                          <Link to="/admin/stores/add">
+                          <Link to="/admin/tenants/add">
                             Click here&nbsp;
                             <FontAwesomeIcon
                               className="mdi"
@@ -481,7 +481,7 @@ function AdminStoreList() {
                             />
                           </Link>
                         </b>{" "}
-                        to get started creating your first store.
+                        to get started creating your first tenant.
                       </p>
                     </div>
                   </section>
@@ -509,4 +509,4 @@ function AdminStoreList() {
   );
 }
 
-export default AdminStoreList;
+export default AdminTenantList;

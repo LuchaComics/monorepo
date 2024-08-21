@@ -33,7 +33,7 @@ function onOKToEmailChange(e) {
 
 // STEP 6
 function onSubmit() {
-    if (storeName !== "Over55" && storeName !== "" && storeType !== "" && firstName !== "" && lastName !== "" && primaryPhone !== "" && email !== "" && okToEmail !== "" && okToText !== "") {
+    if (tenantName !== "Over55" && tenantName !== "" && tenantType !== "" && firstName !== "" && lastName !== "" && primaryPhone !== "" && email !== "" && okToEmail !== "" && okToText !== "") {
         setForceURL("/setup-employer-profile-step-1"); // (For example)
     } else {
         var newErrors = {};

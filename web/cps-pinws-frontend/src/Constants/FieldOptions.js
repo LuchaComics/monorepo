@@ -331,7 +331,7 @@ export const USER_STATE_WITH_EMPTY_OPTIONS = [
 
 export const USER_ROLES = {
   1: "Root",
-  2: "Store Owner/Manager",
+  2: "Tenant Owner/Manager",
   3: "Customer",
 };
 

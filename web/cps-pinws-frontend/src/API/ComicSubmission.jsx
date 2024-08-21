@@ -82,8 +82,8 @@ export function postComicSubmissionCreateAPI(
   let decamelizedData = decamelizeKeys(data);
 
   // Minor bugfixes.
-  decamelizedData.store_id = decamelizedData.store_i_d;
-  delete decamelizedData.store_i_d;
+  decamelizedData.tenant_id = decamelizedData.tenant_i_d;
+  delete decamelizedData.tenant_i_d;
   decamelizedData.customer_id = data.customerID;
   delete decamelizedData.customer_i_d;
 

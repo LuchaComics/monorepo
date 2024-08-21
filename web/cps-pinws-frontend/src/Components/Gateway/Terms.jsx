@@ -211,7 +211,7 @@ function Terms() {
               to these Terms of Service.
             </p>
             <p>
-              Any new features or tools which are added to the current store
+              Any new features or tools which are added to the current tenant
               shall also be subject to the Terms of Service. You can review the
               most current version of the Terms of Service at any time on this
               page. We reserve the right to update, change or replace any part
@@ -222,7 +222,7 @@ function Terms() {
               those changes.
             </p>
             <p>
-              Our store is hosted on an online e-commerce platform that allows
+              Our tenant is hosted on an online e-commerce platform that allows
               us to sell our products and services to you.
             </p>
             <h3 class="title is-3">SECTION 1 – ONLINE STORE TERMS</h3>
@@ -393,7 +393,7 @@ function Terms() {
             </p>
             <p>
               We have made every effort to display as accurately as possible the
-              colors and images of our products that appear at the store. We
+              colors and images of our products that appear at the tenant. We
               cannot guarantee that your computer monitor’s display of any color
               will be accurate.
             </p>
@@ -432,7 +432,7 @@ function Terms() {
             </p>
             <p>
               You agree to provide current, complete and accurate purchase and
-              account information for all purchases made at our store. You agree
+              account information for all purchases made at our tenant. You agree
               to promptly update your account and other information, including
               your email address and credit card numbers and expiration dates,
               so that we can complete your transactions and contact you as
@@ -522,7 +522,7 @@ function Terms() {
             </p>
             <h3 class="title is-3">SECTION 10 – PERSONAL INFORMATION</h3>
             <p>
-              Your submission of personal information through the store is
+              Your submission of personal information through the tenant is
               governed by our Privacy Policy. To view our Privacy Policy.
             </p>
             <h3 class="title is-3">

@@ -59,7 +59,7 @@ export function getUserListAPI(
         });
       }
 
-      data.storeID = data.storeId;
+      data.tenantID = data.tenantId;
 
       console.log("getUserListAPI | post-fix | results:", data);
 
@@ -140,14 +140,14 @@ export function postUserCreateAPI(
   let decamelizedData = decamelizeKeys(data);
 
   // Minor fix.
-  decamelizedData.store_id = data.StoreID;
+  decamelizedData.tenant_id = data.TenantID;
   if (
-    decamelizedData.store_id !== undefined &&
-    decamelizedData.store_id !== null &&
-    decamelizedData.store_id !== "" &&
-    decamelizedData.store_id.length < 14
+    decamelizedData.tenant_id !== undefined &&
+    decamelizedData.tenant_id !== null &&
+    decamelizedData.tenant_id !== "" &&
+    decamelizedData.tenant_id.length < 14
   ) {
-    delete decamelizedData.store_id;
+    delete decamelizedData.tenant_id;
   }
   decamelizedData.cps_partnership_reason = data.CPSPartnershipReason;
 
@@ -164,7 +164,7 @@ export function postUserCreateAPI(
     })
     .catch((exception) => {
       let errors = camelizeKeys(exception);
-      errors.storeID = errors.storeId;
+      errors.tenantID = errors.tenantId;
       onErrorCallback(errors);
     })
     .then(onDoneCallback);
@@ -187,7 +187,7 @@ export function getUserDetailAPI(
       const data = camelizeKeys(responseData);
 
       // Bugfix
-      data.storeID = data.storeId;
+      data.tenantID = data.tenantId;
 
       // For debugging purposeso pnly.
       console.log(data);
@@ -215,16 +215,16 @@ export function putUserUpdateAPI(
   let decamelizedData = decamelizeKeys(data);
 
   // Minor fix.
-  decamelizedData.store_id = decamelizedData.store_i_d;
-  delete decamelizedData.store_i_d;
+  decamelizedData.tenant_id = decamelizedData.tenant_i_d;
+  delete decamelizedData.tenant_i_d;
 
   if (
-    decamelizedData.store_id !== undefined &&
-    decamelizedData.store_id !== null &&
-    decamelizedData.store_id !== "" &&
-    decamelizedData.store_id.length < 14
+    decamelizedData.tenant_id !== undefined &&
+    decamelizedData.tenant_id !== null &&
+    decamelizedData.tenant_id !== "" &&
+    decamelizedData.tenant_id.length < 14
   ) {
-    delete decamelizedData.store_id;
+    delete decamelizedData.tenant_id;
   }
   decamelizedData.cps_partnership_reason = data.CPSPartnershipReason;
 
@@ -240,7 +240,7 @@ export function putUserUpdateAPI(
       const data = camelizeKeys(responseData);
 
       // Bugfix
-      data.storeID = data.storeId;
+      data.tenantID = data.tenantId;
 
       // Return the callback data.
       onSuccessCallback(data);

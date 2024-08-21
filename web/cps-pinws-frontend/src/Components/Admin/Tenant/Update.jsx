@@ -3,16 +3,15 @@ import { Link, Navigate } from "react-router-dom";
 import Scroll from "react-scroll";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faArrowLeft,
   faTasks,
   faTachometer,
   faPlus,
-  faTimesCircle,
+  faArrowLeft,
   faCheckCircle,
-  faUserCircle,
   faGauge,
   faPencil,
   faUsers,
+  faEye,
   faIdCard,
   faAddressBook,
   faContactCard,
@@ -21,9 +20,10 @@ import {
   faCogs,
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
+import { useParams } from "react-router-dom";
 
 import useLocalStorage from "../../../Hooks/useLocalStorage";
-import { postStoreCreateAPI } from "../../../API/store";
+import { getTenantDetailAPI, putTenantUpdateAPI } from "../../../API/tenant";
 import FormErrorBox from "../../Reusable/FormErrorBox";
 import FormInputField from "../../Reusable/FormInputField";
 import FormTextareaField from "../../Reusable/FormTextareaField";
@@ -31,8 +31,8 @@ import FormRadioField from "../../Reusable/FormRadioField";
 import FormMultiSelectField from "../../Reusable/FormMultiSelectField";
 import FormSelectField from "../../Reusable/FormSelectField";
 import FormCheckboxField from "../../Reusable/FormCheckboxField";
-import PageLoadingContent from "../../Reusable/PageLoadingContent";
 import FormTimezoneSelectField from "../../Reusable/FormTimezoneField";
+import PageLoadingContent from "../../Reusable/PageLoadingContent";
 import {
   HOW_DID_YOU_HEAR_ABOUT_US_WITH_EMPTY_OPTIONS,
   ESTIMATED_SUBMISSION_PER_MONTH_WITH_EMPTY_OPTIONS,
@@ -42,7 +42,13 @@ import {
 } from "../../../Constants/FieldOptions";
 import { topAlertMessageState, topAlertStatusState } from "../../../AppState";
 
-function AdminStoreAdd() {
+function AdminTenantUpdate() {
+  ////
+  //// URL Parameters.
+  ////
+
+  const { id } = useParams();
+
   ////
   //// Global state.
   ////
@@ -60,14 +66,13 @@ function AdminStoreAdd() {
   const [isFetching, setFetching] = useState(false);
   const [forceURL, setForceURL] = useState("");
   const [name, setName] = useState("");
-  const [showCancelWarning, setShowCancelWarning] = useState(false);
   const [websiteURL, setWebsiteURL] = useState("");
   const [estimatedSubmissionsPerMonth, setEstimatedSubmissionsPerMonth] =
     useState("");
   const [hasOtherGradingService, setHasOtherGradingService] = useState(0);
   const [otherGradingServiceName, setOtherGradingServiceName] = useState("");
   const [requestWelcomePackage, setRequestWelcomePackage] = useState(0);
-  const [howLongStoreOperating, setHowLongStoreOperating] = useState(0);
+  const [howLongTenantOperating, setHowLongTenantOperating] = useState(0);
   const [gradingComicsExperience, setGradingComicsExperience] = useState("");
   const [retailPartnershipReason, setRetailPartnershipReason] = useState("");
   const [cpsPartnershipReason, setCPSPartnershipReason] = useState("");
@@ -82,52 +87,89 @@ function AdminStoreAdd() {
   //// Event handling.
   ////
 
-  ////
-  //// API.
-  ////
-
   const onSubmitClick = (e) => {
     console.log("onSubmitClick: Beginning...");
     setFetching(true);
     setErrors({});
-    const store = {
-      Name: name,
-      WebsiteUrl: websiteURL,
-      EstimatedSubmissionsPerMonth: parseInt(estimatedSubmissionsPerMonth),
-      HasOtherGradingService: parseInt(hasOtherGradingService),
-      OtherGradingServiceName: otherGradingServiceName,
-      RequestWelcomePackage: parseInt(requestWelcomePackage),
-      HowLongStoreOperating: howLongStoreOperating,
-      GradingComicsExperience: gradingComicsExperience,
-      RetailPartnershipReason: retailPartnershipReason,
-      CPSPartnershipReason: cpsPartnershipReason,
-      Status: status,
-      Level: level,
-      SpecialCollection: specialCollection,
-      Timezone: timezone,
+    const tenant = {
+      id: id,
+      name: name,
+      website_url: websiteURL,
+      estimated_submissions_per_month: parseInt(estimatedSubmissionsPerMonth),
+      has_other_grading_service: parseInt(hasOtherGradingService),
+      other_grading_service_name: otherGradingServiceName,
+      request_welcome_package: parseInt(requestWelcomePackage),
+      how_long_tenant_operating: howLongTenantOperating,
+      grading_comics_experience: gradingComicsExperience,
+      retail_partnership_reason: retailPartnershipReason,
+      cps_partnership_reason: cpsPartnershipReason,
+      status: status,
+      level: level,
+      special_collection: specialCollection,
+      timezone: timezone,
     };
-    console.log("onSubmitClick, store:", store);
-    postStoreCreateAPI(
-      store,
-      onAdminStoreAddSuccess,
-      onAdminStoreAddError,
-      onAdminStoreAddDone,
+    console.log("onSubmitClick, tenant:", tenant);
+    putTenantUpdateAPI(
+      tenant,
+      onAdminTenantUpdateSuccess,
+      onAdminTenantUpdateError,
+      onAdminTenantUpdateDone,
       onUnauthorized,
     );
   };
 
-  function onAdminStoreAddSuccess(response) {
+  ////
+  //// API.
+  ////
+
+  function onProfileDetailSuccess(response) {
+    console.log("onProfileDetailSuccess: Starting...");
+    setName(response.name);
+    setWebsiteURL(response.websiteUrl);
+    setEstimatedSubmissionsPerMonth(
+      parseInt(response.estimatedSubmissionsPerMonth),
+    );
+    setHasOtherGradingService(parseInt(response.hasOtherGradingService));
+    setOtherGradingServiceName(response.otherGradingServiceName);
+    setRequestWelcomePackage(response.requestWelcomePackage);
+    setHowLongTenantOperating(response.howLongTenantOperating);
+    setGradingComicsExperience(response.gradingComicsExperience);
+    setRetailPartnershipReason(response.retailPartnershipReason);
+    setCPSPartnershipReason(response.cpsPartnershipReason);
+    setStatus(response.status);
+    setLevel(response.level);
+    setSpecialCollection(response.specialCollection);
+    setTimezone(response.timezone);
+  }
+
+  function onProfileDetailError(apiErr) {
+    console.log("onProfileDetailError: Starting...");
+    setErrors(apiErr);
+
+    // The following code will cause the screen to scroll to the top of
+    // the page. Please see ``react-scroll`` for more information:
+    // https://github.com/fisshy/react-scroll
+    var scroll = Scroll.animateScroll;
+    scroll.scrollToTop();
+  }
+
+  function onProfileDetailDone() {
+    console.log("onProfileDetailDone: Starting...");
+    setFetching(false);
+  }
+
+  function onAdminTenantUpdateSuccess(response) {
     // For debugging purposes only.
-    console.log("onAdminStoreAddSuccess: Starting...");
+    console.log("onAdminTenantUpdateSuccess: Starting...");
     console.log(response);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
-    setTopAlertMessage("Store created");
+    setTopAlertMessage("Tenant updated");
     setTopAlertStatus("success");
     setTimeout(() => {
-      console.log("onAdminStoreAddSuccess: Delayed for 2 seconds.");
+      console.log("onAdminTenantUpdateSuccess: Delayed for 2 seconds.");
       console.log(
-        "onAdminStoreAddSuccess: topAlertMessage, topAlertStatus:",
+        "onAdminTenantUpdateSuccess: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );
@@ -135,20 +177,20 @@ function AdminStoreAdd() {
     }, 2000);
 
     // Redirect the user to a new page.
-    setForceURL("/admin/store/" + response.id);
+    setForceURL("/admin/tenant/" + response.id);
   }
 
-  function onAdminStoreAddError(apiErr) {
-    console.log("onAdminStoreAddError: Starting...");
+  function onAdminTenantUpdateError(apiErr) {
+    console.log("onAdminTenantUpdateError: Starting...");
     setErrors(apiErr);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
     setTopAlertMessage("Failed submitting");
     setTopAlertStatus("danger");
     setTimeout(() => {
-      console.log("onAdminStoreAddError: Delayed for 2 seconds.");
+      console.log("onAdminTenantUpdateError: Delayed for 2 seconds.");
       console.log(
-        "onAdminStoreAddError: topAlertMessage, topAlertStatus:",
+        "onAdminTenantUpdateError: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );
@@ -162,8 +204,8 @@ function AdminStoreAdd() {
     scroll.scrollToTop();
   }
 
-  function onAdminStoreAddDone() {
-    console.log("onAdminStoreAddDone: Starting...");
+  function onAdminTenantUpdateDone() {
+    console.log("onAdminTenantUpdateDone: Starting...");
     setFetching(false);
   }
 
@@ -183,7 +225,14 @@ function AdminStoreAdd() {
     if (mounted) {
       window.scrollTo(0, 0); // Start the page at the top of the page.
 
-      setFetching(false);
+      setFetching(true);
+      getTenantDetailAPI(
+        id,
+        onProfileDetailSuccess,
+        onProfileDetailError,
+        onProfileDetailDone,
+        onUnauthorized,
+      );
     }
 
     return () => {
@@ -201,36 +250,6 @@ function AdminStoreAdd() {
 
   return (
     <>
-      {/* Modals */}
-      <div class={`modal ${showCancelWarning ? "is-active" : ""}`}>
-        <div class="modal-background"></div>
-        <div class="modal-card">
-          <header class="modal-card-head">
-            <p class="modal-card-title">Are you sure?</p>
-            <button
-              class="delete"
-              aria-label="close"
-              onClick={(e) => setShowCancelWarning(false)}
-            ></button>
-          </header>
-          <section class="modal-card-body">
-            Your store record will be cancelled and your work will be lost. This
-            cannot be undone. Do you want to continue?
-          </section>
-          <footer class="modal-card-foot">
-            <Link class="button is-medium is-success" to={`/admin/stores`}>
-              Yes
-            </Link>
-            <button
-              class="button is-medium"
-              onClick={(e) => setShowCancelWarning(false)}
-            >
-              No
-            </button>
-          </footer>
-        </div>
-      </div>
-
       <div class="container">
         <section class="section">
           {/* Desktop Breadcrumbs */}
@@ -243,15 +262,21 @@ function AdminStoreAdd() {
                 </Link>
               </li>
               <li class="">
-                <Link to="/admin/stores" aria-current="page">
+                <Link to="/admin/tenants" aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faBuilding} />
-                  &nbsp;Stores
+                  &nbsp;Tenants
+                </Link>
+              </li>
+              <li class="">
+                <Link to={`/admin/tenant/${id}`} aria-current="page">
+                  <FontAwesomeIcon className="fas" icon={faEye} />
+                  &nbsp;Detail
                 </Link>
               </li>
               <li class="is-active">
                 <Link aria-current="page">
-                  <FontAwesomeIcon className="fas" icon={faPlus} />
-                  &nbsp;New
+                  <FontAwesomeIcon className="fas" icon={faPencil} />
+                  &nbsp;Update
                 </Link>
               </li>
             </ul>
@@ -261,9 +286,9 @@ function AdminStoreAdd() {
           <nav class="breadcrumb is-hidden-desktop" aria-label="breadcrumbs">
             <ul>
               <li class="">
-                <Link to={`/admin/stores`} aria-current="page">
+                <Link to={`/admin/tenant/${id}`} aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                  &nbsp;Back to Stores
+                  &nbsp;Back to Detail
                 </Link>
               </li>
             </ul>
@@ -272,17 +297,17 @@ function AdminStoreAdd() {
           {/* Page */}
           <nav class="box">
             <p class="title is-4">
-              <FontAwesomeIcon className="fas" icon={faPlus} />
-              &nbsp;New Store
+              <FontAwesomeIcon className="fas" icon={faBuilding} />
+              &nbsp;Tenant
             </p>
+            <FormErrorBox errors={errors} />
 
-            {/* <p class="pb-4 has-text-grey">Please fill out all the required fields before submitting this form.</p> */}
+            {/* <p class="pb-4">Please fill out all the required fields before submitting this form.</p> */}
 
             {isFetching ? (
               <PageLoadingContent displayMessage={"Submitting..."} />
             ) : (
               <>
-                <FormErrorBox errors={errors} />
                 <div class="container">
                   <p class="subtitle is-6">
                     <FontAwesomeIcon className="fas" icon={faIdCard} />
@@ -300,6 +325,7 @@ function AdminStoreAdd() {
                     onChange={(e) => setName(e.target.value)}
                     isRequired={true}
                     maxWidth="380px"
+                    disabled={name === "Collectibles Protective Services"}
                   />
 
                   <FormInputField
@@ -380,14 +406,14 @@ function AdminStoreAdd() {
                   />
 
                   <FormSelectField
-                    label="How long has your store been operating for?"
-                    name="howLongStoreOperating"
+                    label="How long has your tenant been operating for?"
+                    name="howLongTenantOperating"
                     placeholder="Pick"
-                    selectedValue={howLongStoreOperating}
-                    errorText={errors && errors.howLongStoreOperating}
+                    selectedValue={howLongTenantOperating}
+                    errorText={errors && errors.howLongTenantOperating}
                     helpText=""
                     onChange={(e) =>
-                      setHowLongStoreOperating(parseInt(e.target.value))
+                      setHowLongTenantOperating(parseInt(e.target.value))
                     }
                     options={
                       HOW_LONG_HAS_YOUR_STORE_BEEN_OPERATING_FOR_WITH_EMPTY_OPTIONS
@@ -404,7 +430,7 @@ function AdminStoreAdd() {
                     onChange={(e) => setGradingComicsExperience(e.target.value)}
                     isRequired={true}
                     maxWidth="280px"
-                    helpText={""}
+                    helpText={"Max 638 characters"}
                     rows={4}
                   />
 
@@ -418,7 +444,7 @@ function AdminStoreAdd() {
                     onChange={(e) => setRetailPartnershipReason(e.target.value)}
                     isRequired={true}
                     maxWidth="280px"
-                    helpText={""}
+                    helpText={"Max 638 characters"}
                     rows={4}
                   />
 
@@ -457,6 +483,7 @@ function AdminStoreAdd() {
                     errorText={errors && errors.status}
                     onChange={(e) => setStatus(parseInt(e.target.value))}
                     maxWidth="180px"
+                    disabled={name === "Collectibles Protective Services"}
                   />
 
                   <FormSelectField
@@ -497,17 +524,17 @@ function AdminStoreAdd() {
 
                   <div class="columns pt-5">
                     <div class="column is-half">
-                      <button
-                        class="button is-medium is-fullwidth-mobile"
-                        onClick={(e) => setShowCancelWarning(true)}
+                      <Link
+                        class="button is-fullwidth-mobile"
+                        to={`/admin/tenant/${id}`}
                       >
-                        <FontAwesomeIcon className="fas" icon={faTimesCircle} />
-                        &nbsp;Cancel
-                      </button>
+                        <FontAwesomeIcon className="fas" icon={faArrowLeft} />
+                        &nbsp;Back
+                      </Link>
                     </div>
                     <div class="column is-half has-text-right">
                       <button
-                        class="button is-medium is-primary is-fullwidth-mobile"
+                        class="button is-primary is-fullwidth-mobile"
                         onClick={onSubmitClick}
                       >
                         <FontAwesomeIcon className="fas" icon={faCheckCircle} />
@@ -525,4 +552,4 @@ function AdminStoreAdd() {
   );
 }
 
-export default AdminStoreAdd;
+export default AdminTenantUpdate;

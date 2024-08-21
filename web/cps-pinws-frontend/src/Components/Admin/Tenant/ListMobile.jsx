@@ -30,7 +30,7 @@ import { PAGE_SIZE_OPTIONS } from "../../../Constants/FieldOptions";
 /*
 Display for both tablet and mobile.
 */
-function AdminStoreListMobile(props) {
+function AdminTenantListMobile(props) {
   const {
     listData,
     setPageSize,
@@ -60,7 +60,7 @@ function AdminStoreListMobile(props) {
               <div class="is-hidden-mobile pt-2">
                 <div className="buttons is-right">
                   <Link
-                    to={`/admin/store/${datum.id}`}
+                    to={`/admin/tenant/${datum.id}`}
                     class="button is-small is-primary"
                     type="button"
                   >
@@ -74,7 +74,7 @@ function AdminStoreListMobile(props) {
                 <div class="columns is-mobile">
                   <div class="column">
                     <Link
-                      to={`/admin/store/${datum.id}`}
+                      to={`/admin/tenant/${datum.id}`}
                       class="button is-small is-primary is-fullwidth"
                       type="button"
                     >
@@ -128,4 +128,4 @@ function AdminStoreListMobile(props) {
   );
 }
 
-export default AdminStoreListMobile;
+export default AdminTenantListMobile;

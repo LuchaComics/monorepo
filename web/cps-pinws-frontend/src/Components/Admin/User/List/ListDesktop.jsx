@@ -47,7 +47,7 @@ function AdminUserListDesktop(props) {
               <th>Name</th>
               <th>Email</th>
               <th>Phone</th>
-              <th>Store</th>
+              <th>Tenant</th>
               <th>Role</th>
               <th>Joined</th>
               <th>Status</th>
@@ -67,15 +67,15 @@ function AdminUserListDesktop(props) {
                     <td data-label="Phone">
                       <Link to={`tel:${user.phone}`}>{user.phone}</Link>
                     </td>
-                    <td data-label="Store">
-                      {user.storeId !== "000000000000000000000000" && (
+                    <td data-label="Tenant">
+                      {user.tenantId !== "000000000000000000000000" && (
                         <Link
-                          to={`/admin/store/${user.storeId}`}
+                          to={`/admin/tenant/${user.tenantId}`}
                           target="_blank"
                           rel="noreferrer"
                           class="is-small"
                         >
-                          {user.storeName}&nbsp;
+                          {user.tenantName}&nbsp;
                           <FontAwesomeIcon
                             className="fas"
                             icon={faArrowUpRightFromSquare}

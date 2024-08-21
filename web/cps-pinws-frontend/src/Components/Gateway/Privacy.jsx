@@ -91,7 +91,7 @@ function Privacy() {
               moderation queue.
             </p>
             <p>
-              For users that register on our website (if any), we also store the
+              For users that register on our website (if any), we also tenant the
               personal information they provide in their user profile. All users
               can see, edit, or delete their personal information at any time
               (except they cannot change their username). Website administrators

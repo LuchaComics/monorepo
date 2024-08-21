@@ -32,7 +32,7 @@ import {
   postUserStarOperationAPI,
   deleteUserAPI,
 } from "../../../../API/user";
-import { getStoreSelectOptionListAPI } from "../../../../API/store";
+import { getTenantSelectOptionListAPI } from "../../../../API/tenant";
 import FormErrorBox from "../../../Reusable/FormErrorBox";
 import FormInputField from "../../../Reusable/FormInputField";
 import FormTextareaField from "../../../Reusable/FormTextareaField";
@@ -85,7 +85,7 @@ function AdminUserDetail() {
   const [isFetching, setFetching] = useState(false);
   const [forceURL, setForceURL] = useState("");
   const [user, setUser] = useState({});
-  const [storeSelectOptions, setStoreSelectOptions] = useState([]);
+  const [tenantSelectOptions, setTenantSelectOptions] = useState([]);
   const [selectedUserForDeletion, setSelectedUserForDeletion] = useState("");
 
   ////
@@ -156,20 +156,20 @@ function AdminUserDetail() {
 
   // --- STORE OPTIONS --- //
 
-  function onStoreOptionListSuccess(response) {
-    console.log("onStoreOptionListSuccess: Starting...");
+  function onTenantOptionListSuccess(response) {
+    console.log("onTenantOptionListSuccess: Starting...");
     if (response !== null) {
       const selectOptions = [
         { value: 0, label: "Please select" }, // Add empty options.
         ...response,
       ];
-      setStoreSelectOptions(selectOptions);
+      setTenantSelectOptions(selectOptions);
     }
   }
 
-  function onStoreOptionListError(apiErr) {
-    console.log("onStoreOptionListError: Starting...");
-    console.log("onStoreOptionListError: apiErr:", apiErr);
+  function onTenantOptionListError(apiErr) {
+    console.log("onTenantOptionListError: Starting...");
+    console.log("onTenantOptionListError: apiErr:", apiErr);
     setErrors(apiErr);
 
     // The following code will cause the screen to scroll to the top of
@@ -179,8 +179,8 @@ function AdminUserDetail() {
     scroll.scrollToTop();
   }
 
-  function onStoreOptionListDone() {
-    console.log("onStoreOptionListDone: Starting...");
+  function onTenantOptionListDone() {
+    console.log("onTenantOptionListDone: Starting...");
     setFetching(false);
   }
 
@@ -259,11 +259,11 @@ function AdminUserDetail() {
       );
 
       let params = new Map();
-      getStoreSelectOptionListAPI(
+      getTenantSelectOptionListAPI(
         params,
-        onStoreOptionListSuccess,
-        onStoreOptionListError,
-        onStoreOptionListDone,
+        onTenantOptionListSuccess,
+        onTenantOptionListError,
+        onTenantOptionListDone,
         onUnauthorized,
       );
     }
@@ -370,7 +370,7 @@ function AdminUserDetail() {
                 </div>
                 {user && user.status === 1 && <div class="column has-text-right">
                   <Link
-                    to={`/admin/submissions/pick-type-for-add?customer_id=${user.id}&customer_name=${user.name}&store_id=${user.storeId}&from=usercomics&clear=true`}
+                    to={`/admin/submissions/pick-type-for-add?customer_id=${user.id}&customer_name=${user.name}&tenant_id=${user.tenantId}&from=usercomics&clear=true`}
                     class="button is-small is-success is-fullwidth-mobile"
                     type="button"
                   >
@@ -465,12 +465,12 @@ function AdminUserDetail() {
                     </p>
                     <hr />
 
-                    {storeSelectOptions && storeSelectOptions.length > 0 && (
+                    {tenantSelectOptions && tenantSelectOptions.length > 0 && (
                       <FormTextOptionRow
-                        label="Store"
-                        selectedValue={user.storeID}
+                        label="Tenant"
+                        selectedValue={user.tenantID}
                         helpText=""
-                        options={storeSelectOptions}
+                        options={tenantSelectOptions}
                       />
                     )}
                     <FormTextChoiceRow
@@ -479,7 +479,7 @@ function AdminUserDetail() {
                       opt1Value={1}
                       opt1Label="Admin"
                       opt2Value={2}
-                      opt2Label="Store Owner/Manager"
+                      opt2Label="Tenant Owner/Manager"
                       opt3Value={3}
                       opt3Label="Customer"
                     />

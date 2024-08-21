@@ -56,9 +56,9 @@ function ForgotPassword() {
     setTopAlertMessage("Email sent");
     setTopAlertStatus("success");
     setTimeout(() => {
-      console.log("onStoreUpdateSuccess: Delayed for 2 seconds.");
+      console.log("onTenantUpdateSuccess: Delayed for 2 seconds.");
       console.log(
-        "onStoreUpdateSuccess: topAlertMessage, topAlertStatus:",
+        "onTenantUpdateSuccess: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );

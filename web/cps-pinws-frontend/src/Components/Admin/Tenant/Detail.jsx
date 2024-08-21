@@ -25,7 +25,7 @@ import { useRecoilState } from "recoil";
 import { useParams } from "react-router-dom";
 
 import useLocalStorage from "../../../Hooks/useLocalStorage";
-import { getStoreDetailAPI, deleteStoreAPI } from "../../../API/store";
+import { getTenantDetailAPI, deleteTenantAPI } from "../../../API/tenant";
 import FormErrorBox from "../../Reusable/FormErrorBox";
 import PageLoadingContent from "../../Reusable/PageLoadingContent";
 import { topAlertMessageState, topAlertStatusState } from "../../../AppState";
@@ -40,7 +40,7 @@ import {
   USER_SPECIAL_COLLECTION_WITH_EMPTY_OPTIONS,
 } from "../../../Constants/FieldOptions";
 
-function AdminStoreDetail() {
+function AdminTenantDetail() {
   ////
   //// URL Parameters.
   ////
@@ -63,34 +63,34 @@ function AdminStoreDetail() {
   const [errors, setErrors] = useState({});
   const [isFetching, setFetching] = useState(false);
   const [forceURL, setForceURL] = useState("");
-  const [store, setStore] = useState({});
-  const [selectedStoreForDeletion, setSelectedStoreForDeletion] = useState("");
+  const [tenant, setTenant] = useState({});
+  const [selectedTenantForDeletion, setSelectedTenantForDeletion] = useState("");
 
   ////
   //// Event handling.
   ////
 
-  const onSelectStoreForDeletion = (e, store) => {
-    console.log("onSelectStoreForDeletion", store);
-    setSelectedStoreForDeletion(store);
+  const onSelectTenantForDeletion = (e, tenant) => {
+    console.log("onSelectTenantForDeletion", tenant);
+    setSelectedTenantForDeletion(tenant);
   };
 
-  const onDeselectStoreForDeletion = (e) => {
-    console.log("onDeselectStoreForDeletion");
-    setSelectedStoreForDeletion("");
+  const onDeselectTenantForDeletion = (e) => {
+    console.log("onDeselectTenantForDeletion");
+    setSelectedTenantForDeletion("");
   };
 
   const onDeleteConfirmButtonClick = (e) => {
     console.log("onDeleteConfirmButtonClick"); // For debugging purposes only.
 
-    deleteStoreAPI(
-      selectedStoreForDeletion.id,
-      onStoreDeleteSuccess,
-      onStoreDeleteError,
-      onStoreDeleteDone,
+    deleteTenantAPI(
+      selectedTenantForDeletion.id,
+      onTenantDeleteSuccess,
+      onTenantDeleteError,
+      onTenantDeleteDone,
       onUnauthorized,
     );
-    setSelectedStoreForDeletion("");
+    setSelectedTenantForDeletion("");
   };
 
   ////
@@ -99,13 +99,13 @@ function AdminStoreDetail() {
 
   // --- DETAIL --- //
 
-  function onStoreDetailSuccess(response) {
-    console.log("onStoreDetailSuccess: Starting...");
-    setStore(response);
+  function onTenantDetailSuccess(response) {
+    console.log("onTenantDetailSuccess: Starting...");
+    setTenant(response);
   }
 
-  function onStoreDetailError(apiErr) {
-    console.log("onStoreDetailError: Starting...");
+  function onTenantDetailError(apiErr) {
+    console.log("onTenantDetailError: Starting...");
     setErrors(apiErr);
 
     // The following code will cause the screen to scroll to the top of
@@ -115,19 +115,19 @@ function AdminStoreDetail() {
     scroll.scrollToTop();
   }
 
-  function onStoreDetailDone() {
-    console.log("onStoreDetailDone: Starting...");
+  function onTenantDetailDone() {
+    console.log("onTenantDetailDone: Starting...");
     setFetching(false);
   }
 
   // --- DELETE --- //
 
-  function onStoreDeleteSuccess(response) {
-    console.log("onStoreDeleteSuccess: Starting..."); // For debugging purposes only.
+  function onTenantDeleteSuccess(response) {
+    console.log("onTenantDeleteSuccess: Starting..."); // For debugging purposes only.
 
     // Update notification.
     setTopAlertStatus("success");
-    setTopAlertMessage("Store deleted");
+    setTopAlertMessage("Tenant deleted");
     setTimeout(() => {
       console.log(
         "onDeleteConfirmButtonClick: topAlertMessage, topAlertStatus:",
@@ -137,11 +137,11 @@ function AdminStoreDetail() {
       setTopAlertMessage("");
     }, 2000);
 
-    setForceURL("/admin/stores");
+    setForceURL("/admin/tenants");
   }
 
-  function onStoreDeleteError(apiErr) {
-    console.log("onStoreDeleteError: Starting..."); // For debugging purposes only.
+  function onTenantDeleteError(apiErr) {
+    console.log("onTenantDeleteError: Starting..."); // For debugging purposes only.
     setErrors(apiErr);
 
     // Update notification.
@@ -149,7 +149,7 @@ function AdminStoreDetail() {
     setTopAlertMessage("Failed deleting");
     setTimeout(() => {
       console.log(
-        "onStoreDeleteError: topAlertMessage, topAlertStatus:",
+        "onTenantDeleteError: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );
@@ -163,8 +163,8 @@ function AdminStoreDetail() {
     scroll.scrollToTop();
   }
 
-  function onStoreDeleteDone() {
-    console.log("onStoreDeleteDone: Starting...");
+  function onTenantDeleteDone() {
+    console.log("onTenantDeleteDone: Starting...");
     setFetching(false);
   }
 
@@ -185,11 +185,11 @@ function AdminStoreDetail() {
       window.scrollTo(0, 0); // Start the page at the top of the page.
 
       setFetching(true);
-      getStoreDetailAPI(
+      getTenantDetailAPI(
         id,
-        onStoreDetailSuccess,
-        onStoreDetailError,
-        onStoreDetailDone,
+        onTenantDetailSuccess,
+        onTenantDetailError,
+        onTenantDetailDone,
         onUnauthorized,
       );
     }
@@ -221,9 +221,9 @@ function AdminStoreDetail() {
                 </Link>
               </li>
               <li class="">
-                <Link to="/admin/stores" aria-current="page">
+                <Link to="/admin/tenants" aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faBuilding} />
-                  &nbsp;Stores
+                  &nbsp;Tenants
                 </Link>
               </li>
               <li class="is-active">
@@ -239,16 +239,16 @@ function AdminStoreDetail() {
           <nav class="breadcrumb is-hidden-desktop" aria-label="breadcrumbs">
             <ul>
               <li class="">
-                <Link to={`/admin/stores`} aria-current="page">
+                <Link to={`/admin/tenants`} aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                  &nbsp;Back to Stores
+                  &nbsp;Back to Tenants
                 </Link>
               </li>
             </ul>
           </nav>
 
           {/* Modals */}
-          <div class={`modal ${selectedStoreForDeletion ? "is-active" : ""}`}>
+          <div class={`modal ${selectedTenantForDeletion ? "is-active" : ""}`}>
             <div class="modal-background"></div>
             <div class="modal-card">
               <header class="modal-card-head">
@@ -256,11 +256,11 @@ function AdminStoreDetail() {
                 <button
                   class="delete"
                   aria-label="close"
-                  onClick={onDeselectStoreForDeletion}
+                  onClick={onDeselectTenantForDeletion}
                 ></button>
               </header>
               <section class="modal-card-body">
-                You are about to <b>archive</b> this store; it will no longer
+                You are about to <b>archive</b> this tenant; it will no longer
                 appear on your dashboard This action can be undone but you'll
                 need to contact the system administrator. Are you sure you would
                 like to continue?
@@ -272,7 +272,7 @@ function AdminStoreDetail() {
                 >
                   Confirm
                 </button>
-                <button class="button" onClick={onDeselectStoreForDeletion}>
+                <button class="button" onClick={onDeselectTenantForDeletion}>
                   Cancel
                 </button>
               </footer>
@@ -281,17 +281,17 @@ function AdminStoreDetail() {
 
           {/* Page */}
           <nav class="box">
-            {store && (
+            {tenant && (
               <div class="columns">
                 <div class="column">
                   <p class="title is-4">
                     <FontAwesomeIcon className="fas" icon={faBuilding} />
-                    &nbsp;Store
+                    &nbsp;Tenant
                   </p>
                 </div>
                 <div class="column has-text-right">
                   <Link
-                    to={`/admin/submissions/pick-type-for-add?org_id=${store.id}`}
+                    to={`/admin/submissions/pick-type-for-add?org_id=${tenant.id}`}
                     class="button is-small is-success is-fullwidth-mobile"
                     type="button"
                   >
@@ -300,7 +300,7 @@ function AdminStoreDetail() {
                   </Link>
                   &nbsp;
                   <Link
-                    to={`/admin/store/${store.id}/edit`}
+                    to={`/admin/tenant/${tenant.id}/edit`}
                     class="button is-small is-warning is-fullwidth-mobile"
                     type="button"
                   >
@@ -309,7 +309,7 @@ function AdminStoreDetail() {
                   </Link>
                   &nbsp;
                   <button
-                    onClick={(e, ses) => onSelectStoreForDeletion(e, store)}
+                    onClick={(e, ses) => onSelectTenantForDeletion(e, tenant)}
                     class="button is-small is-danger is-fullwidth-mobile"
                     type="button"
                   >
@@ -327,7 +327,7 @@ function AdminStoreDetail() {
               <PageLoadingContent displayMessage={"Loading..."} />
             ) : (
               <>
-                {store && (
+                {tenant && (
                   <div class="container">
                     <div class="tabs is-medium is-size-7-mobile">
                       <ul>
@@ -337,17 +337,17 @@ function AdminStoreDetail() {
                           </Link>
                         </li>
                         <li>
-                          <Link to={`/admin/store/${store.id}/users`}>
+                          <Link to={`/admin/tenant/${tenant.id}/users`}>
                             Users
                           </Link>
                         </li>
                         <li>
-                          <Link to={`/admin/store/${store.id}/comments`}>
+                          <Link to={`/admin/tenant/${tenant.id}/comments`}>
                             Comments
                           </Link>
                         </li>
                         <li>
-                          <Link to={`/admin/store/${store.id}/attachments`}>
+                          <Link to={`/admin/tenant/${tenant.id}/attachments`}>
                             Attachments
                           </Link>
                         </li>
@@ -360,11 +360,11 @@ function AdminStoreDetail() {
                     </p>
                     <hr />
 
-                    <FormRowText label="Name" value={store.name} helpText="" />
+                    <FormRowText label="Name" value={tenant.name} helpText="" />
 
                     <FormRowText
                       label="Website URL"
-                      value={store.websiteUrl}
+                      value={tenant.websiteUrl}
                       helpText=""
                     />
 
@@ -376,7 +376,7 @@ function AdminStoreDetail() {
 
                     <FormTextOptionRow
                       label="How many comic books are you planning to submit to us per month?"
-                      selectedValue={store.estimatedSubmissionsPerMonth}
+                      selectedValue={tenant.estimatedSubmissionsPerMonth}
                       options={
                         ESTIMATED_SUBMISSION_PER_MONTH_WITH_EMPTY_OPTIONS
                       }
@@ -384,24 +384,24 @@ function AdminStoreDetail() {
 
                     <FormTextChoiceRow
                       label="Are you currently submitting to any other grading companies?"
-                      value={store.hasOtherGradingService}
+                      value={tenant.hasOtherGradingService}
                       opt1Value={1}
                       opt1Label="Yes"
                       opt2Value={2}
                       opt2Label="No"
                     />
 
-                    {store.hasOtherGradingService === 1 && (
+                    {tenant.hasOtherGradingService === 1 && (
                       <FormRowText
                         label="Other Grading Service Name"
-                        value={store.otherGradingServiceName}
+                        value={tenant.otherGradingServiceName}
                         helpText=""
                       />
                     )}
 
                     <FormTextChoiceRow
                       label="Would you like to receive a welcome package? This package includes promotional items and tools to help you improve your submissions, as well as our service terms and conditions.?"
-                      value={store.requestWelcomePackage}
+                      value={tenant.requestWelcomePackage}
                       opt1Value={1}
                       opt1Label="Yes"
                       opt2Value={2}
@@ -409,8 +409,8 @@ function AdminStoreDetail() {
                     />
 
                     <FormTextOptionRow
-                      label="How long has your store been operating for?"
-                      selectedValue={store.howLongStoreOperating}
+                      label="How long has your tenant been operating for?"
+                      selectedValue={tenant.howLongTenantOperating}
                       options={
                         HOW_LONG_HAS_YOUR_STORE_BEEN_OPERATING_FOR_WITH_EMPTY_OPTIONS
                       }
@@ -418,19 +418,19 @@ function AdminStoreDetail() {
 
                     <FormRowText
                       label="Tell us about your level of experience with grading comics? (Optional)"
-                      value={store.gradingComicsExperience}
+                      value={tenant.gradingComicsExperience}
                       helpText=""
                     />
 
                     <FormRowText
                       label="Please describe how you could become a good retail partner for CPS"
-                      value={store.retailPartnershipReason}
+                      value={tenant.retailPartnershipReason}
                       helpText=""
                     />
 
                     <FormRowText
                       label="Please describe how CPS could help you grow your business"
-                      value={store.cpsPartnershipReason}
+                      value={tenant.cpsPartnershipReason}
                       helpText=""
                     />
 
@@ -442,7 +442,7 @@ function AdminStoreDetail() {
 
                     <FormTextChoiceRow
                       label="Status"
-                      value={store.status}
+                      value={tenant.status}
                       opt1Value={1}
                       opt1Label="Pending"
                       opt2Value={2}
@@ -457,19 +457,19 @@ function AdminStoreDetail() {
 
                     <FormTextOptionRow
                       label="Level"
-                      selectedValue={store.level}
+                      selectedValue={tenant.level}
                       options={ORGANIZATION_LEVEL_WITH_EMPTY_OPTIONS}
                     />
 
                     <FormTextOptionRow
                       label="Special Collection"
-                      selectedValue={store.specialCollection}
+                      selectedValue={tenant.specialCollection}
                       options={USER_SPECIAL_COLLECTION_WITH_EMPTY_OPTIONS}
                     />
 
                     <FormRowText
                       label="Timezone"
-                      value={store.timezone}
+                      value={tenant.timezone}
                       helpText=""
                     />
 
@@ -477,15 +477,15 @@ function AdminStoreDetail() {
                       <div class="column is-half">
                         <Link
                           class="button is-fullwidth-mobile"
-                          to={`/admin/stores`}
+                          to={`/admin/tenants`}
                         >
                           <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                          &nbsp;Back to Stores
+                          &nbsp;Back to Tenants
                         </Link>
                       </div>
                       <div class="column is-half has-text-right">
                         <Link
-                          to={`/admin/store/${id}/edit`}
+                          to={`/admin/tenant/${id}/edit`}
                           class="button is-primary is-fullwidth-mobile"
                         >
                           <FontAwesomeIcon className="fas" icon={faPencil} />
@@ -504,4 +504,4 @@ function AdminStoreDetail() {
   );
 }
 
-export default AdminStoreDetail;
+export default AdminTenantDetail;

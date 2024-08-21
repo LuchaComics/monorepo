@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Scroll from "react-scroll";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faDownload,
   faCalendarMinus,
   faCalendarPlus,
   faDumbbell,
@@ -25,17 +26,21 @@ import { useRecoilState } from "recoil";
 import { DateTime } from "luxon";
 
 import FormErrorBox from "../../Reusable/FormErrorBox";
-import { PAGE_SIZE_OPTIONS, USER_ROLES } from "../../../Constants/FieldOptions";
+import {
+  PAGE_SIZE_OPTIONS,
+  ATTACHMENT_STATES,
+} from "../../../Constants/FieldOptions";
 
-function AdminStoreDetailForUserListDesktop(props) {
+function AdminTenantDetailForAttachmentListDesktop(props) {
   const {
+    tenantID,
     listData,
     setPageSize,
     pageSize,
     previousCursors,
     onPreviousClicked,
     onNextClicked,
-    onSelectUserForDeletion,
+    onSelectAttachmentForDeletion,
   } = props;
   return (
     <div class="b-table">
@@ -44,68 +49,54 @@ function AdminStoreDetailForUserListDesktop(props) {
           <thead>
             <tr>
               <th>Name</th>
-              <th>Email</th>
-              <th>Role</th>
+              <th>Status</th>
               <th>Created</th>
+              <th>File</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             {listData &&
               listData.results &&
-              listData.results.map(function (user, i) {
+              listData.results.map(function (attachment, i) {
                 return (
                   <tr>
-                    <td data-label="Name">{user.name}</td>
-                    <td data-label="Email">
-                      <a href={`mailto:${user.email}`}>{user.email}</a>
+                    <td data-label="Title">{attachment.name}</td>
+                    <td data-label="State">
+                      {ATTACHMENT_STATES[attachment.status]}
                     </td>
-                    <td data-label="Role">{USER_ROLES[user.role]}</td>
-                    <td data-label="Created">{user.createdAt}</td>
+                    <td data-label="Created">{attachment.createdAt}</td>
+                    <td data-label="File">
+                      <a
+                        href={attachment.objectUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        class=""
+                      >
+                        <FontAwesomeIcon className="mdi" icon={faDownload} />
+                        &nbsp;Download File
+                      </a>
+                    </td>
                     <td class="is-actions-cell">
                       <div class="buttons is-right">
                         <Link
-                          to={`/admin/submissions/pick-type-for-add?user_id=${user.id}&user_name=${user.name}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          class="button is-small is-success"
-                          type="button"
-                        >
-                          <FontAwesomeIcon className="mdi" icon={faPlus} />
-                          &nbsp;CPS&nbsp;
-                          <FontAwesomeIcon
-                            className="fas"
-                            icon={faArrowUpRightFromSquare}
-                          />
-                        </Link>
-                        <Link
-                          to={`/admin/user/${user.id}`}
-                          target="_blank"
-                          rel="noreferrer"
+                          to={`/admin/tenant/${tenantID}/attachment/${attachment.id}`}
                           class="button is-small is-primary"
                           type="button"
                         >
-                          View&nbsp;
-                          <FontAwesomeIcon
-                            className="fas"
-                            icon={faArrowUpRightFromSquare}
-                          />
+                          View
                         </Link>
                         <Link
-                          to={`/admin/user/${user.id}/edit`}
-                          target="_blank"
-                          rel="noreferrer"
+                          to={`/admin/tenant/${tenantID}/attachment/${attachment.id}/edit`}
                           class="button is-small is-warning"
                           type="button"
                         >
-                          Edit&nbsp;
-                          <FontAwesomeIcon
-                            className="fas"
-                            icon={faArrowUpRightFromSquare}
-                          />
+                          Edit
                         </Link>
                         <button
-                          onClick={(e, ses) => onSelectUserForDeletion(e, user)}
+                          onClick={(e, ses) =>
+                            onSelectAttachmentForDeletion(e, attachment)
+                          }
                           class="button is-small is-danger"
                           type="button"
                         >
@@ -161,4 +152,4 @@ function AdminStoreDetailForUserListDesktop(props) {
   );
 }
 
-export default AdminStoreDetailForUserListDesktop;
+export default AdminTenantDetailForAttachmentListDesktop;

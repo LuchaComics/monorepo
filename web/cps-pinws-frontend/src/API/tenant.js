@@ -10,7 +10,7 @@ import {
   CPS_ORGANIZATIONS_PUBLIC_SELECT_OPTIONS_API_ENDPOINT,
 } from "../Constants/API";
 
-export function getStoreListAPI(
+export function getTenantListAPI(
   filtersMap = new Map(),
   onSuccessCallback,
   onErrorCallback,
@@ -39,7 +39,7 @@ export function getStoreListAPI(
       const data = camelizeKeys(responseData);
 
       // Bugfixes.
-      console.log("getStoreListAPI | pre-fix | results:", data);
+      console.log("getTenantListAPI | pre-fix | results:", data);
       if (
         data.results !== undefined &&
         data.results !== null &&
@@ -52,7 +52,7 @@ export function getStoreListAPI(
           console.log(item, index);
         });
       }
-      console.log("getStoreListAPI | post-fix | results:", data);
+      console.log("getTenantListAPI | post-fix | results:", data);
 
       // Return the callback data.
       onSuccessCallback(data);
@@ -64,7 +64,7 @@ export function getStoreListAPI(
     .then(onDoneCallback);
 }
 
-export function getStoreSelectOptionListAPI(
+export function getTenantSelectOptionListAPI(
   filtersMap = new Map(),
   onSuccessCallback,
   onErrorCallback,
@@ -93,7 +93,7 @@ export function getStoreSelectOptionListAPI(
       const data = camelizeKeys(responseData);
 
       // Bugfixes.
-      console.log("getStoreSelectOptionListAPI | pre-fix | results:", data);
+      console.log("getTenantSelectOptionListAPI | pre-fix | results:", data);
       if (
         data.results !== undefined &&
         data.results !== null &&
@@ -106,7 +106,7 @@ export function getStoreSelectOptionListAPI(
           console.log(item, index);
         });
       }
-      console.log("getStoreSelectOptionListAPI | post-fix | results:", data);
+      console.log("getTenantSelectOptionListAPI | post-fix | results:", data);
 
       // Return the callback data.
       onSuccessCallback(data);
@@ -118,7 +118,7 @@ export function getStoreSelectOptionListAPI(
     .then(onDoneCallback);
 }
 
-export function getPublicStoreSelectOptionListAPI(
+export function getPublicTenantSelectOptionListAPI(
   filtersMap = new Map(),
   onSuccessCallback,
   onErrorCallback,
@@ -147,7 +147,7 @@ export function getPublicStoreSelectOptionListAPI(
       const data = camelizeKeys(responseData);
 
       // Bugfixes.
-      console.log("getStoreSelectOptionListAPI | pre-fix | results:", data);
+      console.log("getTenantSelectOptionListAPI | pre-fix | results:", data);
       if (
         data.results !== undefined &&
         data.results !== null &&
@@ -160,7 +160,7 @@ export function getPublicStoreSelectOptionListAPI(
           console.log(item, index);
         });
       }
-      console.log("getStoreSelectOptionListAPI | post-fix | results:", data);
+      console.log("getTenantSelectOptionListAPI | post-fix | results:", data);
 
       // Return the callback data.
       onSuccessCallback(data);
@@ -172,7 +172,7 @@ export function getPublicStoreSelectOptionListAPI(
     .then(onDoneCallback);
 }
 
-export function postStoreCreateAPI(
+export function postTenantCreateAPI(
   data,
   onSuccessCallback,
   onErrorCallback,
@@ -208,8 +208,8 @@ export function postStoreCreateAPI(
     .then(onDoneCallback);
 }
 
-export function getStoreDetailAPI(
-  storeID,
+export function getTenantDetailAPI(
+  tenantID,
   onSuccessCallback,
   onErrorCallback,
   onDoneCallback,
@@ -217,7 +217,7 @@ export function getStoreDetailAPI(
 ) {
   const axios = getCustomAxios(onUnauthorizedCallback);
   axios
-    .get(CPS_ORGANIZATION_API_ENDPOINT.replace("{id}", storeID))
+    .get(CPS_ORGANIZATION_API_ENDPOINT.replace("{id}", tenantID))
     .then((successResponse) => {
       const responseData = successResponse.data;
 
@@ -237,7 +237,7 @@ export function getStoreDetailAPI(
     .then(onDoneCallback);
 }
 
-export function putStoreUpdateAPI(
+export function putTenantUpdateAPI(
   decamelizedData,
   onSuccessCallback,
   onErrorCallback,
@@ -267,7 +267,7 @@ export function putStoreUpdateAPI(
     .then(onDoneCallback);
 }
 
-export function deleteStoreAPI(
+export function deleteTenantAPI(
   id,
   onSuccessCallback,
   onErrorCallback,
@@ -293,8 +293,8 @@ export function deleteStoreAPI(
     .then(onDoneCallback);
 }
 
-export function postStoreCreateCommentOperationAPI(
-  storeID,
+export function postTenantCreateCommentOperationAPI(
+  tenantID,
   content,
   onSuccessCallback,
   onErrorCallback,
@@ -303,7 +303,7 @@ export function postStoreCreateCommentOperationAPI(
 ) {
   const axios = getCustomAxios(onUnauthorizedCallback);
   const data = {
-    store_id: storeID,
+    tenant_id: tenantID,
     content: content,
   };
   axios

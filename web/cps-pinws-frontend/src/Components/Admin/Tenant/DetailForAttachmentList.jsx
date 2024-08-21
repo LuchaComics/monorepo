@@ -27,7 +27,7 @@ import {
   PAGE_SIZE_OPTIONS,
 } from "../../../Constants/FieldOptions";
 
-import { getStoreDetailAPI } from "../../../API/store";
+import { getTenantDetailAPI } from "../../../API/tenant";
 import {
   getAttachmentListAPI,
   deleteAttachmentAPI,
@@ -41,10 +41,10 @@ import FormSelectField from "../../Reusable/FormSelectField";
 import FormCheckboxField from "../../Reusable/FormCheckboxField";
 import PageLoadingContent from "../../Reusable/PageLoadingContent";
 import { topAlertMessageState, topAlertStatusState } from "../../../AppState";
-import AdminStoreDetailForAttachmentListDesktop from "./DetailForAttachmentListDektop";
-import AdminStoreDetailForAttachmentListMobile from "./DetailForAttachmentListMobile";
+import AdminTenantDetailForAttachmentListDesktop from "./DetailForAttachmentListDektop";
+import AdminTenantDetailForAttachmentListMobile from "./DetailForAttachmentListMobile";
 
-function AdminStoreDetailForAttachmentList() {
+function AdminTenantDetailForAttachmentList() {
   ////
   //// URL Parameters.
   ////
@@ -67,7 +67,7 @@ function AdminStoreDetailForAttachmentList() {
   const [errors, setErrors] = useState({});
   const [isFetching, setFetching] = useState(false);
   const [forceURL, setForceURL] = useState("");
-  const [store, setStore] = useState({});
+  const [tenant, setTenant] = useState({});
   const [tabIndex, setTabIndex] = useState(1);
   const [attachments, setAttachments] = useState("");
   const [selectedAttachmentForDeletion, setSelectedAttachmentForDeletion] =
@@ -81,13 +81,13 @@ function AdminStoreDetailForAttachmentList() {
   //// Event handling.
   ////
 
-  const fetchAttachmentList = (cur, storeID, limit) => {
+  const fetchAttachmentList = (cur, tenantID, limit) => {
     setFetching(true);
     setErrors({});
 
     let params = new Map();
     params.set("ownership_id", id);
-    params.set("ownership_role", 3); // 3=Store.
+    params.set("ownership_role", 3); // 3=Tenant.
     params.set("page_size", limit);
     if (cur !== "") {
       params.set("cursor", cur);
@@ -145,15 +145,15 @@ function AdminStoreDetailForAttachmentList() {
   //// API.
   ////
 
-  // Store details.
+  // Tenant details.
 
-  function onStoreDetailSuccess(response) {
-    console.log("onStoreDetailSuccess: Starting...");
-    setStore(response);
+  function onTenantDetailSuccess(response) {
+    console.log("onTenantDetailSuccess: Starting...");
+    setTenant(response);
   }
 
-  function onStoreDetailError(apiErr) {
-    console.log("onStoreDetailError: Starting...");
+  function onTenantDetailError(apiErr) {
+    console.log("onTenantDetailError: Starting...");
     setErrors(apiErr);
 
     // The following code will cause the screen to scroll to the top of
@@ -163,8 +163,8 @@ function AdminStoreDetailForAttachmentList() {
     scroll.scrollToTop();
   }
 
-  function onStoreDetailDone() {
-    console.log("onStoreDetailDone: Starting...");
+  function onTenantDetailDone() {
+    console.log("onTenantDetailDone: Starting...");
     setFetching(false);
   }
 
@@ -262,11 +262,11 @@ function AdminStoreDetailForAttachmentList() {
       window.scrollTo(0, 0); // Start the page at the top of the page.
 
       setFetching(true);
-      getStoreDetailAPI(
+      getTenantDetailAPI(
         id,
-        onStoreDetailSuccess,
-        onStoreDetailError,
-        onStoreDetailDone,
+        onTenantDetailSuccess,
+        onTenantDetailError,
+        onTenantDetailDone,
         onUnauthorized,
       );
       fetchAttachmentList(currentCursor, id, pageSize);
@@ -331,9 +331,9 @@ function AdminStoreDetailForAttachmentList() {
                 </Link>
               </li>
               <li class="">
-                <Link to="/admin/stores" aria-current="page">
+                <Link to="/admin/tenants" aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faBuilding} />
-                  &nbsp;Stores
+                  &nbsp;Tenants
                 </Link>
               </li>
               <li class="is-active">
@@ -349,9 +349,9 @@ function AdminStoreDetailForAttachmentList() {
           <nav class="breadcrumb is-hidden-desktop" aria-label="breadcrumbs">
             <ul>
               <li class="">
-                <Link to={`/admin/stores`} aria-current="page">
+                <Link to={`/admin/tenants`} aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                  &nbsp;Back to Stores
+                  &nbsp;Back to Tenants
                 </Link>
               </li>
             </ul>
@@ -363,13 +363,13 @@ function AdminStoreDetailForAttachmentList() {
               <div class="column">
                 <p class="title is-4">
                   <FontAwesomeIcon className="fas" icon={faBuilding} />
-                  &nbsp;Store
+                  &nbsp;Tenant
                 </p>
               </div>
-              {store && (
+              {tenant && (
                 <div class="column has-text-right">
                   <Link
-                    to={`/admin/store/${id}/attachments/add`}
+                    to={`/admin/tenant/${id}/attachments/add`}
                     class="button is-small is-success is-fullwidth-mobile"
                     type="button"
                   >
@@ -387,25 +387,25 @@ function AdminStoreDetailForAttachmentList() {
               <PageLoadingContent displayMessage={"Loading..."} />
             ) : (
               <>
-                {store && (
+                {tenant && (
                   <div class="container">
                     <div class="tabs is-medium is-size-7-mobile">
                       <ul>
                         <li>
-                          <Link to={`/admin/store/${store.id}`}>Detail</Link>
+                          <Link to={`/admin/tenant/${tenant.id}`}>Detail</Link>
                         </li>
                         <li>
-                          <Link to={`/admin/store/${store.id}/users`}>
+                          <Link to={`/admin/tenant/${tenant.id}/users`}>
                             Users
                           </Link>
                         </li>
                         <li>
-                          <Link to={`/admin/store/${store.id}/comments`}>
+                          <Link to={`/admin/tenant/${tenant.id}/comments`}>
                             Comments
                           </Link>
                         </li>
                         <li class="is-active">
-                          <Link to={`/admin/store/${store.id}/attachments`}>
+                          <Link to={`/admin/tenant/${tenant.id}/attachments`}>
                             <b>Attachments</b>
                           </Link>
                         </li>
@@ -424,8 +424,8 @@ function AdminStoreDetailForAttachmentList() {
                                                 ##################################################################
                                             */}
                         <div class="is-hidden-touch">
-                          <AdminStoreDetailForAttachmentListDesktop
-                            storeID={store.id}
+                          <AdminTenantDetailForAttachmentListDesktop
+                            tenantID={tenant.id}
                             listData={attachments}
                             setPageSize={setPageSize}
                             pageSize={pageSize}
@@ -444,7 +444,7 @@ function AdminStoreDetailForAttachmentList() {
                                                 ###########################################################################
                                             */}
                         <div class="is-fullwidth is-hidden-desktop">
-                          <AdminStoreDetailForAttachmentListMobile
+                          <AdminTenantDetailForAttachmentListMobile
                             listData={attachments}
                             setPageSize={setPageSize}
                             pageSize={pageSize}
@@ -463,7 +463,7 @@ function AdminStoreDetailForAttachmentList() {
                           <div class="message-body">
                             No attachments.{" "}
                             <b>
-                              <Link to={`/admin/store/${id}/attachments/add`}>
+                              <Link to={`/admin/tenant/${id}/attachments/add`}>
                                 Click here&nbsp;
                                 <FontAwesomeIcon
                                   className="mdi"
@@ -481,15 +481,15 @@ function AdminStoreDetailForAttachmentList() {
                       <div class="column is-half">
                         <Link
                           class="button is-fullwidth-mobile"
-                          to={`/admin/stores`}
+                          to={`/admin/tenants`}
                         >
                           <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                          &nbsp;Back to Stores
+                          &nbsp;Back to Tenants
                         </Link>
                       </div>
                       <div class="column is-half has-text-right">
                         <Link
-                          to={`/admin/store/${id}/attachments/add`}
+                          to={`/admin/tenant/${id}/attachments/add`}
                           class="button is-primary is-fullwidth-mobile"
                         >
                           <FontAwesomeIcon className="fas" icon={faPlus} />
@@ -508,4 +508,4 @@ function AdminStoreDetailForAttachmentList() {
   );
 }
 
-export default AdminStoreDetailForAttachmentList;
+export default AdminTenantDetailForAttachmentList;

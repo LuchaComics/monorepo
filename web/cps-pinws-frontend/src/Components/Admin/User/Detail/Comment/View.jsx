@@ -315,7 +315,7 @@ function AdminUserDetailForCommentList() {
               </div>
               <div class="column has-text-right">
                  {user && user.status === 1 && <Link
-                  to={`/admin/submissions/pick-type-for-add?customer_id=${user.id}&customer_name=${user.name}&store_id=${user.storeId}&from=usercomics&clear=true`}
+                  to={`/admin/submissions/pick-type-for-add?customer_id=${user.id}&customer_name=${user.name}&tenant_id=${user.tenantId}&from=usercomics&clear=true`}
                   class="button is-small is-success is-fullwidth-mobile"
                   type="button"
                 >

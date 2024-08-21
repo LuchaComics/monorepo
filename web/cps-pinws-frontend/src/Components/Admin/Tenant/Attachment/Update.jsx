@@ -20,11 +20,15 @@ import {
   faCogs,
   faEye,
   faArrowLeft,
+  faFile,
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
 import useLocalStorage from "../../../../Hooks/useLocalStorage";
-import { postAttachmentCreateAPI } from "../../../../API/Attachment";
+import {
+  putAttachmentUpdateAPI,
+  getAttachmentDetailAPI,
+} from "../../../../API/Attachment";
 import FormErrorBox from "../../../Reusable/FormErrorBox";
 import FormInputField from "../../../Reusable/FormInputField";
 import FormTextareaField from "../../../Reusable/FormTextareaField";
@@ -40,12 +44,12 @@ import {
   topAlertStatusState,
 } from "../../../../AppState";
 
-function AdminStoreAttachmentAdd() {
+function AdminTenantAttachmentUpdate() {
   ////
   //// URL Parameters.
   ////
 
-  const { id } = useParams();
+  const { id, aid } = useParams();
 
   ////
   //// Global state.
@@ -66,6 +70,7 @@ function AdminStoreAttachmentAdd() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [objectUrl, setObjectUrl] = useState("");
 
   ////
   //// Event handling.
@@ -81,17 +86,19 @@ function AdminStoreAttachmentAdd() {
     setErrors({});
 
     const formData = new FormData();
+    formData.append("id", aid);
     formData.append("file", selectedFile);
     formData.append("name", name);
     formData.append("description", description);
     formData.append("ownership_id", id);
-    formData.append("ownership_type", 3); // 3=Store.
+    formData.append("ownership_type", 3); // 3=Tenant.
 
-    postAttachmentCreateAPI(
+    putAttachmentUpdateAPI(
+      id,
       formData,
-      onAdminStoreAttachmentAddSuccess,
-      onAdminStoreAttachmentAddError,
-      onAdminStoreAttachmentAddDone,
+      onAdminTenantAttachmentUpdateSuccess,
+      onAdminTenantAttachmentUpdateError,
+      onAdminTenantAttachmentUpdateDone,
       onUnauthorized,
     );
     console.log("onSubmitClick: Finished.");
@@ -101,39 +108,41 @@ function AdminStoreAttachmentAdd() {
   //// API.
   ////
 
-  function onAdminStoreAttachmentAddSuccess(response) {
+  function onAdminTenantAttachmentUpdateSuccess(response) {
     // For debugging purposes only.
-    console.log("onAdminStoreAttachmentAddSuccess: Starting...");
+    console.log("onAdminTenantAttachmentUpdateSuccess: Starting...");
     console.log(response);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
-    setTopAlertMessage("Attachment created");
+    setTopAlertMessage("Attachment updated");
     setTopAlertStatus("success");
     setTimeout(() => {
-      console.log("onAdminStoreAttachmentAddSuccess: Delayed for 2 seconds.");
       console.log(
-        "onAdminStoreAttachmentAddSuccess: topAlertMessage, topAlertStatus:",
+        "onAdminTenantAttachmentUpdateSuccess: Delayed for 2 seconds.",
+      );
+      console.log(
+        "onAdminTenantAttachmentUpdateSuccess: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );
       setTopAlertMessage("");
     }, 2000);
 
-    // Redirect the store to the store attachments page.
-    setForceURL("/admin/store/" + id + "/attachments");
+    // Redirect the tenant to the tenant attachments page.
+    setForceURL("/admin/tenant/" + id + "/attachments");
   }
 
-  function onAdminStoreAttachmentAddError(apiErr) {
-    console.log("onAdminStoreAttachmentAddError: Starting...");
+  function onAdminTenantAttachmentUpdateError(apiErr) {
+    console.log("onAdminTenantAttachmentUpdateError: Starting...");
     setErrors(apiErr);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
     setTopAlertMessage("Failed submitting");
     setTopAlertStatus("danger");
     setTimeout(() => {
-      console.log("onAdminStoreAttachmentAddError: Delayed for 2 seconds.");
+      console.log("onAdminTenantAttachmentUpdateError: Delayed for 2 seconds.");
       console.log(
-        "onAdminStoreAttachmentAddError: topAlertMessage, topAlertStatus:",
+        "onAdminTenantAttachmentUpdateError: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );
@@ -147,8 +156,46 @@ function AdminStoreAttachmentAdd() {
     scroll.scrollToTop();
   }
 
-  function onAdminStoreAttachmentAddDone() {
-    console.log("onAdminStoreAttachmentAddDone: Starting...");
+  function onAdminTenantAttachmentUpdateDone() {
+    console.log("onAdminTenantAttachmentUpdateDone: Starting...");
+    setFetching(false);
+  }
+
+  function onAdminTenantAttachmentDetailSuccess(response) {
+    // For debugging purposes only.
+    console.log("onAdminTenantAttachmentDetailSuccess: Starting...");
+    console.log(response);
+    setName(response.name);
+    setDescription(response.description);
+    setObjectUrl(response.objectUrl);
+  }
+
+  function onAdminTenantAttachmentDetailError(apiErr) {
+    console.log("onAdminTenantAttachmentDetailError: Starting...");
+    setErrors(apiErr);
+
+    // Add a temporary banner message in the app and then clear itself after 2 seconds.
+    setTopAlertMessage("Failed submitting");
+    setTopAlertStatus("danger");
+    setTimeout(() => {
+      console.log("onAdminTenantAttachmentDetailError: Delayed for 2 seconds.");
+      console.log(
+        "onAdminTenantAttachmentDetailError: topAlertMessage, topAlertStatus:",
+        topAlertMessage,
+        topAlertStatus,
+      );
+      setTopAlertMessage("");
+    }, 2000);
+
+    // The following code will cause the screen to scroll to the top of
+    // the page. Please see ``react-scroll`` for more information:
+    // https://github.com/fisshy/react-scroll
+    var scroll = Scroll.animateScroll;
+    scroll.scrollToTop();
+  }
+
+  function onAdminTenantAttachmentDetailDone() {
+    console.log("onAdminTenantAttachmentDetailDone: Starting...");
     setFetching(false);
   }
 
@@ -167,12 +214,20 @@ function AdminStoreAttachmentAdd() {
 
     if (mounted) {
       window.scrollTo(0, 0); // Start the page at the top of the page.
+
+      getAttachmentDetailAPI(
+        aid,
+        onAdminTenantAttachmentDetailSuccess,
+        onAdminTenantAttachmentDetailError,
+        onAdminTenantAttachmentDetailDone,
+        onUnauthorized,
+      );
     }
 
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [aid]);
 
   ////
   //// Component rendering.
@@ -196,21 +251,30 @@ function AdminStoreAttachmentAdd() {
                 </Link>
               </li>
               <li class="">
-                <Link to="/admin/stores" aria-current="page">
+                <Link to="/admin/tenants" aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faBuilding} />
-                  &nbsp;Stores
+                  &nbsp;Tenants
                 </Link>
               </li>
               <li class="">
-                <Link to={`/admin/store/${id}/attachments`} aria-current="page">
+                <Link to={`/admin/tenant/${id}/attachments`} aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faEye} />
                   &nbsp;Detail (Attachments)
                 </Link>
               </li>
+              <li class="">
+                <Link
+                  to={`/admin/tenant/${id}/attachment/${aid}`}
+                  aria-current="page"
+                >
+                  <FontAwesomeIcon className="fas" icon={faFile} />
+                  &nbsp;Attachment
+                </Link>
+              </li>
               <li class="is-active">
                 <Link aria-current="page">
-                  <FontAwesomeIcon className="fas" icon={faPlus} />
-                  &nbsp;Add
+                  <FontAwesomeIcon className="fas" icon={faPencil} />
+                  &nbsp;Edit
                 </Link>
               </li>
             </ul>
@@ -220,9 +284,12 @@ function AdminStoreAttachmentAdd() {
           <nav class="breadcrumb is-hidden-desktop" aria-label="breadcrumbs">
             <ul>
               <li class="">
-                <Link to={`/admin/store/${id}/attachments`} aria-current="page">
+                <Link
+                  to={`/admin/tenant/${id}/attachment/${aid}`}
+                  aria-current="page"
+                >
                   <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                  &nbsp;Back to Detail (Attachments)
+                  &nbsp;Back to Attachment
                 </Link>
               </li>
             </ul>
@@ -231,10 +298,9 @@ function AdminStoreAttachmentAdd() {
           {/* Page */}
           <nav class="box">
             <p class="title is-4">
-              <FontAwesomeIcon className="fas" icon={faPlus} />
-              &nbsp;Add Attachment
+              <FontAwesomeIcon className="fas" icon={faPencil} />
+              &nbsp;Edit Attachment
             </p>
-            <FormErrorBox errors={errors} />
 
             {/* <p class="pb-4 has-text-grey">Please fill out all the required fields before submitting this form.</p> */}
 
@@ -242,7 +308,15 @@ function AdminStoreAttachmentAdd() {
               <PageLoadingContent displayMessage={"Submitting..."} />
             ) : (
               <>
+                <FormErrorBox errors={errors} />
                 <div class="container">
+                  <article class="message is-warning">
+                    <div class="message-body">
+                      <strong>Warning:</strong> Submitting with new uploaded
+                      file will delete previous upload.
+                    </div>
+                  </article>
+
                   <FormInputField
                     label="Name"
                     name="name"
@@ -279,14 +353,14 @@ function AdminStoreAttachmentAdd() {
                   <div class="columns pt-5">
                     <div class="column is-half">
                       <Link
-                        to={`/admin/store/${id}/attachments`}
+                        to={`/admin/tenant/${id}/attachment/${aid}`}
                         class="button is-hidden-touch"
                       >
                         <FontAwesomeIcon className="fas" icon={faArrowLeft} />
                         &nbsp;Back
                       </Link>
                       <Link
-                        to={`/admin/store/${id}/attachments`}
+                        to={`/admin/tenant/${id}/attachment/${aid}`}
                         class="button is-fullwidth is-hidden-desktop"
                       >
                         <FontAwesomeIcon className="fas" icon={faArrowLeft} />
@@ -320,4 +394,4 @@ function AdminStoreAttachmentAdd() {
   );
 }
 
-export default AdminStoreAttachmentAdd;
+export default AdminTenantAttachmentUpdate;

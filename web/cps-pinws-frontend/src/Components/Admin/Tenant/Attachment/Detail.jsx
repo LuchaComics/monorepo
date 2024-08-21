@@ -34,7 +34,7 @@ import {
 } from "../../../../AppState";
 import FormRowText from "../../../Reusable/FormRowText";
 
-function AdminStoreAttachmentDetail() {
+function AdminTenantAttachmentDetail() {
   ////
   //// URL Parameters.
   ////
@@ -70,26 +70,26 @@ function AdminStoreAttachmentDetail() {
   //// API.
   ////
 
-  function onAdminStoreAttachmentDetailSuccess(response) {
+  function onAdminTenantAttachmentDetailSuccess(response) {
     // For debugging purposes only.
-    console.log("onAdminStoreAttachmentDetailSuccess: Starting...");
+    console.log("onAdminTenantAttachmentDetailSuccess: Starting...");
     console.log(response);
     setName(response.name);
     setDescription(response.description);
     setObjectUrl(response.objectUrl);
   }
 
-  function onAdminStoreAttachmentDetailError(apiErr) {
-    console.log("onAdminStoreAttachmentDetailError: Starting...");
+  function onAdminTenantAttachmentDetailError(apiErr) {
+    console.log("onAdminTenantAttachmentDetailError: Starting...");
     setErrors(apiErr);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
     setTopAlertMessage("Failed submitting");
     setTopAlertStatus("danger");
     setTimeout(() => {
-      console.log("onAdminStoreAttachmentDetailError: Delayed for 2 seconds.");
+      console.log("onAdminTenantAttachmentDetailError: Delayed for 2 seconds.");
       console.log(
-        "onAdminStoreAttachmentDetailError: topAlertMessage, topAlertStatus:",
+        "onAdminTenantAttachmentDetailError: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );
@@ -103,8 +103,8 @@ function AdminStoreAttachmentDetail() {
     scroll.scrollToTop();
   }
 
-  function onAdminStoreAttachmentDetailDone() {
-    console.log("onAdminStoreAttachmentDetailDone: Starting...");
+  function onAdminTenantAttachmentDetailDone() {
+    console.log("onAdminTenantAttachmentDetailDone: Starting...");
     setFetching(false);
   }
 
@@ -126,9 +126,9 @@ function AdminStoreAttachmentDetail() {
 
       getAttachmentDetailAPI(
         aid,
-        onAdminStoreAttachmentDetailSuccess,
-        onAdminStoreAttachmentDetailError,
-        onAdminStoreAttachmentDetailDone,
+        onAdminTenantAttachmentDetailSuccess,
+        onAdminTenantAttachmentDetailError,
+        onAdminTenantAttachmentDetailDone,
         onUnauthorized,
       );
     }
@@ -160,13 +160,13 @@ function AdminStoreAttachmentDetail() {
                 </Link>
               </li>
               <li class="">
-                <Link to="/admin/stores" aria-current="page">
+                <Link to="/admin/tenants" aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faBuilding} />
-                  &nbsp;Stores
+                  &nbsp;Tenants
                 </Link>
               </li>
               <li class="">
-                <Link to={`/admin/store/${id}/attachments`} aria-current="page">
+                <Link to={`/admin/tenant/${id}/attachments`} aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faEye} />
                   &nbsp;Detail (Attachments)
                 </Link>
@@ -184,7 +184,7 @@ function AdminStoreAttachmentDetail() {
           <nav class="breadcrumb is-hidden-desktop" aria-label="breadcrumbs">
             <ul>
               <li class="">
-                <Link to={`/admin/store/${id}/attachments`} aria-current="page">
+                <Link to={`/admin/tenant/${id}/attachments`} aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faArrowLeft} />
                   &nbsp;Back to Detail (Attachments)
                 </Link>
@@ -267,14 +267,14 @@ function AdminStoreAttachmentDetail() {
                   <div class="columns pt-5">
                     <div class="column is-half">
                       <Link
-                        to={`/admin/store/${id}/attachments`}
+                        to={`/admin/tenant/${id}/attachments`}
                         class="button is-medium is-hidden-touch"
                       >
                         <FontAwesomeIcon className="fas" icon={faArrowLeft} />
                         &nbsp;Back
                       </Link>
                       <Link
-                        to={`/admin/store/${id}/attachments`}
+                        to={`/admin/tenant/${id}/attachments`}
                         class="button is-medium is-fullwidth is-hidden-desktop"
                       >
                         <FontAwesomeIcon className="fas" icon={faArrowLeft} />
@@ -283,14 +283,14 @@ function AdminStoreAttachmentDetail() {
                     </div>
                     <div class="column is-half has-text-right">
                       <Link
-                        to={`/admin/store/${id}/attachment/${aid}/edit`}
+                        to={`/admin/tenant/${id}/attachment/${aid}/edit`}
                         class="button is-medium is-warning is-hidden-touch"
                       >
                         <FontAwesomeIcon className="fas" icon={faPencil} />
                         &nbsp;Edit
                       </Link>
                       <Link
-                        to={`/admin/store/${id}/attachment/${aid}/edit`}
+                        to={`/admin/tenant/${id}/attachment/${aid}/edit`}
                         class="button is-medium is-warning is-fullwidth is-hidden-desktop"
                       >
                         <FontAwesomeIcon className="fas" icon={faPencil} />
@@ -308,4 +308,4 @@ function AdminStoreAttachmentDetail() {
   );
 }
 
-export default AdminStoreAttachmentDetail;
+export default AdminTenantAttachmentDetail;

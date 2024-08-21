@@ -25,20 +25,24 @@ import { useRecoilState } from "recoil";
 import { DateTime } from "luxon";
 
 import FormErrorBox from "../../Reusable/FormErrorBox";
-import { PAGE_SIZE_OPTIONS, USER_ROLES } from "../../../Constants/FieldOptions";
+import {
+  PAGE_SIZE_OPTIONS,
+  ATTACHMENT_STATES,
+} from "../../../Constants/FieldOptions";
 
 /*
 Display for both tablet and mobile.
 */
-function AdminStoreDetailForUserListMobile(props) {
+function AdminTenantDetailForAttachmentListMobile(props) {
   const {
+    submissionID,
     listData,
     setPageSize,
     pageSize,
     previousCursors,
     onPreviousClicked,
     onNextClicked,
-    onSelectUserForDeletion,
+    onSelectAttachmentForDeletion,
   } = props;
   return (
     <>
@@ -51,64 +55,33 @@ function AdminStoreDetailForUserListMobile(props) {
               <strong>Name:</strong>&nbsp;{datum.name}
               <br />
               <br />
-              <strong>Email:</strong>&nbsp;
-              <Link to={`mailto:${datum.email}`}>{datum.email}</Link>
-              <br />
-              <br />
-              <strong>Phone:</strong>&nbsp;
-              <Link to={`tel:${datum.phone}`}>{datum.phone}</Link>
-              <br />
-              <br />
-              <strong>Role:</strong>&nbsp;{USER_ROLES[datum.role]}
+              <strong>Status:</strong>&nbsp;{ATTACHMENT_STATES[datum.status]}
               <br />
               <br />
               <strong>Created:</strong>&nbsp;{datum.createdAt}
               <br />
+              <br />
               {/* Tablet only */}
               <div class="is-hidden-mobile pt-2">
-                <div className="buttons is-right">
+                <div class="buttons is-right">
                   <Link
-                    to={`/admin/submissions/pick-type-for-add?user_id=${datum.id}&user_name=${datum.name}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    class="button is-small is-success"
-                    type="button"
-                  >
-                    <FontAwesomeIcon className="mdi" icon={faPlus} />
-                    &nbsp;CPS&nbsp;
-                    <FontAwesomeIcon
-                      className="fas"
-                      icon={faArrowUpRightFromSquare}
-                    />
-                  </Link>
-                  <Link
-                    to={`/admin/user/${datum.id}`}
-                    target="_blank"
-                    rel="noreferrer"
+                    to={`/submissions/comic/${submissionID}/attachment/${datum.id}`}
                     class="button is-small is-primary"
                     type="button"
                   >
-                    View&nbsp;
-                    <FontAwesomeIcon
-                      className="fas"
-                      icon={faArrowUpRightFromSquare}
-                    />
+                    View
                   </Link>
                   <Link
-                    to={`/admin/user/${datum.id}/edit`}
-                    target="_blank"
-                    rel="noreferrer"
+                    to={`/submissions/comic/${submissionID}/attachment/${datum.id}/edit`}
                     class="button is-small is-warning"
                     type="button"
                   >
-                    Edit&nbsp;
-                    <FontAwesomeIcon
-                      className="fas"
-                      icon={faArrowUpRightFromSquare}
-                    />
+                    Edit
                   </Link>
                   <button
-                    onClick={(e, ses) => onSelectUserForDeletion(e, datum)}
+                    onClick={(e, ses) =>
+                      onSelectAttachmentForDeletion(e, datum)
+                    }
                     class="button is-small is-danger"
                     type="button"
                   >
@@ -122,54 +95,28 @@ function AdminStoreDetailForUserListMobile(props) {
                 <div class="columns is-mobile">
                   <div class="column">
                     <Link
-                      to={`/admin/submissions/pick-type-for-add?user_id=${datum.id}&user_name=${datum.name}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      class="button is-small is-success"
+                      to={`/submissions/comic/${submissionID}/attachment/${datum.id}`}
+                      class="button is-small is-primary is-fullwidth"
                       type="button"
                     >
-                      <FontAwesomeIcon className="mdi" icon={faPlus} />
-                      &nbsp;CPS&nbsp;
-                      <FontAwesomeIcon
-                        className="fas"
-                        icon={faArrowUpRightFromSquare}
-                      />
+                      View
                     </Link>
                   </div>
                   <div class="column">
                     <Link
-                      to={`/admin/user/${datum.id}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      class="button is-small is-primary"
+                      to={`/submissions/comic/${submissionID}/attachment/${datum.id}/edit`}
+                      class="button is-small is-warning is-fullwidth"
                       type="button"
                     >
-                      View&nbsp;
-                      <FontAwesomeIcon
-                        className="fas"
-                        icon={faArrowUpRightFromSquare}
-                      />
-                    </Link>
-                  </div>
-                  <div class="column">
-                    <Link
-                      to={`/admin/user/${datum.id}/edit`}
-                      target="_blank"
-                      rel="noreferrer"
-                      class="button is-small is-warning"
-                      type="button"
-                    >
-                      Edit&nbsp;
-                      <FontAwesomeIcon
-                        className="fas"
-                        icon={faArrowUpRightFromSquare}
-                      />
+                      Edit
                     </Link>
                   </div>
                   <div class="column">
                     <button
-                      onClick={(e, ses) => onSelectUserForDeletion(e, datum)}
-                      class="button is-small is-danger"
+                      onClick={(e, ses) =>
+                        onSelectAttachmentForDeletion(e, datum)
+                      }
+                      class="button is-small is-danger is-fullwidth"
                       type="button"
                     >
                       <FontAwesomeIcon className="mdi" icon={faTrashCan} />
@@ -222,4 +169,4 @@ function AdminStoreDetailForUserListMobile(props) {
   );
 }
 
-export default AdminStoreDetailForUserListMobile;
+export default AdminTenantDetailForAttachmentListMobile;

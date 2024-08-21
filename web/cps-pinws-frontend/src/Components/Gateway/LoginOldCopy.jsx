@@ -70,7 +70,7 @@ function Login() {
 
       // BUGFIX:
       try {
-        response.user.storeID = response.user.storeId;
+        response.user.tenantID = response.user.tenantId;
       } catch (err) {
         console.log("onLoginSuccess | catch err:", err);
       }
@@ -78,7 +78,7 @@ function Login() {
       // For debugging purposes only.
       console.log("onLoginSuccess | user postfix:", response.user);
 
-      // Store in persistance storage in the browser.
+      // Tenant in persistance storage in the browser.
       setCurrentUser(response.user);
 
       if (response.user.role === 1) {
