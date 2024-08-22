@@ -4,7 +4,7 @@ tasks:
   start:
     desc: Start the backend in developer mode
     cmds:
-      - docker-compose -p cps_pinws_backend -f dev.docker-compose.yml up
+      - docker-compose -p cps_pinws_backend -f dev.docker-compose.yml up --remove-orphans
 
   end:
     desc: Stop the backend in developer mode

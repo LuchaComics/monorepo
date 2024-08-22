@@ -1,14 +1,17 @@
-package ipfs // Special thanks via https://github.com/ipfs/kubo/blob/master/docs/examples/kubo-as-a-library/README.md
+package ipfs // Special thanks via https://github.com/hsanjuan/ipfs-lite
 
 import (
 	"context"
+	"io"
 	"log"
 	"log/slog"
 	"mime/multipart"
 
-	"github.com/ipfs/kubo/client/rpc"
-	"github.com/ipfs/kubo/core"
-	icore "github.com/ipfs/kubo/core/coreiface"
+	ipfslite "github.com/hsanjuan/ipfs-lite"
+	"github.com/ipfs/go-cid"
+	datastore "github.com/ipfs/go-datastore"
+	"github.com/libp2p/go-libp2p/core/crypto"
+	"github.com/multiformats/go-multiaddr"
 
 	c "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/config"
 )
@@ -17,36 +20,57 @@ type IPFSStorager interface {
 	UploadContent(ctx context.Context, objectKey string, content []byte) error
 	UploadContentFromMulipart(ctx context.Context, objectKey string, file multipart.File) error
 	DeleteByKeys(ctx context.Context, key []string) error
+	GetContentByCID(ctx context.Context, cidString string) ([]byte, error)
 }
 
 type ipfsStorager struct {
-	ipfs       icore.CoreAPI
-	node       *core.IpfsNode
-	Logger     *slog.Logger
-	BucketName string
+	datastore datastore.Batching
+	peer      *ipfslite.Peer
+	Logger    *slog.Logger
 }
 
 func NewStorage(appConf *c.Conf, logger *slog.Logger) IPFSStorager {
-	// DEVELOPERS NOTE:
-	// How can I use the AWS SDK v2 for Go with DigitalOcean Spaces? via https://stackoverflow.com/a/74284205
 	logger.Debug("ipfs initializing...")
 
-	// https://github.com/hsanjuan/ipfs-lite
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	api, err := rpc.NewPathApi("ipfs:4001")
-	logger.Debug("-> %v", api)
+	// Load up the in-memory storage system so all fetched and saved files will
+	// exists in memory and will be lost when the application terminates.
+	ds := ipfslite.NewInMemoryDatastore()
+	priv, _, err := crypto.GenerateKeyPair(crypto.RSA, 2048)
 	if err != nil {
-		log.Fatalf("failed to connect to node: %s", err)
+		panic(err)
 	}
+	logger.Debug("ipfs in-memory datastore ready")
 
-	/// --- Part I: Getting a IPFS node running
+	// Launches an IPFS-Lite peer.
+	listen, _ := multiaddr.NewMultiaddr("/ip4/0.0.0.0/tcp/4005")
+	h, dht, err := ipfslite.SetupLibp2p(
+		ctx,
+		priv,
+		nil,
+		[]multiaddr.Multiaddr{listen},
+		ds,
+		ipfslite.Libp2pOptionsExtra...,
+	)
+	if err != nil {
+		log.Fatalf("failed to setup lib p2p: %s", err)
+	}
+	logger.Debug("ipfs connected to p2p network")
+	lite, err := ipfslite.New(ctx, ds, nil, h, dht, nil)
+	if err != nil {
+		log.Fatalf("failed to setup ipfs peer: %s", err)
+	}
+	lite.Bootstrap(ipfslite.DefaultBootstrapPeers())
+	logger.Debug("ipfs is peer in p2p network")
 
-	logger.Debug("getting an ipfs node running")
-
-	logger.Debug("IPFS node is running")
-
-	// Create our storage handler.
-	ipfsStorage := &ipfsStorager{}
+	// Create our storage handler for IPFS.
+	ipfsStorage := &ipfsStorager{
+		datastore: ds,
+		peer:      lite,
+		Logger:    logger,
+	}
 
 	// For debugging purposes only.
 	logger.Debug("ipfs initialized")
@@ -55,14 +79,30 @@ func NewStorage(appConf *c.Conf, logger *slog.Logger) IPFSStorager {
 	return ipfsStorage
 }
 
-func (s *ipfsStorager) UploadContent(ctx context.Context, objectKey string, content []byte) error {
+func (impl *ipfsStorager) UploadContent(ctx context.Context, objectKey string, content []byte) error {
 	return nil
 }
 
-func (s *ipfsStorager) UploadContentFromMulipart(ctx context.Context, objectKey string, file multipart.File) error {
+func (impl *ipfsStorager) UploadContentFromMulipart(ctx context.Context, objectKey string, file multipart.File) error {
 	return nil
 }
 
-func (s *ipfsStorager) DeleteByKeys(ctx context.Context, objectKeys []string) error {
+func (impl *ipfsStorager) GetContentByCID(ctx context.Context, cidString string) ([]byte, error) {
+	c, _ := cid.Decode("QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8u")
+	rsc, err := impl.peer.GetFile(ctx, c)
+	if err != nil {
+		return nil, err
+	}
+	defer rsc.Close()
+	content, err := io.ReadAll(rsc)
+	if err != nil {
+		return nil, err
+	}
+
+	// fmt.Println(string(content))
+	return content, nil
+}
+
+func (impl *ipfsStorager) DeleteByKeys(ctx context.Context, objectKeys []string) error {
 	return nil
 }

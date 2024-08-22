@@ -188,6 +188,8 @@ services:
       # - ipfs
     volumes: # Connect the local filesystem with the docker filesystem. DO NOT REMOVE.
       - ./:/go/src/github.com/LuchaComics/monorepo/cloud/cps-pinws-backend # IMPORTANT: Required for hotreload via `CompileDaemon`.
+    cap_add: # See: https://github.com/AdguardTeam/AdGuardHome/issues/5903
+      - NET_ADMIN
 
 volumes:
   db1_data:
