@@ -171,12 +171,11 @@ services:
       dockerfile: ./dev.Dockerfile
     restart: unless-stopped
     ports:
-      - "8000:8000"
-      # - "4001:4001"
-      # - "4002:4002/udp"
-      # - "4003:4003"
-      # - "5001:5001"
-      # - "8080:8080"
+      - "8000:8000" # CPS PINWS Application Port.
+      - "4001:4001" # Swarm Port: 4001 (for p2p communications)
+      - "4005:4005"
+      - "5001:5001" # API Port: 5001 (for the HTTP API)
+      - "8080:8080" # Gateway Port: 8080 (for the HTTP Gateway)
     depends_on:
       - db1
       - db2
@@ -190,6 +189,8 @@ services:
       - ./:/go/src/github.com/LuchaComics/monorepo/cloud/cps-pinws-backend # IMPORTANT: Required for hotreload via `CompileDaemon`.
     cap_add: # See: https://github.com/AdguardTeam/AdGuardHome/issues/5903
       - NET_ADMIN
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 volumes:
   db1_data:
