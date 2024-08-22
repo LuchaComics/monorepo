@@ -99,6 +99,29 @@ services:
       - db3
     restart: unless-stopped
 
+  ipfs:
+    image: ipfs/kubo:master-latest
+    restart: unless-stopped
+    volumes:
+      - ./data:/data/ipfs
+      - ./data:/ipfs
+      - ./data:/ipns
+    environment:
+      - IPFS_PATH=/data/ipfs
+    ports:
+      # Swarm listens on all interfaces, so is remotely reachable.
+      - 4001:4001/tcp
+      - 4001:4001/udp
+
+      # The following ports only listen on the loopback interface, so are not remotely reachable by default.
+      # If you want to override these or add more ports, see https://docs.docker.com/compose/extends/ .
+
+      # API port, which includes admin operations, so you probably don't want this remotely accessible.
+      - 127.0.0.1:5001:5001
+
+      # HTTP Gateway
+      - 127.0.0.1:8080:8080
+
   # The main application.
   app:
     container_name: cps_pinws_backend_app
@@ -148,6 +171,11 @@ services:
     restart: unless-stopped
     ports:
       - "8000:8000"
+      # - "4001:4001"
+      # - "4002:4002/udp"
+      # - "4003:4003"
+      # - "5001:5001"
+      # - "8080:8080"
     depends_on:
       - db1
       - db2
@@ -156,6 +184,7 @@ services:
       - db1
       - db2
       - db3
+      - ipfs
     volumes: # Connect the local filesystem with the docker filesystem. DO NOT REMOVE.
       - ./:/go/src/github.com/LuchaComics/monorepo/cloud/cps-pinws-backend # IMPORTANT: Required for hotreload via `CompileDaemon`.
 

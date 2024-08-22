@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
+	ipfs_storage "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/adapter/storage/ipfs"
 	s3_storage "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/adapter/storage/s3"
 	attachment_s "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/attachment/datastore"
 	domain "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/attachment/datastore"
@@ -31,6 +32,7 @@ type AttachmentControllerImpl struct {
 	Config           *config.Conf
 	Logger           *slog.Logger
 	UUID             uuid.Provider
+	IPFS             ipfs_storage.IPFSStorager
 	S3               s3_storage.S3Storager
 	DbClient         *mongo.Client
 	AttachmentStorer attachment_s.AttachmentStorer
@@ -41,6 +43,7 @@ func NewController(
 	appCfg *config.Conf,
 	loggerp *slog.Logger,
 	uuidp uuid.Provider,
+	ipfs ipfs_storage.IPFSStorager,
 	s3 s3_storage.S3Storager,
 	client *mongo.Client,
 	org_storer attachment_s.AttachmentStorer,
@@ -51,6 +54,7 @@ func NewController(
 		Logger:           loggerp,
 		UUID:             uuidp,
 		S3:               s3,
+		IPFS:             ipfs,
 		DbClient:         client,
 		AttachmentStorer: org_storer,
 		UserStorer:       usr_storer,

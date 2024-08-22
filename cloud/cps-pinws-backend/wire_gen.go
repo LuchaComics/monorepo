@@ -9,6 +9,7 @@ package main
 import (
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/adapter/cache/mongodbcache"
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/adapter/emailer/mailgun"
+	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/adapter/storage/ipfs"
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/adapter/storage/mongodb"
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/adapter/storage/s3"
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/adapter/templatedemailer"
@@ -66,7 +67,8 @@ func InitializeEvent() Application {
 	s3Storager := s3.NewStorage(conf, slogLogger, provider)
 	tenantController := controller3.NewController(conf, slogLogger, provider, s3Storager, templatedEmailer, client, tenantStorer, userStorer, attachmentStorer)
 	handler2 := httptransport3.NewHandler(slogLogger, tenantController)
-	attachmentController := controller4.NewController(conf, slogLogger, provider, s3Storager, client, attachmentStorer, userStorer)
+	ipfsStorager := ipfs.NewStorage(conf, slogLogger)
+	attachmentController := controller4.NewController(conf, slogLogger, provider, ipfsStorager, s3Storager, client, attachmentStorer, userStorer)
 	handler3 := httptransport4.NewHandler(slogLogger, attachmentController)
 	inputPortServer := http.NewInputPort(conf, slogLogger, middlewareMiddleware, handler, httptransportHandler, handler2, handler3)
 	application := NewApplication(slogLogger, inputPortServer)

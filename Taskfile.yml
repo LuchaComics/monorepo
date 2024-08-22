@@ -19,4 +19,4 @@ tasks:
   usepinws:
     desc: Load up the go workspace for the `pinws-backend` module.
     cmds:
-      - go work use ./cloud/pinws-backend
+      - go work use ./cloud/cps-pinws-backend
