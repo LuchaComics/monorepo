@@ -3,7 +3,7 @@
 ###
 
 # The base go-image
-FROM golang:1.22.5-alcps-pinwse as build-env
+FROM golang:1.23-alpine as build-env
 
 # Create a directory for the app
 RUN mkdir /app
@@ -31,7 +31,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o cps-pinws-backend .
 ### Run stage.
 ###
 
-FROM alcps-pinwse:latest
+FROM alpine:latest
 
 # Copy only required data into this image
 COPY --from=build-env /app/cps-pinws-backend .

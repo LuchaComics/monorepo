@@ -1,5 +1,5 @@
 # The base go-image
-FROM golang:1.22.5
+FROM golang:1.23
 
 COPY . /go/src/github.com/LuchaComics/monorepo/cloud/cps-pinws-backend
 WORKDIR /go/src/github.com/LuchaComics/monorepo/cloud/cps-pinws-backend

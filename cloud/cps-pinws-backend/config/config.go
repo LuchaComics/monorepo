@@ -13,6 +13,7 @@ type Conf struct {
 	PDFBuilder       pdfBuilderConfig
 	Emailer          mailgunConfig
 	PaymentProcessor paymentProcessorConfig
+	IPFSNode         ipfsConfig
 }
 
 type serverConf struct {
@@ -66,6 +67,10 @@ type paymentProcessorConfig struct {
 	WebhookSecretKey string
 }
 
+type ipfsConfig struct {
+	IPAddress string
+}
+
 func New() *Conf {
 	var c Conf
 	c.AppServer.IsDeveloperMode = getEnvBool("CPS_PINWS_BACKEND_APP_IS_DEVELOPER_MODE", false, true) // If in doubt assume developer mode!
@@ -106,6 +111,8 @@ func New() *Conf {
 	c.PaymentProcessor.SecretKey = getEnv("CPS_PINWS_BACKEND_PAYMENT_PROCESSOR_SECRET_KEY", true)
 	c.PaymentProcessor.PublicKey = getEnv("CPS_PINWS_BACKEND_PAYMENT_PROCESSOR_PUBLIC_KEY", true)
 	c.PaymentProcessor.WebhookSecretKey = getEnv("CPS_PINWS_BACKEND_PAYMENT_PROCESSOR_WEBHOOK_SECRET_KEY", true)
+
+	c.IPFSNode.IPAddress = getEnv("CPS_PINWS_BACKEND_IPFS_NODE_IP_ADDRESS", true)
 
 	return &c
 }
