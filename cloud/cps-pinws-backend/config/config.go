@@ -68,7 +68,7 @@ type paymentProcessorConfig struct {
 }
 
 type ipfsConfig struct {
-	IPAddress string
+	DomainOrIPAddress string
 }
 
 func New() *Conf {
@@ -112,7 +112,7 @@ func New() *Conf {
 	c.PaymentProcessor.PublicKey = getEnv("CPS_PINWS_BACKEND_PAYMENT_PROCESSOR_PUBLIC_KEY", true)
 	c.PaymentProcessor.WebhookSecretKey = getEnv("CPS_PINWS_BACKEND_PAYMENT_PROCESSOR_WEBHOOK_SECRET_KEY", true)
 
-	c.IPFSNode.IPAddress = getEnv("CPS_PINWS_BACKEND_IPFS_NODE_IP_ADDRESS", true)
+	c.IPFSNode.DomainOrIPAddress = getEnv("CPS_PINWS_BACKEND_IPFS_NODE_DOMAIN_OR_IP_ADDRESS", true)
 
 	return &c
 }
