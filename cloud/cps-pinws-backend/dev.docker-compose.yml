@@ -99,29 +99,29 @@ services:
       - db3
     restart: unless-stopped
 
-  ipfs-node:
-    container_name: cps_ipfs_node
-    image: ipfs/kubo:master-latest
-    restart: unless-stopped
-    volumes:
-      - ./data/ipfs:/data/ipfs
-      - ./data/ipfs:/ipfs
-      - ./data/ipfs:/ipns
-    environment:
-      - IPFS_PATH=/data/ipfs
-    ports:
-      # Swarm listens on all interfaces, so is remotely reachable.
-      - 4001:4001/tcp
-      - 4001:4001/udp
-
-      # The following ports only listen on the loopback interface, so are not remotely reachable by default.
-      # If you want to override these or add more ports, see https://docs.docker.com/compose/extends/ .
-
-      # API port, which includes admin operations, so you probably don't want this remotely accessible.
-      - 127.0.0.1:5001:5001
-
-      # HTTP Gateway
-      - 127.0.0.1:8080:8080
+  # ipfs-node:
+  #   container_name: cps_ipfs_node
+  #   image: ipfs/kubo:master-latest
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./data/ipfs:/data/ipfs
+  #     - ./data/ipfs:/ipfs
+  #     - ./data/ipfs:/ipns
+  #   environment:
+  #     - IPFS_PATH=/data/ipfs
+  #   ports:
+  #     # Swarm listens on all interfaces, so is remotely reachable.
+  #     - 4001:4001/tcp
+  #     - 4001:4001/udp
+  #
+  #     # The following ports only listen on the loopback interface, so are not remotely reachable by default.
+  #     # If you want to override these or add more ports, see https://docs.docker.com/compose/extends/ .
+  #
+  #     # API port, which includes admin operations, so you probably don't want this remotely accessible.
+  #     - 127.0.0.1:5001:5001
+  #
+  #     # HTTP Gateway
+  #     - 127.0.0.1:8080:8080
 
   # The main application.
   app:
@@ -166,28 +166,30 @@ services:
       CPS_PINWS_BACKEND_PAYMENT_PROCESSOR_PUBLIC_KEY: ${CPS_PINWS_BACKEND_PAYMENT_PROCESSOR_PUBLIC_KEY}
       CPS_PINWS_BACKEND_PAYMENT_PROCESSOR_WEBHOOK_SECRET_KEY: ${CPS_PINWS_BACKEND_PAYMENT_PROCESSOR_WEBHOOK_SECRET_KEY}
       CPS_PINWS_BACKEND_APP_ENABLE_2FA_ON_REGISTRATION: ${CPS_PINWS_BACKEND_APP_ENABLE_2FA_ON_REGISTRATION}
-      CPS_PINWS_BACKEND_IPFS_NODE_DOMAIN_OR_IP_ADDRESS: ipfs-node
+      CPS_PINWS_BACKEND_IPFS_NODE_OS: ${CPS_PINWS_BACKEND_IPFS_NODE_OS}
+      CPS_PINWS_BACKEND_IPFS_NODE_ARCH: ${CPS_PINWS_BACKEND_IPFS_NODE_ARCH}
+      CPS_PINWS_BACKEND_IPFS_NODE_RPC_GATEWAY_URL: http://127.0.0.1:5001
     build:
       context: .
       dockerfile: ./dev.Dockerfile
     restart: unless-stopped
     ports:
       - "8000:8000" # CPS PINWS Application Port.
-      #- "4001:4001" # Swarm Port: 4001 (for p2p communications)
-      - "4005:4005/tcp" # Swarm Port: 4005 (for p2p communications, we set as custom value in our app)
-      - "4005:4005/udp" # Swarm Port: 4005 (for p2p communications, we set as custom value in our app)
-      #- "5001:5001" # API Port: 5001 (for the HTTP API)
+      - "4001:4001" # Swarm Port: 4001 (for p2p communications - required for our app)
+      # - "4005:4005/tcp" # Swarm Port: 4005 (for p2p communications, we set as custom value in our app)
+      # - "4005:4005/udp" # Swarm Port: 4005 (for p2p communications, we set as custom value in our app)
+      # - "5001:5001" # API Port: 5001 (for the HTTP API) (Enable for develpment purposes only -  do not open in prod!)
       #- "8080:8080" # Gateway Port: 8080 (for the HTTP Gateway)
     depends_on:
       - db1
       - db2
       - db3
-      - ipfs-node
+      # - ipfs-node
     links:
       - db1
       - db2
       - db3
-      - ipfs-node
+      # - ipfs-node
     volumes: # Connect the local filesystem with the docker filesystem. DO NOT REMOVE.
       - ./:/go/src/github.com/LuchaComics/monorepo/cloud/cps-pinws-backend # IMPORTANT: Required for hotreload via `CompileDaemon`.
     cap_add: # See: https://github.com/AdguardTeam/AdGuardHome/issues/5903

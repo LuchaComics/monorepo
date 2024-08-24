@@ -85,6 +85,8 @@ func (port *httpInputPort) Run() {
 }
 
 func (port *httpInputPort) Shutdown() {
+	port.Logger.Info("HTTP server shutting down now...")
+	port.Attachment.Shutdown()
 	port.Logger.Info("HTTP server shutdown")
 }
 

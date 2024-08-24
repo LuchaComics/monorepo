@@ -5,55 +5,66 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
-	"net"
+	"mime/multipart"
+	"net/http"
 	"os"
 	"strings"
+	"time"
 
+	ipfswrapper "github.com/bartmika/ipfs-wrapper"
 	ipfsFiles "github.com/ipfs/go-ipfs-files"
 	"github.com/ipfs/kubo/client/rpc"
-	ma "github.com/multiformats/go-multiaddr"
 
 	c "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/config"
 )
 
 type IPFSStorager interface {
-	UploadContentFromFilepath(ctx context.Context, filepath string) (string, error)
+	UploadContentFromMulipart(ctx context.Context, file multipart.File) (string, error)
 	GetContentByCID(ctx context.Context, cidString string) ([]byte, error)
 	PinContent(ctx context.Context, cidString string) error
+	Shutdown()
 }
 
 type ipfsStorager struct {
-	httpApi *rpc.HttpApi
-	logger  *slog.Logger
+	ipfsWrapper *ipfswrapper.IpfsWrapper
+	httpApi     *rpc.HttpApi
+	logger      *slog.Logger
 }
 
 func NewStorage(appConf *c.Conf, logger *slog.Logger) IPFSStorager {
-	logger.Debug("ipfs storage adapter initializing...")
+	logger.Debug("ipfs storage adapter initializing...", appConf.IPFSNode.BinaryOperatingSystem, appConf.IPFSNode.BinaryCPUArchitecture)
+	return &ipfsStorager{} //TODO: REMOVE WHEN READY.
 
-	var ipv4Str string
-	ips, _ := net.LookupIP(appConf.IPFSNode.DomainOrIPAddress)
-	for _, ip := range ips {
-		if ipv4 := ip.To4(); ipv4 != nil {
-			ipv4Str = fmt.Sprintf("%v", ipv4)
-			logger.Debug("ipfs storage adapter will connect to active running ipfs node instance",
-				slog.String("domain", appConf.IPFSNode.DomainOrIPAddress),
-				slog.String("ip_address", ipv4Str))
-		}
+	wrapper, initErr := ipfswrapper.NewWrapper(
+		// ipfswrapper.WithOverrideDaemonWarmupDuration(10),
+		ipfswrapper.WithContinousOperation(),
+		ipfswrapper.WithOverrideBinaryOsAndArch(appConf.IPFSNode.BinaryOperatingSystem, appConf.IPFSNode.BinaryCPUArchitecture),
+	)
+	if initErr != nil {
+		// log.Fatalf("failed creating ipfs-wrapper: %v", initErr)
+
+		logger.Error("ipfs storage adapter failed creating ipfs-wrapper",
+			slog.Any("err", initErr))
+		return &ipfsStorager{}
 	}
-	if ipv4Str == "" {
-		ipv4Str = appConf.IPFSNode.DomainOrIPAddress
-		logger.Debug("ipfs storage adapter will connect to active running node instance", slog.String("ip_address", ipv4Str))
+	if wrapper == nil {
+		log.Fatal("cannot return nil wrapper")
 	}
 
-	addr, err := ma.NewMultiaddr("/ip4/" + ipv4Str + "/tcp/5001")
+	if startErr := wrapper.StartDaemonInBackground(); startErr != nil {
+		log.Fatal(startErr)
+	}
+
+	// Set an artificial delay to give time for the `ipfs` binary to load up.
+	// This is dependent on your machine.
+	time.Sleep(8 * time.Second)
+
+	logger.Debug("ipfs storage adapter setup ipfs node")
+
+	httpClient := &http.Client{}
+	httpApi, err := rpc.NewURLApiWithClient(appConf.IPFSNode.GatewayRPCURL, httpClient)
 	if err != nil {
-		log.Fatalf("failed make address: %s", err)
-	}
-
-	// "Connect" to local node
-	httpApi, err := rpc.NewApi(addr)
-	if err != nil {
-		log.Fatalf("failed to connect to node: %s", err)
+		log.Fatalf("failed loading ipfs daemon: %v\n", err)
 	}
 
 	logger.Debug("ipfs storage adapter rpc connected successfully")
@@ -67,33 +78,49 @@ func NewStorage(appConf *c.Conf, logger *slog.Logger) IPFSStorager {
 
 	fmt.Printf("Data successfully stored in IPFS: %v\n", p)
 
-	// // Pin a given file by its CID
-	// ctx := context.Background()
-	// cid := "bafkreidtuosuw37f5xmn65b3ksdiikajy7pwjjslzj2lxxz2vc4wdy3zku"
-	// p := path.New(cid)
-	// err = node.Pin().Add(ctx, p)
-	// if err != nil {
-	// 	log.Fatalf("failed to pin: %s", err)
-	// }
+	logger.Debug("ipfs storage adapter confirmed working locally")
 
 	// Create our storage handler for IPFS.
 	ipfsStorage := &ipfsStorager{
-		httpApi: httpApi,
-		logger:  logger,
+		ipfsWrapper: wrapper,
+		httpApi:     httpApi,
+		logger:      logger,
 	}
 
 	// Return our ipfs storage handler.
 	return ipfsStorage
 }
 
-func (impl *ipfsStorager) UploadContentFromFilepath(ctx context.Context, filepath string) (string, error) {
-	return "", nil
+func (s *ipfsStorager) UploadContentFromMulipart(ctx context.Context, file multipart.File) (string, error) {
+	// Debug log the start of the upload process
+	s.logger.Debug("starting to upload file to IPFS")
+
+	// Ensure the file gets closed when the function ends
+	defer file.Close()
+
+	// Upload the file to IPFS
+	res, err := s.httpApi.Unixfs().Add(ctx, ipfsFiles.NewReaderFile(file))
+	if err != nil {
+		return "", fmt.Errorf("failed to add file to IPFS: %v", err)
+	}
+
+	// Retrieve the CID (Content Identifier) for the uploaded file
+	cid := res.String()
+
+	// Debug log the CID of the uploaded file
+	s.logger.Debug("file successfully uploaded to IPFS", slog.String("cid", cid))
+
+	return cid, nil
 }
 
 func (impl *ipfsStorager) GetContentByCID(ctx context.Context, cidString string) ([]byte, error) {
-	return []byte{}, nil
+	return []byte{}, nil // TODO
 }
 
 func (impl *ipfsStorager) PinContent(ctx context.Context, cidString string) error {
-	return nil
+	return nil // TODO
+}
+
+func (impl *ipfsStorager) Shutdown() {
+	impl.ipfsWrapper.ShutdownDaemon()
 }

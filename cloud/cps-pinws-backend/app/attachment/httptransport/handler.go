@@ -19,3 +19,7 @@ func NewHandler(loggerp *slog.Logger, c attachment_c.AttachmentController) *Hand
 		Controller: c,
 	}
 }
+
+func (h *Handler) Shutdown() {
+	h.Controller.Shutdown()
+}

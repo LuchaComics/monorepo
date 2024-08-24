@@ -26,6 +26,7 @@ type AttachmentController interface {
 	ListAsSelectOptionByFilter(ctx context.Context, f *domain.AttachmentPaginationListFilter) ([]*domain.AttachmentAsSelectOption, error)
 	DeleteByID(ctx context.Context, id primitive.ObjectID) error
 	PermanentlyDeleteByID(ctx context.Context, id primitive.ObjectID) error
+	Shutdown()
 }
 
 type AttachmentControllerImpl struct {
@@ -62,4 +63,9 @@ func NewController(
 	s.Logger.Debug("attachment controller initialization started...")
 	s.Logger.Debug("attachment controller initialized")
 	return s
+}
+
+func (impl *AttachmentControllerImpl) Shutdown() {
+	impl.Logger.Debug("shutting down...")
+	impl.IPFS.Shutdown()
 }
