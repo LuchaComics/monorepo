@@ -26,9 +26,9 @@ const (
 )
 
 type Attachment struct {
-	TenantID            primitive.ObjectID `bson:"tenant_id,omitempty" json:"tenant_id,omitempty"`
-	TenantName          string             `bson:"tenant_name" json:"tenant_name"`
-	TenantTimezone      string             `bson:"tenant_timezone" json:"tenant_timezone"`
+	TenantID           primitive.ObjectID `bson:"tenant_id,omitempty" json:"tenant_id,omitempty"`
+	TenantName         string             `bson:"tenant_name" json:"tenant_name"`
+	TenantTimezone     string             `bson:"tenant_timezone" json:"tenant_timezone"`
 	ID                 primitive.ObjectID `bson:"_id" json:"id"`
 	CreatedAt          time.Time          `bson:"created_at,omitempty" json:"created_at,omitempty"`
 	CreatedByUserName  string             `bson:"created_by_user_name" json:"created_by_user_name"`
@@ -45,6 +45,7 @@ type Attachment struct {
 	OwnershipType      int8               `bson:"ownership_type" json:"ownership_type"`
 	Status             int8               `bson:"status" json:"status"`
 	ContentType        int8               `bson:"content_type" json:"content_type"`
+	CID                string             `bson:"cid" json:"cid"` // The unique IPFS CID used to identify this file.
 }
 
 type AttachmentAsSelectOption struct {

@@ -110,6 +110,13 @@ func (impl *AttachmentControllerImpl) UpdateByID(ctx context.Context, req *Attac
 				// be a case were the file was removed on the s3 bucket by ourselves
 				// or some other reason.
 			}
+			// Proceed to delete the physical files from IPFS.
+			if err := impl.IPFS.DeleteContent(sessCtx, os.CID); err != nil {
+				impl.Logger.Warn("ipfs delete by CID error", slog.Any("error", err))
+				// Do not return an error, simply continue this function as there might
+				// be a case were the file was removed on the s3 bucket by ourselves
+				// or some other reason.
+			}
 
 			// The following code will choose the directory we will upload based on the image type.
 			var directory string
@@ -142,6 +149,21 @@ func (impl *AttachmentControllerImpl) UpdateByID(ctx context.Context, req *Attac
 			// Update file.
 			os.ObjectKey = objectKey
 			os.Filename = req.FileName
+
+			// Upload to IPFS network.
+			cid, err := impl.IPFS.UploadContentFromMulipart(ctx, req.File)
+			if err != nil {
+				impl.Logger.Error("failed uploading to IPFS", slog.Any("error", err))
+				return nil, err
+			}
+
+			// Pin the file so it won't get deleted by IPFS garbage collection.
+			if err := impl.IPFS.PinContent(ctx, cid); err != nil {
+				impl.Logger.Error("failed pinning to IPFS", slog.Any("error", err))
+				return nil, err
+			}
+
+			os.CID = cid
 		}
 
 		// Modify our original attachment.

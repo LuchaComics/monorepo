@@ -107,6 +107,19 @@ func (impl *AttachmentControllerImpl) Create(ctx context.Context, req *Attachmen
 			impl.Logger.Debug("Finished private s3 image upload")
 		}(req.File, objectKey)
 
+		// Upload to IPFS network.
+		cid, err := impl.IPFS.UploadContentFromMulipart(ctx, req.File)
+		if err != nil {
+			impl.Logger.Error("failed uploading to IPFS", slog.Any("error", err))
+			return nil, err
+		}
+
+		// Pin the file so it won't get deleted by IPFS garbage collection.
+		if err := impl.IPFS.PinContent(ctx, cid); err != nil {
+			impl.Logger.Error("failed pinning to IPFS", slog.Any("error", err))
+			return nil, err
+		}
+
 		// Extract from our session the following data.
 		orgID, _ := sessCtx.Value(constants.SessionUserTenantID).(primitive.ObjectID)
 		orgName, _ := sessCtx.Value(constants.SessionUserTenantName).(string)
@@ -116,9 +129,9 @@ func (impl *AttachmentControllerImpl) Create(ctx context.Context, req *Attachmen
 
 		// Create our meta record in the database.
 		res := &a_d.Attachment{
-			TenantID:            orgID,
-			TenantName:          orgName,
-			TenantTimezone:      orgTimezone,
+			TenantID:           orgID,
+			TenantName:         orgName,
+			TenantTimezone:     orgTimezone,
 			ID:                 primitive.NewObjectID(),
 			CreatedAt:          time.Now(),
 			CreatedByUserName:  userName,
@@ -134,9 +147,9 @@ func (impl *AttachmentControllerImpl) Create(ctx context.Context, req *Attachmen
 			OwnershipID:        req.OwnershipID,
 			OwnershipType:      req.OwnershipType,
 			Status:             a_d.StatusActive,
+			CID:                cid,
 		}
-		err := impl.AttachmentStorer.Create(sessCtx, res)
-		if err != nil {
+		if err := impl.AttachmentStorer.Create(sessCtx, res); err != nil {
 			impl.Logger.Error("database create error", slog.Any("error", err))
 			return nil, err
 		}

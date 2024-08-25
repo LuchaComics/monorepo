@@ -122,6 +122,14 @@ func (impl *AttachmentControllerImpl) PermanentlyDeleteByID(ctx context.Context,
 			// be a case were the file was removed on the s3 bucket by ourselves
 			// or some other reason.
 		}
+		// Proceed to delete the physical files from IPFS.
+		if err := impl.IPFS.DeleteContent(sessCtx, attachment.CID); err != nil {
+			impl.Logger.Warn("ipfs delete by CID error", slog.Any("error", err))
+			// Do not return an error, simply continue this function as there might
+			// be a case were the file was removed on the s3 bucket by ourselves
+			// or some other reason.
+		}
+
 		if err := impl.AttachmentStorer.DeleteByID(sessCtx, attachment.ID); err != nil {
 			impl.Logger.Error("database delete by id error", slog.Any("error", err))
 			return nil, err
