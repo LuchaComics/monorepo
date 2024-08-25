@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"strings"
 
-	ipfswrapper "github.com/bartmika/ipfs-wrapper"
+	ipfslauncher "github.com/bartmika/ipfs-daemon-launcher"
 	path "github.com/ipfs/boxo/path"
 	"github.com/ipfs/go-cid"
 	ipfsFiles "github.com/ipfs/go-ipfs-files"
@@ -30,7 +30,7 @@ type IPFSStorager interface {
 }
 
 type ipfsStorager struct {
-	ipfsDaemonLauncher *ipfswrapper.IpfsWrapper
+	ipfsDaemonLauncher *ipfslauncher.IpfsDaemonLauncher
 	httpApi            *rpc.HttpApi
 	logger             *slog.Logger
 }
@@ -38,19 +38,19 @@ type ipfsStorager struct {
 func NewStorage(appConf *c.Conf, logger *slog.Logger) IPFSStorager {
 	logger.Debug("ipfs storage adapter initializing...", appConf.IPFSNode.BinaryOperatingSystem, appConf.IPFSNode.BinaryCPUArchitecture)
 
-	wrapper, initErr := ipfswrapper.NewWrapper(
-		ipfswrapper.WithOverrideDaemonWarmupDuration(10),
-		ipfswrapper.WithContinousOperation(),
-		ipfswrapper.WithOverrideBinaryOsAndArch(appConf.IPFSNode.BinaryOperatingSystem, appConf.IPFSNode.BinaryCPUArchitecture),
+	launcher, initErr := ipfslauncher.NewDaemonLauncher(
+		ipfslauncher.WithOverrideDaemonWarmupDuration(10),
+		ipfslauncher.WithContinousOperation(),
+		ipfslauncher.WithOverrideBinaryOsAndArch(appConf.IPFSNode.BinaryOperatingSystem, appConf.IPFSNode.BinaryCPUArchitecture),
 	)
 	if initErr != nil {
-		log.Fatalf("failed creating ipfs-wrapper: %v", initErr)
+		log.Fatalf("failed creating ipfs-launcher: %v", initErr)
 	}
-	if wrapper == nil {
-		log.Fatal("cannot return nil wrapper")
+	if launcher == nil {
+		log.Fatal("cannot return nil launcher")
 	}
 
-	if startErr := wrapper.StartDaemonInBackground(); startErr != nil {
+	if startErr := launcher.StartDaemonInBackground(); startErr != nil {
 		log.Fatal(startErr)
 	}
 
@@ -64,7 +64,7 @@ func NewStorage(appConf *c.Conf, logger *slog.Logger) IPFSStorager {
 
 	// Create our storage handler for IPFS.
 	ipfsStorage := &ipfsStorager{
-		ipfsDaemonLauncher: wrapper,
+		ipfsDaemonLauncher: launcher,
 		httpApi:            httpApi,
 		logger:             logger,
 	}
