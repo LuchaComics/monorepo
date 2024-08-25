@@ -88,6 +88,8 @@ github.com/bartmika/ipfs-wrapper v0.0.0-20240824041251-94170af25b3d h1:1/4Brq3Rd
 github.com/bartmika/ipfs-wrapper v0.0.0-20240824041251-94170af25b3d/go.mod h1:Mcfo7TlRH/CXCH0JF3Pg1yzExbnQEKHZGPo1QFCBC9E=
 github.com/bartmika/ipfs-wrapper v0.0.0-20240824044156-daab7678742f h1:RkIAisuMqTjqqlA9IOaHyCEidSJGT1uZ6TKDkrLeqes=
 github.com/bartmika/ipfs-wrapper v0.0.0-20240824044156-daab7678742f/go.mod h1:Mcfo7TlRH/CXCH0JF3Pg1yzExbnQEKHZGPo1QFCBC9E=
+github.com/bartmika/ipfs-wrapper v0.0.0-20240824051725-edfcb9647908 h1:+Cg6w+pvyYS3aAog0ufleuWP+EOTpvDbgd6p9YYEPEw=
+github.com/bartmika/ipfs-wrapper v0.0.0-20240824051725-edfcb9647908/go.mod h1:Mcfo7TlRH/CXCH0JF3Pg1yzExbnQEKHZGPo1QFCBC9E=
 github.com/bartmika/timekit v0.0.0-20240130035202-cad2325dfd57 h1:wd7rdvqOnOXpA+CXNMsPTcLboXoxd6jmVWMtHysRSdc=
 github.com/bartmika/timekit v0.0.0-20240130035202-cad2325dfd57/go.mod h1:bVnPliAhDTux+4YU7HS1gEQnba7+nWWHf6ZfJQvVt/c=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=

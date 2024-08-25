@@ -3,6 +3,7 @@ package ipfs
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"log/slog"
 	"mime/multipart"
@@ -12,8 +13,10 @@ import (
 	"time"
 
 	ipfswrapper "github.com/bartmika/ipfs-wrapper"
+	"github.com/ipfs/go-cid"
 	ipfsFiles "github.com/ipfs/go-ipfs-files"
 	"github.com/ipfs/kubo/client/rpc"
+	"github.com/ipfs/kubo/path"
 
 	c "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/config"
 )
@@ -113,8 +116,41 @@ func (s *ipfsStorager) UploadContentFromMulipart(ctx context.Context, file multi
 	return cid, nil
 }
 
-func (impl *ipfsStorager) GetContentByCID(ctx context.Context, cidString string) ([]byte, error) {
-	return []byte{}, nil // TODO
+func (s *ipfsStorager) GetContentByCID(ctx context.Context, cidString string) ([]byte, error) {
+	s.logger.Debug("fetching content from IPFS", slog.String("cid", cidString))
+
+	c, err := cid.Decode(cidString)
+	if err != nil {
+		s.logger.Error("failed to decode CID", slog.String("cid", cidString), slog.Any("error", err))
+		return nil, fmt.Errorf("failed to decode CID: %v", err)
+	}
+
+	// Convert the CID to a path.Path
+	ipfsPath := path.IpfsPath(c)
+
+	// Attempt to get the file from IPFS using the path
+	fileNode, err := s.httpApi.Unixfs().Get(ctx, ipfsPath)
+	if err != nil {
+		s.logger.Error("failed to fetch content from IPFS", slog.String("cid", cidString), slog.Any("error", err))
+		return nil, fmt.Errorf("failed to fetch content from IPFS: %v", err)
+	}
+
+	// Convert the file node to a reader
+	fileReader := ipfsFiles.ToFile(fileNode) // TODO: FIX THIS BUG
+	if fileReader == nil {
+		s.logger.Error("failed to convert IPFS node to file reader", slog.String("cid", cidString))
+		return nil, fmt.Errorf("failed to convert IPFS node to file reader")
+	}
+
+	// Read the content from the file reader
+	content, err := io.ReadAll(fileReader)
+	if err != nil {
+		s.logger.Error("failed to read content from IPFS", slog.String("cid", cidString), slog.Any("error", err))
+		return nil, fmt.Errorf("failed to read content from IPFS: %v", err)
+	}
+
+	s.logger.Debug("successfully fetched content from IPFS", slog.String("cid", cidString))
+	return content, nil
 }
 
 func (impl *ipfsStorager) PinContent(ctx context.Context, cidString string) error {

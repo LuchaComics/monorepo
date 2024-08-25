@@ -46,7 +46,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sso v1.22.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.26.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.30.5 // indirect
-	github.com/bartmika/ipfs-wrapper v0.0.0-20240824044156-daab7678742f // indirect
+	github.com/bartmika/ipfs-wrapper v0.0.0-20240824051725-edfcb9647908 // indirect
 	github.com/benbjohnson/clock v1.3.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
