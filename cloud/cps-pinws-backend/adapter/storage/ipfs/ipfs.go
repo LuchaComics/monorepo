@@ -45,9 +45,6 @@ func NewStorage(appConf *c.Conf, logger *slog.Logger) IPFSStorager {
 	)
 	if initErr != nil {
 		log.Fatalf("failed creating ipfs-wrapper: %v", initErr)
-		// logger.Error("ipfs storage adapter failed creating ipfs-wrapper",
-		// 	slog.Any("err", initErr))
-		// return &ipfsStorager{}
 	}
 	if wrapper == nil {
 		log.Fatal("cannot return nil wrapper")
@@ -95,9 +92,14 @@ func (s *ipfsStorager) UploadContentFromString(ctx context.Context, fileContent 
 	if err != nil {
 		return "", fmt.Errorf("failed to upload content from string: %v", err)
 	}
+
+	// Remove "/ipfs/" prefix if present
+	cidString := strings.TrimPrefix(cid.String(), "/ipfs/")
+
 	s.logger.Debug("uploaded content to IPFS via string",
-		slog.Any("cid", cid))
-	return cid.String(), nil
+		slog.String("cid", cidString))
+
+	return cidString, nil
 }
 
 func (s *ipfsStorager) UploadContentFromMulipart(ctx context.Context, file multipart.File) (string, error) {
@@ -113,12 +115,13 @@ func (s *ipfsStorager) UploadContentFromMulipart(ctx context.Context, file multi
 		return "", fmt.Errorf("failed to add file to IPFS: %v", err)
 	}
 
-	// Retrieve the CID (Content Identifier) for the uploaded file
-	cid := res.String()
+	// Retrieve the CID (Content Identifier) for the uploaded file and
+	// remove "/ipfs/" prefix if present
+	cidString := strings.TrimPrefix(res.String(), "/ipfs/")
 
 	// Debug log the CID of the uploaded file
-	s.logger.Debug("file successfully uploaded to IPFS", slog.String("cid", cid))
-	return cid, nil
+	s.logger.Debug("file successfully uploaded to IPFS", slog.String("cid", cidString))
+	return cidString, nil
 }
 
 func (s *ipfsStorager) GetContent(ctx context.Context, cidString string) ([]byte, error) {
