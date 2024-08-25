@@ -8,15 +8,13 @@ import (
 	"log/slog"
 	"mime/multipart"
 	"net/http"
-	"os"
 	"strings"
-	"time"
 
 	ipfswrapper "github.com/bartmika/ipfs-wrapper"
+	path "github.com/ipfs/boxo/path"
 	"github.com/ipfs/go-cid"
 	ipfsFiles "github.com/ipfs/go-ipfs-files"
 	"github.com/ipfs/kubo/client/rpc"
-	"github.com/ipfs/kubo/path"
 
 	c "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/config"
 )
@@ -36,19 +34,17 @@ type ipfsStorager struct {
 
 func NewStorage(appConf *c.Conf, logger *slog.Logger) IPFSStorager {
 	logger.Debug("ipfs storage adapter initializing...", appConf.IPFSNode.BinaryOperatingSystem, appConf.IPFSNode.BinaryCPUArchitecture)
-	return &ipfsStorager{} //TODO: REMOVE WHEN READY.
 
 	wrapper, initErr := ipfswrapper.NewWrapper(
-		// ipfswrapper.WithOverrideDaemonWarmupDuration(10),
+		ipfswrapper.WithOverrideDaemonWarmupDuration(10),
 		ipfswrapper.WithContinousOperation(),
 		ipfswrapper.WithOverrideBinaryOsAndArch(appConf.IPFSNode.BinaryOperatingSystem, appConf.IPFSNode.BinaryCPUArchitecture),
 	)
 	if initErr != nil {
-		// log.Fatalf("failed creating ipfs-wrapper: %v", initErr)
-
-		logger.Error("ipfs storage adapter failed creating ipfs-wrapper",
-			slog.Any("err", initErr))
-		return &ipfsStorager{}
+		log.Fatalf("failed creating ipfs-wrapper: %v", initErr)
+		// logger.Error("ipfs storage adapter failed creating ipfs-wrapper",
+		// 	slog.Any("err", initErr))
+		// return &ipfsStorager{}
 	}
 	if wrapper == nil {
 		log.Fatal("cannot return nil wrapper")
@@ -58,30 +54,13 @@ func NewStorage(appConf *c.Conf, logger *slog.Logger) IPFSStorager {
 		log.Fatal(startErr)
 	}
 
-	// Set an artificial delay to give time for the `ipfs` binary to load up.
-	// This is dependent on your machine.
-	time.Sleep(8 * time.Second)
-
 	logger.Debug("ipfs storage adapter setup ipfs node")
 
 	httpClient := &http.Client{}
-	httpApi, err := rpc.NewURLApiWithClient(appConf.IPFSNode.GatewayRPCURL, httpClient)
-	if err != nil {
-		log.Fatalf("failed loading ipfs daemon: %v\n", err)
+	httpApi, httpErr := rpc.NewURLApiWithClient(appConf.IPFSNode.GatewayRPCURL, httpClient)
+	if httpErr != nil {
+		log.Fatalf("failed loading ipfs daemon: %v\n", httpErr)
 	}
-
-	logger.Debug("ipfs storage adapter rpc connected successfully")
-
-	content := strings.NewReader("Hello world via `Collectibles Protective Services`!")
-	p, err := httpApi.Unixfs().Add(context.Background(), ipfsFiles.NewReaderFile(content))
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	fmt.Printf("Data successfully stored in IPFS: %v\n", p)
-
-	logger.Debug("ipfs storage adapter confirmed working locally")
 
 	// Create our storage handler for IPFS.
 	ipfsStorage := &ipfsStorager{
@@ -90,8 +69,26 @@ func NewStorage(appConf *c.Conf, logger *slog.Logger) IPFSStorager {
 		logger:      logger,
 	}
 
+	// Try uploading a sample file to verify our ipfs adapter works.
+	sampleCid, sampleErr := ipfsStorage.UploadContentFromString(context.Background(), "Hello world via `Collectibles Protective Services`!")
+	if sampleErr != nil {
+		log.Fatalf("failed loading ipfs daemon: %v\n", sampleErr)
+	}
+	logger.Debug("ipfs storage adapter successfully uploaded sample file", slog.String("cid", sampleCid))
+
 	// Return our ipfs storage handler.
 	return ipfsStorage
+}
+
+func (s *ipfsStorager) UploadContentFromString(ctx context.Context, fileContent string) (string, error) {
+	content := strings.NewReader(fileContent)
+	cid, err := s.httpApi.Unixfs().Add(context.Background(), ipfsFiles.NewReaderFile(content))
+	if err != nil {
+		return "", fmt.Errorf("failed to upload content from string: %v", err)
+	}
+	s.logger.Debug("uploaded content to IPFS via string",
+		slog.Any("cid", cid))
+	return cid.String(), nil
 }
 
 func (s *ipfsStorager) UploadContentFromMulipart(ctx context.Context, file multipart.File) (string, error) {
@@ -113,20 +110,26 @@ func (s *ipfsStorager) UploadContentFromMulipart(ctx context.Context, file multi
 	// Debug log the CID of the uploaded file
 	s.logger.Debug("file successfully uploaded to IPFS", slog.String("cid", cid))
 
+	// DEVELOPERS NOTE:
+	// You can startup another `ipfs` deamon outside this project's docker and
+	// run the following code to verify you get our sample contents:
+	//
+	//     ipfs cat /ipfs/QmNU6Q311PUfFuczUTYWkB7vnd4fD41dMxHKUEEGUYKLce
+
 	return cid, nil
 }
 
 func (s *ipfsStorager) GetContentByCID(ctx context.Context, cidString string) ([]byte, error) {
 	s.logger.Debug("fetching content from IPFS", slog.String("cid", cidString))
 
-	c, err := cid.Decode(cidString)
+	cid, err := cid.Decode(cidString)
 	if err != nil {
 		s.logger.Error("failed to decode CID", slog.String("cid", cidString), slog.Any("error", err))
 		return nil, fmt.Errorf("failed to decode CID: %v", err)
 	}
 
 	// Convert the CID to a path.Path
-	ipfsPath := path.IpfsPath(c)
+	ipfsPath := path.FromCid(cid)
 
 	// Attempt to get the file from IPFS using the path
 	fileNode, err := s.httpApi.Unixfs().Get(ctx, ipfsPath)

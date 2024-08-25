@@ -176,9 +176,7 @@ services:
     ports:
       - "8000:8000" # CPS PINWS Application Port.
       - "4001:4001" # Swarm Port: 4001 (for p2p communications - required for our app)
-      # - "4005:4005/tcp" # Swarm Port: 4005 (for p2p communications, we set as custom value in our app)
-      # - "4005:4005/udp" # Swarm Port: 4005 (for p2p communications, we set as custom value in our app)
-      # - "5001:5001" # API Port: 5001 (for the HTTP API) (Enable for develpment purposes only -  do not open in prod!)
+      - "5001:5001" # API Port: 5001 (for the HTTP API) (Enable for develpment purposes only -  do not open in prod!)
       #- "8080:8080" # Gateway Port: 8080 (for the HTTP Gateway)
     depends_on:
       - db1
