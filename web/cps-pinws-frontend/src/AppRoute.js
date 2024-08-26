@@ -8,6 +8,9 @@ import { RecoilRoot } from "recoil";
 // Admin Portal //
 //--------------//
 
+// Dashboard
+import AdminDashboard from "./Components/Admin/Dashboard";
+
 // Tenant
 import AdminTenantList from "./Components/Admin/Tenant/List";
 import AdminTenantAdd from "./Components/Admin/Tenant/Add";
@@ -20,8 +23,11 @@ import AdminTenantPinObjectDetail from "./Components/Admin/Tenant/PinObject/Deta
 import AdminTenantPinObjectUpdate from "./Components/Admin/Tenant/PinObject/Update";
 import AdminTenantUpdate from "./Components/Admin/Tenant/Update";
 
-// Dashboard
-import AdminDashboard from "./Components/Admin/Dashboard";
+// Projects
+import AdminProjectList from "./Components/Admin/Project/List/View";
+import AdminProjectAdd from "./Components/Admin/Project/Add/View";
+import AdminProjectDetail from "./Components/Admin/Project/Detail/View";
+import AdminProjectUpdate from "./Components/Admin/Project/Update/View";
 
 // Users
 import AdminUserList from "./Components/Admin/User/List/View";
@@ -162,6 +168,31 @@ function AppRoute() {
                     path="/admin/tenant/:id/pinobject/:aid/edit"
                     element={<AdminTenantPinObjectUpdate />}
                   />
+                  {/* Project */}
+
+                  <Route
+                    exact
+                    path="/admin/projects"
+                    element={<AdminProjectList />}
+                  />
+                  <Route
+                    exact
+                    path="/admin/projects/add"
+                    element={<AdminProjectAdd />}
+                  />
+                  <Route
+                    exact
+                    path="/admin/project/:id"
+                    element={<AdminProjectDetail />}
+                  />
+                  <Route
+                    exact
+                    path="/admin/project/:id/edit"
+                    element={<AdminProjectUpdate />}
+                  />
+
+
+                  {/* User */}
                   <Route
                     exact
                     path="/admin/users"

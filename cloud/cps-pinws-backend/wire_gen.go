@@ -15,9 +15,12 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/adapter/templatedemailer"
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/gateway/controller"
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/gateway/httptransport"
-	controller4 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/controller"
+	controller5 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/controller"
 	datastore3 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/datastore"
-	httptransport4 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/httptransport"
+	httptransport5 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/httptransport"
+	controller4 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/project/controller"
+	datastore4 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/project/datastore"
+	httptransport4 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/project/httptransport"
 	controller3 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/tenant/controller"
 	datastore2 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/tenant/datastore"
 	httptransport3 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/tenant/httptransport"
@@ -34,9 +37,10 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/provider/password"
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/provider/time"
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/provider/uuid"
+)
 
+import (
 	_ "go.uber.org/automaxprocs"
-
 	_ "time/tzdata"
 )
 
@@ -60,16 +64,19 @@ func InitializeEvent() Application {
 	gatewayController := controller.NewController(conf, slogLogger, provider, jwtProvider, kmutexProvider, passwordProvider, templatedEmailer, cacher, client, userStorer, tenantStorer)
 	middlewareMiddleware := middleware.NewMiddleware(conf, slogLogger, provider, timeProvider, jwtProvider, blacklistProvider, gatewayController)
 	handler := httptransport.NewHandler(slogLogger, gatewayController)
-	pinobjectStorer := datastore3.NewDatastore(conf, slogLogger, client)
-	userController := controller2.NewController(conf, slogLogger, provider, passwordProvider, templatedEmailer, client, tenantStorer, userStorer, pinobjectStorer)
+	pinObjectStorer := datastore3.NewDatastore(conf, slogLogger, client)
+	userController := controller2.NewController(conf, slogLogger, provider, passwordProvider, templatedEmailer, client, tenantStorer, userStorer, pinObjectStorer)
 	httptransportHandler := httptransport2.NewHandler(slogLogger, userController)
 	s3Storager := s3.NewStorage(conf, slogLogger, provider)
-	tenantController := controller3.NewController(conf, slogLogger, provider, s3Storager, templatedEmailer, client, tenantStorer, userStorer, pinobjectStorer)
+	tenantController := controller3.NewController(conf, slogLogger, provider, s3Storager, templatedEmailer, client, tenantStorer, userStorer, pinObjectStorer)
 	handler2 := httptransport3.NewHandler(slogLogger, tenantController)
+	projectStorer := datastore4.NewDatastore(conf, slogLogger, client)
+	projectController := controller4.NewController(conf, slogLogger, provider, jwtProvider, kmutexProvider, passwordProvider, client, tenantStorer, projectStorer, userStorer)
+	handler3 := httptransport4.NewHandler(slogLogger, projectController)
 	ipfsStorager := ipfs.NewStorage(conf, slogLogger)
-	pinobjectController := controller4.NewController(conf, slogLogger, provider, ipfsStorager, s3Storager, client, pinobjectStorer, userStorer)
-	handler3 := httptransport4.NewHandler(slogLogger, pinobjectController)
-	inputPortServer := http.NewInputPort(conf, slogLogger, middlewareMiddleware, handler, httptransportHandler, handler2, handler3)
+	pinObjectController := controller5.NewController(conf, slogLogger, provider, ipfsStorager, s3Storager, client, pinObjectStorer, userStorer)
+	handler4 := httptransport5.NewHandler(slogLogger, pinObjectController)
+	inputPortServer := http.NewInputPort(conf, slogLogger, middlewareMiddleware, handler, httptransportHandler, handler2, handler3, handler4)
 	application := NewApplication(slogLogger, inputPortServer)
 	return application
 }

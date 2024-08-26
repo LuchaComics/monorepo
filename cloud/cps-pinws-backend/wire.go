@@ -17,6 +17,9 @@ import (
 	pinobject_c "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/controller"
 	pinobject_s "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/datastore"
 	pinobject_http "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/httptransport"
+	project_c "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/project/controller"
+	project_s "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/project/datastore"
+	project_http "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/project/httptransport"
 	tenant_c "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/tenant/controller"
 	tenant_s "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/tenant/datastore"
 	tenant_http "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/tenant/httptransport"
@@ -56,6 +59,8 @@ func InitializeEvent() Application {
 		ipfs_storage.NewStorage,
 		user_s.NewDatastore,
 		user_c.NewController,
+		project_s.NewDatastore,
+		project_c.NewController,
 		tenant_s.NewDatastore,
 		tenant_c.NewController,
 		gateway_c.NewController,
@@ -63,6 +68,7 @@ func InitializeEvent() Application {
 		pinobject_c.NewController,
 		gateway_http.NewHandler,
 		user_http.NewHandler,
+		project_http.NewHandler,
 		tenant_http.NewHandler,
 		pinobject_http.NewHandler,
 		middleware.NewMiddleware,

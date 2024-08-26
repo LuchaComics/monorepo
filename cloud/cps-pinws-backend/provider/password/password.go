@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/subtle"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
@@ -20,6 +21,8 @@ type Provider interface {
 	GenerateHashFromPassword(password string) (string, error)
 	ComparePasswordAndHash(password, hash string) (bool, error)
 	AlgorithmName() string
+	GenerateSecureRandomBytes(length int) ([]byte, error)
+	GenerateSecureRandomString(length int) (string, error)
 }
 
 type passwordProvider struct {
@@ -146,4 +149,23 @@ func decodeHash(encodedHash string) (p *passwordProvider, salt, hash []byte, err
 	p.keyLength = uint32(len(hash))
 
 	return p, salt, hash, nil
+}
+
+// GenerateSecureRandomBytes generates a secure random byte slice of the specified length.
+func (p *passwordProvider) GenerateSecureRandomBytes(length int) ([]byte, error) {
+	bytes := make([]byte, length)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate secure random bytes: %v", err)
+	}
+	return bytes, nil
+}
+
+// GenerateSecureRandomString generates a secure random string of the specified length.
+func (p *passwordProvider) GenerateSecureRandomString(length int) (string, error) {
+	bytes, err := p.GenerateSecureRandomBytes(length)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
 }

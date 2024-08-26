@@ -194,80 +194,41 @@ export const tenantFilterJoinedAfterState = atom({
   effects_UNSTABLE: [persistAtom],
 });
 
-// --- Offers --- //
+// --- Project List --- //
 
 // Control whether to show filters for the list.
-export const offersFilterShowState = atom({
-  key: "offersFilterShowState",
+export const projectFilterShowState = atom({
+  key: "projectFilterShowState",
   default: false,
   effects_UNSTABLE: [persistAtom],
 });
 
-export const offersFilterTemporarySearchTextState = atom({
-  key: "offersFilterTemporarySearchTextState",
+export const projectFilterTemporarySearchTextState = atom({
+  key: "projectFilterTemporarySearchTextState",
   default: "",
   effects_UNSTABLE: [persistAtom],
 });
 
-export const offersFilterActualSearchTextState = atom({
-  key: "offersFilterActualSearchTextState",
+export const projectFilterActualSearchTextState = atom({
+  key: "projectFilterActualSearchTextState",
   default: "",
   effects_UNSTABLE: [persistAtom],
 });
 
-export const offersFilterStatusState = atom({
-  key: "offersFilterStatusState",
-  default: 2,
+export const projectFilterRoleState = atom({
+  key: "projectFilterRoleState",
+  default: "",
   effects_UNSTABLE: [persistAtom],
 });
 
-// --- Submissions --- //
+export const projectFilterStatusState = atom({
+  key: "projectFilterStatusState",
+  default: "",
+  effects_UNSTABLE: [persistAtom],
+});
 
-export const ADD_COMIC_SUBMISSION_STATE_DEFAULT = {
-    seriesTitle: "",
-    issueVol: "",
-    issueNo: "",
-    issueCoverYear: 0,
-    issueCoverMonth: 0,
-    publisherName: 0,
-    publisherNameOther: "",
-    isKeyIssue: "",
-    keyIssue: 0,
-    keyIssueOther: "",
-    keyIssueDetail: "",
-    isInternationalEdition: false,
-    isVariantCover: false,
-    variantCoverDetail: "",
-    printing: 1,
-    primaryLabelDetails: 2,
-    primaryLabelDetailsOther: "",
-    specialNotes: "",
-    gradingNotes: "",
-    signatures: [],
-    creasesFinding: "",
-    tearsFinding: "",
-    missingPartsFinding: "",
-    stainsFinding: "",
-    distortionFinding: "",
-    paperQualityFinding: "",
-    spineFinding: "",
-    coverFinding: "",
-    gradingScale: 0,
-    overallLetterGrade: "",
-    isOverallLetterGradeNearMintPlus: false,
-    overallNumberGrade: "",
-    cpsPercentageGrade: "",
-    showsSignsOfTamperingOrRestoration: 2,
-    status: 1, //1=Waiting to Receive, 7=Completed by Retail Partner
-    serviceType: 0,
-    tenantID: "",
-    collectibleType: 1, // 1=Comic, 2=Card
-    customerID: "",
-}
-
-// Control whether to show filters for the list.
-export const addComicSubmissionState = atom({
-  key: "addComicSubmission",
-  default: ADD_COMIC_SUBMISSION_STATE_DEFAULT,
+export const projectFilterJoinedAfterState = atom({
+  key: "projectFilterJoinedAfterState",
+  default: "",
   effects_UNSTABLE: [persistAtom],
 });

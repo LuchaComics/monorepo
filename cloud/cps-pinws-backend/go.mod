@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.29
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.60.1
 	github.com/aws/smithy-go v1.20.4
-	github.com/bartmika/ipfs-daemon-launcher v0.0.0-20240825040653-1c265785775e
+	github.com/bartmika/ipfs-daemon-launcher v0.0.0-20240825043905-07c330dc4254
 	github.com/bartmika/timekit v0.0.0-20240130035202-cad2325dfd57
 	github.com/dchest/uniuri v1.2.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible

@@ -10,6 +10,7 @@ import (
 
 	gateway "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/gateway/httptransport"
 	pinobject "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/httptransport"
+	project "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/project/httptransport"
 	tenant "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/tenant/httptransport"
 	user "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/user/httptransport"
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/config"
@@ -29,6 +30,7 @@ type httpInputPort struct {
 	Gateway    *gateway.Handler
 	User       *user.Handler
 	Tenant     *tenant.Handler
+	Project    *project.Handler
 	PinObject  *pinobject.Handler
 }
 
@@ -39,6 +41,7 @@ func NewInputPort(
 	gh *gateway.Handler,
 	cu *user.Handler,
 	org *tenant.Handler,
+	prj *project.Handler,
 	att *pinobject.Handler,
 ) InputPortServer {
 	// Initialize the ServeMux.
@@ -64,6 +67,7 @@ func NewInputPort(
 		Gateway:    gh,
 		User:       cu,
 		Tenant:     org,
+		Project:    prj,
 		PinObject:  att,
 		Server:     srv,
 	}
@@ -179,16 +183,26 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 	case n == 4 && p[1] == "v1" && p[2] == "users" && p[3] == "select-options" && r.Method == http.MethodGet:
 		port.User.ListAsSelectOptions(w, r)
 
-	// --- ATTACHMENTS --- //
-	case n == 3 && p[1] == "v1" && p[2] == "pinobjects" && r.Method == http.MethodGet:
+	// --- PROJECTS --- //
+	case n == 3 && p[1] == "v1" && p[2] == "projects" && r.Method == http.MethodGet:
+		port.Project.List(w, r)
+	case n == 3 && p[1] == "v1" && p[2] == "projects" && r.Method == http.MethodPost:
+		port.Project.Create(w, r)
+	case n == 4 && p[1] == "v1" && p[2] == "project" && r.Method == http.MethodGet:
+		port.Project.GetByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "project" && r.Method == http.MethodPut:
+		port.Project.UpdateByID(w, r, p[3])
+
+	// --- PIN OBJECTS --- //
+	case n == 3 && p[1] == "v1" && p[2] == "pins" && r.Method == http.MethodGet:
 		port.PinObject.List(w, r)
-	case n == 3 && p[1] == "v1" && p[2] == "pinobjects" && r.Method == http.MethodPost:
+	case n == 3 && p[1] == "v1" && p[2] == "pins" && r.Method == http.MethodPost:
 		port.PinObject.Create(w, r)
-	case n == 4 && p[1] == "v1" && p[2] == "pinobject" && r.Method == http.MethodGet:
+	case n == 4 && p[1] == "v1" && p[2] == "pin" && r.Method == http.MethodGet:
 		port.PinObject.GetByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "pinobject" && r.Method == http.MethodPut:
+	case n == 4 && p[1] == "v1" && p[2] == "pin" && r.Method == http.MethodPut:
 		port.PinObject.UpdateByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "pinobject" && r.Method == http.MethodDelete:
+	case n == 4 && p[1] == "v1" && p[2] == "pin" && r.Method == http.MethodDelete:
 		port.PinObject.DeleteByID(w, r, p[3])
 
 	// --- CATCH ALL: D.N.E. ---

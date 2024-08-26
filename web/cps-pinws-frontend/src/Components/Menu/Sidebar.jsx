@@ -11,6 +11,7 @@ import {
   faSignOut,
   faUserCircle,
   faUsers,
+  faProjectDiagram,
   faBuilding,
   faBarcode,
   faQuestionCircle
@@ -171,6 +172,16 @@ export default (props) => {
                 >
                   <FontAwesomeIcon className="fas" icon={faBuilding} />
                   &nbsp;Tenants
+                </Link>
+              </li>
+              <li>
+                <Link
+                  onClick={onLinkClickCloseHamburgerMenuIfMobile}
+                  to="/admin/projects"
+                  class={`has-text-grey-light ${location.pathname.includes("project") && "is-active"}`}
+                >
+                  <FontAwesomeIcon className="fas" icon={faProjectDiagram} />
+                  &nbsp;Projects
                 </Link>
               </li>
               <li>
