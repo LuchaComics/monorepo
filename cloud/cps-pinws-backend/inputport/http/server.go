@@ -8,8 +8,8 @@ import (
 
 	"github.com/rs/cors"
 
-	attachment "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/attachment/httptransport"
 	gateway "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/gateway/httptransport"
+	pinobject "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/httptransport"
 	tenant "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/tenant/httptransport"
 	user "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/user/httptransport"
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/config"
@@ -29,7 +29,7 @@ type httpInputPort struct {
 	Gateway    *gateway.Handler
 	User       *user.Handler
 	Tenant     *tenant.Handler
-	Attachment *attachment.Handler
+	PinObject  *pinobject.Handler
 }
 
 func NewInputPort(
@@ -39,7 +39,7 @@ func NewInputPort(
 	gh *gateway.Handler,
 	cu *user.Handler,
 	org *tenant.Handler,
-	att *attachment.Handler,
+	att *pinobject.Handler,
 ) InputPortServer {
 	// Initialize the ServeMux.
 	mux := http.NewServeMux()
@@ -64,7 +64,7 @@ func NewInputPort(
 		Gateway:    gh,
 		User:       cu,
 		Tenant:     org,
-		Attachment: att,
+		PinObject:  att,
 		Server:     srv,
 	}
 
@@ -86,7 +86,7 @@ func (port *httpInputPort) Run() {
 
 func (port *httpInputPort) Shutdown() {
 	port.Logger.Info("HTTP server shutting down now...")
-	port.Attachment.Shutdown()
+	port.PinObject.Shutdown()
 	port.Logger.Info("HTTP server shutdown")
 }
 
@@ -180,16 +180,16 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 		port.User.ListAsSelectOptions(w, r)
 
 	// --- ATTACHMENTS --- //
-	case n == 3 && p[1] == "v1" && p[2] == "attachments" && r.Method == http.MethodGet:
-		port.Attachment.List(w, r)
-	case n == 3 && p[1] == "v1" && p[2] == "attachments" && r.Method == http.MethodPost:
-		port.Attachment.Create(w, r)
-	case n == 4 && p[1] == "v1" && p[2] == "attachment" && r.Method == http.MethodGet:
-		port.Attachment.GetByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "attachment" && r.Method == http.MethodPut:
-		port.Attachment.UpdateByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "attachment" && r.Method == http.MethodDelete:
-		port.Attachment.DeleteByID(w, r, p[3])
+	case n == 3 && p[1] == "v1" && p[2] == "pinobjects" && r.Method == http.MethodGet:
+		port.PinObject.List(w, r)
+	case n == 3 && p[1] == "v1" && p[2] == "pinobjects" && r.Method == http.MethodPost:
+		port.PinObject.Create(w, r)
+	case n == 4 && p[1] == "v1" && p[2] == "pinobject" && r.Method == http.MethodGet:
+		port.PinObject.GetByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "pinobject" && r.Method == http.MethodPut:
+		port.PinObject.UpdateByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "pinobject" && r.Method == http.MethodDelete:
+		port.PinObject.DeleteByID(w, r, p[3])
 
 	// --- CATCH ALL: D.N.E. ---
 	default:

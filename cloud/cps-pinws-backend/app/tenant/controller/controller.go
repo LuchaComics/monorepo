@@ -9,7 +9,7 @@ import (
 
 	s3_storage "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/adapter/storage/s3"
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/adapter/templatedemailer"
-	attachment_s "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/attachment/datastore"
+	pinobject_s "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/datastore"
 	tenant_s "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/tenant/datastore"
 	user_s "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/user/datastore"
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/config"
@@ -37,7 +37,7 @@ type TenantControllerImpl struct {
 	DbClient         *mongo.Client
 	UserStorer       user_s.UserStorer
 	TenantStorer     tenant_s.TenantStorer
-	AttachmentStorer attachment_s.AttachmentStorer
+	PinObjectStorer pinobject_s.PinObjectStorer
 }
 
 func NewController(
@@ -49,7 +49,7 @@ func NewController(
 	client *mongo.Client,
 	org_tenantr tenant_s.TenantStorer,
 	usr_tenantr user_s.UserStorer,
-	attch_tenantr attachment_s.AttachmentStorer,
+	attch_tenantr pinobject_s.PinObjectStorer,
 ) TenantController {
 	loggerp.Debug("tenant controller initialization started...")
 	s := &TenantControllerImpl{
@@ -61,7 +61,7 @@ func NewController(
 		DbClient:         client,
 		UserStorer:       usr_tenantr,
 		TenantStorer:     org_tenantr,
-		AttachmentStorer: attch_tenantr,
+		PinObjectStorer: attch_tenantr,
 	}
 	s.Logger.Debug("tenant controller initialized")
 	return s

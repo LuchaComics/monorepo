@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/adapter/templatedemailer"
-	attachment_s "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/attachment/datastore"
+	pinobject_s "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/datastore"
 	tenant_s "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/tenant/datastore"
 	user_s "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/user/datastore"
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/config"
@@ -42,7 +42,7 @@ type UserControllerImpl struct {
 	DbClient         *mongo.Client
 	UserStorer       user_s.UserStorer
 	TenantStorer      tenant_s.TenantStorer
-	AttachmentStorer attachment_s.AttachmentStorer
+	PinObjectStorer pinobject_s.PinObjectStorer
 }
 
 func NewController(
@@ -54,7 +54,7 @@ func NewController(
 	client *mongo.Client,
 	org_storer tenant_s.TenantStorer,
 	usr_storer user_s.UserStorer,
-	attch_storer attachment_s.AttachmentStorer,
+	attch_storer pinobject_s.PinObjectStorer,
 ) UserController {
 	s := &UserControllerImpl{
 		Config:           appCfg,
@@ -65,7 +65,7 @@ func NewController(
 		DbClient:         client,
 		UserStorer:       usr_storer,
 		TenantStorer:      org_storer,
-		AttachmentStorer: attch_storer,
+		PinObjectStorer: attch_storer,
 	}
 	loggerp.Debug("user controller initialization started...")
 	loggerp.Debug("user controller initialized")

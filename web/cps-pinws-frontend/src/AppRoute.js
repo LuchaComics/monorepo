@@ -14,10 +14,10 @@ import AdminTenantAdd from "./Components/Admin/Tenant/Add";
 import AdminTenantDetail from "./Components/Admin/Tenant/Detail";
 import AdminTenantDetailForUserList from "./Components/Admin/Tenant/DetailForUserList";
 import AdminTenantDetailForCommentList from "./Components/Admin/Tenant/DetailForCommentList";
-import AdminTenantDetailForAttachmentList from "./Components/Admin/Tenant/DetailForAttachmentList";
-import AdminTenantAttachmentAdd from "./Components/Admin/Tenant/Attachment/Add";
-import AdminTenantAttachmentDetail from "./Components/Admin/Tenant/Attachment/Detail";
-import AdminTenantAttachmentUpdate from "./Components/Admin/Tenant/Attachment/Update";
+import AdminTenantDetailForPinObjectList from "./Components/Admin/Tenant/DetailForPinObjectList";
+import AdminTenantPinObjectAdd from "./Components/Admin/Tenant/PinObject/Add";
+import AdminTenantPinObjectDetail from "./Components/Admin/Tenant/PinObject/Detail";
+import AdminTenantPinObjectUpdate from "./Components/Admin/Tenant/PinObject/Update";
 import AdminTenantUpdate from "./Components/Admin/Tenant/Update";
 
 // Dashboard
@@ -28,10 +28,10 @@ import AdminUserList from "./Components/Admin/User/List/View";
 import AdminUserAdd from "./Components/Admin/User/Add/View";
 import AdminUserDetail from "./Components/Admin/User/Detail/View";
 import AdminUserDetailForCommentList from "./Components/Admin/User/Detail/Comment/View";
-import AdminUserDetailForAttachmentList from "./Components/Admin/User/Detail/Attachment/ListView";
-import AdminUserAttachmentAdd from "./Components/Admin/User/Detail/Attachment/Add";
-import AdminUserAttachmentDetail from "./Components/Admin/User/Detail/Attachment/Detail";
-import AdminUserAttachmentUpdate from "./Components/Admin/User/Detail/Attachment/Update";
+import AdminUserDetailForPinObjectList from "./Components/Admin/User/Detail/PinObject/ListView";
+import AdminUserPinObjectAdd from "./Components/Admin/User/Detail/PinObject/Add";
+import AdminUserPinObjectDetail from "./Components/Admin/User/Detail/PinObject/Detail";
+import AdminUserPinObjectUpdate from "./Components/Admin/User/Detail/PinObject/Update";
 import AdminUserDetailMore from "./Components/Admin/User/Detail/More/View";
 import AdminUserArchiveOperation from "./Components/Admin/User/Detail/More/Archive/View";
 import AdminUserUnarchiveOperation from "./Components/Admin/User/Detail/More/Unarchive/View";
@@ -144,23 +144,23 @@ function AppRoute() {
                   />
                   <Route
                     exact
-                    path="/admin/tenant/:id/attachments"
-                    element={<AdminTenantDetailForAttachmentList />}
+                    path="/admin/tenant/:id/pinobjects"
+                    element={<AdminTenantDetailForPinObjectList />}
                   />
                   <Route
                     exact
-                    path="/admin/tenant/:id/attachment/:aid"
-                    element={<AdminTenantAttachmentDetail />}
+                    path="/admin/tenant/:id/pinobject/:aid"
+                    element={<AdminTenantPinObjectDetail />}
                   />
                   <Route
                     exact
-                    path="/admin/tenant/:id/attachments/add"
-                    element={<AdminTenantAttachmentAdd />}
+                    path="/admin/tenant/:id/pinobjects/add"
+                    element={<AdminTenantPinObjectAdd />}
                   />
                   <Route
                     exact
-                    path="/admin/tenant/:id/attachment/:aid/edit"
-                    element={<AdminTenantAttachmentUpdate />}
+                    path="/admin/tenant/:id/pinobject/:aid/edit"
+                    element={<AdminTenantPinObjectUpdate />}
                   />
                   <Route
                     exact
@@ -189,23 +189,23 @@ function AppRoute() {
                   />
                   <Route
                     exact
-                    path="/admin/user/:id/attachments"
-                    element={<AdminUserDetailForAttachmentList />}
+                    path="/admin/user/:id/pinobjects"
+                    element={<AdminUserDetailForPinObjectList />}
                   />
                   <Route
                     exact
-                    path="/admin/user/:id/attachment/:aid"
-                    element={<AdminUserAttachmentDetail />}
+                    path="/admin/user/:id/pinobject/:aid"
+                    element={<AdminUserPinObjectDetail />}
                   />
                   <Route
                     exact
-                    path="/admin/user/:id/attachments/add"
-                    element={<AdminUserAttachmentAdd />}
+                    path="/admin/user/:id/pinobjects/add"
+                    element={<AdminUserPinObjectAdd />}
                   />
                   <Route
                     exact
-                    path="/admin/user/:id/attachment/:aid/edit"
-                    element={<AdminUserAttachmentUpdate />}
+                    path="/admin/user/:id/pinobject/:aid/edit"
+                    element={<AdminUserPinObjectUpdate />}
                   />
                   <Route
                     exact

@@ -219,8 +219,8 @@ func (impl *UserControllerImpl) UpdateByID(ctx context.Context, requestData *Use
 	////
 
 	go func(usr *user_s.User) {
-		if err := impl.updateRelatedAttachmentsInBackground(usr); err != nil {
-			impl.Logger.Error("update related attachments failed", slog.Any("error", err))
+		if err := impl.updateRelatedPinObjectsInBackground(usr); err != nil {
+			impl.Logger.Error("update related pinobjects failed", slog.Any("error", err))
 		}
 	}(user)
 	go func(usr *user_s.User) {

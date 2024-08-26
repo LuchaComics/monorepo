@@ -349,8 +349,8 @@ function AdminTenantDetailForCommentList() {
                           </Link>
                         </li>
                         <li>
-                          <Link to={`/admin/tenant/${tenant.id}/attachments`}>
-                            Attachments
+                          <Link to={`/admin/tenant/${tenant.id}/pinobjects`}>
+                            PinObjects
                           </Link>
                         </li>
                       </ul>

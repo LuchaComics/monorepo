@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTasks,
   faTachometer,
+  faBuilding,
   faPlus,
   faArrowLeft,
   faCheckCircle,
@@ -16,15 +17,21 @@ import {
   faArrowRight,
   faTrashCan,
   faArrowUpRightFromSquare,
-  faBuilding,
+  faFile,
+  faDownload,
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 import { useParams } from "react-router-dom";
-import { USER_ROLES, PAGE_SIZE_OPTIONS } from "../../../Constants/FieldOptions";
+import {
+  ATTACHMENT_STATES,
+  PAGE_SIZE_OPTIONS,
+} from "../../../Constants/FieldOptions";
 
-import useLocalStorage from "../../../Hooks/useLocalStorage";
 import { getTenantDetailAPI } from "../../../API/tenant";
-import { getUserListAPI, deleteUserAPI } from "../../../API/user";
+import {
+  getPinObjectListAPI,
+  deletePinObjectAPI,
+} from "../../../API/PinObject";
 import FormErrorBox from "../../Reusable/FormErrorBox";
 import FormInputField from "../../Reusable/FormInputField";
 import FormTextareaField from "../../Reusable/FormTextareaField";
@@ -34,10 +41,10 @@ import FormSelectField from "../../Reusable/FormSelectField";
 import FormCheckboxField from "../../Reusable/FormCheckboxField";
 import PageLoadingContent from "../../Reusable/PageLoadingContent";
 import { topAlertMessageState, topAlertStatusState } from "../../../AppState";
-import AdminTenantDetailForUserListDesktop from "./DetailForUserListDesktop";
-import AdminTenantDetailForUserListMobile from "./DetailForUserListMobile";
+import AdminTenantDetailForPinObjectListDesktop from "./DetailForPinObjectListDektop";
+import AdminTenantDetailForPinObjectListMobile from "./DetailForPinObjectListMobile";
 
-function AdminTenantDetailForUserList() {
+function AdminTenantDetailForPinObjectList() {
   ////
   //// URL Parameters.
   ////
@@ -62,8 +69,9 @@ function AdminTenantDetailForUserList() {
   const [forceURL, setForceURL] = useState("");
   const [tenant, setTenant] = useState({});
   const [tabIndex, setTabIndex] = useState(1);
-  const [users, setUsers] = useState("");
-  const [selectedUserForDeletion, setSelectedUserForDeletion] = useState("");
+  const [pinobjects, setPinObjects] = useState("");
+  const [selectedPinObjectForDeletion, setSelectedPinObjectForDeletion] =
+    useState("");
   const [pageSize, setPageSize] = useState(10); // Pagination
   const [previousCursors, setPreviousCursors] = useState([]); // Pagination
   const [nextCursor, setNextCursor] = useState(""); // Pagination
@@ -73,22 +81,23 @@ function AdminTenantDetailForUserList() {
   //// Event handling.
   ////
 
-  const fetchUserList = (cur, tenantID, limit) => {
+  const fetchPinObjectList = (cur, tenantID, limit) => {
     setFetching(true);
     setErrors({});
 
     let params = new Map();
-    params.set("tenant_id", id);
+    params.set("ownership_id", id);
+    params.set("ownership_role", 3); // 3=Tenant.
     params.set("page_size", limit);
     if (cur !== "") {
       params.set("cursor", cur);
     }
 
-    getUserListAPI(
+    getPinObjectListAPI(
       params,
-      onUserListSuccess,
-      onUserListError,
-      onUserListDone,
+      onPinObjectListSuccess,
+      onPinObjectListError,
+      onPinObjectListDone,
       onUnauthorized,
     );
   };
@@ -109,27 +118,27 @@ function AdminTenantDetailForUserList() {
     setCurrentCursor(previousCursor);
   };
 
-  const onSelectUserForDeletion = (e, user) => {
-    console.log("onSelectUserForDeletion", user);
-    setSelectedUserForDeletion(user);
+  const onSelectPinObjectForDeletion = (e, pinobject) => {
+    console.log("onSelectPinObjectForDeletion", pinobject);
+    setSelectedPinObjectForDeletion(pinobject);
   };
 
-  const onDeselectUserForDeletion = (e) => {
-    console.log("onDeselectUserForDeletion");
-    setSelectedUserForDeletion("");
+  const onDeselectPinObjectForDeletion = (e) => {
+    console.log("onDeselectPinObjectForDeletion");
+    setSelectedPinObjectForDeletion("");
   };
 
   const onDeleteConfirmButtonClick = (e) => {
     console.log("onDeleteConfirmButtonClick"); // For debugging purposes only.
 
-    deleteUserAPI(
-      selectedUserForDeletion.id,
-      onUserDeleteSuccess,
-      onUserDeleteError,
-      onUserDeleteDone,
+    deletePinObjectAPI(
+      selectedPinObjectForDeletion.id,
+      onPinObjectDeleteSuccess,
+      onPinObjectDeleteError,
+      onPinObjectDeleteDone,
       onUnauthorized,
     );
-    setSelectedUserForDeletion("");
+    setSelectedPinObjectForDeletion("");
   };
 
   ////
@@ -141,7 +150,6 @@ function AdminTenantDetailForUserList() {
   function onTenantDetailSuccess(response) {
     console.log("onTenantDetailSuccess: Starting...");
     setTenant(response);
-    fetchUserList(currentCursor, response.id, pageSize);
   }
 
   function onTenantDetailError(apiErr) {
@@ -160,20 +168,20 @@ function AdminTenantDetailForUserList() {
     setFetching(false);
   }
 
-  // User list.
+  // PinObject list.
 
-  function onUserListSuccess(response) {
-    console.log("onUserListSuccess: Starting...");
+  function onPinObjectListSuccess(response) {
+    console.log("onPinObjectListSuccess: Starting...");
     if (response.results !== null) {
-      setUsers(response);
+      setPinObjects(response);
       if (response.hasNextPage) {
         setNextCursor(response.nextCursor); // For pagination purposes.
       }
     }
   }
 
-  function onUserListError(apiErr) {
-    console.log("onUserListError: Starting...");
+  function onPinObjectListError(apiErr) {
+    console.log("onPinObjectListError: Starting...");
     setErrors(apiErr);
 
     // The following code will cause the screen to scroll to the top of
@@ -183,19 +191,19 @@ function AdminTenantDetailForUserList() {
     scroll.scrollToTop();
   }
 
-  function onUserListDone() {
-    console.log("onUserListDone: Starting...");
+  function onPinObjectListDone() {
+    console.log("onPinObjectListDone: Starting...");
     setFetching(false);
   }
 
-  // User delete.
+  // PinObject delete.
 
-  function onUserDeleteSuccess(response) {
-    console.log("onUserDeleteSuccess: Starting..."); // For debugging purposes only.
+  function onPinObjectDeleteSuccess(response) {
+    console.log("onPinObjectDeleteSuccess: Starting..."); // For debugging purposes only.
 
     // Update notification.
     setTopAlertStatus("success");
-    setTopAlertMessage("User deleted");
+    setTopAlertMessage("PinObject deleted");
     setTimeout(() => {
       console.log(
         "onDeleteConfirmButtonClick: topAlertMessage, topAlertStatus:",
@@ -206,11 +214,11 @@ function AdminTenantDetailForUserList() {
     }, 2000);
 
     // Fetch again an updated list.
-    fetchUserList(currentCursor, id, pageSize);
+    fetchPinObjectList(currentCursor, id, pageSize);
   }
 
-  function onUserDeleteError(apiErr) {
-    console.log("onUserDeleteError: Starting..."); // For debugging purposes only.
+  function onPinObjectDeleteError(apiErr) {
+    console.log("onPinObjectDeleteError: Starting..."); // For debugging purposes only.
     setErrors(apiErr);
 
     // Update notification.
@@ -218,7 +226,7 @@ function AdminTenantDetailForUserList() {
     setTopAlertMessage("Failed deleting");
     setTimeout(() => {
       console.log(
-        "onUserDeleteError: topAlertMessage, topAlertStatus:",
+        "onPinObjectDeleteError: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );
@@ -232,8 +240,8 @@ function AdminTenantDetailForUserList() {
     scroll.scrollToTop();
   }
 
-  function onUserDeleteDone() {
-    console.log("onUserDeleteDone: Starting...");
+  function onPinObjectDeleteDone() {
+    console.log("onPinObjectDeleteDone: Starting...");
     setFetching(false);
   }
 
@@ -261,6 +269,7 @@ function AdminTenantDetailForUserList() {
         onTenantDetailDone,
         onUnauthorized,
       );
+      fetchPinObjectList(currentCursor, id, pageSize);
     }
 
     return () => {
@@ -279,7 +288,7 @@ function AdminTenantDetailForUserList() {
   return (
     <>
       {/* Modals */}
-      <div class={`modal ${selectedUserForDeletion ? "is-active" : ""}`}>
+      <div class={`modal ${selectedPinObjectForDeletion ? "is-active" : ""}`}>
         <div class="modal-background"></div>
         <div class="modal-card">
           <header class="modal-card-head">
@@ -287,13 +296,13 @@ function AdminTenantDetailForUserList() {
             <button
               class="delete"
               aria-label="close"
-              onClick={onDeselectUserForDeletion}
+              onClick={onDeselectPinObjectForDeletion}
             ></button>
           </header>
           <section class="modal-card-body">
-            You are about to <b>archive</b> this user; it will no longer appear
-            on your dashboard This action can be undone but you'll need to
-            contact the system administrator. Are you sure you would like to
+            You are about to <b>archive</b> this pinobject; it will no longer
+            appear on your dashboard This action can be undone but you'll need
+            to contact the system administrator. Are you sure you would like to
             continue?
           </section>
           <footer class="modal-card-foot">
@@ -303,7 +312,7 @@ function AdminTenantDetailForUserList() {
             >
               Confirm
             </button>
-            <button class="button" onClick={onDeselectUserForDeletion}>
+            <button class="button" onClick={onDeselectPinObjectForDeletion}>
               Cancel
             </button>
           </footer>
@@ -330,7 +339,7 @@ function AdminTenantDetailForUserList() {
               <li class="is-active">
                 <Link aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faEye} />
-                  &nbsp;Detail (Users)
+                  &nbsp;Detail (PinObjects)
                 </Link>
               </li>
             </ul>
@@ -357,16 +366,18 @@ function AdminTenantDetailForUserList() {
                   &nbsp;Tenant
                 </p>
               </div>
-              <div class="column has-text-right">
-                <Link
-                  to={`/admin/users/add?tenant_id=${id}&tenant_name=${tenant.name}`}
-                  class="button is-small is-success is-fullwidth-mobile"
-                  type="button"
-                >
-                  <FontAwesomeIcon className="mdi" icon={faPlus} />
-                  &nbsp;Add User
-                </Link>
-              </div>
+              {tenant && (
+                <div class="column has-text-right">
+                  <Link
+                    to={`/admin/tenant/${id}/pinobjects/add`}
+                    class="button is-small is-success is-fullwidth-mobile"
+                    type="button"
+                  >
+                    <FontAwesomeIcon className="mdi" icon={faPlus} />
+                    &nbsp;Add PinObject
+                  </Link>
+                </div>
+              )}
             </div>
             <FormErrorBox errors={errors} />
 
@@ -383,9 +394,9 @@ function AdminTenantDetailForUserList() {
                         <li>
                           <Link to={`/admin/tenant/${tenant.id}`}>Detail</Link>
                         </li>
-                        <li class="is-active">
-                          <Link>
-                            <b>Users</b>
+                        <li>
+                          <Link to={`/admin/tenant/${tenant.id}/users`}>
+                            Users
                           </Link>
                         </li>
                         <li>
@@ -393,18 +404,19 @@ function AdminTenantDetailForUserList() {
                             Comments
                           </Link>
                         </li>
-                        <li>
+                        <li class="is-active">
                           <Link to={`/admin/tenant/${tenant.id}/pinobjects`}>
-                            PinObjects
+                            <b>PinObjects</b>
                           </Link>
                         </li>
                       </ul>
                     </div>
 
                     {!isFetching &&
-                    users &&
-                    users.results &&
-                    (users.results.length > 0 || previousCursors.length > 0) ? (
+                    pinobjects &&
+                    pinobjects.results &&
+                    (pinobjects.results.length > 0 ||
+                      previousCursors.length > 0) ? (
                       <div class="container">
                         {/*
                                                 ##################################################################
@@ -412,14 +424,17 @@ function AdminTenantDetailForUserList() {
                                                 ##################################################################
                                             */}
                         <div class="is-hidden-touch">
-                          <AdminTenantDetailForUserListDesktop
-                            listData={users}
+                          <AdminTenantDetailForPinObjectListDesktop
+                            tenantID={tenant.id}
+                            listData={pinobjects}
                             setPageSize={setPageSize}
                             pageSize={pageSize}
                             previousCursors={previousCursors}
                             onPreviousClicked={onPreviousClicked}
                             onNextClicked={onNextClicked}
-                            onSelectUserForDeletion={onSelectUserForDeletion}
+                            onSelectPinObjectForDeletion={
+                              onSelectPinObjectForDeletion
+                            }
                           />
                         </div>
 
@@ -429,14 +444,16 @@ function AdminTenantDetailForUserList() {
                                                 ###########################################################################
                                             */}
                         <div class="is-fullwidth is-hidden-desktop">
-                          <AdminTenantDetailForUserListMobile
-                            listData={users}
+                          <AdminTenantDetailForPinObjectListMobile
+                            listData={pinobjects}
                             setPageSize={setPageSize}
                             pageSize={pageSize}
                             previousCursors={previousCursors}
                             onPreviousClicked={onPreviousClicked}
                             onNextClicked={onNextClicked}
-                            onSelectUserForDeletion={onSelectUserForDeletion}
+                            onSelectPinObjectForDeletion={
+                              onSelectPinObjectForDeletion
+                            }
                           />
                         </div>
                       </div>
@@ -444,11 +461,9 @@ function AdminTenantDetailForUserList() {
                       <div class="container">
                         <article class="message is-dark">
                           <div class="message-body">
-                            No users.{" "}
+                            No pinobjects.{" "}
                             <b>
-                              <Link
-                                to={`/admin/users/add?tenant_id=${id}&tenant_name=${tenant.name}`}
-                              >
+                              <Link to={`/admin/tenant/${id}/pinobjects/add`}>
                                 Click here&nbsp;
                                 <FontAwesomeIcon
                                   className="mdi"
@@ -456,7 +471,7 @@ function AdminTenantDetailForUserList() {
                                 />
                               </Link>
                             </b>{" "}
-                            to get started creating a new user.
+                            to get started creating a new pinobject.
                           </div>
                         </article>
                       </div>
@@ -474,11 +489,11 @@ function AdminTenantDetailForUserList() {
                       </div>
                       <div class="column is-half has-text-right">
                         <Link
-                          to={`/admin/users/add?tenant_id=${id}&tenant_name=${tenant.name}`}
+                          to={`/admin/tenant/${id}/pinobjects/add`}
                           class="button is-primary is-fullwidth-mobile"
                         >
                           <FontAwesomeIcon className="fas" icon={faPlus} />
-                          &nbsp;Add User
+                          &nbsp;Add PinObject
                         </Link>
                       </div>
                     </div>
@@ -493,4 +508,4 @@ function AdminTenantDetailForUserList() {
   );
 }
 
-export default AdminTenantDetailForUserList;
+export default AdminTenantDetailForPinObjectList;

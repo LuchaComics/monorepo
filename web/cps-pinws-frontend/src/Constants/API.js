@@ -62,11 +62,11 @@ export const CPS_COMIC_SUBMISSION_CUSTOMER_SWAP_OPERATION_API_ENDPOINT =
 export const CPS_COMIC_SUBMISSION_CREATE_COMMENT_OPERATION_API_ENDPOINT =
   HTTP_API_SERVER + "/api/v1/comic-submissions/operation/create-comment";
 export const CPS_COMIC_SUBMISSION_FILE_ATTACHMENTS_API_ENDPOINT =
-  HTTP_API_SERVER + "/api/v1/comic-submission/{id}/file-attachments";
+  HTTP_API_SERVER + "/api/v1/comic-submission/{id}/file-pinobjects";
 export const CPS_ATTACHMENTS_API_ENDPOINT =
-  HTTP_API_SERVER + "/api/v1/attachments";
+  HTTP_API_SERVER + "/api/v1/pinobjects";
 export const CPS_ATTACHMENT_API_ENDPOINT =
-  HTTP_API_SERVER + "/api/v1/attachment/{id}";
+  HTTP_API_SERVER + "/api/v1/pinobject/{id}";
 export const CPS_OFFERS_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/offers";
 export const CPS_OFFER_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/offer/{id}";
 export const CPS_OFFER_BY_SERVICE_TYPE_API_ENDPOINT =

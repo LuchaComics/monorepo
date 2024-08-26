@@ -343,8 +343,8 @@ function AdminUserDetailForCommentList() {
                           </Link>
                         </li>
                         <li>
-                          <Link to={`/admin/user/${user.id}/attachments`}>
-                            Attachments
+                          <Link to={`/admin/user/${user.id}/pinobjects`}>
+                            PinObjects
                           </Link>
                         </li>
                         <li>

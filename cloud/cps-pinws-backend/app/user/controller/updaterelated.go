@@ -5,26 +5,26 @@ import (
 	"log/slog"
 	"time"
 
-	attachment_s "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/attachment/datastore"
+	pinobject_s "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/datastore"
 	tenant_s "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/tenant/datastore"
 	user_s "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/user/datastore"
 )
 
-func (impl *UserControllerImpl) updateRelatedAttachmentsInBackground(u *user_s.User) error {
+func (impl *UserControllerImpl) updateRelatedPinObjectsInBackground(u *user_s.User) error {
 	ctx := context.Background() // Execute in background and not in foreground.
 
 	////
 	//// CASE 1: Related by `created_by_user_id`.
 	////
 
-	f := &attachment_s.AttachmentPaginationListFilter{
+	f := &pinobject_s.PinObjectPaginationListFilter{
 		Cursor:          "",
 		CreatedByUserID: u.ID,
 		PageSize:        1_000_000_000,
 		SortField:       "created_at",
-		SortOrder:       attachment_s.SortOrderDescending,
+		SortOrder:       pinobject_s.SortOrderDescending,
 	}
-	aa, err := impl.AttachmentStorer.ListByFilter(ctx, f)
+	aa, err := impl.PinObjectStorer.ListByFilter(ctx, f)
 	if err != nil {
 		impl.Logger.Error("database update by id error", slog.Any("error", err))
 		return err
@@ -32,12 +32,12 @@ func (impl *UserControllerImpl) updateRelatedAttachmentsInBackground(u *user_s.U
 	for _, a := range aa.Results {
 		a.CreatedByUserName = u.Name
 		a.ModifiedAt = time.Now()
-		if err := impl.AttachmentStorer.UpdateByID(ctx, a); err != nil {
+		if err := impl.PinObjectStorer.UpdateByID(ctx, a); err != nil {
 			impl.Logger.Error("database update by id error", slog.Any("error", err))
 			return err
 		}
-		impl.Logger.Debug("Updated attachment",
-			slog.Any("attachment_id", a.ID),
+		impl.Logger.Debug("Updated pinobject",
+			slog.Any("pinobject_id", a.ID),
 			slog.Any("TenantName", u.TenantName))
 	}
 
@@ -45,14 +45,14 @@ func (impl *UserControllerImpl) updateRelatedAttachmentsInBackground(u *user_s.U
 	//// CASE 2: Related by `modified_by_user_id`.
 	////
 
-	f = &attachment_s.AttachmentPaginationListFilter{
+	f = &pinobject_s.PinObjectPaginationListFilter{
 		Cursor:          "",
 		CreatedByUserID: u.ID,
 		PageSize:        1_000_000_000,
 		SortField:       "created_at",
-		SortOrder:       attachment_s.SortOrderDescending,
+		SortOrder:       pinobject_s.SortOrderDescending,
 	}
-	aa, err = impl.AttachmentStorer.ListByFilter(ctx, f)
+	aa, err = impl.PinObjectStorer.ListByFilter(ctx, f)
 	if err != nil {
 		impl.Logger.Error("database update by id error", slog.Any("error", err))
 		return err
@@ -60,12 +60,12 @@ func (impl *UserControllerImpl) updateRelatedAttachmentsInBackground(u *user_s.U
 	for _, a := range aa.Results {
 		a.ModifiedByUserName = u.Name
 		a.ModifiedAt = time.Now()
-		if err := impl.AttachmentStorer.UpdateByID(ctx, a); err != nil {
+		if err := impl.PinObjectStorer.UpdateByID(ctx, a); err != nil {
 			impl.Logger.Error("database update by id error", slog.Any("error", err))
 			return err
 		}
-		impl.Logger.Debug("Updated attachment",
-			slog.Any("attachment_id", a.ID),
+		impl.Logger.Debug("Updated pinobject",
+			slog.Any("pinobject_id", a.ID),
 			slog.Any("TenantName", u.TenantName))
 	}
 

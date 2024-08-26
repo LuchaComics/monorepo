@@ -12,11 +12,11 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/adapter/storage/mongodb"
 	s3_storage "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/adapter/storage/s3"
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/adapter/templatedemailer"
-	attachment_c "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/attachment/controller"
-	attachment_s "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/attachment/datastore"
-	attachment_http "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/attachment/httptransport"
 	gateway_c "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/gateway/controller"
 	gateway_http "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/gateway/httptransport"
+	pinobject_c "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/controller"
+	pinobject_s "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/datastore"
+	pinobject_http "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/httptransport"
 	tenant_c "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/tenant/controller"
 	tenant_s "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/tenant/datastore"
 	tenant_http "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/tenant/httptransport"
@@ -59,12 +59,12 @@ func InitializeEvent() Application {
 		tenant_s.NewDatastore,
 		tenant_c.NewController,
 		gateway_c.NewController,
-		attachment_s.NewDatastore,
-		attachment_c.NewController,
+		pinobject_s.NewDatastore,
+		pinobject_c.NewController,
 		gateway_http.NewHandler,
 		user_http.NewHandler,
 		tenant_http.NewHandler,
-		attachment_http.NewHandler,
+		pinobject_http.NewHandler,
 		middleware.NewMiddleware,
 		http.NewInputPort,
 		NewApplication)

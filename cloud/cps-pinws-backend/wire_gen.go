@@ -13,11 +13,11 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/adapter/storage/mongodb"
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/adapter/storage/s3"
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/adapter/templatedemailer"
-	controller4 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/attachment/controller"
-	datastore3 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/attachment/datastore"
-	httptransport4 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/attachment/httptransport"
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/gateway/controller"
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/gateway/httptransport"
+	controller4 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/controller"
+	datastore3 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/datastore"
+	httptransport4 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/httptransport"
 	controller3 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/tenant/controller"
 	datastore2 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/tenant/datastore"
 	httptransport3 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/tenant/httptransport"
@@ -34,10 +34,9 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/provider/password"
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/provider/time"
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/provider/uuid"
-)
 
-import (
 	_ "go.uber.org/automaxprocs"
+
 	_ "time/tzdata"
 )
 
@@ -61,15 +60,15 @@ func InitializeEvent() Application {
 	gatewayController := controller.NewController(conf, slogLogger, provider, jwtProvider, kmutexProvider, passwordProvider, templatedEmailer, cacher, client, userStorer, tenantStorer)
 	middlewareMiddleware := middleware.NewMiddleware(conf, slogLogger, provider, timeProvider, jwtProvider, blacklistProvider, gatewayController)
 	handler := httptransport.NewHandler(slogLogger, gatewayController)
-	attachmentStorer := datastore3.NewDatastore(conf, slogLogger, client)
-	userController := controller2.NewController(conf, slogLogger, provider, passwordProvider, templatedEmailer, client, tenantStorer, userStorer, attachmentStorer)
+	pinobjectStorer := datastore3.NewDatastore(conf, slogLogger, client)
+	userController := controller2.NewController(conf, slogLogger, provider, passwordProvider, templatedEmailer, client, tenantStorer, userStorer, pinobjectStorer)
 	httptransportHandler := httptransport2.NewHandler(slogLogger, userController)
 	s3Storager := s3.NewStorage(conf, slogLogger, provider)
-	tenantController := controller3.NewController(conf, slogLogger, provider, s3Storager, templatedEmailer, client, tenantStorer, userStorer, attachmentStorer)
+	tenantController := controller3.NewController(conf, slogLogger, provider, s3Storager, templatedEmailer, client, tenantStorer, userStorer, pinobjectStorer)
 	handler2 := httptransport3.NewHandler(slogLogger, tenantController)
 	ipfsStorager := ipfs.NewStorage(conf, slogLogger)
-	attachmentController := controller4.NewController(conf, slogLogger, provider, ipfsStorager, s3Storager, client, attachmentStorer, userStorer)
-	handler3 := httptransport4.NewHandler(slogLogger, attachmentController)
+	pinobjectController := controller4.NewController(conf, slogLogger, provider, ipfsStorager, s3Storager, client, pinobjectStorer, userStorer)
+	handler3 := httptransport4.NewHandler(slogLogger, pinobjectController)
 	inputPortServer := http.NewInputPort(conf, slogLogger, middlewareMiddleware, handler, httptransportHandler, handler2, handler3)
 	application := NewApplication(slogLogger, inputPortServer)
 	return application

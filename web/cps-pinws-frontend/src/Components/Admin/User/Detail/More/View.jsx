@@ -234,8 +234,8 @@ function AdminUserDetailMore() {
                           </Link>
                         </li>
                         <li>
-                          <Link to={`/admin/user/${id}/attachments`}>
-                            Attachments
+                          <Link to={`/admin/user/${id}/pinobjects`}>
+                            PinObjects
                           </Link>
                         </li>
                         <li className="is-active">

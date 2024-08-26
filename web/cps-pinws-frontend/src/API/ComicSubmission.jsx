@@ -276,7 +276,7 @@ export function postComicSubmissionCreateCommentOperationAPI(
     .then(onDoneCallback);
 }
 
-export function postComicSubmissionFileAttachmentCreateAPI(
+export function postComicSubmissionFilePinObjectCreateAPI(
   submissionID,
   formdata,
   onSuccessCallback,
