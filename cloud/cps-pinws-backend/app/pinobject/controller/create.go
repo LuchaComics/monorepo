@@ -121,21 +121,26 @@ func (impl *PinObjectControllerImpl) Create(ctx context.Context, req *PinObjectC
 			CID:       cid,
 			RequestID: primitive.NewObjectID(),
 			Name:      req.Name,
+			Created:   time.Now(),
+			Origins:   req.Origins,
+			Meta:      req.Meta,
+			Delegates: make([]string, 0),
+			Info:      make(map[string]string, 0),
 
 			// Extension
 			TenantID:              orgID,
 			TenantName:            orgName,
 			TenantTimezone:        orgTimezone,
 			ID:                    primitive.NewObjectID(),
-			ObjectURL:             "",
-			Created:               time.Now(),
+			ProjectID:             req.ProjectID,
 			CreatedFromIPAddress:  ipAdress,
 			ModifiedAt:            time.Now(),
 			ModifiedFromIPAddress: ipAdress,
 
+			// S3
 			Filename:  req.FileName,
 			ObjectKey: objectKey,
-			ProjectID: req.ProjectID,
+			ObjectURL: "",
 		}
 		if err := impl.PinObjectStorer.Create(sessCtx, res); err != nil {
 			impl.Logger.Error("database create error", slog.Any("error", err))

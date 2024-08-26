@@ -67,6 +67,7 @@ function AdminProjectPinObjectDetail() {
   const [forceURL, setForceURL] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
   const [name, setName] = useState("");
+  const [cid, setCID] = useState("");
   const [description, setDescription] = useState("");
   const [objectUrl, setObjectUrl] = useState("");
   const [selectedPinObjectRequestIDForDeletion, setSelectedPinObjectRequestIDForDeletion] =
@@ -100,7 +101,7 @@ function AdminProjectPinObjectDetail() {
     console.log("onAdminProjectPinObjectDetailSuccess: Starting...");
     console.log(response);
     setName(response.name);
-    setDescription(response.description);
+    setCID(response.cid);
     setObjectUrl(response.objectUrl);
   }
 
@@ -284,9 +285,8 @@ function AdminProjectPinObjectDetail() {
                 ></button>
               </header>
               <section class="modal-card-body">
-                You are about to <b>archive</b> this pinobject; it will no
-                longer appear on your dashboard This action can be undone but
-                you'll need to contact the system administrator. Are you sure
+                You are about to <b>delete</b> this pin; it will no
+                longer appear on your dashboard This action cannot be undone. Are you sure
                 you would like to continue?
               </section>
               <footer class="modal-card-foot">
@@ -331,6 +331,7 @@ function AdminProjectPinObjectDetail() {
                   <hr />
 
                   <FormRowText label="Name" value={name} helpText="" />
+                  <FormRowText label="CID" value={cid} helpText="" />
 
                   <p class="subtitle is-4 pt-4">
                     <FontAwesomeIcon className="fas" icon={faFile} />

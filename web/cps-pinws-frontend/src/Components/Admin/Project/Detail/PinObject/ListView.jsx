@@ -342,10 +342,9 @@ function AdminProjectDetailForPinObjectList() {
                 ></button>
               </header>
               <section class="modal-card-body">
-                You are about to <b>archive</b> this pinobject; it will no
-                longer appear on your dashboard This action can be undone but
-                you'll need to contact the system administrator. Are you sure
-                you would like to continue?
+              ou are about to <b>delete</b> this pin; it will no
+              longer appear on your dashboard This action cannot be undone. Are you sure
+              you would like to continue?
               </section>
               <footer class="modal-card-foot">
                 <button
