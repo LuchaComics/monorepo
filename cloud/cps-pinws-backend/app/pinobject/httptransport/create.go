@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strconv"
+	"strings"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
@@ -26,9 +26,9 @@ func UnmarshalCreateRequest(ctx context.Context, r *http.Request) (*a_c.PinObjec
 
 	// Get the values of form fields
 	name := r.FormValue("name")
-	ownershipID := r.FormValue("ownership_id")
-	ownershipTypeStr := r.FormValue("ownership_type")
-	ownershipType, _ := strconv.ParseInt(ownershipTypeStr, 10, 64)
+	originsStr := r.FormValue("origins")
+	metaStr := r.FormValue("meta")
+	projectID := r.FormValue("project_id")
 
 	// Get the uploaded file from the request
 	file, header, err := r.FormFile("file")
@@ -37,16 +37,25 @@ func UnmarshalCreateRequest(ctx context.Context, r *http.Request) (*a_c.PinObjec
 		// return nil, err, http.StatusInternalServerError
 	}
 
-	oid, err := primitive.ObjectIDFromHex(ownershipID)
+	pid, err := primitive.ObjectIDFromHex(projectID)
 	if err != nil {
 		log.Println("UnmarshalCmsImageCreateRequest: primitive.ObjectIDFromHex:err:", err)
 	}
 
+	// Parse `originsStr` into a slice of strings
+	origins := strings.Split(originsStr, ",")
+
+	/// Parse `metaStr` into a map of string keys and values
+	var meta map[string]string
+	if err := json.Unmarshal([]byte(metaStr), &meta); err != nil {
+		log.Printf("Failed to parse meta: %v", err)
+		meta = make(map[string]string) // Initialize an empty map if parsing fails
+	}
+
 	// Initialize our array which will store all the results from the remote server.
 	requestData := &a_c.PinObjectCreateRequestIDO{
-		Name:          name,
-		OwnershipID:   oid,
-		OwnershipType: int8(ownershipType),
+		Name:      name,
+		ProjectID: pid,
 	}
 
 	if header != nil {
@@ -54,6 +63,8 @@ func UnmarshalCreateRequest(ctx context.Context, r *http.Request) (*a_c.PinObjec
 		requestData.FileName = header.Filename
 		requestData.FileType = header.Header.Get("Content-Type")
 		requestData.File = file
+		requestData.Origins = origins
+		requestData.Meta = meta
 	}
 	return requestData, nil
 }

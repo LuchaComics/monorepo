@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strconv"
 
 	a_c "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/controller"
 	sub_c "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/controller"
@@ -25,12 +24,9 @@ func UnmarshalUpdateRequest(ctx context.Context, r *http.Request) (*sub_c.PinObj
 	}
 
 	// Get the values of form fields
-	id := r.FormValue("id")
+	requestID := r.FormValue("requestid")
 	name := r.FormValue("name")
-	description := r.FormValue("description")
-	ownershipID := r.FormValue("ownership_id")
-	ownershipTypeStr := r.FormValue("ownership_type")
-	ownershipType, _ := strconv.ParseInt(ownershipTypeStr, 10, 64)
+	projectID := r.FormValue("project_id")
 
 	// Get the uploaded file from the request
 	file, header, err := r.FormFile("file")
@@ -39,23 +35,21 @@ func UnmarshalUpdateRequest(ctx context.Context, r *http.Request) (*sub_c.PinObj
 		// return nil, err, http.StatusInternalServerError
 	}
 
-	oid, err := primitive.ObjectIDFromHex(ownershipID)
+	pid, err := primitive.ObjectIDFromHex(projectID)
 	if err != nil {
 		log.Println("UnmarshalUpdateRequest: primitive.ObjectIDFromHex:err:", err)
 	}
 
-	aid, err := primitive.ObjectIDFromHex(id)
+	rid, err := primitive.ObjectIDFromHex(requestID)
 	if err != nil {
 		log.Println("UnmarshalUpdateRequest: primitive.ObjectIDFromHex:err:", err)
 	}
 
 	// Initialize our array which will store all the results from the remote server.
 	requestData := &a_c.PinObjectUpdateRequestIDO{
-		ID:            aid,
-		Name:          name,
-		Description:   description,
-		OwnershipID:   oid,
-		OwnershipType: int8(ownershipType),
+		RequestID: rid,
+		Name:      name,
+		ProjectID: pid,
 	}
 
 	if header != nil {
@@ -67,7 +61,7 @@ func UnmarshalUpdateRequest(ctx context.Context, r *http.Request) (*sub_c.PinObj
 	return requestData, nil
 }
 
-func (h *Handler) UpdateByID(w http.ResponseWriter, r *http.Request, id string) {
+func (h *Handler) UpdateByRequestID(w http.ResponseWriter, r *http.Request, id string) {
 	ctx := r.Context()
 
 	data, err := UnmarshalUpdateRequest(ctx, r)
@@ -75,7 +69,7 @@ func (h *Handler) UpdateByID(w http.ResponseWriter, r *http.Request, id string) 
 		httperror.ResponseError(w, err)
 		return
 	}
-	pinobject, err := h.Controller.UpdateByID(ctx, data)
+	pinobject, err := h.Controller.UpdateByRequestID(ctx, data)
 	if err != nil {
 		httperror.ResponseError(w, err)
 		return

@@ -10,16 +10,16 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/utils/httperror"
 )
 
-func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request, id string) {
+func (h *Handler) GetByRequestID(w http.ResponseWriter, r *http.Request, requestID string) {
 	ctx := r.Context()
 
-	objectID, err := primitive.ObjectIDFromHex(id)
+	objectRequestID, err := primitive.ObjectIDFromHex(requestID)
 	if err != nil {
 		httperror.ResponseError(w, err)
 		return
 	}
 
-	m, err := h.Controller.GetByID(ctx, objectID)
+	m, err := h.Controller.GetByRequestID(ctx, objectRequestID)
 	if err != nil {
 		httperror.ResponseError(w, err)
 		return

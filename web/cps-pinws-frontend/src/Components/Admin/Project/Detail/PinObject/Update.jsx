@@ -11,7 +11,7 @@ import {
   faProjectCircle,
   faGauge,
   faPencil,
-  faProjects,
+  faProjectDiagram,
   faIdCard,
   faAddressBook,
   faContactCard,
@@ -19,6 +19,7 @@ import {
   faCogs,
   faEye,
   faArrowLeft,
+  faLocationPin,
   faFile,
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
@@ -48,7 +49,7 @@ function AdminProjectPinObjectUpdate() {
   //// URL Parameters.
   ////
 
-  const { id, aid } = useParams();
+  const { id, rid } = useParams();
 
   ////
   //// Global state.
@@ -68,7 +69,6 @@ function AdminProjectPinObjectUpdate() {
   const [forceURL, setForceURL] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
   const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
   const [objectUrl, setObjectUrl] = useState("");
 
   ////
@@ -85,12 +85,10 @@ function AdminProjectPinObjectUpdate() {
     setErrors({});
 
     const formData = new FormData();
-    formData.append("id", aid);
+    formData.append("requestid", rid);
     formData.append("file", selectedFile);
     formData.append("name", name);
-    formData.append("description", description);
-    formData.append("ownership_id", id);
-    formData.append("ownership_type", 1); // 1=Customer or Project.
+    formData.append("project_id", id);
 
     putPinObjectUpdateAPI(
       id,
@@ -113,7 +111,7 @@ function AdminProjectPinObjectUpdate() {
     console.log(response);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
-    setTopAlertMessage("Project created");
+    setTopAlertMessage("Pin updated");
     setTopAlertStatus("success");
     setTimeout(() => {
       console.log("onAdminProjectPinObjectUpdateSuccess: Delayed for 2 seconds.");
@@ -125,8 +123,8 @@ function AdminProjectPinObjectUpdate() {
       setTopAlertMessage("");
     }, 2000);
 
-    // Redirect the project to the project pinobjects page.
-    setForceURL("/admin/project/" + id + "/pinobjects");
+    // Redirect the project to the project pins page.
+    setForceURL("/admin/project/" + id + "/pin/" + rid);
   }
 
   function onAdminProjectPinObjectUpdateError(apiErr) {
@@ -163,7 +161,6 @@ function AdminProjectPinObjectUpdate() {
     console.log("onAdminProjectPinObjectDetailSuccess: Starting...");
     console.log(response);
     setName(response.name);
-    setDescription(response.description);
     setObjectUrl(response.objectUrl);
   }
 
@@ -213,7 +210,7 @@ function AdminProjectPinObjectUpdate() {
       window.scrollTo(0, 0); // Start the page at the top of the page.
 
       getPinObjectDetailAPI(
-        aid,
+        rid,
         onAdminProjectPinObjectDetailSuccess,
         onAdminProjectPinObjectDetailError,
         onAdminProjectPinObjectDetailDone,
@@ -224,7 +221,7 @@ function AdminProjectPinObjectUpdate() {
     return () => {
       mounted = false;
     };
-  }, [aid]);
+  }, [rid]);
   ////
   //// Component rendering.
   ////
@@ -248,23 +245,23 @@ function AdminProjectPinObjectUpdate() {
               </li>
               <li class="">
                 <Link to="/admin/projects" aria-current="page">
-                  <FontAwesomeIcon className="fas" icon={faProjects} />
+                  <FontAwesomeIcon className="fas" icon={faProjectDiagram} />
                   &nbsp;Projects
                 </Link>
               </li>
               <li class="">
-                <Link to={`/admin/project/${id}/pinobjects`} aria-current="page">
+                <Link to={`/admin/project/${id}/pins`} aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faEye} />
-                  &nbsp;Detail (PinObjects)
+                  &nbsp;Detail (Pins)
                 </Link>
               </li>
               <li class="">
                 <Link
-                  to={`/admin/project/${id}/pinobject/${aid}`}
+                  to={`/admin/project/${id}/pin/${rid}`}
                   aria-current="page"
                 >
-                  <FontAwesomeIcon className="fas" icon={faFile} />
-                  &nbsp;PinObject
+                  <FontAwesomeIcon className="fas" icon={faLocationPin} />
+                  &nbsp;Pin
                 </Link>
               </li>
               <li class="is-active">
@@ -281,7 +278,7 @@ function AdminProjectPinObjectUpdate() {
             <ul>
               <li class="">
                 <Link
-                  to={`/admin/project/${id}/pinobject/${aid}`}
+                  to={`/admin/project/${id}/pin/${rid}`}
                   aria-current="page"
                 >
                   <FontAwesomeIcon className="fas" icon={faArrowLeft} />
@@ -328,19 +325,6 @@ function AdminProjectPinObjectUpdate() {
                     maxWidth="150px"
                   />
 
-                  <FormInputField
-                    label="Description"
-                    name="description"
-                    type="text"
-                    placeholder="Text input"
-                    value={description}
-                    errorText={errors && errors.description}
-                    helpText=""
-                    onChange={(e) => setDescription(e.target.value)}
-                    isRequired={true}
-                    maxWidth="485px"
-                  />
-
                   <input
                     name="file"
                     type="file"
@@ -352,14 +336,14 @@ function AdminProjectPinObjectUpdate() {
                   <div class="columns pt-5">
                     <div class="column is-half">
                       <Link
-                        to={`/admin/project/${id}/pinobject/${aid}`}
+                        to={`/admin/project/${id}/pin/${rid}`}
                         class="button is-hidden-touch"
                       >
                         <FontAwesomeIcon className="fas" icon={faArrowLeft} />
                         &nbsp;Back
                       </Link>
                       <Link
-                        to={`/admin/project/${id}/pinobject/${aid}`}
+                        to={`/admin/project/${id}/pin/${rid}`}
                         class="button is-fullwidth is-hidden-desktop"
                       >
                         <FontAwesomeIcon className="fas" icon={faArrowLeft} />

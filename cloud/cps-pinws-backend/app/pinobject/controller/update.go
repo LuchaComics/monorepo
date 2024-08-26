@@ -18,33 +18,22 @@ import (
 )
 
 type PinObjectUpdateRequestIDO struct {
-	ID            primitive.ObjectID
-	Name          string
-	Description   string
-	OwnershipID   primitive.ObjectID
-	OwnershipType int8
-	FileName      string
-	FileType      string
-	File          multipart.File
+	RequestID primitive.ObjectID
+	Name      string
+	ProjectID primitive.ObjectID
+	FileName  string
+	FileType  string
+	File      multipart.File
 }
 
 func ValidateUpdateRequest(dirtyData *PinObjectUpdateRequestIDO) error {
 	e := make(map[string]string)
 
-	if dirtyData.ID.IsZero() {
-		e["id"] = "missing value"
+	if dirtyData.RequestID.IsZero() {
+		e["requestid"] = "missing value"
 	}
-	if dirtyData.Name == "" {
-		e["name"] = "missing value"
-	}
-	if dirtyData.Description == "" {
-		e["description"] = "missing value"
-	}
-	if dirtyData.OwnershipID.IsZero() {
-		e["ownership_id"] = "missing value"
-	}
-	if dirtyData.OwnershipType == 0 {
-		e["ownership_type"] = "missing value"
+	if dirtyData.ProjectID.IsZero() {
+		e["project_id"] = "missing value"
 	}
 	if len(e) != 0 {
 		return httperror.NewForBadRequest(&e)
@@ -52,7 +41,7 @@ func ValidateUpdateRequest(dirtyData *PinObjectUpdateRequestIDO) error {
 	return nil
 }
 
-func (impl *PinObjectControllerImpl) UpdateByID(ctx context.Context, req *PinObjectUpdateRequestIDO) (*domain.PinObject, error) {
+func (impl *PinObjectControllerImpl) UpdateByRequestID(ctx context.Context, req *PinObjectUpdateRequestIDO) (*domain.PinObject, error) {
 	if err := ValidateUpdateRequest(req); err != nil {
 		return nil, err
 	}
@@ -64,7 +53,8 @@ func (impl *PinObjectControllerImpl) UpdateByID(ctx context.Context, req *PinObj
 	session, err := impl.DbClient.StartSession()
 	if err != nil {
 		impl.Logger.Error("start session error",
-			slog.Any("error", err))
+			slog.Any("error", err),
+			slog.Any("request_id", req.RequestID))
 		return nil, err
 	}
 	defer session.EndSession(ctx)
@@ -73,16 +63,16 @@ func (impl *PinObjectControllerImpl) UpdateByID(ctx context.Context, req *PinObj
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
 
 		// Fetch the original pinobject.
-		os, err := impl.PinObjectStorer.GetByID(sessCtx, req.ID)
+		os, err := impl.PinObjectStorer.GetByRequestID(sessCtx, req.RequestID)
 		if err != nil {
 			impl.Logger.Error("database get by id error",
 				slog.Any("error", err),
-				slog.Any("pinobject_id", req.ID))
+				slog.Any("request_id", req.RequestID))
 			return nil, err
 		}
 		if os == nil {
 			impl.Logger.Error("pinobject does not exist error",
-				slog.Any("pinobject_id", req.ID))
+				slog.Any("request_id", req.RequestID))
 			return nil, httperror.NewForBadRequestWithSingleField("message", "pinobject does not exist")
 		}
 
@@ -118,21 +108,10 @@ func (impl *PinObjectControllerImpl) UpdateByID(ctx context.Context, req *PinObj
 			}
 
 			// The following code will choose the directory we will upload based on the image type.
-			var directory string
-			switch req.OwnershipType {
-			case a_d.OwnershipTypeUser:
-				directory = "user"
-			case a_d.OwnershipTypeSubmission:
-				directory = "submission"
-			case a_d.OwnershipTypeStore:
-				directory = "store"
-			default:
-				impl.Logger.Error("unsupported ownership type format", slog.Any("ownership_type", req.OwnershipType))
-				return nil, fmt.Errorf("unsuported iownership type  of %v, please pick another type", req.OwnershipType)
-			}
+			var directory string = "projects"
 
 			// Generate the key of our upload.
-			objectKey := fmt.Sprintf("%v/%v/%v", directory, req.OwnershipID.Hex(), req.FileName)
+			objectKey := fmt.Sprintf("%v/%v/%v", directory, req.ProjectID.Hex(), req.FileName)
 
 			go func(file multipart.File, objkey string) {
 				impl.Logger.Debug("beginning private s3 image upload...")
@@ -170,11 +149,10 @@ func (impl *PinObjectControllerImpl) UpdateByID(ctx context.Context, req *PinObj
 		os.ModifiedAt = time.Now()
 		os.ModifiedFromIPAddress = ipAdress
 		os.Name = req.Name
-		os.OwnershipID = req.OwnershipID
-		os.OwnershipType = req.OwnershipType
+		os.ProjectID = req.ProjectID
 
 		// Save to the database the modified pinobject.
-		if err := impl.PinObjectStorer.UpdateByID(sessCtx, os); err != nil {
+		if err := impl.PinObjectStorer.UpdateByRequestID(sessCtx, os); err != nil {
 			impl.Logger.Error("database update by id error", slog.Any("error", err))
 			return nil, err
 		}

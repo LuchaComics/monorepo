@@ -81,8 +81,7 @@ function AdminProjectPinObjectAdd() {
     const formData = new FormData();
     formData.append("file", selectedFile);
     formData.append("name", name);
-    formData.append("ownership_id", id);
-    formData.append("ownership_type", 1); // 1=Project
+    formData.append("project_id", id);
 
     postPinObjectCreateAPI(
       formData,
@@ -104,7 +103,7 @@ function AdminProjectPinObjectAdd() {
     console.log(response);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
-    setTopAlertMessage("Project created");
+    setTopAlertMessage("Pin created");
     setTopAlertStatus("success");
     setTimeout(() => {
       console.log("onAdminProjectPinObjectAddSuccess: Delayed for 2 seconds.");
@@ -117,7 +116,7 @@ function AdminProjectPinObjectAdd() {
     }, 2000);
 
     // Redirect the project to the project pinobjects page.
-    setForceURL("/admin/project/" + id + "/pinobjects");
+    setForceURL("/admin/project/" + id + "/pin/" + response.requestid);
   }
 
   function onAdminProjectPinObjectAddError(apiErr) {

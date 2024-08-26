@@ -24,7 +24,7 @@ type PinObjectPaginationListFilter struct {
 	SortOrder int8 // 1=ascending | -1=descending
 
 	// Filter related.
-	TenantID          primitive.ObjectID
+	TenantID         primitive.ObjectID
 	OwnershipID      primitive.ObjectID
 	CreatedByUserID  primitive.ObjectID
 	ModifiedByUserID primitive.ObjectID
@@ -36,8 +36,8 @@ type PinObjectPaginationListFilter struct {
 // the associate records.
 type PinObjectPaginationListResult struct {
 	Results     []*PinObject `json:"results"`
-	NextCursor  string        `json:"next_cursor"`
-	HasNextPage bool          `json:"has_next_page"`
+	NextCursor  string       `json:"next_cursor"`
+	HasNextPage bool         `json:"has_next_page"`
 }
 
 // newPaginationFilter will create the mongodb filter to apply the cursor or
@@ -137,7 +137,7 @@ func (impl PinObjectStorerImpl) newPaginatorNextCursor(f *PinObjectPaginationLis
 
 	switch f.SortField {
 	case "created_at":
-		time := lastDatum.CreatedAt.UnixMilli()
+		time := lastDatum.Created.UnixMilli()
 		nextCursor = fmt.Sprintf("%v|%v", time, lastDatum.ID.Hex())
 		break
 	case "modified_at":

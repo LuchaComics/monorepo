@@ -11,7 +11,7 @@ import {
   faProjectCircle,
   faGauge,
   faPencil,
-  faProjects,
+  faProjectDiagram,
   faIdCard,
   faAddressBook,
   faContactCard,
@@ -19,12 +19,13 @@ import {
   faCogs,
   faEye,
   faArrowLeft,
+  faLocationPin,
   faFile,
   faDownload,
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
-import { getPinObjectDetailAPI } from "../../../../../API/PinObject";
+import { getPinObjectDetailAPI, deletePinObjectAPI } from "../../../../../API/PinObject";
 import FormErrorBox from "../../../../Reusable/FormErrorBox";
 import FormInputField from "../../../../Reusable/FormInputField";
 import FormTextareaField from "../../../../Reusable/FormTextareaField";
@@ -46,7 +47,7 @@ function AdminProjectPinObjectDetail() {
   //// URL Parameters.
   ////
 
-  const { id, aid } = useParams();
+  const { id, rid } = useParams();
 
   ////
   //// Global state.
@@ -68,14 +69,31 @@ function AdminProjectPinObjectDetail() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [objectUrl, setObjectUrl] = useState("");
+  const [selectedPinObjectRequestIDForDeletion, setSelectedPinObjectRequestIDForDeletion] =
+    useState("");
 
   ////
   //// Event handling.
   ////
 
+  const onDeleteConfirmButtonClick = (e) => {
+    e.preventDefault();
+    console.log("onDeleteConfirmButtonClick"); // For debugging purposes only.
+
+    deletePinObjectAPI(
+      selectedPinObjectRequestIDForDeletion,
+      onPinObjectDeleteSuccess,
+      onPinObjectDeleteError,
+      onPinObjectDeleteDone,
+      onUnauthorized,
+    );
+  };
+
   ////
   //// API.
   ////
+
+  // --- Get Details ---
 
   function onAdminProjectPinObjectDetailSuccess(response) {
     // For debugging purposes only.
@@ -115,6 +133,55 @@ function AdminProjectPinObjectDetail() {
     setFetching(false);
   }
 
+  // --- Deletion --- //
+
+  function onPinObjectDeleteSuccess(response) {
+    console.log("onPinObjectDeleteSuccess: Starting..."); // For debugging purposes only.
+
+    // Update notification.
+    setTopAlertStatus("success");
+    setTopAlertMessage("Pin deleted");
+    setTimeout(() => {
+      console.log(
+        "onDeleteConfirmButtonClick: topAlertMessage, topAlertStatus:",
+        topAlertMessage,
+        topAlertStatus,
+      );
+      setTopAlertMessage("");
+    }, 2000);
+
+    // Redirect the project to the project pins page.
+    setForceURL("/admin/project/" + id + "/pins");
+  }
+
+  function onPinObjectDeleteError(apiErr) {
+    console.log("onPinObjectDeleteError: Starting..."); // For debugging purposes only.
+    setErrors(apiErr);
+
+    // Update notification.
+    setTopAlertStatus("danger");
+    setTopAlertMessage("Failed deleting");
+    setTimeout(() => {
+      console.log(
+        "onPinObjectDeleteError: topAlertMessage, topAlertStatus:",
+        topAlertMessage,
+        topAlertStatus,
+      );
+      setTopAlertMessage("");
+    }, 2000);
+
+    // The following code will cause the screen to scroll to the top of
+    // the page. Please see ``react-scroll`` for more information:
+    // https://github.com/fisshy/react-scroll
+    var scroll = Scroll.animateScroll;
+    scroll.scrollToTop();
+  }
+
+  function onPinObjectDeleteDone() {
+    console.log("onPinObjectDeleteDone: Starting...");
+    setFetching(false);
+  }
+
   // --- All --- //
 
   const onUnauthorized = () => {
@@ -132,7 +199,7 @@ function AdminProjectPinObjectDetail() {
       window.scrollTo(0, 0); // Start the page at the top of the page.
 
       getPinObjectDetailAPI(
-        aid,
+        rid,
         onAdminProjectPinObjectDetailSuccess,
         onAdminProjectPinObjectDetailError,
         onAdminProjectPinObjectDetailDone,
@@ -143,7 +210,7 @@ function AdminProjectPinObjectDetail() {
     return () => {
       mounted = false;
     };
-  }, [aid]);
+  }, [rid]);
 
   ////
   //// Component rendering.
@@ -168,20 +235,20 @@ function AdminProjectPinObjectDetail() {
               </li>
               <li class="">
                 <Link to="/admin/projects" aria-current="page">
-                  <FontAwesomeIcon className="fas" icon={faProjects} />
+                  <FontAwesomeIcon className="fas" icon={faProjectDiagram} />
                   &nbsp;Projects
                 </Link>
               </li>
               <li class="">
-                <Link to={`/admin/project/${id}/pinobjects`} aria-current="page">
+                <Link to={`/admin/project/${id}/pins`} aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faEye} />
-                  &nbsp;Detail (PinObjects)
+                  &nbsp;Detail (Pins)
                 </Link>
               </li>
               <li class="is-active">
                 <Link aria-current="page">
-                  <FontAwesomeIcon className="fas" icon={faFile} />
-                  &nbsp;PinObject
+                  <FontAwesomeIcon className="fas" icon={faLocationPin} />
+                  &nbsp;Pin
                 </Link>
               </li>
             </ul>
@@ -191,22 +258,62 @@ function AdminProjectPinObjectDetail() {
           <nav class="breadcrumb is-hidden-desktop" aria-label="breadcrumbs">
             <ul>
               <li class="">
-                <Link to={`/admin/project/${id}/pinobjects`} aria-current="page">
+                <Link to={`/admin/project/${id}/pins`} aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                  &nbsp;Back to Detail (PinObjects)
+                  &nbsp;Back to Detail (Pins)
                 </Link>
               </li>
             </ul>
           </nav>
 
           {/* Modals */}
-          {/* None */}
+          <div
+            class={`modal ${selectedPinObjectRequestIDForDeletion ? "is-active" : ""}`}
+          >
+            <div class="modal-background"></div>
+            <div class="modal-card">
+              <header class="modal-card-head">
+                <p class="modal-card-title">Are you sure?</p>
+                <button
+                  class="delete"
+                  aria-label="close"
+                  onClick={(e)=>{
+                      e.preventDefault();
+                      setSelectedPinObjectRequestIDForDeletion("");
+                  }}
+                ></button>
+              </header>
+              <section class="modal-card-body">
+                You are about to <b>archive</b> this pinobject; it will no
+                longer appear on your dashboard This action can be undone but
+                you'll need to contact the system administrator. Are you sure
+                you would like to continue?
+              </section>
+              <footer class="modal-card-foot">
+                <button
+                  class="button is-success"
+                  onClick={onDeleteConfirmButtonClick}
+                >
+                  Confirm
+                </button>
+                <button
+                  class="button"
+                  onClick={(e)=>{
+                      e.preventDefault();
+                      setSelectedPinObjectRequestIDForDeletion("");
+                  }}
+                >
+                  Cancel
+                </button>
+              </footer>
+            </div>
+          </div>
 
           {/* Page */}
           <nav class="box">
             <p class="title is-4">
-              <FontAwesomeIcon className="fas" icon={faFile} />
-              &nbsp;PinObject
+              <FontAwesomeIcon className="fas" icon={faLocationPin} />
+              &nbsp;Pin
             </p>
 
             {/* <p class="pb-4 has-text-grey">Please fill out all the required fields before submitting this form.</p> */}
@@ -224,12 +331,6 @@ function AdminProjectPinObjectDetail() {
                   <hr />
 
                   <FormRowText label="Name" value={name} helpText="" />
-
-                  <FormRowText
-                    label="Description"
-                    value={description}
-                    helpText=""
-                  />
 
                   <p class="subtitle is-4 pt-4">
                     <FontAwesomeIcon className="fas" icon={faFile} />
@@ -277,15 +378,8 @@ function AdminProjectPinObjectDetail() {
                   <div class="columns pt-5">
                     <div class="column is-half">
                       <Link
-                        to={`/admin/project/${id}/pinobjects`}
-                        class="button is-medium is-hidden-touch"
-                      >
-                        <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                        &nbsp;Back
-                      </Link>
-                      <Link
-                        to={`/admin/project/${id}/pinobjects`}
-                        class="button is-medium is-fullwidth is-hidden-desktop"
+                        to={`/admin/project/${id}/pins`}
+                        class="button is-medium is-fullwidth-mobile"
                       >
                         <FontAwesomeIcon className="fas" icon={faArrowLeft} />
                         &nbsp;Back
@@ -293,19 +387,24 @@ function AdminProjectPinObjectDetail() {
                     </div>
                     <div class="column is-half has-text-right">
                       <Link
-                        to={`/admin/project/${id}/pinobject/${aid}/edit`}
-                        class="button is-medium is-warning is-hidden-touch"
+                        to={`/admin/project/${id}/pin/${rid}/edit`}
+                        class="button is-medium is-warning is-fullwidth-mobile"
                       >
                         <FontAwesomeIcon className="fas" icon={faPencil} />
                         &nbsp;Edit
                       </Link>
-                      <Link
-                        to={`/admin/project/${id}/pinobject/${aid}/edit`}
-                        class="button is-medium is-warning is-fullwidth is-hidden-desktop"
-                      >
-                        <FontAwesomeIcon className="fas" icon={faPencil} />
-                        &nbsp;Edit
-                      </Link>
+                      &nbsp;
+                      &nbsp;
+                      <button
+                          onClick={(e)=>{
+                              e.preventDefault();
+                              setSelectedPinObjectRequestIDForDeletion(rid);
+                          }}
+                          class="button is-medium is-danger is-fullwidth-mobile"
+                        >
+                          <FontAwesomeIcon className="fas" icon={faPencil} />
+                          &nbsp;Delete
+                        </button>
                     </div>
                   </div>
                 </div>

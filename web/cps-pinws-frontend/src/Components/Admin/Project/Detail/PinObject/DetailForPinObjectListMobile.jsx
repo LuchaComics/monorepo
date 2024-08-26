@@ -28,7 +28,7 @@ import { DateTime } from "luxon";
 import FormErrorBox from "../../../../Reusable/FormErrorBox";
 import {
   PAGE_SIZE_OPTIONS,
-  ATTACHMENT_STATES,
+  PIN_OBJECT_STATES,
 } from "../../../../../Constants/FieldOptions";
 
 /*
@@ -56,10 +56,10 @@ function AdminProjectDetailForPinObjectListMobile(props) {
               <strong>Name:</strong>&nbsp;{datum.name}
               <br />
               <br />
-              <strong>Status:</strong>&nbsp;{ATTACHMENT_STATES[datum.status]}
+              <strong>Status:</strong>&nbsp;{PIN_OBJECT_STATES[datum.status]}
               <br />
               <br />
-              <strong>Created:</strong>&nbsp;{datum.createdAt}
+              <strong>Created:</strong>&nbsp;{datum.created}
               <br />
               <br />
               <strong>File:</strong>&nbsp;
@@ -78,14 +78,14 @@ function AdminProjectDetailForPinObjectListMobile(props) {
               <div class="is-hidden-mobile pt-2">
                 <div className="buttons is-right">
                   <Link
-                    to={`/admin/project/${projectID}/pinobject/${datum.id}`}
+                    to={`/admin/project/${projectID}/pin/${datum.requestid}`}
                     class="button is-small is-primary"
                     type="button"
                   >
                     View
                   </Link>
                   <Link
-                    to={`/admin/project/${projectID}/pinobject/${datum.id}/edit`}
+                    to={`/admin/project/${projectID}/pin/${datum.requestid}/edit`}
                     class="button is-small is-warning"
                     type="button"
                   >
@@ -108,7 +108,7 @@ function AdminProjectDetailForPinObjectListMobile(props) {
                 <div class="columns is-mobile">
                   <div class="column">
                     <Link
-                      to={`/admin/project/${projectID}/pinobject/${datum.id}`}
+                      to={`/admin/project/${projectID}/pin/${datum.requestid}`}
                       class="button is-small is-primary is-fullwidth"
                       type="button"
                     >
@@ -117,7 +117,7 @@ function AdminProjectDetailForPinObjectListMobile(props) {
                   </div>
                   <div class="column">
                     <Link
-                      to={`/admin/project/${projectID}/pinobject/${datum.id}/edit`}
+                      to={`/admin/project/${projectID}/pin/${datum.requestid}/edit`}
                       class="button is-small is-warning is-fullwidth"
                       type="button"
                     >

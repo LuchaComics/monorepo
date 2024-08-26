@@ -23,7 +23,7 @@ import {
 import { useRecoilState } from "recoil";
 import { useParams } from "react-router-dom";
 import {
-  ATTACHMENT_STATES,
+  PIN_OBJECT_STATES,
   PAGE_SIZE_OPTIONS,
 } from "../../../Constants/FieldOptions";
 

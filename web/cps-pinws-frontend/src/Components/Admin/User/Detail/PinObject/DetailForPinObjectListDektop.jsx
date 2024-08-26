@@ -28,7 +28,7 @@ import { DateTime } from "luxon";
 import FormErrorBox from "../../../../Reusable/FormErrorBox";
 import {
   PAGE_SIZE_OPTIONS,
-  ATTACHMENT_STATES,
+  PIN_OBJECT_STATES,
 } from "../../../../../Constants/FieldOptions";
 
 function AdminUserDetailForPinObjectListDesktop(props) {
@@ -63,7 +63,7 @@ function AdminUserDetailForPinObjectListDesktop(props) {
                   <tr>
                     <td data-label="Title">{pinobject.name}</td>
                     <td data-label="State">
-                      {ATTACHMENT_STATES[pinobject.status]}
+                      {PIN_OBJECT_STATES[pinobject.status]}
                     </td>
                     <td data-label="Created">{pinobject.createdAt}</td>
                     <td data-label="File">

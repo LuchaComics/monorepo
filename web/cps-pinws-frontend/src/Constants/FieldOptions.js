@@ -366,9 +366,11 @@ export const PAGE_SIZE_OPTIONS = [
   { value: 250, label: "250 Rows" },
 ];
 
-export const ATTACHMENT_STATES = {
-  1: "Active",
-  2: "Archived",
+export const PIN_OBJECT_STATES = {
+  "queued": "Queued",
+  "pinning": "Pinning",
+  "pinned": "Pinned",
+  "failed": "Failed",
 };
 
 export const SPECIAL_DETAILS_OPTIONS = [

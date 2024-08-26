@@ -28,7 +28,7 @@ import { DateTime } from "luxon";
 import FormErrorBox from "../../../../Reusable/FormErrorBox";
 import {
   PAGE_SIZE_OPTIONS,
-  ATTACHMENT_STATES,
+  PIN_OBJECT_STATES,
 } from "../../../../../Constants/FieldOptions";
 
 function AdminProjectDetailForPinObjectListDesktop(props) {
@@ -58,17 +58,17 @@ function AdminProjectDetailForPinObjectListDesktop(props) {
           <tbody>
             {listData &&
               listData.results &&
-              listData.results.map(function (pinobject, i) {
+              listData.results.map(function (pinObject, i) {
                 return (
                   <tr>
-                    <td data-label="Title">{pinobject.name}</td>
+                    <td data-label="Title">{pinObject.name}</td>
                     <td data-label="State">
-                      {ATTACHMENT_STATES[pinobject.status]}
+                      {PIN_OBJECT_STATES[pinObject.status]}
                     </td>
-                    <td data-label="Created">{pinobject.createdAt}</td>
+                    <td data-label="Created">{pinObject.created}</td>
                     <td data-label="File">
                       <a
-                        href={pinobject.objectUrl}
+                        href={pinObject.objectUrl}
                         target="_blank"
                         rel="noreferrer"
                         class=""
@@ -80,14 +80,14 @@ function AdminProjectDetailForPinObjectListDesktop(props) {
                     <td class="is-actions-cell">
                       <div class="buttons is-right">
                         <Link
-                          to={`/admin/project/${projectID}/pinobject/${pinobject.id}`}
+                          to={`/admin/project/${projectID}/pin/${pinObject.requestid}`}
                           class="button is-small is-primary"
                           type="button"
                         >
                           View
                         </Link>
                         <Link
-                          to={`/admin/project/${projectID}/pinobject/${pinobject.id}/edit`}
+                          to={`/admin/project/${projectID}/pin/${pinObject.requestid}/edit`}
                           class="button is-small is-warning"
                           type="button"
                         >
@@ -95,7 +95,7 @@ function AdminProjectDetailForPinObjectListDesktop(props) {
                         </Link>
                         <button
                           onClick={(e, ses) =>
-                            onSelectPinObjectForDeletion(e, pinobject)
+                            onSelectPinObjectForDeletion(e, pinObject)
                           }
                           class="button is-small is-danger"
                           type="button"

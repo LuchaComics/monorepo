@@ -30,8 +30,8 @@ import AdminProjectDetail from "./Components/Admin/Project/Detail/View";
 import AdminProjectUpdate from "./Components/Admin/Project/Update/View";
 import AdminProjectDetailForPinObjectList from "./Components/Admin/Project/Detail/PinObject/ListView";
 import AdminProjectPinObjectAdd from "./Components/Admin/Project/Detail/PinObject/Add";
-// import AdminTenantPinObjectDetail from "./Components/Admin/Tenant/PinObject/Detail";
-// import AdminTenantPinObjectUpdate from "./Components/Admin/Tenant/PinObject/Update";
+import AdminProjectPinObjectDetail from "./Components/Admin/Project/Detail/PinObject/Detail";
+import AdminProjectPinObjectUpdate from "./Components/Admin/Project/Detail/PinObject/Update";
 
 // Users
 import AdminUserList from "./Components/Admin/User/List/View";
@@ -204,19 +204,16 @@ function AppRoute() {
                     path="/admin/project/:id/pins/add"
                     element={<AdminProjectPinObjectAdd />}
                   />
-                  {/*
                   <Route
                     exact
-                    path="/admin/tenant/:id/pin/:aid"
-                    element={<AdminTenantPinObjectDetail />}
+                    path="/admin/project/:id/pin/:rid"
+                    element={<AdminProjectPinObjectDetail />}
                   />
                   <Route
                     exact
-                    path="/admin/tenant/:id/pin/:aid/edit"
-                    element={<AdminTenantPinObjectUpdate />}
+                    path="/admin/project/:id/pin/:rid/edit"
+                    element={<AdminProjectPinObjectUpdate />}
                   />
-                  */}
-
                   {/* User */}
                   <Route
                     exact

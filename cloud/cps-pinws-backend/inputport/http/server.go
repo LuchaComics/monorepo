@@ -201,11 +201,11 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 	case n == 3 && p[1] == "v1" && p[2] == "pins" && r.Method == http.MethodPost:
 		port.PinObject.Create(w, r)
 	case n == 4 && p[1] == "v1" && p[2] == "pin" && r.Method == http.MethodGet:
-		port.PinObject.GetByID(w, r, p[3])
+		port.PinObject.GetByRequestID(w, r, p[3])
 	case n == 4 && p[1] == "v1" && p[2] == "pin" && r.Method == http.MethodPut:
-		port.PinObject.UpdateByID(w, r, p[3])
+		port.PinObject.UpdateByRequestID(w, r, p[3])
 	case n == 4 && p[1] == "v1" && p[2] == "pin" && r.Method == http.MethodDelete:
-		port.PinObject.DeleteByID(w, r, p[3])
+		port.PinObject.DeleteByRequestID(w, r, p[3])
 
 	// --- CATCH ALL: D.N.E. ---
 	default:

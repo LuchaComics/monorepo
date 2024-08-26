@@ -14,7 +14,7 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/utils/httperror"
 )
 
-func (impl *PinObjectControllerImpl) DeleteByID(ctx context.Context, id primitive.ObjectID) error {
+func (impl *PinObjectControllerImpl) DeleteByRequestID(ctx context.Context, requestID primitive.ObjectID) error {
 	////
 	//// Start the transaction.
 	////
@@ -42,7 +42,7 @@ func (impl *PinObjectControllerImpl) DeleteByID(ctx context.Context, id primitiv
 		}
 
 		// Update the database.
-		pinobject, err := impl.GetByID(sessCtx, id)
+		pinobject, err := impl.GetByRequestID(sessCtx, requestID)
 		pinobject.Status = org_d.StatusFailed
 		if err != nil {
 			impl.Logger.Error("database get by id error", slog.Any("error", err))
@@ -76,7 +76,7 @@ func (impl *PinObjectControllerImpl) DeleteByID(ctx context.Context, id primitiv
 	return nil
 }
 
-func (impl *PinObjectControllerImpl) PermanentlyDeleteByID(ctx context.Context, id primitive.ObjectID) error {
+func (impl *PinObjectControllerImpl) PermanentlyDeleteByRequestID(ctx context.Context, requestID primitive.ObjectID) error {
 	////
 	//// Start the transaction.
 	////
@@ -105,13 +105,13 @@ func (impl *PinObjectControllerImpl) PermanentlyDeleteByID(ctx context.Context, 
 		}
 
 		// Update the database.
-		pinobject, err := impl.GetByID(sessCtx, id)
+		pinobject, err := impl.GetByRequestID(sessCtx, requestID)
 		if err != nil {
-			impl.Logger.Error("database get by id error", slog.Any("error", err))
+			impl.Logger.Error("database get by requestid error", slog.Any("error", err))
 			return nil, err
 		}
 		if pinobject == nil {
-			impl.Logger.Error("database returns nothing from get by id")
+			impl.Logger.Error("database returns nothing from get by requestid")
 			return nil, err
 		}
 
@@ -131,7 +131,7 @@ func (impl *PinObjectControllerImpl) PermanentlyDeleteByID(ctx context.Context, 
 		}
 
 		if err := impl.PinObjectStorer.DeleteByID(sessCtx, pinobject.ID); err != nil {
-			impl.Logger.Error("database delete by id error", slog.Any("error", err))
+			impl.Logger.Error("database delete by requestid error", slog.Any("error", err))
 			return nil, err
 		}
 		return nil, nil

@@ -22,7 +22,7 @@ import {
 import { useRecoilState } from "recoil";
 import { useParams } from "react-router-dom";
 import {
-  ATTACHMENT_STATES,
+  PIN_OBJECT_STATES,
   PAGE_SIZE_OPTIONS,
 } from "../../../../../Constants/FieldOptions";
 
@@ -89,8 +89,7 @@ function AdminProjectDetailForPinObjectList() {
     setErrors({});
 
     let params = new Map();
-    params.set("ownership_id", id);
-    params.set("ownership_role", 1); // 1=Project or Project.
+    params.set("project_id", id);
     params.set("page_size", limit);
     if (cur !== "") {
       params.set("cursor", cur);
@@ -329,14 +328,6 @@ function AdminProjectDetailForPinObjectList() {
           </nav>
 
           {/* Modals */}
-          {/* None */}
-
-          {/* Page banner */}
-          {project && project.status === 100 && (
-            <AlertBanner message="Archived" status="info" />
-          )}
-
-          {/* Page */}
           <div
             class={`modal ${selectedPinObjectForDeletion ? "is-active" : ""}`}
           >
@@ -372,6 +363,13 @@ function AdminProjectDetailForPinObjectList() {
               </footer>
             </div>
           </div>
+
+          {/* Page banner */}
+          {project && project.status === 100 && (
+            <AlertBanner message="Archived" status="info" />
+          )}
+
+          {/* Page */}
           <nav class="box">
             <div class="columns">
               <div class="column">

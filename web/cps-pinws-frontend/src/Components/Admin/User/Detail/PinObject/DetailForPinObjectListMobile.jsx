@@ -28,7 +28,7 @@ import { DateTime } from "luxon";
 import FormErrorBox from "../../../../Reusable/FormErrorBox";
 import {
   PAGE_SIZE_OPTIONS,
-  ATTACHMENT_STATES,
+  PIN_OBJECT_STATES,
 } from "../../../../../Constants/FieldOptions";
 
 /*
@@ -56,7 +56,7 @@ function AdminUserDetailForPinObjectListMobile(props) {
               <strong>Name:</strong>&nbsp;{datum.name}
               <br />
               <br />
-              <strong>Status:</strong>&nbsp;{ATTACHMENT_STATES[datum.status]}
+              <strong>Status:</strong>&nbsp;{PIN_OBJECT_STATES[datum.status]}
               <br />
               <br />
               <strong>Created:</strong>&nbsp;{datum.createdAt}

@@ -16,22 +16,29 @@ import (
 )
 
 type PinObjectCreateRequestIDO struct {
-	Name          string
-	OwnershipID   primitive.ObjectID
-	OwnershipType int8
-	FileName      string
-	FileType      string
-	File          multipart.File
+	Name      string
+	ProjectID primitive.ObjectID
+	FileName  string
+	FileType  string
+	File      multipart.File
+	Origins   []string          `bson:"origins" json:"origins"`
+	Meta      map[string]string `bson:"meta" json:"meta"`
+}
+
+// PinObjectCreateResponseIDO represents `PinStatus` spec via https://ipfs.github.io/pinning-services-api-spec/#section/Schemas/Identifiers.
+type PinObjectCreateResponseIDO struct {
+	RequestID primitive.ObjectID `bson:"requestid" json:"requestid"`
+	Status    string             `bson:"status" json:"status"`
+	Created   time.Time          `bson:"created,omitempty" json:"created,omitempty"`
+	Delegates []string           `bson:"delegates" json:"delegates"`
+	Info      map[string]string  `bson:"info" json:"info"`
 }
 
 func ValidateCreateRequest(dirtyData *PinObjectCreateRequestIDO) error {
 	e := make(map[string]string)
 
-	if dirtyData.OwnershipID.IsZero() {
-		e["ownership_id"] = "missing value"
-	}
-	if dirtyData.OwnershipType == 0 {
-		e["ownership_type"] = "missing value"
+	if dirtyData.ProjectID.IsZero() {
+		e["project_id"] = "missing value"
 	}
 	if dirtyData.FileName == "" {
 		e["file"] = "missing value"
@@ -63,21 +70,10 @@ func (impl *PinObjectControllerImpl) Create(ctx context.Context, req *PinObjectC
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
 
 		// The following code will choose the directory we will upload based on the image type.
-		var directory string
-		switch req.OwnershipType {
-		case a_d.OwnershipTypeUser:
-			directory = "user"
-		case a_d.OwnershipTypeSubmission:
-			directory = "submission"
-		case a_d.OwnershipTypeStore:
-			directory = "store"
-		default:
-			impl.Logger.Error("unsupported ownership type format", slog.Any("ownership_type", req.OwnershipType))
-			return nil, fmt.Errorf("unsuported iownership type  of %v, please pick another type", req.OwnershipType)
-		}
+		var directory string = "projects"
 
 		// Generate the key of our upload.
-		objectKey := fmt.Sprintf("%v/%v/%v", directory, req.OwnershipID.Hex(), req.FileName)
+		objectKey := fmt.Sprintf("%v/%v/%v", directory, req.ProjectID.Hex(), req.FileName)
 
 		// For debugging purposes only.
 		impl.Logger.Debug("pre-upload meta",
@@ -120,22 +116,26 @@ func (impl *PinObjectControllerImpl) Create(ctx context.Context, req *PinObjectC
 
 		// Create our meta record in the database.
 		res := &a_d.PinObject{
+			// Core fields required for a `pin` in IPFS.
+			Status:    a_d.StatusPinned,
+			CID:       cid,
+			RequestID: primitive.NewObjectID(),
+			Name:      req.Name,
+
+			// Extension
 			TenantID:              orgID,
 			TenantName:            orgName,
 			TenantTimezone:        orgTimezone,
 			ID:                    primitive.NewObjectID(),
-			CreatedAt:             time.Now(),
+			ObjectURL:             "",
+			Created:               time.Now(),
 			CreatedFromIPAddress:  ipAdress,
 			ModifiedAt:            time.Now(),
 			ModifiedFromIPAddress: ipAdress,
-			Name:                  req.Name,
-			Filename:              req.FileName,
-			ObjectKey:             objectKey,
-			ObjectURL:             "",
-			OwnershipID:           req.OwnershipID,
-			OwnershipType:         req.OwnershipType,
-			Status:                a_d.StatusPinned,
-			CID:                   cid,
+
+			Filename:  req.FileName,
+			ObjectKey: objectKey,
+			ProjectID: req.ProjectID,
 		}
 		if err := impl.PinObjectStorer.Create(sessCtx, res); err != nil {
 			impl.Logger.Error("database create error", slog.Any("error", err))
