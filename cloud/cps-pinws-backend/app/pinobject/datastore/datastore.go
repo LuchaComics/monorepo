@@ -36,14 +36,12 @@ type PinObject struct {
 	TenantTimezone string             `bson:"tenant_timezone" json:"tenant_timezone"`
 
 	// ID variable is the unique identifier we use internally in our system.
-	ID                 primitive.ObjectID `bson:"_id" json:"id"`
-	CreatedAt          time.Time          `bson:"created_at,omitempty" json:"created_at,omitempty"`
-	CreatedByUserName  string             `bson:"created_by_user_name" json:"created_by_user_name"`
-	CreatedByUserID    primitive.ObjectID `bson:"created_by_user_id" json:"created_by_user_id"`
-	ModifiedAt         time.Time          `bson:"modified_at,omitempty" json:"modified_at,omitempty"`
-	ModifiedByUserName string             `bson:"modified_by_user_name" json:"modified_by_user_name"`
-	ModifiedByUserID   primitive.ObjectID `bson:"modified_by_user_id" json:"modified_by_user_id"`
-	Status             string             `bson:"status" json:"status"`
+	ID                    primitive.ObjectID `bson:"_id" json:"id"`
+	CreatedAt             time.Time          `bson:"created_at,omitempty" json:"created_at,omitempty"`
+	CreatedFromIPAddress  string             `bson:"created_from_ip_address" json:"created_from_ip_address"`
+	ModifiedAt            time.Time          `bson:"modified_at,omitempty" json:"modified_at,omitempty"`
+	ModifiedFromIPAddress string             `bson:"modified_from_ip_address" json:"modified_from_ip_address"`
+	Status                string             `bson:"status" json:"status"`
 
 	OwnershipID   primitive.ObjectID `bson:"ownership_id" json:"ownership_id"`
 	OwnershipType int8               `bson:"ownership_type" json:"ownership_type"`

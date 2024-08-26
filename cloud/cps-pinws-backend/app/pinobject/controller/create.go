@@ -116,29 +116,26 @@ func (impl *PinObjectControllerImpl) Create(ctx context.Context, req *PinObjectC
 		orgID, _ := sessCtx.Value(constants.SessionUserTenantID).(primitive.ObjectID)
 		orgName, _ := sessCtx.Value(constants.SessionUserTenantName).(string)
 		orgTimezone, _ := sessCtx.Value(constants.SessionUserTenantTimezone).(string)
-		userID, _ := sessCtx.Value(constants.SessionUserID).(primitive.ObjectID)
-		userName, _ := sessCtx.Value(constants.SessionUserName).(string)
+		ipAdress, _ := sessCtx.Value(constants.SessionIPAddress).(string)
 
 		// Create our meta record in the database.
 		res := &a_d.PinObject{
-			TenantID:           orgID,
-			TenantName:         orgName,
-			TenantTimezone:     orgTimezone,
-			ID:                 primitive.NewObjectID(),
-			CreatedAt:          time.Now(),
-			CreatedByUserName:  userName,
-			CreatedByUserID:    userID,
-			ModifiedAt:         time.Now(),
-			ModifiedByUserName: userName,
-			ModifiedByUserID:   userID,
-			Name:               req.Name,
-			Filename:           req.FileName,
-			ObjectKey:          objectKey,
-			ObjectURL:          "",
-			OwnershipID:        req.OwnershipID,
-			OwnershipType:      req.OwnershipType,
-			Status:             a_d.StatusPinned,
-			CID:                cid,
+			TenantID:              orgID,
+			TenantName:            orgName,
+			TenantTimezone:        orgTimezone,
+			ID:                    primitive.NewObjectID(),
+			CreatedAt:             time.Now(),
+			CreatedFromIPAddress:  ipAdress,
+			ModifiedAt:            time.Now(),
+			ModifiedFromIPAddress: ipAdress,
+			Name:                  req.Name,
+			Filename:              req.FileName,
+			ObjectKey:             objectKey,
+			ObjectURL:             "",
+			OwnershipID:           req.OwnershipID,
+			OwnershipType:         req.OwnershipType,
+			Status:                a_d.StatusPinned,
+			CID:                   cid,
 		}
 		if err := impl.PinObjectStorer.Create(sessCtx, res); err != nil {
 			impl.Logger.Error("database create error", slog.Any("error", err))

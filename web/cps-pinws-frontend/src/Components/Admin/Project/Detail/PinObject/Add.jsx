@@ -249,7 +249,7 @@ function AdminProjectPinObjectAdd() {
                     placeholder="Text input"
                     value={name}
                     errorText={errors && errors.name}
-                    helpText=""
+                    helpText="Optional"
                     onChange={(e) => setName(e.target.value)}
                     isRequired={true}
                     maxWidth="150px"

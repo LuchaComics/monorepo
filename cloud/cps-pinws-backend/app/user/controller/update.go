@@ -15,7 +15,7 @@ import (
 
 type UserUpdateRequestIDO struct {
 	ID                                              primitive.ObjectID `bson:"_id" json:"id"`
-	TenantID                                         primitive.ObjectID `bson:"tenant_id" json:"tenant_id,omitempty"`
+	TenantID                                        primitive.ObjectID `bson:"tenant_id" json:"tenant_id,omitempty"`
 	FirstName                                       string             `json:"first_name"`
 	LastName                                        string             `json:"last_name"`
 	Email                                           string             `json:"email"`
@@ -30,23 +30,23 @@ type UserUpdateRequestIDO struct {
 	AddressLine2                                    string             `json:"address_line2,omitempty"`
 	HowDidYouHearAboutUs                            int8               `json:"how_did_you_hear_about_us,omitempty"`
 	HowDidYouHearAboutUsOther                       string             `json:"how_did_you_hear_about_us_other,omitempty"`
-	HowLongTenantOperating                           int8               `bson:"how_long_tenant_operating" json:"how_long_tenant_operating,omitempty"`
+	HowLongTenantOperating                          int8               `bson:"how_long_tenant_operating" json:"how_long_tenant_operating,omitempty"`
 	GradingComicsExperience                         string             `bson:"grading_comics_experience" json:"grading_comics_experience,omitempty"`
 	RetailPartnershipReason                         string             `bson:"retail_partnership_reason" json:"retail_partnership_reason,omitempty"`
-	CPS_PINWSPartnershipReason                          string             `bson:"cps-pinws_partnership_reason" json:"cps-pinws_partnership_reason,omitempty"` // "Please describe how CPS_PINWS could help you grow your business"
+	CPS_PINWSPartnershipReason                      string             `bson:"cps-pinws_partnership_reason" json:"cps-pinws_partnership_reason,omitempty"` // "Please describe how CPS_PINWS could help you grow your business"
 	AgreeTOS                                        bool               `json:"agree_tos,omitempty"`
 	AgreePromotionsEmail                            bool               `json:"agree_promotions_email,omitempty"`
 	Status                                          int8               `bson:"status" json:"status"`
 	Role                                            int8               `bson:"role" json:"role"`
-	HasShippingAddress                            bool               `bson:"has_shipping_address" json:"has_shipping_address,omitempty"`
-	ShippingName                                  string             `bson:"shipping_name" json:"shipping_name,omitempty"`
-	ShippingPhone                                 string             `bson:"shipping_phone" json:"shipping_phone,omitempty"`
-	ShippingCountry                               string             `bson:"shipping_country" json:"shipping_country,omitempty"`
-	ShippingRegion                                string             `bson:"shipping_region" json:"shipping_region,omitempty"`
-	ShippingCity                                  string             `bson:"shipping_city" json:"shipping_city,omitempty"`
-	ShippingPostalCode                            string             `bson:"shipping_postal_code" json:"shipping_postal_code,omitempty"`
-	ShippingAddressLine1                          string             `bson:"shipping_address_line1" json:"shipping_address_line1,omitempty"`
-	ShippingAddressLine2                          string             `bson:"shipping_address_line2" json:"shipping_address_line2,omitempty"`
+	HasShippingAddress                              bool               `bson:"has_shipping_address" json:"has_shipping_address,omitempty"`
+	ShippingName                                    string             `bson:"shipping_name" json:"shipping_name,omitempty"`
+	ShippingPhone                                   string             `bson:"shipping_phone" json:"shipping_phone,omitempty"`
+	ShippingCountry                                 string             `bson:"shipping_country" json:"shipping_country,omitempty"`
+	ShippingRegion                                  string             `bson:"shipping_region" json:"shipping_region,omitempty"`
+	ShippingCity                                    string             `bson:"shipping_city" json:"shipping_city,omitempty"`
+	ShippingPostalCode                              string             `bson:"shipping_postal_code" json:"shipping_postal_code,omitempty"`
+	ShippingAddressLine1                            string             `bson:"shipping_address_line1" json:"shipping_address_line1,omitempty"`
+	ShippingAddressLine2                            string             `bson:"shipping_address_line2" json:"shipping_address_line2,omitempty"`
 	HowLongCollectingComicBooksForGrading           int8               `bson:"how_long_collecting_comic_books_for_grading" json:"how_long_collecting_comic_books_for_grading"`
 	HasPreviouslySubmittedComicBookForGrading       int8               `bson:"has_previously_submitted_comic_book_for_grading" json:"has_previously_submitted_comic_book_for_grading"`
 	HasOwnedGradedComicBooks                        int8               `bson:"has_owned_graded_comic_books" json:"has_owned_graded_comic_books"`
@@ -65,7 +65,7 @@ func (impl *UserControllerImpl) userFromUpdateRequest(requestData *UserUpdateReq
 
 	return &user_s.User{
 		ID:                                    requestData.ID,
-		TenantID:                               requestData.TenantID,
+		TenantID:                              requestData.TenantID,
 		FirstName:                             requestData.FirstName,
 		LastName:                              requestData.LastName,
 		Email:                                 requestData.Email,
@@ -84,15 +84,15 @@ func (impl *UserControllerImpl) userFromUpdateRequest(requestData *UserUpdateReq
 		AgreePromotionsEmail:                  requestData.AgreePromotionsEmail,
 		Status:                                requestData.Status,
 		Role:                                  requestData.Role,
-		HasShippingAddress:                  requestData.HasShippingAddress,
-		ShippingName:                        requestData.ShippingName,
-		ShippingPhone:                       requestData.ShippingPhone,
-		ShippingCountry:                     requestData.ShippingCountry,
-		ShippingRegion:                      requestData.ShippingRegion,
-		ShippingCity:                        requestData.ShippingCity,
-		ShippingPostalCode:                  requestData.ShippingPostalCode,
-		ShippingAddressLine1:                requestData.ShippingAddressLine1,
-		ShippingAddressLine2:                requestData.ShippingAddressLine2,
+		HasShippingAddress:                    requestData.HasShippingAddress,
+		ShippingName:                          requestData.ShippingName,
+		ShippingPhone:                         requestData.ShippingPhone,
+		ShippingCountry:                       requestData.ShippingCountry,
+		ShippingRegion:                        requestData.ShippingRegion,
+		ShippingCity:                          requestData.ShippingCity,
+		ShippingPostalCode:                    requestData.ShippingPostalCode,
+		ShippingAddressLine1:                  requestData.ShippingAddressLine1,
+		ShippingAddressLine2:                  requestData.ShippingAddressLine2,
 		HowLongCollectingComicBooksForGrading: requestData.HowLongCollectingComicBooksForGrading,
 		HasPreviouslySubmittedComicBookForGrading:       requestData.HasPreviouslySubmittedComicBookForGrading,
 		HasOwnedGradedComicBooks:                        requestData.HasOwnedGradedComicBooks,
@@ -218,11 +218,6 @@ func (impl *UserControllerImpl) UpdateByID(ctx context.Context, requestData *Use
 	//// Update related (in background)
 	////
 
-	go func(usr *user_s.User) {
-		if err := impl.updateRelatedPinObjectsInBackground(usr); err != nil {
-			impl.Logger.Error("update related pinobjects failed", slog.Any("error", err))
-		}
-	}(user)
 	go func(usr *user_s.User) {
 		if err := impl.updateRelatedStoreInBackground(usr); err != nil {
 			impl.Logger.Error("update related stores failed", slog.Any("error", err))

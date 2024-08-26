@@ -87,11 +87,10 @@ func (impl *PinObjectControllerImpl) UpdateByID(ctx context.Context, req *PinObj
 		}
 
 		// Extract from our session the following data.
-		userID, _ := sessCtx.Value(constants.SessionUserID).(primitive.ObjectID)
 		userTenantID, _ := sessCtx.Value(constants.SessionUserTenantID).(primitive.ObjectID)
 		userTenantTimezone, _ := sessCtx.Value(constants.SessionUserTenantTimezone).(string)
 		userRole, _ := sessCtx.Value(constants.SessionUserRole).(int8)
-		userName, _ := sessCtx.Value(constants.SessionUserName).(string)
+		ipAdress, _ := sessCtx.Value(constants.SessionIPAddress).(string)
 
 		// If user is not administrator nor belongs to the pinobject then error.
 		if userRole != user_d.UserRoleRoot && os.TenantID != userTenantID {
@@ -169,8 +168,7 @@ func (impl *PinObjectControllerImpl) UpdateByID(ctx context.Context, req *PinObj
 		// Modify our original pinobject.
 		os.TenantTimezone = userTenantTimezone
 		os.ModifiedAt = time.Now()
-		os.ModifiedByUserID = userID
-		os.ModifiedByUserName = userName
+		os.ModifiedFromIPAddress = ipAdress
 		os.Name = req.Name
 		os.OwnershipID = req.OwnershipID
 		os.OwnershipType = req.OwnershipType
