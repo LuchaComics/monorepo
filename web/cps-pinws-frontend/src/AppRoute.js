@@ -28,6 +28,10 @@ import AdminProjectList from "./Components/Admin/Project/List/View";
 import AdminProjectAdd from "./Components/Admin/Project/Add/View";
 import AdminProjectDetail from "./Components/Admin/Project/Detail/View";
 import AdminProjectUpdate from "./Components/Admin/Project/Update/View";
+import AdminProjectDetailForPinObjectList from "./Components/Admin/Project/Detail/PinObject/ListView";
+import AdminProjectPinObjectAdd from "./Components/Admin/Project/Detail/PinObject/Add";
+// import AdminTenantPinObjectDetail from "./Components/Admin/Tenant/PinObject/Detail";
+// import AdminTenantPinObjectUpdate from "./Components/Admin/Tenant/PinObject/Update";
 
 // Users
 import AdminUserList from "./Components/Admin/User/List/View";
@@ -150,22 +154,22 @@ function AppRoute() {
                   />
                   <Route
                     exact
-                    path="/admin/tenant/:id/pinobjects"
+                    path="/admin/tenant/:id/pins"
                     element={<AdminTenantDetailForPinObjectList />}
                   />
                   <Route
                     exact
-                    path="/admin/tenant/:id/pinobject/:aid"
+                    path="/admin/tenant/:id/pin/:aid"
                     element={<AdminTenantPinObjectDetail />}
                   />
                   <Route
                     exact
-                    path="/admin/tenant/:id/pinobjects/add"
+                    path="/admin/tenant/:id/pin/add"
                     element={<AdminTenantPinObjectAdd />}
                   />
                   <Route
                     exact
-                    path="/admin/tenant/:id/pinobject/:aid/edit"
+                    path="/admin/tenant/:id/pin/:aid/edit"
                     element={<AdminTenantPinObjectUpdate />}
                   />
                   {/* Project */}
@@ -190,7 +194,28 @@ function AppRoute() {
                     path="/admin/project/:id/edit"
                     element={<AdminProjectUpdate />}
                   />
-
+                  <Route
+                    exact
+                    path="/admin/project/:id/pins"
+                    element={<AdminProjectDetailForPinObjectList />}
+                  />
+                  <Route
+                    exact
+                    path="/admin/project/:id/pins/add"
+                    element={<AdminProjectPinObjectAdd />}
+                  />
+                  {/*
+                  <Route
+                    exact
+                    path="/admin/tenant/:id/pin/:aid"
+                    element={<AdminTenantPinObjectDetail />}
+                  />
+                  <Route
+                    exact
+                    path="/admin/tenant/:id/pin/:aid/edit"
+                    element={<AdminTenantPinObjectUpdate />}
+                  />
+                  */}
 
                   {/* User */}
                   <Route

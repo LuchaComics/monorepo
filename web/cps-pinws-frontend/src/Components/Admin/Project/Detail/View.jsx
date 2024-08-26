@@ -67,7 +67,7 @@ function AdminProjectDetail() {
   ////
 
   const [searchParams] = useSearchParams(); // Special thanks via https://stackoverflow.com/a/65451140
-  const secretCode = searchParams.get("secret");
+  const apiKey = searchParams.get("api_key");
 
   ////
   //// URL Parameters.
@@ -359,11 +359,11 @@ function AdminProjectDetail() {
               </footer>
             </div>
           </div>
-          <div class={`modal ${secretCode ? "is-active" : ""}`}>
+          <div class={`modal ${apiKey ? "is-active" : ""}`}>
             <div class="modal-background"></div>
             <div class="modal-card">
               <header class="modal-card-head">
-                <p class="modal-card-title">Please confirm the secret</p>
+                <p class="modal-card-title">Please confirm the API Key</p>
                 <Link
                   class="delete"
                   aria-label="close"
@@ -371,13 +371,10 @@ function AdminProjectDetail() {
                 ></Link>
               </header>
               <section class="modal-card-body" style={{wordWrap: "break-word"}}>
-                You have successfully created a project! Here are your credentials. Please save the <strong>secret</strong> somewhere safe as you'll never get access to it again after you click <strong>confirm</strong>.
+                You have successfully created a project! Here are your credentials. Please save the <strong>API Key</strong> somewhere safe as you'll never get access to it again after you click <strong>confirm</strong>. Note: If you forget your API key, you'll need to generate a new one.
                 <br />
                 <br />
-                <strong>Project ID:</strong>&nbsp;<br/><i>{id}</i>
-                <br />
-                <br />
-                <strong>Project Secret:</strong>&nbsp;<br/><i>{secretCode}</i>
+                <strong>API Token:</strong>&nbsp;<br/><i>{apiKey}</i>
                 <br />
                 <br />
               </section>
@@ -409,7 +406,7 @@ function AdminProjectDetail() {
                 </div>
                 {project && project.status === 1 && <div class="column has-text-right">
                   <Link
-                    to={`/admin/pins/add?project_id=${project.id}&project_name=${project.name}&tenant_id=${project.tenantId}&from=projects&clear=true`}
+                    to={`/admin/project/${project.id}/pins/add`}
                     class="button is-small is-success is-fullwidth-mobile"
                     type="button"
                   >

@@ -9,10 +9,9 @@ import {
   faPlus,
   faArrowLeft,
   faCheckCircle,
-  faProjectCircle,
   faGauge,
   faPencil,
-  faProjects,
+  faProjectDiagram,
   faEye,
   faArrowRight,
   faTrashCan,
@@ -304,14 +303,14 @@ function AdminProjectDetailForPinObjectList() {
               </li>
               <li class="">
                 <Link to="/admin/projects" aria-current="page">
-                  <FontAwesomeIcon className="fas" icon={faProjects} />
+                  <FontAwesomeIcon className="fas" icon={faProjectDiagram} />
                   &nbsp;Projects
                 </Link>
               </li>
               <li class="is-active">
                 <Link aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faEye} />
-                  &nbsp;Detail (PinObjects)
+                  &nbsp;Detail (Pins)
                 </Link>
               </li>
             </ul>
@@ -377,19 +376,19 @@ function AdminProjectDetailForPinObjectList() {
             <div class="columns">
               <div class="column">
                 <p class="title is-4">
-                  <FontAwesomeIcon className="fas" icon={faProjectCircle} />
+                  <FontAwesomeIcon className="fas" icon={faProjectDiagram} />
                   &nbsp;Project
                 </p>
               </div>
               {project && project.status === 1 && (
                 <div class="column has-text-right">
                   <Link
-                    to={`/admin/project/${id}/pinobjects/add`}
+                    to={`/admin/project/${id}/pins/add`}
                     class="button is-small is-success is-fullwidth-mobile"
                     type="button"
                   >
                     <FontAwesomeIcon className="mdi" icon={faPlus} />
-                    &nbsp;Add PinObject
+                    &nbsp;Add Pin
                   </Link>
                 </div>
               )}
@@ -409,14 +408,9 @@ function AdminProjectDetailForPinObjectList() {
                         <li>
                           <Link to={`/admin/project/${project.id}`}>Detail</Link>
                         </li>
-                        <li>
-                          <Link to={`/admin/project/${project.id}/comments`}>
-                            Comments
-                          </Link>
-                        </li>
                         <li class="is-active">
-                          <Link to={`/admin/project/${project.id}/pinobjects`}>
-                            <b>PinObjects</b>
+                          <Link to={`/admin/project/${project.id}/pins`}>
+                            <b>Pins</b>
                           </Link>
                         </li>
                         <li>
@@ -481,9 +475,9 @@ function AdminProjectDetailForPinObjectList() {
                       <div class="container">
                         <article class="message is-dark">
                           <div class="message-body">
-                            No pinobjects.{" "}
+                            No pins.{" "}
                             <b>
-                              <Link to={`/admin/project/${id}/pinobjects/add`}>
+                              <Link to={`/admin/project/${id}/pins/add`}>
                                 Click here&nbsp;
                                 <FontAwesomeIcon
                                   className="mdi"
@@ -491,7 +485,7 @@ function AdminProjectDetailForPinObjectList() {
                                 />
                               </Link>
                             </b>{" "}
-                            to get started creating a new pinobject.
+                            to get started creating a new pin.
                           </div>
                         </article>
                       </div>
@@ -506,11 +500,11 @@ function AdminProjectDetailForPinObjectList() {
                       </div>
                       <div class="column is-half has-text-right">
                         {project && project.status === 1 && <Link
-                          to={`/admin/project/${id}/pinobjects/add`}
+                          to={`/admin/project/${id}/pins/add`}
                           class="button is-primary is-fullwidth-mobile"
                         >
                           <FontAwesomeIcon className="fas" icon={faPlus} />
-                          &nbsp;Add PinObject
+                          &nbsp;Add Pin
                         </Link>}
                       </div>
                     </div>

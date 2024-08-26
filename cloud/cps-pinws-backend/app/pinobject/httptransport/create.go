@@ -26,7 +26,6 @@ func UnmarshalCreateRequest(ctx context.Context, r *http.Request) (*a_c.PinObjec
 
 	// Get the values of form fields
 	name := r.FormValue("name")
-	description := r.FormValue("description")
 	ownershipID := r.FormValue("ownership_id")
 	ownershipTypeStr := r.FormValue("ownership_type")
 	ownershipType, _ := strconv.ParseInt(ownershipTypeStr, 10, 64)
@@ -46,7 +45,6 @@ func UnmarshalCreateRequest(ctx context.Context, r *http.Request) (*a_c.PinObjec
 	// Initialize our array which will store all the results from the remote server.
 	requestData := &a_c.PinObjectCreateRequestIDO{
 		Name:          name,
-		Description:   description,
 		OwnershipID:   oid,
 		OwnershipType: int8(ownershipType),
 	}

@@ -120,14 +120,14 @@ function AdminProjectAdd() {
       setTopAlertMessage("");
     }, 2000);
 
-    const secret = response.secret;
+    const apiKey = response.apiKey;
 
     if (orgName !== undefined && orgName !== null && orgName !== "") {
       // Redirect the project to a new page.
-      setForceURL("/admin/tenant/" + orgID + "/projects?secret="+secret);
+      setForceURL("/admin/tenant/" + orgID + "/projects?api_key="+apiKey);
     } else {
       // Redirect the project to a new page.
-      setForceURL("/admin/project/" + response.id + "?secret="+secret);
+      setForceURL("/admin/project/" + response.id + "?api_key="+apiKey);
     }
   }
 

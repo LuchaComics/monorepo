@@ -11,7 +11,7 @@ import {
   faProjectCircle,
   faGauge,
   faPencil,
-  faProjects,
+  faProjectDiagram,
   faIdCard,
   faAddressBook,
   faContactCard,
@@ -64,7 +64,6 @@ function AdminProjectPinObjectAdd() {
   const [forceURL, setForceURL] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
   const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
 
   ////
   //// Event handling.
@@ -82,9 +81,8 @@ function AdminProjectPinObjectAdd() {
     const formData = new FormData();
     formData.append("file", selectedFile);
     formData.append("name", name);
-    formData.append("description", description);
     formData.append("ownership_id", id);
-    formData.append("ownership_type", 1); // 1=Customer or Project.
+    formData.append("ownership_type", 1); // 1=Project
 
     postPinObjectCreateAPI(
       formData,
@@ -196,7 +194,7 @@ function AdminProjectPinObjectAdd() {
               </li>
               <li class="">
                 <Link to="/admin/projects" aria-current="page">
-                  <FontAwesomeIcon className="fas" icon={faProjects} />
+                  <FontAwesomeIcon className="fas" icon={faProjectDiagram} />
                   &nbsp;Projects
                 </Link>
               </li>
@@ -234,7 +232,7 @@ function AdminProjectPinObjectAdd() {
           <nav class="box">
             <p class="title is-4">
               <FontAwesomeIcon className="fas" icon={faPlus} />
-              &nbsp;New PinObject
+              &nbsp;New Pin
             </p>
             <FormErrorBox errors={errors} />
 
@@ -257,19 +255,6 @@ function AdminProjectPinObjectAdd() {
                     maxWidth="150px"
                   />
 
-                  <FormInputField
-                    label="Description"
-                    name="description"
-                    type="text"
-                    placeholder="Text input"
-                    value={description}
-                    errorText={errors && errors.description}
-                    helpText=""
-                    onChange={(e) => setDescription(e.target.value)}
-                    isRequired={true}
-                    maxWidth="485px"
-                  />
-
                   <input
                     name="file"
                     type="file"
@@ -281,14 +266,14 @@ function AdminProjectPinObjectAdd() {
                   <div class="columns pt-5">
                     <div class="column is-half">
                       <Link
-                        to={`/admin/project/${id}/pinobjects`}
+                        to={`/admin/project/${id}/pins`}
                         class="button is-hidden-touch"
                       >
                         <FontAwesomeIcon className="fas" icon={faArrowLeft} />
                         &nbsp;Back
                       </Link>
                       <Link
-                        to={`/admin/project/${id}/pinobjects`}
+                        to={`/admin/project/${id}/pins`}
                         class="button is-fullwidth is-hidden-desktop"
                       >
                         <FontAwesomeIcon className="fas" icon={faArrowLeft} />
@@ -297,14 +282,14 @@ function AdminProjectPinObjectAdd() {
                     </div>
                     <div class="column is-half has-text-right">
                       <button
-                        class="button is-medium is-primary is-hidden-touch"
+                        class="button is-primary is-hidden-touch"
                         onClick={onSubmitClick}
                       >
                         <FontAwesomeIcon className="fas" icon={faCheckCircle} />
                         &nbsp;Save
                       </button>
                       <button
-                        class="button is-medium is-primary is-fullwidth is-hidden-desktop"
+                        class="button is-primary is-fullwidth is-hidden-desktop"
                         onClick={onSubmitClick}
                       >
                         <FontAwesomeIcon className="fas" icon={faCheckCircle} />

@@ -17,7 +17,6 @@ import (
 
 type PinObjectCreateRequestIDO struct {
 	Name          string
-	Description   string
 	OwnershipID   primitive.ObjectID
 	OwnershipType int8
 	FileName      string
@@ -28,12 +27,6 @@ type PinObjectCreateRequestIDO struct {
 func ValidateCreateRequest(dirtyData *PinObjectCreateRequestIDO) error {
 	e := make(map[string]string)
 
-	if dirtyData.Name == "" {
-		e["name"] = "missing value"
-	}
-	if dirtyData.Description == "" {
-		e["description"] = "missing value"
-	}
 	if dirtyData.OwnershipID.IsZero() {
 		e["ownership_id"] = "missing value"
 	}
@@ -93,7 +86,6 @@ func (impl *PinObjectControllerImpl) Create(ctx context.Context, req *PinObjectC
 			slog.String("Directory", directory),
 			slog.String("ObjectKey", objectKey),
 			slog.String("Name", req.Name),
-			slog.String("Desc", req.Description),
 		)
 
 		go func(file multipart.File, objkey string) {
@@ -140,13 +132,12 @@ func (impl *PinObjectControllerImpl) Create(ctx context.Context, req *PinObjectC
 			ModifiedByUserName: userName,
 			ModifiedByUserID:   userID,
 			Name:               req.Name,
-			Description:        req.Description,
 			Filename:           req.FileName,
 			ObjectKey:          objectKey,
 			ObjectURL:          "",
 			OwnershipID:        req.OwnershipID,
 			OwnershipType:      req.OwnershipType,
-			Status:             a_d.StatusActive,
+			Status:             a_d.StatusPinned,
 			CID:                cid,
 		}
 		if err := impl.PinObjectStorer.Create(sessCtx, res); err != nil {

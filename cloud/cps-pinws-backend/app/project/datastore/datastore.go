@@ -38,9 +38,9 @@ type Project struct {
 	// Do not return in the API endpoint.
 	SecretHash string `bson:"secret_hash" json:"-"`
 
-	// Secret variable used only during the initial project creation step
+	// ApiKey variable used only during the initial project creation step
 	// afterwords this value is not saved for security purposes.
-	Secret string `bson:"secret,omitempty" json:"secret,omitempty"`
+	ApiKey string `bson:"-" json:"api_key,omitempty"`
 }
 
 type ProjectListFilter struct {

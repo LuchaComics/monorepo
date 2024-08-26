@@ -43,7 +43,7 @@ func (impl *PinObjectControllerImpl) DeleteByID(ctx context.Context, id primitiv
 
 		// Update the database.
 		pinobject, err := impl.GetByID(sessCtx, id)
-		pinobject.Status = org_d.StatusArchived
+		pinobject.Status = org_d.StatusFailed
 		if err != nil {
 			impl.Logger.Error("database get by id error", slog.Any("error", err))
 			return nil, err

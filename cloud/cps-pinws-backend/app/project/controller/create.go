@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -64,8 +65,18 @@ func (impl *ProjectControllerImpl) Create(ctx context.Context, m *s_d.Project) (
 		return nil, err
 	}
 
-	// Attach our secret for one-time.
-	m.Secret = randomStr
+	// Generate our one-time API key and attach it to the response
+	// Generate our JWT token.
+	apiKeyPayload := fmt.Sprintf("%v@%v", m.ID.Hex(), secretHash)
+	atExpiry := 250 * 24 * time.Hour // Duration: 250 years.
+	apiKey, _, err := impl.JWT.GenerateJWTToken(apiKeyPayload, atExpiry)
+	if err != nil {
+		impl.Logger.Error("jwt generate pairs error",
+			slog.Any("err", err))
+		return nil, err
+	}
+
+	m.ApiKey = apiKey
 
 	return m, nil
 }

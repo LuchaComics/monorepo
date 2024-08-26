@@ -55,7 +55,7 @@ func (impl PinObjectStorerImpl) ListAsSelectOptionByFilter(ctx context.Context, 
 	}
 
 	if f.ExcludeArchived {
-		query["status"] = bson.M{"$ne": StatusArchived} // Do not list archived items! This code
+		query["status"] = bson.M{"$ne": StatusFailed} // Do not list archived items! This code
 	}
 
 	options.SetSort(bson.D{{sortField, 1}}) // Sort in ascending order based on the specified field

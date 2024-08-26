@@ -172,7 +172,6 @@ func (impl *PinObjectControllerImpl) UpdateByID(ctx context.Context, req *PinObj
 		os.ModifiedByUserID = userID
 		os.ModifiedByUserName = userName
 		os.Name = req.Name
-		os.Description = req.Description
 		os.OwnershipID = req.OwnershipID
 		os.OwnershipType = req.OwnershipType
 

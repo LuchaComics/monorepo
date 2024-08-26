@@ -31,7 +31,7 @@ func (impl PinObjectStorerImpl) ListByFilter(ctx context.Context, f *PinObjectPa
 		filter["modified_by_user_id"] = f.ModifiedByUserID
 	}
 	if f.ExcludeArchived {
-		filter["status"] = bson.M{"$ne": StatusArchived} // Do not list archived items! This code
+		filter["status"] = bson.M{"$ne": StatusFailed} // Do not list archived items! This code
 	}
 
 	impl.Logger.Debug("fetching pinobjects list",
