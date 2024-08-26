@@ -409,12 +409,12 @@ function AdminProjectDetail() {
                 </div>
                 {project && project.status === 1 && <div class="column has-text-right">
                   <Link
-                    to={`/admin/submissions/pick-type-for-add?customer_id=${project.id}&customer_name=${project.name}&tenant_id=${project.tenantId}&from=projectcomics&clear=true`}
+                    to={`/admin/pins/add?project_id=${project.id}&project_name=${project.name}&tenant_id=${project.tenantId}&from=projects&clear=true`}
                     class="button is-small is-success is-fullwidth-mobile"
                     type="button"
                   >
                     <FontAwesomeIcon className="mdi" icon={faPlus} />
-                    &nbsp;CPS
+                    &nbsp;Pin
                   </Link>
                   &nbsp;&nbsp;
                   <Link

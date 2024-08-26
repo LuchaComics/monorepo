@@ -192,6 +192,8 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 		port.Project.GetByID(w, r, p[3])
 	case n == 4 && p[1] == "v1" && p[2] == "project" && r.Method == http.MethodPut:
 		port.Project.UpdateByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "project" && r.Method == http.MethodDelete:
+		port.Project.DeleteByID(w, r, p[3])
 
 	// --- PIN OBJECTS --- //
 	case n == 3 && p[1] == "v1" && p[2] == "pins" && r.Method == http.MethodGet:

@@ -39,7 +39,7 @@ func NewStorage(appConf *c.Conf, logger *slog.Logger) IPFSStorager {
 	logger.Debug("ipfs storage adapter initializing...", appConf.IPFSNode.BinaryOperatingSystem, appConf.IPFSNode.BinaryCPUArchitecture)
 
 	launcher, initErr := ipfslauncher.NewDaemonLauncher(
-		ipfslauncher.WithOverrideDaemonWarmupDuration(10),
+		ipfslauncher.WithOverrideDaemonWarmupDuration(3),
 		ipfslauncher.WithContinousOperation(),
 		ipfslauncher.WithOverrideBinaryOsAndArch(appConf.IPFSNode.BinaryOperatingSystem, appConf.IPFSNode.BinaryCPUArchitecture),
 	)
