@@ -58,23 +58,26 @@ type PinObject struct {
 	// CODE BELOW IS EXTENSION TO THE IPFS SPEC.
 	//------------------------------------------//
 
-	Filename    string `bson:"filename" json:"filename"`
-	ObjectKey   string `bson:"object_key" json:"object_key"`
-	ObjectURL   string `bson:"object_url" json:"object_url"`
-	ContentType int8   `bson:"content_type" json:"content_type"`
+	// FileContent variable holds all the content of this pin. Variable will not be saved to database, only returned in API endpoint.
+	Content []byte `bson:"-" json:"content,omitempty"`
+
+	Filename    string `bson:"filename" json:"filename,omitempty"`
+	ObjectKey   string `bson:"object_key" json:"object_key,omitempty"`
+	ObjectURL   string `bson:"object_url" json:"object_url,omitempty"`
+	ContentType int8   `bson:"content_type" json:"content_type,omitempty"`
 
 	TenantID       primitive.ObjectID `bson:"tenant_id,omitempty" json:"tenant_id,omitempty"`
-	TenantName     string             `bson:"tenant_name" json:"tenant_name"`
-	TenantTimezone string             `bson:"tenant_timezone" json:"tenant_timezone"`
+	TenantName     string             `bson:"tenant_name" json:"tenant_name,omitempty"`
+	TenantTimezone string             `bson:"tenant_timezone" json:"tenant_timezone,omitempty"`
 
 	// ID variable is the unique identifier we use internally in our system.
-	ID                    primitive.ObjectID `bson:"_id" json:"id"`
-	CreatedFromIPAddress  string             `bson:"created_from_ip_address" json:"created_from_ip_address"`
+	ID                    primitive.ObjectID `bson:"_id" json:"id,omitempty"`
+	CreatedFromIPAddress  string             `bson:"created_from_ip_address" json:"created_from_ip_address,omitempty"`
 	ModifiedAt            time.Time          `bson:"modified_at,omitempty" json:"modified_at,omitempty"`
-	ModifiedFromIPAddress string             `bson:"modified_from_ip_address" json:"modified_from_ip_address"`
+	ModifiedFromIPAddress string             `bson:"modified_from_ip_address" json:"modified_from_ip_address,omitempty"`
 
 	// ProjectID variable used to track ownership of this pin object. Used primarily for organization purposes.
-	ProjectID primitive.ObjectID `bson:"project_id" json:"project_id"`
+	ProjectID primitive.ObjectID `bson:"project_id" json:"project_id,omitempty"`
 }
 
 type PinObjectAsSelectOption struct {

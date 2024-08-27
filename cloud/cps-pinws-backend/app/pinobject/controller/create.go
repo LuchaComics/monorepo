@@ -17,12 +17,10 @@ import (
 
 type PinObjectCreateRequestIDO struct {
 	Name      string
-	ProjectID primitive.ObjectID
-	FileName  string
-	FileType  string
-	File      multipart.File
-	Origins   []string          `bson:"origins" json:"origins"`
-	Meta      map[string]string `bson:"meta" json:"meta"`
+	Origins   []string           `bson:"origins" json:"origins"`
+	Meta      map[string]string  `bson:"meta" json:"meta"`
+	ProjectID primitive.ObjectID // Outside of IPFS pinning spec.
+	File      multipart.File     // Outside of IPFS pinning spec.
 }
 
 // PinObjectCreateResponseIDO represents `PinStatus` spec via https://ipfs.github.io/pinning-services-api-spec/#section/Schemas/Identifiers.
@@ -40,7 +38,7 @@ func ValidateCreateRequest(dirtyData *PinObjectCreateRequestIDO) error {
 	if dirtyData.ProjectID.IsZero() {
 		e["project_id"] = "missing value"
 	}
-	if dirtyData.FileName == "" {
+	if dirtyData.File == nil {
 		e["file"] = "missing value"
 	}
 	if len(e) != 0 {
@@ -72,13 +70,16 @@ func (impl *PinObjectControllerImpl) Create(ctx context.Context, req *PinObjectC
 		// The following code will choose the directory we will upload based on the image type.
 		var directory string = "projects"
 
+		filename := "req.Meta[\"filename\"].(string)"
+		contentType := "req.Meta[\"content_type\"].(string"
+
 		// Generate the key of our upload.
-		objectKey := fmt.Sprintf("%v/%v/%v", directory, req.ProjectID.Hex(), req.FileName)
+		objectKey := fmt.Sprintf("%v/%v/%v", directory, req.ProjectID.Hex(), filename)
 
 		// For debugging purposes only.
 		impl.Logger.Debug("pre-upload meta",
-			slog.String("FileName", req.FileName),
-			slog.String("FileType", req.FileType),
+			slog.String("FileName", filename),
+			slog.String("FileType", contentType),
 			slog.String("Directory", directory),
 			slog.String("ObjectKey", objectKey),
 			slog.String("Name", req.Name),
@@ -138,7 +139,7 @@ func (impl *PinObjectControllerImpl) Create(ctx context.Context, req *PinObjectC
 			ModifiedFromIPAddress: ipAdress,
 
 			// S3
-			Filename:  req.FileName,
+			Filename:  filename,
 			ObjectKey: objectKey,
 			ObjectURL: "",
 		}

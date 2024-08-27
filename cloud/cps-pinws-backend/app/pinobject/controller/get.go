@@ -71,3 +71,22 @@ func (c *PinObjectControllerImpl) GetByRequestID(ctx context.Context, requestID 
 	m.ObjectURL = fileURL
 	return m, err
 }
+
+func (impl *PinObjectControllerImpl) GetWithContentByRequestID(ctx context.Context, requestID primitive.ObjectID) (*domain.PinObject, error) {
+	// Retrieve from our database the record for the specific id.
+	m, err := impl.PinObjectStorer.GetByRequestID(ctx, requestID)
+	if err != nil {
+		impl.Logger.Error("database get by request id error", slog.Any("error", err))
+		return nil, err
+	}
+
+	content, err := impl.IPFS.GetContent(ctx, m.CID)
+	if err != nil {
+		impl.Logger.Error("get content by cid via ipfs error", slog.Any("error", err))
+		return nil, err
+	}
+
+	m.Content = content
+
+	return m, err
+}

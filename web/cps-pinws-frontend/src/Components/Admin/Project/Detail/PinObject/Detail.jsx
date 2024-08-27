@@ -25,7 +25,11 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
-import { getPinObjectDetailAPI, deletePinObjectAPI } from "../../../../../API/PinObject";
+import {
+    getPinObjectDetailAPI,
+    deletePinObjectAPI,
+    getPinObjectContentDetailAPI
+} from "../../../../../API/PinObject";
 import FormErrorBox from "../../../../Reusable/FormErrorBox";
 import FormInputField from "../../../../Reusable/FormInputField";
 import FormTextareaField from "../../../../Reusable/FormTextareaField";
@@ -41,6 +45,7 @@ import {
   topAlertStatusState,
 } from "../../../../../AppState";
 import FormRowText from "../../../../Reusable/FormRowText";
+
 
 function AdminProjectPinObjectDetail() {
   ////
@@ -68,7 +73,8 @@ function AdminProjectPinObjectDetail() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [name, setName] = useState("");
   const [cid, setCID] = useState("");
-  const [description, setDescription] = useState("");
+  const [meta, setMeta] = useState({});
+  const [origins, setOrigins] = useState([]);
   const [objectUrl, setObjectUrl] = useState("");
   const [selectedPinObjectRequestIDForDeletion, setSelectedPinObjectRequestIDForDeletion] =
     useState("");
@@ -90,6 +96,69 @@ function AdminProjectPinObjectDetail() {
     );
   };
 
+  const downloadFile = (data, filename, contentType) => {
+    const blob = new Blob([data], { type: contentType });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+};
+
+  const onDownloadContentButtonClick = (e) => {
+      e.preventDefault();
+      console.log("onDownloadContentButtonClick: Started...");
+      getPinObjectContentDetailAPI(
+          rid,
+          (data, filename, contentType) => {
+              // DEFENSIVE CODE: In case `filename` was not returned.
+              if (filename === undefined || filename === null || filename === "") {
+                  filename = meta["filename"];
+                  console.log("onDownloadContentButtonClick: `filename` not found, using meta:", filename);
+              }
+
+                  // DEFENSIVE CODE: In case `contentType` was not returned.
+              if (contentType === undefined || contentType === null || contentType === "") {
+                  contentType = meta["contentType"];
+                  console.log("onDownloadContentButtonClick: `contentType` not found, using meta:", contentType);
+              }
+
+              // Download the file.
+              console.log("onDownloadContentButtonClick: success:", data, filename, contentType);
+              downloadFile(data, filename, contentType);
+          },
+          (apiErr) => {
+              console.log("onDownloadContentButtonClick: err:", apiErr);
+              setErrors(apiErr);
+
+              // Update notification.
+              setTopAlertStatus("danger");
+              setTopAlertMessage("Failed downloading file");
+              setTimeout(() => {
+                console.log(
+                  "onDownloadContentButtonClick: topAlertMessage, topAlertStatus:",
+                  topAlertMessage,
+                  topAlertStatus,
+                );
+                setTopAlertMessage("");
+              }, 2000);
+
+              // The following code will cause the screen to scroll to the top of
+              // the page. Please see ``react-scroll`` for more information:
+              // https://github.com/fisshy/react-scroll
+              var scroll = Scroll.animateScroll;
+              scroll.scrollToTop();
+          },
+          () => {
+              console.log("onDownloadContentButtonClick: done");
+          },
+          onUnauthorized
+      );
+  }
+
   ////
   //// API.
   ////
@@ -102,6 +171,8 @@ function AdminProjectPinObjectDetail() {
     console.log(response);
     setName(response.name);
     setCID(response.cid);
+    setMeta(response.meta);
+    setOrigins(response.origins);
     setObjectUrl(response.objectUrl);
   }
 
@@ -348,9 +419,7 @@ function AdminProjectPinObjectDetail() {
                       <p class="subtitle">
                         <div class="has-text-centered">
                           <a
-                            href={objectUrl}
-                            target="_blank"
-                            rel="noreferrer"
+                            onClick={onDownloadContentButtonClick}
                             class="button is-large is-success is-hidden-touch"
                           >
                             <FontAwesomeIcon
@@ -360,8 +429,7 @@ function AdminProjectPinObjectDetail() {
                             &nbsp;Download File
                           </a>
                           <a
-                            href={objectUrl}
-                            target="_blank"
+                            onClick={onDownloadContentButtonClick}
                             rel="noreferrer"
                             class="button is-large is-success is-fullwidth is-hidden-desktop"
                           >

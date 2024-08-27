@@ -52,18 +52,25 @@ func UnmarshalCreateRequest(ctx context.Context, r *http.Request) (*a_c.PinObjec
 		meta = make(map[string]string) // Initialize an empty map if parsing fails
 	}
 
+	// Add default values.
+	meta["filename"] = ""
+	meta["content_type"] = ""
+
 	// Initialize our array which will store all the results from the remote server.
 	requestData := &a_c.PinObjectCreateRequestIDO{
 		Name:      name,
 		ProjectID: pid,
+		Origins:   origins,
+		Meta:      meta,
 	}
 
 	if header != nil {
 		// Extract filename and filetype from the file header
-		requestData.FileName = header.Filename
-		requestData.FileType = header.Header.Get("Content-Type")
 		requestData.File = file
-		requestData.Origins = origins
+
+		// Handle meta. We will attach meta along with some custom fields.
+		meta["filename"] = header.Filename
+		meta["content_type"] = header.Header.Get("Content-Type")
 		requestData.Meta = meta
 	}
 	return requestData, nil

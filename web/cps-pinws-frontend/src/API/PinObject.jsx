@@ -1,10 +1,11 @@
-import getCustomAxios from "../Helpers/customAxios";
 import { camelizeKeys, decamelizeKeys, decamelize } from "humps";
 import { DateTime } from "luxon";
 
+import getCustomAxios from "../Helpers/customAxios";
 import {
   CPS_ATTACHMENTS_API_ENDPOINT,
   CPS_ATTACHMENT_API_ENDPOINT,
+  CPS_PIN_CONTENT_API_ENDPOINT
 } from "../Constants/API";
 
 export function getPinObjectListAPI(
@@ -177,6 +178,49 @@ export function deletePinObjectAPI(
     .catch((exception) => {
       let errors = camelizeKeys(exception);
       onErrorCallback(errors);
+    })
+    .then(onDoneCallback);
+}
+
+export function getPinObjectContentDetailAPI(
+  requestID,
+  onSuccessCallback,
+  onErrorCallback,
+  onDoneCallback,
+  onUnauthorizedCallback,
+) {
+  const axios = getCustomAxios(onUnauthorizedCallback);
+  axios
+    .get(CPS_PIN_CONTENT_API_ENDPOINT.replace("{id}", requestID), { responseType: "blob", })
+    .then((successResponse) => {
+        console.log("getPinObjectContentDetailAPI: All response headers:", successResponse.headers);
+
+        const contentDisposition = successResponse.headers['content-disposition'];
+        let filename = ""; // Default filename is empty string - you will need to handle it in the upper functions that use this function.
+
+        // Extract filename from Content-Disposition header if available
+        if (contentDisposition && contentDisposition.indexOf('attachment') !== -1) {
+            const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+            if (filenameMatch && filenameMatch.length === 2) {
+                filename = filenameMatch[1];
+            }
+        }
+
+        const contentType = successResponse.headers['content-type'] || 'application/octet-stream';
+        console.log("contentDisposition:", contentDisposition);
+        console.log("contentType:", contentType);
+
+        // Use `fileDownload` to download the file
+        onSuccessCallback(successResponse.data, filename, contentType);
+    })
+    .catch((exception) => {
+        let errors;
+        if (exception.response) {
+           errors = camelizeKeys(exception.response);
+        } else {
+            errors = exception.message ? { message: exception.message } : { message: 'An unknown error occurred' };
+        }
+        onErrorCallback(errors);
     })
     .then(onDoneCallback);
 }

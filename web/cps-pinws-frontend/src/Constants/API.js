@@ -136,3 +136,6 @@ export const CPS_USER_CHANGE_PASSWORD_OPERATION_API_ENDPOINT =
     HTTP_API_SERVER + "/api/v1/projects/operations/change-2fa";
   export const CPS_PROJECT_CHANGE_PASSWORD_OPERATION_API_ENDPOINT =
     HTTP_API_SERVER + "/api/v1/projects/operations/change-password";
+
+// Pin
+export const CPS_PIN_CONTENT_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/pin/{id}/content";

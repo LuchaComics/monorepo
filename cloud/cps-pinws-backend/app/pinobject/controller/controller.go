@@ -21,6 +21,7 @@ import (
 type PinObjectController interface {
 	Create(ctx context.Context, req *PinObjectCreateRequestIDO) (*domain.PinObject, error)
 	GetByRequestID(ctx context.Context, requestID primitive.ObjectID) (*domain.PinObject, error)
+	GetWithContentByRequestID(ctx context.Context, requestID primitive.ObjectID) (*domain.PinObject, error)
 	UpdateByRequestID(ctx context.Context, ns *PinObjectUpdateRequestIDO) (*domain.PinObject, error)
 	ListByFilter(ctx context.Context, f *domain.PinObjectPaginationListFilter) (*domain.PinObjectPaginationListResult, error)
 	ListAsSelectOptionByFilter(ctx context.Context, f *domain.PinObjectPaginationListFilter) ([]*domain.PinObjectAsSelectOption, error)
