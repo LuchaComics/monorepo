@@ -21,6 +21,7 @@ import {
   faContactCard,
   faChartPie,
   faCogs,
+  faArrowRight
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 import { useParams } from "react-router-dom";
@@ -341,10 +342,9 @@ function AdminProjectDetail() {
                 ></button>
               </header>
               <section class="modal-card-body">
-                You are about to <b>archive</b> this project; it will no longer
-                appear on your dashboard This action can be undone but you'll
-                need to contact the system administrator. Are you sure you would
-                like to continue?
+              You are about to <b>delete</b> this project; the data will be permanently deleted and no
+              longer appear on your dashboard. This action cannot be undone. Are you sure
+              you would like to continue?
               </section>
               <footer class="modal-card-foot">
                 <button
@@ -550,6 +550,14 @@ function AdminProjectDetail() {
               </>
             )}
           </nav>
+
+          {/* Bottom Page Logout Link  */}
+          <div className="has-text-right has-text-grey">
+            <Link to={`/admin/project/${id}/pins/add-via-ws`} className="has-text-grey">
+              Add Pin via Web-Service API&nbsp;
+              <FontAwesomeIcon className="mdi" icon={faArrowRight} />
+            </Link>
+          </div>
         </section>
       </div>
     </>

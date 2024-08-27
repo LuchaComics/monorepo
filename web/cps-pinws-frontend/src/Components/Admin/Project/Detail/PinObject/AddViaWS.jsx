@@ -23,7 +23,7 @@ import {
 import { useRecoilState } from "recoil";
 
 import useLocalStorage from "../../../../../Hooks/useLocalStorage";
-import { postPinObjectCreateAPI } from "../../../../../API/PinObject";
+import { postIPFSAddFileAPI } from "../../../../../API/IPFS";
 import FormErrorBox from "../../../../Reusable/FormErrorBox";
 import FormInputField from "../../../../Reusable/FormInputField";
 import FormTextareaField from "../../../../Reusable/FormTextareaField";
@@ -39,7 +39,7 @@ import {
   topAlertStatusState,
 } from "../../../../../AppState";
 
-function AdminProjectPinObjectAdd() {
+function AdminProjectPinObjectAddViaWebService() {
   ////
   //// URL Parameters.
   ////
@@ -63,7 +63,7 @@ function AdminProjectPinObjectAdd() {
   const [isFetching, setFetching] = useState(false);
   const [forceURL, setForceURL] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
-  const [name, setName] = useState("");
+  const [apiKey, setName] = useState("");
 
   ////
   //// Event handling.
@@ -74,22 +74,56 @@ function AdminProjectPinObjectAdd() {
   };
 
   const onSubmitClick = (e) => {
+    e.preventDefault(); // Prevent default form submission behavior
     console.log("onSubmitClick: Starting...");
     setFetching(true);
     setErrors({});
 
+    // Ensure that a file is selected
+      if (!selectedFile) {
+        console.error('No file selected');
+        setErrors({ file: 'No file selected' });
+        setFetching(false);
+        return;
+      }
+
+
+    // Log the selected file to inspect its properties
+    console.log('Selected file:', selectedFile);
+
     const formData = new FormData();
     formData.append("file", selectedFile);
-    formData.append("name", name);
-    formData.append("project_id", id);
 
-    postPinObjectCreateAPI(
-      formData,
-      onAdminProjectPinObjectAddSuccess,
-      onAdminProjectPinObjectAddError,
-      onAdminProjectPinObjectAddDone,
-      onUnauthorized,
-    );
+    // Extract filename and fallback if necessary
+    const filename = selectedFile.name;
+    console.log('Filename:', filename);
+
+    // Convert the FormData object to binary data and pass it directly
+     // Note: You may need to adjust the handling depending on the type of file and how it needs to be processed
+     const reader = new FileReader();
+     reader.onload = () => {
+       const fileBinaryData = reader.result;
+
+       postIPFSAddFileAPI(
+         apiKey,
+         filename,
+         fileBinaryData, // Pass binary data instead of FormData
+         onAdminProjectPinObjectAddViaWebServiceSuccess,
+         onAdminProjectPinObjectAddViaWebServiceError,
+         onAdminProjectPinObjectAddViaWebServiceDone,
+         onUnauthorized,
+       );
+
+       console.log("onSubmitClick: Finished.");
+       setFetching(false); // Reset fetching state after API call
+     };
+     reader.onerror = () => {
+       console.error('Error reading file');
+       setErrors({ file: 'Error reading file' });
+       setFetching(false);
+     };
+
+     reader.readAsArrayBuffer(selectedFile); // Read file as binary data
     console.log("onSubmitClick: Finished.");
   };
 
@@ -97,18 +131,18 @@ function AdminProjectPinObjectAdd() {
   //// API.
   ////
 
-  function onAdminProjectPinObjectAddSuccess(response) {
+  function onAdminProjectPinObjectAddViaWebServiceSuccess(response) {
     // For debugging purposes only.
-    console.log("onAdminProjectPinObjectAddSuccess: Starting...");
+    console.log("onAdminProjectPinObjectAddViaWebServiceSuccess: Starting...");
     console.log(response);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
     setTopAlertMessage("Pin created");
     setTopAlertStatus("success");
     setTimeout(() => {
-      console.log("onAdminProjectPinObjectAddSuccess: Delayed for 2 seconds.");
+      console.log("onAdminProjectPinObjectAddViaWebServiceSuccess: Delayed for 2 seconds.");
       console.log(
-        "onAdminProjectPinObjectAddSuccess: topAlertMessage, topAlertStatus:",
+        "onAdminProjectPinObjectAddViaWebServiceSuccess: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );
@@ -116,20 +150,20 @@ function AdminProjectPinObjectAdd() {
     }, 2000);
 
     // Redirect the project to the project pinobjects page.
-    setForceURL("/admin/project/" + id + "/pin/" + response.requestid);
+    setForceURL("/admin/project/" + id + "/pins");
   }
 
-  function onAdminProjectPinObjectAddError(apiErr) {
-    console.log("onAdminProjectPinObjectAddError: Starting...");
+  function onAdminProjectPinObjectAddViaWebServiceError(apiErr) {
+    console.log("onAdminProjectPinObjectAddViaWebServiceError: Starting...");
     setErrors(apiErr);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
     setTopAlertMessage("Failed submitting");
     setTopAlertStatus("danger");
     setTimeout(() => {
-      console.log("onAdminProjectPinObjectAddError: Delayed for 2 seconds.");
+      console.log("onAdminProjectPinObjectAddViaWebServiceError: Delayed for 2 seconds.");
       console.log(
-        "onAdminProjectPinObjectAddError: topAlertMessage, topAlertStatus:",
+        "onAdminProjectPinObjectAddViaWebServiceError: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );
@@ -143,8 +177,8 @@ function AdminProjectPinObjectAdd() {
     scroll.scrollToTop();
   }
 
-  function onAdminProjectPinObjectAddDone() {
-    console.log("onAdminProjectPinObjectAddDone: Starting...");
+  function onAdminProjectPinObjectAddViaWebServiceDone() {
+    console.log("onAdminProjectPinObjectAddViaWebServiceDone: Starting...");
     setFetching(false);
   }
 
@@ -206,7 +240,7 @@ function AdminProjectPinObjectAdd() {
               <li class="is-active">
                 <Link aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faPlus} />
-                  &nbsp;New
+                  &nbsp;New (via Web-Service)
                 </Link>
               </li>
             </ul>
@@ -231,7 +265,7 @@ function AdminProjectPinObjectAdd() {
           <nav class="box">
             <p class="title is-4">
               <FontAwesomeIcon className="fas" icon={faPlus} />
-              &nbsp;New Pin
+              &nbsp;New Pin (via Web-Service)
             </p>
             <FormErrorBox errors={errors} />
 
@@ -242,16 +276,17 @@ function AdminProjectPinObjectAdd() {
             ) : (
               <>
                 <div class="container">
-                  <FormInputField
-                    label="Name"
-                    name="name"
+                  <FormTextareaField
+                    label="API Key"
+                    name="apiKey"
                     placeholder="Text input"
-                    value={name}
-                    errorText={errors && errors.name}
-                    helpText="Optional"
+                    value={apiKey}
+                    errorText={errors && errors.apiKey}
+                    helpText=""
                     onChange={(e) => setName(e.target.value)}
                     isRequired={true}
                     maxWidth="150px"
+                    rows={4}
                   />
 
                   <input
@@ -306,4 +341,4 @@ function AdminProjectPinObjectAdd() {
   );
 }
 
-export default AdminProjectPinObjectAdd;
+export default AdminProjectPinObjectAddViaWebService;

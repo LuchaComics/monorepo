@@ -62,6 +62,14 @@ func NewForForbiddenWithSingleField(field string, message string) error {
 	}
 }
 
+// NewForNotFoundWithSingleField create a new HTTPError instance pertaining to 403 bad requests for a single field. This is a convinience constructor.
+func NewForNotFoundWithSingleField(field string, message string) error {
+	return HTTPError{
+		Code:   http.StatusNotFound,
+		Errors: &map[string]string{field: message},
+	}
+}
+
 // NewForUnauthorizedWithSingleField create a new HTTPError instance pertaining to 401 unauthorized for a single field. This is a convinience constructor.
 func NewForUnauthorizedWithSingleField(field string, message string) error {
 	return HTTPError{

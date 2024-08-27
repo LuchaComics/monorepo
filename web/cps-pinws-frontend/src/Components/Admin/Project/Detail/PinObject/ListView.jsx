@@ -134,7 +134,7 @@ function AdminProjectDetailForPinObjectList() {
     console.log("onDeleteConfirmButtonClick"); // For debugging purposes only.
 
     deletePinObjectAPI(
-      selectedPinObjectForDeletion.id,
+      selectedPinObjectForDeletion.requestid,
       onPinObjectDeleteSuccess,
       onPinObjectDeleteError,
       onPinObjectDeleteDone,
@@ -342,8 +342,8 @@ function AdminProjectDetailForPinObjectList() {
                 ></button>
               </header>
               <section class="modal-card-body">
-              ou are about to <b>delete</b> this pin; it will no
-              longer appear on your dashboard This action cannot be undone. Are you sure
+              You are about to <b>delete</b> this pin; the data will be permanently deleted and no
+              longer appear on your dashboard. This action cannot be undone. Are you sure
               you would like to continue?
               </section>
               <footer class="modal-card-foot">
@@ -429,10 +429,10 @@ function AdminProjectDetailForPinObjectList() {
                       previousCursors.length > 0) ? (
                       <div class="container">
                         {/*
-                                                ##################################################################
-                                                EVERYTHING INSIDE HERE WILL ONLY BE DISPLAYED ON A DESKTOP SCREEN.
-                                                ##################################################################
-                                            */}
+                            ##################################################################
+                            EVERYTHING INSIDE HERE WILL ONLY BE DISPLAYED ON A DESKTOP SCREEN.
+                            ##################################################################
+                        */}
                         <div class="is-hidden-touch">
                           <AdminProjectDetailForPinObjectListDesktop
                             projectID={id}
@@ -449,10 +449,10 @@ function AdminProjectDetailForPinObjectList() {
                         </div>
 
                         {/*
-                                                ###########################################################################
-                                                EVERYTHING INSIDE HERE WILL ONLY BE DISPLAYED ON A TABLET OR MOBILE SCREEN.
-                                                ###########################################################################
-                                            */}
+                            ###########################################################################
+                            EVERYTHING INSIDE HERE WILL ONLY BE DISPLAYED ON A TABLET OR MOBILE SCREEN.
+                            ###########################################################################
+                        */}
                         <div class="is-fullwidth is-hidden-desktop">
                           <AdminProjectDetailForPinObjectListMobile
                             projectID={id}
@@ -510,6 +510,14 @@ function AdminProjectDetailForPinObjectList() {
               </>
             )}
           </nav>
+
+          {/* Bottom Page Logout Link  */}
+          <div className="has-text-right has-text-grey">
+            <Link to={`/admin/project/${id}/pins/add-via-ws`} className="has-text-grey">
+              Add Pin via Web-Service API&nbsp;
+              <FontAwesomeIcon className="mdi" icon={faArrowRight} />
+            </Link>
+          </div>
         </section>
       </div>
     </>

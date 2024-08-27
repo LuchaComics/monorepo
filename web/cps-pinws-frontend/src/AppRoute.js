@@ -30,6 +30,7 @@ import AdminProjectDetail from "./Components/Admin/Project/Detail/View";
 import AdminProjectUpdate from "./Components/Admin/Project/Update/View";
 import AdminProjectDetailForPinObjectList from "./Components/Admin/Project/Detail/PinObject/ListView";
 import AdminProjectPinObjectAdd from "./Components/Admin/Project/Detail/PinObject/Add";
+import AdminProjectPinObjectAddViaWebService from "./Components/Admin/Project/Detail/PinObject/AddViaWS";
 import AdminProjectPinObjectDetail from "./Components/Admin/Project/Detail/PinObject/Detail";
 import AdminProjectPinObjectUpdate from "./Components/Admin/Project/Detail/PinObject/Update";
 
@@ -203,6 +204,10 @@ function AppRoute() {
                     exact
                     path="/admin/project/:id/pins/add"
                     element={<AdminProjectPinObjectAdd />}
+                  /><Route
+                    exact
+                    path="/admin/project/:id/pins/add-via-ws"
+                    element={<AdminProjectPinObjectAddViaWebService />}
                   />
                   <Route
                     exact

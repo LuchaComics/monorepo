@@ -1,5 +1,5 @@
 import React from "react";
-function FormInputField({
+function FormTextareaField({
   label,
   name,
   placeholder,
@@ -38,4 +38,4 @@ function FormInputField({
   );
 }
 
-export default FormInputField;
+export default FormTextareaField;

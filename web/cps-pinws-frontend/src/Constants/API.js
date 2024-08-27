@@ -139,3 +139,6 @@ export const CPS_USER_CHANGE_PASSWORD_OPERATION_API_ENDPOINT =
 
 // Pin
 export const CPS_PIN_CONTENT_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/pin/{id}/content";
+
+// IPFS
+export const CPS_IPFS_ADDFILE_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/ipfs/add";

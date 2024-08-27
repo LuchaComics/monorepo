@@ -7,6 +7,7 @@ import (
 	"log/slog"
 
 	domain "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/datastore"
+	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/utils/httperror"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -28,6 +29,10 @@ func (c *PinObjectControllerImpl) GetByID(ctx context.Context, id primitive.Obje
 	if err != nil {
 		c.Logger.Error("database get by id error", slog.Any("error", err))
 		return nil, err
+	}
+	if m == nil {
+		c.Logger.Warn("does not exist", slog.Any("id", id))
+		return nil, httperror.NewForNotFoundWithSingleField("request_id", "does not exist")
 	}
 
 	// Generate the URL.
@@ -60,6 +65,10 @@ func (c *PinObjectControllerImpl) GetByRequestID(ctx context.Context, requestID 
 		c.Logger.Error("database get by request id error", slog.Any("error", err))
 		return nil, err
 	}
+	if m == nil {
+		c.Logger.Warn("does not exist", slog.String("request_id", requestID.Hex()))
+		return nil, httperror.NewForNotFoundWithSingleField("request_id", "does not exist")
+	}
 
 	// Generate the URL.
 	fileURL, err := c.S3.GetPresignedURL(ctx, m.ObjectKey, 5*time.Minute)
@@ -78,6 +87,10 @@ func (impl *PinObjectControllerImpl) GetWithContentByRequestID(ctx context.Conte
 	if err != nil {
 		impl.Logger.Error("database get by request id error", slog.Any("error", err))
 		return nil, err
+	}
+	if m == nil {
+		impl.Logger.Warn("does not exist", slog.String("request_id", requestID.Hex()))
+		return nil, httperror.NewForNotFoundWithSingleField("request_id", "does not exist")
 	}
 
 	content, err := impl.IPFS.GetContent(ctx, m.CID)
