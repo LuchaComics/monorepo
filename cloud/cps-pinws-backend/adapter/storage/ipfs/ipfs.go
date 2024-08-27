@@ -1,6 +1,7 @@
 package ipfs
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -22,6 +23,7 @@ import (
 type IPFSStorager interface {
 	UploadContentFromString(ctx context.Context, fileContent string) (string, error)
 	UploadContentFromMulipart(ctx context.Context, file multipart.File) (string, error)
+	UploadContentFromBytes(ctx context.Context, fileContent []byte) (string, error)
 	GetContent(ctx context.Context, cidString string) ([]byte, error)
 	PinContent(ctx context.Context, cidString string) error
 	UnpinContent(ctx context.Context, cidString string) error
@@ -121,6 +123,22 @@ func (s *ipfsStorager) UploadContentFromMulipart(ctx context.Context, file multi
 
 	// Debug log the CID of the uploaded file
 	s.logger.Debug("file successfully uploaded to IPFS", slog.String("cid", cidString))
+	return cidString, nil
+}
+
+func (s *ipfsStorager) UploadContentFromBytes(ctx context.Context, fileContent []byte) (string, error) {
+	content := bytes.NewReader(fileContent) // THIS IS WRONG PLEASE REPAIR
+	cid, err := s.httpApi.Unixfs().Add(context.Background(), ipfsFiles.NewReaderFile(content))
+	if err != nil {
+		return "", fmt.Errorf("failed to upload content from string: %v", err)
+	}
+
+	// Remove "/ipfs/" prefix if present
+	cidString := strings.TrimPrefix(cid.String(), "/ipfs/")
+
+	s.logger.Debug("uploaded content to IPFS via string",
+		slog.String("cid", cidString))
+
 	return cidString, nil
 }
 

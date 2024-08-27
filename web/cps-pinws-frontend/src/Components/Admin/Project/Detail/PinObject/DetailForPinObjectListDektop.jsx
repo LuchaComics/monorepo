@@ -61,7 +61,7 @@ function AdminProjectDetailForPinObjectListDesktop(props) {
               listData.results.map(function (pinObject, i) {
                 return (
                   <tr>
-                    <td data-label="Title">{pinObject.name}</td>
+                    <td data-label="Title">{pinObject.name ? pinObject.name : "-"}</td>
                     <td data-label="State">
                       {PIN_OBJECT_STATES[pinObject.status]}
                     </td>

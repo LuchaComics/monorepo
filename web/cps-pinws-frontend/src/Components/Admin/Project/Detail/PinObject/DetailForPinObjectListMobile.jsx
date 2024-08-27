@@ -53,7 +53,7 @@ function AdminProjectDetailForPinObjectListMobile(props) {
           return (
             <div class="mb-5">
               {i !== 0 && <hr />}
-              <strong>Name:</strong>&nbsp;{datum.name}
+              <strong>Name:</strong>&nbsp;{datum.name ? datum.name : "-"}
               <br />
               <br />
               <strong>Status:</strong>&nbsp;{PIN_OBJECT_STATES[datum.status]}

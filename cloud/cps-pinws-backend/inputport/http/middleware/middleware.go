@@ -215,6 +215,7 @@ func (mid *middleware) PreJWTProcessorMiddleware(fn http.HandlerFunc) http.Handl
 			"cpsrn":           true,
 			"select-options":  true,
 			"public":          true,
+			"ipfs":            true,
 		}
 
 		// DEVELOPERS NOTE:
@@ -225,6 +226,11 @@ func (mid *middleware) PreJWTProcessorMiddleware(fn http.HandlerFunc) http.Handl
 			fn(w, r.WithContext(ctx)) // Flow to the next middleware.
 			return
 		}
+
+		// mid.Logger.Debug("api call",
+		// 	slog.Any("url", urlSplit),
+		// 	slog.Any("urlSplit[2]", urlSplit[2]),
+		// 	slog.Any("middleware", "PreJWTProcessorMiddleware"))
 
 		// Skip authorization if the URL matches the whitelist else we need to
 		// run authorization check.
@@ -309,6 +315,7 @@ func (mid *middleware) JWTProcessorMiddleware(fn http.HandlerFunc) http.HandlerF
 				"cpsrn":           true,
 				"select-options":  true,
 				"public":          true,
+				"ipfs":            true,
 			}
 
 			// DEVELOPERS NOTE:
@@ -346,6 +353,12 @@ func (mid *middleware) PostJWTProcessorMiddleware(fn http.HandlerFunc) http.Hand
 			fn(w, r.WithContext(ctx)) // Flow to the next middleware.
 			return
 		}
+
+		// urlSplit := ctx.Value("url_split").([]string)
+		// mid.Logger.Debug("api call",
+		// 	slog.Any("url", urlSplit),
+		// 	slog.Any("skipAuthorization", skipAuthorization),
+		// 	slog.Any("middleware", "PostJWTProcessorMiddleware"))
 
 		// Get our authorization information.
 		isAuthorized, ok := ctx.Value(constants.SessionIsAuthorized).(bool)
@@ -455,6 +468,7 @@ func (mid *middleware) ProtectedURLsMiddleware(fn http.HandlerFunc) http.Handler
 			"cpsrn":           true,
 			"select-options":  true,
 			"public":          true,
+			"ipfs":            true,
 		}
 
 		// DEVELOPERS NOTE:
@@ -464,6 +478,11 @@ func (mid *middleware) ProtectedURLsMiddleware(fn http.HandlerFunc) http.Handler
 			fn(w, r.WithContext(ctx)) // Flow to the next middleware.
 			return
 		}
+
+		// mid.Logger.Debug("api call",
+		// 	slog.Any("url", urlSplit),
+		// 	slog.Any("urlSplit[2]", urlSplit[2]),
+		// 	slog.Any("middleware", "ProtectedURLsMiddleware"))
 
 		if skipPath[urlSplit[2]] {
 			fn(w, r.WithContext(ctx)) // Flow to the next middleware.

@@ -4,8 +4,6 @@ import (
 	"context"
 	"log/slog"
 	"time"
-
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 func (impl PinObjectStorerImpl) ListByFilter(ctx context.Context, f *PinObjectPaginationListFilter) (*PinObjectPaginationListResult, error) {
@@ -21,17 +19,8 @@ func (impl PinObjectStorerImpl) ListByFilter(ctx context.Context, f *PinObjectPa
 	if !f.TenantID.IsZero() {
 		filter["tenant_id"] = f.TenantID
 	}
-	if !f.OwnershipID.IsZero() {
-		filter["ownership_id"] = f.OwnershipID
-	}
-	if !f.CreatedByUserID.IsZero() {
-		filter["created_by_user_id"] = f.CreatedByUserID
-	}
-	if !f.ModifiedByUserID.IsZero() {
-		filter["modified_by_user_id"] = f.ModifiedByUserID
-	}
-	if f.ExcludeArchived {
-		filter["status"] = bson.M{"$ne": StatusFailed} // Do not list archived items! This code
+	if !f.ProjectID.IsZero() {
+		filter["project_id"] = f.ProjectID
 	}
 
 	impl.Logger.Debug("fetching pinobjects list",
@@ -40,8 +29,7 @@ func (impl PinObjectStorerImpl) ListByFilter(ctx context.Context, f *PinObjectPa
 		slog.String("SortField", f.SortField),
 		slog.Any("SortOrder", f.SortOrder),
 		slog.Any("TenantID", f.TenantID),
-		slog.Any("OwnershipID", f.OwnershipID),
-		slog.Any("ExcludeArchived", f.ExcludeArchived),
+		slog.Any("ProjectID", f.ProjectID),
 	)
 
 	// Include additional filters for our cursor-based pagination pertaining to sorting and limit.

@@ -62,6 +62,14 @@ func NewForForbiddenWithSingleField(field string, message string) error {
 	}
 }
 
+// NewForUnauthorizedWithSingleField create a new HTTPError instance pertaining to 401 unauthorized for a single field. This is a convinience constructor.
+func NewForUnauthorizedWithSingleField(field string, message string) error {
+	return HTTPError{
+		Code:   http.StatusUnauthorized,
+		Errors: &map[string]string{field: message},
+	}
+}
+
 // NewForGoneWithSingleField create a new HTTPError instance pertaining to 410 gone for a single field. This is a convinience constructor.
 func NewForGoneWithSingleField(field string, message string) error {
 	return HTTPError{

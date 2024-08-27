@@ -24,6 +24,7 @@ import (
 type S3Storager interface {
 	UploadContent(ctx context.Context, objectKey string, content []byte) error
 	UploadContentFromMulipart(ctx context.Context, objectKey string, file multipart.File) error
+	UploadContentFromBytes(ctx context.Context, objectKey string, content []byte) error
 	BucketExists(ctx context.Context, bucketName string) (bool, error)
 	GetDownloadablePresignedURL(ctx context.Context, key string, duration time.Duration) (string, error)
 	GetPresignedURL(ctx context.Context, key string, duration time.Duration) (string, error)
@@ -136,6 +137,22 @@ func (s *s3Storager) UploadContentFromMulipart(ctx context.Context, objectKey st
 		Bucket: aws.String(s.BucketName),
 		Key:    aws.String(objectKey),
 		Body:   file,
+	}
+
+	// Perform the file upload to S3
+	_, err := s.S3Client.PutObject(ctx, params)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *s3Storager) UploadContentFromBytes(ctx context.Context, objectKey string, content []byte) error {
+	// Create the S3 upload input parameters
+	params := &s3.PutObjectInput{
+		Bucket: aws.String(s.BucketName),
+		Key:    aws.String(objectKey),
+		Body:   bytes.NewReader(content), // Convert content []byte to io.Reader using bytes.NewReader
 	}
 
 	// Perform the file upload to S3

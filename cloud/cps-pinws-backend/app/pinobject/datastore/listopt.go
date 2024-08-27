@@ -34,14 +34,8 @@ func (impl PinObjectStorerImpl) ListAsSelectOptionByFilter(ctx context.Context, 
 	if !f.TenantID.IsZero() {
 		query["tenant_id"] = f.TenantID
 	}
-	if !f.OwnershipID.IsZero() {
-		query["ownership_id"] = f.OwnershipID
-	}
-	if !f.CreatedByUserID.IsZero() {
-		query["created_by_user_id"] = f.CreatedByUserID
-	}
-	if !f.ModifiedByUserID.IsZero() {
-		query["modified_by_user_id"] = f.ModifiedByUserID
+	if !f.ProjectID.IsZero() {
+		query["project_id"] = f.ProjectID
 	}
 
 	if startAfter != "" {
@@ -52,10 +46,6 @@ func (impl PinObjectStorerImpl) ListAsSelectOptionByFilter(ctx context.Context, 
 		}
 		options.SetSkip(1)
 		query["_id"] = bson.M{"$gt": cursor.Lookup("_id").ObjectID()}
-	}
-
-	if f.ExcludeArchived {
-		query["status"] = bson.M{"$ne": StatusFailed} // Do not list archived items! This code
 	}
 
 	options.SetSort(bson.D{{sortField, 1}}) // Sort in ascending order based on the specified field

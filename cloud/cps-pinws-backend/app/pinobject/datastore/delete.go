@@ -15,3 +15,19 @@ func (impl PinObjectStorerImpl) DeleteByID(ctx context.Context, id primitive.Obj
 	}
 	return nil
 }
+
+func (impl PinObjectStorerImpl) DeleteByCID(ctx context.Context, cid primitive.ObjectID) error {
+	_, err := impl.Collection.DeleteOne(ctx, bson.M{"cid": cid})
+	if err != nil {
+		log.Fatal("DeleteOne() ERROR:", err)
+	}
+	return nil
+}
+
+func (impl PinObjectStorerImpl) DeleteByRequestID(ctx context.Context, requestID primitive.ObjectID) error {
+	_, err := impl.Collection.DeleteOne(ctx, bson.M{"requestid": requestID})
+	if err != nil {
+		log.Fatal("DeleteOne() ERROR:", err)
+	}
+	return nil
+}

@@ -31,13 +31,13 @@ func (impl *ProjectControllerImpl) Create(ctx context.Context, m *s_d.Project) (
 	}
 
 	// Generate hash for the secret.
-	randomStr, err := impl.Password.GenerateSecureRandomString(64)
+	randomSecretStr, err := impl.Password.GenerateSecureRandomString(64)
 	if err != nil {
 		impl.Logger.Error("hashing error",
 			slog.Any("error", err))
 		return nil, err
 	}
-	secretHash, err := impl.Password.GenerateHashFromPassword(randomStr)
+	randomSecretHash, err := impl.Password.GenerateHashFromPassword(randomSecretStr)
 	if err != nil {
 		impl.Logger.Error("hashing error",
 			slog.Any("error", err))
@@ -57,7 +57,7 @@ func (impl *ProjectControllerImpl) Create(ctx context.Context, m *s_d.Project) (
 	// m.ModifiedByUserName = uname
 	m.Status = s_d.StatusActive
 	m.SecretHashAlgorithm = impl.Password.AlgorithmName()
-	m.SecretHash = secretHash
+	m.SecretHash = randomSecretHash
 
 	// Save to our database.
 	if err := impl.ProjectStorer.Create(ctx, m); err != nil {
@@ -65,9 +65,11 @@ func (impl *ProjectControllerImpl) Create(ctx context.Context, m *s_d.Project) (
 		return nil, err
 	}
 
-	// Generate our one-time API key and attach it to the response
-	// Generate our JWT token.
-	apiKeyPayload := fmt.Sprintf("%v@%v", m.ID.Hex(), secretHash)
+	// Generate our one-time API key and attach it to the response. What is
+	// important here is that we share the plaintext secret to the user to
+	// keep but we do not keep the plaintext value in our system, we only
+	// keep the hash, so we keep the value safe.
+	apiKeyPayload := fmt.Sprintf("%v@%v", m.ID.Hex(), randomSecretStr)
 	atExpiry := 250 * 24 * time.Hour // Duration: 250 years.
 	apiKey, _, err := impl.JWT.GenerateJWTToken(apiKeyPayload, atExpiry)
 	if err != nil {

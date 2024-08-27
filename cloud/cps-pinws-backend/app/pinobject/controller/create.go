@@ -67,35 +67,6 @@ func (impl *PinObjectControllerImpl) Create(ctx context.Context, req *PinObjectC
 	// Define a transaction function with a series of operations
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
 
-		// The following code will choose the directory we will upload based on the image type.
-		var directory string = "projects"
-
-		filename := "req.Meta[\"filename\"].(string)"
-		contentType := "req.Meta[\"content_type\"].(string"
-
-		// Generate the key of our upload.
-		objectKey := fmt.Sprintf("%v/%v/%v", directory, req.ProjectID.Hex(), filename)
-
-		// For debugging purposes only.
-		impl.Logger.Debug("pre-upload meta",
-			slog.String("FileName", filename),
-			slog.String("FileType", contentType),
-			slog.String("Directory", directory),
-			slog.String("ObjectKey", objectKey),
-			slog.String("Name", req.Name),
-		)
-
-		go func(file multipart.File, objkey string) {
-			impl.Logger.Debug("beginning private s3 image upload...")
-			if err := impl.S3.UploadContentFromMulipart(context.Background(), objkey, file); err != nil {
-				impl.Logger.Error("private s3 upload error", slog.Any("error", err))
-				// Do not return an error, simply continue this function as there might
-				// be a case were the file was removed on the s3 bucket by ourselves
-				// or some other reason.
-			}
-			impl.Logger.Debug("Finished private s3 image upload")
-		}(req.File, objectKey)
-
 		// Upload to IPFS network.
 		cid, err := impl.IPFS.UploadContentFromMulipart(ctx, req.File)
 		if err != nil {
@@ -108,6 +79,19 @@ func (impl *PinObjectControllerImpl) Create(ctx context.Context, req *PinObjectC
 			impl.Logger.Error("failed pinning to IPFS", slog.Any("error", err))
 			return nil, err
 		}
+
+		// Upload to s3 (concurrently).
+		objectKey := fmt.Sprintf("%v/%v/%v/%v/%v", "projects", req.ProjectID.Hex(), "cids", cid, req.Meta["Filename"])
+		go func(file multipart.File, objkey string) {
+			impl.Logger.Debug("beginning private s3 image upload...")
+			if err := impl.S3.UploadContentFromMulipart(context.Background(), objkey, file); err != nil {
+				impl.Logger.Error("private s3 upload error", slog.Any("error", err))
+				// Do not return an error, simply continue this function as there might
+				// be a case were the file was removed on the s3 bucket by ourselves
+				// or some other reason.
+			}
+			impl.Logger.Debug("Finished private s3 image upload")
+		}(req.File, objectKey)
 
 		// Extract from our session the following data.
 		orgID, _ := sessCtx.Value(constants.SessionUserTenantID).(primitive.ObjectID)
@@ -139,10 +123,12 @@ func (impl *PinObjectControllerImpl) Create(ctx context.Context, req *PinObjectC
 			ModifiedFromIPAddress: ipAdress,
 
 			// S3
-			Filename:  filename,
+			Filename:  req.Meta["Filename"],
 			ObjectKey: objectKey,
 			ObjectURL: "",
 		}
+
+		// Save to database.
 		if err := impl.PinObjectStorer.Create(sessCtx, res); err != nil {
 			impl.Logger.Error("database create error", slog.Any("error", err))
 			return nil, err

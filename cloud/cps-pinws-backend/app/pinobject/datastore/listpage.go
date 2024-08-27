@@ -24,12 +24,8 @@ type PinObjectPaginationListFilter struct {
 	SortOrder int8 // 1=ascending | -1=descending
 
 	// Filter related.
-	TenantID         primitive.ObjectID
-	OwnershipID      primitive.ObjectID
-	CreatedByUserID  primitive.ObjectID
-	ModifiedByUserID primitive.ObjectID
-	UserRole         int8
-	ExcludeArchived  bool
+	TenantID  primitive.ObjectID
+	ProjectID primitive.ObjectID
 }
 
 // PinObjectPaginationListResult represents the paginated list results for
@@ -52,11 +48,11 @@ func (impl PinObjectStorerImpl) newPaginationFilter(f *PinObjectPaginationListFi
 
 		// STEP 2: Pick the specific cursor to build or else error.
 		switch f.SortField {
-		case "created_at", "modified_by_user_id":
+		case "created", "modified_by_user_id":
 			// STEP 3: Build for `time` field.
 			return impl.newPaginationFilterBasedOnTime(f, string(decodedCursor))
 		default:
-			return nil, fmt.Errorf("unsupported sort field for `%v`, only supported fields are `created_at` and `modified_at`", f.SortField)
+			return nil, fmt.Errorf("unsupported sort field for `%v`, only supported fields are `created` and `modified_at`", f.SortField)
 		}
 	}
 	return bson.M{}, nil
@@ -136,7 +132,7 @@ func (impl PinObjectStorerImpl) newPaginatorNextCursor(f *PinObjectPaginationLis
 	var nextCursor string
 
 	switch f.SortField {
-	case "created_at":
+	case "created":
 		time := lastDatum.Created.UnixMilli()
 		nextCursor = fmt.Sprintf("%v|%v", time, lastDatum.ID.Hex())
 		break
@@ -145,7 +141,7 @@ func (impl PinObjectStorerImpl) newPaginatorNextCursor(f *PinObjectPaginationLis
 		nextCursor = fmt.Sprintf("%v|%v", time, lastDatum.ID.Hex())
 		break
 	default:
-		return "", fmt.Errorf("unsupported sort field in options for `%v`, only supported fields are `created_at` and `modified_at`", f.SortField)
+		return "", fmt.Errorf("unsupported sort field in options for `%v`, only supported fields are `created` and `modified_at`", f.SortField)
 	}
 
 	// Encode to base64 without the `=` symbol that would corrupt when we

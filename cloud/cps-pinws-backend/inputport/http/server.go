@@ -208,6 +208,8 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 		port.PinObject.DeleteByRequestID(w, r, p[3])
 	case n == 5 && p[1] == "v1" && p[2] == "pin" && p[4] == "content" && r.Method == http.MethodGet:
 		port.PinObject.GetContentByRequestID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "ipfs" && p[3] == "add" && r.Method == http.MethodPost:
+		port.PinObject.IpfsAdd(w, r)
 
 	// --- CATCH ALL: D.N.E. ---
 	default:

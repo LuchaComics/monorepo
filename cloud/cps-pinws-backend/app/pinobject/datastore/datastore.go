@@ -93,8 +93,11 @@ type PinObjectStorer interface {
 	UpdateByID(ctx context.Context, m *PinObject) error
 	UpdateByRequestID(ctx context.Context, m *PinObject) error
 	ListByFilter(ctx context.Context, m *PinObjectPaginationListFilter) (*PinObjectPaginationListResult, error)
+	ListByProjectID(ctx context.Context, projectID primitive.ObjectID) (*PinObjectPaginationListResult, error)
 	ListAsSelectOptionByFilter(ctx context.Context, f *PinObjectPaginationListFilter) ([]*PinObjectAsSelectOption, error)
 	DeleteByID(ctx context.Context, id primitive.ObjectID) error
+	DeleteByCID(ctx context.Context, cid primitive.ObjectID) error
+	DeleteByRequestID(ctx context.Context, requestID primitive.ObjectID) error
 	// //TODO: Add more...
 }
 
@@ -126,8 +129,8 @@ func NewDatastore(appCfg *c.Conf, loggerp *slog.Logger, client *mongo.Client) Pi
 	// The following few lines of code will create the index for our app for this
 	// colleciton.
 	_, err := uc.Indexes().CreateMany(context.TODO(), []mongo.IndexModel{
-		{Keys: bson.D{{Key: "requestid", Value: 1}}},                                  // Used for get requests
-		{Keys: bson.D{{Key: "project_id", Value: 1}, {Key: "created_at", Value: -1}}}, // Note: Used in default list.
+		{Keys: bson.D{{Key: "requestid", Value: 1}}},                                                // Used for get requests
+		{Keys: bson.D{{Key: "project_id", Value: 1}, {Key: "created", Value: SortOrderDescending}}}, // Note: Used in default list.
 
 		// 4. Compound Text Index for Text Search
 		{Keys: bson.D{

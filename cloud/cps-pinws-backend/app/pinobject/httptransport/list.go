@@ -14,12 +14,11 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	f := &pinobject_s.PinObjectPaginationListFilter{
-		Cursor:          "",
-		OwnershipID:     primitive.NilObjectID,
-		PageSize:        25,
-		SortField:       "created_at",
-		SortOrder:       1, // 1=ascending | -1=descending
-		ExcludeArchived: true,
+		Cursor:    "",
+		ProjectID: primitive.NilObjectID,
+		PageSize:  25,
+		SortField: "created",
+		SortOrder: 1, // 1=ascending | -1=descending
 	}
 
 	// Here is where you extract url parameters.
@@ -30,14 +29,14 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		f.Cursor = cursor
 	}
 
-	ownershipID := query.Get("ownership_id")
-	if ownershipID != "" {
-		ownershipID, err := primitive.ObjectIDFromHex(ownershipID)
+	projectID := query.Get("project_id")
+	if projectID != "" {
+		projectID, err := primitive.ObjectIDFromHex(projectID)
 		if err != nil {
 			httperror.ResponseError(w, err)
 			return
 		}
-		f.OwnershipID = ownershipID
+		f.ProjectID = projectID
 	}
 
 	pageSize := query.Get("page_size")
@@ -69,11 +68,10 @@ func (h *Handler) ListAsSelectOptionByFilter(w http.ResponseWriter, r *http.Requ
 	ctx := r.Context()
 
 	f := &pinobject_s.PinObjectPaginationListFilter{
-		Cursor:          "",
-		PageSize:        1_000_000,
-		SortField:       "created_at",
-		SortOrder:       pinobject_s.SortOrderDescending,
-		ExcludeArchived: true,
+		Cursor:    "",
+		PageSize:  1_000_000,
+		SortField: "created",
+		SortOrder: pinobject_s.SortOrderDescending,
 	}
 
 	m, err := h.Controller.ListAsSelectOptionByFilter(ctx, f)

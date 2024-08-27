@@ -16,7 +16,7 @@ func (h *Handler) DeleteByRequestID(w http.ResponseWriter, r *http.Request, id s
 		return
 	}
 
-	if err := h.Controller.PermanentlyDeleteByRequestID(ctx, objectID); err != nil {
+	if err := h.Controller.DeleteByRequestID(ctx, objectID); err != nil {
 		httperror.ResponseError(w, err)
 		return
 	}
