@@ -9,6 +9,7 @@ import (
 	"github.com/rs/cors"
 
 	gateway "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/gateway/httptransport"
+	ipfsgateway "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/ipfsgateway/httptransport"
 	pinobject "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/httptransport"
 	project "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/project/httptransport"
 	tenant "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/tenant/httptransport"
@@ -23,15 +24,16 @@ type InputPortServer interface {
 }
 
 type httpInputPort struct {
-	Config     *config.Conf
-	Logger     *slog.Logger
-	Server     *http.Server
-	Middleware middleware.Middleware
-	Gateway    *gateway.Handler
-	User       *user.Handler
-	Tenant     *tenant.Handler
-	Project    *project.Handler
-	PinObject  *pinobject.Handler
+	Config      *config.Conf
+	Logger      *slog.Logger
+	Server      *http.Server
+	Middleware  middleware.Middleware
+	Gateway     *gateway.Handler
+	User        *user.Handler
+	Tenant      *tenant.Handler
+	Project     *project.Handler
+	PinObject   *pinobject.Handler
+	IpfsGateway *ipfsgateway.Handler
 }
 
 func NewInputPort(
@@ -43,6 +45,7 @@ func NewInputPort(
 	org *tenant.Handler,
 	prj *project.Handler,
 	att *pinobject.Handler,
+	ipfsgate *ipfsgateway.Handler,
 ) InputPortServer {
 	// Initialize the ServeMux.
 	mux := http.NewServeMux()
@@ -61,15 +64,16 @@ func NewInputPort(
 
 	// Create our HTTP server controller.
 	p := &httpInputPort{
-		Config:     configp,
-		Logger:     loggerp,
-		Middleware: mid,
-		Gateway:    gh,
-		User:       cu,
-		Tenant:     org,
-		Project:    prj,
-		PinObject:  att,
-		Server:     srv,
+		Config:      configp,
+		Logger:      loggerp,
+		Middleware:  mid,
+		Gateway:     gh,
+		User:        cu,
+		Tenant:      org,
+		Project:     prj,
+		PinObject:   att,
+		IpfsGateway: ipfsgate,
+		Server:      srv,
 	}
 
 	// Attach the HTTP server controller to the ServerMux.
@@ -210,6 +214,10 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 		port.PinObject.GetContentByRequestID(w, r, p[3])
 	case n == 4 && p[1] == "v1" && p[2] == "ipfs" && p[3] == "add" && r.Method == http.MethodPost:
 		port.PinObject.IpfsAdd(w, r)
+
+		// --- IPFS GATEWAY --- //
+	case n == 2 && p[0] == "ipfs" && r.Method == http.MethodGet:
+		port.IpfsGateway.GetByContentID(w, r, p[1])
 
 	// --- CATCH ALL: D.N.E. ---
 	default:

@@ -14,6 +14,8 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/adapter/templatedemailer"
 	gateway_c "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/gateway/controller"
 	gateway_http "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/gateway/httptransport"
+	ipfsgate_c "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/ipfsgateway/controller"
+	ipfsgate_http "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/ipfsgateway/httptransport"
 	pinobject_c "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/controller"
 	pinobject_s "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/datastore"
 	pinobject_http "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/httptransport"
@@ -71,6 +73,8 @@ func InitializeEvent() Application {
 		project_http.NewHandler,
 		tenant_http.NewHandler,
 		pinobject_http.NewHandler,
+		ipfsgate_c.NewController,
+		ipfsgate_http.NewHandler,
 		middleware.NewMiddleware,
 		http.NewInputPort,
 		NewApplication)

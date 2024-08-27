@@ -26,6 +26,22 @@ func (impl PinObjectStorerImpl) GetByID(ctx context.Context, id primitive.Object
 	return &result, nil
 }
 
+func (impl PinObjectStorerImpl) GetByCID(ctx context.Context, cid string) (*PinObject, error) {
+	filter := bson.M{"cid": cid}
+
+	var result PinObject
+	err := impl.Collection.FindOne(ctx, filter).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			// This error means your query did not match any documents.
+			return nil, nil
+		}
+		impl.Logger.Error("database get by id error", slog.Any("error", err))
+		return nil, err
+	}
+	return &result, nil
+}
+
 func (impl PinObjectStorerImpl) GetByRequestID(ctx context.Context, rid primitive.ObjectID) (*PinObject, error) {
 	filter := bson.M{"requestid": rid}
 

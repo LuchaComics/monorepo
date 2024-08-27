@@ -14,3 +14,8 @@ func (h *Handler) Version(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("OK")) // DEVELOPERS NOTE: In future expand this when SaaSifying product.
 }
+
+func (h *Handler) GetIpfsFile(w http.ResponseWriter, r *http.Request, cid string) {
+	result := cid
+	w.Write([]byte(result))
+}

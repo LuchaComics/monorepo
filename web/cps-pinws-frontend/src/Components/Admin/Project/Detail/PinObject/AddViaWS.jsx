@@ -94,9 +94,13 @@ function AdminProjectPinObjectAddViaWebService() {
     const formData = new FormData();
     formData.append("file", selectedFile);
 
-    // Extract filename and fallback if necessary
+    // Extract filename.
     const filename = selectedFile.name;
     console.log('Filename:', filename);
+
+    const mimeType = selectedFile.type || "application/octet-stream"; // Fallback to octet-stream if type is not detected
+    console.log('MIME Type:', mimeType);
+
 
     // Convert the FormData object to binary data and pass it directly
      // Note: You may need to adjust the handling depending on the type of file and how it needs to be processed
@@ -108,6 +112,7 @@ function AdminProjectPinObjectAddViaWebService() {
          apiKey,
          filename,
          fileBinaryData, // Pass binary data instead of FormData
+         mimeType, // Pass the detected MIME type
          onAdminProjectPinObjectAddViaWebServiceSuccess,
          onAdminProjectPinObjectAddViaWebServiceError,
          onAdminProjectPinObjectAddViaWebServiceDone,

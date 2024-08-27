@@ -11,6 +11,7 @@ export function postIPFSAddFileAPI(
   apiKey,
   filename,
   file, // This should be a File object or Blob
+  mimeType,
   onSuccessCallback,
   onErrorCallback,
   onDoneCallback,
@@ -29,10 +30,16 @@ export function postIPFSAddFileAPI(
     onErrorCallback({"filename": "does not exist: "+filename});
     return;
   }
+  if (mimeType === undefined || mimeType === null || mimeType === "") {
+    onErrorCallback({"mimeType": "does not exist: "+mimeType});
+    return;
+  }
+
+
 
   customAxios.post(CPS_IPFS_ADDFILE_API_ENDPOINT, file, {
     headers: {
-      "Content-Type": "application/octet-stream", // Binary data
+      "Content-Type": mimeType,
       "Content-Disposition": `attachment; filename=${filename}`, // Add filename here
     },
   })

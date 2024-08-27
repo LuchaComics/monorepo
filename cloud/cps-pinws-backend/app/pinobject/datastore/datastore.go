@@ -89,6 +89,7 @@ type PinObjectAsSelectOption struct {
 type PinObjectStorer interface {
 	Create(ctx context.Context, m *PinObject) error
 	GetByID(ctx context.Context, id primitive.ObjectID) (*PinObject, error)
+	GetByCID(ctx context.Context, cid string) (*PinObject, error)
 	GetByRequestID(ctx context.Context, requestID primitive.ObjectID) (*PinObject, error)
 	UpdateByID(ctx context.Context, m *PinObject) error
 	UpdateByRequestID(ctx context.Context, m *PinObject) error
@@ -129,6 +130,7 @@ func NewDatastore(appCfg *c.Conf, loggerp *slog.Logger, client *mongo.Client) Pi
 	// The following few lines of code will create the index for our app for this
 	// colleciton.
 	_, err := uc.Indexes().CreateMany(context.TODO(), []mongo.IndexModel{
+		{Keys: bson.D{{Key: "cid", Value: 1}}},                                                      // Used for ipfs gateway `get` requests
 		{Keys: bson.D{{Key: "requestid", Value: 1}}},                                                // Used for get requests
 		{Keys: bson.D{{Key: "project_id", Value: 1}, {Key: "created", Value: SortOrderDescending}}}, // Note: Used in default list.
 

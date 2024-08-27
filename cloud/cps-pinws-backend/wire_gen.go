@@ -15,6 +15,8 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/adapter/templatedemailer"
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/gateway/controller"
 	"github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/gateway/httptransport"
+	controller6 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/ipfsgateway/controller"
+	httptransport6 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/ipfsgateway/httptransport"
 	controller5 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/controller"
 	datastore3 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/datastore"
 	httptransport5 "github.com/LuchaComics/monorepo/cloud/cps-pinws-backend/app/pinobject/httptransport"
@@ -76,7 +78,9 @@ func InitializeEvent() Application {
 	handler3 := httptransport4.NewHandler(slogLogger, projectController)
 	pinObjectController := controller5.NewController(conf, slogLogger, provider, passwordProvider, jwtProvider, ipfsStorager, s3Storager, client, projectStorer, pinObjectStorer, userStorer)
 	handler4 := httptransport5.NewHandler(slogLogger, pinObjectController)
-	inputPortServer := http.NewInputPort(conf, slogLogger, middlewareMiddleware, handler, httptransportHandler, handler2, handler3, handler4)
+	ipfsGatewayController := controller6.NewController(conf, slogLogger, provider, passwordProvider, jwtProvider, ipfsStorager, s3Storager, client, projectStorer, pinObjectStorer, userStorer)
+	handler5 := httptransport6.NewHandler(slogLogger, ipfsGatewayController)
+	inputPortServer := http.NewInputPort(conf, slogLogger, middlewareMiddleware, handler, httptransportHandler, handler2, handler3, handler4, handler5)
 	application := NewApplication(slogLogger, inputPortServer)
 	return application
 }
