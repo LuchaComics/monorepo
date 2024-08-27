@@ -206,7 +206,7 @@ export function getPinObjectContentDetailAPI(
             }
         }
 
-        const contentType = successResponse.headers['content-type'] || 'application/octet-stream';
+        const contentType = successResponse.headers['content-type'];
         console.log("contentDisposition:", contentDisposition);
         console.log("contentType:", contentType);
 
