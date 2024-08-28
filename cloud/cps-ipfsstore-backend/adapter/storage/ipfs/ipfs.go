@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"strings"
 
+	ipfsdaemonlauncher "github.com/bartmika/ipfs-daemon-launcher"
 	ipfslauncher "github.com/bartmika/ipfs-daemon-launcher"
 	path "github.com/ipfs/boxo/path"
 	"github.com/ipfs/go-cid"
@@ -41,9 +42,10 @@ func NewStorage(appConf *c.Conf, logger *slog.Logger) IPFSStorager {
 	logger.Debug("ipfs storage adapter initializing...", appConf.IPFSNode.BinaryOperatingSystem, appConf.IPFSNode.BinaryCPUArchitecture)
 
 	launcher, initErr := ipfslauncher.NewDaemonLauncher(
-		ipfslauncher.WithOverrideDaemonWarmupDuration(3),
+		ipfslauncher.WithOverrideDaemonInitialWarmupDuration(25), // Wait 25 seconds for IPFS to startup for the first time. This is dependent on your machine.
 		ipfslauncher.WithContinousOperation(),
 		ipfslauncher.WithOverrideBinaryOsAndArch(appConf.IPFSNode.BinaryOperatingSystem, appConf.IPFSNode.BinaryCPUArchitecture),
+		ipfsdaemonlauncher.WithDenylist("badbits.deny", "https://badbits.dwebops.pub/badbits.deny"), // Taken from https://github.com/ipfs/kubo/blob/master/docs/content-blocking.md#denylist-file-format
 	)
 	if initErr != nil {
 		log.Fatalf("failed creating ipfs-launcher: %v", initErr)
