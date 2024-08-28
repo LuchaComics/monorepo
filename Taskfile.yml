@@ -17,6 +17,6 @@ tasks:
       - go work use ./cloud/cps-backend
 
   usepinws:
-    desc: Load up the go workspace for the `pinws-backend` module.
+    desc: Load up the go workspace for the `cps-ipfsstore-backend` module.
     cmds:
-      - go work use ./cloud/cps-pinws-backend
+      - go work use ./cloud/cps-ipfsstore-backend

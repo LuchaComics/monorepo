@@ -1,0 +1,13 @@
+{
+    # Global options block. Entirely optional, https is on by default
+    # Optional email key for lets encrypt
+    email bart@mikasoftware.com
+    # Optional staging lets encrypt for testing. Comment out for production.
+    # acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+cps-ipfsstoredata.ca {
+    reverse_proxy app:8000
+}
+www.cps-ipfsstoredata.ca {
+    redir https://cps-ipfsstoredata.ca{uri}
+}
