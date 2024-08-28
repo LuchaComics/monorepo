@@ -114,12 +114,10 @@ func NewDatastore(appCfg *c.Conf, loggerp *slog.Logger, client *mongo.Client) Pi
 
 	// For debugging purposes only or if you are going to recreate new indexes.
 	if _, err := uc.Indexes().DropAll(context.TODO()); err != nil {
-		loggerp.Error("failed deleting all indexes",
+		loggerp.Warn("failed deleting all indexes",
 			slog.Any("err", err))
 
-		// It is important that we crash the app on startup to meet the
-		// requirements of `google/wire` framework.
-		log.Fatal(err)
+		// Do not crash app, just continue.
 	}
 
 	// Note:
