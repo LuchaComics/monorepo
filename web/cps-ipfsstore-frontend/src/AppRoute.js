@@ -17,10 +17,6 @@ import AdminTenantAdd from "./Components/Admin/Tenant/Add";
 import AdminTenantDetail from "./Components/Admin/Tenant/Detail";
 import AdminTenantDetailForUserList from "./Components/Admin/Tenant/DetailForUserList";
 import AdminTenantDetailForCommentList from "./Components/Admin/Tenant/DetailForCommentList";
-import AdminTenantDetailForPinObjectList from "./Components/Admin/Tenant/DetailForPinObjectList";
-import AdminTenantPinObjectAdd from "./Components/Admin/Tenant/PinObject/Add";
-import AdminTenantPinObjectDetail from "./Components/Admin/Tenant/PinObject/Detail";
-import AdminTenantPinObjectUpdate from "./Components/Admin/Tenant/PinObject/Update";
 import AdminTenantUpdate from "./Components/Admin/Tenant/Update";
 
 // Projects
@@ -33,16 +29,13 @@ import AdminProjectPinObjectAdd from "./Components/Admin/Project/Detail/PinObjec
 import AdminProjectPinObjectAddViaWebService from "./Components/Admin/Project/Detail/PinObject/AddViaWS";
 import AdminProjectPinObjectDetail from "./Components/Admin/Project/Detail/PinObject/Detail";
 import AdminProjectPinObjectUpdate from "./Components/Admin/Project/Detail/PinObject/Update";
+import AdminProjectDetailMore from "./Components/Admin/Project/Detail/More/View";
 
 // Users
 import AdminUserList from "./Components/Admin/User/List/View";
 import AdminUserAdd from "./Components/Admin/User/Add/View";
 import AdminUserDetail from "./Components/Admin/User/Detail/View";
 import AdminUserDetailForCommentList from "./Components/Admin/User/Detail/Comment/View";
-import AdminUserDetailForPinObjectList from "./Components/Admin/User/Detail/PinObject/ListView";
-import AdminUserPinObjectAdd from "./Components/Admin/User/Detail/PinObject/Add";
-import AdminUserPinObjectDetail from "./Components/Admin/User/Detail/PinObject/Detail";
-import AdminUserPinObjectUpdate from "./Components/Admin/User/Detail/PinObject/Update";
 import AdminUserDetailMore from "./Components/Admin/User/Detail/More/View";
 import AdminUserArchiveOperation from "./Components/Admin/User/Detail/More/Archive/View";
 import AdminUserUnarchiveOperation from "./Components/Admin/User/Detail/More/Unarchive/View";
@@ -125,6 +118,7 @@ function AppRoute() {
             <div class="column">
               <section class="main-content columns is-fullheight">
                 <Routes>
+                  {/* Tenants */}
                   <Route
                     exact
                     path="/admin/tenants"
@@ -155,28 +149,8 @@ function AppRoute() {
                     path="/admin/tenant/:id/comments"
                     element={<AdminTenantDetailForCommentList />}
                   />
-                  <Route
-                    exact
-                    path="/admin/tenant/:id/pins"
-                    element={<AdminTenantDetailForPinObjectList />}
-                  />
-                  <Route
-                    exact
-                    path="/admin/tenant/:id/pin/:aid"
-                    element={<AdminTenantPinObjectDetail />}
-                  />
-                  <Route
-                    exact
-                    path="/admin/tenant/:id/pin/add"
-                    element={<AdminTenantPinObjectAdd />}
-                  />
-                  <Route
-                    exact
-                    path="/admin/tenant/:id/pin/:aid/edit"
-                    element={<AdminTenantPinObjectUpdate />}
-                  />
-                  {/* Project */}
 
+                  {/* Project */}
                   <Route
                     exact
                     path="/admin/projects"
@@ -196,6 +170,11 @@ function AppRoute() {
                     exact
                     path="/admin/project/:id/edit"
                     element={<AdminProjectUpdate />}
+                  />
+                  <Route
+                    exact
+                    path="/admin/project/:id/more"
+                    element={<AdminProjectDetailMore />}
                   />
                   <Route
                     exact
@@ -249,26 +228,6 @@ function AppRoute() {
                   />
                   <Route
                     exact
-                    path="/admin/user/:id/pinobjects"
-                    element={<AdminUserDetailForPinObjectList />}
-                  />
-                  <Route
-                    exact
-                    path="/admin/user/:id/pinobject/:aid"
-                    element={<AdminUserPinObjectDetail />}
-                  />
-                  <Route
-                    exact
-                    path="/admin/user/:id/pinobjects/add"
-                    element={<AdminUserPinObjectAdd />}
-                  />
-                  <Route
-                    exact
-                    path="/admin/user/:id/pinobject/:aid/edit"
-                    element={<AdminUserPinObjectUpdate />}
-                  />
-                  <Route
-                    exact
                     path="/admin/user/:id/more"
                     element={<AdminUserDetailMore />}
                   />
@@ -297,7 +256,7 @@ function AppRoute() {
                     path="/admin/user/:id/more/change-2fa"
                     element={<AdminUserMoreOperation2FAToggle />}
                   />
-                  
+
                   {/* IPFS */}
                   <Route
                     exact

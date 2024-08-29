@@ -68,20 +68,6 @@ function AdminTenantDetailForUserListMobile(props) {
               <div class="is-hidden-mobile pt-2">
                 <div className="buttons is-right">
                   <Link
-                    to={`/admin/submissions/pick-type-for-add?user_id=${datum.id}&user_name=${datum.name}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    class="button is-small is-success"
-                    type="button"
-                  >
-                    <FontAwesomeIcon className="mdi" icon={faPlus} />
-                    &nbsp;CPS&nbsp;
-                    <FontAwesomeIcon
-                      className="fas"
-                      icon={faArrowUpRightFromSquare}
-                    />
-                  </Link>
-                  <Link
                     to={`/admin/user/${datum.id}`}
                     target="_blank"
                     rel="noreferrer"

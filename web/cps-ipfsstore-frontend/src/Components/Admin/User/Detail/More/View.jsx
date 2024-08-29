@@ -233,11 +233,6 @@ function AdminUserDetailMore() {
                             Comments
                           </Link>
                         </li>
-                        <li>
-                          <Link to={`/admin/user/${id}/pinobjects`}>
-                            PinObjects
-                          </Link>
-                        </li>
                         <li className="is-active">
                           <Link>
                             <strong>

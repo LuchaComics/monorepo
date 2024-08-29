@@ -16,10 +16,9 @@ import {
   faPlus,
   faArrowLeft,
   faCheckCircle,
-  faProjectCircle,
+  faProjectDiagram,
   faGauge,
   faPencil,
-  faProjects,
   faEye,
   faIdCard,
   faAddressBook,
@@ -167,7 +166,7 @@ function AdminProjectDetailMore() {
               </li>
               <li class="">
                 <Link to="/admin/projects" aria-current="page">
-                  <FontAwesomeIcon className="fas" icon={faProjects} />
+                  <FontAwesomeIcon className="fas" icon={faProjectDiagram} />
                   &nbsp;Projects
                 </Link>
               </li>
@@ -204,7 +203,7 @@ function AdminProjectDetailMore() {
               <div className="columns">
                 <div className="column">
                   <p className="title is-4">
-                    <FontAwesomeIcon className="fas" icon={faProjectCircle} />
+                    <FontAwesomeIcon className="fas" icon={faProjectDiagram} />
                     &nbsp;Project
                   </p>
                 </div>
@@ -229,13 +228,8 @@ function AdminProjectDetailMore() {
                           <Link to={`/admin/project/${id}`}>Detail</Link>
                         </li>
                         <li>
-                          <Link to={`/admin/project/${id}/comments`}>
-                            Comments
-                          </Link>
-                        </li>
-                        <li>
-                          <Link to={`/admin/project/${id}/pinobjects`}>
-                            PinObjects
+                          <Link to={`/admin/project/${id}/pins`}>
+                            Pins
                           </Link>
                         </li>
                         <li className="is-active">

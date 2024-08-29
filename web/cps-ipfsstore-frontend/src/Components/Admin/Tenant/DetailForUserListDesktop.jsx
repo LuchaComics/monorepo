@@ -63,21 +63,7 @@ function AdminTenantDetailForUserListDesktop(props) {
                     <td data-label="Role">{USER_ROLES[user.role]}</td>
                     <td data-label="Created">{user.createdAt}</td>
                     <td class="is-actions-cell">
-                      <div class="buttons is-right">
-                        <Link
-                          to={`/admin/submissions/pick-type-for-add?user_id=${user.id}&user_name=${user.name}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          class="button is-small is-success"
-                          type="button"
-                        >
-                          <FontAwesomeIcon className="mdi" icon={faPlus} />
-                          &nbsp;CPS&nbsp;
-                          <FontAwesomeIcon
-                            className="fas"
-                            icon={faArrowUpRightFromSquare}
-                          />
-                        </Link>
+                      <div class="buttons is-right">                        
                         <Link
                           to={`/admin/user/${user.id}`}
                           target="_blank"
