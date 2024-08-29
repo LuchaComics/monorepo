@@ -142,3 +142,4 @@ export const CPS_PIN_CONTENT_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/pin/{id}/
 
 // IPFS
 export const CPS_IPFS_ADDFILE_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/ipfs/add";
+export const CPS_IPFS_INFO_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/ipfs/info";

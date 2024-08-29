@@ -22,6 +22,7 @@ type IPFSStorager interface {
 	ListPins(ctx context.Context) ([]string, error)
 	UnpinContent(ctx context.Context, cidString string) error
 	DeleteContent(ctx context.Context, cidString string) error
+	Id(ctx context.Context) (*IpfsNodeInfo, error)
 	Shutdown()
 }
 
@@ -29,6 +30,14 @@ type ipfsStorager struct {
 	ipfsBinFilepath string
 	ipfsCliWrapper  ipfscliwrapper.IpfsCliWrapper
 	logger          *slog.Logger
+}
+
+type IpfsNodeInfo struct {
+	ID              string   `json:"ID"`
+	PublicKey       string   `json:"PublicKey"`
+	Addresses       []string `json:"Addresses"`
+	AgentVersion    string   `json:"AgentVersion"`
+	ProtocolVersion string   `json:"ProtocolVersion"`
 }
 
 func NewStorage(appConf *c.Conf, logger *slog.Logger) IPFSStorager {
@@ -167,6 +176,22 @@ func convertFileToBytes(file multipart.File) ([]byte, error) {
 	}
 
 	return fileBytes, nil
+}
+
+func (impl *ipfsStorager) Id(ctx context.Context) (*IpfsNodeInfo, error) {
+	info, err := impl.ipfsCliWrapper.Id(ctx)
+	if err != nil {
+		impl.logger.Error("failed getting ipfds node info",
+			slog.Any("error", err))
+		return nil, fmt.Errorf("failed getting ipfds node info: %v", err)
+	}
+	return &IpfsNodeInfo{
+		ID:              info.ID,
+		PublicKey:       info.PublicKey,
+		Addresses:       info.Addresses,
+		AgentVersion:    info.AgentVersion,
+		ProtocolVersion: info.ProtocolVersion,
+	}, nil
 }
 
 func (impl *ipfsStorager) Shutdown() {

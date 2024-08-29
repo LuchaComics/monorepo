@@ -1,13 +1,15 @@
-import { camelizeKeys, decamelizeKeys, decamelize } from "humps";
+import { pascalizeKeys, camelizeKeys, decamelizeKeys, decamelize } from "humps";
 import { DateTime } from "luxon";
 import axios from "axios";
 
+import getCustomAxios from "../Helpers/customAxios";
 import {
-  CPS_IPFS_ADDFILE_API_ENDPOINT
+  CPS_IPFS_ADDFILE_API_ENDPOINT,
+  CPS_IPFS_INFO_API_ENDPOINT
 } from "../Constants/API";
 
 
-export function postIPFSAddFileAPI(
+export function postIpfsAddFileAPI(
   apiKey,
   filename,
   file, // This should be a File object or Blob
@@ -34,8 +36,6 @@ export function postIPFSAddFileAPI(
     onErrorCallback({"mimeType": "does not exist: "+mimeType});
     return;
   }
-
-
 
   customAxios.post(CPS_IPFS_ADDFILE_API_ENDPOINT, file, {
     headers: {
@@ -69,4 +69,30 @@ export function postIPFSAddFileAPI(
         onDoneCallback();
       }
     });
+}
+
+export function getIpfsInfoAPI(
+  onSuccessCallback,
+  onErrorCallback,
+  onDoneCallback,
+  onUnauthorizedCallback,
+) {
+  const axios = getCustomAxios(onUnauthorizedCallback);
+  axios
+    .get(CPS_IPFS_INFO_API_ENDPOINT)
+    .then((successResponse) => {
+      const responseData = successResponse.data;
+
+      const data = camelizeKeys(responseData);
+      data.id = data.iD; // bugfix.
+      delete data.iD; // bugfix
+
+      // Return the callback data.
+      onSuccessCallback(data);
+    })
+    .catch((exception) => {
+      let errors = camelizeKeys(exception);
+      onErrorCallback(errors);
+    })
+    .then(onDoneCallback);
 }

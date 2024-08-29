@@ -14,7 +14,8 @@ import {
   faProjectDiagram,
   faBuilding,
   faBarcode,
-  faQuestionCircle
+  faQuestionCircle,
+  faCloud
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
@@ -192,6 +193,16 @@ export default (props) => {
                 >
                   <FontAwesomeIcon className="fas" icon={faUsers} />
                   &nbsp;All Users
+                </Link>
+              </li>
+              <li>
+                <Link
+                  onClick={onLinkClickCloseHamburgerMenuIfMobile}
+                  to="/admin/ipfs"
+                  class={`has-text-grey-light ${location.pathname.includes("ipfs") && "is-active"}`}
+                >
+                  <FontAwesomeIcon className="fas" icon={faCloud} />
+                  &nbsp;IPFS
                 </Link>
               </li>
 

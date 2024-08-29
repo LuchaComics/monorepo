@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.61.0
 	github.com/aws/smithy-go v1.20.4
 	github.com/bartmika/arraydiff v0.0.0-20240829031130-b0225775fdfa
-	github.com/bartmika/ipfs-cli-wrapper v0.0.0-20240829182544-74e682e28ec0
+	github.com/bartmika/ipfs-cli-wrapper v0.0.0-20240829191840-1a4bf60e81f2
 	github.com/bartmika/timekit v0.0.0-20240130035202-cad2325dfd57
 	github.com/dchest/uniuri v1.2.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible

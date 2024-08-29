@@ -23,7 +23,7 @@ import {
 import { useRecoilState } from "recoil";
 
 import useLocalStorage from "../../../../../Hooks/useLocalStorage";
-import { postIPFSAddFileAPI } from "../../../../../API/IPFS";
+import { postIpfsAddFileAPI } from "../../../../../API/IPFS";
 import FormErrorBox from "../../../../Reusable/FormErrorBox";
 import FormInputField from "../../../../Reusable/FormInputField";
 import FormTextareaField from "../../../../Reusable/FormTextareaField";
@@ -108,7 +108,7 @@ function AdminProjectPinObjectAddViaWebService() {
      reader.onload = () => {
        const fileBinaryData = reader.result;
 
-       postIPFSAddFileAPI(
+       postIpfsAddFileAPI(
          apiKey,
          filename,
          fileBinaryData, // Pass binary data instead of FormData

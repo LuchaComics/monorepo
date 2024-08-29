@@ -21,6 +21,7 @@ import (
 
 type IpfsGatewayController interface {
 	GetByContentID(ctx context.Context, cid string) (*pin_s.PinObject, error)
+	GetIpfsNodeInfo(ctx context.Context) (*ipfs_storage.IpfsNodeInfo, error)
 	Shutdown()
 }
 
