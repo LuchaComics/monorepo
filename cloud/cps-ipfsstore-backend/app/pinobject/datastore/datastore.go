@@ -91,6 +91,7 @@ type PinObjectStorer interface {
 	GetByID(ctx context.Context, id primitive.ObjectID) (*PinObject, error)
 	GetByCID(ctx context.Context, cid string) (*PinObject, error)
 	GetByRequestID(ctx context.Context, requestID primitive.ObjectID) (*PinObject, error)
+	GetAllCIDs(ctx context.Context) ([]string, error)
 	UpdateByID(ctx context.Context, m *PinObject) error
 	UpdateByRequestID(ctx context.Context, m *PinObject) error
 	ListByFilter(ctx context.Context, m *PinObjectPaginationListFilter) (*PinObjectPaginationListResult, error)

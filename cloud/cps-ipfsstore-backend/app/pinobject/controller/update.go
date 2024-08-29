@@ -32,6 +32,12 @@ func ValidateUpdateRequest(dirtyData *PinObjectUpdateRequestIDO) error {
 	if dirtyData.RequestID.IsZero() {
 		e["requestid"] = "missing value"
 	}
+	if dirtyData.FileName == "" {
+		e["meta"] = "missing `filename` value"
+	}
+	if dirtyData.FileType == "" {
+		e["meta"] = "missing `content_type` value"
+	}
 	if dirtyData.ProjectID.IsZero() {
 		e["project_id"] = "missing value"
 	}
@@ -129,7 +135,7 @@ func (impl *PinObjectControllerImpl) UpdateByRequestID(ctx context.Context, req 
 			os.Filename = req.FileName
 
 			// Upload to IPFS network.
-			cid, err := impl.IPFS.UploadContentFromMulipart(ctx, req.File)
+			cid, err := impl.IPFS.AddFileContentFromMulipartFile(ctx, req.FileName, req.File)
 			if err != nil {
 				impl.Logger.Error("failed uploading to IPFS", slog.Any("error", err))
 				return nil, err

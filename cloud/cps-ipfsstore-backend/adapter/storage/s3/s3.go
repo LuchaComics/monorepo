@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"log/slog"
 	"mime/multipart"
@@ -28,6 +29,8 @@ type S3Storager interface {
 	BucketExists(ctx context.Context, bucketName string) (bool, error)
 	GetDownloadablePresignedURL(ctx context.Context, key string, duration time.Duration) (string, error)
 	GetPresignedURL(ctx context.Context, key string, duration time.Duration) (string, error)
+	GetContentByKey(ctx context.Context, objectKey string) ([]byte, error)
+	GetMultipartFileByKey(ctx context.Context, objectKey string) (multipart.File, error)
 	DeleteByKeys(ctx context.Context, key []string) error
 }
 
@@ -219,6 +222,67 @@ func (s *s3Storager) GetPresignedURL(ctx context.Context, objectKey string, dura
 		return "", err
 	}
 	return presignedUrl.URL, nil
+}
+
+func (s *s3Storager) GetContentByKey(ctx context.Context, objectKey string) ([]byte, error) {
+	// Create the S3 GetObject input parameters
+	params := &s3.GetObjectInput{
+		Bucket: aws.String(s.BucketName),
+		Key:    aws.String(objectKey),
+	}
+
+	// Retrieve the object from S3
+	resp, err := s.S3Client.GetObject(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close() // Ensure the response body is closed after reading
+
+	// Read the content from the response body
+	content, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return content, nil
+}
+
+func (s *s3Storager) GetMultipartFileByKey(ctx context.Context, objectKey string) (multipart.File, error) {
+	// Create the S3 GetObject input parameters
+	params := &s3.GetObjectInput{
+		Bucket: aws.String(s.BucketName),
+		Key:    aws.String(objectKey),
+	}
+
+	// Retrieve the object from S3
+	resp, err := s.S3Client.GetObject(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close() // Ensure the response body is closed after reading
+
+	// Read the content into a buffer
+	buf := new(bytes.Buffer)
+	if _, err := io.Copy(buf, resp.Body); err != nil {
+		return nil, err
+	}
+
+	// Create a multipart.File from the buffer
+	file := &multipartFile{
+		Reader: bytes.NewReader(buf.Bytes()),
+	}
+
+	return file, nil
+}
+
+// Implement a custom type that satisfies the multipart.File interface
+type multipartFile struct {
+	*bytes.Reader
+}
+
+func (f *multipartFile) Close() error {
+	// For this custom implementation, there's nothing to close
+	return nil
 }
 
 func (s *s3Storager) DeleteByKeys(ctx context.Context, objectKeys []string) error {

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"log"
 
 	"log/slog"
 
@@ -74,6 +75,11 @@ func NewController(
 		UserStorer:      usr_storer,
 	}
 	s.Logger.Debug("pinobject controller initialization started...")
+	if err := s.s3SyncWithIpfs(context.Background()); err != nil {
+		// It is important that we crash the app on startup to meet the
+		// requirements of `google/wire` framework.
+		log.Fatal(err)
+	}
 	s.Logger.Debug("pinobject controller initialized")
 	return s
 }

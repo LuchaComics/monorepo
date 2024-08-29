@@ -38,6 +38,16 @@ func ValidateCreateRequest(dirtyData *PinObjectCreateRequestIDO) error {
 	if dirtyData.ProjectID.IsZero() {
 		e["project_id"] = "missing value"
 	}
+	if dirtyData.Meta == nil {
+		e["meta"] = "missing value"
+	} else {
+		if dirtyData.Meta["filename"] == "" {
+			e["meta"] = "missing `filename` value"
+		}
+		if dirtyData.Meta["content_type"] == "" {
+			e["meta"] = "missing `content_type` value"
+		}
+	}
 	if dirtyData.File == nil {
 		e["file"] = "missing value"
 	}
@@ -68,7 +78,7 @@ func (impl *PinObjectControllerImpl) Create(ctx context.Context, req *PinObjectC
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
 
 		// Upload to IPFS network.
-		cid, err := impl.IPFS.UploadContentFromMulipart(ctx, req.File)
+		cid, err := impl.IPFS.AddFileContentFromMulipartFile(ctx, req.Meta["filename"], req.File)
 		if err != nil {
 			impl.Logger.Error("failed uploading to IPFS", slog.Any("error", err))
 			return nil, err
@@ -81,7 +91,7 @@ func (impl *PinObjectControllerImpl) Create(ctx context.Context, req *PinObjectC
 		}
 
 		// Upload to s3 (concurrently).
-		objectKey := fmt.Sprintf("%v/%v/%v/%v/%v", "projects", req.ProjectID.Hex(), "cids", cid, req.Meta["Filename"])
+		objectKey := fmt.Sprintf("%v/%v/%v/%v/%v", "projects", req.ProjectID.Hex(), "cids", cid, req.Meta["filename"])
 		go func(file multipart.File, objkey string) {
 			impl.Logger.Debug("beginning private s3 image upload...")
 			if err := impl.S3.UploadContentFromMulipart(context.Background(), objkey, file); err != nil {
@@ -123,7 +133,7 @@ func (impl *PinObjectControllerImpl) Create(ctx context.Context, req *PinObjectC
 			ModifiedFromIPAddress: ipAdress,
 
 			// S3
-			Filename:  req.Meta["Filename"],
+			Filename:  req.Meta["filename"],
 			ObjectKey: objectKey,
 			ObjectURL: "",
 		}

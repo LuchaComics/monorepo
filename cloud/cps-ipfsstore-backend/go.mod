@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.29
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.60.1
 	github.com/aws/smithy-go v1.20.4
-	github.com/bartmika/ipfs-daemon-launcher v0.0.0-20240828171834-62b331759041
+	github.com/bartmika/ipfs-daemon-launcher v0.0.0-20240829034854-208f87bf35fa
 	github.com/bartmika/timekit v0.0.0-20240130035202-cad2325dfd57
 	github.com/dchest/uniuri v1.2.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -47,6 +47,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sso v1.22.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.26.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.30.5 // indirect
+	github.com/bartmika/arraydiff v0.0.0-20240829031130-b0225775fdfa // indirect
 	github.com/benbjohnson/clock v1.3.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
