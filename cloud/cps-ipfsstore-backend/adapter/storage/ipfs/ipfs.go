@@ -8,7 +8,7 @@ import (
 	"log/slog"
 	"mime/multipart"
 
-	ipfslauncher "github.com/bartmika/ipfs-daemon-launcher"
+	ipfscliwrapper "github.com/bartmika/ipfs-cli-wrapper"
 
 	c "github.com/LuchaComics/monorepo/cloud/cps-ipfsstore-backend/config"
 )
@@ -26,20 +26,20 @@ type IPFSStorager interface {
 }
 
 type ipfsStorager struct {
-	ipfsBinFilepath    string
-	ipfsDaemonLauncher *ipfslauncher.IpfsDaemonLauncher
-	logger             *slog.Logger
+	ipfsBinFilepath string
+	ipfsCliWrapper  *ipfscliwrapper.IpfsCliWrapper
+	logger          *slog.Logger
 }
 
 func NewStorage(appConf *c.Conf, logger *slog.Logger) IPFSStorager {
 	logger.Debug("ipfs storage adapter initializing...", appConf.IPFSNode.BinaryOperatingSystem, appConf.IPFSNode.BinaryCPUArchitecture)
 
-	launcher, initErr := ipfslauncher.NewDaemonLauncher(
-		ipfslauncher.WithOverrideDaemonInitialWarmupDuration(25), // Wait 25 seconds for IPFS to startup for the first time. This is dependent on your machine.
-		ipfslauncher.WithContinousOperation(),
-		ipfslauncher.WithOverrideBinaryOsAndArch(appConf.IPFSNode.BinaryOperatingSystem, appConf.IPFSNode.BinaryCPUArchitecture),
-		ipfslauncher.WithRunGarbageCollectionOnStarup(),
-		// ipfsdaemonlauncher.WithDenylist("badbits.deny", "https://badbits.dwebops.pub/badbits.deny"), // Taken from https://github.com/ipfs/kubo/blob/master/docs/content-blocking.md#denylist-file-format
+	launcher, initErr := ipfscliwrapper.NewDaemonLauncher(
+		ipfscliwrapper.WithOverrideDaemonInitialWarmupDuration(25), // Wait 25 seconds for IPFS to startup for the first time. This is dependent on your machine.
+		ipfscliwrapper.WithContinousOperation(),
+		ipfscliwrapper.WithOverrideBinaryOsAndArch(appConf.IPFSNode.BinaryOperatingSystem, appConf.IPFSNode.BinaryCPUArchitecture),
+		ipfscliwrapper.WithRunGarbageCollectionOnStarup(),
+		// ipfsCliWrapper.WithDenylist("badbits.deny", "https://badbits.dwebops.pub/badbits.deny"), // Taken from https://github.com/ipfs/kubo/blob/master/docs/content-blocking.md#denylist-file-format
 	)
 	if initErr != nil {
 		log.Fatalf("failed creating ipfs-launcher: %v", initErr)
@@ -56,9 +56,9 @@ func NewStorage(appConf *c.Conf, logger *slog.Logger) IPFSStorager {
 
 	// Create our storage handler for IPFS.
 	ipfsStorage := &ipfsStorager{
-		ipfsBinFilepath:    "./bin/kubo/ipfs",
-		ipfsDaemonLauncher: launcher,
-		logger:             logger,
+		ipfsBinFilepath: "./bin/kubo/ipfs",
+		ipfsCliWrapper:  launcher,
+		logger:          logger,
 	}
 
 	// Return our ipfs storage handler.
@@ -74,7 +74,7 @@ func (impl *ipfsStorager) AddFileContentFromMulipartFile(ctx context.Context, fi
 }
 
 func (impl *ipfsStorager) AddFileContent(ctx context.Context, filename string, fileContent []byte) (string, error) {
-	cid, addFileErr := impl.ipfsDaemonLauncher.AddFileContent(ctx, filename, fileContent)
+	cid, addFileErr := impl.ipfsCliWrapper.AddFileContent(ctx, filename, fileContent)
 	if addFileErr != nil {
 		impl.logger.Error("failed to save file locally",
 			slog.String("filename", filename),
@@ -85,14 +85,14 @@ func (impl *ipfsStorager) AddFileContent(ctx context.Context, filename string, f
 }
 
 func (impl *ipfsStorager) AddFileContentAndPin(ctx context.Context, filename string, fileContent []byte) (string, error) {
-	cid, addFileErr := impl.ipfsDaemonLauncher.AddFileContent(ctx, filename, fileContent)
+	cid, addFileErr := impl.ipfsCliWrapper.AddFileContent(ctx, filename, fileContent)
 	if addFileErr != nil {
 		impl.logger.Error("failed to save file locally",
 			slog.String("filename", filename),
 			slog.Any("error", addFileErr))
 		return "", fmt.Errorf("failed to save file locally: %v", addFileErr)
 	}
-	if pinErr := impl.ipfsDaemonLauncher.Pin(ctx, cid); pinErr != nil {
+	if pinErr := impl.ipfsCliWrapper.Pin(ctx, cid); pinErr != nil {
 		impl.logger.Error("failed to pin local file content",
 			slog.String("filename", filename),
 			slog.String("cid", cid),
@@ -105,7 +105,7 @@ func (impl *ipfsStorager) AddFileContentAndPin(ctx context.Context, filename str
 
 func (impl *ipfsStorager) GetContent(ctx context.Context, cidString string) ([]byte, error) {
 	impl.logger.Debug("fetching content from IPFS", slog.String("cid", cidString))
-	content, catErr := impl.ipfsDaemonLauncher.Cat(ctx, cidString)
+	content, catErr := impl.ipfsCliWrapper.Cat(ctx, cidString)
 	if catErr != nil {
 		impl.logger.Error("failed fetching content",
 			slog.Any("error", catErr))
@@ -118,7 +118,7 @@ func (impl *ipfsStorager) GetContent(ctx context.Context, cidString string) ([]b
 
 func (impl *ipfsStorager) PinContent(ctx context.Context, cidString string) error {
 	impl.logger.Debug("pinning content to IPFS", slog.String("cid", cidString))
-	if pinErr := impl.ipfsDaemonLauncher.Pin(ctx, cidString); pinErr != nil {
+	if pinErr := impl.ipfsCliWrapper.Pin(ctx, cidString); pinErr != nil {
 		impl.logger.Error("failed to pin locally",
 			slog.String("cid", cidString),
 			slog.Any("error", pinErr))
@@ -129,7 +129,7 @@ func (impl *ipfsStorager) PinContent(ctx context.Context, cidString string) erro
 }
 
 func (impl *ipfsStorager) ListPins(ctx context.Context) ([]string, error) {
-	cids, err := impl.ipfsDaemonLauncher.ListPins(ctx)
+	cids, err := impl.ipfsCliWrapper.ListPins(ctx)
 	if err != nil {
 		impl.logger.Error("failed listing pins",
 			slog.Any("error", err))
@@ -140,7 +140,7 @@ func (impl *ipfsStorager) ListPins(ctx context.Context) ([]string, error) {
 
 func (impl *ipfsStorager) UnpinContent(ctx context.Context, cidString string) error {
 	impl.logger.Debug("unpinning content from IPFS", slog.String("cid", cidString))
-	unpinErr := impl.ipfsDaemonLauncher.Unpin(ctx, cidString)
+	unpinErr := impl.ipfsCliWrapper.Unpin(ctx, cidString)
 	if unpinErr != nil {
 		impl.logger.Error("failed to unpin content",
 			slog.String("cid", cidString),
@@ -167,5 +167,5 @@ func convertFileToBytes(file multipart.File) ([]byte, error) {
 }
 
 func (impl *ipfsStorager) Shutdown() {
-	impl.ipfsDaemonLauncher.ShutdownDaemon()
+	impl.ipfsCliWrapper.ShutdownDaemon()
 }
