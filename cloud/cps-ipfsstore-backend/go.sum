@@ -63,6 +63,8 @@ github.com/bartmika/ipfs-cli-wrapper v0.0.0-20240829050708-7090dd240713 h1:f9+gN
 github.com/bartmika/ipfs-cli-wrapper v0.0.0-20240829050708-7090dd240713/go.mod h1:fbsfX1v9bwhkhbwqlhoGwEsW/ZDaHQjbTE3aVNrbbNs=
 github.com/bartmika/ipfs-cli-wrapper v0.0.0-20240829155537-1247d9c28d55 h1:YZRjCay99vZ3eRlGgLw5fsAuD11FX7gbPJFjsxs2nT0=
 github.com/bartmika/ipfs-cli-wrapper v0.0.0-20240829155537-1247d9c28d55/go.mod h1:fbsfX1v9bwhkhbwqlhoGwEsW/ZDaHQjbTE3aVNrbbNs=
+github.com/bartmika/ipfs-cli-wrapper v0.0.0-20240829182544-74e682e28ec0 h1:CAtulgz0RaoID7zcEjB46Kd0QUIw8GYuzp1Qz7QLNXk=
+github.com/bartmika/ipfs-cli-wrapper v0.0.0-20240829182544-74e682e28ec0/go.mod h1:fbsfX1v9bwhkhbwqlhoGwEsW/ZDaHQjbTE3aVNrbbNs=
 github.com/bartmika/timekit v0.0.0-20240130035202-cad2325dfd57 h1:wd7rdvqOnOXpA+CXNMsPTcLboXoxd6jmVWMtHysRSdc=
 github.com/bartmika/timekit v0.0.0-20240130035202-cad2325dfd57/go.mod h1:bVnPliAhDTux+4YU7HS1gEQnba7+nWWHf6ZfJQvVt/c=
 github.com/benbjohnson/clock v1.3.0 h1:ip6w0uFQkncKQ979AypyG0ER7mqUSBdKLOgAle/AT8A=

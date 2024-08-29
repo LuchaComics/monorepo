@@ -70,7 +70,7 @@ func (impl *PinObjectControllerImpl) s3SyncWithIpfs(ctx context.Context) error {
 				}
 
 				// // Upload to IPFS network and pin as well.
-				if _, err := impl.IPFS.AddFileContentAndPin(ctx, pin.Meta["filename"], fileContent); err != nil {
+				if _, err := impl.IPFS.AddFileContentAndPin(ctx, fileContent); err != nil {
 					impl.Logger.Error("failed uploading and pinning to IPFS", slog.Any("error", err))
 					continue
 				}

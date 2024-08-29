@@ -78,7 +78,7 @@ func (impl *PinObjectControllerImpl) Create(ctx context.Context, req *PinObjectC
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
 
 		// Upload to IPFS network.
-		cid, err := impl.IPFS.AddFileContentFromMulipartFile(ctx, req.Meta["filename"], req.File)
+		cid, err := impl.IPFS.AddFileContentFromMulipartFile(ctx, req.File)
 		if err != nil {
 			impl.Logger.Error("failed uploading to IPFS", slog.Any("error", err))
 			return nil, err

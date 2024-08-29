@@ -135,7 +135,7 @@ func (impl *PinObjectControllerImpl) UpdateByRequestID(ctx context.Context, req 
 			os.Filename = req.FileName
 
 			// Upload to IPFS network.
-			cid, err := impl.IPFS.AddFileContentFromMulipartFile(ctx, req.FileName, req.File)
+			cid, err := impl.IPFS.AddFileContentFromMulipartFile(ctx, req.File)
 			if err != nil {
 				impl.Logger.Error("failed uploading to IPFS", slog.Any("error", err))
 				return nil, err
