@@ -13,7 +13,6 @@ type Conf struct {
 	PDFBuilder       pdfBuilderConfig
 	Emailer          mailgunConfig
 	PaymentProcessor paymentProcessorConfig
-	IPFSNode         ipfsConfig
 }
 
 type serverConf struct {
@@ -67,12 +66,6 @@ type paymentProcessorConfig struct {
 	WebhookSecretKey string
 }
 
-type ipfsConfig struct {
-	BinaryOperatingSystem string
-	BinaryCPUArchitecture string
-	GatewayRPCURL         string
-}
-
 func New() *Conf {
 	var c Conf
 	c.AppServer.IsDeveloperMode = getEnvBool("CPS_NFTSTORE_BACKEND_APP_IS_DEVELOPER_MODE", false, true) // If in doubt assume developer mode!
@@ -113,11 +106,6 @@ func New() *Conf {
 	c.PaymentProcessor.SecretKey = getEnv("CPS_NFTSTORE_BACKEND_PAYMENT_PROCESSOR_SECRET_KEY", true)
 	c.PaymentProcessor.PublicKey = getEnv("CPS_NFTSTORE_BACKEND_PAYMENT_PROCESSOR_PUBLIC_KEY", true)
 	c.PaymentProcessor.WebhookSecretKey = getEnv("CPS_NFTSTORE_BACKEND_PAYMENT_PROCESSOR_WEBHOOK_SECRET_KEY", true)
-
-	// c.IPFSNode.DomainOrIPAddress = getEnv("CPS_NFTSTORE_BACKEND_IPFS_NODE_DOMAIN_OR_IP_ADDRESS", true)
-	c.IPFSNode.BinaryOperatingSystem = getEnv("CPS_NFTSTORE_BACKEND_IPFS_NODE_OS", true)
-	c.IPFSNode.BinaryCPUArchitecture = getEnv("CPS_NFTSTORE_BACKEND_IPFS_NODE_ARCH", true)
-	c.IPFSNode.GatewayRPCURL = getEnv("CPS_NFTSTORE_BACKEND_IPFS_NODE_RPC_GATEWAY_URL", true)
 
 	return &c
 }

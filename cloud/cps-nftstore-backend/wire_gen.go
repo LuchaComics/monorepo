@@ -9,20 +9,11 @@ package main
 import (
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/cache/mongodbcache"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/emailer/mailgun"
-	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/ipfs"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/mongodb"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/s3"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/templatedemailer"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/controller"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/httptransport"
-	controller6 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/controller"
-	httptransport6 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/httptransport"
-	controller5 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/pinobject/controller"
-	datastore3 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/pinobject/datastore"
-	httptransport5 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/pinobject/httptransport"
-	controller4 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/project/controller"
-	datastore4 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/project/datastore"
-	httptransport4 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/project/httptransport"
 	controller3 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/controller"
 	datastore2 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/datastore"
 	httptransport3 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/httptransport"
@@ -66,21 +57,12 @@ func InitializeEvent() Application {
 	gatewayController := controller.NewController(conf, slogLogger, provider, jwtProvider, kmutexProvider, passwordProvider, templatedEmailer, cacher, client, userStorer, tenantStorer)
 	middlewareMiddleware := middleware.NewMiddleware(conf, slogLogger, provider, timeProvider, jwtProvider, blacklistProvider, gatewayController)
 	handler := httptransport.NewHandler(slogLogger, gatewayController)
-	pinObjectStorer := datastore3.NewDatastore(conf, slogLogger, client)
-	userController := controller2.NewController(conf, slogLogger, provider, passwordProvider, templatedEmailer, client, tenantStorer, userStorer, pinObjectStorer)
+	userController := controller2.NewController(conf, slogLogger, provider, passwordProvider, templatedEmailer, client, tenantStorer, userStorer)
 	httptransportHandler := httptransport2.NewHandler(slogLogger, userController)
 	s3Storager := s3.NewStorage(conf, slogLogger, provider)
-	tenantController := controller3.NewController(conf, slogLogger, provider, s3Storager, templatedEmailer, client, tenantStorer, userStorer, pinObjectStorer)
+	tenantController := controller3.NewController(conf, slogLogger, provider, s3Storager, templatedEmailer, client, tenantStorer, userStorer)
 	handler2 := httptransport3.NewHandler(slogLogger, tenantController)
-	ipfsStorager := ipfs.NewStorage(conf, slogLogger)
-	projectStorer := datastore4.NewDatastore(conf, slogLogger, client)
-	projectController := controller4.NewController(conf, slogLogger, provider, jwtProvider, ipfsStorager, kmutexProvider, passwordProvider, client, tenantStorer, projectStorer, pinObjectStorer, userStorer)
-	handler3 := httptransport4.NewHandler(slogLogger, projectController)
-	pinObjectController := controller5.NewController(conf, slogLogger, provider, passwordProvider, jwtProvider, ipfsStorager, s3Storager, client, projectStorer, pinObjectStorer, userStorer)
-	handler4 := httptransport5.NewHandler(slogLogger, pinObjectController)
-	ipfsGatewayController := controller6.NewController(conf, slogLogger, provider, passwordProvider, jwtProvider, ipfsStorager, s3Storager, client, projectStorer, pinObjectStorer, userStorer)
-	handler5 := httptransport6.NewHandler(slogLogger, ipfsGatewayController)
-	inputPortServer := http.NewInputPort(conf, slogLogger, middlewareMiddleware, handler, httptransportHandler, handler2, handler3, handler4, handler5)
+	inputPortServer := http.NewInputPort(conf, slogLogger, middlewareMiddleware, handler, httptransportHandler, handler2)
 	application := NewApplication(slogLogger, inputPortServer)
 	return application
 }

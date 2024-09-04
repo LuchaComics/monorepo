@@ -8,7 +8,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/templatedemailer"
-	pinobject_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/pinobject/datastore"
 	tenant_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/datastore"
 	user_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/datastore"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/config"
@@ -41,8 +40,7 @@ type UserControllerImpl struct {
 	TemplatedEmailer templatedemailer.TemplatedEmailer
 	DbClient         *mongo.Client
 	UserStorer       user_s.UserStorer
-	TenantStorer      tenant_s.TenantStorer
-	PinObjectStorer pinobject_s.PinObjectStorer
+	TenantStorer     tenant_s.TenantStorer
 }
 
 func NewController(
@@ -54,7 +52,6 @@ func NewController(
 	client *mongo.Client,
 	org_storer tenant_s.TenantStorer,
 	usr_storer user_s.UserStorer,
-	attch_storer pinobject_s.PinObjectStorer,
 ) UserController {
 	s := &UserControllerImpl{
 		Config:           appCfg,
@@ -64,8 +61,7 @@ func NewController(
 		TemplatedEmailer: te,
 		DbClient:         client,
 		UserStorer:       usr_storer,
-		TenantStorer:      org_storer,
-		PinObjectStorer: attch_storer,
+		TenantStorer:     org_storer,
 	}
 	loggerp.Debug("user controller initialization started...")
 	loggerp.Debug("user controller initialized")

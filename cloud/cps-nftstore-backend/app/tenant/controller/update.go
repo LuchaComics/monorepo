@@ -127,9 +127,6 @@ func (impl *TenantControllerImpl) UpdateByID(ctx context.Context, ns *domain.Ten
 	go func(o *domain.Tenant) {
 		impl.updateRelatedUsersInBackground(o)
 	}(org)
-	go func(o *domain.Tenant) {
-		impl.updateRelatedPinObjectsInBackground(o)
-	}(org)
 
 	return org, nil
 }

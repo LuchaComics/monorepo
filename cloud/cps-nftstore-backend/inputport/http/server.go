@@ -9,9 +9,6 @@ import (
 	"github.com/rs/cors"
 
 	gateway "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/httptransport"
-	ipfsgateway "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/httptransport"
-	pinobject "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/pinobject/httptransport"
-	project "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/project/httptransport"
 	tenant "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/httptransport"
 	user "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/httptransport"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/config"
@@ -24,16 +21,13 @@ type InputPortServer interface {
 }
 
 type httpInputPort struct {
-	Config      *config.Conf
-	Logger      *slog.Logger
-	Server      *http.Server
-	Middleware  middleware.Middleware
-	Gateway     *gateway.Handler
-	User        *user.Handler
-	Tenant      *tenant.Handler
-	Project     *project.Handler
-	PinObject   *pinobject.Handler
-	IpfsGateway *ipfsgateway.Handler
+	Config     *config.Conf
+	Logger     *slog.Logger
+	Server     *http.Server
+	Middleware middleware.Middleware
+	Gateway    *gateway.Handler
+	User       *user.Handler
+	Tenant     *tenant.Handler
 }
 
 func NewInputPort(
@@ -43,9 +37,6 @@ func NewInputPort(
 	gh *gateway.Handler,
 	cu *user.Handler,
 	org *tenant.Handler,
-	prj *project.Handler,
-	att *pinobject.Handler,
-	ipfsgate *ipfsgateway.Handler,
 ) InputPortServer {
 	// Initialize the ServeMux.
 	mux := http.NewServeMux()
@@ -64,16 +55,13 @@ func NewInputPort(
 
 	// Create our HTTP server controller.
 	p := &httpInputPort{
-		Config:      configp,
-		Logger:      loggerp,
-		Middleware:  mid,
-		Gateway:     gh,
-		User:        cu,
-		Tenant:      org,
-		Project:     prj,
-		PinObject:   att,
-		IpfsGateway: ipfsgate,
-		Server:      srv,
+		Config:     configp,
+		Logger:     loggerp,
+		Middleware: mid,
+		Gateway:    gh,
+		User:       cu,
+		Tenant:     org,
+		Server:     srv,
 	}
 
 	// Attach the HTTP server controller to the ServerMux.
@@ -94,7 +82,6 @@ func (port *httpInputPort) Run() {
 
 func (port *httpInputPort) Shutdown() {
 	port.Logger.Info("HTTP server shutting down now...")
-	port.PinObject.Shutdown()
 	port.Logger.Info("HTTP server shutdown")
 }
 
@@ -186,40 +173,6 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 		port.User.OperationChangeTwoFactorAuthentication(w, r)
 	case n == 4 && p[1] == "v1" && p[2] == "users" && p[3] == "select-options" && r.Method == http.MethodGet:
 		port.User.ListAsSelectOptions(w, r)
-
-	// --- PROJECTS --- //
-	case n == 3 && p[1] == "v1" && p[2] == "projects" && r.Method == http.MethodGet:
-		port.Project.List(w, r)
-	case n == 3 && p[1] == "v1" && p[2] == "projects" && r.Method == http.MethodPost:
-		port.Project.Create(w, r)
-	case n == 4 && p[1] == "v1" && p[2] == "project" && r.Method == http.MethodGet:
-		port.Project.GetByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "project" && r.Method == http.MethodPut:
-		port.Project.UpdateByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "project" && r.Method == http.MethodDelete:
-		port.Project.DeleteByID(w, r, p[3])
-
-	// --- PIN OBJECTS --- //
-	case n == 3 && p[1] == "v1" && p[2] == "pins" && r.Method == http.MethodGet:
-		port.PinObject.List(w, r)
-	case n == 3 && p[1] == "v1" && p[2] == "pins" && r.Method == http.MethodPost:
-		port.PinObject.Create(w, r)
-	case n == 4 && p[1] == "v1" && p[2] == "pin" && r.Method == http.MethodGet:
-		port.PinObject.GetByRequestID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "pin" && r.Method == http.MethodPut:
-		port.PinObject.UpdateByRequestID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "pin" && r.Method == http.MethodDelete:
-		port.PinObject.DeleteByRequestID(w, r, p[3])
-	case n == 5 && p[1] == "v1" && p[2] == "pin" && p[4] == "content" && r.Method == http.MethodGet:
-		port.PinObject.GetContentByRequestID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "ipfs" && p[3] == "add" && r.Method == http.MethodPost:
-		port.PinObject.IpfsAdd(w, r)
-
-		// --- IPFS GATEWAY --- //
-	case n == 2 && p[0] == "ipfs" && r.Method == http.MethodGet:
-		port.IpfsGateway.GetByContentID(w, r, p[1])
-	case n == 4 && p[1] == "v1" && p[2] == "ipfs" && p[3] == "info" && r.Method == http.MethodGet:
-		port.IpfsGateway.GetIpfsNodeInfo(w, r)
 
 	// --- CATCH ALL: D.N.E. ---
 	default:

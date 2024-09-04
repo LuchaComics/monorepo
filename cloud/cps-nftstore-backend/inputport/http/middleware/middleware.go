@@ -215,7 +215,6 @@ func (mid *middleware) PreJWTProcessorMiddleware(fn http.HandlerFunc) http.Handl
 			"cpsrn":           true,
 			"select-options":  true,
 			"public":          true,
-			"ipfs":            true,
 		}
 
 		// DEVELOPERS NOTE:
@@ -315,7 +314,6 @@ func (mid *middleware) JWTProcessorMiddleware(fn http.HandlerFunc) http.HandlerF
 				"cpsrn":           true,
 				"select-options":  true,
 				"public":          true,
-				"ipfs":            true,
 			}
 
 			// DEVELOPERS NOTE:
@@ -468,7 +466,6 @@ func (mid *middleware) ProtectedURLsMiddleware(fn http.HandlerFunc) http.Handler
 			"cpsrn":           true,
 			"select-options":  true,
 			"public":          true,
-			"ipfs":            true,
 		}
 
 		// DEVELOPERS NOTE:

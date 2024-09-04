@@ -8,20 +8,11 @@ import (
 
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/cache/mongodbcache"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/emailer/mailgun"
-	ipfs_storage "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/ipfs"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/mongodb"
 	s3_storage "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/s3"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/templatedemailer"
 	gateway_c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/controller"
 	gateway_http "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/httptransport"
-	ipfsgate_c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/controller"
-	ipfsgate_http "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/httptransport"
-	pinobject_c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/pinobject/controller"
-	pinobject_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/pinobject/datastore"
-	pinobject_http "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/pinobject/httptransport"
-	project_c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/project/controller"
-	project_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/project/datastore"
-	project_http "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/project/httptransport"
 	tenant_c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/controller"
 	tenant_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/datastore"
 	tenant_http "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/httptransport"
@@ -58,23 +49,14 @@ func InitializeEvent() Application {
 		blacklist.NewProvider,
 		mongodbcache.NewCache,
 		s3_storage.NewStorage,
-		ipfs_storage.NewStorage,
 		user_s.NewDatastore,
 		user_c.NewController,
-		project_s.NewDatastore,
-		project_c.NewController,
 		tenant_s.NewDatastore,
 		tenant_c.NewController,
 		gateway_c.NewController,
-		pinobject_s.NewDatastore,
-		pinobject_c.NewController,
 		gateway_http.NewHandler,
 		user_http.NewHandler,
-		project_http.NewHandler,
 		tenant_http.NewHandler,
-		pinobject_http.NewHandler,
-		ipfsgate_c.NewController,
-		ipfsgate_http.NewHandler,
 		middleware.NewMiddleware,
 		http.NewInputPort,
 		NewApplication)
