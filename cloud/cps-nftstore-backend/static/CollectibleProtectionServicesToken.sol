@@ -6,11 +6,11 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract CollectibleProtectionServices is ERC721, ERC721URIStorage, Ownable {
+contract CollectibleProtectionServicesToken is ERC721, ERC721URIStorage, Ownable {
     uint256 private _nextTokenId;
 
     constructor(address initialOwner)
-        ERC721("Collectible Protection Services", "CPS")
+        ERC721("Collectible Protection Services", "CPST")
         Ownable(initialOwner)
     {}
 
