@@ -72,6 +72,17 @@ func NewStorage(appConf *c.Conf, logger *slog.Logger) IPFSStorager {
 		logger:          logger,
 	}
 
+	// DEVELOPERS NOTE:
+	// The following code will create a sample file so we can verify our
+	// ipfs adapter is confirmed working.
+	sampleBytes := "Hello world via `Collectibles Protective Services` IPFS store!"
+	sampleCid, addFileContentErr := ipfsStorage.AddFileContentAndPin(context.Background(), []byte(sampleBytes))
+	if addFileContentErr != nil {
+		log.Fatalf("failed adding sample file with error: %v", addFileContentErr)
+	}
+	logger.Debug("ipfs storage successfully saved sample file",
+		slog.String("sample_cid", sampleCid))
+
 	// Return our ipfs storage handler.
 	return ipfsStorage
 }
