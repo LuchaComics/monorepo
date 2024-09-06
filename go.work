@@ -4,4 +4,5 @@ use (
 	./cloud/cps-backend
 	./cloud/cps-ipfsstore-backend
 	./cloud/cps-nftstore-backend
+	./cloud/cps-nftstore-cli
 )
