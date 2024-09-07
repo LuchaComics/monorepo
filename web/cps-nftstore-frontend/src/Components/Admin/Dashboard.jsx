@@ -7,7 +7,7 @@ import {
   faArrowRight,
   faUsers,
   faBarcode,
-  faProjectDiagram
+  faCubes
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
@@ -160,21 +160,21 @@ function AdminDashboard() {
             <section class="hero is-medium is-link">
               <div class="hero-body">
                 <p class="title">
-                  <FontAwesomeIcon className="fas" icon={faProjectDiagram} />
-                  &nbsp;Projects
+                  <FontAwesomeIcon className="fas" icon={faCubes} />
+                  &nbsp;Collections
                 </p>
                 <p class="subtitle">
                   Submit a request to encapsulate your collectible by clicking
                   below:
                   <br />
                   <br />
-                  <Link to={"/admin/projects"}>
-                    View Projects&nbsp;
+                  <Link to={"/admin/collections"}>
+                    View Collections&nbsp;
                     <FontAwesomeIcon className="fas" icon={faArrowRight} />
                   </Link>
                   <br />
                   <br />
-                  <Link to={"/admin/projects/add"}>
+                  <Link to={"/admin/collections/add"}>
                     Add&nbsp;
                     <FontAwesomeIcon className="fas" icon={faArrowRight} />
                   </Link>

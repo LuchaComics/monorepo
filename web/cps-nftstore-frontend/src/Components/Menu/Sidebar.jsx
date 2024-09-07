@@ -11,7 +11,7 @@ import {
   faSignOut,
   faUserCircle,
   faUsers,
-  faProjectDiagram,
+  faCubes,
   faBuilding,
   faBarcode,
   faQuestionCircle,
@@ -178,11 +178,11 @@ export default (props) => {
               <li>
                 <Link
                   onClick={onLinkClickCloseHamburgerMenuIfMobile}
-                  to="/admin/projects"
-                  class={`has-text-grey-light ${location.pathname.includes("project") && "is-active"}`}
+                  to="/admin/collections"
+                  class={`has-text-grey-light ${location.pathname.includes("collection") && "is-active"}`}
                 >
-                  <FontAwesomeIcon className="fas" icon={faProjectDiagram} />
-                  &nbsp;Projects
+                  <FontAwesomeIcon className="fas" icon={faCubes} />
+                  &nbsp;Collections
                 </Link>
               </li>
               <li>

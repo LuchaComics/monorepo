@@ -194,41 +194,41 @@ export const tenantFilterJoinedAfterState = atom({
   effects_UNSTABLE: [persistAtom],
 });
 
-// --- Project List --- //
+// --- Collection List --- //
 
 // Control whether to show filters for the list.
-export const projectFilterShowState = atom({
-  key: "projectFilterShowState",
+export const collectionFilterShowState = atom({
+  key: "collectionFilterShowState",
   default: false,
   effects_UNSTABLE: [persistAtom],
 });
 
-export const projectFilterTemporarySearchTextState = atom({
-  key: "projectFilterTemporarySearchTextState",
+export const collectionFilterTemporarySearchTextState = atom({
+  key: "collectionFilterTemporarySearchTextState",
   default: "",
   effects_UNSTABLE: [persistAtom],
 });
 
-export const projectFilterActualSearchTextState = atom({
-  key: "projectFilterActualSearchTextState",
+export const collectionFilterActualSearchTextState = atom({
+  key: "collectionFilterActualSearchTextState",
   default: "",
   effects_UNSTABLE: [persistAtom],
 });
 
-export const projectFilterRoleState = atom({
-  key: "projectFilterRoleState",
+export const collectionFilterRoleState = atom({
+  key: "collectionFilterRoleState",
   default: "",
   effects_UNSTABLE: [persistAtom],
 });
 
-export const projectFilterStatusState = atom({
-  key: "projectFilterStatusState",
+export const collectionFilterStatusState = atom({
+  key: "collectionFilterStatusState",
   default: "",
   effects_UNSTABLE: [persistAtom],
 });
 
-export const projectFilterJoinedAfterState = atom({
-  key: "projectFilterJoinedAfterState",
+export const collectionFilterJoinedAfterState = atom({
+  key: "collectionFilterJoinedAfterState",
   default: "",
   effects_UNSTABLE: [persistAtom],
 });

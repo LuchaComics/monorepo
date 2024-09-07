@@ -113,29 +113,29 @@ export const CPS_USER_CHANGE_2FA_OPERATION_API_URL =
 export const CPS_USER_CHANGE_PASSWORD_OPERATION_API_ENDPOINT =
   HTTP_API_SERVER + "/api/v1/users/operations/change-password";
 
-// Project
-  export const CPS_PROJECTS_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/projects";
+// Collection
+  export const CPS_PROJECTS_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/collections";
   export const CPS_PROJECTS_SELECT_OPTIONS_API_ENDPOINT =
-    HTTP_API_SERVER + "/api/v1/projects/select-options";
-  export const CPS_PROJECT_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/project/{id}";
+    HTTP_API_SERVER + "/api/v1/collections/select-options";
+  export const CPS_PROJECT_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/collection/{id}";
   export const CPS_PROJECT_CREATE_COMMENT_OPERATION_API_ENDPOINT =
-    HTTP_API_SERVER + "/api/v1/projects/operation/create-comment";
+    HTTP_API_SERVER + "/api/v1/collections/operation/create-comment";
   export const CPS_PROJECT_STAR_OPERATION_API_ENDPOINT =
-    HTTP_API_SERVER + "/api/v1/projects/operation/star";
+    HTTP_API_SERVER + "/api/v1/collections/operation/star";
   export const CPS_PROJECT_PURCHASES_API_ENDPOINT =
-    HTTP_API_SERVER + "/api/v1/project-purchases";
+    HTTP_API_SERVER + "/api/v1/collection-purchases";
   export const CPS_PROJECT_ARCHIVE_OPERATION_API_ENDPOINT =
-    HTTP_API_SERVER + "/api/v1/projects/operation/archive";
+    HTTP_API_SERVER + "/api/v1/collections/operation/archive";
   export const CPS_PROJECT_UPGRADE_OPERATION_API_ENDPOINT =
-    HTTP_API_SERVER + "/api/v1/projects/operation/upgrade";
+    HTTP_API_SERVER + "/api/v1/collections/operation/upgrade";
   export const CPS_PROJECT_DOWNGRADE_OPERATION_API_ENDPOINT =
-    HTTP_API_SERVER + "/api/v1/projects/operation/downgrade";
+    HTTP_API_SERVER + "/api/v1/collections/operation/downgrade";
   export const CPS_PROJECT_AVATAR_OPERATION_API_ENDPOINT =
-    HTTP_API_SERVER + "/api/v1/projects/operation/avatar";
+    HTTP_API_SERVER + "/api/v1/collections/operation/avatar";
   export const CPS_PROJECT_CHANGE_2FA_OPERATION_API_URL =
-    HTTP_API_SERVER + "/api/v1/projects/operations/change-2fa";
+    HTTP_API_SERVER + "/api/v1/collections/operations/change-2fa";
   export const CPS_PROJECT_CHANGE_PASSWORD_OPERATION_API_ENDPOINT =
-    HTTP_API_SERVER + "/api/v1/projects/operations/change-password";
+    HTTP_API_SERVER + "/api/v1/collections/operations/change-password";
 
 // Pin
 export const CPS_PIN_CONTENT_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/pin/{id}/content";

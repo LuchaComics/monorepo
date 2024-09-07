@@ -8,6 +8,7 @@ import (
 
 	"github.com/rs/cors"
 
+	collection "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/collection/httptransport"
 	gateway "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/httptransport"
 	tenant "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/httptransport"
 	user "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/httptransport"
@@ -28,6 +29,7 @@ type httpInputPort struct {
 	Gateway    *gateway.Handler
 	User       *user.Handler
 	Tenant     *tenant.Handler
+	Collection *collection.Handler
 }
 
 func NewInputPort(
@@ -37,6 +39,7 @@ func NewInputPort(
 	gh *gateway.Handler,
 	cu *user.Handler,
 	org *tenant.Handler,
+	co *collection.Handler,
 ) InputPortServer {
 	// Initialize the ServeMux.
 	mux := http.NewServeMux()
@@ -61,6 +64,7 @@ func NewInputPort(
 		Gateway:    gh,
 		User:       cu,
 		Tenant:     org,
+		Collection: co,
 		Server:     srv,
 	}
 
@@ -173,6 +177,18 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 		port.User.OperationChangeTwoFactorAuthentication(w, r)
 	case n == 4 && p[1] == "v1" && p[2] == "users" && p[3] == "select-options" && r.Method == http.MethodGet:
 		port.User.ListAsSelectOptions(w, r)
+
+	// --- COLLECTIONS --- //
+	case n == 3 && p[1] == "v1" && p[2] == "collections" && r.Method == http.MethodGet:
+		port.Collection.List(w, r)
+	case n == 3 && p[1] == "v1" && p[2] == "collections" && r.Method == http.MethodPost:
+		port.Collection.Create(w, r)
+	case n == 4 && p[1] == "v1" && p[2] == "collection" && r.Method == http.MethodGet:
+		port.Collection.GetByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "collection" && r.Method == http.MethodPut:
+		port.Collection.UpdateByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "collection" && r.Method == http.MethodDelete:
+		port.Collection.DeleteByID(w, r, p[3])
 
 	// --- CATCH ALL: D.N.E. ---
 	default:

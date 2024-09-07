@@ -12,6 +12,9 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/mongodb"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/s3"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/templatedemailer"
+	controller4 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/collection/controller"
+	datastore3 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/collection/datastore"
+	httptransport4 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/collection/httptransport"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/controller"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/httptransport"
 	controller3 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/controller"
@@ -62,7 +65,10 @@ func InitializeEvent() Application {
 	s3Storager := s3.NewStorage(conf, slogLogger, provider)
 	tenantController := controller3.NewController(conf, slogLogger, provider, s3Storager, templatedEmailer, client, tenantStorer, userStorer)
 	handler2 := httptransport3.NewHandler(slogLogger, tenantController)
-	inputPortServer := http.NewInputPort(conf, slogLogger, middlewareMiddleware, handler, httptransportHandler, handler2)
+	collectionStorer := datastore3.NewDatastore(conf, slogLogger, client)
+	collectionController := controller4.NewController(conf, slogLogger, provider, jwtProvider, kmutexProvider, passwordProvider, client, tenantStorer, collectionStorer, userStorer)
+	handler3 := httptransport4.NewHandler(slogLogger, collectionController)
+	inputPortServer := http.NewInputPort(conf, slogLogger, middlewareMiddleware, handler, httptransportHandler, handler2, handler3)
 	application := NewApplication(slogLogger, inputPortServer)
 	return application
 }

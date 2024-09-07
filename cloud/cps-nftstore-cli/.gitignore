@@ -209,6 +209,7 @@ node_modules
 private.txt
 private_prod.md
 private.md
+private_*.md
 todo.txt
 
 # Do not share some templates

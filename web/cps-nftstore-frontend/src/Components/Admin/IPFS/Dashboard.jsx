@@ -8,7 +8,7 @@ import {
   faArrowRight,
   faUsers,
   faBarcode,
-  faProjectDiagram,
+  faCubes,
   faCloud,
   faArrowLeft,
   faIdCard

@@ -19,17 +19,17 @@ import AdminTenantDetailForUserList from "./Components/Admin/Tenant/DetailForUse
 import AdminTenantDetailForCommentList from "./Components/Admin/Tenant/DetailForCommentList";
 import AdminTenantUpdate from "./Components/Admin/Tenant/Update";
 
-// Projects
-import AdminProjectList from "./Components/Admin/Project/List/View";
-import AdminProjectAdd from "./Components/Admin/Project/Add/View";
-import AdminProjectDetail from "./Components/Admin/Project/Detail/View";
-import AdminProjectUpdate from "./Components/Admin/Project/Update/View";
-import AdminProjectDetailForPinObjectList from "./Components/Admin/Project/Detail/PinObject/ListView";
-import AdminProjectPinObjectAdd from "./Components/Admin/Project/Detail/PinObject/Add";
-import AdminProjectPinObjectAddViaWebService from "./Components/Admin/Project/Detail/PinObject/AddViaWS";
-import AdminProjectPinObjectDetail from "./Components/Admin/Project/Detail/PinObject/Detail";
-import AdminProjectPinObjectUpdate from "./Components/Admin/Project/Detail/PinObject/Update";
-import AdminProjectDetailMore from "./Components/Admin/Project/Detail/More/View";
+// Collections
+import AdminCollectionList from "./Components/Admin/Collection/List/View";
+import AdminCollectionAdd from "./Components/Admin/Collection/Add/View";
+import AdminCollectionDetail from "./Components/Admin/Collection/Detail/View";
+import AdminCollectionUpdate from "./Components/Admin/Collection/Update/View";
+import AdminCollectionDetailForPinObjectList from "./Components/Admin/Collection/Detail/PinObject/ListView";
+import AdminCollectionPinObjectAdd from "./Components/Admin/Collection/Detail/PinObject/Add";
+import AdminCollectionPinObjectAddViaWebService from "./Components/Admin/Collection/Detail/PinObject/AddViaWS";
+import AdminCollectionPinObjectDetail from "./Components/Admin/Collection/Detail/PinObject/Detail";
+import AdminCollectionPinObjectUpdate from "./Components/Admin/Collection/Detail/PinObject/Update";
+import AdminCollectionDetailMore from "./Components/Admin/Collection/Detail/More/View";
 
 // Users
 import AdminUserList from "./Components/Admin/User/List/View";
@@ -150,55 +150,55 @@ function AppRoute() {
                     element={<AdminTenantDetailForCommentList />}
                   />
 
-                  {/* Project */}
+                  {/* Collection */}
                   <Route
                     exact
-                    path="/admin/projects"
-                    element={<AdminProjectList />}
+                    path="/admin/collections"
+                    element={<AdminCollectionList />}
                   />
                   <Route
                     exact
-                    path="/admin/projects/add"
-                    element={<AdminProjectAdd />}
+                    path="/admin/collections/add"
+                    element={<AdminCollectionAdd />}
                   />
                   <Route
                     exact
-                    path="/admin/project/:id"
-                    element={<AdminProjectDetail />}
+                    path="/admin/collection/:id"
+                    element={<AdminCollectionDetail />}
                   />
                   <Route
                     exact
-                    path="/admin/project/:id/edit"
-                    element={<AdminProjectUpdate />}
+                    path="/admin/collection/:id/edit"
+                    element={<AdminCollectionUpdate />}
                   />
                   <Route
                     exact
-                    path="/admin/project/:id/more"
-                    element={<AdminProjectDetailMore />}
+                    path="/admin/collection/:id/more"
+                    element={<AdminCollectionDetailMore />}
                   />
                   <Route
                     exact
-                    path="/admin/project/:id/pins"
-                    element={<AdminProjectDetailForPinObjectList />}
+                    path="/admin/collection/:id/pins"
+                    element={<AdminCollectionDetailForPinObjectList />}
                   />
                   <Route
                     exact
-                    path="/admin/project/:id/pins/add"
-                    element={<AdminProjectPinObjectAdd />}
+                    path="/admin/collection/:id/pins/add"
+                    element={<AdminCollectionPinObjectAdd />}
                   /><Route
                     exact
-                    path="/admin/project/:id/pins/add-via-ws"
-                    element={<AdminProjectPinObjectAddViaWebService />}
+                    path="/admin/collection/:id/pins/add-via-ws"
+                    element={<AdminCollectionPinObjectAddViaWebService />}
                   />
                   <Route
                     exact
-                    path="/admin/project/:id/pin/:rid"
-                    element={<AdminProjectPinObjectDetail />}
+                    path="/admin/collection/:id/pin/:rid"
+                    element={<AdminCollectionPinObjectDetail />}
                   />
                   <Route
                     exact
-                    path="/admin/project/:id/pin/:rid/edit"
-                    element={<AdminProjectPinObjectUpdate />}
+                    path="/admin/collection/:id/pin/:rid/edit"
+                    element={<AdminCollectionPinObjectUpdate />}
                   />
                   {/* User */}
                   <Route
