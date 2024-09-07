@@ -9,6 +9,7 @@ package main
 import (
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/cache/mongodbcache"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/emailer/mailgun"
+	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/ipfs"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/mongodb"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/s3"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/templatedemailer"
@@ -65,8 +66,9 @@ func InitializeEvent() Application {
 	s3Storager := s3.NewStorage(conf, slogLogger, provider)
 	tenantController := controller3.NewController(conf, slogLogger, provider, s3Storager, templatedEmailer, client, tenantStorer, userStorer)
 	handler2 := httptransport3.NewHandler(slogLogger, tenantController)
+	ipfsStorager := ipfs.NewStorage(conf, slogLogger)
 	collectionStorer := datastore3.NewDatastore(conf, slogLogger, client)
-	collectionController := controller4.NewController(conf, slogLogger, provider, jwtProvider, kmutexProvider, passwordProvider, client, tenantStorer, collectionStorer, userStorer)
+	collectionController := controller4.NewController(conf, slogLogger, provider, jwtProvider, kmutexProvider, passwordProvider, ipfsStorager, client, tenantStorer, collectionStorer, userStorer)
 	handler3 := httptransport4.NewHandler(slogLogger, collectionController)
 	inputPortServer := http.NewInputPort(conf, slogLogger, middlewareMiddleware, handler, httptransportHandler, handler2, handler3)
 	application := NewApplication(slogLogger, inputPortServer)

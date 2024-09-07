@@ -8,6 +8,7 @@ import (
 
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/cache/mongodbcache"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/emailer/mailgun"
+	ipfs_storage "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/ipfs"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/mongodb"
 	s3_storage "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/s3"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/templatedemailer"
@@ -52,6 +53,7 @@ func InitializeEvent() Application {
 		blacklist.NewProvider,
 		mongodbcache.NewCache,
 		s3_storage.NewStorage,
+		ipfs_storage.NewStorage,
 		user_s.NewDatastore,
 		user_c.NewController,
 		collection_s.NewDatastore,

@@ -177,7 +177,7 @@ services:
       - "8000:8000" # CPS IPFSSTORE Application Port.
       - "4001:4001" # default libp2p swarm port - should be open to public for all nodes if possible
       # - "5001:5001" # API port - provides write/admin access to the node, shouldn't be exposed at all
-      # - "8080:8080" # Gateway + read only API subset - quite safe to expose, but operating public gateway may still be a risk in some ways 
+      # - "8080:8080" # Gateway + read only API subset - quite safe to expose, but operating public gateway may still be a risk in some ways
     depends_on:
       - db1
       - db2

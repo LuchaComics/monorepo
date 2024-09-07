@@ -7,6 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
+	ipfs_storage "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/ipfs"
 	collection_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/collection/datastore"
 	tenant_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/datastore"
 	user_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/datastore"
@@ -34,6 +35,7 @@ type CollectionControllerImpl struct {
 	JWT              jwt.Provider
 	Kmutex           kmutex.Provider
 	Password         password.Provider
+	IPFS             ipfs_storage.IPFSStorager
 	DbClient         *mongo.Client
 	TenantStorer     tenant_s.TenantStorer
 	CollectionStorer collection_s.CollectionStorer
@@ -47,6 +49,7 @@ func NewController(
 	jwtp jwt.Provider,
 	kmx kmutex.Provider,
 	passwordp password.Provider,
+	ipfs ipfs_storage.IPFSStorager,
 	client *mongo.Client,
 	tenant_storer tenant_s.TenantStorer,
 	collection_storer collection_s.CollectionStorer,
@@ -59,6 +62,7 @@ func NewController(
 		JWT:              jwtp,
 		Kmutex:           kmx,
 		Password:         passwordp,
+		IPFS:             ipfs,
 		DbClient:         client,
 		TenantStorer:     tenant_storer,
 		CollectionStorer: collection_storer,
