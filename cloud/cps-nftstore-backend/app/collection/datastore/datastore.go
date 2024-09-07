@@ -30,14 +30,22 @@ type Collection struct {
 	// Name variable to track user name description of this collection.
 	Name string `bson:"name" json:"name"`
 
+	// IpnsName variable is used to keep track of the `IPNS` address of this particular collection.
+	IpnsName string `bson:"ipns_name" json:"ipns_name"`
+
+	//TODO: Add more IPNS management stuff.
+
+	// [DEPRECATED]
 	// SecretHashAlgorithm is the name of the hashing algorithm used for the secret value. Do not return in the API endpoint.
 	SecretHashAlgorithm string `bson:"secret_hash_algorithm" json:"-"`
 
+	// [DEPRECATED]
 	// SecretHash is a random value which is returned to the client (so the client only knows the plaintext value) while
 	// the server stores the hash of the value. This is used for our API token authentication for this specific collection.
 	// Do not return in the API endpoint.
 	SecretHash string `bson:"secret_hash" json:"-"`
 
+	// [DEPRECATED]
 	// ApiKey variable used only during the initial collection creation step
 	// afterwords this value is not saved for security purposes.
 	ApiKey string `bson:"-" json:"api_key,omitempty"`
@@ -58,7 +66,7 @@ type CollectionListFilter struct {
 }
 
 type CollectionListResult struct {
-	Results     []*Collection         `json:"results"`
+	Results     []*Collection      `json:"results"`
 	NextCursor  primitive.ObjectID `json:"next_cursor"`
 	HasNextPage bool               `json:"has_next_page"`
 }

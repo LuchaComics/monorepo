@@ -394,7 +394,7 @@ function AdminCollectionAdd() {
                     placeholder="Text input"
                     value={name}
                     errorText={errors && errors.name}
-                    helpText=""
+                    helpText="This field will not be shown to NFT purchasers, only used for internal purposes"
                     onChange={(e) => setName(e.target.value)}
                     isRequired={true}
                     maxWidth="380px"

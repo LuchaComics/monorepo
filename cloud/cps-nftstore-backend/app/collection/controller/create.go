@@ -2,11 +2,11 @@ package controller
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 
 	s_d "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/collection/datastore"
 	u_d "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/datastore"
@@ -30,55 +30,76 @@ func (impl *CollectionControllerImpl) Create(ctx context.Context, m *s_d.Collect
 		return nil, httperror.NewForForbiddenWithSingleField("message", "you do not have permission")
 	}
 
-	// Generate hash for the secret.
-	randomSecretStr, err := impl.Password.GenerateSecureRandomString(64)
+	////
+	//// Start the transaction.
+	////
+
+	session, err := impl.DbClient.StartSession()
 	if err != nil {
-		impl.Logger.Error("hashing error",
+		impl.Logger.Error("start session error",
 			slog.Any("error", err))
 		return nil, err
 	}
-	randomSecretHash, err := impl.Password.GenerateHashFromPassword(randomSecretStr)
+	defer session.EndSession(ctx)
+
+	// Define a transaction function with a series of operations
+	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
+		// Add defaults.
+		m.TenantID = oid
+		m.TenantName = oname
+		m.TenantTimezone = otz
+		m.ID = primitive.NewObjectID()
+		m.CreatedAt = time.Now()
+		// m.CreatedByUserID = uid
+		// m.CreatedByUserName = uname
+		m.ModifiedAt = time.Now()
+		// m.ModifiedByUserID = uid
+		// m.ModifiedByUserName = uname
+		m.Status = s_d.StatusActive
+
+		// Save to our database.
+		if err := impl.CollectionStorer.Create(ctx, m); err != nil {
+			impl.Logger.Error("database create error", slog.Any("error", err))
+			return nil, err
+		}
+
+		// DEVELOPERS NOTE:
+		// Every collection has a unique IPNS record, as a result we will need
+		// to do the following:
+		// 1. Generate new `key`.
+		// 2. Generate a folder for this collection.
+		// 3. Generate a file called `0` and populate it with a random string.
+		// 4. Public this collection's folder to IPNS
+		// 5. Save the IPNS record.
+
+		// Step 1. Generate new `key`.
+		if err := impl.IPFS.GenerateKey(sessCtx, m.ID.Hex()); err != nil {
+			return nil, err
+		}
+
+		// Step 2. Generate a folder for this collection.
+		//TODO: Impl.
+
+		// Step 3. Generate a file called `0` and populate it with a random string.
+		//TODO: Impl.
+
+		// 4. Public this collection's folder to IPNS
+		//TODO: Impl.
+
+		// 5. Save the IPNS record.
+		//TODO: Impl.
+
+		return m, nil
+	}
+
+	// Start a transaction
+
+	res, err := session.WithTransaction(ctx, transactionFunc)
 	if err != nil {
-		impl.Logger.Error("hashing error",
+		impl.Logger.Error("session failed error",
 			slog.Any("error", err))
 		return nil, err
 	}
 
-	// Add defaults.
-	m.TenantID = oid
-	m.TenantName = oname
-	m.TenantTimezone = otz
-	m.ID = primitive.NewObjectID()
-	m.CreatedAt = time.Now()
-	// m.CreatedByUserID = uid
-	// m.CreatedByUserName = uname
-	m.ModifiedAt = time.Now()
-	// m.ModifiedByUserID = uid
-	// m.ModifiedByUserName = uname
-	m.Status = s_d.StatusActive
-	m.SecretHashAlgorithm = impl.Password.AlgorithmName()
-	m.SecretHash = randomSecretHash
-
-	// Save to our database.
-	if err := impl.CollectionStorer.Create(ctx, m); err != nil {
-		impl.Logger.Error("database create error", slog.Any("error", err))
-		return nil, err
-	}
-
-	// Generate our one-time API key and attach it to the response. What is
-	// important here is that we share the plaintext secret to the user to
-	// keep but we do not keep the plaintext value in our system, we only
-	// keep the hash, so we keep the value safe.
-	apiKeyPayload := fmt.Sprintf("%v@%v", m.ID.Hex(), randomSecretStr)
-	atExpiry := 250 * 24 * time.Hour // Duration: 250 years.
-	apiKey, _, err := impl.JWT.GenerateJWTToken(apiKeyPayload, atExpiry)
-	if err != nil {
-		impl.Logger.Error("jwt generate pairs error",
-			slog.Any("err", err))
-		return nil, err
-	}
-
-	m.ApiKey = apiKey
-
-	return m, nil
+	return res.(*s_d.Collection), nil
 }

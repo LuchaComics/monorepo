@@ -12,13 +12,13 @@ import (
 	"strings"
 	"time"
 
-	c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/config"
-
 	"github.com/ipfs/boxo/path"
 	"github.com/ipfs/go-cid"
 	ipfsFiles "github.com/ipfs/go-ipfs-files"
 	"github.com/ipfs/kubo/client/rpc"
 	ma "github.com/multiformats/go-multiaddr"
+
+	c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/config"
 )
 
 type IPFSStorager interface {
@@ -29,6 +29,8 @@ type IPFSStorager interface {
 	PinContent(ctx context.Context, cidString string) error
 	ListPins(ctx context.Context) ([]string, error)
 	UnpinContent(ctx context.Context, cidString string) error
+	GenerateKey(ctx context.Context, keyName string) error
+	UploadContentFromStringToDir(ctx context.Context, fileContent string, folderName string) (string, error)
 	Shutdown()
 }
 
@@ -36,6 +38,12 @@ type ipfsStorager struct {
 	api    *rpc.HttpApi
 	logger *slog.Logger
 }
+
+// DEVELOPERS NOTE:
+// Useful links as follows:
+// - https://github.com/ipfs/kubo/tree/master/client/rpc
+// - https://pkg.go.dev/github.com/ipfs/kubo/client/rpc
+//
 
 func NewStorage(appConf *c.Conf, logger *slog.Logger) IPFSStorager {
 	logger.Debug("connecting to ipfs node...")
@@ -241,6 +249,21 @@ func (s *ipfsStorager) UnpinContent(ctx context.Context, cidString string) error
 	}
 
 	return nil
+}
+
+func (s *ipfsStorager) GenerateKey(ctx context.Context, keyName string) error {
+	// Fetch the pinned items channel
+	key, err := s.api.Key().Generate(ctx, keyName, nil)
+	if err != nil {
+		return fmt.Errorf("failed to list pinned items: %v", err)
+	}
+	fmt.Println(key)
+	return nil
+}
+
+func (s *ipfsStorager) UploadContentFromStringToDir(ctx context.Context, fileContent string, folderName string) (string, error) {
+	//TODO: Impl. using https://github.com/ipfs/boxo/tree/main.
+	return "", nil
 }
 
 func (impl *ipfsStorager) Shutdown() {
