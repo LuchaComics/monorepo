@@ -85,6 +85,7 @@ func (impl *CollectionControllerImpl) Create(ctx context.Context, collection *s_
 		// Update collection data with IPFS directory CID and metadata
 		collection.IPFSDirectoryCID = collectionDirCID
 		collection.TokensCount = 0
+		collection.MetadataFileCIDs = make(map[uint64]string, 0) // Initialize arrays.
 		collection.MetadataFileCIDs[0] = firstTokenFileCID
 
 		// Publish the collection directory to IPNS

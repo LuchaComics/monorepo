@@ -26,13 +26,13 @@ type Collection struct {
 	Status            int8               `bson:"status" json:"status"`
 	CreatedAt         time.Time          `bson:"created_at,omitempty" json:"created_at,omitempty"`
 	ModifiedAt        time.Time          `bson:"modified_at,omitempty" json:"modified_at,omitempty"`
-	Name              string             `bson:"name" json:"name"`                                       // Internal name for staff use; not displayed to customers.
-	IPNSKeyName       string             `bson:"ipns_key_name" json:"ipns_key_name"`                     // Unique key name specific to this collection.
-	IPNSName          string             `bson:"ipns_name" json:"ipns_name"`                             // IPNS address of this collection.
-	IPFSDirectoryName string             `bson:"ipfs_directory_name" json:"ipfs_directory_name"`         // Directory name for storing NFTs.
-	IPFSDirectoryCID  string             `bson:"ipfs_directory_cid" json:"ipfs_directory_cid"`           // CID of the directory for storing NFTs.
-	TokensCount       uint64             `bson:"tokens_count" json:"tokens_count"`                       // Number of tokens in this collection.
-	MetadataFileCIDs  []string           `bson:"metadata_file_ipfs_cids" json:"metadata_file_ipfs_cids"` // CIDs for token metadata files.
+	Name              string             `bson:"name" json:"name"`                               // Internal name for staff use; not displayed to customers.
+	IPNSKeyName       string             `bson:"ipns_key_name" json:"ipns_key_name"`             // Unique key name specific to this collection.
+	IPNSName          string             `bson:"ipns_name" json:"ipns_name"`                     // IPNS address of this collection.
+	IPFSDirectoryName string             `bson:"ipfs_directory_name" json:"ipfs_directory_name"` // Directory name for storing NFTs.
+	IPFSDirectoryCID  string             `bson:"ipfs_directory_cid" json:"ipfs_directory_cid"`   // CID of the directory for storing NFTs.
+	TokensCount       uint64             `bson:"tokens_count" json:"tokens_count"`               // Number of tokens in this collection.
+	MetadataFileCIDs  map[uint64]string  `bson:"metadata_file_cids" json:"metadata_file_cids"`   // Used for mapping TokenID's to their metadata file CID.
 }
 
 type CollectionListFilter struct {

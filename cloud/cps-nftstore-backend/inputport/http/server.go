@@ -10,6 +10,7 @@ import (
 
 	collection "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/collection/httptransport"
 	gateway "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/httptransport"
+	nft "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nft/httptransport"
 	tenant "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/httptransport"
 	user "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/httptransport"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/config"
@@ -30,6 +31,7 @@ type httpInputPort struct {
 	User       *user.Handler
 	Tenant     *tenant.Handler
 	Collection *collection.Handler
+	NFT        *nft.Handler
 }
 
 func NewInputPort(
@@ -40,6 +42,7 @@ func NewInputPort(
 	cu *user.Handler,
 	org *tenant.Handler,
 	co *collection.Handler,
+	nft *nft.Handler,
 ) InputPortServer {
 	// Initialize the ServeMux.
 	mux := http.NewServeMux()
@@ -65,6 +68,7 @@ func NewInputPort(
 		User:       cu,
 		Tenant:     org,
 		Collection: co,
+		NFT:        nft,
 		Server:     srv,
 	}
 
