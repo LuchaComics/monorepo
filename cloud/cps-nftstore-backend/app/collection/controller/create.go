@@ -16,112 +16,103 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/utils/httperror"
 )
 
-func (impl *CollectionControllerImpl) Create(ctx context.Context, m *s_d.Collection) (*s_d.Collection, error) {
-	// Extract from our session the following data.
-	urole, _ := ctx.Value(constants.SessionUserRole).(int8)
-	// uid := ctx.Value(constants.SessionUserID).(primitive.ObjectID)
-	// uname := ctx.Value(constants.SessionUserName).(string)
-	oid, _ := ctx.Value(constants.SessionUserTenantID).(primitive.ObjectID)
-	oname, _ := ctx.Value(constants.SessionUserTenantName).(string)
-	otz, _ := ctx.Value(constants.SessionUserTenantTimezone).(string)
+func (impl *CollectionControllerImpl) Create(ctx context.Context, collection *s_d.Collection) (*s_d.Collection, error) {
+	// Extract user and tenant information from the session context
+	userRole, _ := ctx.Value(constants.SessionUserRole).(int8)
+	// userID := ctx.Value(constants.SessionUserID).(primitive.ObjectID)
+	// userName := ctx.Value(constants.SessionUserName).(string)
+	tenantID, _ := ctx.Value(constants.SessionUserTenantID).(primitive.ObjectID)
+	tenantName, _ := ctx.Value(constants.SessionUserTenantName).(string)
+	tenantTimezone, _ := ctx.Value(constants.SessionUserTenantTimezone).(string)
 
-	switch urole { // Security.
+	// Check if the user has the necessary permissions
+	switch userRole {
 	case u_d.UserRoleRoot:
-		// impl.Logger.Debug("access granted")
-		// Do nothing
+		// Access is granted; proceed with the operation
 	default:
+		// Deny access if the user does not have the 'Root' role
 		return nil, httperror.NewForForbiddenWithSingleField("message", "you do not have permission")
 	}
 
-	////
-	//// Start the transaction.
-	////
-
+	// Start a MongoDB session for transaction management
 	session, err := impl.DbClient.StartSession()
 	if err != nil {
-		impl.Logger.Error("start session error",
-			slog.Any("error", err))
+		impl.Logger.Error("failed to start database session", slog.Any("error", err))
 		return nil, err
 	}
 	defer session.EndSession(ctx)
 
-	// Define a transaction function with a series of operations
+	// Define the transaction function to perform a series of operations atomically
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
-		// Add defaults.
-		m.TenantID = oid
-		m.TenantName = oname
-		m.TenantTimezone = otz
-		m.ID = primitive.NewObjectID()
-		m.CreatedAt = time.Now()
-		m.ModifiedAt = time.Now()
-		m.Status = s_d.StatusActive
+		// Populate collection with default and tenant-specific information
+		collection.TenantID = tenantID
+		collection.TenantName = tenantName
+		collection.TenantTimezone = tenantTimezone
+		collection.ID = primitive.NewObjectID()
+		collection.CreatedAt = time.Now()
+		collection.ModifiedAt = time.Now()
+		collection.Status = s_d.StatusActive
 
-		// DEVELOPERS NOTE:
-		// Every collection has a unique IPNS record, as a result we will need
-		// to generate a new `key` for it. In addition the IPFS RPC returns
-		// the IPNS name.
-
-		keyName := fmt.Sprintf("ipns_key_%s", m.ID.Hex())
-		ipnsName, err := impl.IPFS.GenerateKey(sessCtx, keyName)
+		// Generate a unique IPNS key for the collection
+		ipnsKeyName := fmt.Sprintf("ipns_key_%s", collection.ID.Hex())
+		ipnsName, err := impl.IPFS.GenerateKey(sessCtx, ipnsKeyName)
 		if err != nil {
-			impl.Logger.Error("failed to generate key error",
-				slog.Any("error", err))
+			impl.Logger.Error("failed to generate IPNS key", slog.Any("error", err))
 			return nil, err
 		}
 
-		// Give our collection's directory a custom name.
-		m.IpfsDirectoryName = fmt.Sprintf("%v_metadata", m.ID.Hex())
+		// Set a custom directory name for the collection in IPFS
+		collection.IpfsDirectoryName = fmt.Sprintf("%v_metadata", collection.ID.Hex())
 
-		// Save the IPNS record related data.
-		m.IpnsKeyName = keyName
-		m.IpnsName = ipnsName
+		// Store IPNS-related data in the collection
+		collection.IpnsKeyName = ipnsKeyName
+		collection.IpnsName = ipnsName
 
-		// Create our NFT collections directory and create a sample file named `0`
-		// because our `token_id` increments by one.
-		collectionDirCid, firstTokenFileCid, ipfsApiAddErr := impl.IPFS.UploadContentFromStringWithDirectory(
+		// Create a new directory in IPFS with a sample file named "0" (representing the first token)
+		collectionDirCID, firstTokenFileCID, err := impl.IPFS.UploadContentFromStringWithDirectory(
 			context.Background(),
-			"Hello world via `Collectibles Protective Services`!", // Sample content file...
-			"0", // First token id.
-			m.IpfsDirectoryName)
-		if ipfsApiAddErr != nil {
-			return nil, fmt.Errorf("ipfs failed adding to api: %v\n", ipfsApiAddErr)
-		}
-		impl.Logger.Debug("ipfs storage successfully uploaded",
-			slog.String("collection_cid", collectionDirCid),
-			slog.String("first_token_cid", firstTokenFileCid))
-
-		m.IpfsDirectoryCid = collectionDirCid
-		m.TokensCount = 0
-		m.MetadataFileIpfsCids[0] = firstTokenFileCid
-
-		// Publish our NFT collection directory to IPNS.
-		resIpnsName, ipfsPublishErr := impl.IPFS.PublishToIPNS(sessCtx, keyName, collectionDirCid)
-		if ipfsPublishErr != nil {
-			return nil, fmt.Errorf("ipns failed publishing to api: %v\n", ipfsApiAddErr)
+			"Hello world via `Collectibles Protective Services`!", // Sample content for the file
+			"0", // First token ID
+			collection.IpfsDirectoryName)
+		if err != nil {
+			return nil, fmt.Errorf("failed to add content to IPFS: %v", err)
 		}
 
-		// For defensive code purposes only.
-		if !strings.Contains(ipnsName, resIpnsName) {
-			return nil, fmt.Errorf("ipns error: does not match: %s and %s", ipnsName, resIpnsName)
+		impl.Logger.Debug("successfully uploaded content to IPFS",
+			slog.String("collection_cid", collectionDirCID),
+			slog.String("first_token_cid", firstTokenFileCID))
+
+		// Update collection data with IPFS directory CID and metadata
+		collection.IpfsDirectoryCid = collectionDirCID
+		collection.TokensCount = 0
+		collection.MetadataFileIpfsCids[0] = firstTokenFileCID
+
+		// Publish the collection directory to IPNS
+		resolvedIpnsName, err := impl.IPFS.PublishToIPNS(sessCtx, ipnsKeyName, collectionDirCID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to publish to IPNS: %v", err)
 		}
 
-		// Save to our database.
-		if dbCreateErr := impl.CollectionStorer.Create(sessCtx, m); err != nil {
-			impl.Logger.Error("database create error", slog.Any("error", dbCreateErr))
+		// Ensure the IPNS name matches the resolved name
+		if !strings.Contains(ipnsName, resolvedIpnsName) {
+			return nil, fmt.Errorf("IPNS name mismatch: expected %s, got %s", ipnsName, resolvedIpnsName)
+		}
+
+		// Save the collection data to the database
+		if err := impl.CollectionStorer.Create(sessCtx, collection); err != nil {
+			impl.Logger.Error("failed to save collection to database", slog.Any("error", err))
 			return nil, err
 		}
 
-		return m, nil
+		return collection, nil
 	}
 
-	// Start a transaction
-
-	res, err := session.WithTransaction(ctx, transactionFunc)
+	// Execute the transaction function within a MongoDB session
+	result, err := session.WithTransaction(ctx, transactionFunc)
 	if err != nil {
-		impl.Logger.Error("session failed error",
-			slog.Any("error", err))
+		impl.Logger.Error("transaction failed", slog.Any("error", err))
 		return nil, err
 	}
 
-	return res.(*s_d.Collection), nil
+	return result.(*s_d.Collection), nil
 }
