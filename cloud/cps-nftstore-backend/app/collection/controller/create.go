@@ -62,18 +62,18 @@ func (impl *CollectionControllerImpl) Create(ctx context.Context, collection *s_
 		}
 
 		// Set a custom directory name for the collection in IPFS
-		collection.IpfsDirectoryName = fmt.Sprintf("%v_metadata", collection.ID.Hex())
+		collection.IPFSDirectoryName = fmt.Sprintf("%v_metadata", collection.ID.Hex())
 
 		// Store IPNS-related data in the collection
-		collection.IpnsKeyName = ipnsKeyName
-		collection.IpnsName = ipnsName
+		collection.IPNSKeyName = ipnsKeyName
+		collection.IPNSName = ipnsName
 
 		// Create a new directory in IPFS with a sample file named "0" (representing the first token)
 		collectionDirCID, firstTokenFileCID, err := impl.IPFS.UploadStringToDir(
 			context.Background(),
 			"Hello world via `Collectibles Protective Services`!", // Sample content for the file
 			"0", // First token ID
-			collection.IpfsDirectoryName)
+			collection.IPFSDirectoryName)
 		if err != nil {
 			return nil, fmt.Errorf("failed to add content to IPFS: %v", err)
 		}
@@ -83,19 +83,19 @@ func (impl *CollectionControllerImpl) Create(ctx context.Context, collection *s_
 			slog.String("first_token_cid", firstTokenFileCID))
 
 		// Update collection data with IPFS directory CID and metadata
-		collection.IpfsDirectoryCid = collectionDirCID
+		collection.IPFSDirectoryCID = collectionDirCID
 		collection.TokensCount = 0
-		collection.MetadataFileIpfsCids[0] = firstTokenFileCID
+		collection.MetadataFileCIDs[0] = firstTokenFileCID
 
 		// Publish the collection directory to IPNS
-		resolvedIpnsName, err := impl.IPFS.PublishToIPNS(sessCtx, ipnsKeyName, collectionDirCID)
+		resolvedIPNSName, err := impl.IPFS.PublishToIPNS(sessCtx, ipnsKeyName, collectionDirCID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to publish to IPNS: %v", err)
 		}
 
 		// Ensure the IPNS name matches the resolved name
-		if !strings.Contains(ipnsName, resolvedIpnsName) {
-			return nil, fmt.Errorf("IPNS name mismatch: expected %s, got %s", ipnsName, resolvedIpnsName)
+		if !strings.Contains(ipnsName, resolvedIPNSName) {
+			return nil, fmt.Errorf("IPNS name mismatch: expected %s, got %s", ipnsName, resolvedIPNSName)
 		}
 
 		// Save the collection data to the database

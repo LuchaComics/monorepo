@@ -19,35 +19,20 @@ const (
 )
 
 type Collection struct {
-	TenantID       primitive.ObjectID `bson:"tenant_id" json:"tenant_id"`
-	TenantName     string             `bson:"tenant_name" json:"tenant_name"`
-	TenantTimezone string             `bson:"tenant_timezone" json:"tenant_timezone"`
-	ID             primitive.ObjectID `bson:"_id" json:"id"`
-	Status         int8               `bson:"status" json:"status"`
-	CreatedAt      time.Time          `bson:"created_at,omitempty" json:"created_at,omitempty"`
-	ModifiedAt     time.Time          `bson:"modified_at,omitempty" json:"modified_at,omitempty"`
-
-	// Name variable used to describe internally by staff this collection and this name will not be displayed to custoemrs.
-	Name string `bson:"name" json:"name"`
-
-	// IpnsKeyName variable keeps the unique name specific to this `Collection`.
-	IpnsKeyName string `bson:"ipns_key_name" json:"ipns_key_name"`
-
-	// IpnsName variable is used to keep track of the `IPNS` address of this particular collection.
-	IpnsName string `bson:"ipns_name" json:"ipns_name"`
-
-	// IpfsDirectoryName variable used to organize all this collections nfts to be stored in.
-	IpfsDirectoryName string `bson:"ipfs_directory_name" json:"ipfs_directory_name"`
-
-	// IpfsDirectoryCid variable used to organize all this collections nfts to be stored in.
-	IpfsDirectoryCid string `bson:"ipfs_directory_cid" json:"ipfs_directory_cid"`
-
-	// TokensCount variable keeps track of how many tokens we have in this colleciton.
-	TokensCount uint64 `bson:"tokens_count" json:"tokens_count"`
-
-	// MetadataFileIpfsCids variable contains all the CID values ordered according to the
-	// token's metadata order.
-	MetadataFileIpfsCids []string `bson:"metadata_file_ipfs_cids" json:"metadata_file_ipfs_cids"`
+	TenantID          primitive.ObjectID `bson:"tenant_id" json:"tenant_id"`
+	TenantName        string             `bson:"tenant_name" json:"tenant_name"`
+	TenantTimezone    string             `bson:"tenant_timezone" json:"tenant_timezone"`
+	ID                primitive.ObjectID `bson:"_id" json:"id"`
+	Status            int8               `bson:"status" json:"status"`
+	CreatedAt         time.Time          `bson:"created_at,omitempty" json:"created_at,omitempty"`
+	ModifiedAt        time.Time          `bson:"modified_at,omitempty" json:"modified_at,omitempty"`
+	Name              string             `bson:"name" json:"name"`                                       // Internal name for staff use; not displayed to customers.
+	IPNSKeyName       string             `bson:"ipns_key_name" json:"ipns_key_name"`                     // Unique key name specific to this collection.
+	IPNSName          string             `bson:"ipns_name" json:"ipns_name"`                             // IPNS address of this collection.
+	IPFSDirectoryName string             `bson:"ipfs_directory_name" json:"ipfs_directory_name"`         // Directory name for storing NFTs.
+	IPFSDirectoryCID  string             `bson:"ipfs_directory_cid" json:"ipfs_directory_cid"`           // CID of the directory for storing NFTs.
+	TokensCount       uint64             `bson:"tokens_count" json:"tokens_count"`                       // Number of tokens in this collection.
+	MetadataFileCIDs  []string           `bson:"metadata_file_ipfs_cids" json:"metadata_file_ipfs_cids"` // CIDs for token metadata files.
 }
 
 type CollectionListFilter struct {

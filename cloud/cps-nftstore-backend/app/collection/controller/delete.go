@@ -20,14 +20,14 @@ func (impl *CollectionControllerImpl) DeleteByID(ctx context.Context, id primiti
 		return httperror.NewForBadRequestWithSingleField("id", "collection does not exist")
 	}
 
-	for _, cid := range d.MetadataFileIpfsCids {
+	for _, cid := range d.MetadataFileCIDs {
 		if err := impl.IPFS.Unpin(ctx, cid); err != nil {
 			impl.Logger.Error("ipfs failed unpinning file error", slog.Any("error", err))
 			return err
 		}
 	}
 	impl.Logger.Debug("deleted all nft metadata files from ipfs for this collection")
-	if err := impl.IPFS.Unpin(ctx, d.IpfsDirectoryCid); err != nil {
+	if err := impl.IPFS.Unpin(ctx, d.IPFSDirectoryCID); err != nil {
 		impl.Logger.Error("ipfs failed unpinning directory error", slog.Any("error", err))
 		return err
 	}
