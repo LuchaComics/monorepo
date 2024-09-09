@@ -69,18 +69,19 @@ func (impl *CollectionControllerImpl) Create(ctx context.Context, m *s_d.Collect
 			return nil, err
 		}
 
-		// Give our collection's folder a custom name.
+		// Give our collection's directory a custom name.
 		m.IpfsDirectoryName = fmt.Sprintf("%v_metadata", m.ID.Hex())
 
 		// Save the IPNS record related data.
 		m.IpnsKeyName = keyName
 		m.IpnsName = ipnsName
 
-		// Create our NFT collections folder and create a sample file named `0`
+		// Create our NFT collections directory and create a sample file named `0`
 		// because our `token_id` increments by one.
-		collectionDirCid, firstTokenFileCid, ipfsApiAddErr := impl.IPFS.UploadContentFromStringWithFolder(
+		collectionDirCid, firstTokenFileCid, ipfsApiAddErr := impl.IPFS.UploadContentFromStringWithDirectory(
 			context.Background(),
-			"Hello world via `Collectibles Protective Services`!", "0", // Create a sample file...
+			"Hello world via `Collectibles Protective Services`!", // Sample content file...
+			"0", // First token id.
 			m.IpfsDirectoryName)
 		if ipfsApiAddErr != nil {
 			return nil, fmt.Errorf("ipfs failed adding to api: %v\n", ipfsApiAddErr)
@@ -89,7 +90,11 @@ func (impl *CollectionControllerImpl) Create(ctx context.Context, m *s_d.Collect
 			slog.String("collection_cid", collectionDirCid),
 			slog.String("first_token_cid", firstTokenFileCid))
 
-		// Publish our NFT collection folder to IPNS.
+		m.IpfsDirectoryCid = collectionDirCid
+		m.TokensCount = 0
+		m.MetadataFileIpfsCids[0] = firstTokenFileCid
+
+		// Publish our NFT collection directory to IPNS.
 		resIpnsName, ipfsPublishErr := impl.IPFS.PublishToIPNS(sessCtx, keyName, collectionDirCid)
 		if ipfsPublishErr != nil {
 			return nil, fmt.Errorf("ipns failed publishing to api: %v\n", ipfsApiAddErr)

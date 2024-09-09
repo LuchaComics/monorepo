@@ -525,6 +525,20 @@ function AdminCollectionDetail() {
                       helpText=""
                     />
 
+                    <FormRowText
+                      label="Base URL"
+                      value={collection.ipnsName}
+                      helpText=""
+                    />
+
+                    <FormRowText
+                      label="Tokens Count"
+                      type="number"
+                      value={collection.tokensCount}
+                      helpText=""
+                    />
+
+
                     <div class="columns pt-5">
                       <div class="column is-half">
                         <Link

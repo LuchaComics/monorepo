@@ -26,11 +26,11 @@ import (
 
 type IPFSStorager interface {
 	UploadContentFromString(ctx context.Context, fileContent string) (string, error)
-	UploadContentFromStringWithFolder(ctx context.Context, fileContent string, fileName string, folderName string) (string, string, error)
+	UploadContentFromStringWithDirectory(ctx context.Context, fileContent string, fileName string, directoryName string) (string, string, error)
 	UploadContentFromMulipart(ctx context.Context, file multipart.File) (string, error)
-	UploadContentFromMulipartWithFolder(ctx context.Context, file multipart.File, fileName string, folderName string) (string, string, error)
+	UploadContentFromMulipartWithDirectory(ctx context.Context, file multipart.File, fileName string, directoryName string) (string, string, error)
 	UploadContentFromBytes(ctx context.Context, fileContent []byte) (string, error)
-	UploadContentFromBytesWithFolder(ctx context.Context, fileContent []byte, fileName string, folderName string) (string, string, error)
+	UploadContentFromBytesWithDirectory(ctx context.Context, fileContent []byte, fileName string, directoryName string) (string, string, error)
 	GetContent(ctx context.Context, cidString string) ([]byte, error)
 	PinContent(ctx context.Context, cidString string) error
 	ListPins(ctx context.Context) ([]string, error)
@@ -94,7 +94,7 @@ func NewStorage(appConf *c.Conf, logger *slog.Logger) IPFSStorager {
 	logger.Debug("connected to ipfs node")
 
 	// Try uploading a sample file to verify our ipfs adapter works.
-	sampleDirCid, sampleFileCid, sampleErr := ipfsStorage.UploadContentFromStringWithFolder(context.Background(), "Hello world via `Collectibles Protective Services`!", "sample.txt", "sampledir")
+	sampleDirCid, sampleFileCid, sampleErr := ipfsStorage.UploadContentFromStringWithDirectory(context.Background(), "Hello world via `Collectibles Protective Services`!", "sample.txt", "sampledir")
 	if sampleErr != nil {
 		log.Fatalf("failed uploading sample: %v\n", sampleErr)
 	}
@@ -136,7 +136,7 @@ func (s *ipfsStorager) UploadContentFromString(ctx context.Context, fileContent 
 	return cidString, nil
 }
 
-func (s *ipfsStorager) UploadContentFromStringWithFolder(ctx context.Context, fileContent string, fileName string, folderName string) (string, string, error) {
+func (s *ipfsStorager) UploadContentFromStringWithDirectory(ctx context.Context, fileContent string, fileName string, directoryName string) (string, string, error) {
 	// Debug log the start of the upload process
 	s.logger.Debug("starting to upload file to IPFS")
 
@@ -147,8 +147,8 @@ func (s *ipfsStorager) UploadContentFromStringWithFolder(ctx context.Context, fi
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
 
-	// Create a form file field in the writer and include the folder structure
-	fileField, err := writer.CreateFormFile(folderName+"/"+fileName, fileName)
+	// Create a form file field in the writer and include the directory structure
+	fileField, err := writer.CreateFormFile(directoryName+"/"+fileName, fileName)
 	if err != nil {
 		s.logger.Error("x1")
 		return "", "", fmt.Errorf("failed to create form file field: %v", err)
@@ -168,7 +168,7 @@ func (s *ipfsStorager) UploadContentFromStringWithFolder(ctx context.Context, fi
 		return "", "", fmt.Errorf("failed to close writer: %v", err)
 	}
 
-	// Make the request to IPFS API to add files wrapped within a folder
+	// Make the request to IPFS API to add files wrapped within a directory
 	req, err := http.NewRequest("POST", fmt.Sprintf("http://%s:5001/api/v0/add?wrap-with-directory=true&cid-version=1", s.apiUrl), body)
 	if err != nil {
 		s.logger.Error("x4")
@@ -254,7 +254,7 @@ func (s *ipfsStorager) UploadContentFromMulipart(ctx context.Context, file multi
 	return cidString, nil
 }
 
-func (s *ipfsStorager) UploadContentFromMulipartWithFolder(ctx context.Context, file multipart.File, fileName string, folderName string) (string, string, error) {
+func (s *ipfsStorager) UploadContentFromMulipartWithDirectory(ctx context.Context, file multipart.File, fileName string, directoryName string) (string, string, error) {
 	// Debug log the start of the upload process
 	s.logger.Debug("starting to upload file to IPFS")
 
@@ -265,8 +265,8 @@ func (s *ipfsStorager) UploadContentFromMulipartWithFolder(ctx context.Context, 
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
 
-	// Create a form file field in the writer and include the folder structure
-	fileField, err := writer.CreateFormFile(folderName+"/"+fileName, fileName)
+	// Create a form file field in the writer and include the directory structure
+	fileField, err := writer.CreateFormFile(directoryName+"/"+fileName, fileName)
 	if err != nil {
 		s.logger.Error("x1")
 		return "", "", fmt.Errorf("failed to create form file field: %v", err)
@@ -286,7 +286,7 @@ func (s *ipfsStorager) UploadContentFromMulipartWithFolder(ctx context.Context, 
 		return "", "", fmt.Errorf("failed to close writer: %v", err)
 	}
 
-	// Make the request to IPFS API to add files wrapped within a folder
+	// Make the request to IPFS API to add files wrapped within a directory
 	req, err := http.NewRequest("POST", fmt.Sprintf("http://%s:5001/api/v0/add?wrap-with-directory=true&cid-version=1", s.apiUrl), body)
 	if err != nil {
 		s.logger.Error("x4")
@@ -365,7 +365,7 @@ func (s *ipfsStorager) UploadContentFromBytes(ctx context.Context, fileContent [
 	return cidString, nil
 }
 
-func (s *ipfsStorager) UploadContentFromBytesWithFolder(ctx context.Context, fileContent []byte, fileName string, folderName string) (string, string, error) {
+func (s *ipfsStorager) UploadContentFromBytesWithDirectory(ctx context.Context, fileContent []byte, fileName string, directoryName string) (string, string, error) {
 	// Debug log the start of the upload process
 	s.logger.Debug("starting to upload file to IPFS")
 
@@ -376,8 +376,8 @@ func (s *ipfsStorager) UploadContentFromBytesWithFolder(ctx context.Context, fil
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
 
-	// Create a form file field in the writer and include the folder structure
-	fileField, err := writer.CreateFormFile(folderName+"/"+fileName, fileName)
+	// Create a form file field in the writer and include the directory structure
+	fileField, err := writer.CreateFormFile(directoryName+"/"+fileName, fileName)
 	if err != nil {
 		s.logger.Error("x1")
 		return "", "", fmt.Errorf("failed to create form file field: %v", err)
@@ -397,7 +397,7 @@ func (s *ipfsStorager) UploadContentFromBytesWithFolder(ctx context.Context, fil
 		return "", "", fmt.Errorf("failed to close writer: %v", err)
 	}
 
-	// Make the request to IPFS API to add files wrapped within a folder
+	// Make the request to IPFS API to add files wrapped within a directory
 	req, err := http.NewRequest("POST", fmt.Sprintf("http://%s:5001/api/v0/add?wrap-with-directory=true&cid-version=1", s.apiUrl), body)
 	if err != nil {
 		s.logger.Error("x4")

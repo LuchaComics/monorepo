@@ -124,10 +124,10 @@ function AdminCollectionAdd() {
 
     if (orgName !== undefined && orgName !== null && orgName !== "") {
       // Redirect the collection to a new page.
-      setForceURL("/admin/tenant/" + orgID + "/collections?api_key="+apiKey);
+      setForceURL("/admin/tenant/" + orgID);
     } else {
       // Redirect the collection to a new page.
-      setForceURL("/admin/collection/" + response.id + "?api_key="+apiKey);
+      setForceURL("/admin/collection/" + response.id);
     }
   }
 

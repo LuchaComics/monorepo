@@ -30,18 +30,24 @@ type Collection struct {
 	// Name variable used to describe internally by staff this collection and this name will not be displayed to custoemrs.
 	Name string `bson:"name" json:"name"`
 
-	// IpfsDirectoryName variable used to organize all this collections nfts to be stored in.
-	IpfsDirectoryName string `bson:"ipfs_folder_name" json:"ipfs_folder_name"`
-
 	// IpnsKeyName variable keeps the unique name specific to this `Collection`.
 	IpnsKeyName string `bson:"ipns_key_name" json:"ipns_key_name"`
 
 	// IpnsName variable is used to keep track of the `IPNS` address of this particular collection.
 	IpnsName string `bson:"ipns_name" json:"ipns_name"`
 
-	// TokenID variable keeps track of the current token id in our collection.
-	// Every time we add a new NFT then we increment this value.
-	TokenID uint64 `bson:"token_id" json:"token_id"`
+	// IpfsDirectoryName variable used to organize all this collections nfts to be stored in.
+	IpfsDirectoryName string `bson:"ipfs_directory_name" json:"ipfs_directory_name"`
+
+	// IpfsDirectoryCid variable used to organize all this collections nfts to be stored in.
+	IpfsDirectoryCid string `bson:"ipfs_directory_cid" json:"ipfs_directory_cid"`
+
+	// TokensCount variable keeps track of how many tokens we have in this colleciton.
+	TokensCount uint64 `bson:"tokens_count" json:"tokens_count"`
+
+	// MetadataFileIpfsCids variable contains all the CID values ordered according to the
+	// token's metadata order.
+	MetadataFileIpfsCids []string `bson:"metadata_file_ipfs_cids" json:"metadata_file_ipfs_cids"`
 }
 
 type CollectionListFilter struct {
