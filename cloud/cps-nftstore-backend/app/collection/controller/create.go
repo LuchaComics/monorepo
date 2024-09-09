@@ -2,7 +2,9 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -25,7 +27,8 @@ func (impl *CollectionControllerImpl) Create(ctx context.Context, m *s_d.Collect
 
 	switch urole { // Security.
 	case u_d.UserRoleRoot:
-		impl.Logger.Debug("access granted")
+		// impl.Logger.Debug("access granted")
+		// Do nothing
 	default:
 		return nil, httperror.NewForForbiddenWithSingleField("message", "you do not have permission")
 	}
@@ -50,44 +53,58 @@ func (impl *CollectionControllerImpl) Create(ctx context.Context, m *s_d.Collect
 		m.TenantTimezone = otz
 		m.ID = primitive.NewObjectID()
 		m.CreatedAt = time.Now()
-		// m.CreatedByUserID = uid
-		// m.CreatedByUserName = uname
 		m.ModifiedAt = time.Now()
-		// m.ModifiedByUserID = uid
-		// m.ModifiedByUserName = uname
 		m.Status = s_d.StatusActive
-
-		// Save to our database.
-		if err := impl.CollectionStorer.Create(ctx, m); err != nil {
-			impl.Logger.Error("database create error", slog.Any("error", err))
-			return nil, err
-		}
 
 		// DEVELOPERS NOTE:
 		// Every collection has a unique IPNS record, as a result we will need
-		// to do the following:
-		// 1. Generate new `key`.
-		// 2. Generate a folder for this collection.
-		// 3. Generate a file called `0` and populate it with a random string.
-		// 4. Public this collection's folder to IPNS
-		// 5. Save the IPNS record.
+		// to generate a new `key` for it. In addition the IPFS RPC returns
+		// the IPNS name.
 
-		// Step 1. Generate new `key`.
-		if err := impl.IPFS.GenerateKey(sessCtx, m.ID.Hex()); err != nil {
+		keyName := fmt.Sprintf("ipns_key_%s", m.ID.Hex())
+		ipnsName, err := impl.IPFS.GenerateKey(sessCtx, keyName)
+		if err != nil {
+			impl.Logger.Error("failed to generate key error",
+				slog.Any("error", err))
 			return nil, err
 		}
 
-		// Step 2. Generate a folder for this collection.
-		//TODO: Impl.
+		// Give our collection's folder a custom name.
+		m.IpfsDirectoryName = fmt.Sprintf("%v_metadata", m.ID.Hex())
 
-		// Step 3. Generate a file called `0` and populate it with a random string.
-		//TODO: Impl.
+		// Save the IPNS record related data.
+		m.IpnsKeyName = keyName
+		m.IpnsName = ipnsName
 
-		// 4. Public this collection's folder to IPNS
-		//TODO: Impl.
+		// Create our NFT collections folder and create a sample file named `0`
+		// because our `token_id` increments by one.
+		collectionDirCid, firstTokenFileCid, ipfsApiAddErr := impl.IPFS.UploadContentFromStringWithFolder(
+			context.Background(),
+			"Hello world via `Collectibles Protective Services`!", "0", // Create a sample file...
+			m.IpfsDirectoryName)
+		if ipfsApiAddErr != nil {
+			return nil, fmt.Errorf("ipfs failed adding to api: %v\n", ipfsApiAddErr)
+		}
+		impl.Logger.Debug("ipfs storage successfully uploaded",
+			slog.String("collection_cid", collectionDirCid),
+			slog.String("first_token_cid", firstTokenFileCid))
 
-		// 5. Save the IPNS record.
-		//TODO: Impl.
+		// Publish our NFT collection folder to IPNS.
+		resIpnsName, ipfsPublishErr := impl.IPFS.PublishToIPNS(sessCtx, keyName, collectionDirCid)
+		if ipfsPublishErr != nil {
+			return nil, fmt.Errorf("ipns failed publishing to api: %v\n", ipfsApiAddErr)
+		}
+
+		// For defensive code purposes only.
+		if !strings.Contains(ipnsName, resIpnsName) {
+			return nil, fmt.Errorf("ipns error: does not match: %s and %s", ipnsName, resIpnsName)
+		}
+
+		// Save to our database.
+		if dbCreateErr := impl.CollectionStorer.Create(sessCtx, m); err != nil {
+			impl.Logger.Error("database create error", slog.Any("error", dbCreateErr))
+			return nil, err
+		}
 
 		return m, nil
 	}

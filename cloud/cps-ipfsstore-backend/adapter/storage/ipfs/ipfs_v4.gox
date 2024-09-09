@@ -18,10 +18,9 @@ import (
 	"github.com/ipfs/go-cid"
 	ipfsFiles "github.com/ipfs/go-ipfs-files"
 	"github.com/ipfs/kubo/client/rpc"
-	"github.com/ipfs/kubo/core/coreiface/options"
 	ma "github.com/multiformats/go-multiaddr"
 
-	c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/config"
+	c "github.com/LuchaComics/monorepo/cloud/cps-ipfsstore-backend/config"
 )
 
 type IPFSStorager interface {
@@ -35,10 +34,7 @@ type IPFSStorager interface {
 	PinContent(ctx context.Context, cidString string) error
 	ListPins(ctx context.Context) ([]string, error)
 	UnpinContent(ctx context.Context, cidString string) error
-
-	// Generates a new IPNS name
-	GenerateKey(ctx context.Context, keyName string) (string, error)
-	PublishToIPNS(ctx context.Context, keyName string, dirCid string) (string, error)
+	GenerateKey(ctx context.Context, keyName string) error
 	Shutdown()
 }
 
@@ -565,64 +561,14 @@ func (s *ipfsStorager) UnpinContent(ctx context.Context, cidString string) error
 	return nil
 }
 
-func (s *ipfsStorager) GenerateKey(ctx context.Context, keyName string) (string, error) {
-	key, err := s.api.Key().Generate(ctx, keyName)
+func (s *ipfsStorager) GenerateKey(ctx context.Context, keyName string) error {
+	// Fetch the pinned items channel
+	key, err := s.api.Key().Generate(ctx, keyName, nil)
 	if err != nil {
-		return "", fmt.Errorf("failed to list pinned items: %v", err)
+		return fmt.Errorf("failed to list pinned items: %v", err)
 	}
-	if key == nil {
-		return "", fmt.Errorf("nil key")
-	}
-	// fmt.Println("name:", key.Name())
-	// fmt.Println("path:", key.Path())
-	// fmt.Println("id:", key.ID())
-	return key.Path().String(), nil
-}
-
-func (s *ipfsStorager) PublishToIPNS(ctx context.Context, keyName string, directoryCidString string) (string, error) {
-	directoryCid, err := cid.Decode(directoryCidString)
-	if err != nil {
-		s.logger.Error("failed to decode", slog.String("dir_cid", directoryCidString), slog.Any("error", err))
-		return "", fmt.Errorf("failed to decode directory CID: %v", err)
-	}
-
-	// Convert the CID to a path.Path
-	ipfsPath := path.FromCid(directoryCid)
-
-	// Define the option functions
-	optKey := func(settings *options.NamePublishSettings) error {
-		settings.Key = keyName
-		return nil
-	}
-	optValidTime := func(settings *options.NamePublishSettings) error {
-		settings.ValidTime = 24 * time.Hour
-		return nil
-	}
-	optCompatibleWithV1 := func(settings *options.NamePublishSettings) error {
-		settings.CompatibleWithV1 = true
-		return nil
-	}
-	optAllowOffline := func(settings *options.NamePublishSettings) error {
-		settings.AllowOffline = true
-		return nil
-	}
-
-	// Call the IPFS API with the option functions directly
-	res, err := s.api.Name().Publish(ctx, ipfsPath, optKey, optValidTime, optCompatibleWithV1, optAllowOffline)
-	if err != nil {
-		return "", fmt.Errorf("failed to publish to IPNS: %v", err)
-	}
-
-	// Log and return the result
-	log.Println(res)
-	log.Println(res.RoutingKey())
-	log.Println(res.Cid())
-	log.Println(res.Peer())
-	log.Println(res.String())
-	log.Println(res.AsPath())
-	log.Println(res.String())
-
-	return res.String(), nil
+	fmt.Println(key)
+	return nil
 }
 
 func (impl *ipfsStorager) Shutdown() {

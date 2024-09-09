@@ -27,28 +27,21 @@ type Collection struct {
 	CreatedAt      time.Time          `bson:"created_at,omitempty" json:"created_at,omitempty"`
 	ModifiedAt     time.Time          `bson:"modified_at,omitempty" json:"modified_at,omitempty"`
 
-	// Name variable to track user name description of this collection.
+	// Name variable used to describe internally by staff this collection and this name will not be displayed to custoemrs.
 	Name string `bson:"name" json:"name"`
+
+	// IpfsDirectoryName variable used to organize all this collections nfts to be stored in.
+	IpfsDirectoryName string `bson:"ipfs_folder_name" json:"ipfs_folder_name"`
+
+	// IpnsKeyName variable keeps the unique name specific to this `Collection`.
+	IpnsKeyName string `bson:"ipns_key_name" json:"ipns_key_name"`
 
 	// IpnsName variable is used to keep track of the `IPNS` address of this particular collection.
 	IpnsName string `bson:"ipns_name" json:"ipns_name"`
 
-	//TODO: Add more IPNS management stuff.
-
-	// [DEPRECATED]
-	// SecretHashAlgorithm is the name of the hashing algorithm used for the secret value. Do not return in the API endpoint.
-	SecretHashAlgorithm string `bson:"secret_hash_algorithm" json:"-"`
-
-	// [DEPRECATED]
-	// SecretHash is a random value which is returned to the client (so the client only knows the plaintext value) while
-	// the server stores the hash of the value. This is used for our API token authentication for this specific collection.
-	// Do not return in the API endpoint.
-	SecretHash string `bson:"secret_hash" json:"-"`
-
-	// [DEPRECATED]
-	// ApiKey variable used only during the initial collection creation step
-	// afterwords this value is not saved for security purposes.
-	ApiKey string `bson:"-" json:"api_key,omitempty"`
+	// TokenID variable keeps track of the current token id in our collection.
+	// Every time we add a new NFT then we increment this value.
+	TokenID uint64 `bson:"token_id" json:"token_id"`
 }
 
 type CollectionListFilter struct {

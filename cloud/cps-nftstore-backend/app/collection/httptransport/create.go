@@ -51,21 +51,19 @@ func ValidateCreateRequest(dirtyData *sub_s.Collection) error {
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	data, err := UnmarshalCreateRequest(ctx, r)
+	payload, err := UnmarshalCreateRequest(ctx, r)
 	if err != nil {
 		httperror.ResponseError(w, err)
 		return
 	}
 
-	log.Println("data:", data)
-
-	data, err = h.Controller.Create(ctx, data)
+	res, err := h.Controller.Create(ctx, payload)
 	if err != nil {
 		httperror.ResponseError(w, err)
 		return
 	}
 
-	MarshalCreateResponse(data, w)
+	MarshalCreateResponse(res, w)
 }
 
 func MarshalCreateResponse(res *sub_s.Collection, w http.ResponseWriter) {
