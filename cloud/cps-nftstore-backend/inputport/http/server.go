@@ -10,7 +10,7 @@ import (
 
 	collection "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/collection/httptransport"
 	gateway "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/httptransport"
-	nft "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nft/httptransport"
+	nftmetadata "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/httptransport"
 	tenant "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/httptransport"
 	user "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/httptransport"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/config"
@@ -23,15 +23,15 @@ type InputPortServer interface {
 }
 
 type httpInputPort struct {
-	Config     *config.Conf
-	Logger     *slog.Logger
-	Server     *http.Server
-	Middleware middleware.Middleware
-	Gateway    *gateway.Handler
-	User       *user.Handler
-	Tenant     *tenant.Handler
-	Collection *collection.Handler
-	NFT        *nft.Handler
+	Config      *config.Conf
+	Logger      *slog.Logger
+	Server      *http.Server
+	Middleware  middleware.Middleware
+	Gateway     *gateway.Handler
+	User        *user.Handler
+	Tenant      *tenant.Handler
+	Collection  *collection.Handler
+	NFTMetadata *nftmetadata.Handler
 }
 
 func NewInputPort(
@@ -42,7 +42,7 @@ func NewInputPort(
 	cu *user.Handler,
 	org *tenant.Handler,
 	co *collection.Handler,
-	nft *nft.Handler,
+	nftmetadata *nftmetadata.Handler,
 ) InputPortServer {
 	// Initialize the ServeMux.
 	mux := http.NewServeMux()
@@ -61,15 +61,15 @@ func NewInputPort(
 
 	// Create our HTTP server controller.
 	p := &httpInputPort{
-		Config:     configp,
-		Logger:     loggerp,
-		Middleware: mid,
-		Gateway:    gh,
-		User:       cu,
-		Tenant:     org,
-		Collection: co,
-		NFT:        nft,
-		Server:     srv,
+		Config:      configp,
+		Logger:      loggerp,
+		Middleware:  mid,
+		Gateway:     gh,
+		User:        cu,
+		Tenant:      org,
+		Collection:  co,
+		NFTMetadata: nftmetadata,
+		Server:      srv,
 	}
 
 	// Attach the HTTP server controller to the ServerMux.
@@ -195,16 +195,16 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 		port.Collection.DeleteByID(w, r, p[3])
 
 	// --- NFTS --- //
-	case n == 3 && p[1] == "v1" && p[2] == "nfts" && r.Method == http.MethodGet:
-		port.NFT.List(w, r)
-	case n == 3 && p[1] == "v1" && p[2] == "nfts" && r.Method == http.MethodPost:
-		port.NFT.Create(w, r)
-	case n == 4 && p[1] == "v1" && p[2] == "nft" && r.Method == http.MethodGet:
-		port.NFT.GetByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "nft" && r.Method == http.MethodPut:
-		port.NFT.UpdateByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "nft" && r.Method == http.MethodDelete:
-		port.NFT.DeleteByID(w, r, p[3])
+	case n == 3 && p[1] == "v1" && p[2] == "nft-metadata" && r.Method == http.MethodGet:
+		port.NFTMetadata.List(w, r)
+	case n == 3 && p[1] == "v1" && p[2] == "nft-metadata" && r.Method == http.MethodPost:
+		port.NFTMetadata.Create(w, r)
+	case n == 4 && p[1] == "v1" && p[2] == "nft-metadat" && r.Method == http.MethodGet:
+		port.NFTMetadata.GetByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "nft-metadatum" && r.Method == http.MethodPut:
+		port.NFTMetadata.UpdateByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "nft-metadatum" && r.Method == http.MethodDelete:
+		port.NFTMetadata.DeleteByID(w, r, p[3])
 
 	// --- CATCH ALL: D.N.E. ---
 	default:

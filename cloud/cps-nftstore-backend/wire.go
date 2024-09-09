@@ -17,9 +17,9 @@ import (
 	collection_http "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/collection/httptransport"
 	gateway_c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/controller"
 	gateway_http "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/httptransport"
-	nft_c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nft/controller"
-	nft_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nft/datastore"
-	nft_http "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nft/httptransport"
+	nftmetadata_c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/controller"
+	nftmetadata_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/datastore"
+	nftmetadata_http "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/httptransport"
 	tenant_c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/controller"
 	tenant_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/datastore"
 	tenant_http "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/httptransport"
@@ -59,8 +59,8 @@ func InitializeEvent() Application {
 		ipfs_storage.NewStorage,
 		user_s.NewDatastore,
 		user_c.NewController,
-		nft_s.NewDatastore,
-		nft_c.NewController,
+		nftmetadata_s.NewDatastore,
+		nftmetadata_c.NewController,
 		collection_s.NewDatastore,
 		collection_c.NewController,
 		tenant_s.NewDatastore,
@@ -68,7 +68,7 @@ func InitializeEvent() Application {
 		gateway_c.NewController,
 		gateway_http.NewHandler,
 		user_http.NewHandler,
-		nft_http.NewHandler,
+		nftmetadata_http.NewHandler,
 		collection_http.NewHandler,
 		tenant_http.NewHandler,
 		middleware.NewMiddleware,

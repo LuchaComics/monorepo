@@ -137,9 +137,9 @@ export const CPS_USER_CHANGE_PASSWORD_OPERATION_API_ENDPOINT =
   export const CPS_PROJECT_CHANGE_PASSWORD_OPERATION_API_ENDPOINT =
     HTTP_API_SERVER + "/api/v1/collections/operations/change-password";
 
-// NFT
-export const CPS_NFTS_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/nfts";
-export const CPS_NFT_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/nft/{id}";
+// NFT Metadata
+export const CPS_NFT_METADATA_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/nft-metadata";
+export const CPS_NFT_METADATUM_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/nft-metadatum/{id}";
 
 // Pin
 export const CPS_PIN_CONTENT_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/pin/{id}/content";

@@ -24,17 +24,17 @@ import AdminCollectionList from "./Components/Admin/Collection/List/View";
 import AdminCollectionAdd from "./Components/Admin/Collection/Add/View";
 import AdminCollectionDetail from "./Components/Admin/Collection/Detail/View";
 import AdminCollectionUpdate from "./Components/Admin/Collection/Update/View";
-import AdminCollectionDetailForNFTList from "./Components/Admin/Collection/Detail/NFT/ListView";
-import AdminCollectionNFTAdd from "./Components/Admin/Collection/Detail/NFT/Add";
-// import AdminCollectionNFTAddViaWebService from "./Components/Admin/Collection/Detail/NFT/AddViaWS";
-// import AdminCollectionNFTDetail from "./Components/Admin/Collection/Detail/NFT/Detail";
-// import AdminCollectionNFTUpdate from "./Components/Admin/Collection/Detail/NFT/Update";
+import AdminCollectionDetailForNFTMetadataList from "./Components/Admin/Collection/Detail/NFTMetadata/ListView";
+import AdminCollectionNFTMetadataAdd from "./Components/Admin/Collection/Detail/NFTMetadata/Add";
+// import AdminCollectionNFTMetadataAddViaWebService from "./Components/Admin/Collection/Detail/NFTMetadata/AddViaWS";
+// import AdminCollectionNFTMetadataDetail from "./Components/Admin/Collection/Detail/NFTMetadata/Detail";
+// import AdminCollectionNFTMetadataUpdate from "./Components/Admin/Collection/Detail/NFTMetadata/Update";
 
-import AdminCollectionDetailForPinObjectList from "./Components/Admin/Collection/Detail/PinObject/ListView";
-import AdminCollectionPinObjectAdd from "./Components/Admin/Collection/Detail/PinObject/Add";
-import AdminCollectionPinObjectAddViaWebService from "./Components/Admin/Collection/Detail/PinObject/AddViaWS";
-import AdminCollectionPinObjectDetail from "./Components/Admin/Collection/Detail/PinObject/Detail";
-import AdminCollectionPinObjectUpdate from "./Components/Admin/Collection/Detail/PinObject/Update";
+import AdminCollectionDetailForNFTAssetList from "./Components/Admin/Collection/Detail/NFTAsset/ListView";
+import AdminCollectionNFTAssetAdd from "./Components/Admin/Collection/Detail/NFTAsset/Add";
+import AdminCollectionNFTAssetAddViaWebService from "./Components/Admin/Collection/Detail/NFTAsset/AddViaWS";
+import AdminCollectionNFTAssetDetail from "./Components/Admin/Collection/Detail/NFTAsset/Detail";
+import AdminCollectionNFTAssetUpdate from "./Components/Admin/Collection/Detail/NFTAsset/Update";
 import AdminCollectionDetailMore from "./Components/Admin/Collection/Detail/More/View";
 
 // Users
@@ -186,29 +186,29 @@ function AppRoute() {
                   {/* Collection NFTs */}
                   <Route
                     exact
-                    path="/admin/collection/:id/nfts"
-                    element={<AdminCollectionDetailForNFTList />}
+                    path="/admin/collection/:id/nft-metadatas"
+                    element={<AdminCollectionDetailForNFTMetadataList />}
                   />
                   <Route
                     exact
-                    path="/admin/collection/:id/nfts/add"
-                    element={<AdminCollectionNFTAdd />}
+                    path="/admin/collection/:id/nft-metadatas/add"
+                    element={<AdminCollectionNFTMetadataAdd />}
                   />
                   {/*
                   <Route
                     exact
                     path="/admin/collection/:id/nfts/add-via-ws"
-                    element={<AdminCollectionNFTAddViaWebService />}
+                    element={<AdminCollectionNFTMetadataAddViaWebService />}
                   />
                   <Route
                     exact
                     path="/admin/collection/:id/nft/:rid"
-                    element={<AdminCollectionNFTDetail />}
+                    element={<AdminCollectionNFTMetadataDetail />}
                   />
                   <Route
                     exact
                     path="/admin/collection/:id/nft/:rid/edit"
-                    element={<AdminCollectionNFTUpdate />}
+                    element={<AdminCollectionNFTMetadataUpdate />}
                   />
                   */}
 
@@ -216,26 +216,26 @@ function AppRoute() {
                   <Route
                     exact
                     path="/admin/collection/:id/pins"
-                    element={<AdminCollectionDetailForPinObjectList />}
+                    element={<AdminCollectionDetailForNFTAssetList />}
                   />
                   <Route
                     exact
                     path="/admin/collection/:id/pins/add"
-                    element={<AdminCollectionPinObjectAdd />}
+                    element={<AdminCollectionNFTAssetAdd />}
                   /><Route
                     exact
                     path="/admin/collection/:id/pins/add-via-ws"
-                    element={<AdminCollectionPinObjectAddViaWebService />}
+                    element={<AdminCollectionNFTAssetAddViaWebService />}
                   />
                   <Route
                     exact
                     path="/admin/collection/:id/pin/:rid"
-                    element={<AdminCollectionPinObjectDetail />}
+                    element={<AdminCollectionNFTAssetDetail />}
                   />
                   <Route
                     exact
                     path="/admin/collection/:id/pin/:rid/edit"
-                    element={<AdminCollectionPinObjectUpdate />}
+                    element={<AdminCollectionNFTAssetUpdate />}
                   />
                   {/* User */}
                   <Route

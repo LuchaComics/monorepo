@@ -406,12 +406,12 @@ function AdminCollectionDetail() {
                 </div>
                 {collection && collection.status === 1 && <div class="column has-text-right">
                   <Link
-                    to={`/admin/collection/${collection.id}/nfts/add`}
+                    to={`/admin/collection/${collection.id}/nft-metadatas/add`}
                     class="button is-small is-success is-fullwidth-mobile"
                     type="button"
                   >
                     <FontAwesomeIcon className="mdi" icon={faPlus} />
-                    &nbsp;NFT
+                    &nbsp;NFT Metadata
                   </Link>
                   &nbsp;&nbsp;
                   <Link
@@ -474,8 +474,8 @@ function AdminCollectionDetail() {
                           </Link>
                         </li>
                         <li>
-                          <Link to={`/admin/collection/${collection.id}/nfts`}>
-                            NFT
+                          <Link to={`/admin/collection/${collection.id}/nft-metadatas`}>
+                            NFT Metadata
                           </Link>
                         </li>
                         <li>

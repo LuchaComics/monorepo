@@ -18,9 +18,9 @@ import (
 	httptransport4 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/collection/httptransport"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/controller"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/httptransport"
-	controller5 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nft/controller"
-	datastore4 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nft/datastore"
-	httptransport5 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nft/httptransport"
+	controller5 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/controller"
+	datastore4 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/datastore"
+	httptransport5 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/httptransport"
 	controller3 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/controller"
 	datastore2 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/datastore"
 	httptransport3 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/httptransport"
@@ -73,9 +73,9 @@ func InitializeEvent() Application {
 	collectionStorer := datastore3.NewDatastore(conf, slogLogger, client)
 	collectionController := controller4.NewController(conf, slogLogger, provider, jwtProvider, kmutexProvider, passwordProvider, ipfsStorager, client, tenantStorer, collectionStorer, userStorer)
 	handler3 := httptransport4.NewHandler(slogLogger, collectionController)
-	nftStorer := datastore4.NewDatastore(conf, slogLogger, client)
-	nftController := controller5.NewController(conf, slogLogger, provider, jwtProvider, kmutexProvider, passwordProvider, ipfsStorager, client, tenantStorer, nftStorer, userStorer)
-	handler4 := httptransport5.NewHandler(slogLogger, nftController)
+	nftMetadataStorer := datastore4.NewDatastore(conf, slogLogger, client)
+	nftMetadataController := controller5.NewController(conf, slogLogger, provider, jwtProvider, kmutexProvider, passwordProvider, ipfsStorager, client, tenantStorer, nftMetadataStorer, userStorer)
+	handler4 := httptransport5.NewHandler(slogLogger, nftMetadataController)
 	inputPortServer := http.NewInputPort(conf, slogLogger, middlewareMiddleware, handler, httptransportHandler, handler2, handler3, handler4)
 	application := NewApplication(slogLogger, inputPortServer)
 	return application
