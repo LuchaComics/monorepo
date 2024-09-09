@@ -406,12 +406,12 @@ function AdminCollectionDetail() {
                 </div>
                 {collection && collection.status === 1 && <div class="column has-text-right">
                   <Link
-                    to={`/admin/collection/${collection.id}/pins/add`}
+                    to={`/admin/collection/${collection.id}/nfts/add`}
                     class="button is-small is-success is-fullwidth-mobile"
                     type="button"
                   >
                     <FontAwesomeIcon className="mdi" icon={faPlus} />
-                    &nbsp;Pin
+                    &nbsp;NFT
                   </Link>
                   &nbsp;&nbsp;
                   <Link
@@ -474,8 +474,8 @@ function AdminCollectionDetail() {
                           </Link>
                         </li>
                         <li>
-                          <Link to={`/admin/collection/${collection.id}/pins`}>
-                            Pins
+                          <Link to={`/admin/collection/${collection.id}/nfts`}>
+                            NFT
                           </Link>
                         </li>
                         <li>
@@ -566,12 +566,14 @@ function AdminCollectionDetail() {
           </nav>
 
           {/* Bottom Page Logout Link  */}
+          {/*
           <div className="has-text-right has-text-grey">
-            <Link to={`/admin/collection/${id}/pins/add-via-ws`} className="has-text-grey">
+            <Link to={`/admin/collection/${id}/nfts/add-via-ws`} className="has-text-grey">
               Add Pin via Web-Service API&nbsp;
               <FontAwesomeIcon className="mdi" icon={faArrowRight} />
             </Link>
           </div>
+          */}
         </section>
       </div>
     </>

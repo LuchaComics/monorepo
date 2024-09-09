@@ -24,6 +24,12 @@ import AdminCollectionList from "./Components/Admin/Collection/List/View";
 import AdminCollectionAdd from "./Components/Admin/Collection/Add/View";
 import AdminCollectionDetail from "./Components/Admin/Collection/Detail/View";
 import AdminCollectionUpdate from "./Components/Admin/Collection/Update/View";
+import AdminCollectionDetailForNFTList from "./Components/Admin/Collection/Detail/NFT/ListView";
+import AdminCollectionNFTAdd from "./Components/Admin/Collection/Detail/NFT/Add";
+// import AdminCollectionNFTAddViaWebService from "./Components/Admin/Collection/Detail/NFT/AddViaWS";
+// import AdminCollectionNFTDetail from "./Components/Admin/Collection/Detail/NFT/Detail";
+// import AdminCollectionNFTUpdate from "./Components/Admin/Collection/Detail/NFT/Update";
+
 import AdminCollectionDetailForPinObjectList from "./Components/Admin/Collection/Detail/PinObject/ListView";
 import AdminCollectionPinObjectAdd from "./Components/Admin/Collection/Detail/PinObject/Add";
 import AdminCollectionPinObjectAddViaWebService from "./Components/Admin/Collection/Detail/PinObject/AddViaWS";
@@ -176,6 +182,37 @@ function AppRoute() {
                     path="/admin/collection/:id/more"
                     element={<AdminCollectionDetailMore />}
                   />
+
+                  {/* Collection NFTs */}
+                  <Route
+                    exact
+                    path="/admin/collection/:id/nfts"
+                    element={<AdminCollectionDetailForNFTList />}
+                  />
+                  <Route
+                    exact
+                    path="/admin/collection/:id/nfts/add"
+                    element={<AdminCollectionNFTAdd />}
+                  />
+                  {/*
+                  <Route
+                    exact
+                    path="/admin/collection/:id/nfts/add-via-ws"
+                    element={<AdminCollectionNFTAddViaWebService />}
+                  />
+                  <Route
+                    exact
+                    path="/admin/collection/:id/nft/:rid"
+                    element={<AdminCollectionNFTDetail />}
+                  />
+                  <Route
+                    exact
+                    path="/admin/collection/:id/nft/:rid/edit"
+                    element={<AdminCollectionNFTUpdate />}
+                  />
+                  */}
+
+                  {/* Collection Pins */}
                   <Route
                     exact
                     path="/admin/collection/:id/pins"

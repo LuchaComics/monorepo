@@ -194,6 +194,18 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 	case n == 4 && p[1] == "v1" && p[2] == "collection" && r.Method == http.MethodDelete:
 		port.Collection.DeleteByID(w, r, p[3])
 
+	// --- NFTS --- //
+	case n == 3 && p[1] == "v1" && p[2] == "nfts" && r.Method == http.MethodGet:
+		port.NFT.List(w, r)
+	case n == 3 && p[1] == "v1" && p[2] == "nfts" && r.Method == http.MethodPost:
+		port.NFT.Create(w, r)
+	case n == 4 && p[1] == "v1" && p[2] == "nft" && r.Method == http.MethodGet:
+		port.NFT.GetByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "nft" && r.Method == http.MethodPut:
+		port.NFT.UpdateByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "nft" && r.Method == http.MethodDelete:
+		port.NFT.DeleteByID(w, r, p[3])
+
 	// --- CATCH ALL: D.N.E. ---
 	default:
 		port.Logger.Debug("404 request",
