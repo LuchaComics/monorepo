@@ -25,20 +25,29 @@ import (
 )
 
 type IPFSStorager interface {
-	UploadContentFromString(ctx context.Context, fileContent string) (string, error)
-	UploadContentFromStringWithDirectory(ctx context.Context, fileContent string, fileName string, directoryName string) (string, string, error)
-	UploadContentFromMulipart(ctx context.Context, file multipart.File) (string, error)
-	UploadContentFromMulipartWithDirectory(ctx context.Context, file multipart.File, fileName string, directoryName string) (string, string, error)
-	UploadContentFromBytes(ctx context.Context, fileContent []byte) (string, error)
-	UploadContentFromBytesWithDirectory(ctx context.Context, fileContent []byte, fileName string, directoryName string) (string, string, error)
-	GetContent(ctx context.Context, cidString string) ([]byte, error)
-	PinContent(ctx context.Context, cidString string) error
-	ListPins(ctx context.Context) ([]string, error)
-	UnpinContent(ctx context.Context, cidString string) error
+	// Uploads content to IPFS from different sources
+	UploadString(ctx context.Context, content string) (cid string, err error)
+	UploadBytes(ctx context.Context, content []byte) (cid string, err error)
+	UploadMultipart(ctx context.Context, file multipart.File) (cid string, err error)
 
-	// Generates a new IPNS name
-	GenerateKey(ctx context.Context, keyName string) (string, error)
-	PublishToIPNS(ctx context.Context, keyName string, dirCid string) (string, error)
+	// Uploads content to IPFS within a specified directory
+	UploadStringToDir(ctx context.Context, content, fileName, dirName string) (dirCid, fileCid string, err error)
+	UploadBytesToDir(ctx context.Context, content []byte, fileName, dirName string) (dirCid, fileCid string, err error)
+	UploadMultipartToDir(ctx context.Context, file multipart.File, fileName, dirName string) (dirCid, fileCid string, err error)
+
+	// Retrieves content from IPFS
+	Get(ctx context.Context, cid string) ([]byte, error)
+
+	// Manages pinning of content in IPFS
+	Pin(ctx context.Context, cid string) error
+	Unpin(ctx context.Context, cid string) error
+	ListPins(ctx context.Context) ([]string, error)
+
+	// IPNS-related methods
+	GenerateKey(ctx context.Context, keyName string) (ipnsName string, err error)
+	PublishToIPNS(ctx context.Context, keyName, dirCid string) (ipnsName string, err error)
+
+	// Shutdown the IPFS service
 	Shutdown()
 }
 
@@ -94,7 +103,7 @@ func NewStorage(appConf *c.Conf, logger *slog.Logger) IPFSStorager {
 	logger.Debug("connected to ipfs node")
 
 	// Try uploading a sample file to verify our ipfs adapter works.
-	sampleDirCid, sampleFileCid, sampleErr := ipfsStorage.UploadContentFromStringWithDirectory(context.Background(), "Hello world via `Collectibles Protective Services`!", "sample.txt", "sampledir")
+	sampleDirCid, sampleFileCid, sampleErr := ipfsStorage.UploadStringToDir(context.Background(), "Hello world via `Collectibles Protective Services`!", "sample.txt", "sampledir")
 	if sampleErr != nil {
 		log.Fatalf("failed uploading sample: %v\n", sampleErr)
 	}
@@ -120,7 +129,7 @@ type ipfsApiAddResponse struct {
 	Size string `json:"Size"`
 }
 
-func (s *ipfsStorager) UploadContentFromString(ctx context.Context, fileContent string) (string, error) {
+func (s *ipfsStorager) UploadString(ctx context.Context, fileContent string) (string, error) {
 	// Create a reader for the file content
 	content := strings.NewReader(fileContent)
 
@@ -136,7 +145,7 @@ func (s *ipfsStorager) UploadContentFromString(ctx context.Context, fileContent 
 	return cidString, nil
 }
 
-func (s *ipfsStorager) UploadContentFromStringWithDirectory(ctx context.Context, fileContent string, fileName string, directoryName string) (string, string, error) {
+func (s *ipfsStorager) UploadStringToDir(ctx context.Context, fileContent string, fileName string, directoryName string) (string, string, error) {
 	// Debug log the start of the upload process
 	s.logger.Debug("starting to upload file to IPFS")
 
@@ -234,7 +243,7 @@ func (s *ipfsStorager) UploadContentFromStringWithDirectory(ctx context.Context,
 	return dirCid, fileCid, nil
 }
 
-func (s *ipfsStorager) UploadContentFromMulipart(ctx context.Context, file multipart.File) (string, error) {
+func (s *ipfsStorager) UploadMultipart(ctx context.Context, file multipart.File) (string, error) {
 	// Debug log the start of the upload process
 	s.logger.Debug("starting to upload file to IPFS")
 
@@ -254,7 +263,7 @@ func (s *ipfsStorager) UploadContentFromMulipart(ctx context.Context, file multi
 	return cidString, nil
 }
 
-func (s *ipfsStorager) UploadContentFromMulipartWithDirectory(ctx context.Context, file multipart.File, fileName string, directoryName string) (string, string, error) {
+func (s *ipfsStorager) UploadMultipartToDir(ctx context.Context, file multipart.File, fileName string, directoryName string) (string, string, error) {
 	// Debug log the start of the upload process
 	s.logger.Debug("starting to upload file to IPFS")
 
@@ -352,7 +361,7 @@ func (s *ipfsStorager) UploadContentFromMulipartWithDirectory(ctx context.Contex
 	return dirCid, fileCid, nil
 }
 
-func (s *ipfsStorager) UploadContentFromBytes(ctx context.Context, fileContent []byte) (string, error) {
+func (s *ipfsStorager) UploadBytes(ctx context.Context, fileContent []byte) (string, error) {
 	content := bytes.NewReader(fileContent) // THIS IS WRONG PLEASE REPAIR
 	cid, err := s.api.Unixfs().Add(context.Background(), ipfsFiles.NewReaderFile(content))
 	if err != nil {
@@ -365,7 +374,7 @@ func (s *ipfsStorager) UploadContentFromBytes(ctx context.Context, fileContent [
 	return cidString, nil
 }
 
-func (s *ipfsStorager) UploadContentFromBytesWithDirectory(ctx context.Context, fileContent []byte, fileName string, directoryName string) (string, string, error) {
+func (s *ipfsStorager) UploadBytesToDir(ctx context.Context, fileContent []byte, fileName string, directoryName string) (string, string, error) {
 	// Debug log the start of the upload process
 	s.logger.Debug("starting to upload file to IPFS")
 
@@ -463,7 +472,7 @@ func (s *ipfsStorager) UploadContentFromBytesWithDirectory(ctx context.Context, 
 	return dirCid, fileCid, nil
 }
 
-func (s *ipfsStorager) GetContent(ctx context.Context, cidString string) ([]byte, error) {
+func (s *ipfsStorager) Get(ctx context.Context, cidString string) ([]byte, error) {
 	s.logger.Debug("fetching content from IPFS", slog.String("cid", cidString))
 
 	cid, err := cid.Decode(cidString)
@@ -503,7 +512,7 @@ func (s *ipfsStorager) GetContent(ctx context.Context, cidString string) ([]byte
 	return content, nil
 }
 
-func (impl *ipfsStorager) PinContent(ctx context.Context, cidString string) error {
+func (impl *ipfsStorager) Pin(ctx context.Context, cidString string) error {
 	impl.logger.Debug("pinning content to IPFS", slog.String("cid", cidString))
 
 	cid, err := cid.Decode(cidString)
@@ -542,7 +551,7 @@ func (impl *ipfsStorager) ListPins(ctx context.Context) ([]string, error) {
 	return pinnedCIDs, nil
 }
 
-func (s *ipfsStorager) UnpinContent(ctx context.Context, cidString string) error {
+func (s *ipfsStorager) Unpin(ctx context.Context, cidString string) error {
 	s.logger.Debug("unpinning content from IPFS", slog.String("cid", cidString))
 
 	// Decode the CID string into a CID object

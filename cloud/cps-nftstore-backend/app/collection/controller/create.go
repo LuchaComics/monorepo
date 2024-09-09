@@ -69,7 +69,7 @@ func (impl *CollectionControllerImpl) Create(ctx context.Context, collection *s_
 		collection.IpnsName = ipnsName
 
 		// Create a new directory in IPFS with a sample file named "0" (representing the first token)
-		collectionDirCID, firstTokenFileCID, err := impl.IPFS.UploadContentFromStringWithDirectory(
+		collectionDirCID, firstTokenFileCID, err := impl.IPFS.UploadStringToDir(
 			context.Background(),
 			"Hello world via `Collectibles Protective Services`!", // Sample content for the file
 			"0", // First token ID
