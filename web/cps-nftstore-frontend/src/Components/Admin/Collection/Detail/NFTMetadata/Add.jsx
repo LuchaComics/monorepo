@@ -33,6 +33,7 @@ import FormSelectField from "../../../../Reusable/FormSelectField";
 import FormCheckboxField from "../../../../Reusable/FormCheckboxField";
 import FormCountryField from "../../../../Reusable/FormCountryField";
 import FormRegionField from "../../../../Reusable/FormRegionField";
+import FormNFTAssetField from "../../../../Reusable/FormNFTAssetField";
 import PageLoadingContent from "../../../../Reusable/PageLoadingContent";
 import {
   topAlertMessageState,
@@ -59,32 +60,39 @@ function AdminCollectionNFTMetadataAdd() {
   //// Component states.
   ////
 
+  // Form state.
   const [errors, setErrors] = useState({});
   const [isFetching, setFetching] = useState(false);
   const [forceURL, setForceURL] = useState("");
-  const [selectedFile, setSelectedFile] = useState(null);
+
+  // Form fields
   const [name, setName] = useState("");
+  const [imageID, setImageID] = useState("");
+  const [imageFilename, setImageFilename] = useState("");
+
 
   ////
   //// Event handling.
   ////
 
-  const onHandleFileChange = (event) => {
-    setSelectedFile(event.target.files[0]);
-  };
+
 
   const onSubmitClick = (e) => {
     console.log("onSubmitClick: Starting...");
     setFetching(true);
     setErrors({});
 
-    const formData = new FormData();
-    formData.append("file", selectedFile);
-    formData.append("name", name);
-    formData.append("collection_id", id);
+    const jsonData = {
+        collection_id: id,
+        name: name,
+        image_id: imageID,
+    };
+    // formData.append("file", selectedFile);
+    // formData.append("name", name);
+    // formData.append("collection_id", id);
 
     postNFTMetadataCreateAPI(
-      formData,
+      jsonData,
       onAdminCollectionNFTMetadataAddSuccess,
       onAdminCollectionNFTMetadataAddError,
       onAdminCollectionNFTMetadataAddDone,
@@ -198,7 +206,7 @@ function AdminCollectionNFTMetadataAdd() {
                 </Link>
               </li>
               <li class="">
-                <Link to={`/admin/collection/${id}/nft-metadatas`} aria-current="page">
+                <Link to={`/admin/collection/${id}/nft-metadata`} aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faEye} />
                   &nbsp;Detail (NFT Metadata)
                 </Link>
@@ -216,7 +224,7 @@ function AdminCollectionNFTMetadataAdd() {
           <nav class="breadcrumb is-hidden-desktop" aria-label="breadcrumbs">
             <ul>
               <li class="">
-                <Link to={`/admin/collection/${id}/nft-metadatas`} aria-current="page">
+                <Link to={`/admin/collection/${id}/nft-metadata`} aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faArrowLeft} />
                   &nbsp;Back to Detail (NFT Metadata)
                 </Link>
@@ -254,10 +262,15 @@ function AdminCollectionNFTMetadataAdd() {
                     maxWidth="150px"
                   />
 
-                  <input
-                    name="file"
-                    type="file"
-                    onChange={onHandleFileChange}
+                  <FormNFTAssetField
+                    label="Image"
+                    name="imageId"
+                    filename={imageFilename}
+                    setFilename={setImageFilename}
+                    nftAssetID={imageID}
+                    setNFTAssetID={setImageID}
+                    helpText={`Upload the image for this NFT. This should be the submission that was reviewed by CPS.`}
+                    errorText={errors && errors.imageId}
                   />
                   <br />
                   <br />
@@ -265,14 +278,14 @@ function AdminCollectionNFTMetadataAdd() {
                   <div class="columns pt-5">
                     <div class="column is-half">
                       <Link
-                        to={`/admin/collection/${id}/nft-metadatas`}
+                        to={`/admin/collection/${id}/nft-metadata`}
                         class="button is-hidden-touch"
                       >
                         <FontAwesomeIcon className="fas" icon={faArrowLeft} />
                         &nbsp;Back
                       </Link>
                       <Link
-                        to={`/admin/collection/${id}/nft-metadatas`}
+                        to={`/admin/collection/${id}/nft-metadata`}
                         class="button is-fullwidth is-hidden-desktop"
                       >
                         <FontAwesomeIcon className="fas" icon={faArrowLeft} />

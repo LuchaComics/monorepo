@@ -14,10 +14,13 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/s3"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/templatedemailer"
 	controller4 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/collection/controller"
-	datastore3 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/collection/datastore"
+	datastore5 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/collection/datastore"
 	httptransport4 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/collection/httptransport"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/controller"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/httptransport"
+	controller6 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/controller"
+	datastore3 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/datastore"
+	httptransport6 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/httptransport"
 	controller5 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/controller"
 	datastore4 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/datastore"
 	httptransport5 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/httptransport"
@@ -70,13 +73,16 @@ func InitializeEvent() Application {
 	tenantController := controller3.NewController(conf, slogLogger, provider, s3Storager, templatedEmailer, client, tenantStorer, userStorer)
 	handler2 := httptransport3.NewHandler(slogLogger, tenantController)
 	ipfsStorager := ipfs.NewStorage(conf, slogLogger)
-	collectionStorer := datastore3.NewDatastore(conf, slogLogger, client)
-	collectionController := controller4.NewController(conf, slogLogger, provider, jwtProvider, kmutexProvider, passwordProvider, ipfsStorager, client, tenantStorer, collectionStorer, userStorer)
-	handler3 := httptransport4.NewHandler(slogLogger, collectionController)
+	nftAssetStorer := datastore3.NewDatastore(conf, slogLogger, client)
 	nftMetadataStorer := datastore4.NewDatastore(conf, slogLogger, client)
-	nftMetadataController := controller5.NewController(conf, slogLogger, provider, jwtProvider, kmutexProvider, passwordProvider, ipfsStorager, client, tenantStorer, nftMetadataStorer, userStorer)
+	collectionStorer := datastore5.NewDatastore(conf, slogLogger, client)
+	collectionController := controller4.NewController(conf, slogLogger, provider, jwtProvider, kmutexProvider, passwordProvider, ipfsStorager, client, tenantStorer, nftAssetStorer, nftMetadataStorer, collectionStorer, userStorer)
+	handler3 := httptransport4.NewHandler(slogLogger, collectionController)
+	nftMetadataController := controller5.NewController(conf, slogLogger, provider, jwtProvider, kmutexProvider, passwordProvider, ipfsStorager, client, tenantStorer, nftAssetStorer, nftMetadataStorer, collectionStorer, userStorer)
 	handler4 := httptransport5.NewHandler(slogLogger, nftMetadataController)
-	inputPortServer := http.NewInputPort(conf, slogLogger, middlewareMiddleware, handler, httptransportHandler, handler2, handler3, handler4)
+	nftAssetController := controller6.NewController(conf, slogLogger, provider, passwordProvider, jwtProvider, ipfsStorager, s3Storager, client, nftAssetStorer, nftMetadataStorer, collectionStorer, userStorer)
+	handler5 := httptransport6.NewHandler(slogLogger, nftAssetController)
+	inputPortServer := http.NewInputPort(conf, slogLogger, middlewareMiddleware, handler, httptransportHandler, handler2, handler3, handler4, handler5)
 	application := NewApplication(slogLogger, inputPortServer)
 	return application
 }

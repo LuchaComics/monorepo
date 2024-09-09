@@ -72,7 +72,7 @@ function AdminCollectionDetailForNFTMetadataList() {
   const [forceURL, setForceURL] = useState("");
   const [collection, setCollection] = useState({});
   const [tabIndex, setTabIndex] = useState(1);
-  const [pinobjects, setNFTMetadatas] = useState("");
+  const [nftAssets, setNFTMetadatas] = useState("");
   const [selectedNFTMetadataForDeletion, setSelectedNFTMetadataForDeletion] =
     useState("");
   const [pageSize, setPageSize] = useState(10); // Pagination
@@ -120,9 +120,9 @@ function AdminCollectionDetailForNFTMetadataList() {
     setCurrentCursor(previousCursor);
   };
 
-  const onSelectNFTMetadataForDeletion = (e, pinobject) => {
-    console.log("onSelectNFTMetadataForDeletion", pinobject);
-    setSelectedNFTMetadataForDeletion(pinobject);
+  const onSelectNFTMetadataForDeletion = (e, nftAsset) => {
+    console.log("onSelectNFTMetadataForDeletion", nftAsset);
+    setSelectedNFTMetadataForDeletion(nftAsset);
   };
 
   const onDeselectNFTMetadataForDeletion = (e) => {
@@ -380,7 +380,7 @@ function AdminCollectionDetailForNFTMetadataList() {
               {collection && collection.status === 1 && (
                 <div class="column has-text-right">
                   <Link
-                    to={`/admin/collection/${id}/nft-metadatas/add`}
+                    to={`/admin/collection/${id}/nft-metadata/add`}
                     class="button is-small is-success is-fullwidth-mobile"
                     type="button"
                   >
@@ -406,8 +406,13 @@ function AdminCollectionDetailForNFTMetadataList() {
                           <Link to={`/admin/collection/${collection.id}`}>Detail</Link>
                         </li>
                         <li class="is-active">
-                          <Link to={`/admin/collection/${collection.id}/nft-metadatas`}>
+                          <Link to={`/admin/collection/${collection.id}/nft-metadata`}>
                             <b>NFT Metadata</b>
+                          </Link>
+                        </li>
+                        <li>
+                          <Link to={`/admin/collection/${collection.id}/nft-assets`}>
+                            NFT Assets
                           </Link>
                         </li>
                         <li>
@@ -423,9 +428,9 @@ function AdminCollectionDetailForNFTMetadataList() {
                     </div>
 
                     {!isFetching &&
-                    pinobjects &&
-                    pinobjects.results &&
-                    (pinobjects.results.length > 0 ||
+                    nftAssets &&
+                    nftAssets.results &&
+                    (nftAssets.results.length > 0 ||
                       previousCursors.length > 0) ? (
                       <div class="container">
                         {/*
@@ -436,7 +441,7 @@ function AdminCollectionDetailForNFTMetadataList() {
                         <div class="is-hidden-touch">
                           <AdminCollectionDetailForNFTMetadataListDesktop
                             collectionID={id}
-                            listData={pinobjects}
+                            listData={nftAssets}
                             setPageSize={setPageSize}
                             pageSize={pageSize}
                             previousCursors={previousCursors}
@@ -456,7 +461,7 @@ function AdminCollectionDetailForNFTMetadataList() {
                         <div class="is-fullwidth is-hidden-desktop">
                           <AdminCollectionDetailForNFTMetadataListMobile
                             collectionID={id}
-                            listData={pinobjects}
+                            listData={nftAssets}
                             setPageSize={setPageSize}
                             pageSize={pageSize}
                             previousCursors={previousCursors}
@@ -472,9 +477,9 @@ function AdminCollectionDetailForNFTMetadataList() {
                       <div class="container">
                         <article class="message is-dark">
                           <div class="message-body">
-                            No pins.{" "}
+                            No NFT metadata.{" "}
                             <b>
-                              <Link to={`/admin/collection/${id}/nft-metadatas/add`}>
+                              <Link to={`/admin/collection/${id}/nft-metadata/add`}>
                                 Click here&nbsp;
                                 <FontAwesomeIcon
                                   className="mdi"
@@ -497,7 +502,7 @@ function AdminCollectionDetailForNFTMetadataList() {
                       </div>
                       <div class="column is-half has-text-right">
                         {collection && collection.status === 1 && <Link
-                          to={`/admin/collection/${id}/nft-metadatas/add`}
+                          to={`/admin/collection/${id}/nft-metadata/add`}
                           class="button is-primary is-fullwidth-mobile"
                         >
                           <FontAwesomeIcon className="fas" icon={faPlus} />
@@ -514,7 +519,7 @@ function AdminCollectionDetailForNFTMetadataList() {
           {/* Bottom Page Logout Link  */}
           {/*
           <div className="has-text-right has-text-grey">
-            <Link to={`/admin/collection/${id}/nft-metadatas/add-via-ws`} className="has-text-grey">
+            <Link to={`/admin/collection/${id}/nft-metadata/add-via-ws`} className="has-text-grey">
               Add NFTMetadata via Web-Service API&nbsp;
               <FontAwesomeIcon className="mdi" icon={faArrowRight} />
             </Link>

@@ -66,7 +66,7 @@ type CollectionStorer interface {
 	ListByFilter(ctx context.Context, m *CollectionPaginationListFilter) (*CollectionPaginationListResult, error)
 	ListAsSelectOptionByFilter(ctx context.Context, f *CollectionPaginationListFilter) ([]*CollectionAsSelectOption, error)
 	DeleteByID(ctx context.Context, id primitive.ObjectID) error
-	CheckIfExistsByNameInOrgBranch(ctx context.Context, name string, orgID primitive.ObjectID, branchID primitive.ObjectID) (bool, error)
+	CheckIfExistsByID(ctx context.Context, id primitive.ObjectID) (bool, error)
 	// //TODO: Add more...
 }
 

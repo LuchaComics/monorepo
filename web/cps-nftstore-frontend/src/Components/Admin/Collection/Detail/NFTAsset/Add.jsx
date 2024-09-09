@@ -103,7 +103,7 @@ function AdminCollectionNFTAssetAdd() {
     console.log(response);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
-    setTopAlertMessage("Pin created");
+    setTopAlertMessage("NFT asset created");
     setTopAlertStatus("success");
     setTimeout(() => {
       console.log("onAdminCollectionNFTAssetAddSuccess: Delayed for 2 seconds.");
@@ -115,8 +115,8 @@ function AdminCollectionNFTAssetAdd() {
       setTopAlertMessage("");
     }, 2000);
 
-    // Redirect the collection to the collection pinobjects page.
-    setForceURL("/admin/collection/" + id + "/pin/" + response.requestid);
+    // Redirect the collection to the collection nft assets page.
+    setForceURL("/admin/collection/" + id + "/nft-asset/" + response.requestid);
   }
 
   function onAdminCollectionNFTAssetAddError(apiErr) {
@@ -198,9 +198,9 @@ function AdminCollectionNFTAssetAdd() {
                 </Link>
               </li>
               <li class="">
-                <Link to={`/admin/collection/${id}/pins`} aria-current="page">
+                <Link to={`/admin/collection/${id}/nft-assets`} aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faEye} />
-                  &nbsp;Detail (Pins)
+                  &nbsp;Detail (NFT Assets)
                 </Link>
               </li>
               <li class="is-active">
@@ -231,7 +231,7 @@ function AdminCollectionNFTAssetAdd() {
           <nav class="box">
             <p class="title is-4">
               <FontAwesomeIcon className="fas" icon={faPlus} />
-              &nbsp;New Pin
+              &nbsp;New NFT Asset
             </p>
             <FormErrorBox errors={errors} />
 
@@ -265,14 +265,14 @@ function AdminCollectionNFTAssetAdd() {
                   <div class="columns pt-5">
                     <div class="column is-half">
                       <Link
-                        to={`/admin/collection/${id}/pins`}
+                        to={`/admin/collection/${id}/nft-assets`}
                         class="button is-hidden-touch"
                       >
                         <FontAwesomeIcon className="fas" icon={faArrowLeft} />
                         &nbsp;Back
                       </Link>
                       <Link
-                        to={`/admin/collection/${id}/pins`}
+                        to={`/admin/collection/${id}/nft-assets`}
                         class="button is-fullwidth is-hidden-desktop"
                       >
                         <FontAwesomeIcon className="fas" icon={faArrowLeft} />

@@ -3,8 +3,8 @@ import { DateTime } from "luxon";
 
 import getCustomAxios from "../Helpers/customAxios";
 import {
-  CPS_ATTACHMENTS_API_ENDPOINT,
-  CPS_ATTACHMENT_API_ENDPOINT,
+  CPS_NFT_ASSETS_API_ENDPOINT,
+  CPS_NFT_ASSET_API_ENDPOINT,
   CPS_PIN_CONTENT_API_ENDPOINT
 } from "../Constants/API";
 
@@ -18,7 +18,7 @@ export function getNFTAssetListAPI(
   const axios = getCustomAxios(onUnauthorizedCallback);
 
   // The following code will generate the query parameters for the url based on the map.
-  let aURL = CPS_ATTACHMENTS_API_ENDPOINT;
+  let aURL = CPS_NFT_ASSETS_API_ENDPOINT;
   filtersMap.forEach((value, key) => {
     let decamelizedkey = decamelize(key);
     if (aURL.indexOf("?") > -1) {
@@ -75,7 +75,7 @@ export function postNFTAssetCreateAPI(
   const axios = getCustomAxios(onUnauthorizedCallback);
 
   axios
-    .post(CPS_ATTACHMENTS_API_ENDPOINT, formdata, {
+    .post(CPS_NFT_ASSETS_API_ENDPOINT, formdata, {
       headers: {
         "Content-Type": "multipart/form-data",
         Accept: "application/json",
@@ -106,7 +106,7 @@ export function getNFTAssetDetailAPI(
 ) {
   const axios = getCustomAxios(onUnauthorizedCallback);
   axios
-    .get(CPS_ATTACHMENT_API_ENDPOINT.replace("{id}", submissionID))
+    .get(CPS_NFT_ASSET_API_ENDPOINT.replace("{id}", submissionID))
     .then((successResponse) => {
       const responseData = successResponse.data;
 
@@ -134,7 +134,7 @@ export function putNFTAssetUpdateAPI(
   const axios = getCustomAxios(onUnauthorizedCallback);
 
   axios
-    .put(CPS_ATTACHMENT_API_ENDPOINT.replace("{id}", id), data, {
+    .put(CPS_NFT_ASSET_API_ENDPOINT.replace("{id}", id), data, {
       headers: {
         "Content-Type": "multipart/form-data",
         Accept: "application/json",
@@ -165,7 +165,7 @@ export function deleteNFTAssetAPI(
 ) {
   const axios = getCustomAxios(onUnauthorizedCallback);
   axios
-    .delete(CPS_ATTACHMENT_API_ENDPOINT.replace("{id}", id))
+    .delete(CPS_NFT_ASSET_API_ENDPOINT.replace("{id}", id))
     .then((successResponse) => {
       const responseData = successResponse.data;
 

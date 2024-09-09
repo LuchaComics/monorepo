@@ -58,17 +58,17 @@ function AdminCollectionDetailForNFTMetadataListDesktop(props) {
           <tbody>
             {listData &&
               listData.results &&
-              listData.results.map(function (pinObject, i) {
+              listData.results.map(function (datum, i) {
                 return (
                   <tr>
-                    <td data-label="Title">{pinObject.name ? pinObject.name : "-"}</td>
+                    <td data-label="Title">{datum.name ? datum.name : "-"}</td>
                     <td data-label="State">
-                      {PIN_OBJECT_STATES[pinObject.status]}
+                      {PIN_OBJECT_STATES[datum.status]}
                     </td>
-                    <td data-label="Created">{pinObject.created}</td>
+                    <td data-label="Created">{datum.created}</td>
                     <td data-label="File">
                       <a
-                        href={pinObject.objectUrl}
+                        href={datum.objectUrl}
                         target="_blank"
                         rel="noreferrer"
                         class=""
@@ -80,14 +80,14 @@ function AdminCollectionDetailForNFTMetadataListDesktop(props) {
                     <td class="is-actions-cell">
                       <div class="buttons is-right">
                         <Link
-                          to={`/admin/collection/${collectionID}/pin/${pinObject.requestid}`}
+                          to={`/admin/collection/${collectionID}/pin/${datum.requestid}`}
                           class="button is-small is-primary"
                           type="button"
                         >
                           View
                         </Link>
                         <Link
-                          to={`/admin/collection/${collectionID}/pin/${pinObject.requestid}/edit`}
+                          to={`/admin/collection/${collectionID}/pin/${datum.requestid}/edit`}
                           class="button is-small is-warning"
                           type="button"
                         >
@@ -95,7 +95,7 @@ function AdminCollectionDetailForNFTMetadataListDesktop(props) {
                         </Link>
                         <button
                           onClick={(e, ses) =>
-                            onSelectNFTMetadataForDeletion(e, pinObject)
+                            onSelectNFTMetadataForDeletion(e, datum)
                           }
                           class="button is-small is-danger"
                           type="button"

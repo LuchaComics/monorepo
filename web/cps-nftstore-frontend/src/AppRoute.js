@@ -183,16 +183,45 @@ function AppRoute() {
                     element={<AdminCollectionDetailMore />}
                   />
 
-                  {/* Collection NFTs */}
+                  {/* Collection NFT Metadata */}
                   <Route
                     exact
-                    path="/admin/collection/:id/nft-metadatas"
+                    path="/admin/collection/:id/nft-metadata"
                     element={<AdminCollectionDetailForNFTMetadataList />}
                   />
                   <Route
                     exact
-                    path="/admin/collection/:id/nft-metadatas/add"
+                    path="/admin/collection/:id/nft-metadata/add"
                     element={<AdminCollectionNFTMetadataAdd />}
+                  />
+                  {/*
+                  <Route
+                    exact
+                    path="/admin/collection/:id/nfts/add-via-ws"
+                    element={<AdminCollectionNFTMetadataAddViaWebService />}
+                  />
+                  <Route
+                    exact
+                    path="/admin/collection/:id/nft/:rid"
+                    element={<AdminCollectionNFTMetadataDetail />}
+                  />
+                  <Route
+                    exact
+                    path="/admin/collection/:id/nft/:rid/edit"
+                    element={<AdminCollectionNFTMetadataUpdate />}
+                  />
+                  */}
+
+                  {/* Collection NFT Asset */}
+                  <Route
+                    exact
+                    path="/admin/collection/:id/nft-assets"
+                    element={<AdminCollectionDetailForNFTAssetList />}
+                  />
+                  <Route
+                    exact
+                    path="/admin/collection/:id/nft-assets/add"
+                    element={<AdminCollectionNFTAssetAdd />}
                   />
                   {/*
                   <Route

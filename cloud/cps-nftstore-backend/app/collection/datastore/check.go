@@ -8,14 +8,11 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (impl CollectionStorerImpl) CheckIfExistsByNameInOrgBranch(ctx context.Context, name string, orgID primitive.ObjectID, branchID primitive.ObjectID) (bool, error) {
-	filter := bson.M{}
-	filter["name"] = name
-	filter["tenant_id"] = orgID
-	filter["branch_id"] = branchID
+func (impl CollectionStorerImpl) CheckIfExistsByID(ctx context.Context, id primitive.ObjectID) (bool, error) {
+	filter := bson.D{{"_id", id}}
 	count, err := impl.Collection.CountDocuments(ctx, filter)
 	if err != nil {
-		impl.Logger.Error("database check if exists by email error", slog.Any("error", err))
+		impl.Logger.Error("database check if exists by ID error", slog.Any("error", err))
 		return false, err
 	}
 	return count >= 1, nil

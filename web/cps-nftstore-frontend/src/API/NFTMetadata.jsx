@@ -66,7 +66,7 @@ export function getNFTMetadataListAPI(
 }
 
 export function postNFTMetadataCreateAPI(
-  formdata,
+  jsonData,
   onSuccessCallback,
   onErrorCallback,
   onDoneCallback,
@@ -75,12 +75,7 @@ export function postNFTMetadataCreateAPI(
   const axios = getCustomAxios(onUnauthorizedCallback);
 
   axios
-    .post(CPS_NFT_METADATA_API_ENDPOINT, formdata, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-        Accept: "application/json",
-      },
-    })
+    .post(CPS_NFT_METADATA_API_ENDPOINT, jsonData)
     .then((successResponse) => {
       const responseData = successResponse.data;
 

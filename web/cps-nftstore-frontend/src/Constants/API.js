@@ -61,12 +61,6 @@ export const CPS_COMIC_SUBMISSION_CUSTOMER_SWAP_OPERATION_API_ENDPOINT =
   HTTP_API_SERVER + "/api/v1/comic-submissions/operation/set-customer";
 export const CPS_COMIC_SUBMISSION_CREATE_COMMENT_OPERATION_API_ENDPOINT =
   HTTP_API_SERVER + "/api/v1/comic-submissions/operation/create-comment";
-export const CPS_COMIC_SUBMISSION_FILE_ATTACHMENTS_API_ENDPOINT =
-  HTTP_API_SERVER + "/api/v1/comic-submission/{id}/file-pinobjects";
-export const CPS_ATTACHMENTS_API_ENDPOINT =
-  HTTP_API_SERVER + "/api/v1/pins";
-export const CPS_ATTACHMENT_API_ENDPOINT =
-  HTTP_API_SERVER + "/api/v1/pin/{id}";
 export const CPS_OFFERS_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/offers";
 export const CPS_OFFER_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/offer/{id}";
 export const CPS_OFFER_BY_SERVICE_TYPE_API_ENDPOINT =
@@ -140,6 +134,14 @@ export const CPS_USER_CHANGE_PASSWORD_OPERATION_API_ENDPOINT =
 // NFT Metadata
 export const CPS_NFT_METADATA_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/nft-metadata";
 export const CPS_NFT_METADATUM_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/nft-metadatum/{id}";
+
+// NFT Assets
+export const CPS_COMIC_SUBMISSION_FILE_NFT_ASSETS_API_ENDPOINT =
+  HTTP_API_SERVER + "/api/v1/comic-submission/{id}/file-nft-assets";
+export const CPS_NFT_ASSETS_API_ENDPOINT =
+  HTTP_API_SERVER + "/api/v1/nft-assets";
+export const CPS_NFT_ASSET_API_ENDPOINT =
+  HTTP_API_SERVER + "/api/v1/nft-asset/{id}";
 
 // Pin
 export const CPS_PIN_CONTENT_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/pin/{id}/content";

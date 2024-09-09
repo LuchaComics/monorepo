@@ -72,7 +72,7 @@ function AdminCollectionDetailForNFTAssetList() {
   const [forceURL, setForceURL] = useState("");
   const [collection, setCollection] = useState({});
   const [tabIndex, setTabIndex] = useState(1);
-  const [pinobjects, setNFTAssets] = useState("");
+  const [nftAssets, setNFTAssets] = useState("");
   const [selectedNFTAssetForDeletion, setSelectedNFTAssetForDeletion] =
     useState("");
   const [pageSize, setPageSize] = useState(10); // Pagination
@@ -120,9 +120,9 @@ function AdminCollectionDetailForNFTAssetList() {
     setCurrentCursor(previousCursor);
   };
 
-  const onSelectNFTAssetForDeletion = (e, pinobject) => {
-    console.log("onSelectNFTAssetForDeletion", pinobject);
-    setSelectedNFTAssetForDeletion(pinobject);
+  const onSelectNFTAssetForDeletion = (e, nftAsset) => {
+    console.log("onSelectNFTAssetForDeletion", nftAsset);
+    setSelectedNFTAssetForDeletion(nftAsset);
   };
 
   const onDeselectNFTAssetForDeletion = (e) => {
@@ -309,7 +309,7 @@ function AdminCollectionDetailForNFTAssetList() {
               <li class="is-active">
                 <Link aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faEye} />
-                  &nbsp;Detail (Pins)
+                  &nbsp;Detail (NFT Assets)
                 </Link>
               </li>
             </ul>
@@ -380,12 +380,12 @@ function AdminCollectionDetailForNFTAssetList() {
               {collection && collection.status === 1 && (
                 <div class="column has-text-right">
                   <Link
-                    to={`/admin/collection/${id}/pins/add`}
+                    to={`/admin/collection/${id}/nft-assets/add`}
                     class="button is-small is-success is-fullwidth-mobile"
                     type="button"
                   >
                     <FontAwesomeIcon className="mdi" icon={faPlus} />
-                    &nbsp;Add Pin
+                    &nbsp;Add NFT Asset
                   </Link>
                 </div>
               )}
@@ -405,9 +405,14 @@ function AdminCollectionDetailForNFTAssetList() {
                         <li>
                           <Link to={`/admin/collection/${collection.id}`}>Detail</Link>
                         </li>
+                        <li>
+                          <Link to={`/admin/collection/${collection.id}/nft-metadata`}>
+                            NFT Metadata
+                          </Link>
+                        </li>
                         <li class="is-active">
-                          <Link to={`/admin/collection/${collection.id}/pins`}>
-                            <b>Pins</b>
+                          <Link to={`/admin/collection/${collection.id}/nft-assets`}>
+                            <b>NFT Assets</b>
                           </Link>
                         </li>
                         <li>
@@ -423,9 +428,9 @@ function AdminCollectionDetailForNFTAssetList() {
                     </div>
 
                     {!isFetching &&
-                    pinobjects &&
-                    pinobjects.results &&
-                    (pinobjects.results.length > 0 ||
+                    nftAssets &&
+                    nftAssets.results &&
+                    (nftAssets.results.length > 0 ||
                       previousCursors.length > 0) ? (
                       <div class="container">
                         {/*
@@ -436,7 +441,7 @@ function AdminCollectionDetailForNFTAssetList() {
                         <div class="is-hidden-touch">
                           <AdminCollectionDetailForNFTAssetListDesktop
                             collectionID={id}
-                            listData={pinobjects}
+                            listData={nftAssets}
                             setPageSize={setPageSize}
                             pageSize={pageSize}
                             previousCursors={previousCursors}
@@ -456,7 +461,7 @@ function AdminCollectionDetailForNFTAssetList() {
                         <div class="is-fullwidth is-hidden-desktop">
                           <AdminCollectionDetailForNFTAssetListMobile
                             collectionID={id}
-                            listData={pinobjects}
+                            listData={nftAssets}
                             setPageSize={setPageSize}
                             pageSize={pageSize}
                             previousCursors={previousCursors}
@@ -472,9 +477,9 @@ function AdminCollectionDetailForNFTAssetList() {
                       <div class="container">
                         <article class="message is-dark">
                           <div class="message-body">
-                            No pins.{" "}
+                            No NFT assets.{" "}
                             <b>
-                              <Link to={`/admin/collection/${id}/pins/add`}>
+                              <Link to={`/admin/collection/${id}/nft-assets/add`}>
                                 Click here&nbsp;
                                 <FontAwesomeIcon
                                   className="mdi"
@@ -482,7 +487,7 @@ function AdminCollectionDetailForNFTAssetList() {
                                 />
                               </Link>
                             </b>{" "}
-                            to get started creating a new pin.
+                            to get started creating a new NFT asset.
                           </div>
                         </article>
                       </div>
@@ -497,11 +502,11 @@ function AdminCollectionDetailForNFTAssetList() {
                       </div>
                       <div class="column is-half has-text-right">
                         {collection && collection.status === 1 && <Link
-                          to={`/admin/collection/${id}/pins/add`}
+                          to={`/admin/collection/${id}/nft-assets/add`}
                           class="button is-primary is-fullwidth-mobile"
                         >
                           <FontAwesomeIcon className="fas" icon={faPlus} />
-                          &nbsp;Add Pin
+                          &nbsp;Add NFT Asset
                         </Link>}
                       </div>
                     </div>
@@ -512,12 +517,14 @@ function AdminCollectionDetailForNFTAssetList() {
           </nav>
 
           {/* Bottom Page Logout Link  */}
+          {/*
           <div className="has-text-right has-text-grey">
-            <Link to={`/admin/collection/${id}/pins/add-via-ws`} className="has-text-grey">
-              Add Pin via Web-Service API&nbsp;
+            <Link to={`/admin/collection/${id}/nft-assets/add-via-ws`} className="has-text-grey">
+              Add NFT Asset via Web-Service API&nbsp;
               <FontAwesomeIcon className="mdi" icon={faArrowRight} />
             </Link>
           </div>
+          */}
         </section>
       </div>
     </>

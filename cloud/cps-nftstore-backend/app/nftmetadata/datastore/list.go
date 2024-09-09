@@ -40,7 +40,7 @@ func (impl NFTMetadataStorerImpl) ListByFilter(ctx context.Context, f *NFTMetada
 	}
 
 	// Execute the query
-	cursor, err := impl.NFTMetadata.Find(ctx, filter, options)
+	cursor, err := impl.Collection.Find(ctx, filter, options)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (impl NFTMetadataStorerImpl) ListAsSelectOptionByFilter(ctx context.Context
 	defer cancel()
 
 	// Get a reference to the nftmetadata
-	nftmetadata := impl.NFTMetadata
+	nftmetadata := impl.Collection
 
 	// Pagination parameters
 	pageSize := 10

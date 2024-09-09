@@ -2,12 +2,13 @@ package datastore
 
 import (
 	"context"
+
 	"log/slog"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func (impl NFTMetadataStorerImpl) UpdateByID(ctx context.Context, m *NFTMetadata) error {
+func (impl NFTAssetStorerImpl) UpdateByID(ctx context.Context, m *NFTAsset) error {
 	filter := bson.D{{"_id", m.ID}}
 
 	update := bson.M{ // DEVELOPERS NOTE: https://stackoverflow.com/a/60946010

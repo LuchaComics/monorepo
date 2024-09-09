@@ -2,21 +2,22 @@ package datastore
 
 import (
 	"context"
+
 	"log/slog"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (impl NFTMetadataStorerImpl) Create(ctx context.Context, u *NFTMetadata) error {
+func (impl NFTAssetStorerImpl) Create(ctx context.Context, u *NFTAsset) error {
 	// DEVELOPER NOTES:
 	// According to mongodb documentaiton:
-	//     Non-existent Databases and NFTMetadatas
-	//     If the necessary database and nftmetadata don't exist when you perform a write operation, the server implicitly creates them.
+	//     Non-existent Databases and Collections
+	//     If the necessary database and collection don't exist when you perform a write operation, the server implicitly creates them.
 	//     Source: https://www.mongodb.com/docs/drivers/go/current/usage-examples/insertOne/
 
 	if u.ID == primitive.NilObjectID {
 		u.ID = primitive.NewObjectID()
-		impl.Logger.Warn("database insert tenant not included id value, created id now.", slog.Any("id", u.ID))
+		impl.Logger.Warn("database insert nftasset not included id value, created id now.", slog.Any("id", u.ID))
 	}
 
 	_, err := impl.Collection.InsertOne(ctx, u)
@@ -25,6 +26,9 @@ func (impl NFTMetadataStorerImpl) Create(ctx context.Context, u *NFTMetadata) er
 	if err != nil {
 		impl.Logger.Error("database insert error", slog.Any("error", err))
 	}
+
+	// // display the id of the newly inserted object
+	// impl.Logger.Debug("insert created", slog.Any("insertedID", result.InsertedID))
 
 	return nil
 }

@@ -9,7 +9,7 @@ import (
 )
 
 func (impl NFTMetadataStorerImpl) DeleteByID(ctx context.Context, id primitive.ObjectID) error {
-	_, err := impl.NFTMetadata.DeleteOne(ctx, bson.M{"_id": id})
+	_, err := impl.Collection.DeleteOne(ctx, bson.M{"_id": id})
 	if err != nil {
 		log.Fatal("DeleteOne() ERROR:", err)
 	}

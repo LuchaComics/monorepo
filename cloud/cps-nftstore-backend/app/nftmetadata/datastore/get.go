@@ -13,7 +13,7 @@ func (impl NFTMetadataStorerImpl) GetByID(ctx context.Context, id primitive.Obje
 	filter := bson.M{"_id": id}
 
 	var result NFTMetadata
-	err := impl.NFTMetadata.FindOne(ctx, filter).Decode(&result)
+	err := impl.Collection.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			// This error means your query did not match any documents.
@@ -29,7 +29,7 @@ func (impl NFTMetadataStorerImpl) GetByName(ctx context.Context, name string) (*
 	filter := bson.M{"name": name}
 
 	var result NFTMetadata
-	err := impl.NFTMetadata.FindOne(ctx, filter).Decode(&result)
+	err := impl.Collection.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			// This error means your query did not match any documents.
@@ -45,7 +45,7 @@ func (impl NFTMetadataStorerImpl) GetByPaymentProcessorPurchaseID(ctx context.Co
 	filter := bson.M{"payment_processor_receipt_id": paymentProcessorPurchaseID}
 
 	var result NFTMetadata
-	err := impl.NFTMetadata.FindOne(ctx, filter).Decode(&result)
+	err := impl.Collection.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			// This error means your query did not match any documents.
@@ -61,7 +61,7 @@ func (impl NFTMetadataStorerImpl) GetByComicSubmissionID(ctx context.Context, co
 	filter := bson.M{"comic_submission_id": comicSubmissionID}
 
 	var result NFTMetadata
-	err := impl.NFTMetadata.FindOne(ctx, filter).Decode(&result)
+	err := impl.Collection.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			// This error means your query did not match any documents.

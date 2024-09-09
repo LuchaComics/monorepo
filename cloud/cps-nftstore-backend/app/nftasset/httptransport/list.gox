@@ -1,0 +1,91 @@
+package httptransport
+
+import (
+	"encoding/json"
+	"net/http"
+	"strconv"
+
+	nftasset_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/datastore"
+	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/utils/httperror"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	f := &nftasset_s.NFTAssetPaginationListFilter{
+		Cursor:    "",
+		NFTMetadataID: primitive.NilObjectID,
+		PageSize:  25,
+		SortField: "created",
+		SortOrder: 1, // 1=ascending | -1=descending
+	}
+
+	// Here is where you extract url parameters.
+	query := r.URL.Query()
+
+	cursor := query.Get("cursor")
+	if cursor != "" {
+		f.Cursor = cursor
+	}
+
+	nftmetadataID := query.Get("nftmetadata_id")
+	if nftmetadataID != "" {
+		nftmetadataID, err := primitive.ObjectIDFromHex(nftmetadataID)
+		if err != nil {
+			httperror.ResponseError(w, err)
+			return
+		}
+		f.NFTMetadataID = nftmetadataID
+	}
+
+	pageSize := query.Get("page_size")
+	if pageSize != "" {
+		pageSize, _ := strconv.ParseInt(pageSize, 10, 64)
+		if pageSize == 0 || pageSize > 250 {
+			pageSize = 250
+		}
+		f.PageSize = pageSize
+	}
+
+	m, err := h.Controller.ListByFilter(ctx, f)
+	if err != nil {
+		httperror.ResponseError(w, err)
+		return
+	}
+
+	MarshalListResponse(m, w)
+}
+
+func MarshalListResponse(res *nftasset_s.NFTAssetPaginationListResult, w http.ResponseWriter) {
+	if err := json.NewEncoder(w).Encode(&res); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *Handler) ListAsSelectOptionByFilter(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	f := &nftasset_s.NFTAssetPaginationListFilter{
+		Cursor:    "",
+		PageSize:  1_000_000,
+		SortField: "created",
+		SortOrder: nftasset_s.SortOrderDescending,
+	}
+
+	m, err := h.Controller.ListAsSelectOptionByFilter(ctx, f)
+	if err != nil {
+		httperror.ResponseError(w, err)
+		return
+	}
+
+	MarshalListAsSelectOptionResponse(m, w)
+}
+
+func MarshalListAsSelectOptionResponse(res []*nftasset_s.NFTAssetAsSelectOption, w http.ResponseWriter) {
+	if err := json.NewEncoder(w).Encode(&res); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}

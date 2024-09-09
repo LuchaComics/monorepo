@@ -32,6 +32,8 @@ type NFTMetadata struct {
 	CollectionName  string                  `bson:"collection_name" json:"collection_name"`
 	TokenID         uint64                  `bson:"token_id" json:"token_id"`
 	MetadataFileCID string                  `bson:"metadata_file_cid" json:"metadata_file_cid"`
+	ImageID         primitive.ObjectID      `bson:"image_id" json:"image_id"`
+	AnimationID     primitive.ObjectID      `bson:"animation_id" json:"animation_id"`
 	Image           string                  `bson:"image" json:"image"`                       // This is the URL to the image of the item. Can be just about any type of image (including SVGs, which will be cached into PNGs by OpenSea), IPFS or Arweave URLs or paths. We recommend using a minimum 3000 x 3000 image.
 	ExternalURL     string                  `bson:"external_url" json:"external_url"`         // This is the URL that will appear below the asset's image on OpenSea and will allow users to leave OpenSea and view the item on your site.
 	Description     string                  `bson:"description" json:"description"`           // A human-readable description of the item. Markdown is supported.
@@ -40,6 +42,7 @@ type NFTMetadata struct {
 	BackgroundColor string                  `bson:"background_color" json:"background_color"` // Background color of the item on OpenSea. Must be a six-character hexadecimal without a pre-pended #.
 	AnimationURL    string                  `bson:"animation_url" json:"animation_url"`       // A URL to a multi-media attachment for the item. The file extensions GLTF, GLB, WEBM, MP4, M4V, OGV, and OGG are supported, along with the audio-only extensions MP3, WAV, and OGA. Animation_url also supports HTML pages, allowing you to build rich experiences and interactive NFTMetadatas using JavaScript canvas, WebGL, and more. Scripts and relative paths within the HTML page are now supported. However, access to browser extensions is not supported.
 	YoutubeURL      string                  `bson:"youtube_url" json:"youtube_url"`           // A URL to a YouTube video (only used if animation_url is not provided).
+	IPNSPath        string                  `bson:"ipns_path" json:"ipns_path"`               // The path of this metadata file in the IPFS network utilizing IPNS.
 }
 
 type NFTMetadataAttribute struct {
@@ -78,7 +81,7 @@ type NFTMetadataStorer interface {
 	ListByFilter(ctx context.Context, m *NFTMetadataPaginationListFilter) (*NFTMetadataPaginationListResult, error)
 	ListAsSelectOptionByFilter(ctx context.Context, f *NFTMetadataPaginationListFilter) ([]*NFTMetadataAsSelectOption, error)
 	DeleteByID(ctx context.Context, id primitive.ObjectID) error
-	CheckIfExistsByNameInOrgBranch(ctx context.Context, name string, orgID primitive.ObjectID, branchID primitive.ObjectID) (bool, error)
+	CheckIfExistsByID(ctx context.Context, id primitive.ObjectID) (bool, error)
 	// //TODO: Add more...
 }
 
@@ -88,14 +91,14 @@ type NFTMetadataAsSelectOption struct {
 }
 
 type NFTMetadataStorerImpl struct {
-	Logger      *slog.Logger
-	DbClient    *mongo.Client
-	NFTMetadata *mongo.Collection
+	Logger     *slog.Logger
+	DbClient   *mongo.Client
+	Collection *mongo.Collection
 }
 
 func NewDatastore(appCfg *c.Conf, loggerp *slog.Logger, client *mongo.Client) NFTMetadataStorer {
 	// ctx := context.Background()
-	uc := client.Database(appCfg.DB.Name).Collection("nftmetadata")
+	uc := client.Database(appCfg.DB.Name).Collection("nft_metadata")
 
 	// The following few lines of code will create the index for our app for
 	// this colleciton.
@@ -112,9 +115,9 @@ func NewDatastore(appCfg *c.Conf, loggerp *slog.Logger, client *mongo.Client) NF
 	}
 
 	s := &NFTMetadataStorerImpl{
-		Logger:      loggerp,
-		DbClient:    client,
-		NFTMetadata: uc,
+		Logger:     loggerp,
+		DbClient:   client,
+		Collection: uc,
 	}
 	return s
 }

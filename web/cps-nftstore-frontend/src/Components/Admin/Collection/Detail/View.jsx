@@ -406,7 +406,7 @@ function AdminCollectionDetail() {
                 </div>
                 {collection && collection.status === 1 && <div class="column has-text-right">
                   <Link
-                    to={`/admin/collection/${collection.id}/nft-metadatas/add`}
+                    to={`/admin/collection/${collection.id}/nft-metadata/add`}
                     class="button is-small is-success is-fullwidth-mobile"
                     type="button"
                   >
@@ -474,8 +474,13 @@ function AdminCollectionDetail() {
                           </Link>
                         </li>
                         <li>
-                          <Link to={`/admin/collection/${collection.id}/nft-metadatas`}>
+                          <Link to={`/admin/collection/${collection.id}/nft-metadata`}>
                             NFT Metadata
+                          </Link>
+                        </li>
+                        <li>
+                          <Link to={`/admin/collection/${collection.id}/nft-assets`}>
+                            NFT Assets
                           </Link>
                         </li>
                         <li>
