@@ -23,6 +23,9 @@ func (impl NFTMetadataStorerImpl) ListByFilter(ctx context.Context, f *NFTMetada
 	if !f.TenantID.IsZero() {
 		filter["tenant_id"] = f.TenantID
 	}
+	if !f.CollectionID.IsZero() {
+		filter["collection_id"] = f.CollectionID
+	}
 	if !f.UserID.IsZero() {
 		filter["user_id"] = f.UserID
 	}
@@ -111,6 +114,16 @@ func (impl NFTMetadataStorerImpl) ListAsSelectOptionByFilter(ctx context.Context
 		query["_id"] = bson.M{"$gt": cursor.Lookup("_id").ObjectID()}
 	}
 
+	// Add filter conditions to the filter
+	if !f.TenantID.IsZero() {
+		query["tenant_id"] = f.TenantID
+	}
+	if !f.CollectionID.IsZero() {
+		query["collection_id"] = f.CollectionID
+	}
+	if !f.UserID.IsZero() {
+		query["user_id"] = f.UserID
+	}
 	if f.ExcludeArchived {
 		query["status"] = bson.M{"$ne": StatusArchived} // Do not list archived items! This code
 	}

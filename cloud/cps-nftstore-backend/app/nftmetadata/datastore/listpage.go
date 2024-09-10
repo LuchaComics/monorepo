@@ -24,7 +24,8 @@ type NFTMetadataPaginationListFilter struct {
 	SortOrder int8 // 1=ascending | -1=descending
 
 	// Filter related.
-	TenantID         primitive.ObjectID
+	TenantID        primitive.ObjectID
+	CollectionID    primitive.ObjectID
 	UserID          primitive.ObjectID
 	ExcludeArchived bool
 	SearchText      string
@@ -34,8 +35,8 @@ type NFTMetadataPaginationListFilter struct {
 // the associate records.
 type NFTMetadataPaginationListResult struct {
 	Results     []*NFTMetadata `json:"results"`
-	NextCursor  string     `json:"next_cursor"`
-	HasNextPage bool       `json:"has_next_page"`
+	NextCursor  string         `json:"next_cursor"`
+	HasNextPage bool           `json:"has_next_page"`
 }
 
 // newPaginationFilter will create the mongodb filter to apply the cursor or

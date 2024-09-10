@@ -92,6 +92,7 @@ type NFTMetadataStorer interface {
 	GetByComicSubmissionID(ctx context.Context, comicSubmissionID primitive.ObjectID) (*NFTMetadata, error)
 	UpdateByID(ctx context.Context, m *NFTMetadata) error
 	ListByFilter(ctx context.Context, m *NFTMetadataPaginationListFilter) (*NFTMetadataPaginationListResult, error)
+	ListByNFTCollection(ctx context.Context, nftCollectionID primitive.ObjectID) (*NFTMetadataPaginationListResult, error)
 	ListAsSelectOptionByFilter(ctx context.Context, f *NFTMetadataPaginationListFilter) ([]*NFTMetadataAsSelectOption, error)
 	DeleteByID(ctx context.Context, id primitive.ObjectID) error
 	CheckIfExistsByID(ctx context.Context, id primitive.ObjectID) (bool, error)
