@@ -28,6 +28,7 @@ type NFTMetadataController interface {
 	ListByFilter(ctx context.Context, f *nftmetadata_s.NFTMetadataPaginationListFilter) (*nftmetadata_s.NFTMetadataPaginationListResult, error)
 	ListAsSelectOptionByFilter(ctx context.Context, f *nftmetadata_s.NFTMetadataPaginationListFilter) ([]*nftmetadata_s.NFTMetadataAsSelectOption, error)
 	DeleteByID(ctx context.Context, id primitive.ObjectID) error
+	ArchiveByID(ctx context.Context, id primitive.ObjectID) error
 }
 
 type NFTMetadataControllerImpl struct {
