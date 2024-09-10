@@ -21,7 +21,8 @@ import {
   faContactCard,
   faChartPie,
   faCogs,
-  faArrowRight
+  faArrowRight,
+  faArrowUpRightFromSquare
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 import { useParams } from "react-router-dom";
@@ -491,10 +492,12 @@ function AdminNFTCollectionDetail() {
                     />
 
                     <FormRowText
-                      label="Base URL"
-                      value={collection.ipnsName}
-                      helpText=""
-                    />
+                      label="IPNS"
+                      value={`/ipns/${collection.ipnsName}`}
+                      helpText={
+                      <>
+                      View file in <Link target="_blank" rel="noreferrer" to={`https://ipfs.io/ipns/${collection.ipnsName}`}>public IPFS gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>. Note: May take hours before image becomes available after submission.
+                      </>} />
 
                     <FormRowText
                       label="Tokens Count"
