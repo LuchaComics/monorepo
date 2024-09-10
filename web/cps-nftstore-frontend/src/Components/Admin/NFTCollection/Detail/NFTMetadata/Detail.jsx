@@ -47,6 +47,7 @@ import {
 } from "../../../../../AppState";
 import FormRowText from "../../../../Reusable/FormRowText";
 import FormTextDateTimeRow from "../../../../Reusable/FormRowTextDateTime";
+import FormNFTMetadataAttributesField from "../../../../Reusable/FormNFTMetadataAttributesField";
 
 
 function AdminNFTCollectionNFTMetadataDetail() {
@@ -85,6 +86,7 @@ function AdminNFTCollectionNFTMetadataDetail() {
   const [youtubeURL, setYoutubeURL] = useState("");
   const [fileCID, setFileCID] = useState("");
   const [fileIpnsPath, setFileIpnsPath] = useState("");
+  const [attributes, setAttributes] = useState([]);
   const [selectedNFTMetadataRequestIDForDeletion, setSelectedNFTMetadataRequestIDForDeletion] =
     useState("");
 
@@ -190,6 +192,7 @@ function AdminNFTCollectionNFTMetadataDetail() {
     setYoutubeURL(response.youtubeUrl);
     setFileCID(response.fileCid);
     setFileIpnsPath(response.fileIpnsPath);
+    setAttributes(response.attributes);
   }
 
   function onAdminNFTCollectionNFTMetadataDetailError(apiErr) {
@@ -426,6 +429,11 @@ function AdminNFTCollectionNFTMetadataDetail() {
                   <FormRowText label="YouTube URL" value={youtubeURL} helpText="" />
                   <FormTextDateTimeRow label="Created At" value={createdAt} helpText="" />
                   <FormTextDateTimeRow label="Modified At" value={modifiedAt} helpText="" />
+                  <FormNFTMetadataAttributesField
+                      data={attributes}
+                      onDataChange={setAttributes}
+                      disabled={true}
+                   />
 
                   <p class="subtitle is-4 pt-4">
                     <FontAwesomeIcon className="fas" icon={faFile} />

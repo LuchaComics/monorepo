@@ -61,8 +61,9 @@ type NFTMetadataFile struct {
 }
 
 type NFTMetadataAttribute struct {
-	TraitType string `bson:"trait_type" json:"trait_type"`
-	Value     string `bson:"value" json:"value"`
+	DisplayType string `bson:"display_type" json:"display_type"`
+	TraitType   string `bson:"trait_type" json:"trait_type"`
+	Value       string `bson:"value" json:"value"`
 }
 
 type NFTMetadataListFilter struct {

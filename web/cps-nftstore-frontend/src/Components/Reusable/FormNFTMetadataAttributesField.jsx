@@ -6,19 +6,17 @@ import { faPlus, faMinus } from "@fortawesome/free-solid-svg-icons";
 import FormInputField from "./FormInputField";
 import FormSelectField from "./FormSelectField";
 
-export const SIGNATURE_ROLES_OPTIONS = [
-  { value: "Cover Artist", label: "Cover Artist" },
-  { value: "Writer", label: "Writer" },
-  { value: "Artist", label: "Artist" },
-  { value: "Penciller", label: "Penciller" },
-  { value: "Inker", label: "Inker" },
-  { value: "Creator", label: "Creator" },
-  { value: "Model", label: "Model" },
+export const DISPLAY_TYPE_OPTIONS = [
+  { value: "boost_number", label: "Boost Number" },
+  { value: "boost_percentage", label: "Boost Percentage" },
+  { value: "number", label: "Number" },
+  { value: "date", label: "Date" },
+  { value: "string", label: "String" },
 ];
 
 export const SIGNATURE_ROLES_WITH_EMPTY_OPTIONS = [
   { value: "", label: "Please select" }, // EMPTY OPTION
-  ...SIGNATURE_ROLES_OPTIONS,
+  ...DISPLAY_TYPE_OPTIONS,
 ];
 
 /*
@@ -27,8 +25,8 @@ export const SIGNATURE_ROLES_WITH_EMPTY_OPTIONS = [
     data - needs to be an array of dictionary objects. For example:
         [
             {
-                "role": "Creator",
-                "name": "Frank Herbert"
+                "displayType": "Creator",
+                "traitType": "Frank Herbert"
             }
         ].
 
@@ -38,11 +36,11 @@ export const SIGNATURE_ROLES_WITH_EMPTY_OPTIONS = [
         onDataChange={(data)=>onDataChange(data)}
 
 */
-function FormComicSignaturesTable({
+function FormNFTMetadataAttributesField({
   data = [],
   onDataChange = null,
   disabled = false,
-  helpText = "Include any signatures on the comic submission",
+  helpText = "",
 }) {
   ////
   //// Component states.
@@ -50,8 +48,9 @@ function FormComicSignaturesTable({
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [errors, setErrors] = useState({});
-  const [role, setRole] = useState("");
-  const [name, setName] = useState("");
+  const [displayType, setDisplayType] = useState("");
+  const [traitType, setName] = useState("");
+  const [value, setValue] = useState("");
 
   ////
   //// Event handling.
@@ -60,18 +59,24 @@ function FormComicSignaturesTable({
   const onSubmitClick = () => {
     console.log("onSubmitClick...");
     let newErrors = {};
-    if (name === undefined || name === null || name === "") {
-      newErrors["name"] = "missing value";
+    if (displayType === undefined || displayType === null || displayType === "") {
+      newErrors["displayType"] = "missing value";
     }
-    if (role === undefined || role === null || role === "") {
-      newErrors["role"] = "missing value";
+    if (traitType === undefined || traitType === null || traitType === "") {
+      newErrors["traitType"] = "missing value";
+    }
+    if (value === undefined || value === null || value === "") {
+      newErrors["value"] = "missing value";
     }
     if (Object.keys(newErrors).length === 0) {
       // Make a copy of the "array of strings" into a mutable array.
-      let copyOfArr = [...data];
+      let copyOfArr = [];
+      if (data !== null) {
+          copyOfArr = [...data];
+      }
 
       // Update record.
-      copyOfArr.push({ name: name, role: role });
+      copyOfArr.push({ displayType: displayType, traitType: traitType, value: value });
 
       // Run callback.
       onDataChange(copyOfArr);
@@ -81,7 +86,7 @@ function FormComicSignaturesTable({
 
       // Reset fields and close the modal.
       setName("");
-      setRole("");
+      setDisplayType("");
       setShowAddModal(false);
       return;
     }
@@ -116,7 +121,7 @@ function FormComicSignaturesTable({
         <div class="modal-background"></div>
         <div class="modal-card">
           <header class="modal-card-head">
-            <p class="modal-card-title">Add Signature</p>
+            <p class="modal-card-title">Add NFT Metadata Attribute</p>
             <button
               class="delete"
               aria-label="close"
@@ -124,29 +129,40 @@ function FormComicSignaturesTable({
             ></button>
           </header>
           <section class="modal-card-body">
+            <FormSelectField
+                label="Display Type"
+                name="displayType"
+                placeholder="Pick displayType"
+                selectedValue={displayType}
+                errorText={errors && errors.displayType}
+                helpText=""
+                onChange={(e) => setDisplayType(e.target.value)}
+                options={SIGNATURE_ROLES_WITH_EMPTY_OPTIONS}
+                isRequired={true}
+                maxWidth="220px"
+            />
             <FormInputField
-              label="Name of Signature"
-              name="name"
+              label="Trait Type"
+              name="traitType"
               placeholder="Text input"
-              value={name}
-              errorText={errors && errors.name}
+              value={traitType}
+              errorText={errors && errors.traitType}
               helpText=""
               onChange={(e) => setName(e.target.value)}
               isRequired={true}
               maxWidth="380px"
             />
 
-            <FormSelectField
-              label="Role of Signer"
-              name="role"
-              placeholder="Pick role"
-              selectedValue={role}
-              errorText={errors && errors.role}
+            <FormInputField
+              label="Value"
+              name="value"
+              placeholder="Text input"
+              value={value}
+              errorText={errors && errors.value}
               helpText=""
-              onChange={(e) => setRole(e.target.value)}
-              options={SIGNATURE_ROLES_WITH_EMPTY_OPTIONS}
+              onChange={(e) => setValue(e.target.value)}
               isRequired={true}
-              maxWidth="220px"
+              maxWidth="380px"
             />
           </section>
           <footer class="modal-card-foot">
@@ -165,7 +181,7 @@ function FormComicSignaturesTable({
 
       <div class="pb-4">
         <label class="label">
-          Comic Signatures (Optional)
+         Attributes (Optional)
           {/*<button class="button is-success is-small" onClick={onAddListInputFieldClick} disabled={disabled}><FontAwesomeIcon className="fas" icon={faPlus} /></button>*/}
         </label>
 
@@ -175,12 +191,13 @@ function FormComicSignaturesTable({
         data.length > 0 ? (
           <>
             <table class="table">
-              <thead>
+              <thead className="is-size-7">
                 <tr>
                   <th>
-                    <abbr title="Signature Role">Role</abbr>
+                    <abbr title="Signature Role">Display Type</abbr>
                   </th>
-                  <th>Signed By</th>
+                  <th>Trait Type</th>
+                  <th>Value</th>
                   {disabled === false && (
                     <th>
                       <button
@@ -194,13 +211,14 @@ function FormComicSignaturesTable({
                   )}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="is-size-7">
                 {data &&
                   data.map(function (datum, i) {
                     return (
                       <tr>
-                        <th>{datum.role}</th>
-                        <td>{datum.name}</td>
+                        <th>{datum.displayType}</th>
+                        <td>{datum.traitType}</td>
+                        <td>{datum.value}</td>
                         {disabled === false && (
                           <td>
                             <button
@@ -226,7 +244,7 @@ function FormComicSignaturesTable({
               disabled={disabled}
             >
               <FontAwesomeIcon className="fas" icon={faPlus} />
-              &nbsp;Add Signature
+              &nbsp;Add Attribute
             </button>
           </>
         )}
@@ -236,4 +254,4 @@ function FormComicSignaturesTable({
   );
 }
 
-export default FormComicSignaturesTable;
+export default FormNFTMetadataAttributesField;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import Scroll from "react-scroll";
+import { decamelizeKeys } from "humps";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTasks,
@@ -35,6 +36,7 @@ import FormCountryField from "../../../../Reusable/FormCountryField";
 import FormRegionField from "../../../../Reusable/FormRegionField";
 import FormNFTAssetField from "../../../../Reusable/FormNFTAssetField";
 import PageLoadingContent from "../../../../Reusable/PageLoadingContent";
+import FormNFTMetadataAttributesField from "../../../../Reusable/FormNFTMetadataAttributesField";
 import {
   topAlertMessageState,
   topAlertStatusState,
@@ -75,6 +77,7 @@ function AdminNFTCollectionNFTMetadataAdd() {
   const [externalURL, setExternalURL] = useState("");
   const [backgroundColor, setBackgroundColor] = useState("");
   const [youtubeURL, setYoutubeURL] = useState("");
+  const [attributes, setAttributes] = useState([]);
 
   ////
   //// Event handling.
@@ -96,6 +99,7 @@ function AdminNFTCollectionNFTMetadataAdd() {
         external_url: externalURL,
         background_color: backgroundColor,
         youtube_url: youtubeURL,
+        attributes: decamelizeKeys(attributes),
     };
     // formData.append("file", selectedFile);
     // formData.append("name", name);
@@ -343,6 +347,11 @@ function AdminNFTCollectionNFTMetadataAdd() {
                     onChange={(e) => setYoutubeURL(e.target.value)}
                     isRequired={true}
                     maxWidth="275px"
+                  />
+
+                  <FormNFTMetadataAttributesField
+                    data={attributes}
+                    onDataChange={setAttributes}
                   />
 
                   <br />

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import Scroll from "react-scroll";
+import { decamelizeKeys } from "humps";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTasks,
@@ -41,6 +42,7 @@ import FormRegionField from "../../../../Reusable/FormRegionField";
 import PageLoadingContent from "../../../../Reusable/PageLoadingContent";
 import FormNFTAssetField from "../../../../Reusable/FormNFTAssetField";
 import FormRowText from "../../../../Reusable/FormRowText";
+import FormNFTMetadataAttributesField from "../../../../Reusable/FormNFTMetadataAttributesField";
 import {
   topAlertMessageState,
   topAlertStatusState,
@@ -87,6 +89,7 @@ function AdminNFTCollectionNFTMetadataUpdate() {
   const [fileCID, setFileCID] = useState("");
   const [fileIpnsPath, setFileIpnsPath] = useState("");
   const [status, setStatus] = useState("");
+  const [attributes, setAttributes] = useState([]);
 
   ////
   //// Event handling.
@@ -109,10 +112,8 @@ function AdminNFTCollectionNFTMetadataUpdate() {
           background_color: backgroundColor,
           youtube_url: youtubeURL,
           status: status,
+          attributes: decamelizeKeys(attributes),
       };
-      // formData.append("file", selectedFile);
-      // formData.append("name", name);
-      // formData.append("collection_id", id);
 
     putNFTMetadataUpdateAPI(
       rid,
@@ -199,6 +200,11 @@ function AdminNFTCollectionNFTMetadataUpdate() {
       setFileCID(response.fileCid);
       setFileIpnsPath(response.fileIpnsPath);
       setStatus(response.status);
+      if (response.attributes !== undefined && response.attributes !== null && response.attributes === "") {
+        setAttributes([]);
+      } else {
+        setAttributes(response.attributes);
+      }
   }
 
   function onAdminNFTCollectionNFTMetadataDetailError(apiErr) {
@@ -438,6 +444,11 @@ function AdminNFTCollectionNFTMetadataUpdate() {
                     onChange={(e) => setYoutubeURL(e.target.value)}
                     isRequired={true}
                     maxWidth="275px"
+                  />
+
+                  <FormNFTMetadataAttributesField
+                    data={attributes}
+                    onDataChange={setAttributes}
                   />
 
                   <br />
