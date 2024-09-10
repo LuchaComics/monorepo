@@ -21,28 +21,30 @@ const (
 // NFTMetadata structured used to store the metadata for the NFTMetadata using the
 // `OpenSea` standard via https://docs.opensea.io/docs/metadata-standards.
 type NFTMetadata struct {
-	TenantID        primitive.ObjectID      `bson:"tenant_id" json:"tenant_id"`
-	TenantName      string                  `bson:"tenant_name" json:"tenant_name"`
-	TenantTimezone  string                  `bson:"tenant_timezone" json:"tenant_timezone"`
-	ID              primitive.ObjectID      `bson:"_id" json:"id"`
-	Status          int8                    `bson:"status" json:"status"`
-	CreatedAt       time.Time               `bson:"created_at,omitempty" json:"created_at,omitempty"`
-	ModifiedAt      time.Time               `bson:"modified_at,omitempty" json:"modified_at,omitempty"`
-	CollectionID    primitive.ObjectID      `bson:"collection_id" json:"collection_id"`
-	CollectionName  string                  `bson:"collection_name" json:"collection_name"`
-	TokenID         uint64                  `bson:"token_id" json:"token_id"`
-	MetadataFileCID string                  `bson:"metadata_file_cid" json:"metadata_file_cid"`
-	ImageID         primitive.ObjectID      `bson:"image_id" json:"image_id"`
-	AnimationID     primitive.ObjectID      `bson:"animation_id" json:"animation_id"`
-	Image           string                  `bson:"image" json:"image"`                       // This is the URL to the image of the item. Can be just about any type of image (including SVGs, which will be cached into PNGs by OpenSea), IPFS or Arweave URLs or paths. We recommend using a minimum 3000 x 3000 image.
-	ExternalURL     string                  `bson:"external_url" json:"external_url"`         // This is the URL that will appear below the asset's image on OpenSea and will allow users to leave OpenSea and view the item on your site.
-	Description     string                  `bson:"description" json:"description"`           // A human-readable description of the item. Markdown is supported.
-	Name            string                  `bson:"name" json:"name"`                         // Name of the item.
-	Attributes      []*NFTMetadataAttribute `bson:"attributes" json:"attributes"`             // These are the attributes for the item, which will show up on the OpenSea page for the item. (see below)
-	BackgroundColor string                  `bson:"background_color" json:"background_color"` // Background color of the item on OpenSea. Must be a six-character hexadecimal without a pre-pended #.
-	AnimationURL    string                  `bson:"animation_url" json:"animation_url"`       // A URL to a multi-media attachment for the item. The file extensions GLTF, GLB, WEBM, MP4, M4V, OGV, and OGG are supported, along with the audio-only extensions MP3, WAV, and OGA. Animation_url also supports HTML pages, allowing you to build rich experiences and interactive NFTMetadatas using JavaScript canvas, WebGL, and more. Scripts and relative paths within the HTML page are now supported. However, access to browser extensions is not supported.
-	YoutubeURL      string                  `bson:"youtube_url" json:"youtube_url"`           // A URL to a YouTube video (only used if animation_url is not provided).
-	IPNSPath        string                  `bson:"ipns_path" json:"ipns_path"`               // The path of this metadata file in the IPFS network utilizing IPNS.
+	TenantID              primitive.ObjectID      `bson:"tenant_id" json:"tenant_id"`
+	TenantName            string                  `bson:"tenant_name" json:"tenant_name"`
+	TenantTimezone        string                  `bson:"tenant_timezone" json:"tenant_timezone"`
+	ID                    primitive.ObjectID      `bson:"_id" json:"id"`
+	Status                int8                    `bson:"status" json:"status"`
+	CreatedAt             time.Time               `bson:"created_at,omitempty" json:"created_at,omitempty"`
+	CreatedFromIPAddress  string                  `bson:"created_from_ip_address" json:"created_from_ip_address,omitempty"`
+	ModifiedAt            time.Time               `bson:"modified_at,omitempty" json:"modified_at,omitempty"`
+	ModifiedFromIPAddress string                  `bson:"modified_from_ip_address" json:"modified_from_ip_address,omitempty"`
+	CollectionID          primitive.ObjectID      `bson:"collection_id" json:"collection_id"`
+	CollectionName        string                  `bson:"collection_name" json:"collection_name"`
+	TokenID               uint64                  `bson:"token_id" json:"token_id"`
+	MetadataFileCID       string                  `bson:"metadata_file_cid" json:"metadata_file_cid"`
+	ImageID               primitive.ObjectID      `bson:"image_id" json:"image_id"`
+	AnimationID           primitive.ObjectID      `bson:"animation_id" json:"animation_id"`
+	Image                 string                  `bson:"image" json:"image"`                       // This is the URL to the image of the item. Can be just about any type of image (including SVGs, which will be cached into PNGs by OpenSea), IPFS or Arweave URLs or paths. We recommend using a minimum 3000 x 3000 image.
+	ExternalURL           string                  `bson:"external_url" json:"external_url"`         // This is the URL that will appear below the asset's image on OpenSea and will allow users to leave OpenSea and view the item on your site.
+	Description           string                  `bson:"description" json:"description"`           // A human-readable description of the item. Markdown is supported.
+	Name                  string                  `bson:"name" json:"name"`                         // Name of the item.
+	Attributes            []*NFTMetadataAttribute `bson:"attributes" json:"attributes"`             // These are the attributes for the item, which will show up on the OpenSea page for the item. (see below)
+	BackgroundColor       string                  `bson:"background_color" json:"background_color"` // Background color of the item on OpenSea. Must be a six-character hexadecimal without a pre-pended #.
+	AnimationURL          string                  `bson:"animation_url" json:"animation_url"`       // A URL to a multi-media attachment for the item. The file extensions GLTF, GLB, WEBM, MP4, M4V, OGV, and OGG are supported, along with the audio-only extensions MP3, WAV, and OGA. Animation_url also supports HTML pages, allowing you to build rich experiences and interactive NFTMetadatas using JavaScript canvas, WebGL, and more. Scripts and relative paths within the HTML page are now supported. However, access to browser extensions is not supported.
+	YoutubeURL            string                  `bson:"youtube_url" json:"youtube_url"`           // A URL to a YouTube video (only used if animation_url is not provided).
+	IPNSPath              string                  `bson:"ipns_path" json:"ipns_path"`               // The path of this metadata file in the IPFS network utilizing IPNS.
 }
 
 type NFTMetadataFile struct {

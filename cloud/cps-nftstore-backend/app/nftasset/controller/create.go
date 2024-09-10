@@ -72,24 +72,26 @@ func (impl *NFTAssetControllerImpl) Create(ctx context.Context, req *NFTAssetCre
 		//
 
 		// Add our file to the IPFS network (within our specific directory name).
-		dirCid, nftAssetFileCID, ipfsUploadErr := impl.IPFS.UploadBytesToDir(sessCtx, req.Data, req.Filename, "nftassets")
+		_, nftAssetFileCID, ipfsUploadErr := impl.IPFS.UploadBytesToDir(sessCtx, req.Data, req.Filename, "nftassets")
 		if ipfsUploadErr != nil {
 			impl.Logger.Error("failed uploading NFT asset file",
 				slog.Any("error", ipfsUploadErr))
 			return nil, err
 		}
-		impl.Logger.Debug("successfully uploaded nft asset file",
-			slog.String("dir_cid", dirCid),
-			slog.String("file_cid", nftAssetFileCID))
+		impl.Logger.Debug("successfully uploaded to ipfs network",
+			slog.String("cid", nftAssetFileCID))
 
+		// Pin our upload file, which means IPFS will not delete this file when
+		// it does its periodic garbage colleciton. If we didn't do this then
+		// we will have this file deleted in the future.
 		if ipfsPinErr := impl.IPFS.Pin(sessCtx, nftAssetFileCID); ipfsPinErr != nil {
 			impl.Logger.Error("failed pinning to ipfs network",
 				slog.Any("error", ipfsPinErr))
 			return nil, err
 		}
 
-		impl.Logger.Debug("successfully pinned nft asset file",
-			slog.String("pinned_cid", nftAssetFileCID))
+		impl.Logger.Debug("successfully pinned in ipfs network",
+			slog.String("cid", nftAssetFileCID))
 
 		//
 		// STEP 2
@@ -99,23 +101,23 @@ func (impl *NFTAssetControllerImpl) Create(ctx context.Context, req *NFTAssetCre
 		orgID, _ := sessCtx.Value(constants.SessionUserTenantID).(primitive.ObjectID)
 		orgName, _ := sessCtx.Value(constants.SessionUserTenantName).(string)
 		orgTimezone, _ := sessCtx.Value(constants.SessionUserTenantTimezone).(string)
-		ipAdress, _ := sessCtx.Value(constants.SessionIPAddress).(string)
+		ipAddress, _ := sessCtx.Value(constants.SessionIPAddress).(string)
 
 		// Create our record in the database.
 		res := &a_d.NFTAsset{
 			Status:                a_d.StatusPending, // Note: Change state when NFT metadata created.
 			CID:                   nftAssetFileCID,
 			Name:                  req.Name,
-			CreatedAt:             time.Now(),
 			Filename:              req.Filename,
 			ContentType:           req.ContentType,
 			TenantID:              orgID,
 			TenantName:            orgName,
 			TenantTimezone:        orgTimezone,
 			ID:                    primitive.NewObjectID(),
-			CreatedFromIPAddress:  ipAdress,
+			CreatedAt:             time.Now(),
+			CreatedFromIPAddress:  ipAddress,
 			ModifiedAt:            time.Now(),
-			ModifiedFromIPAddress: ipAdress,
+			ModifiedFromIPAddress: ipAddress,
 			NFTMetadataID:         primitive.NilObjectID,
 		}
 
@@ -128,6 +130,8 @@ func (impl *NFTAssetControllerImpl) Create(ctx context.Context, req *NFTAssetCre
 		impl.Logger.Debug("successfully created nft asset file",
 			slog.String("filename", req.Filename),
 			slog.String("content_type", req.ContentType),
+			slog.String("cid", nftAssetFileCID),
+			slog.String("status", res.Status),
 			slog.String("id", res.ID.Hex()))
 
 		return res, nil

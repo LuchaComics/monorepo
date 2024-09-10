@@ -78,7 +78,7 @@ func ValidateUpdateRequest(dirtyData *NFTAssetUpdateRequestIDO) error {
 // 		// userTenantID, _ := sessCtx.Value(constants.SessionUserTenantID).(primitive.ObjectID)
 // 		// userTenantTimezone, _ := sessCtx.Value(constants.SessionUserTenantTimezone).(string)
 // 		// userRole, _ := sessCtx.Value(constants.SessionUserRole).(int8)
-// 		// ipAdress, _ := sessCtx.Value(constants.SessionIPAddress).(string)
+// 		// ipAddress, _ := sessCtx.Value(constants.SessionIPAddress).(string)
 // 		//
 // 		// // If user is not administrator nor belongs to the nftasset then error.
 // 		// if userRole != user_d.UserRoleRoot && os.TenantID != userTenantID {
@@ -145,7 +145,7 @@ func ValidateUpdateRequest(dirtyData *NFTAssetUpdateRequestIDO) error {
 // 		// // Modify our original nftasset.
 // 		// os.TenantTimezone = userTenantTimezone
 // 		// os.ModifiedAt = time.Now()
-// 		// os.ModifiedFromIPAddress = ipAdress
+// 		// os.ModifiedFromIPAddress = ipAddress
 // 		// os.Name = req.Name
 // 		// os.NFTMetadataID = req.NFTMetadataID
 //

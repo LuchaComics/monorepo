@@ -16,7 +16,17 @@ tasks:
     cmds:
       - go work use ./cloud/cps-backend
 
-  usepinws:
+  useipfs:
     desc: Load up the go workspace for the `cps-ipfsstore-backend` module.
     cmds:
       - go work use ./cloud/cps-ipfsstore-backend
+
+  usenft:
+    desc: Load up the go workspace for the `cps-nftstore-backend` module.
+    cmds:
+      - go work use ./cloud/cps-nftstore-backend
+
+  usenftcli:
+    desc: Load up the go workspace for the `cps-nftstore-cli` module.
+    cmds:
+      - go work use ./cloud/cps-nftstore-cli

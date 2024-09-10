@@ -134,7 +134,7 @@ function AdminCollectionNFTMetadataAdd() {
     }, 2000);
 
     // Redirect the collection to the collection pinobjects page.
-    setForceURL("/admin/collection/" + id + "/nft-metadum/" + response.id); //TODO: FIX.
+    setForceURL("/admin/collection/" + id + "/nft-metadatum/" + response.id);
   }
 
   function onAdminCollectionNFTMetadataAddError(apiErr) {

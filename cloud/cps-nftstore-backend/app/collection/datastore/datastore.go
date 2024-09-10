@@ -19,20 +19,22 @@ const (
 )
 
 type Collection struct {
-	TenantID          primitive.ObjectID `bson:"tenant_id" json:"tenant_id"`
-	TenantName        string             `bson:"tenant_name" json:"tenant_name"`
-	TenantTimezone    string             `bson:"tenant_timezone" json:"tenant_timezone"`
-	ID                primitive.ObjectID `bson:"_id" json:"id"`
-	Status            int8               `bson:"status" json:"status"`
-	CreatedAt         time.Time          `bson:"created_at,omitempty" json:"created_at,omitempty"`
-	ModifiedAt        time.Time          `bson:"modified_at,omitempty" json:"modified_at,omitempty"`
-	Name              string             `bson:"name" json:"name"`                               // Internal name for staff use; not displayed to customers.
-	IPNSKeyName       string             `bson:"ipns_key_name" json:"ipns_key_name"`             // Unique key name specific to this collection.
-	IPNSName          string             `bson:"ipns_name" json:"ipns_name"`                     // IPNS address of this collection.
-	IPFSDirectoryName string             `bson:"ipfs_directory_name" json:"ipfs_directory_name"` // Directory name for storing NFTs.
-	IPFSDirectoryCID  string             `bson:"ipfs_directory_cid" json:"ipfs_directory_cid"`   // CID of the directory for storing NFTs.
-	TokensCount       uint64             `bson:"tokens_count" json:"tokens_count"`               // Number of tokens in this collection.
-	MetadataFileCIDs  map[uint64]string  `bson:"metadata_file_cids" json:"metadata_file_cids"`   // Used for mapping TokenID's to their metadata file CID.
+	TenantID              primitive.ObjectID `bson:"tenant_id" json:"tenant_id"`
+	TenantName            string             `bson:"tenant_name" json:"tenant_name"`
+	TenantTimezone        string             `bson:"tenant_timezone" json:"tenant_timezone"`
+	ID                    primitive.ObjectID `bson:"_id" json:"id"`
+	Status                int8               `bson:"status" json:"status"`
+	CreatedAt             time.Time          `bson:"created_at,omitempty" json:"created_at,omitempty"`
+	CreatedFromIPAddress  string             `bson:"created_from_ip_address" json:"created_from_ip_address,omitempty"`
+	ModifiedAt            time.Time          `bson:"modified_at,omitempty" json:"modified_at,omitempty"`
+	ModifiedFromIPAddress string             `bson:"modified_from_ip_address" json:"modified_from_ip_address,omitempty"`
+	Name                  string             `bson:"name" json:"name"`                               // Internal name for staff use; not displayed to customers.
+	IPNSKeyName           string             `bson:"ipns_key_name" json:"ipns_key_name"`             // Unique key name specific to this collection.
+	IPNSName              string             `bson:"ipns_name" json:"ipns_name"`                     // IPNS address of this collection.
+	IPFSDirectoryName     string             `bson:"ipfs_directory_name" json:"ipfs_directory_name"` // Directory name for storing NFTs.
+	IPFSDirectoryCID      string             `bson:"ipfs_directory_cid" json:"ipfs_directory_cid"`   // CID of the directory for storing NFTs.
+	TokensCount           uint64             `bson:"tokens_count" json:"tokens_count"`               // Number of tokens in this collection.
+	MetadataFileCIDs      map[uint64]string  `bson:"metadata_file_cids" json:"metadata_file_cids"`   // Used for mapping TokenID's to their metadata file CID.
 }
 
 type CollectionListFilter struct {

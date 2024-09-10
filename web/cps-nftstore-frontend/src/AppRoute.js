@@ -218,17 +218,14 @@ function AppRoute() {
                     path="/admin/collection/:id/nft-assets/add"
                     element={<AdminCollectionNFTAssetAdd />}
                   />
-                  {/*
                   <Route
                     exact
-                    path="/admin/collection/:id/nfts/add-via-ws"
-                    element={<AdminCollectionNFTMetadataAddViaWebService />}
-                  />
-                  <Route
-                    exact
-                    path="/admin/collection/:id/nft/:rid"
+                    path="/admin/collection/:id/nft-metadatum/:rid"
                     element={<AdminCollectionNFTMetadataDetail />}
                   />
+                  {/*
+
+
                   <Route
                     exact
                     path="/admin/collection/:id/nft/:rid/edit"

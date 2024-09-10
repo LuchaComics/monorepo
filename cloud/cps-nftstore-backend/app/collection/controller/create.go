@@ -24,6 +24,7 @@ func (impl *CollectionControllerImpl) Create(ctx context.Context, collection *s_
 	tenantID, _ := ctx.Value(constants.SessionUserTenantID).(primitive.ObjectID)
 	tenantName, _ := ctx.Value(constants.SessionUserTenantName).(string)
 	tenantTimezone, _ := ctx.Value(constants.SessionUserTenantTimezone).(string)
+	ipAddress, _ := ctx.Value(constants.SessionIPAddress).(string)
 
 	// Check if the user has the necessary permissions
 	switch userRole {
@@ -50,7 +51,9 @@ func (impl *CollectionControllerImpl) Create(ctx context.Context, collection *s_
 		collection.TenantTimezone = tenantTimezone
 		collection.ID = primitive.NewObjectID()
 		collection.CreatedAt = time.Now()
+		collection.CreatedFromIPAddress = ipAddress
 		collection.ModifiedAt = time.Now()
+		collection.ModifiedFromIPAddress = ipAddress
 		collection.Status = s_d.StatusActive
 
 		// Generate a unique IPNS key for the collection

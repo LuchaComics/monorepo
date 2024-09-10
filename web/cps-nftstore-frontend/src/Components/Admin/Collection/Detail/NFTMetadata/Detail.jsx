@@ -185,7 +185,7 @@ function AdminCollectionNFTMetadataDetail() {
     setAnimationURL(response.animationUrl);
     setExternalURL(response.externalUrl);
     setBackgroundColor(response.backgroundColor);
-    setYoutubeURL(response.youtubeURL);
+    setYoutubeURL(response.youtubeUrl);
     setIpnsPath(response.ipnsPath);
   }
 

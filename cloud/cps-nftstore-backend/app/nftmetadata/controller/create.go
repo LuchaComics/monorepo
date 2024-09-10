@@ -92,6 +92,7 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 	tenantID, _ := ctx.Value(constants.SessionUserTenantID).(primitive.ObjectID)
 	tenantName, _ := ctx.Value(constants.SessionUserTenantName).(string)
 	tenantTimezone, _ := ctx.Value(constants.SessionUserTenantTimezone).(string)
+	ipAddress, _ := ctx.Value(constants.SessionIPAddress).(string)
 
 	// Check if the user has the necessary permissions
 	switch userRole {
@@ -119,41 +120,59 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
 		//
 		// STEP 1
-		//
-
 		// Begin populating our NFT meta with the user add request data, in
 		// addition add tenant-specific information.
+		//
+
 		nftmetadata := &s_d.NFTMetadata{
-			CollectionID:    req.CollectionID,
-			Name:            req.Name,
-			ImageID:         req.ImageID,
-			AnimationID:     req.AnimationID,
-			ExternalURL:     req.ExternalURL,
-			Description:     req.Description,
-			Attributes:      req.Attributes,
-			BackgroundColor: req.BackgroundColor,
-			YoutubeURL:      req.YoutubeURL,
-			TenantID:        tenantID,
-			TenantName:      tenantName,
-			TenantTimezone:  tenantTimezone,
-			ID:              primitive.NewObjectID(),
-			CreatedAt:       time.Now(),
-			ModifiedAt:      time.Now(),
-			Status:          s_d.StatusActive,
+			CollectionID:          req.CollectionID,
+			Name:                  req.Name,
+			ImageID:               req.ImageID,
+			AnimationID:           req.AnimationID,
+			ExternalURL:           req.ExternalURL,
+			Description:           req.Description,
+			Attributes:            req.Attributes,
+			BackgroundColor:       req.BackgroundColor,
+			YoutubeURL:            req.YoutubeURL,
+			TenantID:              tenantID,
+			TenantName:            tenantName,
+			TenantTimezone:        tenantTimezone,
+			ID:                    primitive.NewObjectID(),
+			CreatedAt:             time.Now(),
+			CreatedFromIPAddress:  ipAddress,
+			ModifiedAt:            time.Now(),
+			ModifiedFromIPAddress: ipAddress,
+			Status:                s_d.StatusActive,
 		}
 
 		//
 		// STEP 2
+		// Fetch related records.
 		//
 
-		// DEVELOPER NOTE: We don't need to check if `collection` exists b/c
-		// we already validated it before entering this transaction.
-		// Lookup our image and attach related.
+		// DEVELOPER NOTE: We don't need to check if the fetched records exists
+		// b/c we already validated it before entering this transaction.
 		collection, err := impl.CollectionStorer.GetByID(sessCtx, req.CollectionID)
 		if err != nil {
 			impl.Logger.Error("failed get collection by id", slog.Any("error", err))
 			return nil, err
 		}
+		imageAsset, err := impl.NFTAssetStorer.GetByID(sessCtx, req.ImageID)
+		if err != nil {
+			impl.Logger.Error("failed get NFT asset by id", slog.Any("error", err))
+			return nil, err
+		}
+		animationAsset, err := impl.NFTAssetStorer.GetByID(sessCtx, req.AnimationID)
+		if err != nil {
+			impl.Logger.Error("failed get NFT asset by id", slog.Any("error", err))
+			return nil, err
+		}
+
+		//
+		// STEP 3
+		// Assign to NFT metadata next available `token_id` and then generate
+		// new next available token.
+		//
 
 		// Update our metadata record.
 		nftmetadata.TokenID = collection.TokensCount // We are doing this because of our smart-contract.
@@ -162,56 +181,39 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 		// Update collection to have our new token id.
 		collection.TokensCount = collection.TokensCount + 1
 		collection.ModifiedAt = time.Now()
-		if err := impl.CollectionStorer.UpdateByID(sessCtx, collection); err != nil {
-			impl.Logger.Error("failed get collection by id", slog.Any("error", err))
-			return nil, err
-		}
 
 		impl.Logger.Debug("nft collection generated new token id",
-			slog.Uint64("token_id", collection.TokensCount))
+			slog.Uint64("metadata_token_id", nftmetadata.TokenID),
+			slog.Uint64("new_token_id", collection.TokensCount))
 
 		//
 		// STEP 3
+		// Update our `image` asset to reference our new NFT metadata record and
+		// therefore our system will not garbage collect this asset. What is
+		// our system doing with garbage collection? Basically if our NFT
+		// assets are not pointing to a NFT metadata record within 1 day of
+		// creation then our system will garbage collect (i.e. delete) the
+		// NFT asset - the following change settings will make sure our
+		// system doesn't garbage collect this particular NFT asset.
 		//
 
-		// DEVELOPER NOTE: We don't need to check if `imageAsset` exists b/c
-		// we already validated it before entering this transaction.
-		// Lookup our image and attach related.
-		imageAsset, err := impl.NFTAssetStorer.GetByID(sessCtx, req.ImageID)
-		if err != nil {
-			impl.Logger.Error("failed get NFT asset by id", slog.Any("error", err))
-			return nil, err
-		}
 		imageAsset.Status = nftasset_s.StatusPinning
-		if err := impl.NFTAssetStorer.UpdateByID(sessCtx, imageAsset); err != nil {
-			impl.Logger.Error("failed update NFT asset by id", slog.Any("error", err))
-			return nil, err
-		}
-
-		// Update our metadata record.
+		imageAsset.NFTMetadataID = nftmetadata.ID
+		imageAsset.ModifiedAt = time.Now()
+		imageAsset.ModifiedFromIPAddress = ipAddress
 		nftmetadata.Image = fmt.Sprintf("/ipfs/%v", imageAsset.CID)
 
 		impl.Logger.Debug("image asset set")
 
 		//
 		// STEP 4
+		// Same as above step 3 but do this for `animation_url`.
 		//
 
-		// DEVELOPER NOTE: We don't need to check if `animationAsset` exists b/c
-		// we already validated it before entering this transaction.
-		// Lookup our image and attach related.
-		animationAsset, err := impl.NFTAssetStorer.GetByID(sessCtx, req.AnimationID)
-		if err != nil {
-			impl.Logger.Error("failed get NFT asset by id", slog.Any("error", err))
-			return nil, err
-		}
 		animationAsset.Status = nftasset_s.StatusPinning
-		if err := impl.NFTAssetStorer.UpdateByID(sessCtx, animationAsset); err != nil {
-			impl.Logger.Error("failed update NFT asset by id", slog.Any("error", err))
-			return nil, err
-		}
-
-		// Update our metadata record.
+		animationAsset.NFTMetadataID = nftmetadata.ID
+		animationAsset.ModifiedAt = time.Now()
+		animationAsset.ModifiedFromIPAddress = ipAddress
 		nftmetadata.AnimationURL = fmt.Sprintf("/ipfs/%v", animationAsset.CID)
 
 		impl.Logger.Debug("animation asset set")
@@ -220,6 +222,10 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 		// STEP 5
 		// Generate our metadata file in our collection directory and add to
 		// IPFS network. Afterwords keep a record of it.
+		//
+
+		impl.Logger.Debug("creating metadata file and adding to ipfs network...",
+			slog.Uint64("token_id", nftmetadata.TokenID))
 
 		metadataFile := &s_d.NFTMetadataFile{
 			Image:           nftmetadata.Image,
@@ -244,6 +250,18 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 			return nil, err
 		}
 
+		impl.Logger.Debug("nft metadata file added to ipfs network",
+			slog.Uint64("token_id", nftmetadata.TokenID),
+			slog.String("cid", metadataFileCID))
+
+		//
+		// STEP 6
+		// Publish to IPNS.
+		//
+
+		impl.Logger.Debug("nft collection being republished to ipns...",
+			slog.Uint64("token_id", nftmetadata.TokenID))
+
 		// Publish the collection directory to IPNS
 		resolvedIPNSName, err := impl.IPFS.PublishToIPNS(sessCtx, collection.IPNSKeyName, dirCid)
 		if err != nil {
@@ -253,31 +271,51 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 		// Update the collection record.
 		collection.MetadataFileCIDs[0] = metadataFileCID
 		collection.IPFSDirectoryCID = dirCid
-		collection.ModifiedAt = time.Now()
 		collection.IPNSName = resolvedIPNSName
-		if err := impl.CollectionStorer.UpdateByID(sessCtx, collection); err != nil {
-			impl.Logger.Error("failed get collection by id", slog.Any("error", err))
-			return nil, err
-		}
-
-		impl.Logger.Debug("nft collection generated new directory cid",
-			slog.Uint64("token_id", collection.TokensCount))
+		collection.ModifiedAt = time.Now()
+		collection.ModifiedFromIPAddress = ipAddress
 
 		// Update the record.
 		nftmetadata.MetadataFileCID = metadataFileCID
+		nftmetadata.IPNSPath = fmt.Sprintf("/ipns/%v/%v", resolvedIPNSName, nftmetadata.TokenID)
+
+		impl.Logger.Debug("nft successuflly republished in ipns",
+			slog.Uint64("token_id", nftmetadata.TokenID),
+			slog.String("ipfs_cid", nftmetadata.MetadataFileCID),
+			slog.String("ipns_path", nftmetadata.IPNSPath))
 
 		//
 		// STEP 7
+		// Submit our records for saving in our database.
 		//
 
 		// Save the nftmetadata data to the database
 		if err := impl.NFTMetadataStorer.Create(sessCtx, nftmetadata); err != nil {
-			impl.Logger.Error("failed to save nftmetadata to database", slog.Any("error", err))
+			impl.Logger.Error("failed to create nftmetadata to database",
+				slog.Any("error", err))
+			return nil, err
+		}
+
+		if err := impl.CollectionStorer.UpdateByID(sessCtx, collection); err != nil {
+			impl.Logger.Error("failed updating collection by id",
+				slog.Any("error", err))
+			return nil, err
+		}
+
+		if err := impl.NFTAssetStorer.UpdateByID(sessCtx, imageAsset); err != nil {
+			impl.Logger.Error("failed update NFT asset by id",
+				slog.Any("error", err))
+			return nil, err
+		}
+
+		if err := impl.NFTAssetStorer.UpdateByID(sessCtx, animationAsset); err != nil {
+			impl.Logger.Error("failed update NFT asset by id",
+				slog.Any("error", err))
 			return nil, err
 		}
 
 		impl.Logger.Debug("nft metadata created",
-			slog.String("id", nftmetadata.ID.Hex()))
+			slog.Uint64("token_id", nftmetadata.TokenID))
 
 		return nftmetadata, nil
 	}

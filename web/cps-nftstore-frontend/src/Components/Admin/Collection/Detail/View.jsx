@@ -540,6 +540,7 @@ function AdminCollectionDetail() {
                       label="Tokens Count"
                       type="number"
                       value={collection.tokensCount}
+                      type="text"
                       helpText=""
                     />
 
