@@ -128,7 +128,7 @@ function AdminNFTCollectionUpdate() {
     console.log(response);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
-    setTopAlertMessage("Collection updated");
+    setTopAlertMessage("NFT collection updated");
     setTopAlertStatus("success");
     setTimeout(() => {
       console.log("onAdminNFTCollectionUpdateSuccess: Delayed for 2 seconds.");
@@ -266,7 +266,7 @@ function AdminNFTCollectionUpdate() {
               <li class="">
                 <Link to="/admin/collections" aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faCubes} />
-                  &nbsp;Collections
+                  &nbsp;NFT Collections
                 </Link>
               </li>
               <li class="">
@@ -303,7 +303,7 @@ function AdminNFTCollectionUpdate() {
           <nav class="box">
             <p class="title is-4">
               <FontAwesomeIcon className="fas" icon={faCubes} />
-              &nbsp;Collection
+              &nbsp;NFT Collection
             </p>
             <FormErrorBox errors={errors} />
 

@@ -303,7 +303,7 @@ function AdminNFTCollectionDetailForNFTMetadataList() {
               <li class="">
                 <Link to="/admin/collections" aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faCubes} />
-                  &nbsp;Collections
+                  &nbsp;NFT Collections
                 </Link>
               </li>
               <li class="is-active">
@@ -321,7 +321,7 @@ function AdminNFTCollectionDetailForNFTMetadataList() {
               <li class="">
                 <Link to={`/admin/collections`} aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                  &nbsp;Back to Collections
+                  &nbsp;Back to NFT Collections
                 </Link>
               </li>
             </ul>
@@ -374,7 +374,7 @@ function AdminNFTCollectionDetailForNFTMetadataList() {
               <div class="column">
                 <p class="title is-4">
                   <FontAwesomeIcon className="fas" icon={faCubes} />
-                  &nbsp;Collection
+                  &nbsp;NFT Collection
                 </p>
               </div>
               {collection && collection.status === 1 && (
@@ -492,7 +492,7 @@ function AdminNFTCollectionDetailForNFTMetadataList() {
                       <div class="column is-half">
                         <Link class="button is-fullwidth-mobile" to={`/collections`}>
                           <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                          &nbsp;Back to Collections
+                          &nbsp;Back to NFT Collections
                         </Link>
                       </div>
                       <div class="column is-half has-text-right">

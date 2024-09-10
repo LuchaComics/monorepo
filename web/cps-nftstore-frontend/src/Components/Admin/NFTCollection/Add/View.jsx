@@ -21,6 +21,7 @@ import {
   faCogs,
   faBuilding,
   faEye,
+  faHourglassStart
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
@@ -108,7 +109,7 @@ function AdminNFTCollectionAdd() {
     console.log(response);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
-    setTopAlertMessage("Collection created");
+    setTopAlertMessage("NFT collection created");
     setTopAlertStatus("success");
     setTimeout(() => {
       console.log("onAdminNFTCollectionAddSuccess: Delayed for 2 seconds.");
@@ -247,13 +248,13 @@ function AdminNFTCollectionAdd() {
                 <li class="">
                   <Link to={`/admin/tenant/${orgID}/collections`} aria-current="page">
                     <FontAwesomeIcon className="fas" icon={faEye} />
-                    &nbsp;Detail (Collections)
+                    &nbsp;Detail (NFT Collections)
                   </Link>
                 </li>
                 <li class="is-active">
                   <Link aria-current="page">
                     <FontAwesomeIcon className="fas" icon={faPlus} />
-                    &nbsp;New Collection
+                    &nbsp;New NFT Collection
                   </Link>
                 </li>
               </ul>
@@ -268,7 +269,7 @@ function AdminNFTCollectionAdd() {
                 <li class="">
                   <Link to="/admin/collections" aria-current="page">
                     <FontAwesomeIcon className="fas" icon={faCubes} />
-                    &nbsp;Collections
+                    &nbsp;NFT Collections
                   </Link>
                 </li>
                 <li class="is-active">
@@ -288,14 +289,14 @@ function AdminNFTCollectionAdd() {
                 <li class="">
                   <Link to={`/admin/tenant/${orgID}/collections`} aria-current="page">
                     <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                    &nbsp;Back to Detail (Collections)
+                    &nbsp;Back to Detail (NFT Collections)
                   </Link>
                 </li>
               ) : (
                 <li class="">
                   <Link to={`/admin/collections`} aria-current="page">
                     <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                    &nbsp;Back to Collections
+                    &nbsp;Back to NFT Collections
                   </Link>
                 </li>
               )}
@@ -352,14 +353,22 @@ function AdminNFTCollectionAdd() {
 
             <p class="title is-4">
               <FontAwesomeIcon className="fas" icon={faPlus} />
-              &nbsp;New Collection
+              &nbsp;New NFT Collection
             </p>
             <FormErrorBox errors={errors} />
 
             {/* <p class="pb-4 has-text-grey">Please fill out all the required fields before submitting this form.</p> */}
 
             {isFetching ? (
-              <PageLoadingContent displayMessage={"Submitting..."} />
+              <>
+                 <div className="has-background-success is-fullwidth p-2">
+                    <div className="has-text-white is-size-4 has-text-centered has-text-weight-bold">
+                      <FontAwesomeIcon className="fas" icon={faHourglassStart} />
+                      &nbsp;This may take a few minutes submitting to IPFS network, please wait...
+                    </div>
+                 </div>
+                 <PageLoadingContent displayMessage={"Submitting..."} />
+              </>
             ) : (
               <>
                 <div class="container">

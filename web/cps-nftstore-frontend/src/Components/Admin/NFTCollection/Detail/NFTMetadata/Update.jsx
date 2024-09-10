@@ -246,7 +246,7 @@ function AdminNFTCollectionNFTMetadataUpdate() {
               <li class="">
                 <Link to="/admin/collections" aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faCubes} />
-                  &nbsp;Collections
+                  &nbsp;NFT Collections
                 </Link>
               </li>
               <li class="">

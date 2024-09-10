@@ -248,7 +248,7 @@ function AdminNFTCollectionList() {
               <li class="is-active">
                 <Link aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faCubes} />
-                  &nbsp;Collections
+                  &nbsp;NFT Collections
                 </Link>
               </li>
             </ul>
@@ -272,7 +272,7 @@ function AdminNFTCollectionList() {
               <div class="column">
                 <h1 class="title is-4">
                   <FontAwesomeIcon className="fas" icon={faCubes} />
-                  &nbsp;Collections List
+                  &nbsp;NFT Collections List
                 </h1>
               </div>
 
@@ -309,7 +309,7 @@ function AdminNFTCollectionList() {
                   type="button"
                 >
                   <FontAwesomeIcon className="mdi" icon={faPlus} />
-                  &nbsp;New Collection
+                  &nbsp;New NFT Collection
                 </Link>
               </div>
 
@@ -346,7 +346,7 @@ function AdminNFTCollectionList() {
                   type="button"
                 >
                   <FontAwesomeIcon className="mdi" icon={faPlus} />
-                  &nbsp;New Collection
+                  &nbsp;New NFT Collection
                 </Link>
               </div>
             </div>
@@ -485,7 +485,7 @@ function AdminNFTCollectionList() {
                     <div class="hero-body">
                       <p class="title">
                         <FontAwesomeIcon className="fas" icon={faTable} />
-                        &nbsp;No Collections
+                        &nbsp;No NFT Collections
                       </p>
                       <p class="subtitle">
                         No collections.{" "}
@@ -498,7 +498,7 @@ function AdminNFTCollectionList() {
                             />
                           </Link>
                         </b>{" "}
-                        to get started creating your first collection.
+                        to get started creating your first NFT collection.
                       </p>
                     </div>
                   </section>

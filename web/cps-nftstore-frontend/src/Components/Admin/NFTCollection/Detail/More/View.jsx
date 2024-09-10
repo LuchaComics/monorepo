@@ -167,7 +167,7 @@ function AdminNFTCollectionDetailMore() {
               <li class="">
                 <Link to="/admin/collections" aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faCubes} />
-                  &nbsp;Collections
+                  &nbsp;NFT Collections
                 </Link>
               </li>
               <li class="is-active">
@@ -185,7 +185,7 @@ function AdminNFTCollectionDetailMore() {
               <li class="">
                 <Link to={`/admin/collections`} aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                  &nbsp;Back to Collections
+                  &nbsp;Back to NFT Collections
                 </Link>
               </li>
             </ul>
@@ -204,7 +204,7 @@ function AdminNFTCollectionDetailMore() {
                 <div className="column">
                   <p className="title is-4">
                     <FontAwesomeIcon className="fas" icon={faCubes} />
-                    &nbsp;Collection
+                    &nbsp;NFT Collection
                   </p>
                 </div>
                 <div className="column has-text-right"></div>
@@ -266,7 +266,7 @@ function AdminNFTCollectionDetailMore() {
                           to={`/admin/collections`}
                         >
                           <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                          &nbsp;Back to Collections
+                          &nbsp;Back to NFT Collections
                         </Link>
                       </div>
                       <div className="column is-half has-text-right"></div>

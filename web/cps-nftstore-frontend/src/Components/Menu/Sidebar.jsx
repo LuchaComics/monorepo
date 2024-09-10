@@ -183,7 +183,7 @@ export default (props) => {
                   class={`has-text-grey-light ${location.pathname.includes("collection") && "is-active"}`}
                 >
                   <FontAwesomeIcon className="fas" icon={faCubes} />
-                  &nbsp;Collections
+                  &nbsp;NFT Collections
                 </Link>
               </li>
               <li>

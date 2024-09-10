@@ -161,7 +161,7 @@ function AdminDashboard() {
               <div class="hero-body">
                 <p class="title">
                   <FontAwesomeIcon className="fas" icon={faCubes} />
-                  &nbsp;Collections
+                  &nbsp;NFT Collections
                 </p>
                 <p class="subtitle">
                   Submit a request to encapsulate your collectible by clicking
@@ -169,7 +169,7 @@ function AdminDashboard() {
                   <br />
                   <br />
                   <Link to={"/admin/collections"}>
-                    View Collections&nbsp;
+                    View&nbsp;
                     <FontAwesomeIcon className="fas" icon={faArrowRight} />
                   </Link>
                   <br />
