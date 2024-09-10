@@ -52,18 +52,6 @@ function AdminNFTCollectionListMobile(props) {
               <strong>Name:</strong>&nbsp;{datum.name}
               <br />
               <br />
-              <strong>Email:</strong>&nbsp;
-              <Link to={`mailto:${datum.email}`}>{datum.email}</Link>
-              <br />
-              <br />
-              <strong>Phone:</strong>&nbsp;
-              {datum.phone ? (
-                <Link to={`tel:${datum.phone}`}>{datum.phone}</Link>
-              ) : (
-                <>-</>
-              )}
-              <br />
-              <br />
               <strong>Tenant:</strong>&nbsp;
               {datum.tenantId !== "000000000000000000000000" && (
                 <Link
@@ -81,10 +69,7 @@ function AdminNFTCollectionListMobile(props) {
               )}
               <br />
               <br />
-              <strong>Role:</strong>&nbsp;{USER_ROLES[datum.role]}
-              <br />
-              <br />
-              <strong>Joined:</strong>&nbsp;{datum.createdAt}
+              <strong>Created:</strong>&nbsp;{datum.createdAt}
               <br />
               <br />
               <strong>Status:</strong>&nbsp;{datum.status === 1 ? <><FontAwesomeIcon className="mdi" icon={faCircleCheck} />&nbsp;Active</> : <><FontAwesomeIcon className="mdi" icon={faArchive} />&nbsp;Archived</>}
