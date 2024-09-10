@@ -32,7 +32,7 @@ import { PAGE_SIZE_OPTIONS, USER_ROLES } from "../../../../Constants/FieldOption
 /*
 Display for both tablet and mobile.
 */
-function AdminCollectionListMobile(props) {
+function AdminNFTCollectionListMobile(props) {
   const {
     listData,
     setPageSize,
@@ -162,4 +162,4 @@ function AdminCollectionListMobile(props) {
   );
 }
 
-export default AdminCollectionListMobile;
+export default AdminNFTCollectionListMobile;

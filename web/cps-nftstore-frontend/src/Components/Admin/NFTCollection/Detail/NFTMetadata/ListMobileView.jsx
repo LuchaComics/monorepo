@@ -34,7 +34,7 @@ import {
 /*
 Display for both tablet and mobile.
 */
-function AdminCollectionDetailForNFTMetadataListMobile(props) {
+function AdminNFTCollectionDetailForNFTMetadataListMobile(props) {
   const {
     collectionID,
     listData,
@@ -176,4 +176,4 @@ function AdminCollectionDetailForNFTMetadataListMobile(props) {
   );
 }
 
-export default AdminCollectionDetailForNFTMetadataListMobile;
+export default AdminNFTCollectionDetailForNFTMetadataListMobile;

@@ -3,17 +3,17 @@ import { camelizeKeys, decamelizeKeys, decamelize } from "humps";
 import { DateTime } from "luxon";
 
 import {
-  CPS_PROJECTS_API_ENDPOINT,
-  CPS_PROJECTS_SELECT_OPTIONS_API_ENDPOINT,
-  CPS_PROJECT_API_ENDPOINT,
-  CPS_PROJECT_STAR_OPERATION_API_ENDPOINT,
-  CPS_PROJECT_ARCHIVE_OPERATION_API_ENDPOINT,
-  CPS_PROJECT_CREATE_COMMENT_OPERATION_API_ENDPOINT,
-  CPS_PROJECT_UPGRADE_OPERATION_API_ENDPOINT,
-  CPS_PROJECT_DOWNGRADE_OPERATION_API_ENDPOINT,
-  CPS_PROJECT_AVATAR_OPERATION_API_ENDPOINT,
-  CPS_PROJECT_CHANGE_PASSWORD_OPERATION_API_ENDPOINT,
-  CPS_PROJECT_CHANGE_2FA_OPERATION_API_URL,
+  CPS_NFT_COLLECTIONS_API_ENDPOINT,
+  CPS_NFT_COLLECTIONS_SELECT_OPTIONS_API_ENDPOINT,
+  CPS_NFT_COLLECTION_API_ENDPOINT,
+  CPS_NFT_COLLECTION_STAR_OPERATION_API_ENDPOINT,
+  CPS_NFT_COLLECTION_ARCHIVE_OPERATION_API_ENDPOINT,
+  CPS_NFT_COLLECTION_CREATE_COMMENT_OPERATION_API_ENDPOINT,
+  CPS_NFT_COLLECTION_UPGRADE_OPERATION_API_ENDPOINT,
+  CPS_NFT_COLLECTION_DOWNGRADE_OPERATION_API_ENDPOINT,
+  CPS_NFT_COLLECTION_AVATAR_OPERATION_API_ENDPOINT,
+  CPS_NFT_COLLECTION_CHANGE_PASSWORD_OPERATION_API_ENDPOINT,
+  CPS_NFT_COLLECTION_CHANGE_2FA_OPERATION_API_URL,
 } from "../Constants/API";
 
 export function getCollectionListAPI(
@@ -26,7 +26,7 @@ export function getCollectionListAPI(
   const axios = getCustomAxios(onUnauthorizedCallback);
 
   // The following code will generate the query parameters for the url based on the map.
-  let aURL = CPS_PROJECTS_API_ENDPOINT;
+  let aURL = CPS_NFT_COLLECTIONS_API_ENDPOINT;
   filtersMap.forEach((value, key) => {
     let decamelizedkey = decamelize(key);
     if (aURL.indexOf("?") > -1) {
@@ -83,7 +83,7 @@ export function getCollectionSelectOptionListAPI(
   const axios = getCustomAxios(onUnauthorizedCallback);
 
   // The following code will generate the query parameters for the url based on the map.
-  let aURL = CPS_PROJECTS_SELECT_OPTIONS_API_ENDPOINT;
+  let aURL = CPS_NFT_COLLECTIONS_SELECT_OPTIONS_API_ENDPOINT;
   filtersMap.forEach((value, key) => {
     let decamelizedkey = decamelize(key);
     if (aURL.indexOf("?") > -1) {
@@ -152,7 +152,7 @@ export function postCollectionCreateAPI(
   decamelizedData.cps_partnership_reason = data.CPSPartnershipReason;
 
   axios
-    .post(CPS_PROJECTS_API_ENDPOINT, decamelizedData)
+    .post(CPS_NFT_COLLECTIONS_API_ENDPOINT, decamelizedData)
     .then((successResponse) => {
       const responseData = successResponse.data;
 
@@ -178,7 +178,7 @@ export function getCollectionDetailAPI(
 ) {
   const axios = getCustomAxios(onUnauthorizedCallback);
   axios
-    .get(CPS_PROJECT_API_ENDPOINT.replace("{id}", collectionID))
+    .get(CPS_NFT_COLLECTION_API_ENDPOINT.replace("{id}", collectionID))
     .then((successResponse) => {
       const responseData = successResponse.data;
 
@@ -229,7 +229,7 @@ export function putCollectionUpdateAPI(
 
   axios
     .put(
-      CPS_PROJECT_API_ENDPOINT.replace("{id}", decamelizedData.id),
+      CPS_NFT_COLLECTION_API_ENDPOINT.replace("{id}", decamelizedData.id),
       decamelizedData,
     )
     .then((successResponse) => {
@@ -260,7 +260,7 @@ export function deleteCollectionAPI(
 ) {
   const axios = getCustomAxios(onUnauthorizedCallback);
   axios
-    .delete(CPS_PROJECT_API_ENDPOINT.replace("{id}", id))
+    .delete(CPS_NFT_COLLECTION_API_ENDPOINT.replace("{id}", id))
     .then((successResponse) => {
       const responseData = successResponse.data;
 
@@ -291,7 +291,7 @@ export function postCollectionCreateCommentOperationAPI(
     content: content,
   };
   axios
-    .post(CPS_PROJECT_CREATE_COMMENT_OPERATION_API_ENDPOINT, data)
+    .post(CPS_NFT_COLLECTION_CREATE_COMMENT_OPERATION_API_ENDPOINT, data)
     .then((successResponse) => {
       const responseData = successResponse.data;
 
@@ -320,7 +320,7 @@ export function postCollectionStarOperationAPI(
     collection_id: collectionID,
   };
   axios
-    .post(CPS_PROJECT_STAR_OPERATION_API_ENDPOINT, data)
+    .post(CPS_NFT_COLLECTION_STAR_OPERATION_API_ENDPOINT, data)
     .then((successResponse) => {
       const responseData = successResponse.data;
 
@@ -349,7 +349,7 @@ export function postArchiveCollectionAPI(
     collection_id: id,
   };
   axios
-    .post(CPS_PROJECT_ARCHIVE_OPERATION_API_ENDPOINT, data)
+    .post(CPS_NFT_COLLECTION_ARCHIVE_OPERATION_API_ENDPOINT, data)
     .then((successResponse) => {
       const responseData = successResponse.data;
 
@@ -375,7 +375,7 @@ export function postUpgradeCollectionAPI(
 ) {
   const axios = getCustomAxios(onUnauthorizedCallback);
   axios
-    .post(CPS_PROJECT_UPGRADE_OPERATION_API_ENDPOINT, decamelizedData)
+    .post(CPS_NFT_COLLECTION_UPGRADE_OPERATION_API_ENDPOINT, decamelizedData)
     .then((successResponse) => {
       const responseData = successResponse.data;
 
@@ -404,7 +404,7 @@ export function postDowngradeCollectionAPI(
     collection_id: id,
   };
   axios
-    .post(CPS_PROJECT_DOWNGRADE_OPERATION_API_ENDPOINT, data)
+    .post(CPS_NFT_COLLECTION_DOWNGRADE_OPERATION_API_ENDPOINT, data)
     .then((successResponse) => {
       const responseData = successResponse.data;
 
@@ -431,7 +431,7 @@ export function postAvatarCollectionAPI(
   const axios = getCustomAxios(onUnauthorizedCallback);
 
   axios
-    .post(CPS_PROJECT_AVATAR_OPERATION_API_ENDPOINT, formdata, {
+    .post(CPS_NFT_COLLECTION_AVATAR_OPERATION_API_ENDPOINT, formdata, {
       headers: {
         "Content-Type": "multipart/form-data",
         Accept: "application/json",
@@ -457,7 +457,7 @@ export function postAvatarCollectionAPI(
 //     const axios = getCustomAxios(onUnauthorizedCallback);
 //
 //     // The following code will generate the query parameters for the url based on the map.
-//     let aURL = CPS_PROJECTS_SELECT_OPTIONS_API_ENDPOINT;
+//     let aURL = CPS_NFT_COLLECTIONS_SELECT_OPTIONS_API_ENDPOINT;
 //     filtersMap.forEach(
 //         (value, key) => {
 //             let decamelizedkey = decamelize(key)
@@ -505,7 +505,7 @@ export function postCollectionChangePasswordAPI(
 ) {
   const axios = getCustomAxios(onUnauthorizedCallback);
   axios
-    .post(CPS_PROJECT_CHANGE_PASSWORD_OPERATION_API_ENDPOINT, data)
+    .post(CPS_NFT_COLLECTION_CHANGE_PASSWORD_OPERATION_API_ENDPOINT, data)
     .then((successResponse) => {
       const responseData = successResponse.data;
 
@@ -531,7 +531,7 @@ export function postCollectionChangeTwoFactorAuthenticationAPI(
 ) {
   const axios = getCustomAxios(onUnauthorizedCallback);
   axios
-    .post(CPS_PROJECT_CHANGE_2FA_OPERATION_API_URL, data)
+    .post(CPS_NFT_COLLECTION_CHANGE_2FA_OPERATION_API_URL, data)
     .then((successResponse) => {
       const responseData = successResponse.data;
 

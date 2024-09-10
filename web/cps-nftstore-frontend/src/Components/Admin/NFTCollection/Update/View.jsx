@@ -22,7 +22,7 @@ import {
 import { useRecoilState } from "recoil";
 import { useParams } from "react-router-dom";
 
-import { getCollectionDetailAPI, putCollectionUpdateAPI } from "../../../../API/Collection";
+import { getCollectionDetailAPI, putCollectionUpdateAPI } from "../../../../API/NFTCollection";
 import { getTenantSelectOptionListAPI } from "../../../../API/tenant";
 import FormErrorBox from "../../../Reusable/FormErrorBox";
 import FormInputField from "../../../Reusable/FormInputField";
@@ -43,7 +43,7 @@ import { topAlertMessageState, topAlertStatusState } from "../../../../AppState"
 import { USER_ROLE_ROOT, USER_ROLE_RETAILER, USER_ROLE_CUSTOMER } from "../../../../Constants/App";
 
 
-function AdminCollectionUpdate() {
+function AdminNFTCollectionUpdate() {
   ////
   //// URL Parameters.
   ////
@@ -92,9 +92,9 @@ function AdminCollectionUpdate() {
     console.log("onSubmitClick, collection:", collection);
     putCollectionUpdateAPI(
       collection,
-      onAdminCollectionUpdateSuccess,
-      onAdminCollectionUpdateError,
-      onAdminCollectionUpdateDone,
+      onAdminNFTCollectionUpdateSuccess,
+      onAdminNFTCollectionUpdateError,
+      onAdminNFTCollectionUpdateDone,
       onUnauthorized,
     );
   };
@@ -122,18 +122,18 @@ function AdminCollectionUpdate() {
     setFetching(false);
   }
 
-  function onAdminCollectionUpdateSuccess(response) {
+  function onAdminNFTCollectionUpdateSuccess(response) {
     // For debugging purposes only.
-    console.log("onAdminCollectionUpdateSuccess: Starting...");
+    console.log("onAdminNFTCollectionUpdateSuccess: Starting...");
     console.log(response);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
     setTopAlertMessage("Collection updated");
     setTopAlertStatus("success");
     setTimeout(() => {
-      console.log("onAdminCollectionUpdateSuccess: Delayed for 2 seconds.");
+      console.log("onAdminNFTCollectionUpdateSuccess: Delayed for 2 seconds.");
       console.log(
-        "onAdminCollectionUpdateSuccess: topAlertMessage, topAlertStatus:",
+        "onAdminNFTCollectionUpdateSuccess: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );
@@ -144,17 +144,17 @@ function AdminCollectionUpdate() {
     setForceURL("/admin/collection/" + response.id);
   }
 
-  function onAdminCollectionUpdateError(apiErr) {
-    console.log("onAdminCollectionUpdateError: Starting...");
+  function onAdminNFTCollectionUpdateError(apiErr) {
+    console.log("onAdminNFTCollectionUpdateError: Starting...");
     setErrors(apiErr);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
     setTopAlertMessage("Failed submitting");
     setTopAlertStatus("danger");
     setTimeout(() => {
-      console.log("onAdminCollectionUpdateError: Delayed for 2 seconds.");
+      console.log("onAdminNFTCollectionUpdateError: Delayed for 2 seconds.");
       console.log(
-        "onAdminCollectionUpdateError: topAlertMessage, topAlertStatus:",
+        "onAdminNFTCollectionUpdateError: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );
@@ -168,8 +168,8 @@ function AdminCollectionUpdate() {
     scroll.scrollToTop();
   }
 
-  function onAdminCollectionUpdateDone() {
-    console.log("onAdminCollectionUpdateDone: Starting...");
+  function onAdminNFTCollectionUpdateDone() {
+    console.log("onAdminNFTCollectionUpdateDone: Starting...");
     setFetching(false);
   }
 
@@ -407,4 +407,4 @@ function AdminCollectionUpdate() {
   );
 }
 
-export default AdminCollectionUpdate;
+export default AdminNFTCollectionUpdate;

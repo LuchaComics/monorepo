@@ -26,7 +26,7 @@ import {
   PAGE_SIZE_OPTIONS,
 } from "../../../../../Constants/FieldOptions";
 
-import { getCollectionDetailAPI } from "../../../../../API/Collection";
+import { getCollectionDetailAPI } from "../../../../../API/NFTCollection";
 import {
   getNFTMetadataListAPI,
   deleteNFTMetadataAPI,
@@ -43,11 +43,11 @@ import {
   topAlertMessageState,
   topAlertStatusState,
 } from "../../../../../AppState";
-import AdminCollectionDetailForNFTMetadataListDesktop from "./ListDektopView";
-import AdminCollectionDetailForNFTMetadataListMobile from "./ListMobileView";
+import AdminNFTCollectionDetailForNFTMetadataListDesktop from "./ListDektopView";
+import AdminNFTCollectionDetailForNFTMetadataListMobile from "./ListMobileView";
 import AlertBanner from "../../../../Reusable/EveryPage/AlertBanner";
 
-function AdminCollectionDetailForNFTMetadataList() {
+function AdminNFTCollectionDetailForNFTMetadataList() {
   ////
   //// URL Parameters.
   ////
@@ -434,7 +434,7 @@ function AdminCollectionDetailForNFTMetadataList() {
                             ##################################################################
                         */}
                         <div class="is-hidden-touch">
-                          <AdminCollectionDetailForNFTMetadataListDesktop
+                          <AdminNFTCollectionDetailForNFTMetadataListDesktop
                             collectionID={id}
                             listData={nftAssets}
                             setPageSize={setPageSize}
@@ -454,7 +454,7 @@ function AdminCollectionDetailForNFTMetadataList() {
                             ###########################################################################
                         */}
                         <div class="is-fullwidth is-hidden-desktop">
-                          <AdminCollectionDetailForNFTMetadataListMobile
+                          <AdminNFTCollectionDetailForNFTMetadataListMobile
                             collectionID={id}
                             listData={nftAssets}
                             setPageSize={setPageSize}
@@ -526,4 +526,4 @@ function AdminCollectionDetailForNFTMetadataList() {
   );
 }
 
-export default AdminCollectionDetailForNFTMetadataList;
+export default AdminNFTCollectionDetailForNFTMetadataList;

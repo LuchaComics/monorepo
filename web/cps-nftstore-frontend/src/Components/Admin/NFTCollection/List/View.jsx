@@ -21,7 +21,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
-import { getCollectionListAPI, deleteCollectionAPI } from "../../../../API/Collection";
+import { getCollectionListAPI, deleteCollectionAPI } from "../../../../API/NFTCollection";
 import {
   topAlertMessageState,
   topAlertStatusState,
@@ -44,10 +44,10 @@ import {
   USER_STATUS_LIST_OPTIONS,
   USER_ROLE_LIST_OPTIONS,
 } from "../../../../Constants/FieldOptions";
-import AdminCollectionListDesktop from "./ListDesktop";
-import AdminCollectionListMobile from "./ListMobile";
+import AdminNFTCollectionListDesktop from "./ListDesktop";
+import AdminNFTCollectionListMobile from "./ListMobile";
 
-function AdminCollectionList() {
+function AdminNFTCollectionList() {
   ////
   //// Global state.
   ////
@@ -454,7 +454,7 @@ function AdminCollectionList() {
                         ##################################################################
                     */}
                     <div class="is-hidden-touch">
-                      <AdminCollectionListDesktop
+                      <AdminNFTCollectionListDesktop
                         listData={collections}
                         setPageSize={setPageSize}
                         pageSize={pageSize}
@@ -470,7 +470,7 @@ function AdminCollectionList() {
                         ###########################################################################
                     */}
                     <div class="is-fullwidth is-hidden-desktop">
-                      <AdminCollectionListMobile
+                      <AdminNFTCollectionListMobile
                         listData={collections}
                         setPageSize={setPageSize}
                         pageSize={pageSize}
@@ -526,4 +526,4 @@ function AdminCollectionList() {
   );
 }
 
-export default AdminCollectionList;
+export default AdminNFTCollectionList;

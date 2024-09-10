@@ -31,7 +31,7 @@ import {
   getCollectionDetailAPI,
   postCollectionStarOperationAPI,
   deleteCollectionAPI,
-} from "../../../../API/Collection";
+} from "../../../../API/NFTCollection";
 import { getTenantSelectOptionListAPI } from "../../../../API/tenant";
 import FormErrorBox from "../../../Reusable/FormErrorBox";
 import FormInputField from "../../../Reusable/FormInputField";
@@ -61,7 +61,7 @@ import {
   USER_ROLE_CUSTOMER
 } from "../../../../Constants/App";
 
-function AdminCollectionDetail() {
+function AdminNFTCollectionDetail() {
   ////
   ////
   //// URL Query Strings.
@@ -581,4 +581,4 @@ function AdminCollectionDetail() {
   );
 }
 
-export default AdminCollectionDetail;
+export default AdminNFTCollectionDetail;

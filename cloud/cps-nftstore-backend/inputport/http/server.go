@@ -187,15 +187,15 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 		port.User.ListAsSelectOptions(w, r)
 
 	// --- COLLECTIONS --- //
-	case n == 3 && p[1] == "v1" && p[2] == "collections" && r.Method == http.MethodGet:
+	case n == 3 && p[1] == "v1" && p[2] == "nft-collections" && r.Method == http.MethodGet:
 		port.Collection.List(w, r)
-	case n == 3 && p[1] == "v1" && p[2] == "collections" && r.Method == http.MethodPost:
+	case n == 3 && p[1] == "v1" && p[2] == "nft-collections" && r.Method == http.MethodPost:
 		port.Collection.Create(w, r)
-	case n == 4 && p[1] == "v1" && p[2] == "collection" && r.Method == http.MethodGet:
+	case n == 4 && p[1] == "v1" && p[2] == "nft-collection" && r.Method == http.MethodGet:
 		port.Collection.GetByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "collection" && r.Method == http.MethodPut:
+	case n == 4 && p[1] == "v1" && p[2] == "nft-collection" && r.Method == http.MethodPut:
 		port.Collection.UpdateByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "collection" && r.Method == http.MethodDelete:
+	case n == 4 && p[1] == "v1" && p[2] == "nft-collection" && r.Method == http.MethodDelete:
 		port.Collection.DeleteByID(w, r, p[3])
 
 	// --- NFT METADATA --- //

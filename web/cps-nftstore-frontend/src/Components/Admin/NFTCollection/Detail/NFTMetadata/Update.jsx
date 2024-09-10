@@ -44,7 +44,7 @@ import {
   topAlertStatusState,
 } from "../../../../../AppState";
 
-function AdminCollectionNFTMetadataUpdate() {
+function AdminNFTCollectionNFTMetadataUpdate() {
   ////
   //// URL Parameters.
   ////
@@ -93,9 +93,9 @@ function AdminCollectionNFTMetadataUpdate() {
     putNFTMetadataUpdateAPI(
       id,
       formData,
-      onAdminCollectionNFTMetadataUpdateSuccess,
-      onAdminCollectionNFTMetadataUpdateError,
-      onAdminCollectionNFTMetadataUpdateDone,
+      onAdminNFTCollectionNFTMetadataUpdateSuccess,
+      onAdminNFTCollectionNFTMetadataUpdateError,
+      onAdminNFTCollectionNFTMetadataUpdateDone,
       onUnauthorized,
     );
     console.log("onSubmitClick: Finished.");
@@ -105,18 +105,18 @@ function AdminCollectionNFTMetadataUpdate() {
   //// API.
   ////
 
-  function onAdminCollectionNFTMetadataUpdateSuccess(response) {
+  function onAdminNFTCollectionNFTMetadataUpdateSuccess(response) {
     // For debugging purposes only.
-    console.log("onAdminCollectionNFTMetadataUpdateSuccess: Starting...");
+    console.log("onAdminNFTCollectionNFTMetadataUpdateSuccess: Starting...");
     console.log(response);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
     setTopAlertMessage("Pin updated");
     setTopAlertStatus("success");
     setTimeout(() => {
-      console.log("onAdminCollectionNFTMetadataUpdateSuccess: Delayed for 2 seconds.");
+      console.log("onAdminNFTCollectionNFTMetadataUpdateSuccess: Delayed for 2 seconds.");
       console.log(
-        "onAdminCollectionNFTMetadataUpdateSuccess: topAlertMessage, topAlertStatus:",
+        "onAdminNFTCollectionNFTMetadataUpdateSuccess: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );
@@ -127,17 +127,17 @@ function AdminCollectionNFTMetadataUpdate() {
     setForceURL("/admin/collection/" + id + "/pin/" + rid);
   }
 
-  function onAdminCollectionNFTMetadataUpdateError(apiErr) {
-    console.log("onAdminCollectionNFTMetadataUpdateError: Starting...");
+  function onAdminNFTCollectionNFTMetadataUpdateError(apiErr) {
+    console.log("onAdminNFTCollectionNFTMetadataUpdateError: Starting...");
     setErrors(apiErr);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
     setTopAlertMessage("Failed submitting");
     setTopAlertStatus("danger");
     setTimeout(() => {
-      console.log("onAdminCollectionNFTMetadataUpdateError: Delayed for 2 seconds.");
+      console.log("onAdminNFTCollectionNFTMetadataUpdateError: Delayed for 2 seconds.");
       console.log(
-        "onAdminCollectionNFTMetadataUpdateError: topAlertMessage, topAlertStatus:",
+        "onAdminNFTCollectionNFTMetadataUpdateError: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );
@@ -151,30 +151,30 @@ function AdminCollectionNFTMetadataUpdate() {
     scroll.scrollToTop();
   }
 
-  function onAdminCollectionNFTMetadataUpdateDone() {
-    console.log("onAdminCollectionNFTMetadataUpdateDone: Starting...");
+  function onAdminNFTCollectionNFTMetadataUpdateDone() {
+    console.log("onAdminNFTCollectionNFTMetadataUpdateDone: Starting...");
     setFetching(false);
   }
 
-  function onAdminCollectionNFTMetadataDetailSuccess(response) {
+  function onAdminNFTCollectionNFTMetadataDetailSuccess(response) {
     // For debugging purposes only.
-    console.log("onAdminCollectionNFTMetadataDetailSuccess: Starting...");
+    console.log("onAdminNFTCollectionNFTMetadataDetailSuccess: Starting...");
     console.log(response);
     setName(response.name);
     setObjectUrl(response.objectUrl);
   }
 
-  function onAdminCollectionNFTMetadataDetailError(apiErr) {
-    console.log("onAdminCollectionNFTMetadataDetailError: Starting...");
+  function onAdminNFTCollectionNFTMetadataDetailError(apiErr) {
+    console.log("onAdminNFTCollectionNFTMetadataDetailError: Starting...");
     setErrors(apiErr);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
     setTopAlertMessage("Failed submitting");
     setTopAlertStatus("danger");
     setTimeout(() => {
-      console.log("onAdminCollectionNFTMetadataDetailError: Delayed for 2 seconds.");
+      console.log("onAdminNFTCollectionNFTMetadataDetailError: Delayed for 2 seconds.");
       console.log(
-        "onAdminCollectionNFTMetadataDetailError: topAlertMessage, topAlertStatus:",
+        "onAdminNFTCollectionNFTMetadataDetailError: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );
@@ -188,8 +188,8 @@ function AdminCollectionNFTMetadataUpdate() {
     scroll.scrollToTop();
   }
 
-  function onAdminCollectionNFTMetadataDetailDone() {
-    console.log("onAdminCollectionNFTMetadataDetailDone: Starting...");
+  function onAdminNFTCollectionNFTMetadataDetailDone() {
+    console.log("onAdminNFTCollectionNFTMetadataDetailDone: Starting...");
     setFetching(false);
   }
 
@@ -211,9 +211,9 @@ function AdminCollectionNFTMetadataUpdate() {
 
       getNFTMetadataDetailAPI(
         rid,
-        onAdminCollectionNFTMetadataDetailSuccess,
-        onAdminCollectionNFTMetadataDetailError,
-        onAdminCollectionNFTMetadataDetailDone,
+        onAdminNFTCollectionNFTMetadataDetailSuccess,
+        onAdminNFTCollectionNFTMetadataDetailError,
+        onAdminNFTCollectionNFTMetadataDetailDone,
         onUnauthorized,
       );
     }
@@ -377,4 +377,4 @@ function AdminCollectionNFTMetadataUpdate() {
   );
 }
 
-export default AdminCollectionNFTMetadataUpdate;
+export default AdminNFTCollectionNFTMetadataUpdate;

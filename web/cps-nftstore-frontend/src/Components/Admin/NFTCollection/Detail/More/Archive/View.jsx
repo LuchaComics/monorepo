@@ -25,21 +25,22 @@ import {
   faBuilding,
   faEllipsis,
   faArchive,
-  faTrashCan,
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 import { useParams } from "react-router-dom";
 
-import { getCollectionDetailAPI, deleteCollectionAPI } from "../../../../../../API/Collection";
+import {
+  getCollectionDetailAPI,
+  postArchiveCollectionAPI,
+} from "../../../../../../API/NFTCollection";
 import FormErrorBox from "../../../../../Reusable/FormErrorBox";
-import AlertBanner from "../../../../../Reusable/EveryPage/AlertBanner";
 import PageLoadingContent from "../../../../../Reusable/PageLoadingContent";
 import {
   topAlertMessageState,
   topAlertStatusState,
 } from "../../../../../../AppState";
 
-function AdminCollectionDeleteOperation() {
+function AdminNFTCollectionArchiveOperation() {
   ////
   //// URL Parameters.
   ////
@@ -71,11 +72,11 @@ function AdminCollectionDeleteOperation() {
   const onSubmitClick = () => {
     setErrors({});
     setFetching(true);
-    deleteCollectionAPI(
+    postArchiveCollectionAPI(
       id,
-      onDeleteSuccess,
-      onDeleteError,
-      onDeleteDone,
+      onArchiveSuccess,
+      onArchiveError,
+      onArchiveDone,
       onUnauthorized,
     );
   };
@@ -107,13 +108,13 @@ function AdminCollectionDeleteOperation() {
     setFetching(false);
   }
 
-  // --- Delete --- //
+  // --- Archive --- //
 
-  function onDeleteSuccess(response) {
-    console.log("onDeleteSuccess: Starting...");
+  function onArchiveSuccess(response) {
+    console.log("onArchiveSuccess: Starting...");
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
-    setTopAlertMessage("Collection deleted");
+    setTopAlertMessage("Collection archived");
     setTopAlertStatus("success");
     setTimeout(() => {
       console.log("onSuccess: Delayed for 2 seconds.");
@@ -128,8 +129,8 @@ function AdminCollectionDeleteOperation() {
     setForceURL("/admin/collections");
   }
 
-  function onDeleteError(apiErr) {
-    console.log("onDeleteError: Starting...");
+  function onArchiveError(apiErr) {
+    console.log("onArchiveError: Starting...");
     setErrors(apiErr);
 
     // The following code will cause the screen to scroll to the top of
@@ -139,8 +140,8 @@ function AdminCollectionDeleteOperation() {
     scroll.scrollToTop();
   }
 
-  function onDeleteDone() {
-    console.log("onDeleteDone: Starting...");
+  function onArchiveDone() {
+    console.log("onArchiveDone: Starting...");
     setFetching(false);
   }
 
@@ -205,8 +206,8 @@ function AdminCollectionDeleteOperation() {
               </li>
               <li className="is-active">
                 <Link aria-current="page">
-                  <FontAwesomeIcon className="fas" icon={faTrashCan} />
-                  &nbsp;Delete
+                  <FontAwesomeIcon className="fas" icon={faArchive} />
+                  &nbsp;Archive
                 </Link>
               </li>
             </ul>
@@ -227,11 +228,6 @@ function AdminCollectionDeleteOperation() {
             </ul>
           </nav>
 
-          {/* Page banner */}
-          {collection && collection.status === 2 && (
-            <AlertBanner message="Archived" status="info" />
-          )}
-
           {/* Page Title */}
           <h1 className="title is-2">
             <FontAwesomeIcon className="fas" icon={faCollectionCircle} />
@@ -250,8 +246,8 @@ function AdminCollectionDeleteOperation() {
               <div className="columns">
                 <div className="column">
                   <p className="title is-4">
-                    <FontAwesomeIcon className="fas" icon={faTrashCan} />
-                    &nbsp;Delete Collection - Are you sure?
+                    <FontAwesomeIcon className="fas" icon={faArchive} />
+                    &nbsp;Archive Collection - Are you sure?
                   </p>
                 </div>
                 <div className="column has-text-right"></div>
@@ -269,10 +265,10 @@ function AdminCollectionDeleteOperation() {
                 {collection && (
                   <div className="container">
                     <p>
-                      You are about to <b>permanently delete</b> this collection; it
-                      will no longer exist in our database. This action can be
-                      undone but you'll need to contact the system
-                      administrator. Are you sure you would like to continue?
+                      You are about to <b>archive</b> this collection; it will no
+                      longer exist in list. This action can be undone but you'll
+                      need to contact the system administrator. Are you sure you
+                      would like to continue?
                     </p>
 
                     {/* Bottom Navigation */}
@@ -290,13 +286,14 @@ function AdminCollectionDeleteOperation() {
                         <button
                           className="button is-danger is-fullwidth-mobile"
                           onClick={onSubmitClick}
+                          type="button"
                         >
                           <FontAwesomeIcon
                             className="fas"
                             icon={faCheckCircle}
                             type="button"
                           />
-                          &nbsp;Confirm and Delete
+                          &nbsp;Confirm and Archive
                         </button>
                       </div>
                     </div>
@@ -311,4 +308,4 @@ function AdminCollectionDeleteOperation() {
   );
 }
 
-export default AdminCollectionDeleteOperation;
+export default AdminNFTCollectionArchiveOperation;

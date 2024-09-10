@@ -31,7 +31,7 @@ import {
   NFT_METADATA_STATUSES,
 } from "../../../../../Constants/FieldOptions";
 
-function AdminCollectionDetailForNFTMetadataListDesktop(props) {
+function AdminNFTCollectionDetailForNFTMetadataListDesktop(props) {
   const {
     collectionID,
     listData,
@@ -142,4 +142,4 @@ function AdminCollectionDetailForNFTMetadataListDesktop(props) {
   );
 }
 
-export default AdminCollectionDetailForNFTMetadataListDesktop;
+export default AdminNFTCollectionDetailForNFTMetadataListDesktop;

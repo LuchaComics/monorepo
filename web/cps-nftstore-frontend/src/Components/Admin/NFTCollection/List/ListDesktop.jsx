@@ -29,7 +29,7 @@ import { DateTime } from "luxon";
 import FormErrorBox from "../../../Reusable/FormErrorBox";
 import { PAGE_SIZE_OPTIONS, USER_ROLES } from "../../../../Constants/FieldOptions";
 
-function AdminCollectionListDesktop(props) {
+function AdminNFTCollectionListDesktop(props) {
   const {
     listData,
     setPageSize,
@@ -137,4 +137,4 @@ function AdminCollectionListDesktop(props) {
   );
 }
 
-export default AdminCollectionListDesktop;
+export default AdminNFTCollectionListDesktop;

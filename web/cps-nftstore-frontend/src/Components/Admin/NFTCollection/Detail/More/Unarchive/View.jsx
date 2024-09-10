@@ -24,7 +24,7 @@ import {
   faChartPie,
   faBuilding,
   faEllipsis,
-  faArchive,
+  faBoxOpen,
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 import { useParams } from "react-router-dom";
@@ -32,15 +32,16 @@ import { useParams } from "react-router-dom";
 import {
   getCollectionDetailAPI,
   postArchiveCollectionAPI,
-} from "../../../../../../API/Collection";
+} from "../../../../../../API/NFTCollection";
 import FormErrorBox from "../../../../../Reusable/FormErrorBox";
 import PageLoadingContent from "../../../../../Reusable/PageLoadingContent";
+import AlertBanner from "../../../../../Reusable/EveryPage/AlertBanner";
 import {
   topAlertMessageState,
   topAlertStatusState,
 } from "../../../../../../AppState";
 
-function AdminCollectionArchiveOperation() {
+function AdminNFTCollectionUnarchiveOperation() {
   ////
   //// URL Parameters.
   ////
@@ -74,9 +75,9 @@ function AdminCollectionArchiveOperation() {
     setFetching(true);
     postArchiveCollectionAPI(
       id,
-      onArchiveSuccess,
-      onArchiveError,
-      onArchiveDone,
+      onUnarchiveSuccess,
+      onUnarchiveError,
+      onUnarchiveDone,
       onUnauthorized,
     );
   };
@@ -108,13 +109,13 @@ function AdminCollectionArchiveOperation() {
     setFetching(false);
   }
 
-  // --- Archive --- //
+  // --- Unarchive --- //
 
-  function onArchiveSuccess(response) {
-    console.log("onArchiveSuccess: Starting...");
+  function onUnarchiveSuccess(response) {
+    console.log("onUnarchiveSuccess: Starting...");
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
-    setTopAlertMessage("Collection archived");
+    setTopAlertMessage("Collection unarchived");
     setTopAlertStatus("success");
     setTimeout(() => {
       console.log("onSuccess: Delayed for 2 seconds.");
@@ -129,8 +130,8 @@ function AdminCollectionArchiveOperation() {
     setForceURL("/admin/collections");
   }
 
-  function onArchiveError(apiErr) {
-    console.log("onArchiveError: Starting...");
+  function onUnarchiveError(apiErr) {
+    console.log("onUnarchiveError: Starting...");
     setErrors(apiErr);
 
     // The following code will cause the screen to scroll to the top of
@@ -140,8 +141,8 @@ function AdminCollectionArchiveOperation() {
     scroll.scrollToTop();
   }
 
-  function onArchiveDone() {
-    console.log("onArchiveDone: Starting...");
+  function onUnarchiveDone() {
+    console.log("onUnarchiveDone: Starting...");
     setFetching(false);
   }
 
@@ -206,8 +207,8 @@ function AdminCollectionArchiveOperation() {
               </li>
               <li className="is-active">
                 <Link aria-current="page">
-                  <FontAwesomeIcon className="fas" icon={faArchive} />
-                  &nbsp;Archive
+                  <FontAwesomeIcon className="fas" icon={faBoxOpen} />
+                  &nbsp;Unarchive
                 </Link>
               </li>
             </ul>
@@ -228,6 +229,11 @@ function AdminCollectionArchiveOperation() {
             </ul>
           </nav>
 
+          {/* Page banner */}
+          {collection && collection.status === 2 && (
+            <AlertBanner message="Archived" status="info" />
+          )}
+
           {/* Page Title */}
           <h1 className="title is-2">
             <FontAwesomeIcon className="fas" icon={faCollectionCircle} />
@@ -246,8 +252,8 @@ function AdminCollectionArchiveOperation() {
               <div className="columns">
                 <div className="column">
                   <p className="title is-4">
-                    <FontAwesomeIcon className="fas" icon={faArchive} />
-                    &nbsp;Archive Collection - Are you sure?
+                    <FontAwesomeIcon className="fas" icon={faBoxOpen} />
+                    &nbsp;Unarchive Collection - Are you sure?
                   </p>
                 </div>
                 <div className="column has-text-right"></div>
@@ -265,10 +271,9 @@ function AdminCollectionArchiveOperation() {
                 {collection && (
                   <div className="container">
                     <p>
-                      You are about to <b>archive</b> this collection; it will no
-                      longer exist in list. This action can be undone but you'll
-                      need to contact the system administrator. Are you sure you
-                      would like to continue?
+                      You are about to <b>unarchive</b> this collection; this collection
+                      will exist in list. Are you sure you would like to
+                      continue?
                     </p>
 
                     {/* Bottom Navigation */}
@@ -286,14 +291,13 @@ function AdminCollectionArchiveOperation() {
                         <button
                           className="button is-danger is-fullwidth-mobile"
                           onClick={onSubmitClick}
-                          type="button"
                         >
                           <FontAwesomeIcon
                             className="fas"
                             icon={faCheckCircle}
                             type="button"
                           />
-                          &nbsp;Confirm and Archive
+                          &nbsp;Confirm and Unarchive
                         </button>
                       </div>
                     </div>
@@ -308,4 +312,4 @@ function AdminCollectionArchiveOperation() {
   );
 }
 
-export default AdminCollectionArchiveOperation;
+export default AdminNFTCollectionUnarchiveOperation;

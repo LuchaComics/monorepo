@@ -107,29 +107,29 @@ export const CPS_USER_CHANGE_2FA_OPERATION_API_URL =
 export const CPS_USER_CHANGE_PASSWORD_OPERATION_API_ENDPOINT =
   HTTP_API_SERVER + "/api/v1/users/operations/change-password";
 
-// Collection
-  export const CPS_PROJECTS_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/collections";
-  export const CPS_PROJECTS_SELECT_OPTIONS_API_ENDPOINT =
-    HTTP_API_SERVER + "/api/v1/collections/select-options";
-  export const CPS_PROJECT_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/collection/{id}";
-  export const CPS_PROJECT_CREATE_COMMENT_OPERATION_API_ENDPOINT =
-    HTTP_API_SERVER + "/api/v1/collections/operation/create-comment";
-  export const CPS_PROJECT_STAR_OPERATION_API_ENDPOINT =
-    HTTP_API_SERVER + "/api/v1/collections/operation/star";
-  export const CPS_PROJECT_PURCHASES_API_ENDPOINT =
-    HTTP_API_SERVER + "/api/v1/collection-purchases";
-  export const CPS_PROJECT_ARCHIVE_OPERATION_API_ENDPOINT =
-    HTTP_API_SERVER + "/api/v1/collections/operation/archive";
-  export const CPS_PROJECT_UPGRADE_OPERATION_API_ENDPOINT =
-    HTTP_API_SERVER + "/api/v1/collections/operation/upgrade";
-  export const CPS_PROJECT_DOWNGRADE_OPERATION_API_ENDPOINT =
-    HTTP_API_SERVER + "/api/v1/collections/operation/downgrade";
-  export const CPS_PROJECT_AVATAR_OPERATION_API_ENDPOINT =
-    HTTP_API_SERVER + "/api/v1/collections/operation/avatar";
-  export const CPS_PROJECT_CHANGE_2FA_OPERATION_API_URL =
-    HTTP_API_SERVER + "/api/v1/collections/operations/change-2fa";
-  export const CPS_PROJECT_CHANGE_PASSWORD_OPERATION_API_ENDPOINT =
-    HTTP_API_SERVER + "/api/v1/collections/operations/change-password";
+// NFT Collection
+  export const CPS_NFT_COLLECTIONS_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/nft-collections";
+  export const CPS_NFT_COLLECTIONS_SELECT_OPTIONS_API_ENDPOINT =
+    HTTP_API_SERVER + "/api/v1/nft-collections/select-options";
+  export const CPS_NFT_COLLECTION_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/nft-collection/{id}";
+  export const CPS_NFT_COLLECTION_CREATE_COMMENT_OPERATION_API_ENDPOINT =
+    HTTP_API_SERVER + "/api/v1/nft-collections/operation/create-comment";
+  export const CPS_NFT_COLLECTION_STAR_OPERATION_API_ENDPOINT =
+    HTTP_API_SERVER + "/api/v1/nft-collections/operation/star";
+  export const CPS_NFT_COLLECTION_PURCHASES_API_ENDPOINT =
+    HTTP_API_SERVER + "/api/v1/nft-collection-purchases";
+  export const CPS_NFT_COLLECTION_ARCHIVE_OPERATION_API_ENDPOINT =
+    HTTP_API_SERVER + "/api/v1/nft-collections/operation/archive";
+  export const CPS_NFT_COLLECTION_UPGRADE_OPERATION_API_ENDPOINT =
+    HTTP_API_SERVER + "/api/v1/nft-collections/operation/upgrade";
+  export const CPS_NFT_COLLECTION_DOWNGRADE_OPERATION_API_ENDPOINT =
+    HTTP_API_SERVER + "/api/v1/nft-collections/operation/downgrade";
+  export const CPS_NFT_COLLECTION_AVATAR_OPERATION_API_ENDPOINT =
+    HTTP_API_SERVER + "/api/v1/nft-collections/operation/avatar";
+  export const CPS_NFT_COLLECTION_CHANGE_2FA_OPERATION_API_URL =
+    HTTP_API_SERVER + "/api/v1/nft-collections/operations/change-2fa";
+  export const CPS_NFT_COLLECTION_CHANGE_PASSWORD_OPERATION_API_ENDPOINT =
+    HTTP_API_SERVER + "/api/v1/nft-collections/operations/change-password";
 
 // NFT Metadata
 export const CPS_NFT_METADATA_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/nft-metadata";

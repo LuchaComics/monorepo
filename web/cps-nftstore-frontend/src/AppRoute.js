@@ -20,15 +20,15 @@ import AdminTenantDetailForCommentList from "./Components/Admin/Tenant/DetailFor
 import AdminTenantUpdate from "./Components/Admin/Tenant/Update";
 
 // Collections
-import AdminCollectionList from "./Components/Admin/Collection/List/View";
-import AdminCollectionAdd from "./Components/Admin/Collection/Add/View";
-import AdminCollectionDetail from "./Components/Admin/Collection/Detail/View";
-import AdminCollectionUpdate from "./Components/Admin/Collection/Update/View";
-import AdminCollectionDetailMore from "./Components/Admin/Collection/Detail/More/View";
-import AdminCollectionDetailForNFTMetadataList from "./Components/Admin/Collection/Detail/NFTMetadata/ListView";
-import AdminCollectionNFTMetadataAdd from "./Components/Admin/Collection/Detail/NFTMetadata/Add";
-import AdminCollectionNFTMetadataDetail from "./Components/Admin/Collection/Detail/NFTMetadata/Detail";
-// import AdminCollectionNFTMetadataUpdate from "./Components/Admin/Collection/Detail/NFTMetadata/Update";
+import AdminNFTCollectionList from "./Components/Admin/NFTCollection/List/View";
+import AdminNFTCollectionAdd from "./Components/Admin/NFTCollection/Add/View";
+import AdminNFTCollectionDetail from "./Components/Admin/NFTCollection/Detail/View";
+import AdminNFTCollectionUpdate from "./Components/Admin/NFTCollection/Update/View";
+import AdminNFTCollectionDetailMore from "./Components/Admin/NFTCollection/Detail/More/View";
+import AdminNFTCollectionDetailForNFTMetadataList from "./Components/Admin/NFTCollection/Detail/NFTMetadata/ListView";
+import AdminNFTCollectionNFTMetadataAdd from "./Components/Admin/NFTCollection/Detail/NFTMetadata/Add";
+import AdminNFTCollectionNFTMetadataDetail from "./Components/Admin/NFTCollection/Detail/NFTMetadata/Detail";
+// import AdminNFTCollectionNFTMetadataUpdate from "./Components/Admin/NFTCollection/Detail/NFTMetadata/Update";
 
 // Users
 import AdminUserList from "./Components/Admin/User/List/View";
@@ -153,50 +153,50 @@ function AppRoute() {
                   <Route
                     exact
                     path="/admin/collections"
-                    element={<AdminCollectionList />}
+                    element={<AdminNFTCollectionList />}
                   />
                   <Route
                     exact
                     path="/admin/collections/add"
-                    element={<AdminCollectionAdd />}
+                    element={<AdminNFTCollectionAdd />}
                   />
                   <Route
                     exact
                     path="/admin/collection/:id"
-                    element={<AdminCollectionDetail />}
+                    element={<AdminNFTCollectionDetail />}
                   />
                   <Route
                     exact
                     path="/admin/collection/:id/edit"
-                    element={<AdminCollectionUpdate />}
+                    element={<AdminNFTCollectionUpdate />}
                   />
                   <Route
                     exact
                     path="/admin/collection/:id/more"
-                    element={<AdminCollectionDetailMore />}
+                    element={<AdminNFTCollectionDetailMore />}
                   />
 
                   {/* Collection NFT Metadata */}
                   <Route
                     exact
                     path="/admin/collection/:id/nft-metadata"
-                    element={<AdminCollectionDetailForNFTMetadataList />}
+                    element={<AdminNFTCollectionDetailForNFTMetadataList />}
                   />
                   <Route
                     exact
                     path="/admin/collection/:id/nft-metadata/add"
-                    element={<AdminCollectionNFTMetadataAdd />}
+                    element={<AdminNFTCollectionNFTMetadataAdd />}
                   />
                   <Route
                     exact
                     path="/admin/collection/:id/nft-metadatum/:rid"
-                    element={<AdminCollectionNFTMetadataDetail />}
+                    element={<AdminNFTCollectionNFTMetadataDetail />}
                   />
                   {/*
                   <Route
                     exact
                     path="/admin/collection/:id/nft/:rid/edit"
-                    element={<AdminCollectionNFTMetadataUpdate />}
+                    element={<AdminNFTCollectionNFTMetadataUpdate />}
                   />
                   */}
 

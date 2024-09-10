@@ -48,7 +48,7 @@ import FormRowText from "../../../../Reusable/FormRowText";
 import FormTextDateTimeRow from "../../../../Reusable/FormRowTextDateTime";
 
 
-function AdminCollectionNFTMetadataDetail() {
+function AdminNFTCollectionNFTMetadataDetail() {
   ////
   //// URL Parameters.
   ////
@@ -173,10 +173,10 @@ function AdminCollectionNFTMetadataDetail() {
 
   // --- Get Details ---
 
-  function onAdminCollectionNFTMetadataDetailSuccess(response) {
+  function onAdminNFTCollectionNFTMetadataDetailSuccess(response) {
     // For debugging purposes only.
-    console.log("onAdminCollectionNFTMetadataDetailSuccess: Starting...");
-    console.log("onAdminCollectionNFTMetadataDetailSuccess: response:", response);
+    console.log("onAdminNFTCollectionNFTMetadataDetailSuccess: Starting...");
+    console.log("onAdminNFTCollectionNFTMetadataDetailSuccess: response:", response);
     setTokenID(response.tokenId);
     setName(response.name);
     setImage(response.image);
@@ -191,17 +191,17 @@ function AdminCollectionNFTMetadataDetail() {
     setMetadataFileIpnsPath(response.metadataFileIpnsPath);
   }
 
-  function onAdminCollectionNFTMetadataDetailError(apiErr) {
-    console.log("onAdminCollectionNFTMetadataDetailError: Starting...");
+  function onAdminNFTCollectionNFTMetadataDetailError(apiErr) {
+    console.log("onAdminNFTCollectionNFTMetadataDetailError: Starting...");
     setErrors(apiErr);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
     setTopAlertMessage("Failed submitting");
     setTopAlertStatus("danger");
     setTimeout(() => {
-      console.log("onAdminCollectionNFTMetadataDetailError: Delayed for 2 seconds.");
+      console.log("onAdminNFTCollectionNFTMetadataDetailError: Delayed for 2 seconds.");
       console.log(
-        "onAdminCollectionNFTMetadataDetailError: topAlertMessage, topAlertStatus:",
+        "onAdminNFTCollectionNFTMetadataDetailError: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );
@@ -215,8 +215,8 @@ function AdminCollectionNFTMetadataDetail() {
     scroll.scrollToTop();
   }
 
-  function onAdminCollectionNFTMetadataDetailDone() {
-    console.log("onAdminCollectionNFTMetadataDetailDone: Starting...");
+  function onAdminNFTCollectionNFTMetadataDetailDone() {
+    console.log("onAdminNFTCollectionNFTMetadataDetailDone: Starting...");
     setFetching(false);
   }
 
@@ -287,9 +287,9 @@ function AdminCollectionNFTMetadataDetail() {
 
       getNFTMetadataDetailAPI(
         rid,
-        onAdminCollectionNFTMetadataDetailSuccess,
-        onAdminCollectionNFTMetadataDetailError,
-        onAdminCollectionNFTMetadataDetailDone,
+        onAdminNFTCollectionNFTMetadataDetailSuccess,
+        onAdminNFTCollectionNFTMetadataDetailError,
+        onAdminNFTCollectionNFTMetadataDetailDone,
         onUnauthorized,
       );
     }
@@ -477,4 +477,4 @@ function AdminCollectionNFTMetadataDetail() {
   );
 }
 
-export default AdminCollectionNFTMetadataDetail;
+export default AdminNFTCollectionNFTMetadataDetail;

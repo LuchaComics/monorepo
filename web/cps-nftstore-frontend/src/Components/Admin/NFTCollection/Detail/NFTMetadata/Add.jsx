@@ -40,7 +40,7 @@ import {
   topAlertStatusState,
 } from "../../../../../AppState";
 
-function AdminCollectionNFTMetadataAdd() {
+function AdminNFTCollectionNFTMetadataAdd() {
   ////
   //// URL Parameters.
   ////
@@ -103,9 +103,9 @@ function AdminCollectionNFTMetadataAdd() {
 
     postNFTMetadataCreateAPI(
       jsonData,
-      onAdminCollectionNFTMetadataAddSuccess,
-      onAdminCollectionNFTMetadataAddError,
-      onAdminCollectionNFTMetadataAddDone,
+      onAdminNFTCollectionNFTMetadataAddSuccess,
+      onAdminNFTCollectionNFTMetadataAddError,
+      onAdminNFTCollectionNFTMetadataAddDone,
       onUnauthorized,
     );
     console.log("onSubmitClick: Finished.");
@@ -115,18 +115,18 @@ function AdminCollectionNFTMetadataAdd() {
   //// API.
   ////
 
-  function onAdminCollectionNFTMetadataAddSuccess(response) {
+  function onAdminNFTCollectionNFTMetadataAddSuccess(response) {
     // For debugging purposes only.
-    console.log("onAdminCollectionNFTMetadataAddSuccess: Starting...");
+    console.log("onAdminNFTCollectionNFTMetadataAddSuccess: Starting...");
     console.log(response);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
     setTopAlertMessage("NFTMetadata created");
     setTopAlertStatus("success");
     setTimeout(() => {
-      console.log("onAdminCollectionNFTMetadataAddSuccess: Delayed for 2 seconds.");
+      console.log("onAdminNFTCollectionNFTMetadataAddSuccess: Delayed for 2 seconds.");
       console.log(
-        "onAdminCollectionNFTMetadataAddSuccess: topAlertMessage, topAlertStatus:",
+        "onAdminNFTCollectionNFTMetadataAddSuccess: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );
@@ -137,17 +137,17 @@ function AdminCollectionNFTMetadataAdd() {
     setForceURL("/admin/collection/" + id + "/nft-metadatum/" + response.id);
   }
 
-  function onAdminCollectionNFTMetadataAddError(apiErr) {
-    console.log("onAdminCollectionNFTMetadataAddError: Starting...");
+  function onAdminNFTCollectionNFTMetadataAddError(apiErr) {
+    console.log("onAdminNFTCollectionNFTMetadataAddError: Starting...");
     setErrors(apiErr);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
     setTopAlertMessage("Failed submitting");
     setTopAlertStatus("danger");
     setTimeout(() => {
-      console.log("onAdminCollectionNFTMetadataAddError: Delayed for 2 seconds.");
+      console.log("onAdminNFTCollectionNFTMetadataAddError: Delayed for 2 seconds.");
       console.log(
-        "onAdminCollectionNFTMetadataAddError: topAlertMessage, topAlertStatus:",
+        "onAdminNFTCollectionNFTMetadataAddError: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );
@@ -161,8 +161,8 @@ function AdminCollectionNFTMetadataAdd() {
     scroll.scrollToTop();
   }
 
-  function onAdminCollectionNFTMetadataAddDone() {
-    console.log("onAdminCollectionNFTMetadataAddDone: Starting...");
+  function onAdminNFTCollectionNFTMetadataAddDone() {
+    console.log("onAdminNFTCollectionNFTMetadataAddDone: Starting...");
     setFetching(false);
   }
 
@@ -392,4 +392,4 @@ function AdminCollectionNFTMetadataAdd() {
   );
 }
 
-export default AdminCollectionNFTMetadataAdd;
+export default AdminNFTCollectionNFTMetadataAdd;

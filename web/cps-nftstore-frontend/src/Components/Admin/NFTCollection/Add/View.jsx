@@ -25,7 +25,7 @@ import {
 import { useRecoilState } from "recoil";
 
 import useLocalStorage from "../../../../Hooks/useLocalStorage";
-import { postCollectionCreateAPI } from "../../../../API/Collection";
+import { postCollectionCreateAPI } from "../../../../API/NFTCollection";
 import { getTenantSelectOptionListAPI } from "../../../../API/tenant";
 import FormErrorBox from "../../../Reusable/FormErrorBox";
 import FormInputField from "../../../Reusable/FormInputField";
@@ -45,7 +45,7 @@ import { topAlertMessageState, topAlertStatusState } from "../../../../AppState"
 import { USER_ROLE_RETAILER, USER_ROLE_CUSTOMER } from "../../../../Constants/App";
 
 
-function AdminCollectionAdd() {
+function AdminNFTCollectionAdd() {
   ////
   //// URL Parameters.
   ////
@@ -95,25 +95,25 @@ function AdminCollectionAdd() {
     console.log("onSubmitClick, collection:", collection);
     postCollectionCreateAPI(
       collection,
-      onAdminCollectionAddSuccess,
-      onAdminCollectionAddError,
-      onAdminCollectionAddDone,
+      onAdminNFTCollectionAddSuccess,
+      onAdminNFTCollectionAddError,
+      onAdminNFTCollectionAddDone,
       onUnauthorized,
     );
   };
 
-  function onAdminCollectionAddSuccess(response) {
+  function onAdminNFTCollectionAddSuccess(response) {
     // For debugging purposes only.
-    console.log("onAdminCollectionAddSuccess: Starting...");
+    console.log("onAdminNFTCollectionAddSuccess: Starting...");
     console.log(response);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
     setTopAlertMessage("Collection created");
     setTopAlertStatus("success");
     setTimeout(() => {
-      console.log("onAdminCollectionAddSuccess: Delayed for 2 seconds.");
+      console.log("onAdminNFTCollectionAddSuccess: Delayed for 2 seconds.");
       console.log(
-        "onAdminCollectionAddSuccess: topAlertMessage, topAlertStatus:",
+        "onAdminNFTCollectionAddSuccess: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );
@@ -131,17 +131,17 @@ function AdminCollectionAdd() {
     }
   }
 
-  function onAdminCollectionAddError(apiErr) {
-    console.log("onAdminCollectionAddError: Starting...");
-    console.log("onAdminCollectionAddError: apiErr:", apiErr);
+  function onAdminNFTCollectionAddError(apiErr) {
+    console.log("onAdminNFTCollectionAddError: Starting...");
+    console.log("onAdminNFTCollectionAddError: apiErr:", apiErr);
     setErrors(apiErr);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
     setTopAlertMessage("Failed submitting");
     setTopAlertStatus("danger");
     setTimeout(() => {
-      // console.log("onAdminCollectionAddError: Delayed for 2 seconds.");
-      // console.log("onAdminCollectionAddError: topAlertMessage, topAlertStatus:", topAlertMessage, topAlertStatus);
+      // console.log("onAdminNFTCollectionAddError: Delayed for 2 seconds.");
+      // console.log("onAdminNFTCollectionAddError: topAlertMessage, topAlertStatus:", topAlertMessage, topAlertStatus);
       setTopAlertMessage("");
     }, 2000);
 
@@ -152,8 +152,8 @@ function AdminCollectionAdd() {
     scroll.scrollToTop();
   }
 
-  function onAdminCollectionAddDone() {
-    console.log("onAdminCollectionAddDone: Starting...");
+  function onAdminNFTCollectionAddDone() {
+    console.log("onAdminNFTCollectionAddDone: Starting...");
     setFetching(false);
   }
 
@@ -444,4 +444,4 @@ function AdminCollectionAdd() {
   );
 }
 
-export default AdminCollectionAdd;
+export default AdminNFTCollectionAdd;

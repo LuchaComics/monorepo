@@ -3,9 +3,6 @@ import { Link, Navigate } from "react-router-dom";
 import Scroll from "react-scroll";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faChevronRight,
-  faMobile,
-  faKey,
   faBuildingCollection,
   faImage,
   faPaperclip,
@@ -16,9 +13,10 @@ import {
   faPlus,
   faArrowLeft,
   faCheckCircle,
-  faCubes,
+  faCollectionCircle,
   faGauge,
   faPencil,
+  faCollections,
   faEye,
   faIdCard,
   faAddressBook,
@@ -27,43 +25,21 @@ import {
   faBuilding,
   faEllipsis,
   faArchive,
-  faBoxOpen,
   faTrashCan,
-  faHomeCollection,
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 import { useParams } from "react-router-dom";
 
-import { getCollectionDetailAPI } from "../../../../../API/Collection";
-import FormErrorBox from "../../../../Reusable/FormErrorBox";
-import DataDisplayRowText from "../../../../Reusable/DataDisplayRowText";
-import DataDisplayRowSelect from "../../../../Reusable/DataDisplayRowSelect";
-import AlertBanner from "../../../../Reusable/EveryPage/AlertBanner";
-import BubbleLink from "../../../../Reusable/EveryPage/BubbleLink";
-import PageLoadingContent from "../../../../Reusable/PageLoadingContent";
+import { getCollectionDetailAPI, deleteCollectionAPI } from "../../../../../../API/NFTCollection";
+import FormErrorBox from "../../../../../Reusable/FormErrorBox";
+import AlertBanner from "../../../../../Reusable/EveryPage/AlertBanner";
+import PageLoadingContent from "../../../../../Reusable/PageLoadingContent";
 import {
   topAlertMessageState,
   topAlertStatusState,
-} from "../../../../../AppState";
-import { COMMERCIAL_CUSTOMER_TYPE_OF_ID } from "../../../../../Constants/App";
-import {
-  addCustomerState,
-  ADD_CUSTOMER_STATE_DEFAULT,
-  currentUserState,
-} from "../../../../../AppState";
-import {
-  Collection_PHONE_TYPE_OF_OPTIONS_WITH_EMPTY_OPTIONS,
-  Collection_TYPE_OF_FILTER_OPTIONS,
-  Collection_ORGANIZATION_TYPE_OPTIONS,
-} from "../../../../../Constants/FieldOptions";
-import {
-  EXECUTIVE_ROLE_ID,
-  MANAGEMENT_ROLE_ID,
-} from "../../../../../Constants/App";
-import AdminCollectionDetailMoreMobile from "./MobileView";
-import AdminCollectionDetailMoreDesktop from "./DesktopView";
+} from "../../../../../../AppState";
 
-function AdminCollectionDetailMore() {
+function AdminNFTCollectionDeleteOperation() {
   ////
   //// URL Parameters.
   ////
@@ -78,7 +54,6 @@ function AdminCollectionDetailMore() {
     useRecoilState(topAlertMessageState);
   const [topAlertStatus, setTopAlertStatus] =
     useRecoilState(topAlertStatusState);
-  const [currentCollection] = useRecoilState(currentUserState);
 
   ////
   //// Component states.
@@ -93,11 +68,23 @@ function AdminCollectionDetailMore() {
   //// Event handling.
   ////
 
-  //
+  const onSubmitClick = () => {
+    setErrors({});
+    setFetching(true);
+    deleteCollectionAPI(
+      id,
+      onDeleteSuccess,
+      onDeleteError,
+      onDeleteDone,
+      onUnauthorized,
+    );
+  };
 
   ////
   //// API.
   ////
+
+  // --- Detail --- //
 
   function onSuccess(response) {
     console.log("onSuccess: Starting...");
@@ -117,6 +104,43 @@ function AdminCollectionDetailMore() {
 
   function onDone() {
     console.log("onDone: Starting...");
+    setFetching(false);
+  }
+
+  // --- Delete --- //
+
+  function onDeleteSuccess(response) {
+    console.log("onDeleteSuccess: Starting...");
+
+    // Add a temporary banner message in the app and then clear itself after 2 seconds.
+    setTopAlertMessage("Collection deleted");
+    setTopAlertStatus("success");
+    setTimeout(() => {
+      console.log("onSuccess: Delayed for 2 seconds.");
+      console.log(
+        "onSuccess: topAlertMessage, topAlertStatus:",
+        topAlertMessage,
+        topAlertStatus,
+      );
+      setTopAlertMessage("");
+    }, 2000);
+
+    setForceURL("/admin/collections");
+  }
+
+  function onDeleteError(apiErr) {
+    console.log("onDeleteError: Starting...");
+    setErrors(apiErr);
+
+    // The following code will cause the screen to scroll to the top of
+    // the page. Please see ``react-scroll`` for more information:
+    // https://github.com/fisshy/react-scroll
+    var scroll = Scroll.animateScroll;
+    scroll.scrollToTop();
+  }
+
+  function onDeleteDone() {
+    console.log("onDeleteDone: Starting...");
     setFetching(false);
   }
 
@@ -156,45 +180,68 @@ function AdminCollectionDetailMore() {
       <div className="container">
         <section className="section">
           {/* Desktop Breadcrumbs */}
-          <nav class="breadcrumb is-hidden-touch" aria-label="breadcrumbs">
+          <nav
+            className="breadcrumb is-hidden-touch"
+            aria-label="breadcrumbs"
+          >
             <ul>
-              <li class="">
+              <li className="">
                 <Link to="/admin/dashboard" aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faGauge} />
                   &nbsp;Admin Dashboard
                 </Link>
               </li>
-              <li class="">
+              <li className="">
                 <Link to="/admin/collections" aria-current="page">
-                  <FontAwesomeIcon className="fas" icon={faCubes} />
+                  <FontAwesomeIcon className="fas" icon={faCollections} />
                   &nbsp;Collections
                 </Link>
               </li>
-              <li class="is-active">
-                <Link aria-current="page">
+              <li className="">
+                <Link to={`/admin/collection/${id}/more`} aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faEye} />
                   &nbsp;Detail (More)
+                </Link>
+              </li>
+              <li className="is-active">
+                <Link aria-current="page">
+                  <FontAwesomeIcon className="fas" icon={faTrashCan} />
+                  &nbsp;Delete
                 </Link>
               </li>
             </ul>
           </nav>
 
           {/* Mobile Breadcrumbs */}
-          <nav class="breadcrumb is-hidden-desktop" aria-label="breadcrumbs">
+          <nav
+            className="breadcrumb has-background-light is-hidden-desktop p-4"
+            aria-label="breadcrumbs"
+          >
             <ul>
-              <li class="">
-                <Link to={`/admin/collections`} aria-current="page">
+              <li className="">
+                <Link to={`/admin/collection/${id}/more`} aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                  &nbsp;Back to Collections
+                  &nbsp;Back to Detail
                 </Link>
               </li>
             </ul>
           </nav>
 
           {/* Page banner */}
-          {collection && collection.status === 100 && (
+          {collection && collection.status === 2 && (
             <AlertBanner message="Archived" status="info" />
           )}
+
+          {/* Page Title */}
+          <h1 className="title is-2">
+            <FontAwesomeIcon className="fas" icon={faCollectionCircle} />
+            &nbsp;Collection
+          </h1>
+          <h4 className="subtitle is-4">
+            <FontAwesomeIcon className="fas" icon={faEye} />
+            &nbsp;Detail
+          </h4>
+          <hr />
 
           {/* Page */}
           <nav className="box">
@@ -203,8 +250,8 @@ function AdminCollectionDetailMore() {
               <div className="columns">
                 <div className="column">
                   <p className="title is-4">
-                    <FontAwesomeIcon className="fas" icon={faCubes} />
-                    &nbsp;Collection
+                    <FontAwesomeIcon className="fas" icon={faTrashCan} />
+                    &nbsp;Delete Collection - Are you sure?
                   </p>
                 </div>
                 <div className="column has-text-right"></div>
@@ -221,55 +268,37 @@ function AdminCollectionDetailMore() {
 
                 {collection && (
                   <div className="container">
-                    {/* Tab Navigation */}
-                    <div className="tabs is-medium is-size-7-mobile">
-                      <ul>
-                        <li class="">
-                          <Link to={`/admin/collection/${id}`}>Detail</Link>
-                        </li>
-                        <li>
-                          <Link to={`/admin/collection/${id}/nft-metadata`}>
-                            NFT Metadata
-                          </Link>
-                        </li>
-                        <li className="is-active">
-                          <Link>
-                            <strong>
-                              More&nbsp;&nbsp;
-                              <FontAwesomeIcon
-                                className="mdi"
-                                icon={faEllipsis}
-                              />
-                            </strong>
-                          </Link>
-                        </li>
-                      </ul>
-                    </div>
-
-                    {/* Page Menu Options */}
-                    <AdminCollectionDetailMoreDesktop
-                      id={id}
-                      collection={collection}
-                      currentCollection={currentCollection}
-                    />
-                    <AdminCollectionDetailMoreMobile
-                      id={id}
-                      collection={collection}
-                      currentCollection={currentCollection}
-                    />
+                    <p>
+                      You are about to <b>permanently delete</b> this collection; it
+                      will no longer exist in our database. This action can be
+                      undone but you'll need to contact the system
+                      administrator. Are you sure you would like to continue?
+                    </p>
 
                     {/* Bottom Navigation */}
                     <div className="columns pt-5">
                       <div className="column is-half">
                         <Link
                           className="button is-fullwidth-mobile"
-                          to={`/admin/collections`}
+                          to={`/admin/collection/${id}/more`}
                         >
                           <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                          &nbsp;Back to Collections
+                          &nbsp;Back to Detail
                         </Link>
                       </div>
-                      <div className="column is-half has-text-right"></div>
+                      <div className="column is-half has-text-right">
+                        <button
+                          className="button is-danger is-fullwidth-mobile"
+                          onClick={onSubmitClick}
+                        >
+                          <FontAwesomeIcon
+                            className="fas"
+                            icon={faCheckCircle}
+                            type="button"
+                          />
+                          &nbsp;Confirm and Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -282,4 +311,4 @@ function AdminCollectionDetailMore() {
   );
 }
 
-export default AdminCollectionDetailMore;
+export default AdminNFTCollectionDeleteOperation;

@@ -39,7 +39,7 @@ import {
   topAlertStatusState,
 } from "../../../../../AppState";
 
-function AdminCollectionNFTMetadataAddViaWebService() {
+function AdminNFTCollectionNFTMetadataAddViaWebService() {
   ////
   //// URL Parameters.
   ////
@@ -113,9 +113,9 @@ function AdminCollectionNFTMetadataAddViaWebService() {
          filename,
          fileBinaryData, // Pass binary data instead of FormData
          mimeType, // Pass the detected MIME type
-         onAdminCollectionNFTMetadataAddViaWebServiceSuccess,
-         onAdminCollectionNFTMetadataAddViaWebServiceError,
-         onAdminCollectionNFTMetadataAddViaWebServiceDone,
+         onAdminNFTCollectionNFTMetadataAddViaWebServiceSuccess,
+         onAdminNFTCollectionNFTMetadataAddViaWebServiceError,
+         onAdminNFTCollectionNFTMetadataAddViaWebServiceDone,
          onUnauthorized,
        );
 
@@ -136,18 +136,18 @@ function AdminCollectionNFTMetadataAddViaWebService() {
   //// API.
   ////
 
-  function onAdminCollectionNFTMetadataAddViaWebServiceSuccess(response) {
+  function onAdminNFTCollectionNFTMetadataAddViaWebServiceSuccess(response) {
     // For debugging purposes only.
-    console.log("onAdminCollectionNFTMetadataAddViaWebServiceSuccess: Starting...");
+    console.log("onAdminNFTCollectionNFTMetadataAddViaWebServiceSuccess: Starting...");
     console.log(response);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
     setTopAlertMessage("Pin created");
     setTopAlertStatus("success");
     setTimeout(() => {
-      console.log("onAdminCollectionNFTMetadataAddViaWebServiceSuccess: Delayed for 2 seconds.");
+      console.log("onAdminNFTCollectionNFTMetadataAddViaWebServiceSuccess: Delayed for 2 seconds.");
       console.log(
-        "onAdminCollectionNFTMetadataAddViaWebServiceSuccess: topAlertMessage, topAlertStatus:",
+        "onAdminNFTCollectionNFTMetadataAddViaWebServiceSuccess: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );
@@ -158,17 +158,17 @@ function AdminCollectionNFTMetadataAddViaWebService() {
     setForceURL("/admin/collection/" + id + "/pins");
   }
 
-  function onAdminCollectionNFTMetadataAddViaWebServiceError(apiErr) {
-    console.log("onAdminCollectionNFTMetadataAddViaWebServiceError: Starting...");
+  function onAdminNFTCollectionNFTMetadataAddViaWebServiceError(apiErr) {
+    console.log("onAdminNFTCollectionNFTMetadataAddViaWebServiceError: Starting...");
     setErrors(apiErr);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
     setTopAlertMessage("Failed submitting");
     setTopAlertStatus("danger");
     setTimeout(() => {
-      console.log("onAdminCollectionNFTMetadataAddViaWebServiceError: Delayed for 2 seconds.");
+      console.log("onAdminNFTCollectionNFTMetadataAddViaWebServiceError: Delayed for 2 seconds.");
       console.log(
-        "onAdminCollectionNFTMetadataAddViaWebServiceError: topAlertMessage, topAlertStatus:",
+        "onAdminNFTCollectionNFTMetadataAddViaWebServiceError: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );
@@ -182,8 +182,8 @@ function AdminCollectionNFTMetadataAddViaWebService() {
     scroll.scrollToTop();
   }
 
-  function onAdminCollectionNFTMetadataAddViaWebServiceDone() {
-    console.log("onAdminCollectionNFTMetadataAddViaWebServiceDone: Starting...");
+  function onAdminNFTCollectionNFTMetadataAddViaWebServiceDone() {
+    console.log("onAdminNFTCollectionNFTMetadataAddViaWebServiceDone: Starting...");
     setFetching(false);
   }
 
@@ -346,4 +346,4 @@ function AdminCollectionNFTMetadataAddViaWebService() {
   );
 }
 
-export default AdminCollectionNFTMetadataAddViaWebService;
+export default AdminNFTCollectionNFTMetadataAddViaWebService;
