@@ -492,7 +492,7 @@ function AdminNFTCollectionDetail() {
                     />
 
                     <FormRowText
-                      label="IPNS"
+                      label="IPNS Name"
                       value={`/ipns/${collection.ipnsName}`}
                       helpText={
                       <>
