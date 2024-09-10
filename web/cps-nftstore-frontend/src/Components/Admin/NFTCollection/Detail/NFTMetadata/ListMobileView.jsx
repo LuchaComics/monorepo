@@ -59,9 +59,6 @@ function AdminNFTCollectionDetailForNFTMetadataListMobile(props) {
               <strong>Name:</strong>&nbsp;{datum.name ? datum.name : "-"}
               <br />
               <br />
-              <strong>Status:</strong>&nbsp;{NFT_METADATA_STATUSES[datum.status]}
-              <br />
-              <br />
               <strong>Created At:</strong>&nbsp;{datum.createdAt}
               <br />
               <br />

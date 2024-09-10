@@ -50,8 +50,7 @@ function AdminNFTCollectionDetailForNFTMetadataListDesktop(props) {
             <tr>
               <th>Token ID</th>
               <th>Name</th>
-              <th>Status</th>
-              <th>Created</th>
+              <th>Created At</th>
               <th></th>
             </tr>
           </thead>
@@ -63,10 +62,7 @@ function AdminNFTCollectionDetailForNFTMetadataListDesktop(props) {
                   <tr>
                     <td data-label="Token ID">{(datum.tokenId !== undefined && datum.tokenId !== null && datum.tokenId !== "") ? datum.tokenId : "-"}</td>
                     <td data-label="Title">{datum.name ? datum.name : "-"}</td>
-                    <td data-label="Status">
-                      {NFT_METADATA_STATUSES[datum.status]}
-                    </td>
-                    <td data-label="Created">{datum.createdAt}</td>
+                    <td data-label="Created At">{datum.createdAt}</td>
                     <td class="is-actions-cell">
                       <div class="buttons is-right">
                         <Link
