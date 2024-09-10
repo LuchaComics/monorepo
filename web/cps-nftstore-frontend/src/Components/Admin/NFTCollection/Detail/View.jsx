@@ -29,7 +29,6 @@ import { useParams } from "react-router-dom";
 import useLocalStorage from "../../../../Hooks/useLocalStorage";
 import {
   getCollectionDetailAPI,
-  postCollectionStarOperationAPI,
   deleteCollectionAPI,
 } from "../../../../API/NFTCollection";
 import { getTenantSelectOptionListAPI } from "../../../../API/tenant";
@@ -99,18 +98,6 @@ function AdminNFTCollectionDetail() {
   ////
   //// Event handling.
   ////
-
-  const onStarClick = () => {
-    setFetching(true);
-    setErrors({});
-    postCollectionStarOperationAPI(
-      id,
-      onCollectionDetailSuccess,
-      onCollectionDetailError,
-      onCollectionDetailDone,
-      onUnauthorized,
-    );
-  };
 
   const onSelectCollectionForDeletion = (e, collection) => {
     console.log("onSelectCollectionForDeletion", collection);
@@ -431,28 +418,6 @@ function AdminNFTCollectionDetail() {
                     <FontAwesomeIcon className="mdi" icon={faTrashCan} />
                     &nbsp;Delete
                   </button>
-                  &nbsp;&nbsp;
-                  {collection.isStarred ? (
-                    <Link
-                      class="button is-small is-fullwidth-mobile has-text-warning-dark has-background-warning"
-                      type="button"
-                      onClick={onStarClick}
-                    >
-                      <FontAwesomeIcon className="mdi" icon={faStar} />
-                      &nbsp;Starred
-                    </Link>
-                  ) : (
-                    <Link
-                      class="button is-small is-fullwidth-mobile"
-                      type="button"
-                      onClick={onStarClick}
-                    >
-                      <FontAwesomeIcon className="mdi" icon={faStar} />
-                      <span class="is-hidden-desktop is-hidden-tablet">
-                        &nbsp;Unstarred
-                      </span>
-                    </Link>
-                  )}
                 </div>}
               </div>
             )}
