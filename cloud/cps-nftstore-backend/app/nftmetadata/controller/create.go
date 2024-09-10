@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"time"
@@ -18,14 +19,14 @@ import (
 
 type NFTMetadataCreateRequestIDO struct {
 	CollectionID    primitive.ObjectID          `bson:"collection_id" json:"collection_id"`
-	Name            string                      `bson:"name" json:"name"` // Name of the item.
+	Name            string                      `bson:"name" json:"name"`               // Name of the item.
+	Description     string                      `bson:"description" json:"description"` // A human-readable description of the item. Markdown is supported.
 	ImageID         primitive.ObjectID          `bson:"image_id" json:"image_id"`
+	AnimationID     primitive.ObjectID          `bson:"animation_id" json:"animation_id"`
 	ExternalURL     string                      `bson:"external_url" json:"external_url"`         // This is the URL that will appear below the asset's image on OpenSea and will allow users to leave OpenSea and view the item on your site.
-	Description     string                      `bson:"description" json:"description"`           // A human-readable description of the item. Markdown is supported.
 	Attributes      []*s_d.NFTMetadataAttribute `bson:"attributes" json:"attributes"`             // These are the attributes for the item, which will show up on the OpenSea page for the item. (see below)
 	BackgroundColor string                      `bson:"background_color" json:"background_color"` // Background color of the item on OpenSea. Must be a six-character hexadecimal without a pre-pended #.
-	AnimationID     primitive.ObjectID          `bson:"animation_id" json:"animation_id"`
-	YoutubeURL      string                      `bson:"youtube_url" json:"youtube_url"` // A URL to a YouTube video (only used if animation_url is not provided).
+	YoutubeURL      string                      `bson:"youtube_url" json:"youtube_url"`           // A URL to a YouTube video (only used if animation_url is not provided).
 }
 
 func (impl *NFTMetadataControllerImpl) validateCreateRequest(dirtyData *NFTMetadataCreateRequestIDO) error {
@@ -45,6 +46,9 @@ func (impl *NFTMetadataControllerImpl) validateCreateRequest(dirtyData *NFTMetad
 	if dirtyData.Name == "" {
 		e["name"] = "missing value"
 	}
+	if dirtyData.Description == "" {
+		e["description"] = "missing value"
+	}
 	if dirtyData.ImageID.IsZero() {
 		e["image_id"] = "missing value"
 	} else {
@@ -56,8 +60,22 @@ func (impl *NFTMetadataControllerImpl) validateCreateRequest(dirtyData *NFTMetad
 			e["image_id"] = fmt.Sprintf("does not exist for: %v", dirtyData.ImageID)
 		}
 	}
-	if dirtyData.Description == "" {
-		e["description"] = "missing value"
+	if dirtyData.AnimationID.IsZero() {
+		e["animation_id"] = "missing value"
+	} else {
+		doesExist, err := impl.NFTAssetStorer.CheckIfExistsByID(context.Background(), dirtyData.AnimationID)
+		if err != nil {
+			e["animation_id"] = fmt.Sprintf("encountered error: %v", err)
+		}
+		if !doesExist {
+			e["animation_id"] = fmt.Sprintf("does not exist for: %v", dirtyData.AnimationID)
+		}
+	}
+	if dirtyData.BackgroundColor == "" {
+		e["background_color"] = "missing value"
+	}
+	if dirtyData.YoutubeURL == "" {
+		e["youtube_url"] = "missing value"
 	}
 
 	if len(e) != 0 {
@@ -99,7 +117,12 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 
 	// Define the transaction function to perform a series of operations atomically
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
-		// Begin populating our NFT meta with the user add request data.
+		//
+		// STEP 1
+		//
+
+		// Begin populating our NFT meta with the user add request data, in
+		// addition add tenant-specific information.
 		nftmetadata := &s_d.NFTMetadata{
 			CollectionID:    req.CollectionID,
 			Name:            req.Name,
@@ -110,19 +133,18 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 			Attributes:      req.Attributes,
 			BackgroundColor: req.BackgroundColor,
 			YoutubeURL:      req.YoutubeURL,
+			TenantID:        tenantID,
+			TenantName:      tenantName,
+			TenantTimezone:  tenantTimezone,
+			ID:              primitive.NewObjectID(),
+			CreatedAt:       time.Now(),
+			ModifiedAt:      time.Now(),
+			Status:          s_d.StatusActive,
 		}
 
-		// Populate nftmetadata with default and tenant-specific information
-		nftmetadata.TenantID = tenantID
-		nftmetadata.TenantName = tenantName
-		nftmetadata.TenantTimezone = tenantTimezone
-		nftmetadata.ID = primitive.NewObjectID()
-		nftmetadata.CreatedAt = time.Now()
-		nftmetadata.ModifiedAt = time.Now()
-		nftmetadata.Status = s_d.StatusActive
-
-		impl.Logger.Debug("nft metadata creation beginning...",
-			slog.String("id", nftmetadata.ID.Hex()))
+		//
+		// STEP 2
+		//
 
 		// DEVELOPER NOTE: We don't need to check if `collection` exists b/c
 		// we already validated it before entering this transaction.
@@ -134,7 +156,7 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 		}
 
 		// Update our metadata record.
-		nftmetadata.TokenID = collection.TokensCount
+		nftmetadata.TokenID = collection.TokensCount // We are doing this because of our smart-contract.
 		nftmetadata.CollectionName = collection.Name
 
 		// Update collection to have our new token id.
@@ -147,6 +169,10 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 
 		impl.Logger.Debug("nft collection generated new token id",
 			slog.Uint64("token_id", collection.TokensCount))
+
+		//
+		// STEP 3
+		//
 
 		// DEVELOPER NOTE: We don't need to check if `imageAsset` exists b/c
 		// we already validated it before entering this transaction.
@@ -165,7 +191,84 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 		// Update our metadata record.
 		nftmetadata.Image = fmt.Sprintf("/ipfs/%v", imageAsset.CID)
 
-		impl.Logger.Debug("image asset status changed")
+		impl.Logger.Debug("image asset set")
+
+		//
+		// STEP 4
+		//
+
+		// DEVELOPER NOTE: We don't need to check if `animationAsset` exists b/c
+		// we already validated it before entering this transaction.
+		// Lookup our image and attach related.
+		animationAsset, err := impl.NFTAssetStorer.GetByID(sessCtx, req.AnimationID)
+		if err != nil {
+			impl.Logger.Error("failed get NFT asset by id", slog.Any("error", err))
+			return nil, err
+		}
+		animationAsset.Status = nftasset_s.StatusPinning
+		if err := impl.NFTAssetStorer.UpdateByID(sessCtx, animationAsset); err != nil {
+			impl.Logger.Error("failed update NFT asset by id", slog.Any("error", err))
+			return nil, err
+		}
+
+		// Update our metadata record.
+		nftmetadata.AnimationURL = fmt.Sprintf("/ipfs/%v", animationAsset.CID)
+
+		impl.Logger.Debug("animation asset set")
+
+		//
+		// STEP 5
+		// Generate our metadata file in our collection directory and add to
+		// IPFS network. Afterwords keep a record of it.
+
+		metadataFile := &s_d.NFTMetadataFile{
+			Image:           nftmetadata.Image,
+			ExternalURL:     nftmetadata.ExternalURL,
+			Description:     nftmetadata.Description,
+			Name:            nftmetadata.Name,
+			Attributes:      nftmetadata.Attributes,
+			BackgroundColor: nftmetadata.BackgroundColor,
+			AnimationURL:    nftmetadata.AnimationURL,
+			YoutubeURL:      nftmetadata.YoutubeURL,
+		}
+		metadataFileBin, err := json.Marshal(metadataFile)
+		if err != nil {
+			impl.Logger.Error("failed marshalling metadata file", slog.Any("error", err))
+			return nil, err
+		}
+
+		dirCid, metadataFileCID, ipfsUploadErr := impl.IPFS.UploadBytesToDir(sessCtx, metadataFileBin, fmt.Sprintf("%v", nftmetadata.TokenID), collection.IPFSDirectoryName)
+		if ipfsUploadErr != nil {
+			impl.Logger.Error("failed uploading NFT asset file",
+				slog.Any("error", ipfsUploadErr))
+			return nil, err
+		}
+
+		// Publish the collection directory to IPNS
+		resolvedIPNSName, err := impl.IPFS.PublishToIPNS(sessCtx, collection.IPNSKeyName, dirCid)
+		if err != nil {
+			return nil, fmt.Errorf("failed to publish to IPNS: %v", err)
+		}
+
+		// Update the collection record.
+		collection.MetadataFileCIDs[0] = metadataFileCID
+		collection.IPFSDirectoryCID = dirCid
+		collection.ModifiedAt = time.Now()
+		collection.IPNSName = resolvedIPNSName
+		if err := impl.CollectionStorer.UpdateByID(sessCtx, collection); err != nil {
+			impl.Logger.Error("failed get collection by id", slog.Any("error", err))
+			return nil, err
+		}
+
+		impl.Logger.Debug("nft collection generated new directory cid",
+			slog.Uint64("token_id", collection.TokensCount))
+
+		// Update the record.
+		nftmetadata.MetadataFileCID = metadataFileCID
+
+		//
+		// STEP 7
+		//
 
 		// Save the nftmetadata data to the database
 		if err := impl.NFTMetadataStorer.Create(sessCtx, nftmetadata); err != nil {
@@ -175,11 +278,6 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 
 		impl.Logger.Debug("nft metadata created",
 			slog.String("id", nftmetadata.ID.Hex()))
-
-		//TODO: WE NEED TO GENERATE THE METADATA FOLDER IN OUR COLLECITON DIR.
-		//TODO: UPDATE `MetadataFileCID`
-		//TODO: UPDATE `IPNSPath`
-		//TODO: WE NEED TO UPDATE IPNS WITH THE NEW COLLECTION DIR CONTENTS.
 
 		return nftmetadata, nil
 	}

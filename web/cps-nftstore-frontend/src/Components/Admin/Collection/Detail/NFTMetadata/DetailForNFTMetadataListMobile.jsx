@@ -68,7 +68,7 @@ function AdminCollectionDetailForNFTMetadataListMobile(props) {
               <strong>Modified At:</strong>&nbsp;{datum.modifiedAt}
               <br />
               <br />
-              <strong>File:</strong>&nbsp;
+              <strong>Metadata File:</strong>&nbsp;
               <a
                 href={datum.objectUrl}
                 target="_blank"

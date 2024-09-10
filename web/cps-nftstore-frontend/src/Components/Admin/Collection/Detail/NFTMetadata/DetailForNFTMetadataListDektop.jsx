@@ -52,7 +52,7 @@ function AdminCollectionDetailForNFTMetadataListDesktop(props) {
               <th>Name</th>
               <th>Status</th>
               <th>Created</th>
-              <th>File</th>
+              <th>Metadata File</th>
               <th></th>
             </tr>
           </thead>

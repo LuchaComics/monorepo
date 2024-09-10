@@ -70,7 +70,11 @@ function AdminCollectionNFTMetadataAdd() {
   const [imageID, setImageID] = useState("");
   const [imageFilename, setImageFilename] = useState("");
   const [description, setDescription] = useState("");
-
+  const [animationID, setAnimationID] = useState("");
+  const [animationFilename, setAnimationFilename] = useState("");
+  const [externalURL, setExternalURL] = useState("");
+  const [backgroundColor, setBackgroundColor] = useState("");
+  const [youtubeURL, setYoutubeURL] = useState("");
 
   ////
   //// Event handling.
@@ -88,6 +92,10 @@ function AdminCollectionNFTMetadataAdd() {
         name: name,
         image_id: imageID,
         description: description,
+        animation_id: animationID,
+        external_url: externalURL,
+        background_color: backgroundColor,
+        youtube_url: youtubeURL,
     };
     // formData.append("file", selectedFile);
     // formData.append("name", name);
@@ -261,18 +269,7 @@ function AdminCollectionNFTMetadataAdd() {
                     helpText="Optional"
                     onChange={(e) => setName(e.target.value)}
                     isRequired={true}
-                    maxWidth="150px"
-                  />
-
-                  <FormNFTAssetField
-                    label="Image"
-                    name="imageId"
-                    filename={imageFilename}
-                    setFilename={setImageFilename}
-                    nftAssetID={imageID}
-                    setNFTAssetID={setImageID}
-                    helpText={`Upload the image for this NFT. This should be the submission that was reviewed by CPS.`}
-                    errorText={errors && errors.imageId}
+                    maxWidth="450px"
                   />
 
                   <FormTextareaField
@@ -287,6 +284,67 @@ function AdminCollectionNFTMetadataAdd() {
                     maxWidth="150px"
                     rows={4}
                   />
+
+                  <FormNFTAssetField
+                    label="Image"
+                    name="imageId"
+                    filename={imageFilename}
+                    setFilename={setImageFilename}
+                    nftAssetID={imageID}
+                    setNFTAssetID={setImageID}
+                    helpText={`Upload the image for this NFT. This should be the submission that was reviewed by CPS.`}
+                    errorText={errors && errors.imageId}
+                  />
+
+                  <FormNFTAssetField
+                    label="Animation"
+                    name="animationId"
+                    filename={animationFilename}
+                    setFilename={setAnimationFilename}
+                    nftAssetID={animationID}
+                    setNFTAssetID={setAnimationID}
+                    helpText={`Upload the submission review video for this NFT. This should be the submission that was reviewed by CPS.`}
+                    errorText={errors && errors.animationId}
+                  />
+
+                  <FormInputField
+                    label="Background Color"
+                    name="backgroundColor"
+                    placeholder="Text input"
+                    value={backgroundColor}
+                    errorText={errors && errors.backgroundColor}
+                    helpText="Please use hexadecimal values"
+                    onChange={(e) => setBackgroundColor(e.target.value)}
+                    isRequired={true}
+                    maxWidth="150px"
+                  />
+
+                  <FormInputField
+                    label="External URL (Optional)"
+                    name="externalURL"
+                    placeholder="Text input"
+                    value={externalURL}
+                    errorText={errors && errors.externalURL}
+                    helpText={<>
+                        <p>If you do not fill this then system will set its own value.</p>
+                    </>}
+                    onChange={(e) => setExternalURL(e.target.value)}
+                    isRequired={true}
+                    maxWidth="250px"
+                  />
+
+                  <FormInputField
+                    label="YouTube URL"
+                    name="youtubeURL"
+                    placeholder="Text input"
+                    value={youtubeURL}
+                    errorText={errors && errors.youtubeUrl}
+                    helpText=""
+                    onChange={(e) => setYoutubeURL(e.target.value)}
+                    isRequired={true}
+                    maxWidth="275px"
+                  />
+
                   <br />
                   <br />
 

@@ -45,6 +45,17 @@ type NFTMetadata struct {
 	IPNSPath        string                  `bson:"ipns_path" json:"ipns_path"`               // The path of this metadata file in the IPFS network utilizing IPNS.
 }
 
+type NFTMetadataFile struct {
+	Image           string                  `bson:"image" json:"image"`
+	ExternalURL     string                  `bson:"external_url" json:"external_url"`
+	Description     string                  `bson:"description" json:"description"`
+	Name            string                  `bson:"name" json:"name"`
+	Attributes      []*NFTMetadataAttribute `bson:"attributes" json:"attributes"`
+	BackgroundColor string                  `bson:"background_color" json:"background_color"`
+	AnimationURL    string                  `bson:"animation_url" json:"animation_url"`
+	YoutubeURL      string                  `bson:"youtube_url" json:"youtube_url"`
+}
+
 type NFTMetadataAttribute struct {
 	TraitType string `bson:"trait_type" json:"trait_type"`
 	Value     string `bson:"value" json:"value"`
