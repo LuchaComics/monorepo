@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func (impl CollectionStorerImpl) ListByFilter(ctx context.Context, f *CollectionPaginationListFilter) (*CollectionPaginationListResult, error) {
+func (impl NFTCollectionStorerImpl) ListByFilter(ctx context.Context, f *NFTCollectionPaginationListFilter) (*NFTCollectionPaginationListResult, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 12*time.Second)
 	defer cancel()
 
@@ -47,10 +47,10 @@ func (impl CollectionStorerImpl) ListByFilter(ctx context.Context, f *Collection
 	defer cursor.Close(ctx)
 
 	// Retrieve the documents and check if there is a next page
-	results := []*Collection{}
+	results := []*NFTCollection{}
 	hasNextPage := false
 	for cursor.Next(ctx) {
-		document := &Collection{}
+		document := &NFTCollection{}
 		if err := cursor.Decode(document); err != nil {
 			return nil, err
 		}
@@ -71,14 +71,14 @@ func (impl CollectionStorerImpl) ListByFilter(ctx context.Context, f *Collection
 		}
 	}
 
-	return &CollectionPaginationListResult{
+	return &NFTCollectionPaginationListResult{
 		Results:     results,
 		NextCursor:  nextCursor,
 		HasNextPage: hasNextPage,
 	}, nil
 }
 
-func (impl CollectionStorerImpl) ListAsSelectOptionByFilter(ctx context.Context, f *CollectionPaginationListFilter) ([]*CollectionAsSelectOption, error) {
+func (impl NFTCollectionStorerImpl) ListAsSelectOptionByFilter(ctx context.Context, f *NFTCollectionPaginationListFilter) ([]*NFTCollectionAsSelectOption, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 12*time.Second)
 	defer cancel()
 
@@ -124,7 +124,7 @@ func (impl CollectionStorerImpl) ListAsSelectOptionByFilter(ctx context.Context,
 	}
 	defer cursor.Close(ctx)
 
-	var results = []*CollectionAsSelectOption{}
+	var results = []*NFTCollectionAsSelectOption{}
 	if err = cursor.All(ctx, &results); err != nil {
 		panic(err)
 	}

@@ -6,7 +6,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
-	sub_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/collection/datastore"
+	sub_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/utils/httperror"
 )
 
@@ -28,7 +28,7 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request, id string) {
 	MarshalDetailResponse(m, w)
 }
 
-func MarshalDetailResponse(res *sub_s.Collection, w http.ResponseWriter) {
+func MarshalDetailResponse(res *sub_s.NFTCollection, w http.ResponseWriter) {
 	if err := json.NewEncoder(w).Encode(&res); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

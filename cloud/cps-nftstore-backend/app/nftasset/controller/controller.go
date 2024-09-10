@@ -9,8 +9,8 @@ import (
 
 	ipfs_storage "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/ipfs"
 	s3_storage "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/s3"
-	collection_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/collection/datastore"
 	nftasset_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/datastore"
+	collection_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
 	nftmetadata_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/datastore"
 	user_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/datastore"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/config"
@@ -33,18 +33,18 @@ type NFTAssetController interface {
 }
 
 type NFTAssetControllerImpl struct {
-	Config            *config.Conf
-	Logger            *slog.Logger
-	UUID              uuid.Provider
-	Password          password.Provider
-	JWT               jwt.Provider
-	IPFS              ipfs_storage.IPFSStorager
-	S3                s3_storage.S3Storager
-	DbClient          *mongo.Client
-	NFTAssetStorer    nftasset_s.NFTAssetStorer
-	NFTMetadataStorer nftmetadata_s.NFTMetadataStorer
-	CollectionStorer  collection_s.CollectionStorer
-	UserStorer        user_s.UserStorer
+	Config              *config.Conf
+	Logger              *slog.Logger
+	UUID                uuid.Provider
+	Password            password.Provider
+	JWT                 jwt.Provider
+	IPFS                ipfs_storage.IPFSStorager
+	S3                  s3_storage.S3Storager
+	DbClient            *mongo.Client
+	NFTAssetStorer      nftasset_s.NFTAssetStorer
+	NFTMetadataStorer   nftmetadata_s.NFTMetadataStorer
+	NFTCollectionStorer collection_s.NFTCollectionStorer
+	UserStorer          user_s.UserStorer
 }
 
 func NewController(
@@ -58,22 +58,22 @@ func NewController(
 	client *mongo.Client,
 	nftasset_storer nftasset_s.NFTAssetStorer,
 	nftmetadata_storer nftmetadata_s.NFTMetadataStorer,
-	collection_storer collection_s.CollectionStorer,
+	collection_storer collection_s.NFTCollectionStorer,
 	usr_storer user_s.UserStorer,
 ) NFTAssetController {
 	s := &NFTAssetControllerImpl{
-		Config:            appCfg,
-		Logger:            loggerp,
-		UUID:              uuidp,
-		Password:          passwordp,
-		JWT:               jwtp,
-		S3:                s3,
-		IPFS:              ipfs,
-		DbClient:          client,
-		NFTAssetStorer:    nftasset_storer,
-		NFTMetadataStorer: nftmetadata_storer,
-		CollectionStorer:  collection_storer,
-		UserStorer:        usr_storer,
+		Config:              appCfg,
+		Logger:              loggerp,
+		UUID:                uuidp,
+		Password:            passwordp,
+		JWT:                 jwtp,
+		S3:                  s3,
+		IPFS:                ipfs,
+		DbClient:            client,
+		NFTAssetStorer:      nftasset_storer,
+		NFTMetadataStorer:   nftmetadata_storer,
+		NFTCollectionStorer: collection_storer,
+		UserStorer:          usr_storer,
 	}
 	s.Logger.Debug("nftasset controller initialization started...")
 	s.Logger.Debug("nftasset controller initialized")

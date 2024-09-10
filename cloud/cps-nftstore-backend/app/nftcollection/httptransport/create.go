@@ -7,13 +7,13 @@ import (
 	"net/http"
 	_ "time/tzdata"
 
-	sub_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/collection/datastore"
+	sub_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/utils/httperror"
 )
 
-func UnmarshalCreateRequest(ctx context.Context, r *http.Request) (*sub_s.Collection, error) {
+func UnmarshalCreateRequest(ctx context.Context, r *http.Request) (*sub_s.NFTCollection, error) {
 	// Initialize our array which will tenant all the results from the remote server.
-	var requestData sub_s.Collection
+	var requestData sub_s.NFTCollection
 
 	defer r.Body.Close()
 
@@ -32,7 +32,7 @@ func UnmarshalCreateRequest(ctx context.Context, r *http.Request) (*sub_s.Collec
 	return &requestData, nil
 }
 
-func ValidateCreateRequest(dirtyData *sub_s.Collection) error {
+func ValidateCreateRequest(dirtyData *sub_s.NFTCollection) error {
 	e := make(map[string]string)
 
 	if dirtyData.TenantID.IsZero() {
@@ -66,7 +66,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	MarshalCreateResponse(res, w)
 }
 
-func MarshalCreateResponse(res *sub_s.Collection, w http.ResponseWriter) {
+func MarshalCreateResponse(res *sub_s.NFTCollection, w http.ResponseWriter) {
 	if err := json.NewEncoder(w).Encode(&res); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

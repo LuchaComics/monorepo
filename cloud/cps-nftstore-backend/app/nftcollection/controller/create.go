@@ -10,13 +10,13 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
-	s_d "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/collection/datastore"
+	s_d "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
 	u_d "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/datastore"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/config/constants"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/utils/httperror"
 )
 
-func (impl *CollectionControllerImpl) Create(ctx context.Context, collection *s_d.Collection) (*s_d.Collection, error) {
+func (impl *NFTCollectionControllerImpl) Create(ctx context.Context, collection *s_d.NFTCollection) (*s_d.NFTCollection, error) {
 	// Extract user and tenant information from the session context
 	userRole, _ := ctx.Value(constants.SessionUserRole).(int8)
 	// userID := ctx.Value(constants.SessionUserID).(primitive.ObjectID)
@@ -107,7 +107,7 @@ func (impl *CollectionControllerImpl) Create(ctx context.Context, collection *s_
 		}
 
 		// Save the collection data to the database
-		if err := impl.CollectionStorer.Create(sessCtx, collection); err != nil {
+		if err := impl.NFTCollectionStorer.Create(sessCtx, collection); err != nil {
 			impl.Logger.Error("failed to save collection to database", slog.Any("error", err))
 			return nil, err
 		}
@@ -122,5 +122,5 @@ func (impl *CollectionControllerImpl) Create(ctx context.Context, collection *s_
 		return nil, err
 	}
 
-	return result.(*s_d.Collection), nil
+	return result.(*s_d.NFTCollection), nil
 }

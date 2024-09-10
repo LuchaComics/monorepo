@@ -7,7 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func (impl CollectionStorerImpl) UpdateByID(ctx context.Context, m *Collection) error {
+func (impl NFTCollectionStorerImpl) UpdateByID(ctx context.Context, m *NFTCollection) error {
 	filter := bson.D{{"_id", m.ID}}
 
 	update := bson.M{ // DEVELOPERS NOTE: https://stackoverflow.com/a/60946010

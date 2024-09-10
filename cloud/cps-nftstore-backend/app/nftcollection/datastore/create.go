@@ -7,7 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (impl CollectionStorerImpl) Create(ctx context.Context, u *Collection) error {
+func (impl NFTCollectionStorerImpl) Create(ctx context.Context, u *NFTCollection) error {
 	// DEVELOPER NOTES:
 	// According to mongodb documentaiton:
 	//     Non-existent Databases and Collections

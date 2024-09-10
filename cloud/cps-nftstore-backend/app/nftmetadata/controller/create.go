@@ -35,7 +35,7 @@ func (impl *NFTMetadataControllerImpl) validateCreateRequest(dirtyData *NFTMetad
 	if dirtyData.CollectionID.IsZero() {
 		e["collection_id"] = "missing value"
 	} else {
-		doesExist, err := impl.CollectionStorer.CheckIfExistsByID(context.Background(), dirtyData.CollectionID)
+		doesExist, err := impl.NFTCollectionStorer.CheckIfExistsByID(context.Background(), dirtyData.CollectionID)
 		if err != nil {
 			e["collection_id"] = fmt.Sprintf("encountered error: %v", err)
 		}
@@ -152,7 +152,7 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 
 		// DEVELOPER NOTE: We don't need to check if the fetched records exists
 		// b/c we already validated it before entering this transaction.
-		collection, err := impl.CollectionStorer.GetByID(sessCtx, req.CollectionID)
+		collection, err := impl.NFTCollectionStorer.GetByID(sessCtx, req.CollectionID)
 		if err != nil {
 			impl.Logger.Error("failed get collection by id", slog.Any("error", err))
 			return nil, err
@@ -296,7 +296,7 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 			return nil, err
 		}
 
-		if err := impl.CollectionStorer.UpdateByID(sessCtx, collection); err != nil {
+		if err := impl.NFTCollectionStorer.UpdateByID(sessCtx, collection); err != nil {
 			impl.Logger.Error("failed updating collection by id",
 				slog.Any("error", err))
 			return nil, err

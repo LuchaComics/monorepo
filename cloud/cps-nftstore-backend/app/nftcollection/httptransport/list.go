@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"strconv"
 
-	sub_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/collection/datastore"
+	sub_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/utils/httperror"
 )
 
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	f := &sub_s.CollectionPaginationListFilter{
+	f := &sub_s.NFTCollectionPaginationListFilter{
 		Cursor:          "",
 		PageSize:        25,
 		SortField:       "created_at",
@@ -64,7 +64,7 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	MarshalListResponse(m, w)
 }
 
-func MarshalListResponse(res *sub_s.CollectionPaginationListResult, w http.ResponseWriter) {
+func MarshalListResponse(res *sub_s.NFTCollectionPaginationListResult, w http.ResponseWriter) {
 	if err := json.NewEncoder(w).Encode(&res); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

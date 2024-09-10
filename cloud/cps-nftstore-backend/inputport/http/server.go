@@ -8,7 +8,7 @@ import (
 
 	"github.com/rs/cors"
 
-	collection "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/collection/httptransport"
+	collection "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/httptransport"
 	gateway "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/httptransport"
 	nftasset "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/httptransport"
 	nftmetadata "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/httptransport"

@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 
 	ipfs_storage "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/ipfs"
-	collection_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/collection/datastore"
+	collection_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
 	nftasset_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/datastore"
 	nftmetadata_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/datastore"
 	tenant_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/datastore"
@@ -20,17 +20,17 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/provider/uuid"
 )
 
-// CollectionController Interface for tenant business logic controller.
-type CollectionController interface {
-	Create(ctx context.Context, m *collection_s.Collection) (*collection_s.Collection, error)
-	GetByID(ctx context.Context, id primitive.ObjectID) (*collection_s.Collection, error)
-	UpdateByID(ctx context.Context, m *collection_s.Collection) (*collection_s.Collection, error)
-	ListByFilter(ctx context.Context, f *collection_s.CollectionPaginationListFilter) (*collection_s.CollectionPaginationListResult, error)
-	ListAsSelectOptionByFilter(ctx context.Context, f *collection_s.CollectionPaginationListFilter) ([]*collection_s.CollectionAsSelectOption, error)
+// NFTCollectionController Interface for tenant business logic controller.
+type NFTCollectionController interface {
+	Create(ctx context.Context, m *collection_s.NFTCollection) (*collection_s.NFTCollection, error)
+	GetByID(ctx context.Context, id primitive.ObjectID) (*collection_s.NFTCollection, error)
+	UpdateByID(ctx context.Context, m *collection_s.NFTCollection) (*collection_s.NFTCollection, error)
+	ListByFilter(ctx context.Context, f *collection_s.NFTCollectionPaginationListFilter) (*collection_s.NFTCollectionPaginationListResult, error)
+	ListAsSelectOptionByFilter(ctx context.Context, f *collection_s.NFTCollectionPaginationListFilter) ([]*collection_s.NFTCollectionAsSelectOption, error)
 	DeleteByID(ctx context.Context, id primitive.ObjectID) error
 }
 
-type CollectionControllerImpl struct {
+type NFTCollectionControllerImpl struct {
 	Config            *config.Conf
 	Logger            *slog.Logger
 	UUID              uuid.Provider
@@ -42,7 +42,7 @@ type CollectionControllerImpl struct {
 	TenantStorer      tenant_s.TenantStorer
 	NFTAssetStorer    nftasset_s.NFTAssetStorer
 	NFTMetadataStorer nftmetadata_s.NFTMetadataStorer
-	CollectionStorer  collection_s.CollectionStorer
+	NFTCollectionStorer  collection_s.NFTCollectionStorer
 	UserStorer        user_s.UserStorer
 }
 
@@ -58,10 +58,10 @@ func NewController(
 	tenant_storer tenant_s.TenantStorer,
 	nftasset_storer nftasset_s.NFTAssetStorer,
 	nftmetadata_storer nftmetadata_s.NFTMetadataStorer,
-	collection_storer collection_s.CollectionStorer,
+	collection_storer collection_s.NFTCollectionStorer,
 	usr_storer user_s.UserStorer,
-) CollectionController {
-	s := &CollectionControllerImpl{
+) NFTCollectionController {
+	s := &NFTCollectionControllerImpl{
 		Config:            appCfg,
 		Logger:            loggerp,
 		UUID:              uuidp,
@@ -73,7 +73,7 @@ func NewController(
 		TenantStorer:      tenant_storer,
 		NFTAssetStorer:    nftasset_storer,
 		NFTMetadataStorer: nftmetadata_storer,
-		CollectionStorer:  collection_storer,
+		NFTCollectionStorer:  collection_storer,
 		UserStorer:        usr_storer,
 	}
 	s.Logger.Debug("collection controller initialization started...")

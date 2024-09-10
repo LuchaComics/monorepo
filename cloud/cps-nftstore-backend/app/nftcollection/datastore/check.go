@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (impl CollectionStorerImpl) CheckIfExistsByID(ctx context.Context, id primitive.ObjectID) (bool, error) {
+func (impl NFTCollectionStorerImpl) CheckIfExistsByID(ctx context.Context, id primitive.ObjectID) (bool, error) {
 	filter := bson.D{{"_id", id}}
 	count, err := impl.Collection.CountDocuments(ctx, filter)
 	if err != nil {

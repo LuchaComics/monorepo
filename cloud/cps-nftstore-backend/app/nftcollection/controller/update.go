@@ -8,12 +8,12 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	u_d "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/datastore"
-	domain "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/collection/datastore"
+	domain "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/config/constants"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/utils/httperror"
 )
 
-func (c *CollectionControllerImpl) UpdateByID(ctx context.Context, ns *domain.Collection) (*domain.Collection, error) {
+func (c *NFTCollectionControllerImpl) UpdateByID(ctx context.Context, ns *domain.NFTCollection) (*domain.NFTCollection, error) {
 	// Extract from our session the following data.
 	urole, _ := ctx.Value(constants.SessionUserRole).(int8)
 	// uid := ctx.Value(constants.SessionUserID).(primitive.ObjectID)
@@ -30,7 +30,7 @@ func (c *CollectionControllerImpl) UpdateByID(ctx context.Context, ns *domain.Co
 	}
 
 	// Fetch the original tenant.
-	os, err := c.CollectionStorer.GetByID(ctx, ns.ID)
+	os, err := c.NFTCollectionStorer.GetByID(ctx, ns.ID)
 	if err != nil {
 		c.Logger.Error("database get by id error", slog.Any("error", err))
 		return nil, err
@@ -48,7 +48,7 @@ func (c *CollectionControllerImpl) UpdateByID(ctx context.Context, ns *domain.Co
 	// os.Name = ns.Name
 
 	// Save to the database the modified tenant.
-	if err := c.CollectionStorer.UpdateByID(ctx, os); err != nil {
+	if err := c.NFTCollectionStorer.UpdateByID(ctx, os); err != nil {
 		c.Logger.Error("database update by id error", slog.Any("error", err))
 		return nil, err
 	}

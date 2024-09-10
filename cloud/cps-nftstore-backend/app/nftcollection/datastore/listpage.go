@@ -16,7 +16,7 @@ const (
 	SortOrderDescending = -1
 )
 
-type CollectionPaginationListFilter struct {
+type NFTCollectionPaginationListFilter struct {
 	// Pagination related.
 	Cursor    string
 	PageSize  int64
@@ -24,23 +24,23 @@ type CollectionPaginationListFilter struct {
 	SortOrder int8 // 1=ascending | -1=descending
 
 	// Filter related.
-	TenantID         primitive.ObjectID
+	TenantID        primitive.ObjectID
 	UserID          primitive.ObjectID
 	ExcludeArchived bool
 	SearchText      string
 }
 
-// CollectionPaginationListResult represents the paginated list results for
+// NFTCollectionPaginationListResult represents the paginated list results for
 // the associate records.
-type CollectionPaginationListResult struct {
-	Results     []*Collection `json:"results"`
-	NextCursor  string     `json:"next_cursor"`
-	HasNextPage bool       `json:"has_next_page"`
+type NFTCollectionPaginationListResult struct {
+	Results     []*NFTCollection `json:"results"`
+	NextCursor  string           `json:"next_cursor"`
+	HasNextPage bool             `json:"has_next_page"`
 }
 
 // newPaginationFilter will create the mongodb filter to apply the cursor or
 // or ignore it depending if a cursor was specified in the filter.
-func (impl CollectionStorerImpl) newPaginationFilter(f *CollectionPaginationListFilter) (bson.M, error) {
+func (impl NFTCollectionStorerImpl) newPaginationFilter(f *NFTCollectionPaginationListFilter) (bson.M, error) {
 	if len(f.Cursor) > 0 {
 		// STEP 1: Decode the cursor which is encoded in a base64 format.
 		decodedCursor, err := base64.RawStdEncoding.DecodeString(f.Cursor)
@@ -60,7 +60,7 @@ func (impl CollectionStorerImpl) newPaginationFilter(f *CollectionPaginationList
 	return bson.M{}, nil
 }
 
-func (impl CollectionStorerImpl) newPaginationFilterBasedOnTime(f *CollectionPaginationListFilter, decodedCursor string) (bson.M, error) {
+func (impl NFTCollectionStorerImpl) newPaginationFilterBasedOnTime(f *NFTCollectionPaginationListFilter, decodedCursor string) (bson.M, error) {
 	// Extract our cursor into two parts which we need to use.
 	arr := strings.Split(decodedCursor, "|")
 	if len(arr) < 1 {
@@ -102,7 +102,7 @@ func (impl CollectionStorerImpl) newPaginationFilterBasedOnTime(f *CollectionPag
 
 // newPaginatorOptions will generate the mongodb options which will support the
 // paginator in ordering the data to work.
-func (impl CollectionStorerImpl) newPaginationOptions(f *CollectionPaginationListFilter) (*options.FindOptions, error) {
+func (impl NFTCollectionStorerImpl) newPaginationOptions(f *NFTCollectionPaginationListFilter) (*options.FindOptions, error) {
 	options := options.Find().SetLimit(f.PageSize)
 
 	// DEVELOPERS NOTE:
@@ -121,8 +121,8 @@ func (impl CollectionStorerImpl) newPaginationOptions(f *CollectionPaginationLis
 
 // newPaginatorNextCursor will return the base64 encoded next cursor which works
 // with our paginator.
-func (impl CollectionStorerImpl) newPaginatorNextCursor(f *CollectionPaginationListFilter, results []*Collection) (string, error) {
-	var lastDatum *Collection
+func (impl NFTCollectionStorerImpl) newPaginatorNextCursor(f *NFTCollectionPaginationListFilter, results []*NFTCollection) (string, error) {
+	var lastDatum *NFTCollection
 
 	// Remove the extra document from the current page
 	results = results[:len(results)]

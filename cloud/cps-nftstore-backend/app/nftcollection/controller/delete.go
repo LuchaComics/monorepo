@@ -9,7 +9,7 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/utils/httperror"
 )
 
-func (impl *CollectionControllerImpl) DeleteByID(ctx context.Context, id primitive.ObjectID) error {
+func (impl *NFTCollectionControllerImpl) DeleteByID(ctx context.Context, id primitive.ObjectID) error {
 	d, err := impl.GetByID(ctx, id)
 	if err != nil {
 		impl.Logger.Error("database get by id error", slog.Any("error", err))
@@ -32,7 +32,7 @@ func (impl *CollectionControllerImpl) DeleteByID(ctx context.Context, id primiti
 		return err
 	}
 
-	if err := impl.CollectionStorer.DeleteByID(ctx, id); err != nil {
+	if err := impl.NFTCollectionStorer.DeleteByID(ctx, id); err != nil {
 		impl.Logger.Error("database update by id error", slog.Any("error", err))
 		return err
 	}

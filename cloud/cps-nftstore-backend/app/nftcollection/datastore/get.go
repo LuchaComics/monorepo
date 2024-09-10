@@ -9,10 +9,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (impl CollectionStorerImpl) GetByID(ctx context.Context, id primitive.ObjectID) (*Collection, error) {
+func (impl NFTCollectionStorerImpl) GetByID(ctx context.Context, id primitive.ObjectID) (*NFTCollection, error) {
 	filter := bson.M{"_id": id}
 
-	var result Collection
+	var result NFTCollection
 	err := impl.Collection.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -25,10 +25,10 @@ func (impl CollectionStorerImpl) GetByID(ctx context.Context, id primitive.Objec
 	return &result, nil
 }
 
-func (impl CollectionStorerImpl) GetByName(ctx context.Context, name string) (*Collection, error) {
+func (impl NFTCollectionStorerImpl) GetByName(ctx context.Context, name string) (*NFTCollection, error) {
 	filter := bson.M{"name": name}
 
-	var result Collection
+	var result NFTCollection
 	err := impl.Collection.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -41,10 +41,10 @@ func (impl CollectionStorerImpl) GetByName(ctx context.Context, name string) (*C
 	return &result, nil
 }
 
-func (impl CollectionStorerImpl) GetByPaymentProcessorPurchaseID(ctx context.Context, paymentProcessorPurchaseID string) (*Collection, error) {
+func (impl NFTCollectionStorerImpl) GetByPaymentProcessorPurchaseID(ctx context.Context, paymentProcessorPurchaseID string) (*NFTCollection, error) {
 	filter := bson.M{"payment_processor_receipt_id": paymentProcessorPurchaseID}
 
-	var result Collection
+	var result NFTCollection
 	err := impl.Collection.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -57,10 +57,10 @@ func (impl CollectionStorerImpl) GetByPaymentProcessorPurchaseID(ctx context.Con
 	return &result, nil
 }
 
-func (impl CollectionStorerImpl) GetByComicSubmissionID(ctx context.Context, comicSubmissionID primitive.ObjectID) (*Collection, error) {
+func (impl NFTCollectionStorerImpl) GetByComicSubmissionID(ctx context.Context, comicSubmissionID primitive.ObjectID) (*NFTCollection, error) {
 	filter := bson.M{"comic_submission_id": comicSubmissionID}
 
-	var result Collection
+	var result NFTCollection
 	err := impl.Collection.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {

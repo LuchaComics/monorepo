@@ -18,7 +18,7 @@ const (
 	StatusArchived = 2
 )
 
-type Collection struct {
+type NFTCollection struct {
 	TenantID              primitive.ObjectID `bson:"tenant_id" json:"tenant_id"`
 	TenantName            string             `bson:"tenant_name" json:"tenant_name"`
 	TenantTimezone        string             `bson:"tenant_timezone" json:"tenant_timezone"`
@@ -37,7 +37,7 @@ type Collection struct {
 	MetadataFileCIDs      map[uint64]string  `bson:"metadata_file_cids" json:"metadata_file_cids"`   // Used for mapping TokenID's to their metadata file CID.
 }
 
-type CollectionListFilter struct {
+type NFTCollectionListFilter struct {
 	// Pagination related.
 	Cursor    primitive.ObjectID
 	PageSize  int64
@@ -51,41 +51,41 @@ type CollectionListFilter struct {
 	SearchText      string
 }
 
-type CollectionListResult struct {
-	Results     []*Collection      `json:"results"`
+type NFTCollectionListResult struct {
+	Results     []*NFTCollection   `json:"results"`
 	NextCursor  primitive.ObjectID `json:"next_cursor"`
 	HasNextPage bool               `json:"has_next_page"`
 }
 
-// CollectionStorer Interface for tenant.
-type CollectionStorer interface {
-	Create(ctx context.Context, m *Collection) error
-	GetByID(ctx context.Context, id primitive.ObjectID) (*Collection, error)
-	GetByName(ctx context.Context, name string) (*Collection, error)
-	GetByPaymentProcessorPurchaseID(ctx context.Context, paymentProcessorPurchaseID string) (*Collection, error)
-	GetByComicSubmissionID(ctx context.Context, comicSubmissionID primitive.ObjectID) (*Collection, error)
-	UpdateByID(ctx context.Context, m *Collection) error
-	ListByFilter(ctx context.Context, m *CollectionPaginationListFilter) (*CollectionPaginationListResult, error)
-	ListAsSelectOptionByFilter(ctx context.Context, f *CollectionPaginationListFilter) ([]*CollectionAsSelectOption, error)
+// NFTCollectionStorer Interface for tenant.
+type NFTCollectionStorer interface {
+	Create(ctx context.Context, m *NFTCollection) error
+	GetByID(ctx context.Context, id primitive.ObjectID) (*NFTCollection, error)
+	GetByName(ctx context.Context, name string) (*NFTCollection, error)
+	GetByPaymentProcessorPurchaseID(ctx context.Context, paymentProcessorPurchaseID string) (*NFTCollection, error)
+	GetByComicSubmissionID(ctx context.Context, comicSubmissionID primitive.ObjectID) (*NFTCollection, error)
+	UpdateByID(ctx context.Context, m *NFTCollection) error
+	ListByFilter(ctx context.Context, m *NFTCollectionPaginationListFilter) (*NFTCollectionPaginationListResult, error)
+	ListAsSelectOptionByFilter(ctx context.Context, f *NFTCollectionPaginationListFilter) ([]*NFTCollectionAsSelectOption, error)
 	DeleteByID(ctx context.Context, id primitive.ObjectID) error
 	CheckIfExistsByID(ctx context.Context, id primitive.ObjectID) (bool, error)
 	// //TODO: Add more...
 }
 
-type CollectionAsSelectOption struct {
+type NFTCollectionAsSelectOption struct {
 	Value primitive.ObjectID `bson:"_id" json:"value"` // Extract from the database `_id` field and output through API as `value`.
 	Label string             `bson:"name" json:"label"`
 }
 
-type CollectionStorerImpl struct {
+type NFTCollectionStorerImpl struct {
 	Logger     *slog.Logger
 	DbClient   *mongo.Client
 	Collection *mongo.Collection
 }
 
-func NewDatastore(appCfg *c.Conf, loggerp *slog.Logger, client *mongo.Client) CollectionStorer {
+func NewDatastore(appCfg *c.Conf, loggerp *slog.Logger, client *mongo.Client) NFTCollectionStorer {
 	// ctx := context.Background()
-	uc := client.Database(appCfg.DB.Name).Collection("collections")
+	uc := client.Database(appCfg.DB.Name).Collection("nft_collections")
 
 	// The following few lines of code will create the index for our app for
 	// this colleciton.
@@ -101,7 +101,7 @@ func NewDatastore(appCfg *c.Conf, loggerp *slog.Logger, client *mongo.Client) Co
 		log.Fatal(err)
 	}
 
-	s := &CollectionStorerImpl{
+	s := &NFTCollectionStorerImpl{
 		Logger:     loggerp,
 		DbClient:   client,
 		Collection: uc,
