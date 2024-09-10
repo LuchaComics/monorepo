@@ -78,10 +78,12 @@ function AdminNFTCollectionNFTMetadataDetail() {
   const [tokenID, setTokenID] = useState(0);
   const [name, setName] = useState("");
   const [image, setImage] = useState("");
+  const [imageCID, setImageCID] = useState("");
   const [description, setDescription] = useState("");
   const [createdAt, setCreatedAt] = useState("");
   const [modifiedAt, setModifiedAt] = useState("");
   const [animationURL, setAnimationURL] = useState("");
+  const [animationCID, setAnimationCID] = useState("");
   const [externalURL, setExternalURL] = useState("");
   const [backgroundColor, setBackgroundColor] = useState("");
   const [youtubeURL, setYoutubeURL] = useState("");
@@ -184,10 +186,12 @@ function AdminNFTCollectionNFTMetadataDetail() {
     setTokenID(response.tokenId);
     setName(response.name);
     setImage(response.image);
+    setImageCID(response.imageCid);
     setDescription(response.description);
     setCreatedAt(response.createdAt);
     setModifiedAt(response.modifiedAt);
     setAnimationURL(response.animationUrl);
+    setAnimationCID(response.animationCid);
     setExternalURL(response.externalUrl);
     setBackgroundColor(response.backgroundColor);
     setYoutubeURL(response.youtubeUrl);
@@ -426,11 +430,11 @@ function AdminNFTCollectionNFTMetadataDetail() {
                   <FormRowText label="Description" value={description} helpText="" />
                   <FormRowText label="Image" value={image} helpText={
                   <>
-                  View file in <Link target="_blank" rel="noreferrer" to={`https://ipfs.io${image}`}>public IPFS gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>. Note: May take hours before image becomes available after submission.
+                  View file in <Link target="_blank" rel="noreferrer" to={`https://ipfs.io/ipfs/${imageCID}`}>public IPFS gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>. Note: May take hours before image becomes available after submission.
                   </>} />
                   <FormRowText label="Animation URL" value={animationURL} helpText={
                   <>
-                  View file in <Link target="_blank" rel="noreferrer" to={`https://ipfs.io${animationURL}`}>public IPFS gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>. Note: May take hours before image becomes available after submission.
+                  View file in <Link target="_blank" rel="noreferrer" to={`https://ipfs.io/ipfs/${animationCID}`}>public IPFS gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>. Note: May take hours before image becomes available after submission.
                   </>} />
                   <FormRowText label="Background Color" value={backgroundColor} helpText="" />
                   <FormRowText label="YouTube URL" value={youtubeURL} helpText="" />
