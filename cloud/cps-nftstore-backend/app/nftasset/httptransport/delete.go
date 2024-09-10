@@ -7,7 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (h *Handler) DeleteByRequestID(w http.ResponseWriter, r *http.Request, id string) {
+func (h *Handler) DeleteByID(w http.ResponseWriter, r *http.Request, id string) {
 	ctx := r.Context()
 
 	objectID, err := primitive.ObjectIDFromHex(id)
@@ -16,7 +16,7 @@ func (h *Handler) DeleteByRequestID(w http.ResponseWriter, r *http.Request, id s
 		return
 	}
 
-	if err := h.Controller.DeleteByRequestID(ctx, objectID); err != nil {
+	if err := h.Controller.DeleteByID(ctx, objectID); err != nil {
 		httperror.ResponseError(w, err)
 		return
 	}

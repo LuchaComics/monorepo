@@ -622,14 +622,14 @@ func (s *ipfsStorager) PublishToIPNS(ctx context.Context, keyName string, direct
 		return "", fmt.Errorf("failed to publish to IPNS: %v", err)
 	}
 
-	// Log and return the result
-	log.Println(res)
-	log.Println(res.RoutingKey())
-	log.Println(res.Cid())
-	log.Println(res.Peer())
-	log.Println(res.String())
-	log.Println(res.AsPath())
-	log.Println(res.String())
+	// // Log and return the result
+	// log.Println(res)
+	// log.Println(res.RoutingKey())
+	// log.Println(res.Cid())
+	// log.Println(res.Peer())
+	// log.Println(res.String())
+	// log.Println(res.AsPath())
+	// log.Println(res.String())
 
 	return res.String(), nil
 }

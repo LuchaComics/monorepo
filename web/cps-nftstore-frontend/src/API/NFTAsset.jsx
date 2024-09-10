@@ -66,19 +66,31 @@ export function getNFTAssetListAPI(
 }
 
 export function postNFTAssetCreateAPI(
-  formdata,
+  filename,
+  mimeType,
+  formdata, // This should be a File object or Blob
   onSuccessCallback,
   onErrorCallback,
   onDoneCallback,
   onUnauthorizedCallback,
 ) {
+    // Defensive code.
+    if (filename === undefined || filename === null || filename === "") {
+      onErrorCallback({"filename": "does not exist: "+filename});
+      return;
+    }
+    if (mimeType === undefined || mimeType === null || mimeType === "") {
+      onErrorCallback({"mimeType": "does not exist: "+mimeType});
+      return;
+    }
+
   const axios = getCustomAxios(onUnauthorizedCallback);
 
   axios
     .post(CPS_NFT_ASSETS_API_ENDPOINT, formdata, {
       headers: {
-        "Content-Type": "multipart/form-data",
-        Accept: "application/json",
+        "Content-Type": mimeType,
+        "Content-Disposition": `attachment; filename=${filename}`, // Add filename here
       },
     })
     .then((successResponse) => {

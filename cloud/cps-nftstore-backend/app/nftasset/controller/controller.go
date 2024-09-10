@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
 	ipfs_storage "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/ipfs"
@@ -27,7 +28,7 @@ type NFTAssetController interface {
 	// UpdateByRequestID(ctx context.Context, ns *NFTAssetUpdateRequestIDO) (*pin_s.NFTAsset, error)
 	// ListByFilter(ctx context.Context, f *pin_s.NFTAssetPaginationListFilter) (*pin_s.NFTAssetPaginationListResult, error)
 	// ListAsSelectOptionByFilter(ctx context.Context, f *pin_s.NFTAssetPaginationListFilter) ([]*pin_s.NFTAssetAsSelectOption, error)
-	// DeleteByRequestID(ctx context.Context, requestID primitive.ObjectID) error
+	DeleteByID(ctx context.Context, id primitive.ObjectID) error
 	Shutdown()
 }
 

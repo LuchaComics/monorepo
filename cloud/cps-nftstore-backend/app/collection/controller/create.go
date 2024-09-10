@@ -78,21 +78,25 @@ func (impl *CollectionControllerImpl) Create(ctx context.Context, collection *s_
 			return nil, fmt.Errorf("failed to add content to IPFS: %v", err)
 		}
 
-		impl.Logger.Debug("successfully uploaded content to IPFS",
-			slog.String("collection_cid", collectionDirCID),
-			slog.String("first_token_cid", firstTokenFileCID))
-
 		// Update collection data with IPFS directory CID and metadata
 		collection.IPFSDirectoryCID = collectionDirCID
 		collection.TokensCount = 0
 		collection.MetadataFileCIDs = make(map[uint64]string, 0) // Initialize arrays.
 		collection.MetadataFileCIDs[0] = firstTokenFileCID
 
+		impl.Logger.Debug("publishing to ipns...",
+			slog.String("key_name", ipnsKeyName),
+			slog.String("collection_cid", collectionDirCID),
+			slog.String("first_token_cid", firstTokenFileCID))
+
 		// Publish the collection directory to IPNS
 		resolvedIPNSName, err := impl.IPFS.PublishToIPNS(sessCtx, ipnsKeyName, collectionDirCID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to publish to IPNS: %v", err)
 		}
+
+		impl.Logger.Debug("finished publishing to ipns",
+			slog.String("ipns_name", resolvedIPNSName))
 
 		// Ensure the IPNS name matches the resolved name
 		if !strings.Contains(ipnsName, resolvedIPNSName) {

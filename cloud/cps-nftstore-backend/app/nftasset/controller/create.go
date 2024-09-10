@@ -3,7 +3,6 @@ package controller
 import (
 	"context"
 	"log/slog"
-	"mime/multipart"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -15,9 +14,10 @@ import (
 )
 
 type NFTAssetCreateRequestIDO struct {
-	Name string
-	Meta map[string]string `bson:"meta" json:"meta"`
-	File multipart.File    // Outside of IPFS pinning spec.
+	Name        string
+	Filename    string `bson:"filename" json:"filename"`
+	ContentType string `bson:"content_type" json:"content_type"`
+	Data        []byte `bson:"data" json:"data"`
 }
 
 // NFTAssetCreateResponseIDO represents `PinStatus` spec via https://ipfs.github.io/pinning-services-api-spec/#section/Schemas/Identifiers.
@@ -32,18 +32,14 @@ type NFTAssetCreateResponseIDO struct {
 func ValidateCreateRequest(dirtyData *NFTAssetCreateRequestIDO) error {
 	e := make(map[string]string)
 
-	if dirtyData.Meta == nil {
-		e["meta"] = "missing value"
-	} else {
-		if dirtyData.Meta["filename"] == "" {
-			e["meta"] = "missing `filename` value"
-		}
-		if dirtyData.Meta["content_type"] == "" {
-			e["meta"] = "missing `content_type` value"
-		}
+	if dirtyData.Filename == "" {
+		e["filename"] = "missing value"
 	}
-	if dirtyData.File == nil {
-		e["file"] = "missing value"
+	if dirtyData.ContentType == "" {
+		e["content_type"] = "missing value"
+	}
+	if dirtyData.Data == nil {
+		e["data"] = "missing value"
 	}
 	if len(e) != 0 {
 		return httperror.NewForBadRequest(&e)
@@ -71,16 +67,33 @@ func (impl *NFTAssetControllerImpl) Create(ctx context.Context, req *NFTAssetCre
 	// Define a transaction function with a series of operations
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
 
+		//
+		// STEP 1
+		//
+
 		// Add our file to the IPFS network (within our specific directory name).
-		dirCid, nftAssetFileCID, ipfsUploadErr := impl.IPFS.UploadMultipartToDir(sessCtx, req.File, req.Meta["filename"], "nftassets")
+		dirCid, nftAssetFileCID, ipfsUploadErr := impl.IPFS.UploadBytesToDir(sessCtx, req.Data, req.Filename, "nftassets")
 		if ipfsUploadErr != nil {
 			impl.Logger.Error("failed uploading NFT asset file",
 				slog.Any("error", ipfsUploadErr))
 			return nil, err
 		}
-		impl.Logger.Debug("ipfs storage adapter successfully uploaded NFT asset file",
+		impl.Logger.Debug("successfully uploaded nft asset file",
 			slog.String("dir_cid", dirCid),
-			slog.String("nft_asset_file_cid", nftAssetFileCID))
+			slog.String("file_cid", nftAssetFileCID))
+
+		if ipfsPinErr := impl.IPFS.Pin(sessCtx, nftAssetFileCID); ipfsPinErr != nil {
+			impl.Logger.Error("failed pinning to ipfs network",
+				slog.Any("error", ipfsPinErr))
+			return nil, err
+		}
+
+		impl.Logger.Debug("successfully pinned nft asset file",
+			slog.String("pinned_cid", nftAssetFileCID))
+
+		//
+		// STEP 2
+		//
 
 		// Extract from our session the following data.
 		orgID, _ := sessCtx.Value(constants.SessionUserTenantID).(primitive.ObjectID)
@@ -94,8 +107,8 @@ func (impl *NFTAssetControllerImpl) Create(ctx context.Context, req *NFTAssetCre
 			CID:                   nftAssetFileCID,
 			Name:                  req.Name,
 			CreatedAt:             time.Now(),
-			Filename:              req.Meta["Filename"],
-			ContentType:           req.Meta["ContentType"],
+			Filename:              req.Filename,
+			ContentType:           req.ContentType,
 			TenantID:              orgID,
 			TenantName:            orgName,
 			TenantTimezone:        orgTimezone,
@@ -111,6 +124,12 @@ func (impl *NFTAssetControllerImpl) Create(ctx context.Context, req *NFTAssetCre
 			impl.Logger.Error("database create error", slog.Any("error", err))
 			return nil, err
 		}
+
+		impl.Logger.Debug("successfully created nft asset file",
+			slog.String("filename", req.Filename),
+			slog.String("content_type", req.ContentType),
+			slog.String("id", res.ID.Hex()))
+
 		return res, nil
 	}
 

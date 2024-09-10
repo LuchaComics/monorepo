@@ -219,8 +219,8 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 	// 	port.NFTMetadata.GetByID(w, r, p[3])
 	// case n == 4 && p[1] == "v1" && p[2] == "nft-asset" && r.Method == http.MethodPut:
 	// 	port.NFTMetadata.UpdateByID(w, r, p[3])
-	// case n == 4 && p[1] == "v1" && p[2] == "nft-asset" && r.Method == http.MethodDelete:
-	// 	port.NFTMetadata.DeleteByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "nft-asset" && r.Method == http.MethodDelete:
+		port.NFTAsset.DeleteByID(w, r, p[3])
 
 	// --- CATCH ALL: D.N.E. ---
 	default:

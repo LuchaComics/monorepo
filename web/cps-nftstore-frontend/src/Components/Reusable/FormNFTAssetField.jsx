@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Navigate } from "react-router-dom";
 import { useRecoilState } from 'recoil';
 import Scroll from 'react-scroll';
 
@@ -34,6 +35,7 @@ function FormNFTAssetField({
 
     const [errors, setErrors] = useState({});
     const [isFetching, setFetching] = useState(false);
+    const [forceURL, setForceURL] = useState("");
 
     ////
     //// Event handling.
@@ -44,18 +46,46 @@ function FormNFTAssetField({
         setFetching(true);
         setErrors({});
 
-        const formData = new FormData();
-        formData.append('file', event.target.files[0]);
-        // formData.append('ownership_id', "");
-        formData.append('ownership_type', "1");
+        const selectedFile = event.target.files[0];
 
-        postNFTAssetCreateAPI(
-            formData,
-            onCreateSuccess,
-            onCreateError,
-            onCreateDone
-        );
-        console.log("onSubmitClick: Finished.")
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+
+        // Extract filename.
+        const filename = selectedFile.name;
+        console.log('Filename:', filename);
+
+        const mimeType = selectedFile.type || "application/octet-stream"; // Fallback to octet-stream if type is not detected
+        console.log('MIME Type:', mimeType);
+
+
+        // Convert the FormData object to binary data and pass it directly
+         // Note: You may need to adjust the handling depending on the type of file and how it needs to be processed
+         const reader = new FileReader();
+         reader.onload = () => {
+           const fileBinaryData = reader.result;
+
+           postNFTAssetCreateAPI(
+               filename,
+               mimeType, // Pass the detected MIME type
+               fileBinaryData, // Pass binary data instead of FormData
+               onCreateSuccess,
+               onCreateError,
+               onCreateDone,
+               onUnauthorized
+           );
+
+           console.log("onSubmitClick: Finished.");
+           setFetching(false); // Reset fetching state after API call
+         };
+         reader.onerror = () => {
+           console.error('Error reading file');
+           setErrors({ file: 'Error reading file' });
+           setFetching(false);
+         };
+
+         reader.readAsArrayBuffer(selectedFile); // Read file as binary data
+        console.log("onSubmitClick: Finished.");
     };
 
     const onDeleteClick = () => {
@@ -67,7 +97,8 @@ function FormNFTAssetField({
             nftAssetID,
             onDeleteSuccess,
             onDeleteError,
-            onDeleteDone
+            onDeleteDone,
+            onUnauthorized
         );
         console.log("onDeleteClick: Finished")
     }
@@ -81,7 +112,7 @@ function FormNFTAssetField({
     function onCreateSuccess(response){
         // For debugging purposes only.
         console.log("onCreateSuccess: Starting...");
-        console.log(response);
+        console.log("onCreateSuccess: ", response);
 
         // Add a temporary banner message in the app and then clear itself after 2 seconds.
         setTopAlertMessage("File uploaded");
@@ -93,7 +124,7 @@ function FormNFTAssetField({
         }, 2000);
 
         setNFTAssetID(response.id);
-        setFilename(response.meta.filename);
+        setFilename(response.filename);
     }
 
     function onCreateError(apiErr) {
@@ -166,6 +197,12 @@ function FormNFTAssetField({
         setFetching(false);
     }
 
+    // --- All --- //
+
+    const onUnauthorized = () => {
+      setForceURL("/login?unauthorized=true"); // If token expired or collection is not logged in, redirect back to login.
+    };
+
     ////
     //// Misc.
     ////
@@ -183,6 +220,11 @@ function FormNFTAssetField({
     ////
     //// Component rendering.
     ////
+
+
+    if (forceURL !== "") {
+        return <Navigate to={forceURL} />;
+    }
 
     let classNameText = "input";
     if (errorText) {
