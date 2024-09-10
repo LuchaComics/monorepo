@@ -450,7 +450,7 @@ function AdminNFTCollectionNFTMetadataDetail() {
 
                   <FormRowText label="Metadata File CID" value={fileCID} helpText={
                   <>
-                  View file in <Link target="_blank" rel="noreferrer" to={`https://ipfs.io$/ipfs/{fileCID}`}>public IPFS gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>. Note: May take hours before image becomes available after submission.
+                  View file in <Link target="_blank" rel="noreferrer" to={`https://ipfs.io/ipfs/{fileCID}`}>public IPFS gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>. Note: May take hours before image becomes available after submission.
                   </>} />
                   <FormRowText label="Metadata File IPNS Path" value={fileIpnsPath} helpText={
                   <>
