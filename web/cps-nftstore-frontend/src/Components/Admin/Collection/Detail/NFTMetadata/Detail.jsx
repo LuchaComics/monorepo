@@ -19,7 +19,7 @@ import {
   faCogs,
   faEye,
   faArrowLeft,
-  faLocationPin,
+  faCube,
   faFile,
   faDownload,
 } from "@fortawesome/free-solid-svg-icons";
@@ -334,7 +334,7 @@ function AdminCollectionNFTMetadataDetail() {
               </li>
               <li class="is-active">
                 <Link aria-current="page">
-                  <FontAwesomeIcon className="fas" icon={faLocationPin} />
+                  <FontAwesomeIcon className="fas" icon={faCube} />
                   &nbsp;NFT Metadata
                 </Link>
               </li>
@@ -398,7 +398,7 @@ function AdminCollectionNFTMetadataDetail() {
           {/* Page */}
           <nav class="box">
             <p class="title is-4">
-              <FontAwesomeIcon className="fas" icon={faLocationPin} />
+              <FontAwesomeIcon className="fas" icon={faCube} />
               &nbsp;NFT Metadata
             </p>
 

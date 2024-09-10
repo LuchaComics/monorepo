@@ -15,7 +15,8 @@ import {
   faBuilding,
   faBarcode,
   faQuestionCircle,
-  faCloud
+  faCloud,
+  faPlus
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
@@ -205,9 +206,7 @@ export default (props) => {
                   &nbsp;IPFS
                 </Link>
               </li>
-
             </ul>
-
             <p class="menu-label has-text-grey-light">Account</p>
             <ul class="menu-list">
               <li>
