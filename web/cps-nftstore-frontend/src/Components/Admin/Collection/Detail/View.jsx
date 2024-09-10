@@ -479,11 +479,6 @@ function AdminCollectionDetail() {
                           </Link>
                         </li>
                         <li>
-                          <Link to={`/admin/collection/${collection.id}/nft-assets`}>
-                            NFT Assets
-                          </Link>
-                        </li>
-                        <li>
                           <Link to={`/admin/collection/${collection.id}/more`}>
                             More&nbsp;&nbsp;
                             <FontAwesomeIcon

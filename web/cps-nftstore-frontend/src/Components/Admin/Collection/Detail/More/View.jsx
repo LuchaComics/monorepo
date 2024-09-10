@@ -228,8 +228,8 @@ function AdminCollectionDetailMore() {
                           <Link to={`/admin/collection/${id}`}>Detail</Link>
                         </li>
                         <li>
-                          <Link to={`/admin/collection/${id}/pins`}>
-                            Pins
+                          <Link to={`/admin/collection/${id}/nft-metadata`}>
+                            NFT Metadata
                           </Link>
                         </li>
                         <li className="is-active">

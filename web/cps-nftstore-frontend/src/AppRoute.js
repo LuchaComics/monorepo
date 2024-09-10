@@ -24,17 +24,11 @@ import AdminCollectionList from "./Components/Admin/Collection/List/View";
 import AdminCollectionAdd from "./Components/Admin/Collection/Add/View";
 import AdminCollectionDetail from "./Components/Admin/Collection/Detail/View";
 import AdminCollectionUpdate from "./Components/Admin/Collection/Update/View";
+import AdminCollectionDetailMore from "./Components/Admin/Collection/Detail/More/View";
 import AdminCollectionDetailForNFTMetadataList from "./Components/Admin/Collection/Detail/NFTMetadata/ListView";
 import AdminCollectionNFTMetadataAdd from "./Components/Admin/Collection/Detail/NFTMetadata/Add";
 import AdminCollectionNFTMetadataDetail from "./Components/Admin/Collection/Detail/NFTMetadata/Detail";
 // import AdminCollectionNFTMetadataUpdate from "./Components/Admin/Collection/Detail/NFTMetadata/Update";
-
-import AdminCollectionDetailForNFTAssetList from "./Components/Admin/Collection/Detail/NFTAsset/ListView";
-import AdminCollectionNFTAssetAdd from "./Components/Admin/Collection/Detail/NFTAsset/Add";
-import AdminCollectionNFTAssetAddViaWebService from "./Components/Admin/Collection/Detail/NFTAsset/AddViaWS";
-import AdminCollectionNFTAssetDetail from "./Components/Admin/Collection/Detail/NFTAsset/Detail";
-import AdminCollectionNFTAssetUpdate from "./Components/Admin/Collection/Detail/NFTAsset/Update";
-import AdminCollectionDetailMore from "./Components/Admin/Collection/Detail/More/View";
 
 // Users
 import AdminUserList from "./Components/Admin/User/List/View";
@@ -199,7 +193,6 @@ function AppRoute() {
                     element={<AdminCollectionNFTMetadataDetail />}
                   />
                   {/*
-
                   <Route
                     exact
                     path="/admin/collection/:id/nft/:rid/edit"
@@ -207,57 +200,6 @@ function AppRoute() {
                   />
                   */}
 
-                  {/* Collection NFT Asset */}
-                  <Route
-                    exact
-                    path="/admin/collection/:id/nft-assets"
-                    element={<AdminCollectionDetailForNFTAssetList />}
-                  />
-                  <Route
-                    exact
-                    path="/admin/collection/:id/nft-assets/add"
-                    element={<AdminCollectionNFTAssetAdd />}
-                  />
-                  <Route
-                    exact
-                    path="/admin/collection/:id/nft-metadatum/:rid"
-                    element={<AdminCollectionNFTMetadataDetail />}
-                  />
-                  {/*
-
-
-                  <Route
-                    exact
-                    path="/admin/collection/:id/nft/:rid/edit"
-                    element={<AdminCollectionNFTMetadataUpdate />}
-                  />
-                  */}
-
-                  {/* Collection Pins */}
-                  <Route
-                    exact
-                    path="/admin/collection/:id/pins"
-                    element={<AdminCollectionDetailForNFTAssetList />}
-                  />
-                  <Route
-                    exact
-                    path="/admin/collection/:id/pins/add"
-                    element={<AdminCollectionNFTAssetAdd />}
-                  /><Route
-                    exact
-                    path="/admin/collection/:id/pins/add-via-ws"
-                    element={<AdminCollectionNFTAssetAddViaWebService />}
-                  />
-                  <Route
-                    exact
-                    path="/admin/collection/:id/pin/:rid"
-                    element={<AdminCollectionNFTAssetDetail />}
-                  />
-                  <Route
-                    exact
-                    path="/admin/collection/:id/pin/:rid/edit"
-                    element={<AdminCollectionNFTAssetUpdate />}
-                  />
                   {/* User */}
                   <Route
                     exact
