@@ -199,6 +199,7 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 
 		imageAsset.Status = nftasset_s.StatusPinning
 		imageAsset.NFTMetadataID = nftmetadata.ID
+		imageAsset.NFTCollectionID = collection.ID
 		imageAsset.ModifiedAt = time.Now()
 		imageAsset.ModifiedFromIPAddress = ipAddress
 		nftmetadata.Image = fmt.Sprintf("/ipfs/%v", imageAsset.CID)
@@ -212,6 +213,7 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 
 		animationAsset.Status = nftasset_s.StatusPinning
 		animationAsset.NFTMetadataID = nftmetadata.ID
+		animationAsset.NFTCollectionID = collection.ID
 		animationAsset.ModifiedAt = time.Now()
 		animationAsset.ModifiedFromIPAddress = ipAddress
 		nftmetadata.AnimationURL = fmt.Sprintf("/ipfs/%v", animationAsset.CID)
@@ -276,13 +278,13 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 		collection.ModifiedFromIPAddress = ipAddress
 
 		// Update the record.
-		nftmetadata.MetadataFileCID = metadataFileCID
-		nftmetadata.MetadataFileIPNSPath = fmt.Sprintf("/ipns/%v/%v", resolvedIPNSName, nftmetadata.TokenID)
+		nftmetadata.FileCID = metadataFileCID
+		nftmetadata.FileIPNSPath = fmt.Sprintf("/ipns/%v/%v", resolvedIPNSName, nftmetadata.TokenID)
 
 		impl.Logger.Debug("nft successuflly republished in ipns",
 			slog.Uint64("token_id", nftmetadata.TokenID),
-			slog.String("ipfs_cid", nftmetadata.MetadataFileCID),
-			slog.String("ipns_path", nftmetadata.MetadataFileIPNSPath))
+			slog.String("ipfs_cid", nftmetadata.FileCID),
+			slog.String("ipns_path", nftmetadata.FileIPNSPath))
 
 		//
 		// STEP 7

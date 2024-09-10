@@ -22,6 +22,9 @@ func (impl NFTAssetStorerImpl) ListByFilter(ctx context.Context, f *NFTAssetPagi
 	if !f.NFTMetadataID.IsZero() {
 		filter["nftmetadata_id"] = f.NFTMetadataID
 	}
+	if !f.NFTCollectionID.IsZero() {
+		filter["nftcollection_id"] = f.NFTCollectionID
+	}
 
 	impl.Logger.Debug("fetching nftassets list",
 		slog.Any("Cursor", f.Cursor),

@@ -24,8 +24,9 @@ type NFTAssetPaginationListFilter struct {
 	SortOrder int8 // 1=ascending | -1=descending
 
 	// Filter related.
-	TenantID      primitive.ObjectID
-	NFTMetadataID primitive.ObjectID
+	TenantID        primitive.ObjectID
+	NFTMetadataID   primitive.ObjectID
+	NFTCollectionID primitive.ObjectID
 }
 
 // NFTAssetPaginationListResult represents the paginated list results for

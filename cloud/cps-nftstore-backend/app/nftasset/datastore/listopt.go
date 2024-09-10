@@ -37,6 +37,9 @@ func (impl NFTAssetStorerImpl) ListAsSelectOptionByFilter(ctx context.Context, f
 	if !f.NFTMetadataID.IsZero() {
 		query["nftmetadata_id"] = f.NFTMetadataID
 	}
+	if !f.NFTCollectionID.IsZero() {
+		query["nftcollection_id"] = f.NFTCollectionID
+	}
 
 	if startAfter != "" {
 		// Find the document with the given startAfter ID

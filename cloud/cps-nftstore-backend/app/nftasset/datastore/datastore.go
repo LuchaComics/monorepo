@@ -56,6 +56,8 @@ type NFTAsset struct {
 
 	// NFTMetadataID variable used to track ownership of this pin object. Used primarily for organization purposes.
 	NFTMetadataID primitive.ObjectID `bson:"nftmetadata_id" json:"nftmetadata_id,omitempty"`
+
+	NFTCollectionID primitive.ObjectID `bson:"nftcollection_id" json:"nftcollection_id"`
 }
 
 type NFTAssetAsSelectOption struct {
@@ -72,6 +74,7 @@ type NFTAssetStorer interface {
 	UpdateByID(ctx context.Context, m *NFTAsset) error
 	ListByFilter(ctx context.Context, m *NFTAssetPaginationListFilter) (*NFTAssetPaginationListResult, error)
 	ListByNFTMetadataID(ctx context.Context, nftmetadataID primitive.ObjectID) (*NFTAssetPaginationListResult, error)
+	ListByNFTCollectionID(ctx context.Context, nftCollectionID primitive.ObjectID) (*NFTAssetPaginationListResult, error)
 	ListAsSelectOptionByFilter(ctx context.Context, f *NFTAssetPaginationListFilter) ([]*NFTAssetAsSelectOption, error)
 	DeleteByID(ctx context.Context, id primitive.ObjectID) error
 	DeleteByCID(ctx context.Context, cid primitive.ObjectID) error
