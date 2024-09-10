@@ -202,7 +202,7 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 		imageAsset.NFTCollectionID = collection.ID
 		imageAsset.ModifiedAt = time.Now()
 		imageAsset.ModifiedFromIPAddress = ipAddress
-		nftmetadata.Image = fmt.Sprintf("/ipfs/%v", imageAsset.CID)
+		nftmetadata.Image = fmt.Sprintf("ipfs://%v", imageAsset.CID)
 		nftmetadata.ImageFilename = imageAsset.Filename
 
 		impl.Logger.Debug("image asset set")
@@ -217,7 +217,7 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 		animationAsset.NFTCollectionID = collection.ID
 		animationAsset.ModifiedAt = time.Now()
 		animationAsset.ModifiedFromIPAddress = ipAddress
-		nftmetadata.AnimationURL = fmt.Sprintf("/ipfs/%v", animationAsset.CID)
+		nftmetadata.AnimationURL = fmt.Sprintf("ipfs://%v", animationAsset.CID)
 		nftmetadata.AnimationFilename = animationAsset.Filename
 
 		impl.Logger.Debug("animation asset set")
