@@ -82,8 +82,8 @@ function AdminNFTCollectionNFTMetadataDetail() {
   const [externalURL, setExternalURL] = useState("");
   const [backgroundColor, setBackgroundColor] = useState("");
   const [youtubeURL, setYoutubeURL] = useState("");
-  const [metadataFileCID, setMetadataFileCID] = useState("");
-  const [metadataFileIpnsPath, setMetadataFileIpnsPath] = useState("");
+  const [fileCID, setFileCID] = useState("");
+  const [fileIpnsPath, setFileIpnsPath] = useState("");
   const [selectedNFTMetadataRequestIDForDeletion, setSelectedNFTMetadataRequestIDForDeletion] =
     useState("");
 
@@ -187,8 +187,8 @@ function AdminNFTCollectionNFTMetadataDetail() {
     setExternalURL(response.externalUrl);
     setBackgroundColor(response.backgroundColor);
     setYoutubeURL(response.youtubeUrl);
-    setMetadataFileCID(response.metadataFileCid);
-    setMetadataFileIpnsPath(response.metadataFileIpnsPath);
+    setFileCID(response.fileCid);
+    setFileIpnsPath(response.fileIpnsPath);
   }
 
   function onAdminNFTCollectionNFTMetadataDetailError(apiErr) {
@@ -432,8 +432,8 @@ function AdminNFTCollectionNFTMetadataDetail() {
                   </p>
                   <hr />
 
-                  <FormRowText label="Metadata File CID" value={metadataFileCID} helpText="" />
-                  <FormRowText label="Metadata File IPNS Path" value={metadataFileIpnsPath} helpText="" />
+                  <FormRowText label="Metadata File CID" value={fileCID} helpText="" />
+                  <FormRowText label="Metadata File IPNS Path" value={fileIpnsPath} helpText="" />
 
                   <div class="columns pt-5">
                     <div class="column is-half">
