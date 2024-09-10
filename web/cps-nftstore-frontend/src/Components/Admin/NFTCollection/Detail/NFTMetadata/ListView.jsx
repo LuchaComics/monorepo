@@ -130,14 +130,14 @@ function AdminNFTCollectionDetailForNFTMetadataList() {
     setSelectedNFTMetadataForDeletion("");
   };
 
-  const onDeleteConfirmButtonClick = (e) => {
-    console.log("onDeleteConfirmButtonClick"); // For debugging purposes only.
+  const onArchiveConfirmButtonClick = (e) => {
+    console.log("onArchiveConfirmButtonClick"); // For debugging purposes only.
 
     deleteNFTMetadataAPI(
       selectedNFTMetadataForDeletion.requestid,
-      onNFTMetadataDeleteSuccess,
-      onNFTMetadataDeleteError,
-      onNFTMetadataDeleteDone,
+      onNFTMetadataArchiveSuccess,
+      onNFTMetadataArchiveError,
+      onNFTMetadataArchiveDone,
       onUnauthorized,
     );
     setSelectedNFTMetadataForDeletion("");
@@ -198,17 +198,17 @@ function AdminNFTCollectionDetailForNFTMetadataList() {
     setFetching(false);
   }
 
-  // NFTMetadata delete.
+  // NFTMetadata archive.
 
-  function onNFTMetadataDeleteSuccess(response) {
-    console.log("onNFTMetadataDeleteSuccess: Starting..."); // For debugging purposes only.
+  function onNFTMetadataArchiveSuccess(response) {
+    console.log("onNFTMetadataArchiveSuccess: Starting..."); // For debugging purposes only.
 
     // Update notification.
     setTopAlertStatus("success");
-    setTopAlertMessage("NFTMetadata deleted");
+    setTopAlertMessage("NFTMetadata archived");
     setTimeout(() => {
       console.log(
-        "onDeleteConfirmButtonClick: topAlertMessage, topAlertStatus:",
+        "onArchiveConfirmButtonClick: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );
@@ -219,8 +219,8 @@ function AdminNFTCollectionDetailForNFTMetadataList() {
     fetchNFTMetadataList(currentCursor, id, pageSize);
   }
 
-  function onNFTMetadataDeleteError(apiErr) {
-    console.log("onNFTMetadataDeleteError: Starting..."); // For debugging purposes only.
+  function onNFTMetadataArchiveError(apiErr) {
+    console.log("onNFTMetadataArchiveError: Starting..."); // For debugging purposes only.
     setErrors(apiErr);
 
     // Update notification.
@@ -228,7 +228,7 @@ function AdminNFTCollectionDetailForNFTMetadataList() {
     setTopAlertMessage("Failed deleting");
     setTimeout(() => {
       console.log(
-        "onNFTMetadataDeleteError: topAlertMessage, topAlertStatus:",
+        "onNFTMetadataArchiveError: topAlertMessage, topAlertStatus:",
         topAlertMessage,
         topAlertStatus,
       );
@@ -242,8 +242,8 @@ function AdminNFTCollectionDetailForNFTMetadataList() {
     scroll.scrollToTop();
   }
 
-  function onNFTMetadataDeleteDone() {
-    console.log("onNFTMetadataDeleteDone: Starting...");
+  function onNFTMetadataArchiveDone() {
+    console.log("onNFTMetadataArchiveDone: Starting...");
     setFetching(false);
   }
 
@@ -336,20 +336,20 @@ function AdminNFTCollectionDetailForNFTMetadataList() {
               <header class="modal-card-head">
                 <p class="modal-card-title">Are you sure?</p>
                 <button
-                  class="delete"
+                  class="archive"
                   aria-label="close"
                   onClick={onDeselectNFTMetadataForDeletion}
                 ></button>
               </header>
               <section class="modal-card-body">
-              You are about to <b>delete</b> this pin; the data will be permanently deleted and no
-              longer appear on your dashboard. This action cannot be undone. Are you sure
-              you would like to continue?
+                  You are about to <b>archive</b> this MFT metadata; it will no
+                  longer appear on your dashboard. This action cannot be undone. Are you sure
+                  you would like to continue?
               </section>
               <footer class="modal-card-foot">
                 <button
                   class="button is-success"
-                  onClick={onDeleteConfirmButtonClick}
+                  onClick={onArchiveConfirmButtonClick}
                 >
                   Confirm
                 </button>

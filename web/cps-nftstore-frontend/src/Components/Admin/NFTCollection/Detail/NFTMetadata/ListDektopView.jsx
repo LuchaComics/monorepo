@@ -12,7 +12,7 @@ import {
   faSearch,
   faEye,
   faPencil,
-  faTrashCan,
+  faBox,
   faPlus,
   faArrowRight,
   faTable,
@@ -86,8 +86,8 @@ function AdminNFTCollectionDetailForNFTMetadataListDesktop(props) {
                           class="button is-small is-danger"
                           type="button"
                         >
-                          <FontAwesomeIcon className="mdi" icon={faTrashCan} />
-                          &nbsp;Delete
+                          <FontAwesomeIcon className="mdi" icon={faBox} />
+                          &nbsp;Archive
                         </button>
                       </div>
                     </td>
