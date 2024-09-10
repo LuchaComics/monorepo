@@ -22,6 +22,7 @@ import {
   faCube,
   faFile,
   faDownload,
+  faArrowUpRightFromSquare,
   faBox
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
@@ -423,8 +424,14 @@ function AdminNFTCollectionNFTMetadataDetail() {
                   <FormRowText label="Token ID" value={tokenID} helpText="" type="text" />
                   <FormRowText label="Name" value={name} helpText="" />
                   <FormRowText label="Description" value={description} helpText="" />
-                  <FormRowText label="Image" value={image} helpText="" />
-                  <FormRowText label="Animation URL" value={animationURL} helpText="" />
+                  <FormRowText label="Image" value={image} helpText={
+                  <>
+                  View file in <Link target="_blank" rel="noreferrer" to={`https://ipfs.io${image}`}>public IPFS gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>. Note: May take hours before image becomes available after submission.
+                  </>} />
+                  <FormRowText label="Animation URL" value={animationURL} helpText={
+                  <>
+                  View file in <Link target="_blank" rel="noreferrer" to={`https://ipfs.io${animationURL}`}>public IPFS gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>. Note: May take hours before image becomes available after submission.
+                  </>} />
                   <FormRowText label="Background Color" value={backgroundColor} helpText="" />
                   <FormRowText label="YouTube URL" value={youtubeURL} helpText="" />
                   <FormTextDateTimeRow label="Created At" value={createdAt} helpText="" />
@@ -441,8 +448,14 @@ function AdminNFTCollectionNFTMetadataDetail() {
                   </p>
                   <hr />
 
-                  <FormRowText label="Metadata File CID" value={fileCID} helpText="" />
-                  <FormRowText label="Metadata File IPNS Path" value={fileIpnsPath} helpText="" />
+                  <FormRowText label="Metadata File CID" value={fileCID} helpText={
+                  <>
+                  View file in <Link target="_blank" rel="noreferrer" to={`https://ipfs.io$/ipfs/{fileCID}`}>public IPFS gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>. Note: May take hours before image becomes available after submission.
+                  </>} />
+                  <FormRowText label="Metadata File IPNS Path" value={fileIpnsPath} helpText={
+                  <>
+                  View file in <Link target="_blank" rel="noreferrer" to={`https://ipfs.io${fileIpnsPath}`}>public IPFS gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>. Note: May take hours before image becomes available after submission.
+                  </>} />
 
                   <div class="columns pt-5">
                     <div class="column is-half">
