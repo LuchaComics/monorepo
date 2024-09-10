@@ -68,18 +68,6 @@ function AdminCollectionDetailForNFTMetadataListMobile(props) {
               <strong>Modified At:</strong>&nbsp;{datum.modifiedAt}
               <br />
               <br />
-              <strong>Metadata File:</strong>&nbsp;
-              <a
-                href={datum.objectUrl}
-                target="_blank"
-                rel="noreferrer"
-                class=""
-              >
-                <FontAwesomeIcon className="mdi" icon={faDownload} />
-                &nbsp;Download File
-              </a>
-              <br />
-              <br />
               {/* Tablet only */}
               <div class="is-hidden-mobile pt-2">
                 <div className="buttons is-right">

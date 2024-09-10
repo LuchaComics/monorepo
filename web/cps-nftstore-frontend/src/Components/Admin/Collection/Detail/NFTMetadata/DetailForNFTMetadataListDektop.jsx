@@ -52,7 +52,6 @@ function AdminCollectionDetailForNFTMetadataListDesktop(props) {
               <th>Name</th>
               <th>Status</th>
               <th>Created</th>
-              <th>Metadata File</th>
               <th></th>
             </tr>
           </thead>
@@ -68,17 +67,6 @@ function AdminCollectionDetailForNFTMetadataListDesktop(props) {
                       {NFT_METADATA_STATUSES[datum.status]}
                     </td>
                     <td data-label="Created">{datum.createdAt}</td>
-                    <td data-label="File">
-                      <a
-                        href={datum.objectUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        class=""
-                      >
-                        <FontAwesomeIcon className="mdi" icon={faDownload} />
-                        &nbsp;Download File
-                      </a>
-                    </td>
                     <td class="is-actions-cell">
                       <div class="buttons is-right">
                         <Link

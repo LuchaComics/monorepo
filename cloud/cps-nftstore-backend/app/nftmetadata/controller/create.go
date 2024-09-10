@@ -277,12 +277,12 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 
 		// Update the record.
 		nftmetadata.MetadataFileCID = metadataFileCID
-		nftmetadata.IPNSPath = fmt.Sprintf("/ipns/%v/%v", resolvedIPNSName, nftmetadata.TokenID)
+		nftmetadata.MetadataFileIPNSPath = fmt.Sprintf("/ipns/%v/%v", resolvedIPNSName, nftmetadata.TokenID)
 
 		impl.Logger.Debug("nft successuflly republished in ipns",
 			slog.Uint64("token_id", nftmetadata.TokenID),
 			slog.String("ipfs_cid", nftmetadata.MetadataFileCID),
-			slog.String("ipns_path", nftmetadata.IPNSPath))
+			slog.String("ipns_path", nftmetadata.MetadataFileIPNSPath))
 
 		//
 		// STEP 7

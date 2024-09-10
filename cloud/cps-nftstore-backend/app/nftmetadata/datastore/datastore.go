@@ -33,7 +33,6 @@ type NFTMetadata struct {
 	CollectionID          primitive.ObjectID      `bson:"collection_id" json:"collection_id"`
 	CollectionName        string                  `bson:"collection_name" json:"collection_name"`
 	TokenID               uint64                  `bson:"token_id" json:"token_id"`
-	MetadataFileCID       string                  `bson:"metadata_file_cid" json:"metadata_file_cid"`
 	ImageID               primitive.ObjectID      `bson:"image_id" json:"image_id"`
 	AnimationID           primitive.ObjectID      `bson:"animation_id" json:"animation_id"`
 	Image                 string                  `bson:"image" json:"image"`                       // This is the URL to the image of the item. Can be just about any type of image (including SVGs, which will be cached into PNGs by OpenSea), IPFS or Arweave URLs or paths. We recommend using a minimum 3000 x 3000 image.
@@ -44,7 +43,8 @@ type NFTMetadata struct {
 	BackgroundColor       string                  `bson:"background_color" json:"background_color"` // Background color of the item on OpenSea. Must be a six-character hexadecimal without a pre-pended #.
 	AnimationURL          string                  `bson:"animation_url" json:"animation_url"`       // A URL to a multi-media attachment for the item. The file extensions GLTF, GLB, WEBM, MP4, M4V, OGV, and OGG are supported, along with the audio-only extensions MP3, WAV, and OGA. Animation_url also supports HTML pages, allowing you to build rich experiences and interactive NFTMetadatas using JavaScript canvas, WebGL, and more. Scripts and relative paths within the HTML page are now supported. However, access to browser extensions is not supported.
 	YoutubeURL            string                  `bson:"youtube_url" json:"youtube_url"`           // A URL to a YouTube video (only used if animation_url is not provided).
-	IPNSPath              string                  `bson:"ipns_path" json:"ipns_path"`               // The path of this metadata file in the IPFS network utilizing IPNS.
+	MetadataFileCID       string                  `bson:"metadata_file_cid" json:"metadata_file_cid"`
+	MetadataFileIPNSPath  string                  `bson:"metadata_file_ipns_path" json:"metadata_file_ipns_path"` // The path of this metadata file in the IPFS network utilizing IPNS.
 }
 
 type NFTMetadataFile struct {

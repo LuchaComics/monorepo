@@ -82,7 +82,8 @@ function AdminCollectionNFTMetadataDetail() {
   const [externalURL, setExternalURL] = useState("");
   const [backgroundColor, setBackgroundColor] = useState("");
   const [youtubeURL, setYoutubeURL] = useState("");
-  const [ipnsPath, setIpnsPath] = useState("");
+  const [metadataFileCID, setMetadataFileCID] = useState("");
+  const [metadataFileIpnsPath, setMetadataFileIpnsPath] = useState("");
   const [selectedNFTMetadataRequestIDForDeletion, setSelectedNFTMetadataRequestIDForDeletion] =
     useState("");
 
@@ -186,7 +187,8 @@ function AdminCollectionNFTMetadataDetail() {
     setExternalURL(response.externalUrl);
     setBackgroundColor(response.backgroundColor);
     setYoutubeURL(response.youtubeUrl);
-    setIpnsPath(response.ipnsPath);
+    setMetadataFileCID(response.metadataFileCid);
+    setMetadataFileIpnsPath(response.metadataFileIpnsPath);
   }
 
   function onAdminCollectionNFTMetadataDetailError(apiErr) {
@@ -397,7 +399,7 @@ function AdminCollectionNFTMetadataDetail() {
           <nav class="box">
             <p class="title is-4">
               <FontAwesomeIcon className="fas" icon={faLocationPin} />
-              &nbsp;Pin
+              &nbsp;NFT Metadata
             </p>
 
             {/* <p class="pb-4 has-text-grey">Please fill out all the required fields before submitting this form.</p> */}
@@ -418,52 +420,20 @@ function AdminCollectionNFTMetadataDetail() {
                   <FormRowText label="Name" value={name} helpText="" />
                   <FormRowText label="Description" value={description} helpText="" />
                   <FormRowText label="Image" value={image} helpText="" />
-                  <FormTextDateTimeRow label="Created At" value={createdAt} helpText="" />
-                  <FormTextDateTimeRow label="Modified At" value={modifiedAt} helpText="" />
                   <FormRowText label="Animation URL" value={animationURL} helpText="" />
                   <FormRowText label="Background Color" value={backgroundColor} helpText="" />
                   <FormRowText label="YouTube URL" value={youtubeURL} helpText="" />
-                  <FormRowText label="IPNS Path" value={ipnsPath} helpText="" />
+                  <FormTextDateTimeRow label="Created At" value={createdAt} helpText="" />
+                  <FormTextDateTimeRow label="Modified At" value={modifiedAt} helpText="" />
 
                   <p class="subtitle is-4 pt-4">
                     <FontAwesomeIcon className="fas" icon={faFile} />
-                    &nbsp;Data
+                    &nbsp;File Information
                   </p>
                   <hr />
-                  <p class="has-text-grey pb-4">
-                    Click the following "Download File" button to start
-                    downloading a copy of the NFT metadata to your computer.
-                  </p>
 
-                  <section class="hero has-background-white-ter">
-                    <div class="hero-body">
-                      <p class="subtitle">
-                        <div class="has-text-centered">
-                          <a
-                            onClick={onDownloadContentButtonClick}
-                            class="button is-large is-success is-hidden-touch"
-                          >
-                            <FontAwesomeIcon
-                              className="fas"
-                              icon={faDownload}
-                            />
-                            &nbsp;Download File
-                          </a>
-                          <a
-                            onClick={onDownloadContentButtonClick}
-                            rel="noreferrer"
-                            class="button is-large is-success is-fullwidth is-hidden-desktop"
-                          >
-                            <FontAwesomeIcon
-                              className="fas"
-                              icon={faDownload}
-                            />
-                            &nbsp;Download File
-                          </a>
-                        </div>
-                      </p>
-                    </div>
-                  </section>
+                  <FormRowText label="Metadata File CID" value={metadataFileCID} helpText="" />
+                  <FormRowText label="Metadata File IPNS Path" value={metadataFileIpnsPath} helpText="" />
 
                   <div class="columns pt-5">
                     <div class="column is-half">
