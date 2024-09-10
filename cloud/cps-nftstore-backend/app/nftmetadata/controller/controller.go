@@ -24,7 +24,7 @@ import (
 type NFTMetadataController interface {
 	Create(ctx context.Context, requestData *NFTMetadataCreateRequestIDO) (*nftmetadata_s.NFTMetadata, error)
 	GetByID(ctx context.Context, id primitive.ObjectID) (*nftmetadata_s.NFTMetadata, error)
-	UpdateByID(ctx context.Context, m *nftmetadata_s.NFTMetadata) (*nftmetadata_s.NFTMetadata, error)
+	UpdateByID(ctx context.Context, m *NFTMetadataUpdateRequestIDO) (*nftmetadata_s.NFTMetadata, error)
 	ListByFilter(ctx context.Context, f *nftmetadata_s.NFTMetadataPaginationListFilter) (*nftmetadata_s.NFTMetadataPaginationListResult, error)
 	ListAsSelectOptionByFilter(ctx context.Context, f *nftmetadata_s.NFTMetadataPaginationListFilter) ([]*nftmetadata_s.NFTMetadataAsSelectOption, error)
 	DeleteByID(ctx context.Context, id primitive.ObjectID) error

@@ -203,6 +203,7 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 		imageAsset.ModifiedAt = time.Now()
 		imageAsset.ModifiedFromIPAddress = ipAddress
 		nftmetadata.Image = fmt.Sprintf("/ipfs/%v", imageAsset.CID)
+		nftmetadata.ImageFilename = imageAsset.Filename
 
 		impl.Logger.Debug("image asset set")
 
@@ -217,6 +218,7 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 		animationAsset.ModifiedAt = time.Now()
 		animationAsset.ModifiedFromIPAddress = ipAddress
 		nftmetadata.AnimationURL = fmt.Sprintf("/ipfs/%v", animationAsset.CID)
+		nftmetadata.AnimationFilename = animationAsset.Filename
 
 		impl.Logger.Debug("animation asset set")
 
@@ -247,7 +249,7 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 
 		dirCid, metadataFileCID, ipfsUploadErr := impl.IPFS.UploadBytesToDir(sessCtx, metadataFileBin, fmt.Sprintf("%v", nftmetadata.TokenID), collection.IPFSDirectoryName)
 		if ipfsUploadErr != nil {
-			impl.Logger.Error("failed uploading NFT asset file",
+			impl.Logger.Error("failed uploading NFT metadata file",
 				slog.Any("error", ipfsUploadErr))
 			return nil, err
 		}

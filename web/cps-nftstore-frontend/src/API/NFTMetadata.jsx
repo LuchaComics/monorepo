@@ -129,12 +129,7 @@ export function putNFTMetadataUpdateAPI(
   const axios = getCustomAxios(onUnauthorizedCallback);
 
   axios
-    .put(CPS_NFT_METADATUM_API_ENDPOINT.replace("{id}", id), data, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-        Accept: "application/json",
-      },
-    })
+    .put(CPS_NFT_METADATUM_API_ENDPOINT.replace("{id}", id), data)
     .then((successResponse) => {
       const responseData = successResponse.data;
 

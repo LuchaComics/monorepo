@@ -21,7 +21,8 @@ import {
   faCogs,
   faBuilding,
   faEye,
-  faHourglassStart
+  faHourglassStart,
+  faExclamationTriangle
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
@@ -361,12 +362,11 @@ function AdminNFTCollectionAdd() {
 
             {isFetching ? (
               <>
-                 <div className="has-background-success is-fullwidth p-2">
-                    <div className="has-text-white is-size-4 has-text-centered has-text-weight-bold">
-                      <FontAwesomeIcon className="fas" icon={faHourglassStart} />
-                      &nbsp;This may take a few minutes submitting to IPFS network, please wait...
-                    </div>
-                 </div>
+                 <article class="message is-warning">
+                   <div class="message-body">
+                     <strong><FontAwesomeIcon className="fas" icon={faExclamationTriangle} />&nbsp;Warning:</strong>&nbsp;Submitting to IPFS network may takes 5 minutes or more, please wait until completion...
+                   </div>
+                 </article>
                  <PageLoadingContent displayMessage={"Submitting..."} />
               </>
             ) : (

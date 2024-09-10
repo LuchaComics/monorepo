@@ -19,7 +19,7 @@ import {
   faCogs,
   faEye,
   faArrowLeft,
-  faLocationPin,
+  faCube,
   faFile,
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
@@ -39,6 +39,8 @@ import FormCheckboxField from "../../../../Reusable/FormCheckboxField";
 import FormCountryField from "../../../../Reusable/FormCountryField";
 import FormRegionField from "../../../../Reusable/FormRegionField";
 import PageLoadingContent from "../../../../Reusable/PageLoadingContent";
+import FormNFTAssetField from "../../../../Reusable/FormNFTAssetField";
+import FormRowText from "../../../../Reusable/FormRowText";
 import {
   topAlertMessageState,
   topAlertStatusState,
@@ -64,35 +66,57 @@ function AdminNFTCollectionNFTMetadataUpdate() {
   //// Component states.
   ////
 
+  // Form state.
   const [errors, setErrors] = useState({});
   const [isFetching, setFetching] = useState(false);
   const [forceURL, setForceURL] = useState("");
-  const [selectedFile, setSelectedFile] = useState(null);
+
+  // Form fields
+  const [tokenID, setTokenID] = useState(0);
   const [name, setName] = useState("");
-  const [objectUrl, setObjectUrl] = useState("");
+  const [imageID, setImageID] = useState("");
+  const [imageFilename, setImageFilename] = useState("");
+  const [description, setDescription] = useState("");
+  const [createdAt, setCreatedAt] = useState("");
+  const [modifiedAt, setModifiedAt] = useState("");
+  const [animationID, setAnimationID] = useState("");
+  const [animationFilename, setAnimationFilename] = useState("");
+  const [externalURL, setExternalURL] = useState("");
+  const [backgroundColor, setBackgroundColor] = useState("");
+  const [youtubeURL, setYoutubeURL] = useState("");
+  const [fileCID, setFileCID] = useState("");
+  const [fileIpnsPath, setFileIpnsPath] = useState("");
+  const [status, setStatus] = useState("");
 
   ////
   //// Event handling.
   ////
 
-  const onHandleFileChange = (event) => {
-    setSelectedFile(event.target.files[0]);
-  };
-
   const onSubmitClick = (e) => {
-    console.log("onSubmitClick: Starting...");
-    setFetching(true);
-    setErrors({});
+      console.log("onSubmitClick: Starting...");
+      setFetching(true);
+      setErrors({});
 
-    const formData = new FormData();
-    formData.append("requestid", rid);
-    formData.append("file", selectedFile);
-    formData.append("name", name);
-    formData.append("collection_id", id);
+      const jsonData = {
+          id: rid,
+          token_id: tokenID,
+          collection_id: id,
+          name: name,
+          image_id: imageID,
+          description: description,
+          animation_id: animationID,
+          external_url: externalURL,
+          background_color: backgroundColor,
+          youtube_url: youtubeURL,
+          status: status,
+      };
+      // formData.append("file", selectedFile);
+      // formData.append("name", name);
+      // formData.append("collection_id", id);
 
     putNFTMetadataUpdateAPI(
-      id,
-      formData,
+      rid,
+      jsonData,
       onAdminNFTCollectionNFTMetadataUpdateSuccess,
       onAdminNFTCollectionNFTMetadataUpdateError,
       onAdminNFTCollectionNFTMetadataUpdateDone,
@@ -111,7 +135,7 @@ function AdminNFTCollectionNFTMetadataUpdate() {
     console.log(response);
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
-    setTopAlertMessage("Pin updated");
+    setTopAlertMessage("NFT Metadata updated");
     setTopAlertStatus("success");
     setTimeout(() => {
       console.log("onAdminNFTCollectionNFTMetadataUpdateSuccess: Delayed for 2 seconds.");
@@ -123,8 +147,8 @@ function AdminNFTCollectionNFTMetadataUpdate() {
       setTopAlertMessage("");
     }, 2000);
 
-    // Redirect the collection to the collection pins page.
-    setForceURL("/admin/collection/" + id + "/pin/" + rid);
+    // Redirect the collection to the collection NFT metadatum page.
+    setForceURL("/admin/collection/" + id + "/nft-metadatum/" + rid);
   }
 
   function onAdminNFTCollectionNFTMetadataUpdateError(apiErr) {
@@ -157,11 +181,24 @@ function AdminNFTCollectionNFTMetadataUpdate() {
   }
 
   function onAdminNFTCollectionNFTMetadataDetailSuccess(response) {
-    // For debugging purposes only.
-    console.log("onAdminNFTCollectionNFTMetadataDetailSuccess: Starting...");
-    console.log(response);
-    setName(response.name);
-    setObjectUrl(response.objectUrl);
+      // For debugging purposes only.
+      console.log("onAdminNFTCollectionNFTMetadataDetailSuccess: Starting...");
+      console.log("onAdminNFTCollectionNFTMetadataDetailSuccess: response:", response);
+      setTokenID(response.tokenId);
+      setName(response.name);
+      setImageID(response.imageId);
+      setImageFilename(response.imageFilename);
+      setDescription(response.description);
+      setCreatedAt(response.createdAt);
+      setModifiedAt(response.modifiedAt);
+      setAnimationID(response.animationId);
+      setAnimationFilename(response.animationFilename);
+      setExternalURL(response.externalUrl);
+      setBackgroundColor(response.backgroundColor);
+      setYoutubeURL(response.youtubeUrl);
+      setFileCID(response.fileCid);
+      setFileIpnsPath(response.fileIpnsPath);
+      setStatus(response.status);
   }
 
   function onAdminNFTCollectionNFTMetadataDetailError(apiErr) {
@@ -250,18 +287,18 @@ function AdminNFTCollectionNFTMetadataUpdate() {
                 </Link>
               </li>
               <li class="">
-                <Link to={`/admin/collection/${id}/pins`} aria-current="page">
+                <Link to={`/admin/collection/${id}/nft-metadata`} aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faEye} />
-                  &nbsp;Detail (Pins)
+                  &nbsp;Detail (NFT Metadata)
                 </Link>
               </li>
               <li class="">
                 <Link
-                  to={`/admin/collection/${id}/pin/${rid}`}
+                  to={`/admin/collection/${id}/nft-metadatum/${rid}`}
                   aria-current="page"
                 >
-                  <FontAwesomeIcon className="fas" icon={faLocationPin} />
-                  &nbsp;Pin
+                  <FontAwesomeIcon className="fas" icon={faCube} />
+                  &nbsp;NFT Metadata
                 </Link>
               </li>
               <li class="is-active">
@@ -282,7 +319,7 @@ function AdminNFTCollectionNFTMetadataUpdate() {
                   aria-current="page"
                 >
                   <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                  &nbsp;Back to NFTMetadata
+                  &nbsp;Back to NFT Metadata
                 </Link>
               </li>
             </ul>
@@ -295,7 +332,7 @@ function AdminNFTCollectionNFTMetadataUpdate() {
           <nav class="box">
             <p class="title is-4">
               <FontAwesomeIcon className="fas" icon={faPencil} />
-              &nbsp;Edit NFTMetadata
+              &nbsp;Edit NFT Metadata
             </p>
 
             {/* <p class="pb-4 has-text-grey">Please fill out all the required fields before submitting this form.</p> */}
@@ -308,10 +345,11 @@ function AdminNFTCollectionNFTMetadataUpdate() {
                 <div class="container">
                   <article class="message is-warning">
                     <div class="message-body">
-                      <strong>Warning:</strong> Submitting with new uploaded
-                      file will delete previous upload.
+                      <strong>Warning:</strong> Changing <b>Token ID, Image</b> and <b>Animation</b> fields has been disabled.
                     </div>
                   </article>
+
+                  <FormRowText label="Token ID" value={tokenID} helpText="" type="text" />
 
                   <FormInputField
                     label="Name"
@@ -325,25 +363,97 @@ function AdminNFTCollectionNFTMetadataUpdate() {
                     maxWidth="150px"
                   />
 
-                  <input
-                    name="file"
-                    type="file"
-                    onChange={onHandleFileChange}
+                  <FormTextareaField
+                    label="Description"
+                    name="description"
+                    placeholder="Text input"
+                    value={description}
+                    errorText={errors && errors.description}
+                    helpText=""
+                    onChange={(e) => setDescription(e.target.value)}
+                    isRequired={true}
+                    maxWidth="150px"
+                    rows={4}
                   />
+
+                <FormRowText label="Image" value={imageFilename} helpText="" type="text" />
+                <FormRowText label="Animation" value={animationFilename} helpText="" type="text" />
+{/*
+                  <FormNFTAssetField
+                    label="Image"
+                    name="imageId"
+                    filename={imageFilename}
+                    setFilename={setImageFilename}
+                    nftAssetID={imageID}
+                    setNFTAssetID={setImageID}
+                    helpText={`Upload the image for this NFT. This should be the submission that was reviewed by CPS.`}
+                    errorText={errors && errors.imageId}
+                  />
+
+
+                  <FormNFTAssetField
+                    label="Animation"
+                    name="animationId"
+                    filename={animationFilename}
+                    setFilename={setAnimationFilename}
+                    nftAssetID={animationID}
+                    setNFTAssetID={setAnimationID}
+                    helpText={`Upload the submission review video for this NFT. This should be the submission that was reviewed by CPS.`}
+                    errorText={errors && errors.animationId}
+                  />
+*/}
+                  <FormInputField
+                    label="Background Color"
+                    name="backgroundColor"
+                    placeholder="Text input"
+                    value={backgroundColor}
+                    errorText={errors && errors.backgroundColor}
+                    helpText="Please use hexadecimal values"
+                    onChange={(e) => setBackgroundColor(e.target.value)}
+                    isRequired={true}
+                    maxWidth="150px"
+                  />
+
+                  <FormInputField
+                    label="External URL (Optional)"
+                    name="externalURL"
+                    placeholder="Text input"
+                    value={externalURL}
+                    errorText={errors && errors.externalURL}
+                    helpText={<>
+                        <p>If you do not fill this then system will set its own value.</p>
+                    </>}
+                    onChange={(e) => setExternalURL(e.target.value)}
+                    isRequired={true}
+                    maxWidth="250px"
+                  />
+
+                  <FormInputField
+                    label="YouTube URL"
+                    name="youtubeURL"
+                    placeholder="Text input"
+                    value={youtubeURL}
+                    errorText={errors && errors.youtubeUrl}
+                    helpText=""
+                    onChange={(e) => setYoutubeURL(e.target.value)}
+                    isRequired={true}
+                    maxWidth="275px"
+                  />
+
                   <br />
                   <br />
 
                   <div class="columns pt-5">
                     <div class="column is-half">
                       <Link
-                        to={`/admin/collection/${id}/pin/${rid}`}
+                        to={`/admin/collection/${id}/nft-metadatum/${rid}`}
                         class="button is-hidden-touch"
                       >
                         <FontAwesomeIcon className="fas" icon={faArrowLeft} />
                         &nbsp;Back
                       </Link>
                       <Link
-                        to={`/admin/collection/${id}/pin/${rid}`}
+                        to={`/admin/collection/${id}/nft-metadatum/${rid}`}
                         class="button is-fullwidth is-hidden-desktop"
                       >
                         <FontAwesomeIcon className="fas" icon={faArrowLeft} />

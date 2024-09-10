@@ -6,14 +6,15 @@ import (
 	"net/http"
 	_ "time/tzdata"
 
+	sub_c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/controller"
 	sub_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/datastore"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/utils/httperror"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func UnmarshalUpdateRequest(ctx context.Context, r *http.Request) (*sub_s.NFTMetadata, error) {
+func UnmarshalUpdateRequest(ctx context.Context, r *http.Request) (*sub_c.NFTMetadataUpdateRequestIDO, error) {
 	// Initialize our array which will nftmetadata all the results from the remote server.
-	var requestData sub_s.NFTMetadata
+	var requestData sub_c.NFTMetadataUpdateRequestIDO
 
 	defer r.Body.Close()
 
@@ -24,30 +25,8 @@ func UnmarshalUpdateRequest(ctx context.Context, r *http.Request) (*sub_s.NFTMet
 		return nil, httperror.NewForSingleField(http.StatusBadRequest, "non_field_error", "payload structure is wrong")
 	}
 
-	// Perform our validation and return validation error on any issues detected.
-	if err := ValidateUpdateRequest(&requestData); err != nil {
-		return nil, err
-	}
-
 	return &requestData, nil
 }
-
-func ValidateUpdateRequest(dirtyData *sub_s.NFTMetadata) error {
-	e := make(map[string]string)
-
-	if dirtyData.Status == 0 {
-		e["status"] = "missing value"
-	}
-	if dirtyData.Name == "" {
-		e["name"] = "missing value"
-	}
-
-	if len(e) != 0 {
-		return httperror.NewForBadRequest(&e)
-	}
-	return nil
-}
-
 func (h *Handler) UpdateByID(w http.ResponseWriter, r *http.Request, id string) {
 	ctx := r.Context()
 

@@ -28,7 +28,7 @@ import AdminNFTCollectionDetailMore from "./Components/Admin/NFTCollection/Detai
 import AdminNFTCollectionDetailForNFTMetadataList from "./Components/Admin/NFTCollection/Detail/NFTMetadata/ListView";
 import AdminNFTCollectionNFTMetadataAdd from "./Components/Admin/NFTCollection/Detail/NFTMetadata/Add";
 import AdminNFTCollectionNFTMetadataDetail from "./Components/Admin/NFTCollection/Detail/NFTMetadata/Detail";
-// import AdminNFTCollectionNFTMetadataUpdate from "./Components/Admin/NFTCollection/Detail/NFTMetadata/Update";
+import AdminNFTCollectionNFTMetadataUpdate from "./Components/Admin/NFTCollection/Detail/NFTMetadata/Update";
 
 // Users
 import AdminUserList from "./Components/Admin/User/List/View";
@@ -192,13 +192,11 @@ function AppRoute() {
                     path="/admin/collection/:id/nft-metadatum/:rid"
                     element={<AdminNFTCollectionNFTMetadataDetail />}
                   />
-                  {/*
                   <Route
                     exact
-                    path="/admin/collection/:id/nft/:rid/edit"
+                    path="/admin/collection/:id/nft-metadatum/:rid/edit"
                     element={<AdminNFTCollectionNFTMetadataUpdate />}
                   />
-                  */}
 
                   {/* User */}
                   <Route

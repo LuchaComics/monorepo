@@ -34,8 +34,10 @@ type NFTMetadata struct {
 	CollectionName        string                  `bson:"collection_name" json:"collection_name"`
 	TokenID               uint64                  `bson:"token_id" json:"token_id"`
 	ImageID               primitive.ObjectID      `bson:"image_id" json:"image_id"`
+	Image                 string                  `bson:"image" json:"image"` // This is the URL to the image of the item. Can be just about any type of image (including SVGs, which will be cached into PNGs by OpenSea), IPFS or Arweave URLs or paths. We recommend using a minimum 3000 x 3000 image.
+	ImageFilename         string                  `bson:"image_filename" json:"image_filename"`
 	AnimationID           primitive.ObjectID      `bson:"animation_id" json:"animation_id"`
-	Image                 string                  `bson:"image" json:"image"`                       // This is the URL to the image of the item. Can be just about any type of image (including SVGs, which will be cached into PNGs by OpenSea), IPFS or Arweave URLs or paths. We recommend using a minimum 3000 x 3000 image.
+	AnimationFilename     string                  `bson:"animation_filename" json:"animation_filename"`
 	ExternalURL           string                  `bson:"external_url" json:"external_url"`         // This is the URL that will appear below the asset's image on OpenSea and will allow users to leave OpenSea and view the item on your site.
 	Description           string                  `bson:"description" json:"description"`           // A human-readable description of the item. Markdown is supported.
 	Name                  string                  `bson:"name" json:"name"`                         // Name of the item.
