@@ -43,8 +43,8 @@ import {
   topAlertMessageState,
   topAlertStatusState,
 } from "../../../../../AppState";
-import AdminCollectionDetailForNFTMetadataListDesktop from "./DetailForNFTMetadataListDektop";
-import AdminCollectionDetailForNFTMetadataListMobile from "./DetailForNFTMetadataListMobile";
+import AdminCollectionDetailForNFTMetadataListDesktop from "./ListDektopView";
+import AdminCollectionDetailForNFTMetadataListMobile from "./ListMobileView";
 import AlertBanner from "../../../../Reusable/EveryPage/AlertBanner";
 
 function AdminCollectionDetailForNFTMetadataList() {
