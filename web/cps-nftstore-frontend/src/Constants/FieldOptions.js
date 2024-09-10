@@ -660,3 +660,8 @@ export const PAYMENT_PROCESSOR_WITH_EMPTY_OPTIONS = [
   { value: "", label: "Please select" }, // EMPTY OPTION
   ...PAYMENT_PROCESSOR_OPTIONS,
 ];
+
+export const NFT_METADATA_STATUSES = {
+  1: "Active",
+  0: "Archived",
+};

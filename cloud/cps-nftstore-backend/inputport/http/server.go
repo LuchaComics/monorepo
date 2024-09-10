@@ -203,7 +203,7 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 		port.NFTMetadata.List(w, r)
 	case n == 3 && p[1] == "v1" && p[2] == "nft-metadata" && r.Method == http.MethodPost:
 		port.NFTMetadata.Create(w, r)
-	case n == 4 && p[1] == "v1" && p[2] == "nft-metadata" && r.Method == http.MethodGet:
+	case n == 4 && p[1] == "v1" && p[2] == "nft-metadatum" && r.Method == http.MethodGet:
 		port.NFTMetadata.GetByID(w, r, p[3])
 	case n == 4 && p[1] == "v1" && p[2] == "nft-metadatum" && r.Method == http.MethodPut:
 		port.NFTMetadata.UpdateByID(w, r, p[3])

@@ -45,6 +45,7 @@ import {
   topAlertStatusState,
 } from "../../../../../AppState";
 import FormRowText from "../../../../Reusable/FormRowText";
+import FormTextDateTimeRow from "../../../../Reusable/FormRowTextDateTime";
 
 
 function AdminCollectionNFTMetadataDetail() {
@@ -71,11 +72,17 @@ function AdminCollectionNFTMetadataDetail() {
   const [isFetching, setFetching] = useState(false);
   const [forceURL, setForceURL] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
+  const [tokenID, setTokenID] = useState(0);
   const [name, setName] = useState("");
-  const [cid, setCID] = useState("");
-  const [meta, setMeta] = useState({});
-  const [origins, setOrigins] = useState([]);
-  const [objectUrl, setObjectUrl] = useState("");
+  const [image, setImage] = useState("");
+  const [description, setDescription] = useState("");
+  const [createdAt, setCreatedAt] = useState("");
+  const [modifiedAt, setModifiedAt] = useState("");
+  const [animationURL, setAnimationURL] = useState("");
+  const [externalURL, setExternalURL] = useState("");
+  const [backgroundColor, setBackgroundColor] = useState("");
+  const [youtubeURL, setYoutubeURL] = useState("");
+  const [ipnsPath, setIpnsPath] = useState("");
   const [selectedNFTMetadataRequestIDForDeletion, setSelectedNFTMetadataRequestIDForDeletion] =
     useState("");
 
@@ -114,21 +121,21 @@ function AdminCollectionNFTMetadataDetail() {
       getNFTMetadataContentDetailAPI(
           rid,
           (data, filename, contentType) => {
-              // DEFENSIVE CODE: In case `filename` was not returned.
-              if (filename === undefined || filename === null || filename === "") {
-                  filename = meta["filename"];
-                  console.log("onDownloadContentButtonClick: `filename` not found, using meta:", filename);
-              }
-
-                  // DEFENSIVE CODE: In case `contentType` was not returned.
-              if (contentType === undefined || contentType === null || contentType === "") {
-                  contentType = meta["contentType"];
-                  console.log("onDownloadContentButtonClick: `contentType` not found, using meta:", contentType);
-              }
-
-              // Download the file.
-              console.log("onDownloadContentButtonClick: success:", data, filename, contentType);
-              downloadFile(data, filename, contentType);
+              // // DEFENSIVE CODE: In case `filename` was not returned.
+              // if (filename === undefined || filename === null || filename === "") {
+              //     filename = meta["filename"];
+              //     console.log("onDownloadContentButtonClick: `filename` not found, using meta:", filename);
+              // }
+              //
+              //     // DEFENSIVE CODE: In case `contentType` was not returned.
+              // if (contentType === undefined || contentType === null || contentType === "") {
+              //     contentType = meta["contentType"];
+              //     console.log("onDownloadContentButtonClick: `contentType` not found, using meta:", contentType);
+              // }
+              //
+              // // Download the file.
+              // console.log("onDownloadContentButtonClick: success:", data, filename, contentType);
+              // downloadFile(data, filename, contentType);
           },
           (apiErr) => {
               console.log("onDownloadContentButtonClick: err:", apiErr);
@@ -168,12 +175,18 @@ function AdminCollectionNFTMetadataDetail() {
   function onAdminCollectionNFTMetadataDetailSuccess(response) {
     // For debugging purposes only.
     console.log("onAdminCollectionNFTMetadataDetailSuccess: Starting...");
-    console.log(response);
+    console.log("onAdminCollectionNFTMetadataDetailSuccess: response:", response);
+    setTokenID(response.tokenId);
     setName(response.name);
-    setCID(response.cid);
-    setMeta(response.meta);
-    setOrigins(response.origins);
-    setObjectUrl(response.objectUrl);
+    setImage(response.image);
+    setDescription(response.description);
+    setCreatedAt(response.createdAt);
+    setModifiedAt(response.modifiedAt);
+    setAnimationURL(response.animationUrl);
+    setExternalURL(response.externalUrl);
+    setBackgroundColor(response.backgroundColor);
+    setYoutubeURL(response.youtubeURL);
+    setIpnsPath(response.ipnsPath);
   }
 
   function onAdminCollectionNFTMetadataDetailError(apiErr) {
@@ -212,7 +225,7 @@ function AdminCollectionNFTMetadataDetail() {
 
     // Update notification.
     setTopAlertStatus("success");
-    setTopAlertMessage("Pin deleted");
+    setTopAlertMessage("NFT Metadata deleted");
     setTimeout(() => {
       console.log(
         "onDeleteConfirmButtonClick: topAlertMessage, topAlertStatus:",
@@ -222,8 +235,8 @@ function AdminCollectionNFTMetadataDetail() {
       setTopAlertMessage("");
     }, 2000);
 
-    // Redirect the collection to the collection pins page.
-    setForceURL("/admin/collection/" + id + "/pins");
+    // Redirect the collection to the collection NFT metadata page.
+    setForceURL("/admin/collection/" + id + "/nft-metadata");
   }
 
   function onNFTMetadataDeleteError(apiErr) {
@@ -312,15 +325,15 @@ function AdminCollectionNFTMetadataDetail() {
                 </Link>
               </li>
               <li class="">
-                <Link to={`/admin/collection/${id}/pins`} aria-current="page">
+                <Link to={`/admin/collection/${id}/nft-metadata`} aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faEye} />
-                  &nbsp;Detail (Pins)
+                  &nbsp;Detail (NFT Metadata)
                 </Link>
               </li>
               <li class="is-active">
                 <Link aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faLocationPin} />
-                  &nbsp;Pin
+                  &nbsp;NFT Metadata
                 </Link>
               </li>
             </ul>
@@ -330,9 +343,9 @@ function AdminCollectionNFTMetadataDetail() {
           <nav class="breadcrumb is-hidden-desktop" aria-label="breadcrumbs">
             <ul>
               <li class="">
-                <Link to={`/admin/collection/${id}/pins`} aria-current="page">
+                <Link to={`/admin/collection/${id}/nft-metadata`} aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                  &nbsp;Back to Detail (Pins)
+                  &nbsp;Back to Detail (NFT Metadata)
                 </Link>
               </li>
             </ul>
@@ -356,7 +369,7 @@ function AdminCollectionNFTMetadataDetail() {
                 ></button>
               </header>
               <section class="modal-card-body">
-                You are about to <b>delete</b> this pin; it will no
+                You are about to <b>delete</b> this MFT metadata; it will no
                 longer appear on your dashboard This action cannot be undone. Are you sure
                 you would like to continue?
               </section>
@@ -401,8 +414,16 @@ function AdminCollectionNFTMetadataDetail() {
                   </p>
                   <hr />
 
+                  <FormRowText label="Token ID" value={tokenID} helpText="" type="text" />
                   <FormRowText label="Name" value={name} helpText="" />
-                  <FormRowText label="CID" value={cid} helpText="" />
+                  <FormRowText label="Description" value={description} helpText="" />
+                  <FormRowText label="Image" value={image} helpText="" />
+                  <FormTextDateTimeRow label="Created At" value={createdAt} helpText="" />
+                  <FormTextDateTimeRow label="Modified At" value={modifiedAt} helpText="" />
+                  <FormRowText label="Animation URL" value={animationURL} helpText="" />
+                  <FormRowText label="Background Color" value={backgroundColor} helpText="" />
+                  <FormRowText label="YouTube URL" value={youtubeURL} helpText="" />
+                  <FormRowText label="IPNS Path" value={ipnsPath} helpText="" />
 
                   <p class="subtitle is-4 pt-4">
                     <FontAwesomeIcon className="fas" icon={faFile} />
@@ -411,7 +432,7 @@ function AdminCollectionNFTMetadataDetail() {
                   <hr />
                   <p class="has-text-grey pb-4">
                     Click the following "Download File" button to start
-                    downloading a copy of the pinobject to your computer.
+                    downloading a copy of the NFT metadata to your computer.
                   </p>
 
                   <section class="hero has-background-white-ter">
@@ -447,7 +468,7 @@ function AdminCollectionNFTMetadataDetail() {
                   <div class="columns pt-5">
                     <div class="column is-half">
                       <Link
-                        to={`/admin/collection/${id}/pins`}
+                        to={`/admin/collection/${id}/nft-metadata`}
                         class="button is-medium is-fullwidth-mobile"
                       >
                         <FontAwesomeIcon className="fas" icon={faArrowLeft} />
@@ -456,7 +477,7 @@ function AdminCollectionNFTMetadataDetail() {
                     </div>
                     <div class="column is-half has-text-right">
                       <Link
-                        to={`/admin/collection/${id}/pin/${rid}/edit`}
+                        to={`/admin/collection/${id}/nft-metadatum/${rid}/edit`}
                         class="button is-medium is-warning is-fullwidth-mobile"
                       >
                         <FontAwesomeIcon className="fas" icon={faPencil} />

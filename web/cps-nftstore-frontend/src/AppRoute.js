@@ -26,8 +26,7 @@ import AdminCollectionDetail from "./Components/Admin/Collection/Detail/View";
 import AdminCollectionUpdate from "./Components/Admin/Collection/Update/View";
 import AdminCollectionDetailForNFTMetadataList from "./Components/Admin/Collection/Detail/NFTMetadata/ListView";
 import AdminCollectionNFTMetadataAdd from "./Components/Admin/Collection/Detail/NFTMetadata/Add";
-// import AdminCollectionNFTMetadataAddViaWebService from "./Components/Admin/Collection/Detail/NFTMetadata/AddViaWS";
-// import AdminCollectionNFTMetadataDetail from "./Components/Admin/Collection/Detail/NFTMetadata/Detail";
+import AdminCollectionNFTMetadataDetail from "./Components/Admin/Collection/Detail/NFTMetadata/Detail";
 // import AdminCollectionNFTMetadataUpdate from "./Components/Admin/Collection/Detail/NFTMetadata/Update";
 
 import AdminCollectionDetailForNFTAssetList from "./Components/Admin/Collection/Detail/NFTAsset/ListView";
@@ -194,17 +193,13 @@ function AppRoute() {
                     path="/admin/collection/:id/nft-metadata/add"
                     element={<AdminCollectionNFTMetadataAdd />}
                   />
-                  {/*
                   <Route
                     exact
-                    path="/admin/collection/:id/nfts/add-via-ws"
-                    element={<AdminCollectionNFTMetadataAddViaWebService />}
-                  />
-                  <Route
-                    exact
-                    path="/admin/collection/:id/nft/:rid"
+                    path="/admin/collection/:id/nft-metadatum/:rid"
                     element={<AdminCollectionNFTMetadataDetail />}
                   />
+                  {/*
+
                   <Route
                     exact
                     path="/admin/collection/:id/nft/:rid/edit"

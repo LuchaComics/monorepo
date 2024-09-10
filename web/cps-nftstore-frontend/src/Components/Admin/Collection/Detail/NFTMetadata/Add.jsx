@@ -69,6 +69,7 @@ function AdminCollectionNFTMetadataAdd() {
   const [name, setName] = useState("");
   const [imageID, setImageID] = useState("");
   const [imageFilename, setImageFilename] = useState("");
+  const [description, setDescription] = useState("");
 
 
   ////
@@ -86,6 +87,7 @@ function AdminCollectionNFTMetadataAdd() {
         collection_id: id,
         name: name,
         image_id: imageID,
+        description: description,
     };
     // formData.append("file", selectedFile);
     // formData.append("name", name);
@@ -124,7 +126,7 @@ function AdminCollectionNFTMetadataAdd() {
     }, 2000);
 
     // Redirect the collection to the collection pinobjects page.
-    setForceURL("/admin/collection/" + id + "/pin/" + response.requestid);
+    setForceURL("/admin/collection/" + id + "/nft-metadum/" + response.id); //TODO: FIX.
   }
 
   function onAdminCollectionNFTMetadataAddError(apiErr) {
@@ -271,6 +273,19 @@ function AdminCollectionNFTMetadataAdd() {
                     setNFTAssetID={setImageID}
                     helpText={`Upload the image for this NFT. This should be the submission that was reviewed by CPS.`}
                     errorText={errors && errors.imageId}
+                  />
+
+                  <FormTextareaField
+                    label="Description"
+                    name="description"
+                    placeholder="Text input"
+                    value={description}
+                    errorText={errors && errors.description}
+                    helpText=""
+                    onChange={(e) => setDescription(e.target.value)}
+                    isRequired={true}
+                    maxWidth="150px"
+                    rows={4}
                   />
                   <br />
                   <br />

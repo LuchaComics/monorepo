@@ -4,11 +4,12 @@ import { Link } from "react-router-dom";
 function FormRowText(props) {
   const { label, value, helpText, type = "text" } = props;
   return (
-    <div class="field pb-4">
-      <label class="label">{label}</label>
-      <div class="control">
+    <div className="field pb-4">
+      <label className="label">{label}</label>
+      <div className="control">
         <p>
-          {value ? (
+          {/* Check if value is not undefined or null */}
+          {value !== undefined && value !== null && value !== "" ? (
             <>
               {type === "text" && value}
               {type === "email" && <Link to={`mailto:${value}`}>{value}</Link>}
@@ -18,9 +19,7 @@ function FormRowText(props) {
             "-"
           )}
         </p>
-        {helpText !== undefined && helpText !== null && helpText !== "" && (
-          <p class="help">{helpText}</p>
-        )}
+        {helpText && <p className="help">{helpText}</p>}
       </div>
     </div>
   );

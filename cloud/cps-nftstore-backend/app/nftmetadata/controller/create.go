@@ -56,6 +56,9 @@ func (impl *NFTMetadataControllerImpl) validateCreateRequest(dirtyData *NFTMetad
 			e["image_id"] = fmt.Sprintf("does not exist for: %v", dirtyData.ImageID)
 		}
 	}
+	if dirtyData.Description == "" {
+		e["description"] = "missing value"
+	}
 
 	if len(e) != 0 {
 		return httperror.NewForBadRequest(&e)
@@ -132,6 +135,7 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 
 		// Update our metadata record.
 		nftmetadata.TokenID = collection.TokensCount
+		nftmetadata.CollectionName = collection.Name
 
 		// Update collection to have our new token id.
 		collection.TokensCount = collection.TokensCount + 1

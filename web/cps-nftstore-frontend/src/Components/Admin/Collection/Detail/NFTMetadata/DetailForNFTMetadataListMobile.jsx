@@ -28,7 +28,7 @@ import { DateTime } from "luxon";
 import FormErrorBox from "../../../../Reusable/FormErrorBox";
 import {
   PAGE_SIZE_OPTIONS,
-  PIN_OBJECT_STATES,
+  NFT_METADATA_STATUSES,
 } from "../../../../../Constants/FieldOptions";
 
 /*
@@ -53,13 +53,19 @@ function AdminCollectionDetailForNFTMetadataListMobile(props) {
           return (
             <div class="mb-5">
               {i !== 0 && <hr />}
+              <strong>Name:</strong>&nbsp;{(datum.tokenId !== undefined && datum.tokenId !== null && datum.tokenId !== "") ? datum.tokenId : "-"}
+              <br />
+              <br />
               <strong>Name:</strong>&nbsp;{datum.name ? datum.name : "-"}
               <br />
               <br />
-              <strong>Status:</strong>&nbsp;{PIN_OBJECT_STATES[datum.status]}
+              <strong>Status:</strong>&nbsp;{NFT_METADATA_STATUSES[datum.status]}
               <br />
               <br />
-              <strong>Created:</strong>&nbsp;{datum.created}
+              <strong>Created At:</strong>&nbsp;{datum.createdAt}
+              <br />
+              <br />
+              <strong>Modified At:</strong>&nbsp;{datum.modifiedAt}
               <br />
               <br />
               <strong>File:</strong>&nbsp;
@@ -78,14 +84,14 @@ function AdminCollectionDetailForNFTMetadataListMobile(props) {
               <div class="is-hidden-mobile pt-2">
                 <div className="buttons is-right">
                   <Link
-                    to={`/admin/collection/${collectionID}/pin/${datum.requestid}`}
+                    to={`/admin/collection/${collectionID}/nft-metadatum/${datum.id}`}
                     class="button is-small is-primary"
                     type="button"
                   >
                     View
                   </Link>
                   <Link
-                    to={`/admin/collection/${collectionID}/pin/${datum.requestid}/edit`}
+                    to={`/admin/collection/${collectionID}/nft-metadatum/${datum.id}/edit`}
                     class="button is-small is-warning"
                     type="button"
                   >
@@ -108,7 +114,7 @@ function AdminCollectionDetailForNFTMetadataListMobile(props) {
                 <div class="columns is-mobile">
                   <div class="column">
                     <Link
-                      to={`/admin/collection/${collectionID}/pin/${datum.requestid}`}
+                      to={`/admin/collection/${collectionID}/nft-metadatum/${datum.id}`}
                       class="button is-small is-primary is-fullwidth"
                       type="button"
                     >
@@ -117,7 +123,7 @@ function AdminCollectionDetailForNFTMetadataListMobile(props) {
                   </div>
                   <div class="column">
                     <Link
-                      to={`/admin/collection/${collectionID}/pin/${datum.requestid}/edit`}
+                      to={`/admin/collection/${collectionID}/nft-metadatum/${datum.id}/edit`}
                       class="button is-small is-warning is-fullwidth"
                       type="button"
                     >

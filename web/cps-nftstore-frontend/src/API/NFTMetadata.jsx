@@ -44,8 +44,8 @@ export function getNFTMetadataListAPI(
         data.results.length > 0
       ) {
         data.results.forEach((item, index) => {
-          item.issueCoverDate = DateTime.fromISO(
-            item.issueCoverDate,
+          item.modifiedAt = DateTime.fromISO(
+            item.modifiedAt,
           ).toLocaleString(DateTime.DATETIME_MED);
           item.createdAt = DateTime.fromISO(item.createdAt).toLocaleString(
             DateTime.DATETIME_MED,

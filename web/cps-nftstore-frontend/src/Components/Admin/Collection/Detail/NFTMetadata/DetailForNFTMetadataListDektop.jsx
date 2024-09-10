@@ -28,7 +28,7 @@ import { DateTime } from "luxon";
 import FormErrorBox from "../../../../Reusable/FormErrorBox";
 import {
   PAGE_SIZE_OPTIONS,
-  PIN_OBJECT_STATES,
+  NFT_METADATA_STATUSES,
 } from "../../../../../Constants/FieldOptions";
 
 function AdminCollectionDetailForNFTMetadataListDesktop(props) {
@@ -48,6 +48,7 @@ function AdminCollectionDetailForNFTMetadataListDesktop(props) {
         <table class="is-fullwidth is-striped is-hoverable is-fullwidth table">
           <thead>
             <tr>
+              <th>Token ID</th>
               <th>Name</th>
               <th>Status</th>
               <th>Created</th>
@@ -61,11 +62,12 @@ function AdminCollectionDetailForNFTMetadataListDesktop(props) {
               listData.results.map(function (datum, i) {
                 return (
                   <tr>
+                    <td data-label="Token ID">{(datum.tokenId !== undefined && datum.tokenId !== null && datum.tokenId !== "") ? datum.tokenId : "-"}</td>
                     <td data-label="Title">{datum.name ? datum.name : "-"}</td>
-                    <td data-label="State">
-                      {PIN_OBJECT_STATES[datum.status]}
+                    <td data-label="Status">
+                      {NFT_METADATA_STATUSES[datum.status]}
                     </td>
-                    <td data-label="Created">{datum.created}</td>
+                    <td data-label="Created">{datum.createdAt}</td>
                     <td data-label="File">
                       <a
                         href={datum.objectUrl}
@@ -80,14 +82,14 @@ function AdminCollectionDetailForNFTMetadataListDesktop(props) {
                     <td class="is-actions-cell">
                       <div class="buttons is-right">
                         <Link
-                          to={`/admin/collection/${collectionID}/pin/${datum.requestid}`}
+                          to={`/admin/collection/${collectionID}/nft-metadatum/${datum.id}`}
                           class="button is-small is-primary"
                           type="button"
                         >
                           View
                         </Link>
                         <Link
-                          to={`/admin/collection/${collectionID}/pin/${datum.requestid}/edit`}
+                          to={`/admin/collection/${collectionID}/nft-metadatum/${datum.id}/edit`}
                           class="button is-small is-warning"
                           type="button"
                         >
