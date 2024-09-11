@@ -399,7 +399,7 @@ function AdminNFTCollectionDetail() {
                     type="button"
                   >
                     <FontAwesomeIcon className="mdi" icon={faPlus} />
-                    &nbsp;NFT
+                    &nbsp;New NFT
                   </Link>
                   &nbsp;&nbsp;
                   <Link

@@ -385,7 +385,7 @@ function AdminNFTCollectionDetailForNFTList() {
                     type="button"
                   >
                     <FontAwesomeIcon className="mdi" icon={faPlus} />
-                    &nbsp;NFT
+                    &nbsp;New NFT
                   </Link>
                 </div>
               )}
@@ -501,7 +501,7 @@ function AdminNFTCollectionDetailForNFTList() {
                           class="button is-primary is-fullwidth-mobile"
                         >
                           <FontAwesomeIcon className="fas" icon={faPlus} />
-                          &nbsp;NFT
+                          &nbsp;New NFT
                         </Link>}
                       </div>
                     </div>
