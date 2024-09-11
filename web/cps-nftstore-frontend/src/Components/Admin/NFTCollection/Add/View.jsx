@@ -391,6 +391,19 @@ function AdminNFTCollectionAdd() {
                     disabled={tenantSelectOptions.length === 0}
                   />
 
+                  <FormInputField
+                    label="Smart Contract"
+                    name="name"
+                    placeholder="Text input"
+                    value={"Collectible Protection Service Submission Token"}
+                    errorText={null}
+                    helpText="All tokens in this collection will be implement this ERC721 based Smart Contract."
+                    onChange={null}
+                    isRequired={true}
+                    maxWidth="400px"
+                    disabled={true}
+                  />
+
                   <p class="subtitle is-6">
                     <FontAwesomeIcon className="fas" icon={faIdCard} />
                     &nbsp;Detail

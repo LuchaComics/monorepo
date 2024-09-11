@@ -492,6 +492,12 @@ function AdminNFTCollectionDetail() {
                     />
 
                     <FormRowText
+                      label="Smart Contract"
+                      value="Collectible Protection Service Submission Token"
+                      helpText=""
+                    />
+
+                    <FormRowText
                       label="IPNS Name"
                       value={`/ipns/${collection.ipnsName}`}
                       helpText={

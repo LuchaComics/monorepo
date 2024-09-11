@@ -18,14 +18,17 @@ import {
   faContactCard,
   faChartPie,
   faCogs,
+  faDatabase,
   faEye,
   faArrowLeft,
-  faExclamationTriangle
+  faExclamationTriangle,
+  faChain
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
 import useLocalStorage from "../../../../../Hooks/useLocalStorage";
 import { postNFTCreateAPI } from "../../../../../API/NFT";
+import { getCollectionDetailAPI } from "../../../../../API/NFTCollection";
 import FormErrorBox from "../../../../Reusable/FormErrorBox";
 import FormInputField from "../../../../Reusable/FormInputField";
 import FormTextareaField from "../../../../Reusable/FormTextareaField";
@@ -63,10 +66,11 @@ function AdminNFTCollectionNFTAdd() {
   //// Component states.
   ////
 
-  // Form state.
+  // Form GUI related.
   const [errors, setErrors] = useState({});
   const [isFetching, setFetching] = useState(false);
   const [forceURL, setForceURL] = useState("");
+  const [collection, setCollection] = useState({});
 
   // Form fields
   const [name, setName] = useState("");
@@ -83,8 +87,6 @@ function AdminNFTCollectionNFTAdd() {
   ////
   //// Event handling.
   ////
-
-
 
   const onSubmitClick = (e) => {
     console.log("onSubmitClick: Starting...");
@@ -119,6 +121,31 @@ function AdminNFTCollectionNFTAdd() {
   ////
   //// API.
   ////
+
+  // --- Get Collection --- //
+
+  function onCollectionDetailSuccess(response) {
+    console.log("onCollectionDetailSuccess: Starting...");
+    setCollection(response);
+  }
+
+  function onCollectionDetailError(apiErr) {
+    console.log("onCollectionDetailError: Starting...");
+    setErrors(apiErr);
+
+    // The following code will cause the screen to scroll to the top of
+    // the page. Please see ``react-scroll`` for more information:
+    // https://github.com/fisshy/react-scroll
+    var scroll = Scroll.animateScroll;
+    scroll.scrollToTop();
+  }
+
+  function onCollectionDetailDone() {
+    console.log("onCollectionDetailDone: Starting...");
+    setFetching(false);
+  }
+
+  // --- Post NFT --- //
 
   function onAdminNFTCollectionNFTAddSuccess(response) {
     // For debugging purposes only.
@@ -186,6 +213,15 @@ function AdminNFTCollectionNFTAdd() {
 
     if (mounted) {
       window.scrollTo(0, 0); // Start the page at the top of the page.
+
+      setFetching(true);
+      getCollectionDetailAPI(
+        id,
+        onCollectionDetailSuccess,
+        onCollectionDetailError,
+        onCollectionDetailDone,
+        onUnauthorized,
+      );
     }
 
     return () => {
@@ -272,95 +308,163 @@ function AdminNFTCollectionNFTAdd() {
             ) : (
               <>
                 <div class="container">
-                  <FormInputField
-                    label="Name"
-                    name="name"
-                    placeholder="Text input"
-                    value={name}
-                    errorText={errors && errors.name}
-                    helpText="Optional"
-                    onChange={(e) => setName(e.target.value)}
-                    isRequired={true}
-                    maxWidth="450px"
-                  />
+                  {collection !== undefined && collection !== null && collection !== "" && <>
+                      <p class="subtitle is-6">
+                        <FontAwesomeIcon className="fas" icon={faChain} />
+                        &nbsp;Blockchain
+                      </p>
+                      <hr />
 
-                  <FormTextareaField
-                    label="Description"
-                    name="description"
-                    placeholder="Text input"
-                    value={description}
-                    errorText={errors && errors.description}
-                    helpText=""
-                    onChange={(e) => setDescription(e.target.value)}
-                    isRequired={true}
-                    maxWidth="150px"
-                    rows={4}
-                  />
+                      <FormInputField
+                        label="Blockchain Membership"
+                        name="name"
+                        placeholder="Text input"
+                        value={"Ethereum"}
+                        errorText={null}
+                        helpText=""
+                        onChange={null}
+                        isRequired={true}
+                        maxWidth="400px"
+                        disabled={true}
+                      />
 
-                  <FormNFTAssetField
-                    label="Image"
-                    name="imageId"
-                    filename={imageFilename}
-                    setFilename={setImageFilename}
-                    nftAssetID={imageID}
-                    setNFTAssetID={setImageID}
-                    helpText={`Upload the image for this NFT. This should be the submission that was reviewed by CPS.`}
-                    errorText={errors && errors.imageId}
-                  />
+                      <FormInputField
+                        label="Smart Contract"
+                        name="name"
+                        placeholder="Text input"
+                        value={"Collectible Protection Service Submission Token"}
+                        errorText={null}
+                        helpText="This token will be implement this ERC721 based Smart Contract."
+                        onChange={null}
+                        isRequired={true}
+                        maxWidth="400px"
+                        disabled={true}
+                      />
 
-                  <FormNFTAssetField
-                    label="Animation (Optional)"
-                    name="animationId"
-                    filename={animationFilename}
-                    setFilename={setAnimationFilename}
-                    nftAssetID={animationID}
-                    setNFTAssetID={setAnimationID}
-                    helpText={`Upload the submission review video for this NFT. This should be the submission that was reviewed by CPS.`}
-                    errorText={errors && errors.animationId}
-                  />
+                      <FormInputField
+                        label="Token ID #"
+                        name="name"
+                        placeholder="Text input"
+                        value={collection.tokensCount}
+                        errorText={null}
+                        helpText="The value that will be assigned to this NFT upon submission."
+                        onChange={null}
+                        isRequired={true}
+                        maxWidth="125px"
+                        disabled={true}
+                      />
 
-                  <FormInputField
-                    label="Background Color"
-                    name="backgroundColor"
-                    placeholder="Text input"
-                    value={backgroundColor}
-                    errorText={errors && errors.backgroundColor}
-                    helpText="Please use hexadecimal values"
-                    onChange={(e) => setBackgroundColor(e.target.value)}
-                    isRequired={true}
-                    maxWidth="150px"
-                  />
+                      <FormInputField
+                        label="IPFS Network"
+                        name="name"
+                        placeholder="Text input"
+                        value={`/ipns//ipns/${collection.ipnsName}/${collection.tokensCount}`}
+                        errorText={null}
+                        helpText="The value you will be able to lookup this NFT via the IPFS network."
+                        onChange={null}
+                        isRequired={true}
+                        maxWidth="725px"
+                        disabled={true}
+                      />
+                  </>}
 
-                  <FormInputField
-                    label="External URL (Optional)"
-                    name="externalURL"
-                    placeholder="Text input"
-                    value={externalURL}
-                    errorText={errors && errors.externalURL}
-                    helpText={<>
-                        <p>If you do not fill this then system will set its own value.</p>
-                    </>}
-                    onChange={(e) => setExternalURL(e.target.value)}
-                    isRequired={true}
-                    maxWidth="250px"
-                  />
+                  <>
+                      <p class="subtitle is-6">
+                        <FontAwesomeIcon className="fas" icon={faDatabase} />
+                        &nbsp;Metadata
+                      </p>
+                      <hr />
 
-                  <FormInputField
-                    label="YouTube URL (Optional)"
-                    name="youtubeURL"
-                    placeholder="Text input"
-                    value={youtubeURL}
-                    errorText={errors && errors.youtubeUrl}
-                    helpText=""
-                    onChange={(e) => setYoutubeURL(e.target.value)}
-                    isRequired={true}
-                    maxWidth="275px"
-                  />
+                      <FormInputField
+                        label="Name"
+                        name="name"
+                        placeholder="Text input"
+                        value={name}
+                        errorText={errors && errors.name}
+                        helpText="Optional"
+                        onChange={(e) => setName(e.target.value)}
+                        isRequired={true}
+                        maxWidth="450px"
+                      />
 
-                  <FormNFTMetadataAttributesField
-                    data={attributes}
-                    onDataChange={setAttributes}
-                  />
+                      <FormTextareaField
+                        label="Description"
+                        name="description"
+                        placeholder="Text input"
+                        value={description}
+                        errorText={errors && errors.description}
+                        helpText=""
+                        onChange={(e) => setDescription(e.target.value)}
+                        isRequired={true}
+                        maxWidth="150px"
+                        rows={4}
+                      />
+
+                      <FormNFTAssetField
+                        label="Image"
+                        name="imageId"
+                        filename={imageFilename}
+                        setFilename={setImageFilename}
+                        nftAssetID={imageID}
+                        setNFTAssetID={setImageID}
+                        helpText={`Upload the image for this NFT. This should be the submission that was reviewed by CPS.`}
+                        errorText={errors && errors.imageId}
+                      />
+
+                      <FormNFTAssetField
+                        label="Animation (Optional)"
+                        name="animationId"
+                        filename={animationFilename}
+                        setFilename={setAnimationFilename}
+                        nftAssetID={animationID}
+                        setNFTAssetID={setAnimationID}
+                        helpText={`Upload the submission review video for this NFT. This should be the submission that was reviewed by CPS.`}
+                        errorText={errors && errors.animationId}
+                      />
+
+                      <FormInputField
+                        label="Background Color"
+                        name="backgroundColor"
+                        placeholder="Text input"
+                        value={backgroundColor}
+                        errorText={errors && errors.backgroundColor}
+                        helpText="Please use hexadecimal values"
+                        onChange={(e) => setBackgroundColor(e.target.value)}
+                        isRequired={true}
+                        maxWidth="150px"
+                      />
+
+                      <FormInputField
+                        label="External URL (Optional)"
+                        name="externalURL"
+                        placeholder="Text input"
+                        value={externalURL}
+                        errorText={errors && errors.externalURL}
+                        helpText={<>
+                            <p>If you do not fill this then system will set its own value.</p>
+                        </>}
+                        onChange={(e) => setExternalURL(e.target.value)}
+                        isRequired={true}
+                        maxWidth="250px"
+                      />
+
+                      <FormInputField
+                        label="YouTube URL (Optional)"
+                        name="youtubeURL"
+                        placeholder="Text input"
+                        value={youtubeURL}
+                        errorText={errors && errors.youtubeUrl}
+                        helpText=""
+                        onChange={(e) => setYoutubeURL(e.target.value)}
+                        isRequired={true}
+                        maxWidth="275px"
+                      />
+
+                      <FormNFTMetadataAttributesField
+                        data={attributes}
+                        onDataChange={setAttributes}
+                      />
+                  </>
 
                   <br />
                   <br />
