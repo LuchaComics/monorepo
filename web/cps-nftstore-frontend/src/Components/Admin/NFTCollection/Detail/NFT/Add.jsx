@@ -342,7 +342,7 @@ function AdminNFTCollectionNFTAdd() {
                       />
 
                       <FormInputField
-                        label="Token ID #"
+                        label="Token ID"
                         name="name"
                         placeholder="Text input"
                         value={collection.tokensCount}

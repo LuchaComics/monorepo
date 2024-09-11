@@ -23,7 +23,8 @@ import {
   faFile,
   faDownload,
   faArrowUpRightFromSquare,
-  faBox
+  faBox,
+  faChain
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
@@ -420,12 +421,21 @@ function AdminNFTCollectionNFTDetail() {
                 <FormErrorBox errors={errors} />
                 <div class="container">
                   <p class="subtitle is-4 pt-4">
+                     <FontAwesomeIcon className="fas" icon={faChain} />
+                     &nbsp;Blockchain
+                  </p>
+                  <hr />
+
+                  <FormRowText label="Blockchain Membership" value={`Ethereum`} helpText="" type="text" />
+                  <FormRowText label="Smart Contract" value="Collectible Protection Service Submission Token" helpText="" type="text" />
+                  <FormRowText label="Token ID" value={tokenID} helpText="" type="text" />
+
+                  <p class="subtitle is-4 pt-4">
                     <FontAwesomeIcon className="fas" icon={faEye} />
                     &nbsp;Meta Information
                   </p>
                   <hr />
 
-                  <FormRowText label="Token ID" value={tokenID} helpText="" type="text" />
                   <FormRowText label="Name" value={name} helpText="" />
                   <FormRowText label="Description" value={description} helpText="" />
                   <FormRowText label="Image" value={image} helpText={
