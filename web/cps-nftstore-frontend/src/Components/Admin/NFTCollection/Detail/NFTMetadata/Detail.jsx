@@ -430,11 +430,13 @@ function AdminNFTCollectionNFTMetadataDetail() {
                   <FormRowText label="Description" value={description} helpText="" />
                   <FormRowText label="Image" value={image} helpText={
                   <>
-                  View file in <Link target="_blank" rel="noreferrer" to={`https://ipfs.io/ipfs/${imageCID}`}>public IPFS gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>. Note: May take hours before image becomes available after submission.
+                      View file in <Link target="_blank" rel="noreferrer" to={`${process.env.REACT_APP_API_PROTOCOL}://${process.env.REACT_APP_API_DOMAIN}/ipfs/${imageCID}`}>local gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>&nbsp;or&nbsp;
+                      <Link target="_blank" rel="noreferrer" to={`https://ipfs.io/ipfs/${imageCID}`}>public gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>.
                   </>} />
                   <FormRowText label="Animation URL" value={animationURL} helpText={
                   <>
-                  View file in <Link target="_blank" rel="noreferrer" to={`https://ipfs.io/ipfs/${animationCID}`}>public IPFS gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>. Note: May take hours before image becomes available after submission.
+                      View file in  <Link target="_blank" rel="noreferrer" to={`${process.env.REACT_APP_API_PROTOCOL}://${process.env.REACT_APP_API_DOMAIN}/ipfs/${animationCID}`}>local gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>&nbsp;or&nbsp;
+                      <Link target="_blank" rel="noreferrer" to={`https://ipfs.io/ipfs/${animationCID}`}>public gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>.
                   </>} />
                   <FormRowText label="Background Color" value={backgroundColor} helpText="" />
                   <FormRowText label="YouTube URL" value={youtubeURL} helpText="" />
@@ -454,11 +456,13 @@ function AdminNFTCollectionNFTMetadataDetail() {
 
                   <FormRowText label="Metadata File CID" value={`/ipfs/${fileCID}`} helpText={
                   <>
-                  View file in <Link target="_blank" rel="noreferrer" to={`https://ipfs.io/ipfs/${fileCID}`}>public IPFS gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>. Note: May take hours before image becomes available after submission.
+                      View file in <Link target="_blank" rel="noreferrer" to={`${process.env.REACT_APP_API_PROTOCOL}://${process.env.REACT_APP_API_DOMAIN}/ipfs/${fileCID}`}>local gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>&nbsp;or&nbsp;
+                      <Link target="_blank" rel="noreferrer" to={`https://ipfs.io/ipfs/${fileCID}`}>public gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>.
                   </>} />
                   <FormRowText label="Metadata File IPNS Path" value={fileIpnsPath} helpText={
                   <>
-                  View file in <Link target="_blank" rel="noreferrer" to={`https://ipfs.io${fileIpnsPath}`}>public IPFS gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>. Note: May take hours before image becomes available after submission.
+                      View file in <Link target="_blank" rel="noreferrer" to={`${process.env.REACT_APP_API_PROTOCOL}://${process.env.REACT_APP_API_DOMAIN}${fileIpnsPath}`}>local gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>&nbsp;or&nbsp;
+                      <Link target="_blank" rel="noreferrer" to={`https://ipfs.io${fileIpnsPath}`}>public gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>.
                   </>} />
 
                   <div class="columns pt-5">
