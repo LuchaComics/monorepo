@@ -8,8 +8,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 
 	ipfs_storage "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/ipfs"
-	collection_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
 	nftasset_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/datastore"
+	collection_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
 	nftmetadata_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/datastore"
 	tenant_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/datastore"
 	user_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/datastore"
@@ -28,22 +28,23 @@ type NFTCollectionController interface {
 	ListByFilter(ctx context.Context, f *collection_s.NFTCollectionPaginationListFilter) (*collection_s.NFTCollectionPaginationListResult, error)
 	ListAsSelectOptionByFilter(ctx context.Context, f *collection_s.NFTCollectionPaginationListFilter) ([]*collection_s.NFTCollectionAsSelectOption, error)
 	DeleteByID(ctx context.Context, id primitive.ObjectID) error
+	ReprovidehCollectionsInIPNS(ctx context.Context) error
 }
 
 type NFTCollectionControllerImpl struct {
-	Config            *config.Conf
-	Logger            *slog.Logger
-	UUID              uuid.Provider
-	JWT               jwt.Provider
-	Kmutex            kmutex.Provider
-	Password          password.Provider
-	IPFS              ipfs_storage.IPFSStorager
-	DbClient          *mongo.Client
-	TenantStorer      tenant_s.TenantStorer
-	NFTAssetStorer    nftasset_s.NFTAssetStorer
-	NFTMetadataStorer nftmetadata_s.NFTMetadataStorer
-	NFTCollectionStorer  collection_s.NFTCollectionStorer
-	UserStorer        user_s.UserStorer
+	Config              *config.Conf
+	Logger              *slog.Logger
+	UUID                uuid.Provider
+	JWT                 jwt.Provider
+	Kmutex              kmutex.Provider
+	Password            password.Provider
+	IPFS                ipfs_storage.IPFSStorager
+	DbClient            *mongo.Client
+	TenantStorer        tenant_s.TenantStorer
+	NFTAssetStorer      nftasset_s.NFTAssetStorer
+	NFTMetadataStorer   nftmetadata_s.NFTMetadataStorer
+	NFTCollectionStorer collection_s.NFTCollectionStorer
+	UserStorer          user_s.UserStorer
 }
 
 func NewController(
@@ -62,19 +63,19 @@ func NewController(
 	usr_storer user_s.UserStorer,
 ) NFTCollectionController {
 	s := &NFTCollectionControllerImpl{
-		Config:            appCfg,
-		Logger:            loggerp,
-		UUID:              uuidp,
-		JWT:               jwtp,
-		Kmutex:            kmx,
-		Password:          passwordp,
-		IPFS:              ipfs,
-		DbClient:          client,
-		TenantStorer:      tenant_storer,
-		NFTAssetStorer:    nftasset_storer,
-		NFTMetadataStorer: nftmetadata_storer,
-		NFTCollectionStorer:  collection_storer,
-		UserStorer:        usr_storer,
+		Config:              appCfg,
+		Logger:              loggerp,
+		UUID:                uuidp,
+		JWT:                 jwtp,
+		Kmutex:              kmx,
+		Password:            passwordp,
+		IPFS:                ipfs,
+		DbClient:            client,
+		TenantStorer:        tenant_storer,
+		NFTAssetStorer:      nftasset_storer,
+		NFTMetadataStorer:   nftmetadata_storer,
+		NFTCollectionStorer: collection_storer,
+		UserStorer:          usr_storer,
 	}
 	s.Logger.Debug("collection controller initialization started...")
 	s.Logger.Debug("collection controller initialized")

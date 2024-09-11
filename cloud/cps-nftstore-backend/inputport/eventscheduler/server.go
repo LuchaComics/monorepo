@@ -19,14 +19,14 @@ type InputPortServer interface {
 }
 
 type crontabInputPort struct {
-	Config      *config.Conf
-	Logger      *slog.Logger
-	Crontab     *crontab.Crontab
-	User        user.UserController
-	Tenant      tenant.TenantController
-	Collection  collection.NFTCollectionController
-	NFTMetadata nftmetadata.NFTMetadataController
-	NFTAsset    nftasset.NFTAssetController
+	Config        *config.Conf
+	Logger        *slog.Logger
+	Crontab       *crontab.Crontab
+	User          user.UserController
+	Tenant        tenant.TenantController
+	NFTCollection collection.NFTCollectionController
+	NFTMetadata   nftmetadata.NFTMetadataController
+	NFTAsset      nftasset.NFTAssetController
 }
 
 func NewInputPort(
@@ -43,14 +43,14 @@ func NewInputPort(
 
 	// Create our HTTP server controller.
 	p := &crontabInputPort{
-		Config:      configp,
-		Logger:      loggerp,
-		Crontab:     ctab,
-		User:        cu,
-		Tenant:      org,
-		Collection:  co,
-		NFTMetadata: nftmetadata,
-		NFTAsset:    nftasset,
+		Config:        configp,
+		Logger:        loggerp,
+		Crontab:       ctab,
+		User:          cu,
+		Tenant:        org,
+		NFTCollection: co,
+		NFTMetadata:   nftmetadata,
+		NFTAsset:      nftasset,
 	}
 
 	return p
@@ -59,6 +59,7 @@ func NewInputPort(
 func (port *crontabInputPort) Run() {
 	port.Logger.Info("event scheduler running")
 	// port.Crontab.MustAddJob("* * * * *", port.runGarbageCollection) // every minute
+	port.Crontab.MustAddJob("0 0 * * *", port.runReprovideIPNS)       // every 24 hours
 	port.Crontab.MustAddJob("00 22 * * *", port.runGarbageCollection) // every day at 10 pm
 
 }
