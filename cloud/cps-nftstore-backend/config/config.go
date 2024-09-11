@@ -7,9 +7,10 @@ import (
 )
 
 type Conf struct {
-	AppServer serverConf
-	DB        dbConfig
-	Emailer   mailgunConfig
+	AppServer          serverConf
+	DB                 dbConfig
+	Emailer            mailgunConfig
+	EthereumBlockchain ethConfig
 }
 
 type serverConf struct {
@@ -38,6 +39,13 @@ type mailgunConfig struct {
 	MaintenanceEmail string
 }
 
+type ethConfig struct {
+	NodeURL              string
+	SmartContractAddress string
+	OwnerAddress         string
+	OwnerPrivateKey      string
+}
+
 func New() *Conf {
 	var c Conf
 	c.AppServer.Port = getEnv("CPS_NFTSTORE_BACKEND_PORT", true)
@@ -59,6 +67,11 @@ func New() *Conf {
 	c.Emailer.APIBase = getEnv("CPS_NFTSTORE_BACKEND_MAILGUN_API_BASE", true)
 	c.Emailer.SenderEmail = getEnv("CPS_NFTSTORE_BACKEND_MAILGUN_SENDER_EMAIL", true)
 	c.Emailer.MaintenanceEmail = getEnv("CPS_NFTSTORE_BACKEND_MAILGUN_MAINTENANCE_EMAIL", true)
+
+	c.EthereumBlockchain.NodeURL = getEnv("CPS_NFTSTORE_BACKEND_ETH_NODE_URL", false)
+	c.EthereumBlockchain.SmartContractAddress = getEnv("CPS_NFTSTORE_BACKEND_ETH_SMART_CONTRACT_ADDRESS", false)
+	c.EthereumBlockchain.OwnerAddress = getEnv("CPS_NFTSTORE_BACKEND_ETH_OWNER_ADDRESS", false)
+	c.EthereumBlockchain.OwnerPrivateKey = getEnv("CPS_NFTSTORE_BACKEND_ETH_PRIVATE_KEY_ADDRESS", false)
 
 	return &c
 }
