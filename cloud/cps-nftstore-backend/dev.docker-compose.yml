@@ -128,7 +128,6 @@ services:
     container_name: cps_nftstore_backend_app
     stdin_open: true
     environment:
-      CPS_NFTSTORE_BACKEND_APP_IS_DEVELOPER_MODE: ${CPS_NFTSTORE_BACKEND_APP_IS_DEVELOPER_MODE} # 'True' means we are running server for development, false means we are running production.
       CPS_NFTSTORE_BACKEND_IP: 0.0.0.0
       CPS_NFTSTORE_BACKEND_PORT: 8000
       CPS_NFTSTORE_BACKEND_HMAC_SECRET: ${CPS_NFTSTORE_BACKEND_HMAC_SECRET}

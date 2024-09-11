@@ -22,7 +22,6 @@ type serverConf struct {
 	InitialAdminTenantName  string
 	APIDomainName           string
 	AppDomainName           string
-	IsDeveloperMode         bool
 	Enable2FAOnRegistration bool
 }
 
@@ -41,7 +40,6 @@ type mailgunConfig struct {
 
 func New() *Conf {
 	var c Conf
-	c.AppServer.IsDeveloperMode = getEnvBool("CPS_NFTSTORE_BACKEND_APP_IS_DEVELOPER_MODE", false, true) // If in doubt assume developer mode!
 	c.AppServer.Port = getEnv("CPS_NFTSTORE_BACKEND_PORT", true)
 	c.AppServer.IP = getEnv("CPS_NFTSTORE_BACKEND_IP", false)
 	c.AppServer.HMACSecret = []byte(getEnv("CPS_NFTSTORE_BACKEND_HMAC_SECRET", true))
