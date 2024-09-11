@@ -8,9 +8,10 @@ import (
 
 	"github.com/rs/cors"
 
-	collection "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/httptransport"
 	gateway "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/httptransport"
+	ipfsgateway "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/httptransport"
 	nftasset "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/httptransport"
+	collection "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/httptransport"
 	nftmetadata "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/httptransport"
 	tenant "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/httptransport"
 	user "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/httptransport"
@@ -34,6 +35,7 @@ type httpInputPort struct {
 	Collection  *collection.Handler
 	NFTMetadata *nftmetadata.Handler
 	NFTAsset    *nftasset.Handler
+	IpfsGateway *ipfsgateway.Handler
 }
 
 func NewInputPort(
@@ -46,6 +48,7 @@ func NewInputPort(
 	co *collection.Handler,
 	nftmetadata *nftmetadata.Handler,
 	nftasset *nftasset.Handler,
+	ipfsgate *ipfsgateway.Handler,
 ) InputPortServer {
 	// Initialize the ServeMux.
 	mux := http.NewServeMux()
@@ -73,6 +76,7 @@ func NewInputPort(
 		Collection:  co,
 		NFTMetadata: nftmetadata,
 		NFTAsset:    nftasset,
+		IpfsGateway: ipfsgate,
 		Server:      srv,
 	}
 
@@ -221,6 +225,10 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 	// 	port.NFTMetadata.UpdateByID(w, r, p[3])
 	case n == 4 && p[1] == "v1" && p[2] == "nft-asset" && r.Method == http.MethodDelete:
 		port.NFTAsset.DeleteByID(w, r, p[3])
+
+	// --- IPFS GATEWAY --- //
+	case n == 2 && p[0] == "ipfs" && r.Method == http.MethodGet:
+		port.IpfsGateway.GetByCID(w, r, p[1])
 
 	// --- CATCH ALL: D.N.E. ---
 	default:

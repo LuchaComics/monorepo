@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 
 	ipfs_storage "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/ipfs"
+	pinobject_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/datastore"
 	nftasset_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/datastore"
 	collection_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
 	nftmetadata_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/datastore"
@@ -41,6 +42,7 @@ type NFTCollectionControllerImpl struct {
 	IPFS                ipfs_storage.IPFSStorager
 	DbClient            *mongo.Client
 	TenantStorer        tenant_s.TenantStorer
+	PinObjectStorer     pinobject_s.PinObjectStorer
 	NFTAssetStorer      nftasset_s.NFTAssetStorer
 	NFTMetadataStorer   nftmetadata_s.NFTMetadataStorer
 	NFTCollectionStorer collection_s.NFTCollectionStorer
@@ -57,6 +59,7 @@ func NewController(
 	ipfs ipfs_storage.IPFSStorager,
 	client *mongo.Client,
 	tenant_storer tenant_s.TenantStorer,
+	pinobject_storer pinobject_s.PinObjectStorer,
 	nftasset_storer nftasset_s.NFTAssetStorer,
 	nftmetadata_storer nftmetadata_s.NFTMetadataStorer,
 	collection_storer collection_s.NFTCollectionStorer,
@@ -72,6 +75,7 @@ func NewController(
 		IPFS:                ipfs,
 		DbClient:            client,
 		TenantStorer:        tenant_storer,
+		PinObjectStorer:     pinobject_storer,
 		NFTAssetStorer:      nftasset_storer,
 		NFTMetadataStorer:   nftmetadata_storer,
 		NFTCollectionStorer: collection_storer,

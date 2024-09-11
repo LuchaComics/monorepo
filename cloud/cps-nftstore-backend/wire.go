@@ -13,6 +13,9 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/templatedemailer"
 	gateway_c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/controller"
 	gateway_http "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/httptransport"
+	ipfsgate_c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/controller"
+	pinobject_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/datastore"
+	ipfsgate_http "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/httptransport"
 	nftasset_c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/controller"
 	nftasset_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/datastore"
 	nftasset_http "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/httptransport"
@@ -59,6 +62,9 @@ func InitializeEvent() Application {
 		blacklist.NewProvider,
 		mongodbcache.NewCache,
 		ipfs_storage.NewStorage,
+		pinobject_s.NewDatastore,
+		ipfsgate_c.NewController,
+		ipfsgate_http.NewHandler,
 		user_s.NewDatastore,
 		user_c.NewController,
 		nftmetadata_s.NewDatastore,

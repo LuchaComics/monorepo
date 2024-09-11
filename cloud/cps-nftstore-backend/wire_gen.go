@@ -14,14 +14,17 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/templatedemailer"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/controller"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/httptransport"
+	controller7 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/controller"
+	datastore3 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/datastore"
+	httptransport7 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/httptransport"
 	controller6 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/controller"
-	datastore3 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/datastore"
+	datastore4 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/datastore"
 	httptransport6 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/httptransport"
 	controller4 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/controller"
-	datastore5 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
+	datastore6 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
 	httptransport4 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/httptransport"
 	controller5 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/controller"
-	datastore4 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/datastore"
+	datastore5 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/datastore"
 	httptransport5 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/httptransport"
 	controller3 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/controller"
 	datastore2 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/datastore"
@@ -72,16 +75,19 @@ func InitializeEvent() Application {
 	tenantController := controller3.NewController(conf, slogLogger, provider, templatedEmailer, client, tenantStorer, userStorer)
 	handler2 := httptransport3.NewHandler(slogLogger, tenantController)
 	ipfsStorager := ipfs.NewStorage(conf, slogLogger)
-	nftAssetStorer := datastore3.NewDatastore(conf, slogLogger, client)
-	nftMetadataStorer := datastore4.NewDatastore(conf, slogLogger, client)
-	nftCollectionStorer := datastore5.NewDatastore(conf, slogLogger, client)
-	nftCollectionController := controller4.NewController(conf, slogLogger, provider, jwtProvider, kmutexProvider, passwordProvider, ipfsStorager, client, tenantStorer, nftAssetStorer, nftMetadataStorer, nftCollectionStorer, userStorer)
+	pinObjectStorer := datastore3.NewDatastore(conf, slogLogger, client)
+	nftAssetStorer := datastore4.NewDatastore(conf, slogLogger, client)
+	nftMetadataStorer := datastore5.NewDatastore(conf, slogLogger, client)
+	nftCollectionStorer := datastore6.NewDatastore(conf, slogLogger, client)
+	nftCollectionController := controller4.NewController(conf, slogLogger, provider, jwtProvider, kmutexProvider, passwordProvider, ipfsStorager, client, tenantStorer, pinObjectStorer, nftAssetStorer, nftMetadataStorer, nftCollectionStorer, userStorer)
 	handler3 := httptransport4.NewHandler(slogLogger, nftCollectionController)
-	nftMetadataController := controller5.NewController(conf, slogLogger, provider, jwtProvider, kmutexProvider, passwordProvider, ipfsStorager, client, tenantStorer, nftAssetStorer, nftMetadataStorer, nftCollectionStorer, userStorer)
+	nftMetadataController := controller5.NewController(conf, slogLogger, provider, jwtProvider, kmutexProvider, passwordProvider, ipfsStorager, client, tenantStorer, pinObjectStorer, nftAssetStorer, nftMetadataStorer, nftCollectionStorer, userStorer)
 	handler4 := httptransport5.NewHandler(slogLogger, nftMetadataController)
-	nftAssetController := controller6.NewController(conf, slogLogger, provider, passwordProvider, jwtProvider, ipfsStorager, client, nftAssetStorer, nftMetadataStorer, nftCollectionStorer, userStorer)
+	nftAssetController := controller6.NewController(conf, slogLogger, provider, passwordProvider, jwtProvider, ipfsStorager, client, pinObjectStorer, nftAssetStorer, nftMetadataStorer, nftCollectionStorer, userStorer)
 	handler5 := httptransport6.NewHandler(slogLogger, nftAssetController)
-	inputPortServer := http.NewInputPort(conf, slogLogger, middlewareMiddleware, handler, httptransportHandler, handler2, handler3, handler4, handler5)
+	ipfsGatewayController := controller7.NewController(conf, slogLogger, provider, passwordProvider, jwtProvider, ipfsStorager, client, pinObjectStorer)
+	handler6 := httptransport7.NewHandler(slogLogger, ipfsGatewayController)
+	inputPortServer := http.NewInputPort(conf, slogLogger, middlewareMiddleware, handler, httptransportHandler, handler2, handler3, handler4, handler5, handler6)
 	eventschedulerInputPortServer := eventscheduler.NewInputPort(conf, slogLogger, userController, tenantController, nftCollectionController, nftMetadataController, nftAssetController)
 	application := NewApplication(slogLogger, inputPortServer, eventschedulerInputPortServer)
 	return application

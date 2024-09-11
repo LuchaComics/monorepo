@@ -45,7 +45,6 @@ function AdminNFTCollectionListDesktop(props) {
           <thead>
             <tr>
               <th>Name</th>
-              <th>Tenant</th>
               <th>Created</th>
               <th>Status</th>
               <th></th>
@@ -58,22 +57,6 @@ function AdminNFTCollectionListDesktop(props) {
                 return (
                   <tr key={`${collection.id}_desktop`}>
                     <td data-label="Name">{collection.name}</td>
-                    <td data-label="Tenant">
-                      {collection.tenantId !== "000000000000000000000000" && (
-                        <Link
-                          to={`/admin/tenant/${collection.tenantId}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          class="is-small"
-                        >
-                          {collection.tenantName}&nbsp;
-                          <FontAwesomeIcon
-                            className="fas"
-                            icon={faArrowUpRightFromSquare}
-                          />
-                        </Link>
-                      )}
-                    </td>
                     <td data-label="Created">{collection.createdAt}</td>
                     <td data-label="Status" className="has-text-centered">
                         {collection.status === 1 ? <FontAwesomeIcon className="mdi" icon={faCircleCheck} /> : <FontAwesomeIcon className="mdi" icon={faArchive} />}

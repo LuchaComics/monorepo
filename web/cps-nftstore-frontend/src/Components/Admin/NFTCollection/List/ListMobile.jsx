@@ -52,23 +52,6 @@ function AdminNFTCollectionListMobile(props) {
               <strong>Name:</strong>&nbsp;{datum.name}
               <br />
               <br />
-              <strong>Tenant:</strong>&nbsp;
-              {datum.tenantId !== "000000000000000000000000" && (
-                <Link
-                  to={`/admin/tenant/${datum.tenantId}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  class="is-small"
-                >
-                  {datum.tenantName}&nbsp;
-                  <FontAwesomeIcon
-                    className="fas"
-                    icon={faArrowUpRightFromSquare}
-                  />
-                </Link>
-              )}
-              <br />
-              <br />
               <strong>Created:</strong>&nbsp;{datum.createdAt}
               <br />
               <br />
