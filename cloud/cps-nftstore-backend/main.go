@@ -9,22 +9,26 @@ import (
 
 	_ "go.uber.org/automaxprocs" // Automatically set GOMAXPROCS to match Linux container CPU quota.
 
+	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/inputport/eventscheduler"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/inputport/http"
 )
 
 type Application struct {
-	Logger     *slog.Logger
-	HttpServer http.InputPortServer
+	Logger               *slog.Logger
+	HttpServer           http.InputPortServer
+	EventSchedulerServer eventscheduler.InputPortServer
 }
 
 // NewApplication is application construction function which is automatically called by `Google Wire` dependency injection library.
 func NewApplication(
 	loggerp *slog.Logger,
 	httpServer http.InputPortServer,
+	eventSever eventscheduler.InputPortServer,
 ) Application {
 	return Application{
-		Logger:     loggerp,
-		HttpServer: httpServer,
+		Logger:               loggerp,
+		HttpServer:           httpServer,
+		EventSchedulerServer: eventSever,
 	}
 }
 
@@ -34,6 +38,9 @@ func (a Application) Execute() {
 
 	// Run in background the HTTP server.
 	go a.HttpServer.Run()
+
+	// Run in background the event scheduler server.
+	go a.EventSchedulerServer.Run()
 
 	a.Logger.Info("Application started")
 

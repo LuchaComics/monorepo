@@ -29,6 +29,7 @@ type NFTAssetController interface {
 	// ListByFilter(ctx context.Context, f *pin_s.NFTAssetPaginationListFilter) (*pin_s.NFTAssetPaginationListResult, error)
 	// ListAsSelectOptionByFilter(ctx context.Context, f *pin_s.NFTAssetPaginationListFilter) ([]*pin_s.NFTAssetAsSelectOption, error)
 	DeleteByID(ctx context.Context, id primitive.ObjectID) error
+	DeleteByExecutingGarbageCollection(ctx context.Context) error
 	Shutdown()
 }
 

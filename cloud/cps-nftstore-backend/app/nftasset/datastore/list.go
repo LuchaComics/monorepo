@@ -4,6 +4,8 @@ import (
 	"context"
 	"log/slog"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func (impl NFTAssetStorerImpl) ListByFilter(ctx context.Context, f *NFTAssetPaginationListFilter) (*NFTAssetPaginationListResult, error) {
@@ -24,6 +26,28 @@ func (impl NFTAssetStorerImpl) ListByFilter(ctx context.Context, f *NFTAssetPagi
 	}
 	if !f.NFTCollectionID.IsZero() {
 		filter["nftcollection_id"] = f.NFTCollectionID
+	}
+
+	// Create a slice to store conditions
+	var conditions []bson.M
+
+	// Add filter conditions to the slice
+	if !f.CreatedAtGTE.IsZero() {
+		conditions = append(conditions, bson.M{"created_at": bson.M{"$gte": f.CreatedAtGTE}})
+	}
+	if !f.CreatedAtGT.IsZero() {
+		conditions = append(conditions, bson.M{"created_at": bson.M{"$gt": f.CreatedAtGT}})
+	}
+	if !f.CreatedAtLTE.IsZero() {
+		conditions = append(conditions, bson.M{"created_at": bson.M{"$lte": f.CreatedAtLTE}})
+	}
+	if !f.CreatedAtLT.IsZero() {
+		conditions = append(conditions, bson.M{"created_at": bson.M{"$lt": f.CreatedAtLT}})
+	}
+
+	// Combine conditions with $and operator
+	if len(conditions) > 0 {
+		filter["$and"] = conditions
 	}
 
 	impl.Logger.Debug("fetching nftassets list",

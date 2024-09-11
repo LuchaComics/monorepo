@@ -75,6 +75,7 @@ type NFTAssetStorer interface {
 	ListByFilter(ctx context.Context, m *NFTAssetPaginationListFilter) (*NFTAssetPaginationListResult, error)
 	ListByNFTMetadataID(ctx context.Context, nftmetadataID primitive.ObjectID) (*NFTAssetPaginationListResult, error)
 	ListByNFTCollectionID(ctx context.Context, nftCollectionID primitive.ObjectID) (*NFTAssetPaginationListResult, error)
+	ListByReadyForGarbageCollection(ctx context.Context) (*NFTAssetPaginationListResult, error)
 	ListAsSelectOptionByFilter(ctx context.Context, f *NFTAssetPaginationListFilter) ([]*NFTAssetAsSelectOption, error)
 	DeleteByID(ctx context.Context, id primitive.ObjectID) error
 	DeleteByCID(ctx context.Context, cid primitive.ObjectID) error

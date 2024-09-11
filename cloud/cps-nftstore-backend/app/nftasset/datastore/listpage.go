@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/bartmika/timekit"
 	"go.mongodb.org/mongo-driver/bson"
@@ -27,6 +28,10 @@ type NFTAssetPaginationListFilter struct {
 	TenantID        primitive.ObjectID
 	NFTMetadataID   primitive.ObjectID
 	NFTCollectionID primitive.ObjectID
+	CreatedAtGTE    time.Time
+	CreatedAtGT     time.Time
+	CreatedAtLTE    time.Time
+	CreatedAtLT     time.Time
 }
 
 // NFTAssetPaginationListResult represents the paginated list results for

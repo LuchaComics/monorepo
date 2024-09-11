@@ -30,6 +30,7 @@ import (
 	user_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/datastore"
 	user_http "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/httptransport"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/config"
+	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/inputport/eventscheduler"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/inputport/http"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/inputport/http/middleware"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/provider/blacklist"
@@ -79,6 +80,7 @@ func InitializeEvent() Application {
 		tenant_http.NewHandler,
 		middleware.NewMiddleware,
 		http.NewInputPort,
+		eventscheduler.NewInputPort,
 		NewApplication)
 	return Application{}
 }
