@@ -1,28 +1,10 @@
-# Collectible Protection Services
+# Collectible Protection Services Monorepo
 
-**Project still under active development - use at your own risk**
-
-TODO LOGO
-
-TODO DESCRIPTION
-
-TODO SCREENSHOTS
-
-## Features
-
-TODO
-
-## Installation
-
-TODO
-
-## Documentation
-
-TODO
+The purpose of this repository is to store all the open-source software developed (or currently developing) by [Lucha Comics](https://github.com/LuchaComics).
 
 ## Contributing
 
-Found a bug? Want a feature to improve the package? Please create an [issue](https://github.com/LuchaComics/cps/issues/new).
+Found a bug? Want a feature to improve the monorepo? Please create an [issue](https://github.com/LuchaComics/monorepo/issues/new).
 
 ## License
 

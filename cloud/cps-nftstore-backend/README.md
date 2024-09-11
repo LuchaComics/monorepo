@@ -1,43 +1,61 @@
-# CPS IPFS Pinning Web-Service
+# Collectible Protection Services NFT Store
 
-The purpose of this `cps-nftstore-backend` is to operate as **file hosting service provider** and provide a easy-to-use **HTTP API** for any web-applications that need files to be stored and accessed on the [InterPlanetary File System (IPFS)](https://ipfs.tech/) network.
+**Project still under active development - use at your own risk**
 
-**In Active Development - use at your own risk.**
+The purpose of this project is to provide NFT minting for the **Collectible Protection Services Submission Token** NFT.
 
 ## Features
 
-- Administration
+* Manage NFT Collections
 
-- Provide a [HTTP API](/) which can be accessed by your web-apps.
+* Manage NFTs
 
-- Upload files and return their respected `CID` values to the user
+* Handles file uploads to IPFS to get `cid` values.
 
-- Pin the upload file and make accessible on the [IPFS](https://ipfs.tech/) network.
-
-- Delete files and stop their sharing
+* Handles `IPNS`
 
 ## Installation
 
+1. Download and install the following onto your computer before proceeding:
+
+* Golang
+
+* Taskfile
+
+* Node
+
+* Docker
+
+
+2. Go to your `~/go/src/github.com` folder and clone this monorepo.
+
+  ```shell
+  cd ~/go/src/github.com
+  git clone git@github.com:LuchaComics/monorepo.git
+  ```
+
+3. Duplicate the provided sample environment variables of the project.
+
+  ```shell
+  cp .env.sample .env
+  ```
+
+4. Please open your `.env` file and modify it to your specifications.
+
+5. Start the backend server by running the following in your console.
+
+  ```shell
+  docker-compose -p cps_nftstore_backend -f docker-compose.yml up
+  ```
+
+## Documentation
+
 TODO
 
-1. Clone the [this project](git@github.com:LuchaComics/cps-nftstore-backend.git).
+## Contributing
 
-2. Setup `S3 / Object Storage` service.
+Found a bug? Want a feature to improve the package? Please create an [issue](https://github.com/LuchaComics/monorepo/issues/new).
 
-3. Setup `mailgun`.
+## License
 
-4. Setup `Stripe`.
-
-5. Copy and paste the `env_sample` into `.env`.
-
-6. Adjust the variables inside your `.env` file.
-
-7. Run the server.
-
-
-## Usage
-
-TODO
-
-## Learn more about us
-Visit our website at [Collectible Protection Services (CPS)](https://cpscapsule.com/about/).
+This application is licensed under the [**GNU Affero General Public License v3.0**](https://opensource.org/license/agpl-v3). See [LICENSE](LICENSE) for more information.
