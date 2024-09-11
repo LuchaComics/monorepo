@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
+	pinobj_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/datastore"
 	a_d "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/datastore"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/config/constants"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/utils/httperror"
@@ -133,6 +134,26 @@ func (impl *NFTAssetControllerImpl) Create(ctx context.Context, req *NFTAssetCre
 			slog.String("cid", nftAssetFileCID),
 			slog.String("status", res.Status),
 			slog.String("id", res.ID.Hex()))
+
+		//
+		// STEP 3
+		// Keep a record of our pinned object for the IPFS gateway.
+		//
+
+		pinObject := &pinobj_s.PinObject{
+			ID:          primitive.NewObjectID(),
+			IPNSPath:    "", // Set to empty b/c this pin is not mounted to IPNS.
+			CID:         res.CID,
+			Content:     nil,
+			Filename:    res.Filename,
+			ContentType: res.ContentType,
+			CreatedAt:   res.CreatedAt,
+			ModifiedAt:  res.ModifiedAt,
+		}
+		if createdErr := impl.PinObjectStorer.Create(sessCtx, pinObject); createdErr != nil {
+			impl.Logger.Error("database create error", slog.Any("error", createdErr))
+			return nil, err
+		}
 
 		return res, nil
 	}

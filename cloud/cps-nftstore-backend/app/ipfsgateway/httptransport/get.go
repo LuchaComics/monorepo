@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -12,7 +13,7 @@ import (
 
 // IPFS Gateway Spec via https://specs.ipfs.tech/http-gateways/path-gateway/
 
-// GetByCID functions provides HTTP interface for requesting content-addressed data at specified content path from IPFS network.
+// GetByCID functions provides HTTP interface for requesting content-addressed data at specified content path from IPFS network. This function is not implemented exact to IPFS Gateway Spec (via https://specs.ipfs.tech/http-gateways/path-gateway/) but used as an guideline.
 func (h *Handler) GetByCID(w http.ResponseWriter, r *http.Request, cid string) {
 	ctx := r.Context()
 
@@ -89,4 +90,17 @@ func (h *Handler) GetByCID(w http.ResponseWriter, r *http.Request, cid string) {
 		http.Error(w, "Failed to write content", http.StatusInternalServerError)
 		return
 	}
+}
+
+// GetByIPNSPath functions provides HTTP interface for requesting content-addressed data at specified IPNS path from IPFS network. This function is not implemented exact to IPFS Gateway Spec (via https://specs.ipfs.tech/http-gateways/path-gateway/) but used as an guideline.
+func (h *Handler) GetByIPNSPath(w http.ResponseWriter, r *http.Request, ipns string, filename string) {
+	log.Println(ipns, filename)
+	ctx := r.Context()
+
+	res, err := h.Controller.GetByIPNSPath(ctx, fmt.Sprintf("/ipns/%v/%v", ipns, filename))
+	if err != nil {
+		httperror.ResponseError(w, err)
+		return
+	}
+	h.GetByCID(w, r, res.CID)
 }

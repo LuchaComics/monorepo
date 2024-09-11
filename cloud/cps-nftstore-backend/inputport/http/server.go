@@ -229,6 +229,8 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 	// --- IPFS GATEWAY --- //
 	case n == 2 && p[0] == "ipfs" && r.Method == http.MethodGet:
 		port.IpfsGateway.GetByCID(w, r, p[1])
+	case n == 3 && p[0] == "ipns" && r.Method == http.MethodGet:
+		port.IpfsGateway.GetByIPNSPath(w, r, p[1], p[2])
 
 	// --- CATCH ALL: D.N.E. ---
 	default:

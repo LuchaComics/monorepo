@@ -17,6 +17,7 @@ import (
 
 type IpfsGatewayController interface {
 	GetByCID(ctx context.Context, cid string) (*pinobject_s.PinObject, error)
+	GetByIPNSPath(ctx context.Context, ipnsPath string) (*pinobject_s.PinObject, error)
 	Shutdown()
 }
 

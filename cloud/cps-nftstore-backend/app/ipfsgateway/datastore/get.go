@@ -79,3 +79,19 @@ func (impl PinObjectStorerImpl) GetAllCIDs(ctx context.Context) ([]string, error
 
 	return cids, nil
 }
+
+func (impl PinObjectStorerImpl) GetByIPNSPath(ctx context.Context, ipnsPath string) (*PinObject, error) {
+	filter := bson.M{"ipns_path": ipnsPath}
+
+	var result PinObject
+	err := impl.Collection.FindOne(ctx, filter).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			// This error means your query did not match any documents.
+			return nil, nil
+		}
+		impl.Logger.Error("database get by ipns path error", slog.Any("error", err))
+		return nil, err
+	}
+	return &result, nil
+}

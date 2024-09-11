@@ -20,6 +20,7 @@ import {
   faCogs,
   faEye,
   faArrowLeft,
+  faExclamationTriangle
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
@@ -260,7 +261,14 @@ function AdminNFTCollectionNFTMetadataAdd() {
             {/* <p class="pb-4 has-text-grey">Please fill out all the required fields before submitting this form.</p> */}
 
             {isFetching ? (
-              <PageLoadingContent displayMessage={"Submitting..."} />
+              <>
+                  <article class="message is-warning">
+                    <div class="message-body">
+                      <strong><FontAwesomeIcon className="fas" icon={faExclamationTriangle} />&nbsp;Warning:</strong>&nbsp;Submitting to IPFS network may sometimes take 5 minutes or more, please wait until completion...
+                    </div>
+                  </article>
+                  <PageLoadingContent displayMessage={"Submitting..."} />
+              </>
             ) : (
               <>
                 <div class="container">
@@ -301,7 +309,7 @@ function AdminNFTCollectionNFTMetadataAdd() {
                   />
 
                   <FormNFTAssetField
-                    label="Animation"
+                    label="Animation (Optional)"
                     name="animationId"
                     filename={animationFilename}
                     setFilename={setAnimationFilename}
@@ -338,7 +346,7 @@ function AdminNFTCollectionNFTMetadataAdd() {
                   />
 
                   <FormInputField
-                    label="YouTube URL"
+                    label="YouTube URL (Optional)"
                     name="youtubeURL"
                     placeholder="Text input"
                     value={youtubeURL}

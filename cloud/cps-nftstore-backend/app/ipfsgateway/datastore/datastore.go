@@ -27,7 +27,8 @@ const (
 // This structure is not exactly as designed in the IPFS documentation https://ipfs.github.io/pinning-services-api-spec/#section/Schemas/Identifiers, this structure
 // is minified and light on purpose for our purpose.
 type PinObject struct {
-	ID          primitive.ObjectID `bson:"_id" json:"id,omitempty"` // ID variable is the unique identifier we use internally in our system.
+	ID          primitive.ObjectID `bson:"_id" json:"id,omitempty"`    // ID variable is the unique identifier we use internally in our system.
+	IPNSPath    string             `bson:"ipns_path" json:"ipns_path"` // Optional variable which is set if this file is mounted to the IPNS.
 	CID         string             `bson:"cid" json:"cid"`
 	Content     []byte             `bson:"-" json:"content,omitempty"` // FileContent variable holds all the content of this pin. Variable will not be saved to database, only returned in API endpoint.
 	Filename    string             `bson:"filename" json:"filename,omitempty"`
@@ -46,13 +47,14 @@ type PinObjectStorer interface {
 	Create(ctx context.Context, m *PinObject) error
 	GetByID(ctx context.Context, id primitive.ObjectID) (*PinObject, error)
 	GetByCID(ctx context.Context, cid string) (*PinObject, error)
+	GetByIPNSPath(ctx context.Context, ipnsPath string) (*PinObject, error)
 	GetAllCIDs(ctx context.Context) ([]string, error)
 	UpdateByID(ctx context.Context, m *PinObject) error
 	ListByFilter(ctx context.Context, m *PinObjectPaginationListFilter) (*PinObjectPaginationListResult, error)
 	ListByTenantID(ctx context.Context, tenantID primitive.ObjectID) (*PinObjectPaginationListResult, error)
 	ListAsSelectOptionByFilter(ctx context.Context, f *PinObjectPaginationListFilter) ([]*PinObjectAsSelectOption, error)
 	DeleteByID(ctx context.Context, id primitive.ObjectID) error
-	DeleteByCID(ctx context.Context, cid primitive.ObjectID) error
+	DeleteByCID(ctx context.Context, cid string) error
 	// //TODO: Add more...
 }
 

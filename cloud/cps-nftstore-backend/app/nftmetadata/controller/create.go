@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
+	pinobj_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/datastore"
 	nftasset_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/datastore"
 	s_d "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/datastore"
 	u_d "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/datastore"
@@ -60,22 +61,8 @@ func (impl *NFTMetadataControllerImpl) validateCreateRequest(dirtyData *NFTMetad
 			e["image_id"] = fmt.Sprintf("does not exist for: %v", dirtyData.ImageID)
 		}
 	}
-	if dirtyData.AnimationID.IsZero() {
-		e["animation_id"] = "missing value"
-	} else {
-		doesExist, err := impl.NFTAssetStorer.CheckIfExistsByID(context.Background(), dirtyData.AnimationID)
-		if err != nil {
-			e["animation_id"] = fmt.Sprintf("encountered error: %v", err)
-		}
-		if !doesExist {
-			e["animation_id"] = fmt.Sprintf("does not exist for: %v", dirtyData.AnimationID)
-		}
-	}
 	if dirtyData.BackgroundColor == "" {
 		e["background_color"] = "missing value"
-	}
-	if dirtyData.YoutubeURL == "" {
-		e["youtube_url"] = "missing value"
 	}
 
 	if len(e) != 0 {
@@ -151,7 +138,8 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 		//
 
 		// DEVELOPER NOTE: We don't need to check if the fetched records exists
-		// b/c we already validated it before entering this transaction.
+		// b/c we already validated it before entering this transaction. Also
+		// animation can be null so we will handle it below.
 		collection, err := impl.NFTCollectionStorer.GetByID(sessCtx, req.CollectionID)
 		if err != nil {
 			impl.Logger.Error("failed get collection by id", slog.Any("error", err))
@@ -210,19 +198,24 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 
 		//
 		// STEP 4
-		// Same as above step 3 but do this for `animation_url`.
+		// Same as above step 3 but do this for `animation_url` if the user
+		// uploaded an animation with this metadata.
 		//
 
-		animationAsset.Status = nftasset_s.StatusPinning
-		animationAsset.NFTMetadataID = nftmetadata.ID
-		animationAsset.NFTCollectionID = collection.ID
-		animationAsset.ModifiedAt = time.Now()
-		animationAsset.ModifiedFromIPAddress = ipAddress
-		nftmetadata.AnimationURL = fmt.Sprintf("ipfs://%v", animationAsset.CID)
-		nftmetadata.AnimationFilename = animationAsset.Filename
-		nftmetadata.AnimationCID = animationAsset.CID
+		if animationAsset != nil {
+			animationAsset.Status = nftasset_s.StatusPinning
+			animationAsset.NFTMetadataID = nftmetadata.ID
+			animationAsset.NFTCollectionID = collection.ID
+			animationAsset.ModifiedAt = time.Now()
+			animationAsset.ModifiedFromIPAddress = ipAddress
+			nftmetadata.AnimationURL = fmt.Sprintf("ipfs://%v", animationAsset.CID)
+			nftmetadata.AnimationFilename = animationAsset.Filename
+			nftmetadata.AnimationCID = animationAsset.CID
 
-		impl.Logger.Debug("animation asset set")
+			impl.Logger.Debug("animation asset set")
+		} else {
+			impl.Logger.Debug("animation asset ignored")
+		}
 
 		//
 		// STEP 5
@@ -314,14 +307,36 @@ func (impl *NFTMetadataControllerImpl) Create(ctx context.Context, req *NFTMetad
 			return nil, err
 		}
 
-		if err := impl.NFTAssetStorer.UpdateByID(sessCtx, animationAsset); err != nil {
-			impl.Logger.Error("failed update NFT asset by id",
-				slog.Any("error", err))
-			return nil, err
+		if animationAsset != nil {
+			if err := impl.NFTAssetStorer.UpdateByID(sessCtx, animationAsset); err != nil {
+				impl.Logger.Error("failed update NFT asset by id",
+					slog.Any("error", err))
+				return nil, err
+			}
 		}
 
 		impl.Logger.Debug("nft metadata created",
 			slog.Uint64("token_id", nftmetadata.TokenID))
+
+		//
+		// STEP 8
+		// Keep a record of our pinned object for IPFS gateway.
+		//
+
+		pinObject := &pinobj_s.PinObject{
+			ID:          primitive.NewObjectID(),
+			IPNSPath:    nftmetadata.FileIPNSPath,
+			CID:         nftmetadata.FileCID,
+			Content:     nil,
+			Filename:    fmt.Sprintf("%v", nftmetadata.TokenID), // We set it to this way b/c it is required by our `Smart Contract` to write the names like this - This is not an error!
+			ContentType: "application/json",
+			CreatedAt:   nftmetadata.CreatedAt,
+			ModifiedAt:  nftmetadata.ModifiedAt,
+		}
+		if createdErr := impl.PinObjectStorer.Create(sessCtx, pinObject); createdErr != nil {
+			impl.Logger.Error("database create error", slog.Any("error", createdErr))
+			return nil, err
+		}
 
 		return nftmetadata, nil
 	}

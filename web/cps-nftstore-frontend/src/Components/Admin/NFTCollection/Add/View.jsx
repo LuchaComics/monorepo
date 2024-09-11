@@ -364,7 +364,7 @@ function AdminNFTCollectionAdd() {
               <>
                  <article class="message is-warning">
                    <div class="message-body">
-                     <strong><FontAwesomeIcon className="fas" icon={faExclamationTriangle} />&nbsp;Warning:</strong>&nbsp;Submitting to IPFS network may takes 5 minutes or more, please wait until completion...
+                     <strong><FontAwesomeIcon className="fas" icon={faExclamationTriangle} />&nbsp;Warning:</strong>&nbsp;Submitting to IPFS network may sometimes take 5 minutes or more, please wait until completion...
                    </div>
                  </article>
                  <PageLoadingContent displayMessage={"Submitting..."} />

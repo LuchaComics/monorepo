@@ -42,6 +42,11 @@ func (impl *NFTAssetControllerImpl) DeleteByID(ctx context.Context, id primitive
 			return nil, httperror.NewForForbiddenWithSingleField("message", "you role does not grant you access to this")
 		}
 
+		//
+		// STEP 1
+		// Fetch our related records from the database.
+		//
+
 		// Update the database.
 		nftasset, err := impl.GetByID(sessCtx, id)
 		if err != nil {
@@ -54,6 +59,11 @@ func (impl *NFTAssetControllerImpl) DeleteByID(ctx context.Context, id primitive
 			impl.Logger.Error("database returns nothing from get by id")
 			return nil, err
 		}
+
+		//
+		// STEP 2
+		// Remove file content from IPFS network.
+		//
 
 		// Proceed to delete the physical files from IPFS.
 		if err := impl.IPFS.Unpin(sessCtx, nftasset.CID); err != nil {
@@ -68,12 +78,26 @@ func (impl *NFTAssetControllerImpl) DeleteByID(ctx context.Context, id primitive
 			impl.Logger.Debug("nft asset deleted from ipfs")
 		}
 
+		//
+		// STEP 3
+		// Remove our records from the database.
+		//
+
 		if err := impl.NFTAssetStorer.DeleteByID(sessCtx, nftasset.ID); err != nil {
 			impl.Logger.Error("database delete by id error",
 				slog.Any("id", id),
 				slog.Any("error", err))
 			return nil, err
 		}
+
+		// Remove our pinned object from our IPFS gateway.
+		if err := impl.PinObjectStorer.DeleteByCID(sessCtx, nftasset.CID); err != nil {
+			impl.Logger.Error("database delete by id error",
+				slog.Any("id", id),
+				slog.Any("error", err))
+			return nil, err
+		}
+
 		return nil, nil
 	}
 

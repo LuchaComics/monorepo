@@ -326,12 +326,19 @@ func (mid *middleware) JWTProcessorMiddleware(fn http.HandlerFunc) http.HandlerF
 			if len(urlSplit) >= 3 {
 				if skipPath[urlSplit[2]] {
 					mid.Logger.Warn("Skipcps-nftstoreg expired or error token", slog.Any("middleware", "JWTProcessorMiddleware"))
+				} else if skipPath[urlSplit[1]] {
+					mid.Logger.Warn("Skipcps-nftstoreg expired or error token", slog.Any("middleware", "JWTProcessorMiddleware"))
+				} else if skipPath[urlSplit[0]] {
+					mid.Logger.Warn("Skipcps-nftstoreg expired or error token", slog.Any("middleware", "JWTProcessorMiddleware"))
 				} else {
 					// For debugging purposes only.
 					// log.Println("JWTProcessorMiddleware | ProcessJWT | err", err, "for reqToken:", reqToken)
 					// log.Println("JWTProcessorMiddleware | ProcessJWT | urlSplit:", urlSplit)
 					// log.Println("JWTProcessorMiddleware | ProcessJWT | urlSplit[2]:", urlSplit[2])
-					mid.Logger.Warn("unauthorized api call", slog.Any("url", urlSplit), slog.Any("middleware", "JWTProcessorMiddleware"))
+					mid.Logger.Warn("unauthorized api call",
+						slog.Any("url", urlSplit),
+						slog.Any("skipPath", skipPath),
+						slog.Any("middleware", "JWTProcessorMiddleware"))
 					http.Error(w, "attempting to access a protected endpoint", http.StatusUnauthorized)
 					return
 				}
@@ -488,6 +495,10 @@ func (mid *middleware) ProtectedURLsMiddleware(fn http.HandlerFunc) http.Handler
 		// 	slog.Any("middleware", "ProtectedURLsMiddleware"))
 
 		if skipPath[urlSplit[2]] {
+			fn(w, r.WithContext(ctx)) // Flow to the next middleware.
+		} else if skipPath[urlSplit[1]] {
+			fn(w, r.WithContext(ctx)) // Flow to the next middleware.
+		} else if skipPath[urlSplit[0]] {
 			fn(w, r.WithContext(ctx)) // Flow to the next middleware.
 		} else {
 			// Get our authorization information.
