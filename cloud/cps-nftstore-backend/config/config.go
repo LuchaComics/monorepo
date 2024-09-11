@@ -9,7 +9,6 @@ import (
 type Conf struct {
 	AppServer        serverConf
 	DB               dbConfig
-	AWS              awsConfig
 	PDFBuilder       pdfBuilderConfig
 	Emailer          mailgunConfig
 	PaymentProcessor paymentProcessorConfig
@@ -32,14 +31,6 @@ type serverConf struct {
 type dbConfig struct {
 	URI  string
 	Name string
-}
-
-type awsConfig struct {
-	AccessKey  string
-	SecretKey  string
-	Endpoint   string
-	Region     string
-	BucketName string
 }
 
 type pdfBuilderConfig struct {
@@ -82,12 +73,6 @@ func New() *Conf {
 
 	c.DB.URI = getEnv("CPS_NFTSTORE_BACKEND_DB_URI", true)
 	c.DB.Name = getEnv("CPS_NFTSTORE_BACKEND_DB_NAME", true)
-
-	c.AWS.AccessKey = getEnv("CPS_NFTSTORE_BACKEND_AWS_ACCESS_KEY", true)
-	c.AWS.SecretKey = getEnv("CPS_NFTSTORE_BACKEND_AWS_SECRET_KEY", true)
-	c.AWS.Endpoint = getEnv("CPS_NFTSTORE_BACKEND_AWS_ENDPOINT", true)
-	c.AWS.Region = getEnv("CPS_NFTSTORE_BACKEND_AWS_REGION", true)
-	c.AWS.BucketName = getEnv("CPS_NFTSTORE_BACKEND_AWS_BUCKET_NAME", true)
 
 	c.PDFBuilder.CBFFTemplatePath = getEnv("CPS_NFTSTORE_BACKEND_PDF_BUILDER_CBFF_TEMPLATE_FILE_PATH", true)
 	c.PDFBuilder.PCTemplatePath = getEnv("CPS_NFTSTORE_BACKEND_PDF_BUILDER_PC_TEMPLATE_FILE_PATH", true)

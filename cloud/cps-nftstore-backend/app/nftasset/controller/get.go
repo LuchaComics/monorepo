@@ -61,13 +61,6 @@ func (c *NFTAssetControllerImpl) GetByID(ctx context.Context, id primitive.Objec
 // 		return nil, httperror.NewForNotFoundWithSingleField("request_id", "does not exist")
 // 	}
 //
-// 	// Generate the URL.
-// 	fileURL, err := c.S3.GetPresignedURL(ctx, m.ObjectKey, 5*time.Minute)
-// 	if err != nil {
-// 		c.Logger.Error("s3 failed get presigned url error", slog.Any("error", err))
-// 		return nil, err
-// 	}
-//
 // 	m.ObjectURL = fileURL
 // 	return m, err
 // }

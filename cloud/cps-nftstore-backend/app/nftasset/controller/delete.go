@@ -62,7 +62,7 @@ func (impl *NFTAssetControllerImpl) DeleteByID(ctx context.Context, id primitive
 				slog.String("cid", nftasset.CID),
 				slog.Any("error", err))
 			// Do not return an error, simply continue this function as there might
-			// be a case were the file was removed on the s3 bucket by ourselves
+			// be a case were the file was removed on the IPNS node by ourselves
 			// or some other reason.
 		} else {
 			impl.Logger.Debug("nft asset deleted from ipfs")
@@ -130,7 +130,7 @@ func (impl *NFTAssetControllerImpl) DeleteByExecutingGarbageCollection(ctx conte
 					slog.String("cid", nftAsset.CID),
 					slog.Any("error", err))
 				// Do not return an error, simply continue this function as there might
-				// be a case were the file was removed on the s3 bucket by ourselves
+				// be a case were the file was removed on the IPNS-node by ourselves
 				// or some other reason.
 			} else {
 				impl.Logger.Debug("nft asset deleted from ipfs")

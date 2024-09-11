@@ -7,7 +7,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
-	s3_storage "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/s3"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/templatedemailer"
 	tenant_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/datastore"
 	user_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/datastore"
@@ -31,7 +30,6 @@ type TenantControllerImpl struct {
 	Config           *config.Conf
 	Logger           *slog.Logger
 	UUID             uuid.Provider
-	S3               s3_storage.S3Storager
 	TemplatedEmailer templatedemailer.TemplatedEmailer
 	DbClient         *mongo.Client
 	UserStorer       user_s.UserStorer
@@ -42,7 +40,6 @@ func NewController(
 	appCfg *config.Conf,
 	loggerp *slog.Logger,
 	uuidp uuid.Provider,
-	s3 s3_storage.S3Storager,
 	te templatedemailer.TemplatedEmailer,
 	client *mongo.Client,
 	org_tenantr tenant_s.TenantStorer,
@@ -53,7 +50,6 @@ func NewController(
 		Config:           appCfg,
 		Logger:           loggerp,
 		UUID:             uuidp,
-		S3:               s3,
 		TemplatedEmailer: te,
 		DbClient:         client,
 		UserStorer:       usr_tenantr,

@@ -8,7 +8,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 
 	ipfs_storage "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/ipfs"
-	s3_storage "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/s3"
 	nftasset_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/datastore"
 	collection_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
 	nftmetadata_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/datastore"
@@ -40,7 +39,6 @@ type NFTAssetControllerImpl struct {
 	Password            password.Provider
 	JWT                 jwt.Provider
 	IPFS                ipfs_storage.IPFSStorager
-	S3                  s3_storage.S3Storager
 	DbClient            *mongo.Client
 	NFTAssetStorer      nftasset_s.NFTAssetStorer
 	NFTMetadataStorer   nftmetadata_s.NFTMetadataStorer
@@ -55,7 +53,6 @@ func NewController(
 	passwordp password.Provider,
 	jwtp jwt.Provider,
 	ipfs ipfs_storage.IPFSStorager,
-	s3 s3_storage.S3Storager,
 	client *mongo.Client,
 	nftasset_storer nftasset_s.NFTAssetStorer,
 	nftmetadata_storer nftmetadata_s.NFTMetadataStorer,
@@ -68,7 +65,6 @@ func NewController(
 		UUID:                uuidp,
 		Password:            passwordp,
 		JWT:                 jwtp,
-		S3:                  s3,
 		IPFS:                ipfs,
 		DbClient:            client,
 		NFTAssetStorer:      nftasset_storer,

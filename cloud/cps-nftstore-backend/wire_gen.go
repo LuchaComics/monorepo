@@ -11,7 +11,6 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/emailer/mailgun"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/ipfs"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/mongodb"
-	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/s3"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/templatedemailer"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/controller"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/httptransport"
@@ -70,8 +69,7 @@ func InitializeEvent() Application {
 	handler := httptransport.NewHandler(slogLogger, gatewayController)
 	userController := controller2.NewController(conf, slogLogger, provider, passwordProvider, templatedEmailer, client, tenantStorer, userStorer)
 	httptransportHandler := httptransport2.NewHandler(slogLogger, userController)
-	s3Storager := s3.NewStorage(conf, slogLogger, provider)
-	tenantController := controller3.NewController(conf, slogLogger, provider, s3Storager, templatedEmailer, client, tenantStorer, userStorer)
+	tenantController := controller3.NewController(conf, slogLogger, provider, templatedEmailer, client, tenantStorer, userStorer)
 	handler2 := httptransport3.NewHandler(slogLogger, tenantController)
 	ipfsStorager := ipfs.NewStorage(conf, slogLogger)
 	nftAssetStorer := datastore3.NewDatastore(conf, slogLogger, client)
@@ -81,7 +79,7 @@ func InitializeEvent() Application {
 	handler3 := httptransport4.NewHandler(slogLogger, nftCollectionController)
 	nftMetadataController := controller5.NewController(conf, slogLogger, provider, jwtProvider, kmutexProvider, passwordProvider, ipfsStorager, client, tenantStorer, nftAssetStorer, nftMetadataStorer, nftCollectionStorer, userStorer)
 	handler4 := httptransport5.NewHandler(slogLogger, nftMetadataController)
-	nftAssetController := controller6.NewController(conf, slogLogger, provider, passwordProvider, jwtProvider, ipfsStorager, s3Storager, client, nftAssetStorer, nftMetadataStorer, nftCollectionStorer, userStorer)
+	nftAssetController := controller6.NewController(conf, slogLogger, provider, passwordProvider, jwtProvider, ipfsStorager, client, nftAssetStorer, nftMetadataStorer, nftCollectionStorer, userStorer)
 	handler5 := httptransport6.NewHandler(slogLogger, nftAssetController)
 	inputPortServer := http.NewInputPort(conf, slogLogger, middlewareMiddleware, handler, httptransportHandler, handler2, handler3, handler4, handler5)
 	eventschedulerInputPortServer := eventscheduler.NewInputPort(conf, slogLogger, userController, tenantController, nftCollectionController, nftMetadataController, nftAssetController)
