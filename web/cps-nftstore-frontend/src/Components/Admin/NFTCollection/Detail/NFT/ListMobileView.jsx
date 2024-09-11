@@ -21,6 +21,7 @@ import {
   faRefresh,
   faCalendarCheck,
   faCollections,
+  faCertificate
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 import { DateTime } from "luxon";
@@ -103,7 +104,18 @@ function AdminNFTCollectionDetailForNFTListMobile(props) {
                       class="button is-small is-primary is-fullwidth"
                       type="button"
                     >
-                      View
+                    <FontAwesomeIcon className="mdi" icon={faEye} />
+                    &nbsp;View
+                    </Link>
+                  </div>
+                  <div class="column">
+                    <Link
+                      to={`/admin/collection/${collectionID}/nft/${datum.id}/mint`}
+                      class="button is-small is-success is-fullwidth"
+                      type="button"
+                    >
+                    <FontAwesomeIcon className="mdi" icon={faCertificate} />
+                    &nbsp;Mint
                     </Link>
                   </div>
                   <div class="column">
@@ -112,7 +124,8 @@ function AdminNFTCollectionDetailForNFTListMobile(props) {
                       class="button is-small is-warning is-fullwidth"
                       type="button"
                     >
-                      Edit
+                    <FontAwesomeIcon className="mdi" icon={faPencil} />
+                    &nbsp;Edit
                     </Link>
                   </div>
                   <div class="column">

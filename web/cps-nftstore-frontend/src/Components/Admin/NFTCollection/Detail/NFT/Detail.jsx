@@ -24,7 +24,8 @@ import {
   faDownload,
   faArrowUpRightFromSquare,
   faBox,
-  faChain
+  faChain,
+  faCertificate
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
@@ -486,6 +487,15 @@ function AdminNFTCollectionNFTDetail() {
                       </Link>
                     </div>
                     <div class="column is-half has-text-right">
+                      <Link
+                        to={`/admin/collection/${id}/nft/${rid}/mint`}
+                        class="button is-medium is-success is-fullwidth-mobile"
+                      >
+                        <FontAwesomeIcon className="fas" icon={faCertificate} />
+                        &nbsp;Mint
+                      </Link>
+                      &nbsp;
+                      &nbsp;
                       <Link
                         to={`/admin/collection/${id}/nft/${rid}/edit`}
                         class="button is-medium is-warning is-fullwidth-mobile"
