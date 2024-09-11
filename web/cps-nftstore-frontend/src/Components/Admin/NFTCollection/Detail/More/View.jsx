@@ -228,8 +228,8 @@ function AdminNFTCollectionDetailMore() {
                           <Link to={`/admin/collection/${id}`}>Detail</Link>
                         </li>
                         <li>
-                          <Link to={`/admin/collection/${id}/nft-metadata`}>
-                            NFT Metadata
+                          <Link to={`/admin/collection/${id}/nfts`}>
+                            NFTs
                           </Link>
                         </li>
                         <li className="is-active">

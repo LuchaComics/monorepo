@@ -9,9 +9,9 @@ import (
 
 	ipfs_storage "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/ipfs"
 	pinobject_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/datastore"
-	nftasset_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/datastore"
-	collection_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
 	nft_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nft/datastore"
+	nftasset_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/datastore"
+	nftcollection_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
 	tenant_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/datastore"
 	user_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/datastore"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/config"
@@ -21,18 +21,18 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/provider/uuid"
 )
 
-// NFTCollectionController Interface for tenant business logic controller.
-type NFTCollectionController interface {
-	Create(ctx context.Context, m *collection_s.NFTCollection) (*collection_s.NFTCollection, error)
-	GetByID(ctx context.Context, id primitive.ObjectID) (*collection_s.NFTCollection, error)
-	UpdateByID(ctx context.Context, m *collection_s.NFTCollection) (*collection_s.NFTCollection, error)
-	ListByFilter(ctx context.Context, f *collection_s.NFTCollectionPaginationListFilter) (*collection_s.NFTCollectionPaginationListResult, error)
-	ListAsSelectOptionByFilter(ctx context.Context, f *collection_s.NFTCollectionPaginationListFilter) ([]*collection_s.NFTCollectionAsSelectOption, error)
+// NFTController Interface for tenant business logic controller.
+type NFTController interface {
+	Create(ctx context.Context, requestData *NFTCreateRequestIDO) (*nft_s.NFT, error)
+	GetByID(ctx context.Context, id primitive.ObjectID) (*nft_s.NFT, error)
+	UpdateByID(ctx context.Context, m *NFTUpdateRequestIDO) (*nft_s.NFT, error)
+	ListByFilter(ctx context.Context, f *nft_s.NFTPaginationListFilter) (*nft_s.NFTPaginationListResult, error)
+	ListAsSelectOptionByFilter(ctx context.Context, f *nft_s.NFTPaginationListFilter) ([]*nft_s.NFTAsSelectOption, error)
 	DeleteByID(ctx context.Context, id primitive.ObjectID) error
-	ReprovidehCollectionsInIPNS(ctx context.Context) error
+	ArchiveByID(ctx context.Context, id primitive.ObjectID) error
 }
 
-type NFTCollectionControllerImpl struct {
+type NFTControllerImpl struct {
 	Config              *config.Conf
 	Logger              *slog.Logger
 	UUID                uuid.Provider
@@ -45,7 +45,7 @@ type NFTCollectionControllerImpl struct {
 	PinObjectStorer     pinobject_s.PinObjectStorer
 	NFTAssetStorer      nftasset_s.NFTAssetStorer
 	NFTStorer   nft_s.NFTStorer
-	NFTCollectionStorer collection_s.NFTCollectionStorer
+	NFTCollectionStorer nftcollection_s.NFTCollectionStorer
 	UserStorer          user_s.UserStorer
 }
 
@@ -62,10 +62,10 @@ func NewController(
 	pinobject_storer pinobject_s.PinObjectStorer,
 	nftasset_storer nftasset_s.NFTAssetStorer,
 	nft_storer nft_s.NFTStorer,
-	collection_storer collection_s.NFTCollectionStorer,
+	nftcollection_storer nftcollection_s.NFTCollectionStorer,
 	usr_storer user_s.UserStorer,
-) NFTCollectionController {
-	s := &NFTCollectionControllerImpl{
+) NFTController {
+	s := &NFTControllerImpl{
 		Config:              appCfg,
 		Logger:              loggerp,
 		UUID:                uuidp,
@@ -78,10 +78,10 @@ func NewController(
 		PinObjectStorer:     pinobject_storer,
 		NFTAssetStorer:      nftasset_storer,
 		NFTStorer:   nft_storer,
-		NFTCollectionStorer: collection_storer,
+		NFTCollectionStorer: nftcollection_storer,
 		UserStorer:          usr_storer,
 	}
-	s.Logger.Debug("collection controller initialization started...")
-	s.Logger.Debug("collection controller initialized")
+	s.Logger.Debug("nft controller initialization started...")
+	s.Logger.Debug("nft controller initialized")
 	return s
 }

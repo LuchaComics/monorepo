@@ -10,9 +10,9 @@ import (
 
 	gateway "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/gateway/httptransport"
 	ipfsgateway "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/httptransport"
+	nft "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nft/httptransport"
 	nftasset "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/httptransport"
 	collection "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/httptransport"
-	nftmetadata "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/httptransport"
 	tenant "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/httptransport"
 	user "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/httptransport"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/config"
@@ -33,7 +33,7 @@ type httpInputPort struct {
 	User        *user.Handler
 	Tenant      *tenant.Handler
 	Collection  *collection.Handler
-	NFTMetadata *nftmetadata.Handler
+	NFT         *nft.Handler
 	NFTAsset    *nftasset.Handler
 	IpfsGateway *ipfsgateway.Handler
 }
@@ -46,7 +46,7 @@ func NewInputPort(
 	cu *user.Handler,
 	org *tenant.Handler,
 	co *collection.Handler,
-	nftmetadata *nftmetadata.Handler,
+	nft *nft.Handler,
 	nftasset *nftasset.Handler,
 	ipfsgate *ipfsgateway.Handler,
 ) InputPortServer {
@@ -74,7 +74,7 @@ func NewInputPort(
 		User:        cu,
 		Tenant:      org,
 		Collection:  co,
-		NFTMetadata: nftmetadata,
+		NFT:         nft,
 		NFTAsset:    nftasset,
 		IpfsGateway: ipfsgate,
 		Server:      srv,
@@ -203,26 +203,26 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 		port.Collection.DeleteByID(w, r, p[3])
 
 	// --- NFT METADATA --- //
-	case n == 3 && p[1] == "v1" && p[2] == "nft-metadata" && r.Method == http.MethodGet:
-		port.NFTMetadata.List(w, r)
-	case n == 3 && p[1] == "v1" && p[2] == "nft-metadata" && r.Method == http.MethodPost:
-		port.NFTMetadata.Create(w, r)
-	case n == 4 && p[1] == "v1" && p[2] == "nft-metadatum" && r.Method == http.MethodGet:
-		port.NFTMetadata.GetByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "nft-metadatum" && r.Method == http.MethodPut:
-		port.NFTMetadata.UpdateByID(w, r, p[3])
-	case n == 4 && p[1] == "v1" && p[2] == "nft-metadatum" && r.Method == http.MethodDelete:
-		port.NFTMetadata.DeleteByID(w, r, p[3])
+	case n == 3 && p[1] == "v1" && p[2] == "nfts" && r.Method == http.MethodGet:
+		port.NFT.List(w, r)
+	case n == 3 && p[1] == "v1" && p[2] == "nfts" && r.Method == http.MethodPost:
+		port.NFT.Create(w, r)
+	case n == 4 && p[1] == "v1" && p[2] == "nft" && r.Method == http.MethodGet:
+		port.NFT.GetByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "nft" && r.Method == http.MethodPut:
+		port.NFT.UpdateByID(w, r, p[3])
+	case n == 4 && p[1] == "v1" && p[2] == "nft" && r.Method == http.MethodDelete:
+		port.NFT.DeleteByID(w, r, p[3])
 
 	// 	// --- NFT ASSETS --- //
 	// case n == 3 && p[1] == "v1" && p[2] == "nft-assets" && r.Method == http.MethodGet:
-	// 	port.NFTMetadata.List(w, r)
+	// 	port.NFT.List(w, r)
 	case n == 3 && p[1] == "v1" && p[2] == "nft-assets" && r.Method == http.MethodPost:
 		port.NFTAsset.Create(w, r)
 	// case n == 4 && p[1] == "v1" && p[2] == "nft-assets" && r.Method == http.MethodGet:
-	// 	port.NFTMetadata.GetByID(w, r, p[3])
+	// 	port.NFT.GetByID(w, r, p[3])
 	// case n == 4 && p[1] == "v1" && p[2] == "nft-asset" && r.Method == http.MethodPut:
-	// 	port.NFTMetadata.UpdateByID(w, r, p[3])
+	// 	port.NFT.UpdateByID(w, r, p[3])
 	case n == 4 && p[1] == "v1" && p[2] == "nft-asset" && r.Method == http.MethodDelete:
 		port.NFTAsset.DeleteByID(w, r, p[3])
 

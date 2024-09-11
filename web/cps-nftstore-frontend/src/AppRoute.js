@@ -25,10 +25,10 @@ import AdminNFTCollectionAdd from "./Components/Admin/NFTCollection/Add/View";
 import AdminNFTCollectionDetail from "./Components/Admin/NFTCollection/Detail/View";
 import AdminNFTCollectionUpdate from "./Components/Admin/NFTCollection/Update/View";
 import AdminNFTCollectionDetailMore from "./Components/Admin/NFTCollection/Detail/More/View";
-import AdminNFTCollectionDetailForNFTMetadataList from "./Components/Admin/NFTCollection/Detail/NFTMetadata/ListView";
-import AdminNFTCollectionNFTMetadataAdd from "./Components/Admin/NFTCollection/Detail/NFTMetadata/Add";
-import AdminNFTCollectionNFTMetadataDetail from "./Components/Admin/NFTCollection/Detail/NFTMetadata/Detail";
-import AdminNFTCollectionNFTMetadataUpdate from "./Components/Admin/NFTCollection/Detail/NFTMetadata/Update";
+import AdminNFTCollectionDetailForNFTList from "./Components/Admin/NFTCollection/Detail/NFT/ListView";
+import AdminNFTCollectionNFTAdd from "./Components/Admin/NFTCollection/Detail/NFT/Add";
+import AdminNFTCollectionNFTDetail from "./Components/Admin/NFTCollection/Detail/NFT/Detail";
+import AdminNFTCollectionNFTUpdate from "./Components/Admin/NFTCollection/Detail/NFT/Update";
 
 // Users
 import AdminUserList from "./Components/Admin/User/List/View";
@@ -176,26 +176,26 @@ function AppRoute() {
                     element={<AdminNFTCollectionDetailMore />}
                   />
 
-                  {/* Collection NFT Metadata */}
+                  {/* Collection NFT */}
                   <Route
                     exact
-                    path="/admin/collection/:id/nft-metadata"
-                    element={<AdminNFTCollectionDetailForNFTMetadataList />}
+                    path="/admin/collection/:id/nfts"
+                    element={<AdminNFTCollectionDetailForNFTList />}
                   />
                   <Route
                     exact
-                    path="/admin/collection/:id/nft-metadata/add"
-                    element={<AdminNFTCollectionNFTMetadataAdd />}
+                    path="/admin/collection/:id/nfts/add"
+                    element={<AdminNFTCollectionNFTAdd />}
                   />
                   <Route
                     exact
-                    path="/admin/collection/:id/nft-metadatum/:rid"
-                    element={<AdminNFTCollectionNFTMetadataDetail />}
+                    path="/admin/collection/:id/nft/:rid"
+                    element={<AdminNFTCollectionNFTDetail />}
                   />
                   <Route
                     exact
-                    path="/admin/collection/:id/nft-metadatum/:rid/edit"
-                    element={<AdminNFTCollectionNFTMetadataUpdate />}
+                    path="/admin/collection/:id/nft/:rid/edit"
+                    element={<AdminNFTCollectionNFTUpdate />}
                   />
 
                   {/* User */}

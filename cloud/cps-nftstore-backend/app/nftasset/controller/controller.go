@@ -9,9 +9,9 @@ import (
 
 	ipfs_storage "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/ipfs"
 	pinobject_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/datastore"
+	nft_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nft/datastore"
 	nftasset_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/datastore"
 	collection_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
-	nftmetadata_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/datastore"
 	user_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/datastore"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/config"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/provider/jwt"
@@ -43,7 +43,7 @@ type NFTAssetControllerImpl struct {
 	DbClient            *mongo.Client
 	PinObjectStorer     pinobject_s.PinObjectStorer
 	NFTAssetStorer      nftasset_s.NFTAssetStorer
-	NFTMetadataStorer   nftmetadata_s.NFTMetadataStorer
+	NFTStorer   nft_s.NFTStorer
 	NFTCollectionStorer collection_s.NFTCollectionStorer
 	UserStorer          user_s.UserStorer
 }
@@ -58,7 +58,7 @@ func NewController(
 	client *mongo.Client,
 	pinobject_storer pinobject_s.PinObjectStorer,
 	nftasset_storer nftasset_s.NFTAssetStorer,
-	nftmetadata_storer nftmetadata_s.NFTMetadataStorer,
+	nft_storer nft_s.NFTStorer,
 	collection_storer collection_s.NFTCollectionStorer,
 	usr_storer user_s.UserStorer,
 ) NFTAssetController {
@@ -72,7 +72,7 @@ func NewController(
 		DbClient:            client,
 		PinObjectStorer:     pinobject_storer,
 		NFTAssetStorer:      nftasset_storer,
-		NFTMetadataStorer:   nftmetadata_storer,
+		NFTStorer:   nft_storer,
 		NFTCollectionStorer: collection_storer,
 		UserStorer:          usr_storer,
 	}

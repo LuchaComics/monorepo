@@ -16,15 +16,15 @@ import (
 	ipfsgate_c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/controller"
 	pinobject_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/datastore"
 	ipfsgate_http "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/httptransport"
+	nft_c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nft/controller"
+	nft_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nft/datastore"
+	nft_http "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nft/httptransport"
 	nftasset_c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/controller"
 	nftasset_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/datastore"
 	nftasset_http "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/httptransport"
 	nftcollection_c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/controller"
 	nftcollection_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
 	nftcollection_http "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/httptransport"
-	nftmetadata_c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/controller"
-	nftmetadata_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/datastore"
-	nftmetadata_http "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/httptransport"
 	tenant_c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/controller"
 	tenant_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/datastore"
 	tenant_http "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/httptransport"
@@ -67,8 +67,8 @@ func InitializeEvent() Application {
 		ipfsgate_http.NewHandler,
 		user_s.NewDatastore,
 		user_c.NewController,
-		nftmetadata_s.NewDatastore,
-		nftmetadata_c.NewController,
+		nft_s.NewDatastore,
+		nft_c.NewController,
 		nftasset_s.NewDatastore,
 		nftasset_c.NewController,
 		nftcollection_s.NewDatastore,
@@ -79,7 +79,7 @@ func InitializeEvent() Application {
 		gateway_http.NewHandler,
 		user_http.NewHandler,
 		nftasset_http.NewHandler,
-		nftmetadata_http.NewHandler,
+		nft_http.NewHandler,
 		nftcollection_http.NewHandler,
 		tenant_http.NewHandler,
 		middleware.NewMiddleware,

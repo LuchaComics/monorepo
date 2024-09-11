@@ -661,7 +661,7 @@ export const PAYMENT_PROCESSOR_WITH_EMPTY_OPTIONS = [
   ...PAYMENT_PROCESSOR_OPTIONS,
 ];
 
-export const NFT_METADATA_STATUSES = {
+export const NFTS_STATUSES = {
   1: "Active",
   0: "Archived",
 };

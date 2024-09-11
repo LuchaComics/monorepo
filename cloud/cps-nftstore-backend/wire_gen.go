@@ -17,15 +17,15 @@ import (
 	controller7 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/controller"
 	datastore3 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/datastore"
 	httptransport7 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/httptransport"
+	controller5 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nft/controller"
+	datastore5 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nft/datastore"
+	httptransport5 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nft/httptransport"
 	controller6 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/controller"
 	datastore4 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/datastore"
 	httptransport6 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/httptransport"
 	controller4 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/controller"
 	datastore6 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
 	httptransport4 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/httptransport"
-	controller5 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/controller"
-	datastore5 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/datastore"
-	httptransport5 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/httptransport"
 	controller3 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/controller"
 	datastore2 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/datastore"
 	httptransport3 "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/httptransport"
@@ -43,10 +43,9 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/provider/password"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/provider/time"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/provider/uuid"
-)
 
-import (
 	_ "go.uber.org/automaxprocs"
+
 	_ "time/tzdata"
 )
 

@@ -5,9 +5,9 @@ import (
 
 	"github.com/mileusna/crontab"
 
+	nft "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nft/controller"
 	nftasset "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/controller"
 	collection "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/controller"
-	nftmetadata "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftmetadata/controller"
 	tenant "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/controller"
 	user "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/controller"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/config"
@@ -25,7 +25,7 @@ type crontabInputPort struct {
 	User          user.UserController
 	Tenant        tenant.TenantController
 	NFTCollection collection.NFTCollectionController
-	NFTMetadata   nftmetadata.NFTMetadataController
+	NFT           nft.NFTController
 	NFTAsset      nftasset.NFTAssetController
 }
 
@@ -35,7 +35,7 @@ func NewInputPort(
 	cu user.UserController,
 	org tenant.TenantController,
 	co collection.NFTCollectionController,
-	nftmetadata nftmetadata.NFTMetadataController,
+	nft nft.NFTController,
 	nftasset nftasset.NFTAssetController,
 ) InputPortServer {
 
@@ -49,7 +49,7 @@ func NewInputPort(
 		User:          cu,
 		Tenant:        org,
 		NFTCollection: co,
-		NFTMetadata:   nftmetadata,
+		NFT:           nft,
 		NFTAsset:      nftasset,
 	}
 

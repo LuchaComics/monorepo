@@ -26,7 +26,7 @@ func (impl *NFTCollectionControllerImpl) DeleteByID(ctx context.Context, id prim
 	// from the database.
 	//
 
-	metadataRes, listErr := impl.NFTMetadataStorer.ListByNFTCollection(ctx, id)
+	metadataRes, listErr := impl.NFTStorer.ListByNFTCollection(ctx, id)
 	if listErr != nil {
 		impl.Logger.Error("database list by nft collection error", slog.Any("error", listErr))
 		return listErr
@@ -36,7 +36,7 @@ func (impl *NFTCollectionControllerImpl) DeleteByID(ctx context.Context, id prim
 			impl.Logger.Error("ipfs failed unpinning file error", slog.Any("error", err))
 			return err
 		}
-		if deleteErr := impl.NFTMetadataStorer.DeleteByID(ctx, metadata.ID); deleteErr != nil {
+		if deleteErr := impl.NFTStorer.DeleteByID(ctx, metadata.ID); deleteErr != nil {
 			impl.Logger.Error("database delete by id error", slog.Any("error", deleteErr))
 			return deleteErr
 		}
