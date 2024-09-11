@@ -7,10 +7,9 @@ import (
 )
 
 type Conf struct {
-	AppServer        serverConf
-	DB               dbConfig
-	Emailer          mailgunConfig
-	PaymentProcessor paymentProcessorConfig
+	AppServer serverConf
+	DB        dbConfig
+	Emailer   mailgunConfig
 }
 
 type serverConf struct {
@@ -40,12 +39,6 @@ type mailgunConfig struct {
 	MaintenanceEmail string
 }
 
-type paymentProcessorConfig struct {
-	SecretKey        string
-	PublicKey        string
-	WebhookSecretKey string
-}
-
 func New() *Conf {
 	var c Conf
 	c.AppServer.IsDeveloperMode = getEnvBool("CPS_NFTSTORE_BACKEND_APP_IS_DEVELOPER_MODE", false, true) // If in doubt assume developer mode!
@@ -68,10 +61,6 @@ func New() *Conf {
 	c.Emailer.APIBase = getEnv("CPS_NFTSTORE_BACKEND_MAILGUN_API_BASE", true)
 	c.Emailer.SenderEmail = getEnv("CPS_NFTSTORE_BACKEND_MAILGUN_SENDER_EMAIL", true)
 	c.Emailer.MaintenanceEmail = getEnv("CPS_NFTSTORE_BACKEND_MAILGUN_MAINTENANCE_EMAIL", true)
-
-	c.PaymentProcessor.SecretKey = getEnv("CPS_NFTSTORE_BACKEND_PAYMENT_PROCESSOR_SECRET_KEY", true)
-	c.PaymentProcessor.PublicKey = getEnv("CPS_NFTSTORE_BACKEND_PAYMENT_PROCESSOR_PUBLIC_KEY", true)
-	c.PaymentProcessor.WebhookSecretKey = getEnv("CPS_NFTSTORE_BACKEND_PAYMENT_PROCESSOR_WEBHOOK_SECRET_KEY", true)
 
 	return &c
 }
