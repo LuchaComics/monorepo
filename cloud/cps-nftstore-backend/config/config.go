@@ -9,7 +9,6 @@ import (
 type Conf struct {
 	AppServer        serverConf
 	DB               dbConfig
-	PDFBuilder       pdfBuilderConfig
 	Emailer          mailgunConfig
 	PaymentProcessor paymentProcessorConfig
 }
@@ -31,16 +30,6 @@ type serverConf struct {
 type dbConfig struct {
 	URI  string
 	Name string
-}
-
-type pdfBuilderConfig struct {
-	CBFFTemplatePath  string
-	PCTemplatePath    string
-	CCIMGTemplatePath string
-	CCSCTemplatePath  string
-	CCTemplatePath    string
-	CCUGTemplatePath  string
-	DataDirectoryPath string
 }
 
 type mailgunConfig struct {
@@ -73,14 +62,6 @@ func New() *Conf {
 
 	c.DB.URI = getEnv("CPS_NFTSTORE_BACKEND_DB_URI", true)
 	c.DB.Name = getEnv("CPS_NFTSTORE_BACKEND_DB_NAME", true)
-
-	c.PDFBuilder.CBFFTemplatePath = getEnv("CPS_NFTSTORE_BACKEND_PDF_BUILDER_CBFF_TEMPLATE_FILE_PATH", true)
-	c.PDFBuilder.PCTemplatePath = getEnv("CPS_NFTSTORE_BACKEND_PDF_BUILDER_PC_TEMPLATE_FILE_PATH", true)
-	c.PDFBuilder.CCIMGTemplatePath = getEnv("CPS_NFTSTORE_BACKEND_PDF_BUILDER_CCIMG_TEMPLATE_FILE_PATH", true)
-	c.PDFBuilder.CCSCTemplatePath = getEnv("CPS_NFTSTORE_BACKEND_PDF_BUILDER_CCSC_TEMPLATE_FILE_PATH", true)
-	c.PDFBuilder.CCTemplatePath = getEnv("CPS_NFTSTORE_BACKEND_PDF_BUILDER_CC_TEMPLATE_FILE_PATH", true)
-	c.PDFBuilder.CCUGTemplatePath = getEnv("CPS_NFTSTORE_BACKEND_PDF_BUILDER_CCUG_TEMPLATE_FILE_PATH", true)
-	c.PDFBuilder.DataDirectoryPath = getEnv("CPS_NFTSTORE_BACKEND_PDF_BUILDER_DATA_DIRECTORY_PATH", true)
 
 	c.Emailer.APIKey = getEnv("CPS_NFTSTORE_BACKEND_MAILGUN_API_KEY", true)
 	c.Emailer.Domain = getEnv("CPS_NFTSTORE_BACKEND_MAILGUN_DOMAIN", true)
