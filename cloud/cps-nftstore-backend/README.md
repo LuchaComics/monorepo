@@ -17,36 +17,31 @@ The purpose of this project is to provide NFT minting for the **Collectible Prot
 ## Installation
 
 1. Download and install the following onto your computer before proceeding:
-
-* Golang
-
-* Taskfile
-
-* Node
-
-* Docker
-
+  * Golang
+  * Taskfile
+  * Node
+  * Docker
 
 2. Go to your `~/go/src/github.com` folder and clone this monorepo.
 
-  ```shell
-  cd ~/go/src/github.com
-  git clone git@github.com:LuchaComics/monorepo.git
-  ```
+    ```shell
+    cd ~/go/src/github.com
+    git clone git@github.com:LuchaComics/monorepo.git
+    ```
 
 3. Duplicate the provided sample environment variables of the project.
 
-  ```shell
-  cp .env.sample .env
-  ```
+    ```shell
+    cp .env.sample .env
+    ```
 
 4. Please open your `.env` file and modify it to your specifications.
 
 5. Start the backend server by running the following in your console.
 
-  ```shell
-  docker-compose -p cps_nftstore_backend -f docker-compose.yml up
-  ```
+    ```shell
+    docker-compose -p cps_nftstore_backend -f docker-compose.yml up
+    ```
 
 ## Documentation
 
