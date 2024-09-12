@@ -139,18 +139,6 @@ export function postCollectionCreateAPI(
   // To Snake-case for API from camel-case in React.
   let decamelizedData = decamelizeKeys(data);
 
-  // Minor fix.
-  decamelizedData.tenant_id = data.TenantID;
-  if (
-    decamelizedData.tenant_id !== undefined &&
-    decamelizedData.tenant_id !== null &&
-    decamelizedData.tenant_id !== "" &&
-    decamelizedData.tenant_id.length < 14
-  ) {
-    delete decamelizedData.tenant_id;
-  }
-  decamelizedData.cps_partnership_reason = data.CPSPartnershipReason;
-
   axios
     .post(CPS_NFT_COLLECTIONS_API_ENDPOINT, decamelizedData)
     .then((successResponse) => {

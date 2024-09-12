@@ -42,6 +42,7 @@ import FormRegionField from "../../../Reusable/FormRegionField";
 import PageLoadingContent from "../../../Reusable/PageLoadingContent";
 import DataDisplayRowText from "../../../Reusable/DataDisplayRowText";
 import DataDisplayRowRadio from "../../../Reusable/DataDisplayRowRadio";
+import DataDisplayRowCheckbox from "../../../Reusable/DataDisplayRowCheckbox";
 import {
     topAlertMessageState,
     topAlertStatusState,
@@ -353,6 +354,11 @@ function AdminNFTCollectionAddStep3() {
                     <DataDisplayRowText
                       label="Wallet Mnemonic"
                       value={addNFTCollection.walletMnemonic}
+                    />
+
+                    <DataDisplayRowCheckbox
+                       label="Wallet Password"
+                       checked={true}
                     />
 
                     <p className="title is-5 mt-2">

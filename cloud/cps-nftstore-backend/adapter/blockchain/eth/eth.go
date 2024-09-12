@@ -6,11 +6,10 @@ package ethereum
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"log/slog"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/ethclient"
 	hdwallet "github.com/miguelmota/go-ethereum-hdwallet"
 )
 
@@ -21,6 +20,7 @@ type EthereumWallet struct {
 }
 
 type EthereumAdapter interface {
+	ConnectToNodeAtURL(nodeURL string) error
 	NewWalletFromMnemonic(mnemonic string) (*EthereumWallet, error)
 	GetOwnersBalance(context context.Context) (*big.Int, error)
 	Mint(toAddress string) error
@@ -29,11 +29,9 @@ type EthereumAdapter interface {
 }
 
 type ethBlockchain struct {
-	logger               *slog.Logger
-	nodeURL              string
-	smartContractAddress string
-	ownerAddress         string
-	ownerPrivateKey      string
+	logger  *slog.Logger
+	nodeURL string
+	client  *ethclient.Client
 }
 
 // NewAdapter function connects to an Ethereum node and provides an interface
@@ -41,37 +39,51 @@ type ethBlockchain struct {
 // configuration variables required are:
 //
 // 1. CPS_NFTSTORE_BACKEND_ETH_NODE_URL: This
-func NewAdapter(logger *slog.Logger, nodeURL string) EthereumAdapter {
+func NewAdapter(logger *slog.Logger) EthereumAdapter {
 	logger.Debug("ethereum blockchain adapter initializing...")
 
 	logger.Debug("ethereum blockchain adapter initialized")
 	return &ethBlockchain{
-		logger:  logger,
-		nodeURL: nodeURL,
+		logger: logger,
 	}
 }
 
-func (e *ethBlockchain) NewWalletFromMnemonic(mnemonic string) (*EthereumWallet, error) {
-	wallet, err := hdwallet.NewFromMnemonic(mnemonic)
+func (e *ethBlockchain) ConnectToNodeAtURL(nodeURL string) error {
+	client, err := ethclient.Dial(nodeURL)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	fmt.Println(wallet)
+	if client != nil {
+		e.client = client
+		e.nodeURL = nodeURL
+	}
+	return nil
+}
+
+func (e *ethBlockchain) NewWalletFromMnemonic(mnemonic string) (*EthereumWallet, error) {
+	wallet, newErr := hdwallet.NewFromMnemonic(mnemonic)
+	if newErr != nil {
+		e.logger.Error("failed creating new wallet from mnemonic", slog.Any("error", newErr))
+		return nil, newErr
+	}
 
 	path := hdwallet.MustParseDerivationPath("m/44'/60'/0'/0/0")
-	account, err := wallet.Derive(path, false)
-	if err != nil {
-		log.Fatal(err)
+	account, depriveErr := wallet.Derive(path, false)
+	if depriveErr != nil {
+		e.logger.Error("failed depriving", slog.Any("error", depriveErr))
+		return nil, depriveErr
 	}
 
-	privateKey, err := wallet.PrivateKeyHex(account)
-	if err != nil {
-		log.Fatal(err)
+	privateKey, getErr := wallet.PrivateKeyHex(account)
+	if getErr != nil {
+		e.logger.Error("failed getting private key hex", slog.Any("error", getErr))
+		return nil, getErr
 	}
 
-	publicKey, _ := wallet.PublicKeyHex(account)
-	if err != nil {
-		log.Fatal(err)
+	publicKey, getErr := wallet.PublicKeyHex(account)
+	if getErr != nil {
+		e.logger.Error("failed getting public key hex", slog.Any("error", getErr))
+		return nil, getErr
 	}
 
 	return &EthereumWallet{

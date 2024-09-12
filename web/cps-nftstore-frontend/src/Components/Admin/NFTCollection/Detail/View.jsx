@@ -22,7 +22,8 @@ import {
   faChartPie,
   faCogs,
   faArrowRight,
-  faArrowUpRightFromSquare
+  faArrowUpRightFromSquare,
+  faChain
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 import { useParams } from "react-router-dom";
@@ -457,6 +458,48 @@ function AdminNFTCollectionDetail() {
                     </div>
 
                     <p class="subtitle is-6">
+                      <FontAwesomeIcon className="fas" icon={faChain} />
+                      &nbsp;Blockchain Information
+                    </p>
+                    <hr />
+
+                    <FormTextChoiceRow
+                      label="Blockchain"
+                      value={collection.blockchain}
+                      opt1Value={"ethereum"}
+                      opt1Label="Ethereum"
+                    />
+
+                    <FormRowText
+                      label="Node URL"
+                      value={collection.nodeUrl}
+                      helpText=""
+                    />
+
+                    <FormTextChoiceRow
+                      label="Smart Contract"
+                      value={collection.smartContract}
+                      opt1Value={"Collectible Protection Service Submissions"}
+                      opt1Label="Collectible Protection Service Submissions"
+                    />
+
+                    <FormTextChoiceRow
+                      label="Smart Contract Status"
+                      value={collection.smartContractStatus}
+                      opt1Value={0}
+                      opt1Label="-"
+                      opt1Value={1}
+                      opt1Label="Not Deployed"
+                      opt2Value={2}
+                      opt2Label="Deployed"
+                    />
+
+                    <FormRowText
+                      label="Smart Contract Address"
+                      value={collection.smartContractAddress}
+                    />
+
+                    <p class="subtitle is-6">
                       <FontAwesomeIcon className="fas" icon={faCogs} />
                       &nbsp;Settings
                     </p>
@@ -488,12 +531,6 @@ function AdminNFTCollectionDetail() {
                     <FormRowText
                       label="Name"
                       value={collection.name}
-                      helpText=""
-                    />
-
-                    <FormRowText
-                      label="Smart Contract"
-                      value="Collectible Protection Service Submission Token"
                       helpText=""
                     />
 

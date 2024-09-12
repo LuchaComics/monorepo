@@ -85,6 +85,7 @@ function AdminNFTCollectionAddStep1() {
   const [nodeURL, setNodeURL] = useState(addNFTCollection.nodeURL);
   const [smartContract, setSmartContract] = useState(addNFTCollection.smartContract);
   const [walletMnemonic, setWalletMnemonic] = useState(addNFTCollection.walletMnemonic);
+  const [walletPassword, setWalletPassword] = useState(addNFTCollection.walletPassword);
 
   ////
   //// Event handling.
@@ -115,6 +116,10 @@ function AdminNFTCollectionAddStep1() {
                 newErrors["walletMnemonic"] = "missing value";
                 hasErrors = true;
             }
+            if (walletPassword === undefined || walletPassword === null || walletPassword === "") {
+                newErrors["walletPassword"] = "missing value";
+                hasErrors = true;
+            }
         }
     }
 
@@ -139,8 +144,10 @@ function AdminNFTCollectionAddStep1() {
       let modifiedAddNFTCollection = { ...addNFTCollection };
       modifiedAddNFTCollection.blockchain = blockchain;
       modifiedAddNFTCollection.nodeURL = nodeURL;
+      modifiedAddNFTCollection.nodeUrl = nodeURL; // Bugfix when making api call.
       modifiedAddNFTCollection.smartContract = smartContract;
       modifiedAddNFTCollection.walletMnemonic = walletMnemonic;
+      modifiedAddNFTCollection.walletPassword = walletPassword;
       setAddNFTCollection(modifiedAddNFTCollection);
       setForceURL("/admin/collections/add/step-2");
   };
@@ -358,7 +365,6 @@ function AdminNFTCollectionAddStep1() {
                       value={smartContract}
                       opt1Value={"Collectible Protection Service Submissions"}
                       opt1Label="Collectible Protection Service Submissions"
-
                       errorText={errors && errors.smartContract}
                       onChange={(e) =>
                         setSmartContract(e.target.value)
@@ -380,6 +386,19 @@ function AdminNFTCollectionAddStep1() {
                             maxWidth="280px"
                             helpText={<>Please enter the phrase to <b>import your existing wallet</b> or <b>generate a new wallet</b> which will be tied to this NFT collection. <Link onClick={(e)=>onGenerateMnemonic(e)}>Click here</Link> to generate a new wallet mnemonic.</>}
                             rows={4}
+                        />
+
+                        <FormInputField
+                          label="Wallet Password"
+                          type="password"
+                          name="walletPassword"
+                          placeholder="Text input"
+                          value={walletPassword}
+                          errorText={errors && errors.walletPassword}
+                          helpText="Choose a password to use every time you want mint an NFT in this collection."
+                          onChange={(e) => setWalletPassword(e.target.value)}
+                          isRequired={true}
+                          maxWidth="380px"
                         />
                     </>}
                   </>}

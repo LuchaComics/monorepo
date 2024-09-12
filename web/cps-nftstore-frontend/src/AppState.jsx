@@ -238,8 +238,10 @@ export const collectionFilterJoinedAfterState = atom({
 export const ADD_NFT_COLLECTION_STATE_DEFAULT = {
   blockchain: "",
   nodeURL: "",
+  nodeUrl: "",
   smartContract: "",
   tenantID: "",
+  tenantId: "",
   tenantName: "",
   name: "",
 };

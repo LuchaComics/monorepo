@@ -117,6 +117,7 @@ function AdminNFTCollectionAddStep2() {
     // Save to persistent storage.
     let modifiedAddNFTCollection = { ...addNFTCollection };
     modifiedAddNFTCollection.tenantID = tenantID;
+    modifiedAddNFTCollection.tenantId = tenantID; // Bugfix when making api call.
     modifiedAddNFTCollection.tenantName = tenantName;
     modifiedAddNFTCollection.name = name;
     setAddNFTCollection(modifiedAddNFTCollection);

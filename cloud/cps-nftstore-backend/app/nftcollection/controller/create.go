@@ -14,6 +14,7 @@ import (
 	s_d "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
 	u_d "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/datastore"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/config/constants"
+	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/utils/cryptowrapper"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/utils/httperror"
 )
 
@@ -22,6 +23,7 @@ type NFTCollectionCreateRequestIDO struct {
 	NodeURL        string             `bson:"node_url" json:"node_url"`
 	SmartContract  string             `bson:"smart_contract" json:"smart_contract"`
 	WalletMnemonic string             `bson:"wallet_mnemonic" json:"wallet_mnemonic"`
+	WalletPassword string             `bson:"wallet_password" json:"wallet_password"`
 	TenantID       primitive.ObjectID `bson:"tenant_id" json:"tenant_id"`
 	Name           string             `bson:"name" json:"name"`
 }
@@ -29,11 +31,23 @@ type NFTCollectionCreateRequestIDO struct {
 func ValidateCreateRequest(dirtyData *NFTCollectionCreateRequestIDO) error {
 	e := make(map[string]string)
 
-	if dirtyData.TenantID.IsZero() {
-		e["tenant_id"] = "missing value"
+	if dirtyData.Blockchain == "" {
+		e["blockchain"] = "missing value"
 	}
 	if dirtyData.NodeURL == "" {
 		e["node_url"] = "missing value"
+	}
+	if dirtyData.SmartContract == "" {
+		e["smart_contract"] = "missing value"
+	}
+	if dirtyData.WalletMnemonic == "" {
+		e["wallet_mnemonic"] = "missing value"
+	}
+	if dirtyData.WalletPassword == "" {
+		e["wallet_password"] = "missing value"
+	}
+	if dirtyData.TenantID.IsZero() {
+		e["tenant_id"] = "missing value"
 	}
 	if dirtyData.Name == "" {
 		e["name"] = "missing value"
@@ -69,10 +83,10 @@ func (impl *NFTCollectionControllerImpl) Create(ctx context.Context, req *NFTCol
 	}
 
 	// Start a MongoDB session for transaction management
-	session, err := impl.DbClient.StartSession()
-	if err != nil {
-		impl.Logger.Error("failed to start database session", slog.Any("error", err))
-		return nil, err
+	session, startSessErr := impl.DbClient.StartSession()
+	if startSessErr != nil {
+		impl.Logger.Error("failed to start database session", slog.Any("error", startSessErr))
+		return nil, startSessErr
 	}
 	defer session.EndSession(ctx)
 
@@ -83,13 +97,14 @@ func (impl *NFTCollectionControllerImpl) Create(ctx context.Context, req *NFTCol
 		// Fetch all the related records.
 		//
 
-		tenant, err := impl.TenantStorer.GetByID(sessCtx, req.TenantID)
-		if err != nil {
-			impl.Logger.Error("failed to get tenant by id", slog.Any("error", err))
-			return nil, err
+		tenant, getTenentErr := impl.TenantStorer.GetByID(sessCtx, req.TenantID)
+		if getTenentErr != nil {
+			impl.Logger.Error("failed to get tenant by id", slog.Any("error", getTenentErr))
+			return nil, getTenentErr
 		}
-		if tenant != nil {
-			//TODO
+		if tenant == nil {
+			impl.Logger.Error("tenant d.n.e.", slog.Any("tenant_id", req.TenantID))
+			return nil, httperror.NewForBadRequestWithSingleField("tenant_id", "does not exist")
 		}
 
 		//
@@ -99,47 +114,68 @@ func (impl *NFTCollectionControllerImpl) Create(ctx context.Context, req *NFTCol
 		//
 
 		collection := &s_d.NFTCollection{
-			ID:                    primitive.NewObjectID(),
-			TenantID:              tenantID,
-			TenantName:            tenantName,
-			TenantTimezone:        tenantTimezone,
-			CreatedAt:             time.Now(),
-			CreatedFromIPAddress:  ipAddress,
-			ModifiedAt:            time.Now(),
-			ModifiedFromIPAddress: ipAddress,
-			Status:                s_d.StatusActive,
-			// Blockchain:            req.Blockchain, //TODO
-			// SmartContract:         req.SmartContract, //TODO
-			// NodeURL:               req.NodeURL, //TODO
+			ID:                        primitive.NewObjectID(),
+			TenantID:                  tenantID,
+			TenantName:                tenantName,
+			TenantTimezone:            tenantTimezone,
+			CreatedAt:                 time.Now(),
+			CreatedFromIPAddress:      ipAddress,
+			ModifiedAt:                time.Now(),
+			ModifiedFromIPAddress:     ipAddress,
+			Status:                    s_d.StatusActive,
+			Name:                      req.Name,
+			Blockchain:                req.Blockchain,
+			SmartContract:             req.SmartContract,
+			NodeURL:                   req.NodeURL,
+			WalletAccountAddress:      "",
+			WalletEncryptedPrivateKey: "",
+			WalletPublicKey:           "",
+			SmartContractStatus:       s_d.SmartContractStatusNotDeployed,
+			SmartContractAddress:      "",
 		}
+
+		impl.Logger.Debug("creating nft collection...",
+			slog.String("collection_id", collection.ID.Hex()))
 
 		//
 		// STEP 3
 		// Generate new wallet for this NFT collection.
 		//
 
-		eth := eth.NewAdapter(impl.Logger, req.NodeURL) // https://github.com/miguelmota/go-ethereum-hdwallet/blob/master/example/keys.go | https://goethereumbook.org/client-setup/
-		if eth != nil {
-			//TODO
+		eth := eth.NewAdapter(impl.Logger) // https://github.com/miguelmota/go-ethereum-hdwallet/blob/master/example/keys.go | https://goethereumbook.org/client-setup/
+		if connectErr := eth.ConnectToNodeAtURL(req.NodeURL); connectErr != nil {
+			impl.Logger.Error("failed connecting to node", slog.Any("error", connectErr))
+			return nil, httperror.NewForBadRequestWithSingleField("node_url", fmt.Sprintf("connection error: %v", connectErr))
 		}
-		wallet, err := eth.NewWalletFromMnemonic(req.WalletMnemonic)
-		if err != nil {
-			impl.Logger.Error("failed to generate ethereum wallet", slog.Any("error", err))
-			return nil, err
+		wallet, walletErr := eth.NewWalletFromMnemonic(req.WalletMnemonic)
+		if walletErr != nil {
+			impl.Logger.Error("failed to generate ethereum wallet", slog.Any("error", walletErr))
+			return nil, walletErr
 		}
-		if wallet != nil {
-			//TODO
-		}
-		// collection.AccountAddress = wallet.AccountAddress
-		// collection.EncryptedPrivateKey = wallet.PrivateKey
-		// collection.PublicKey = wallet.PublicKey
+		collection.WalletAccountAddress = wallet.AccountAddress
+		collection.WalletPublicKey = wallet.PublicKey
+
+		impl.Logger.Debug("generated ethereum wallet",
+			slog.String("collection_id", collection.ID.Hex()),
+			slog.String("public_key", collection.WalletPublicKey),
+			slog.String("account_address", collection.WalletAccountAddress))
 
 		//
 		// STEP 4
 		// Encrypt our wallet private key with the user's password so it is safely stored in our database in encrypted form.
 		//
 
-		//TODO
+		plaintextPrivateKey := wallet.PrivateKey
+		encryptedPrivateKey, cryptoErr := cryptowrapper.SymmetricKeyEncryption(plaintextPrivateKey, req.WalletPassword)
+		if cryptoErr != nil {
+			impl.Logger.Error("failed to encrypt wallet priate key", slog.Any("error", cryptoErr))
+			return nil, cryptoErr
+		}
+
+		collection.WalletEncryptedPrivateKey = encryptedPrivateKey
+
+		impl.Logger.Debug("encrypted ethereum wallet private key",
+			slog.String("collection_id", collection.ID.Hex()))
 
 		//
 		// STEP 5
@@ -148,10 +184,10 @@ func (impl *NFTCollectionControllerImpl) Create(ctx context.Context, req *NFTCol
 
 		// Generate a unique IPNS key for the collection
 		ipnsKeyName := fmt.Sprintf("ipns_key_%s", collection.ID.Hex())
-		ipnsName, err := impl.IPFS.GenerateKey(sessCtx, ipnsKeyName)
-		if err != nil {
-			impl.Logger.Error("failed to generate IPNS key", slog.Any("error", err))
-			return nil, err
+		ipnsName, keyGenErr := impl.IPFS.GenerateKey(sessCtx, ipnsKeyName)
+		if keyGenErr != nil {
+			impl.Logger.Error("failed to generate IPNS key", slog.Any("error", keyGenErr))
+			return nil, keyGenErr
 		}
 
 		// Set a custom directory name for the collection in IPFS
@@ -161,18 +197,22 @@ func (impl *NFTCollectionControllerImpl) Create(ctx context.Context, req *NFTCol
 		collection.IPNSKeyName = ipnsKeyName
 		collection.IPNSName = ipnsName
 
+		impl.Logger.Debug("generated ipns key",
+			slog.String("collection_id", collection.ID.Hex()),
+			slog.String("ipns_key_name", ipnsKeyName))
+
 		//
 		// STEP 6
 		//
 
 		// Create a new directory in IPFS with a sample file named "0" (representing the first token)
-		collectionDirCID, firstTokenFileCID, err := impl.IPFS.UploadStringToDir(
+		collectionDirCID, firstTokenFileCID, uploadErr := impl.IPFS.UploadStringToDir(
 			context.Background(),
 			"Hello world via `Collectibles Protective Services`!", // Sample content for the file
 			"0", // First token ID
 			collection.IPFSDirectoryName)
-		if err != nil {
-			return nil, fmt.Errorf("failed to add content to IPFS: %v", err)
+		if uploadErr != nil {
+			return nil, fmt.Errorf("failed to add content to IPFS: %v", uploadErr)
 		}
 
 		// Update collection data with IPFS directory CID and metadata
@@ -182,8 +222,8 @@ func (impl *NFTCollectionControllerImpl) Create(ctx context.Context, req *NFTCol
 		collection.MetadataFileCIDs[0] = firstTokenFileCID
 
 		impl.Logger.Debug("publishing to ipns...",
-			slog.String("key_name", ipnsKeyName),
-			slog.String("collection_cid", collectionDirCID),
+			slog.String("collection_id", collection.ID.Hex()),
+			slog.String("ipns_key_name", ipnsKeyName),
 			slog.String("first_token_cid", firstTokenFileCID))
 
 		//
@@ -191,12 +231,13 @@ func (impl *NFTCollectionControllerImpl) Create(ctx context.Context, req *NFTCol
 		//
 
 		// Publish the collection directory to IPNS
-		resolvedIPNSName, err := impl.IPFS.PublishToIPNS(sessCtx, ipnsKeyName, collectionDirCID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to publish to IPNS: %v", err)
+		resolvedIPNSName, publishIPNSErr := impl.IPFS.PublishToIPNS(sessCtx, ipnsKeyName, collectionDirCID)
+		if publishIPNSErr != nil {
+			return nil, fmt.Errorf("failed to publish to IPNS: %v", publishIPNSErr)
 		}
 
 		impl.Logger.Debug("finished publishing to ipns",
+			slog.String("collection_id", collection.ID.Hex()),
 			slog.String("ipns_name", resolvedIPNSName))
 
 		// Ensure the IPNS name matches the resolved name
@@ -209,10 +250,13 @@ func (impl *NFTCollectionControllerImpl) Create(ctx context.Context, req *NFTCol
 		//
 
 		// Save the collection data to the database
-		if err := impl.NFTCollectionStorer.Create(sessCtx, collection); err != nil {
-			impl.Logger.Error("failed to save collection to database", slog.Any("error", err))
-			return nil, err
+		if createErr := impl.NFTCollectionStorer.Create(sessCtx, collection); createErr != nil {
+			impl.Logger.Error("failed to save collection to database", slog.Any("error", createErr))
+			return nil, createErr
 		}
+
+		impl.Logger.Debug("finished creating nft collection",
+			slog.String("collection_id", collection.ID.Hex()))
 
 		return collection, nil
 	}
