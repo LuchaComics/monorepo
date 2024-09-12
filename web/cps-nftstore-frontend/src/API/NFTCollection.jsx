@@ -14,6 +14,8 @@ import {
   CPS_NFT_COLLECTION_AVATAR_OPERATION_API_ENDPOINT,
   CPS_NFT_COLLECTION_CHANGE_PASSWORD_OPERATION_API_ENDPOINT,
   CPS_NFT_COLLECTION_CHANGE_2FA_OPERATION_API_URL,
+  CPS_NFT_COLLECTION_CHECK_WALLET_BALANCE_OPERATION_API_URL,
+  CPS_NFT_COLLECTION_DEPLOY_SMART_CONTRACT_OPERATION_API_URL,
 } from "../Constants/API";
 
 export function getCollectionListAPI(
@@ -520,6 +522,58 @@ export function postCollectionChangeTwoFactorAuthenticationAPI(
   const axios = getCustomAxios(onUnauthorizedCallback);
   axios
     .post(CPS_NFT_COLLECTION_CHANGE_2FA_OPERATION_API_URL, data)
+    .then((successResponse) => {
+      const responseData = successResponse.data;
+
+      // Snake-case from API to camel-case for React.
+      const data = camelizeKeys(responseData);
+
+      // Return the callback data.
+      onSuccessCallback(data);
+    })
+    .catch((exception) => {
+      let errors = camelizeKeys(exception);
+      onErrorCallback(errors);
+    })
+    .then(onDoneCallback);
+}
+
+export function getCollectionWalletBalanceAPI(
+  collectionID,
+  onSuccessCallback,
+  onErrorCallback,
+  onDoneCallback,
+  onUnauthorizedCallback,
+) {
+  const axios = getCustomAxios(onUnauthorizedCallback);
+  axios
+    .get(CPS_NFT_COLLECTION_CHECK_WALLET_BALANCE_OPERATION_API_URL.replace("{collectionID}", collectionID))
+    .then((successResponse) => {
+      const responseData = successResponse.data;
+
+      // Snake-case from API to camel-case for React.
+      const data = camelizeKeys(responseData);
+
+      // Return the callback data.
+      onSuccessCallback(data);
+    })
+    .catch((exception) => {
+      let errors = camelizeKeys(exception);
+      onErrorCallback(errors);
+    })
+    .then(onDoneCallback);
+}
+
+export function postCollectionDeploySmartContractAPI(
+  data,
+  onSuccessCallback,
+  onErrorCallback,
+  onDoneCallback,
+  onUnauthorizedCallback,
+) {
+  const axios = getCustomAxios(onUnauthorizedCallback);
+  axios
+    .post(CPS_NFT_COLLECTION_DEPLOY_SMART_CONTRACT_OPERATION_API_URL, data)
     .then((successResponse) => {
       const responseData = successResponse.data;
 

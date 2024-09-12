@@ -31,6 +31,7 @@ import {
   faBoxOpen,
   faTrashCan,
   faHomeCollection,
+  faRocket
 } from "@fortawesome/free-solid-svg-icons";
 
 import BubbleLink from "../../../../Reusable/EveryPage/BubbleLink";
@@ -39,7 +40,7 @@ import {
 } from "../../../../../Constants/App";
 
 
-const AdminClientDetailMoreDesktop = ({ id, collection, currentCollection }) => {
+const AdminClientDetailMoreDesktop = ({ collection }) => {
   return (
     <>
       <section className="hero is-hidden-mobile">
@@ -47,8 +48,17 @@ const AdminClientDetailMoreDesktop = ({ id, collection, currentCollection }) => 
           <div className="container">
             <div className="columns is-vcentered is-multiline">
               {/* ---------------------------------------------------------------------- */}
-              Coming soon...
-
+              {collection.smartContractStatus === 1 && (
+                <div className="column">
+                  <BubbleLink
+                    title={`Deploy`}
+                    subtitle={`Deploy smart contract to blockchain.`}
+                    faIcon={faRocket}
+                    url={`/admin/collection/${collection.id}/more/deploy`}
+                    bgColour={`has-background-danger-dark`}
+                  />
+                </div>
+              )}
               {/* ---------------------------------------------------------------------- */}
             </div>
           </div>

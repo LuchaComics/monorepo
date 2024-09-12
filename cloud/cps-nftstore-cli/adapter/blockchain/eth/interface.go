@@ -15,4 +15,5 @@ type BlockchainAdapter interface {
 	DeploySmartContractFromPrivateKey(accountPrivateKey string) (string, error)
 	Mint(accountPrivateKey string, contractAddress string, toAddress string) error
 	GetTokenURI(contractAddress string, tokenId *big.Int) (string, error)
+	Transfer(fromPrivateKeyStr string, toAddressHex string) error
 }

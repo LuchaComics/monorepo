@@ -248,15 +248,11 @@ function AdminNFTCollectionDetailMore() {
 
                     {/* Page Menu Options */}
                     <AdminNFTCollectionDetailMoreDesktop
-                      id={id}
                       collection={collection}
-                      currentCollection={currentCollection}
                     />
                     <AdminNFTCollectionDetailMoreMobile
-                      id={id}
                       collection={collection}
-                      currentCollection={currentCollection}
-                    />
+                      currentCollection={currentCollection}                    />
 
                     {/* Bottom Navigation */}
                     <div className="columns pt-5">

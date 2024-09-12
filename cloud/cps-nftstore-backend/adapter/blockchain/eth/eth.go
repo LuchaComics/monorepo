@@ -6,9 +6,12 @@ package ethereum
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
+	"math"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	hdwallet "github.com/miguelmota/go-ethereum-hdwallet"
 )
@@ -22,7 +25,8 @@ type EthereumWallet struct {
 type EthereumAdapter interface {
 	ConnectToNodeAtURL(nodeURL string) error
 	NewWalletFromMnemonic(mnemonic string) (*EthereumWallet, error)
-	GetOwnersBalance(context context.Context) (*big.Int, error)
+	GetBalance(accountAddress string) (*big.Float, error)
+	DeploySmartContract(smartContract, privateKey string) error
 	Mint(toAddress string) error
 	GetTokenURI(tokenId *big.Int) (string, error)
 	Shutdown()
@@ -61,6 +65,7 @@ func (e *ethBlockchain) ConnectToNodeAtURL(nodeURL string) error {
 }
 
 func (e *ethBlockchain) NewWalletFromMnemonic(mnemonic string) (*EthereumWallet, error) {
+	// Special thanks to:  https://github.com/miguelmota/go-ethereum-hdwallet/blob/master/example/keys.go
 	wallet, newErr := hdwallet.NewFromMnemonic(mnemonic)
 	if newErr != nil {
 		e.logger.Error("failed creating new wallet from mnemonic", slog.Any("error", newErr))
@@ -93,8 +98,28 @@ func (e *ethBlockchain) NewWalletFromMnemonic(mnemonic string) (*EthereumWallet,
 	}, nil
 }
 
-func (e *ethBlockchain) GetOwnersBalance(context context.Context) (*big.Int, error) {
-	return nil, nil //TODO
+func (e *ethBlockchain) GetBalance(accountAddress string) (*big.Float, error) {
+	// Special thanks to: https://goethereumbook.org/account-balance/
+	account := common.HexToAddress(accountAddress)
+	balance, balanceErr := e.client.BalanceAt(context.Background(), account, nil)
+	if balanceErr != nil {
+		e.logger.Error("failed getting balance", slog.Any("error", balanceErr))
+		return nil, balanceErr
+	}
+
+	fbalance := new(big.Float)
+	fbalance.SetString(balance.String())
+	ethValue := new(big.Float).Quo(fbalance, big.NewFloat(math.Pow10(18)))
+
+	return ethValue, nil
+}
+
+func (e *ethBlockchain) DeploySmartContract(smartContract, privateKey string) error {
+	if smartContract != "Collectible Protection Service Submissions" {
+		return fmt.Errorf("unsupported smart contract: %v", smartContract)
+	}
+	return fmt.Errorf("halted by: %v", "programmer")
+	return nil //TODO
 }
 
 func (e *ethBlockchain) Mint(toAddress string) error {

@@ -30,6 +30,8 @@ type NFTCollectionController interface {
 	ListAsSelectOptionByFilter(ctx context.Context, f *collection_s.NFTCollectionPaginationListFilter) ([]*collection_s.NFTCollectionAsSelectOption, error)
 	DeleteByID(ctx context.Context, id primitive.ObjectID) error
 	ReprovidehCollectionsInIPNS(ctx context.Context) error
+	OperationGetWalletBalanceByID(ctx context.Context, id primitive.ObjectID) (*GetWalletBalanceOperationResponseIDO, error)
+	OperationDeploySmartContract(ctx context.Context, req *DeploySmartContractOperationRequestIDO) (*collection_s.NFTCollection, error)
 }
 
 type NFTCollectionControllerImpl struct {

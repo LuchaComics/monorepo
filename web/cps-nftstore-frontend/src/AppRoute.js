@@ -28,6 +28,7 @@ import AdminNFTCollectionAddStep3 from "./Components/Admin/NFTCollection/Add/Ste
 import AdminNFTCollectionDetail from "./Components/Admin/NFTCollection/Detail/View";
 import AdminNFTCollectionUpdate from "./Components/Admin/NFTCollection/Update/View";
 import AdminNFTCollectionDetailMore from "./Components/Admin/NFTCollection/Detail/More/View";
+import AdminNFTCollectionDetailMoreDeployOperation from "./Components/Admin/NFTCollection/Detail/More/Deploy/View";
 import AdminNFTCollectionDetailForNFTList from "./Components/Admin/NFTCollection/Detail/NFT/ListView";
 import AdminNFTCollectionNFTAdd from "./Components/Admin/NFTCollection/Detail/NFT/Add";
 import AdminNFTCollectionNFTDetail from "./Components/Admin/NFTCollection/Detail/NFT/Detail";
@@ -194,6 +195,12 @@ function AppRoute() {
                     path="/admin/collection/:id/more"
                     element={<AdminNFTCollectionDetailMore />}
                   />
+                  <Route
+                    exact
+                    path="/admin/collection/:id/more/deploy"
+                    element={<AdminNFTCollectionDetailMoreDeployOperation />}
+                  />
+
 
                   {/* Collection NFT */}
                   <Route

@@ -32,6 +32,7 @@ import useLocalStorage from "../../../../Hooks/useLocalStorage";
 import {
   getCollectionDetailAPI,
   deleteCollectionAPI,
+  getCollectionWalletBalanceAPI
 } from "../../../../API/NFTCollection";
 import { getTenantSelectOptionListAPI } from "../../../../API/tenant";
 import FormErrorBox from "../../../Reusable/FormErrorBox";
@@ -96,6 +97,7 @@ function AdminNFTCollectionDetail() {
   const [collection, setCollection] = useState({});
   const [tenantSelectOptions, setTenantSelectOptions] = useState([]);
   const [selectedCollectionForDeletion, setSelectedCollectionForDeletion] = useState("");
+  const [balance, setBalance] = useState("");
 
   ////
   //// Event handling.
@@ -230,6 +232,30 @@ function AdminNFTCollectionDetail() {
     setFetching(false);
   }
 
+  // --- Wallet Balance --- //
+
+  function onWalletBalanceSuccess(response) {
+    console.log("onWalletBalanceSuccess: Starting...");
+    console.log("onWalletBalanceSuccess: response:", response);
+    setBalance(response.value);
+  }
+
+  function onWalletBalanceError(apiErr) {
+    console.log("onWalletBalanceError: Starting...");
+    setErrors(apiErr);
+
+    // The following code will cause the screen to scroll to the top of
+    // the page. Please see ``react-scroll`` for more information:
+    // https://github.com/fisshy/react-scroll
+    var scroll = Scroll.animateScroll;
+    scroll.scrollToTop();
+  }
+
+  function onWalletBalanceDone() {
+    console.log("onWalletBalanceDone: Starting...");
+    setFetching(false);
+  }
+
   // --- All --- //
 
   const onUnauthorized = () => {
@@ -263,6 +289,9 @@ function AdminNFTCollectionDetail() {
         onTenantOptionListDone,
         onUnauthorized,
       );
+
+
+      getCollectionWalletBalanceAPI(id, onWalletBalanceSuccess, onWalletBalanceError, onWalletBalanceDone, onUnauthorized);
     }
 
     return () => {
@@ -475,6 +504,18 @@ function AdminNFTCollectionDetail() {
                       value={collection.nodeUrl}
                       helpText=""
                     />
+
+                    <FormRowText
+                      label="Wallet Address"
+                      value={collection.walletAccountAddress}
+                      helpText=""
+                    />
+
+                    {balance != "" && <FormRowText
+                      label="Wallet Balance"
+                      value={`${balance} eth`}
+                      helpText=""
+                    />}
 
                     <FormTextChoiceRow
                       label="Smart Contract"

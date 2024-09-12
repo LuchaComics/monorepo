@@ -133,6 +133,8 @@ services:
     restart: unless-stopped
     ports:
       - "8545:8545"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # The main application.
   app:

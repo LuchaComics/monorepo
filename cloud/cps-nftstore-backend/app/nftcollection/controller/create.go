@@ -142,7 +142,7 @@ func (impl *NFTCollectionControllerImpl) Create(ctx context.Context, req *NFTCol
 		// Generate new wallet for this NFT collection.
 		//
 
-		eth := eth.NewAdapter(impl.Logger) // https://github.com/miguelmota/go-ethereum-hdwallet/blob/master/example/keys.go | https://goethereumbook.org/client-setup/
+		eth := eth.NewAdapter(impl.Logger)
 		if connectErr := eth.ConnectToNodeAtURL(req.NodeURL); connectErr != nil {
 			impl.Logger.Error("failed connecting to node", slog.Any("error", connectErr))
 			return nil, httperror.NewForBadRequestWithSingleField("node_url", fmt.Sprintf("connection error: %v", connectErr))
@@ -168,7 +168,7 @@ func (impl *NFTCollectionControllerImpl) Create(ctx context.Context, req *NFTCol
 		plaintextPrivateKey := wallet.PrivateKey
 		encryptedPrivateKey, cryptoErr := cryptowrapper.SymmetricKeyEncryption(plaintextPrivateKey, req.WalletPassword)
 		if cryptoErr != nil {
-			impl.Logger.Error("failed to encrypt wallet priate key", slog.Any("error", cryptoErr))
+			impl.Logger.Error("failed to encrypt wallet private key", slog.Any("error", cryptoErr))
 			return nil, cryptoErr
 		}
 

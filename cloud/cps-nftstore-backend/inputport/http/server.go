@@ -201,6 +201,10 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 		port.Collection.UpdateByID(w, r, p[3])
 	case n == 4 && p[1] == "v1" && p[2] == "nft-collection" && r.Method == http.MethodDelete:
 		port.Collection.DeleteByID(w, r, p[3])
+	case n == 5 && p[1] == "v1" && p[2] == "nft-collections" && p[3] == "operations" && p[4] == "wallet-balance" && r.Method == http.MethodGet:
+		port.Collection.OperationGetWalletBalanceByID(w, r)
+	case n == 5 && p[1] == "v1" && p[2] == "nft-collections" && p[3] == "operations" && p[4] == "deploy-smart-contract" && r.Method == http.MethodPost:
+		port.Collection.OperationDeploySmartContract(w, r)
 
 	// --- NFT METADATA --- //
 	case n == 3 && p[1] == "v1" && p[2] == "nfts" && r.Method == http.MethodGet:

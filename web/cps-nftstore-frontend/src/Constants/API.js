@@ -130,6 +130,10 @@ export const CPS_USER_CHANGE_PASSWORD_OPERATION_API_ENDPOINT =
     HTTP_API_SERVER + "/api/v1/nft-collections/operations/change-2fa";
   export const CPS_NFT_COLLECTION_CHANGE_PASSWORD_OPERATION_API_ENDPOINT =
     HTTP_API_SERVER + "/api/v1/nft-collections/operations/change-password";
+  export const CPS_NFT_COLLECTION_CHECK_WALLET_BALANCE_OPERATION_API_URL =
+    HTTP_API_SERVER + "/api/v1/nft-collections/operations/wallet-balance?collection_id={collectionID}";
+  export const CPS_NFT_COLLECTION_DEPLOY_SMART_CONTRACT_OPERATION_API_URL =
+    HTTP_API_SERVER + "/api/v1/nft-collections/operations/deploy-smart-contract";
 
 // NFT
 export const CPS_NFTS_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/nfts";

@@ -31,6 +31,7 @@ import {
   faBoxOpen,
   faTrashCan,
   faHomeCollection,
+  faRocket
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 import { useParams } from "react-router-dom";
@@ -39,7 +40,7 @@ import {
 } from "../../../../../Constants/App";
 
 
-const AdminClientDetailMoreMobile = ({ id, collection, currentCollection }) => {
+const AdminClientDetailMoreMobile = ({ collection }) => {
   return (
     <>
       <div
@@ -54,7 +55,23 @@ const AdminClientDetailMoreMobile = ({ id, collection, currentCollection }) => {
           </thead>
           <tbody>
             {/* ---------------------------------------------------------------------- */}
-             Coming soon...
+            {collection.smartContractStatus === 1 && <tr>
+              <td>
+                <FontAwesomeIcon className="fas" icon={faRocket} />
+                &nbsp;Deploy
+              </td>
+              <td>
+                <div className="buttons is-right">
+                  <Link
+                    to={`/admin/collection/${collection.id}/more/deploy`}
+                    className="is-small"
+                  >
+                    View&nbsp;
+                    <FontAwesomeIcon className="mdi" icon={faChevronRight} />
+                  </Link>
+                </div>
+              </td>
+            </tr>}
             {/* ---------------------------------------------------------------------- */}
 
           </tbody>
