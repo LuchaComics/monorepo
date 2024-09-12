@@ -10,13 +10,46 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
+	eth "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/blockchain/eth"
 	s_d "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
 	u_d "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/datastore"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/config/constants"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/utils/httperror"
 )
 
-func (impl *NFTCollectionControllerImpl) Create(ctx context.Context, collection *s_d.NFTCollection) (*s_d.NFTCollection, error) {
+type NFTCollectionCreateRequestIDO struct {
+	Blockchain     string             `bson:"blockchain" json:"blockchain"`
+	NodeURL        string             `bson:"node_url" json:"node_url"`
+	SmartContract  string             `bson:"smart_contract" json:"smart_contract"`
+	WalletMnemonic string             `bson:"wallet_mnemonic" json:"wallet_mnemonic"`
+	TenantID       primitive.ObjectID `bson:"tenant_id" json:"tenant_id"`
+	Name           string             `bson:"name" json:"name"`
+}
+
+func ValidateCreateRequest(dirtyData *NFTCollectionCreateRequestIDO) error {
+	e := make(map[string]string)
+
+	if dirtyData.TenantID.IsZero() {
+		e["tenant_id"] = "missing value"
+	}
+	if dirtyData.NodeURL == "" {
+		e["node_url"] = "missing value"
+	}
+	if dirtyData.Name == "" {
+		e["name"] = "missing value"
+	}
+
+	if len(e) != 0 {
+		return httperror.NewForBadRequest(&e)
+	}
+	return nil
+}
+
+func (impl *NFTCollectionControllerImpl) Create(ctx context.Context, req *NFTCollectionCreateRequestIDO) (*s_d.NFTCollection, error) {
+	if err := ValidateCreateRequest(req); err != nil {
+		return nil, err
+	}
+
 	// Extract user and tenant information from the session context
 	userRole, _ := ctx.Value(constants.SessionUserRole).(int8)
 	// userID := ctx.Value(constants.SessionUserID).(primitive.ObjectID)
@@ -45,16 +78,73 @@ func (impl *NFTCollectionControllerImpl) Create(ctx context.Context, collection 
 
 	// Define the transaction function to perform a series of operations atomically
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
+		//
+		// STEP 1
+		// Fetch all the related records.
+		//
+
+		tenant, err := impl.TenantStorer.GetByID(sessCtx, req.TenantID)
+		if err != nil {
+			impl.Logger.Error("failed to get tenant by id", slog.Any("error", err))
+			return nil, err
+		}
+		if tenant != nil {
+			//TODO
+		}
+
+		//
+		// STEP 2
 		// Populate collection with default and tenant-specific information
-		collection.TenantID = tenantID
-		collection.TenantName = tenantName
-		collection.TenantTimezone = tenantTimezone
-		collection.ID = primitive.NewObjectID()
-		collection.CreatedAt = time.Now()
-		collection.CreatedFromIPAddress = ipAddress
-		collection.ModifiedAt = time.Now()
-		collection.ModifiedFromIPAddress = ipAddress
-		collection.Status = s_d.StatusActive
+		// along with the user create request data.
+		//
+
+		collection := &s_d.NFTCollection{
+			ID:                    primitive.NewObjectID(),
+			TenantID:              tenantID,
+			TenantName:            tenantName,
+			TenantTimezone:        tenantTimezone,
+			CreatedAt:             time.Now(),
+			CreatedFromIPAddress:  ipAddress,
+			ModifiedAt:            time.Now(),
+			ModifiedFromIPAddress: ipAddress,
+			Status:                s_d.StatusActive,
+			// Blockchain:            req.Blockchain, //TODO
+			// SmartContract:         req.SmartContract, //TODO
+			// NodeURL:               req.NodeURL, //TODO
+		}
+
+		//
+		// STEP 3
+		// Generate new wallet for this NFT collection.
+		//
+
+		eth := eth.NewAdapter(impl.Logger, req.NodeURL) // https://github.com/miguelmota/go-ethereum-hdwallet/blob/master/example/keys.go | https://goethereumbook.org/client-setup/
+		if eth != nil {
+			//TODO
+		}
+		wallet, err := eth.NewWalletFromMnemonic(req.WalletMnemonic)
+		if err != nil {
+			impl.Logger.Error("failed to generate ethereum wallet", slog.Any("error", err))
+			return nil, err
+		}
+		if wallet != nil {
+			//TODO
+		}
+		// collection.AccountAddress = wallet.AccountAddress
+		// collection.EncryptedPrivateKey = wallet.PrivateKey
+		// collection.PublicKey = wallet.PublicKey
+
+		//
+		// STEP 4
+		// Encrypt our wallet private key with the user's password so it is safely stored in our database in encrypted form.
+		//
+
+		//TODO
+
+		//
+		// STEP 5
+		// Generate unique key for this collection to utilize in IPNS.
+		//
 
 		// Generate a unique IPNS key for the collection
 		ipnsKeyName := fmt.Sprintf("ipns_key_%s", collection.ID.Hex())
@@ -70,6 +160,10 @@ func (impl *NFTCollectionControllerImpl) Create(ctx context.Context, collection 
 		// Store IPNS-related data in the collection
 		collection.IPNSKeyName = ipnsKeyName
 		collection.IPNSName = ipnsName
+
+		//
+		// STEP 6
+		//
 
 		// Create a new directory in IPFS with a sample file named "0" (representing the first token)
 		collectionDirCID, firstTokenFileCID, err := impl.IPFS.UploadStringToDir(
@@ -92,6 +186,10 @@ func (impl *NFTCollectionControllerImpl) Create(ctx context.Context, collection 
 			slog.String("collection_cid", collectionDirCID),
 			slog.String("first_token_cid", firstTokenFileCID))
 
+		//
+		// STEP 7
+		//
+
 		// Publish the collection directory to IPNS
 		resolvedIPNSName, err := impl.IPFS.PublishToIPNS(sessCtx, ipnsKeyName, collectionDirCID)
 		if err != nil {
@@ -105,6 +203,10 @@ func (impl *NFTCollectionControllerImpl) Create(ctx context.Context, collection 
 		if !strings.Contains(ipnsName, resolvedIPNSName) {
 			return nil, fmt.Errorf("IPNS name mismatch: expected %s, got %s", ipnsName, resolvedIPNSName)
 		}
+
+		//
+		// STEP 8
+		//
 
 		// Save the collection data to the database
 		if err := impl.NFTCollectionStorer.Create(sessCtx, collection); err != nil {

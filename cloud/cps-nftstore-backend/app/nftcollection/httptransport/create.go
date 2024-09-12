@@ -7,13 +7,14 @@ import (
 	"net/http"
 	_ "time/tzdata"
 
+	sub_c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/controller"
 	sub_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/utils/httperror"
 )
 
-func UnmarshalCreateRequest(ctx context.Context, r *http.Request) (*sub_s.NFTCollection, error) {
+func UnmarshalCreateRequest(ctx context.Context, r *http.Request) (*sub_c.NFTCollectionCreateRequestIDO, error) {
 	// Initialize our array which will tenant all the results from the remote server.
-	var requestData sub_s.NFTCollection
+	var requestData sub_c.NFTCollectionCreateRequestIDO
 
 	defer r.Body.Close()
 
@@ -25,27 +26,7 @@ func UnmarshalCreateRequest(ctx context.Context, r *http.Request) (*sub_s.NFTCol
 		return nil, httperror.NewForSingleField(http.StatusBadRequest, "non_field_error", "payload structure is wrong")
 	}
 
-	// Perform our validation and return validation error on any issues detected.
-	if err := ValidateCreateRequest(&requestData); err != nil {
-		return nil, err
-	}
 	return &requestData, nil
-}
-
-func ValidateCreateRequest(dirtyData *sub_s.NFTCollection) error {
-	e := make(map[string]string)
-
-	if dirtyData.TenantID.IsZero() {
-		e["tenant_id"] = "missing value"
-	}
-	if dirtyData.Name == "" {
-		e["name"] = "missing value"
-	}
-
-	if len(e) != 0 {
-		return httperror.NewForBadRequest(&e)
-	}
-	return nil
 }
 
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {

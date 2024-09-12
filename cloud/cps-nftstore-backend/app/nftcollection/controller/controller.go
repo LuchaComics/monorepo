@@ -9,9 +9,9 @@ import (
 
 	ipfs_storage "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/storage/ipfs"
 	pinobject_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/datastore"
+	nft_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nft/datastore"
 	nftasset_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/datastore"
 	collection_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
-	nft_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nft/datastore"
 	tenant_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/datastore"
 	user_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/datastore"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/config"
@@ -23,7 +23,7 @@ import (
 
 // NFTCollectionController Interface for tenant business logic controller.
 type NFTCollectionController interface {
-	Create(ctx context.Context, m *collection_s.NFTCollection) (*collection_s.NFTCollection, error)
+	Create(ctx context.Context, req *NFTCollectionCreateRequestIDO) (*collection_s.NFTCollection, error)
 	GetByID(ctx context.Context, id primitive.ObjectID) (*collection_s.NFTCollection, error)
 	UpdateByID(ctx context.Context, m *collection_s.NFTCollection) (*collection_s.NFTCollection, error)
 	ListByFilter(ctx context.Context, f *collection_s.NFTCollectionPaginationListFilter) (*collection_s.NFTCollectionPaginationListResult, error)
@@ -44,7 +44,7 @@ type NFTCollectionControllerImpl struct {
 	TenantStorer        tenant_s.TenantStorer
 	PinObjectStorer     pinobject_s.PinObjectStorer
 	NFTAssetStorer      nftasset_s.NFTAssetStorer
-	NFTStorer   nft_s.NFTStorer
+	NFTStorer           nft_s.NFTStorer
 	NFTCollectionStorer collection_s.NFTCollectionStorer
 	UserStorer          user_s.UserStorer
 }
@@ -77,7 +77,7 @@ func NewController(
 		TenantStorer:        tenant_storer,
 		PinObjectStorer:     pinobject_storer,
 		NFTAssetStorer:      nftasset_storer,
-		NFTStorer:   nft_storer,
+		NFTStorer:           nft_storer,
 		NFTCollectionStorer: collection_storer,
 		UserStorer:          usr_storer,
 	}

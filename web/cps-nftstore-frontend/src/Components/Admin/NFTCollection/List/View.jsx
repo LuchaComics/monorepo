@@ -304,7 +304,7 @@ function AdminNFTCollectionList() {
                 </button>
                 &nbsp;
                 <Link
-                  to={`/admin/collections/add`}
+                  to={`/admin/collections/add/step-1`}
                   class="button is-small is-primary is-fullwidth"
                   type="button"
                 >
@@ -341,7 +341,7 @@ function AdminNFTCollectionList() {
                 </button>
                 &nbsp;
                 <Link
-                  to={`/admin/collections/add`}
+                  to={`/admin/collections/add/step-1`}
                   class="button is-small is-primary"
                   type="button"
                 >

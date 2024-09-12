@@ -6,11 +6,22 @@ package ethereum
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"log/slog"
 	"math/big"
+
+	hdwallet "github.com/miguelmota/go-ethereum-hdwallet"
 )
 
-type EthereumBlockchainAdapter interface {
+type EthereumWallet struct {
+	AccountAddress string
+	PrivateKey     string
+	PublicKey      string
+}
+
+type EthereumAdapter interface {
+	NewWalletFromMnemonic(mnemonic string) (*EthereumWallet, error)
 	GetOwnersBalance(context context.Context) (*big.Int, error)
 	Mint(toAddress string) error
 	GetTokenURI(tokenId *big.Int) (string, error)
@@ -30,17 +41,44 @@ type ethBlockchain struct {
 // configuration variables required are:
 //
 // 1. CPS_NFTSTORE_BACKEND_ETH_NODE_URL: This
-func NewAdapter(cfg *c.Conf, logger *slog.Logger) EthereumBlockchainAdapter {
+func NewAdapter(logger *slog.Logger, nodeURL string) EthereumAdapter {
 	logger.Debug("ethereum blockchain adapter initializing...")
 
 	logger.Debug("ethereum blockchain adapter initialized")
 	return &ethBlockchain{
-		logger:               logger,
-		nodeURL:              c.EthereumBlockchain.NodeURL,
-		smartContractAddress: c.EthereumBlockchain.SmartContractAddress,
-		ownerAddress:         c.EthereumBlockchain.OwnerAddress,
-		ownerPrivateKey:      c.EthereumBlockchain.OwnerPrivateKey,
+		logger:  logger,
+		nodeURL: nodeURL,
 	}
+}
+
+func (e *ethBlockchain) NewWalletFromMnemonic(mnemonic string) (*EthereumWallet, error) {
+	wallet, err := hdwallet.NewFromMnemonic(mnemonic)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(wallet)
+
+	path := hdwallet.MustParseDerivationPath("m/44'/60'/0'/0/0")
+	account, err := wallet.Derive(path, false)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	privateKey, err := wallet.PrivateKeyHex(account)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	publicKey, _ := wallet.PublicKeyHex(account)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return &EthereumWallet{
+		AccountAddress: account.Address.Hex(),
+		PrivateKey:     privateKey,
+		PublicKey:      publicKey,
+	}, nil
 }
 
 func (e *ethBlockchain) GetOwnersBalance(context context.Context) (*big.Int, error) {
@@ -48,7 +86,7 @@ func (e *ethBlockchain) GetOwnersBalance(context context.Context) (*big.Int, err
 }
 
 func (e *ethBlockchain) Mint(toAddress string) error {
-	return nil, nil //TODO
+	return nil //TODO
 }
 
 func (e *ethBlockchain) GetTokenURI(tokenId *big.Int) (string, error) {

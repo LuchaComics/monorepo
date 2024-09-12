@@ -22,6 +22,9 @@ import AdminTenantUpdate from "./Components/Admin/Tenant/Update";
 // Collections
 import AdminNFTCollectionList from "./Components/Admin/NFTCollection/List/View";
 import AdminNFTCollectionAdd from "./Components/Admin/NFTCollection/Add/View";
+import AdminNFTCollectionAddStep1 from "./Components/Admin/NFTCollection/Add/Step1View";
+import AdminNFTCollectionAddStep2 from "./Components/Admin/NFTCollection/Add/Step2View";
+import AdminNFTCollectionAddStep3 from "./Components/Admin/NFTCollection/Add/Step3View";
 import AdminNFTCollectionDetail from "./Components/Admin/NFTCollection/Detail/View";
 import AdminNFTCollectionUpdate from "./Components/Admin/NFTCollection/Update/View";
 import AdminNFTCollectionDetailMore from "./Components/Admin/NFTCollection/Detail/More/View";
@@ -160,6 +163,21 @@ function AppRoute() {
                     exact
                     path="/admin/collections/add"
                     element={<AdminNFTCollectionAdd />}
+                  />
+                  <Route
+                    exact
+                    path="/admin/collections/add/step-1"
+                    element={<AdminNFTCollectionAddStep1 />}
+                  />
+                  <Route
+                    exact
+                    path="/admin/collections/add/step-2"
+                    element={<AdminNFTCollectionAddStep2 />}
+                  />
+                  <Route
+                    exact
+                    path="/admin/collections/add/step-3"
+                    element={<AdminNFTCollectionAddStep3 />}
                   />
                   <Route
                     exact

@@ -232,3 +232,20 @@ export const collectionFilterJoinedAfterState = atom({
   default: "",
   effects_UNSTABLE: [persistAtom],
 });
+
+// --- NFT Collection --- //
+
+export const ADD_NFT_COLLECTION_STATE_DEFAULT = {
+  blockchain: "",
+  nodeURL: "",
+  smartContract: "",
+  tenantID: "",
+  tenantName: "",
+  name: "",
+};
+
+export const addNFTCollectionState = atom({
+  key: "addNFTCollection",
+  default: ADD_NFT_COLLECTION_STATE_DEFAULT,
+  effects_UNSTABLE: [persistAtom],
+});
