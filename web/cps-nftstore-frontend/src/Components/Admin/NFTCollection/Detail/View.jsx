@@ -424,7 +424,7 @@ function AdminNFTCollectionDetail() {
                 </div>
                 {collection && collection.status === 1 && <div class="column has-text-right">
                   <Link
-                    to={`/admin/collection/${collection.id}/nfts/add`}
+                    to={`/admin/collection/${collection.id}/nfts/add/step-1`}
                     class="button is-small is-success is-fullwidth-mobile"
                     type="button"
                   >
@@ -621,7 +621,7 @@ function AdminNFTCollectionDetail() {
           {/* Bottom Page Logout Link  */}
           {/*
           <div className="has-text-right has-text-grey">
-            <Link to={`/admin/collection/${id}/nfts/add-via-ws`} className="has-text-grey">
+            <Link to={`/admin/collection/${id}/nfts/add/step-1-via-ws`} className="has-text-grey">
               Add Pin via Web-Service API&nbsp;
               <FontAwesomeIcon className="mdi" icon={faArrowRight} />
             </Link>

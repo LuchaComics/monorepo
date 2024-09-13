@@ -380,7 +380,7 @@ function AdminNFTCollectionDetailForNFTList() {
               {collection && collection.status === 1 && (
                 <div class="column has-text-right">
                   <Link
-                    to={`/admin/collection/${id}/nfts/add`}
+                    to={`/admin/collection/${id}/nfts/add/step-1`}
                     class="button is-small is-success is-fullwidth-mobile"
                     type="button"
                   >
@@ -470,21 +470,43 @@ function AdminNFTCollectionDetailForNFTList() {
                       </div>
                     ) : (
                       <div class="container">
-                        <article class="message is-dark">
-                          <div class="message-body">
-                            No NFT metadata.{" "}
-                            <b>
-                              <Link to={`/admin/collection/${id}/nfts/add`}>
-                                Click here&nbsp;
-                                <FontAwesomeIcon
-                                  className="mdi"
-                                  icon={faArrowRight}
-                                />
-                              </Link>
-                            </b>{" "}
-                            to get started creating a new nft metadata.
-                          </div>
-                        </article>
+                        {collection.smartContractStatus === 2 ?
+                            <>
+                                <article class="message is-dark">
+                                  <div class="message-body">
+                                    No NFTs.{" "}
+                                    <b>
+                                      <Link to={`/admin/collection/${id}/nfts/add/step-1`}>
+                                        Click here&nbsp;
+                                        <FontAwesomeIcon
+                                          className="mdi"
+                                          icon={faArrowRight}
+                                        />
+                                      </Link>
+                                    </b>{" "}
+                                    to get started creating your first NFT.
+                                  </div>
+                                </article>
+                            </>
+                            :
+                            <>
+                                <article class="message is-warning">
+                                  <div class="message-body">
+                                    NFT collection not deployed to blockchain.{" "}
+                                    <b>
+                                      <Link to={`/admin/collection/${id}/more/deploy`}>
+                                        Click here&nbsp;
+                                        <FontAwesomeIcon
+                                          className="mdi"
+                                          icon={faArrowRight}
+                                        />
+                                      </Link>
+                                    </b>{" "}
+                                    to get started deploying.
+                                  </div>
+                                </article>
+                            </>
+                        }
                       </div>
                     )}
 
@@ -497,7 +519,7 @@ function AdminNFTCollectionDetailForNFTList() {
                       </div>
                       <div class="column is-half has-text-right">
                         {collection && collection.status === 1 && <Link
-                          to={`/admin/collection/${id}/nfts/add`}
+                          to={`/admin/collection/${id}/nfts/add/step-1`}
                           class="button is-primary is-fullwidth-mobile"
                         >
                           <FontAwesomeIcon className="fas" icon={faPlus} />
@@ -514,7 +536,7 @@ function AdminNFTCollectionDetailForNFTList() {
           {/* Bottom Page Logout Link  */}
           {/*
           <div className="has-text-right has-text-grey">
-            <Link to={`/admin/collection/${id}/nfts/add-via-ws`} className="has-text-grey">
+            <Link to={`/admin/collection/${id}/nfts/add/step-1-via-ws`} className="has-text-grey">
               NFT via Web-Service API&nbsp;
               <FontAwesomeIcon className="mdi" icon={faArrowRight} />
             </Link>

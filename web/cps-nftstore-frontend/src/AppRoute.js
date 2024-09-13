@@ -31,6 +31,9 @@ import AdminNFTCollectionDetailMoreDeployOperation from "./Components/Admin/NFTC
 import AdminNFTCollectionDetailMoreGetTokenURIOperation from "./Components/Admin/NFTCollection/Detail/More/GetTokenURI/View";
 import AdminNFTCollectionDetailForNFTList from "./Components/Admin/NFTCollection/Detail/NFT/ListView";
 import AdminNFTCollectionNFTAdd from "./Components/Admin/NFTCollection/Detail/NFT/Add";
+import AdminNFTCollectionNFTAddStep1 from "./Components/Admin/NFTCollection/Detail/NFT/Add/Step1View";
+import AdminNFTCollectionNFTAddStep2 from "./Components/Admin/NFTCollection/Detail/NFT/Add/Step2View";
+import AdminNFTCollectionNFTAddStep3 from "./Components/Admin/NFTCollection/Detail/NFT/Add/Step3View";
 import AdminNFTCollectionNFTDetail from "./Components/Admin/NFTCollection/Detail/NFT/Detail";
 import AdminNFTCollectionNFTUpdate from "./Components/Admin/NFTCollection/Detail/NFT/Update";
 import AdminNFTCollectionNFTMint from "./Components/Admin/NFTCollection/Detail/NFT/Mint";
@@ -212,6 +215,21 @@ function AppRoute() {
                     exact
                     path="/admin/collection/:id/nfts/add"
                     element={<AdminNFTCollectionNFTAdd />}
+                  />
+                  <Route
+                    exact
+                    path="/admin/collection/:id/nfts/add/step-1"
+                    element={<AdminNFTCollectionNFTAddStep1 />}
+                  />
+                  <Route
+                    exact
+                    path="/admin/collection/:id/nfts/add/step-2"
+                    element={<AdminNFTCollectionNFTAddStep2 />}
+                  />
+                  <Route
+                    exact
+                    path="/admin/collection/:id/nfts/add/step-3"
+                    element={<AdminNFTCollectionNFTAddStep3 />}
                   />
                   <Route
                     exact

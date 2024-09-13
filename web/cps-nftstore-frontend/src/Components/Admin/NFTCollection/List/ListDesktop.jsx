@@ -45,6 +45,7 @@ function AdminNFTCollectionListDesktop(props) {
           <thead>
             <tr>
               <th>Name</th>
+              <th>Tokens</th>
               <th>Created</th>
               <th>Status</th>
               <th></th>
@@ -57,6 +58,7 @@ function AdminNFTCollectionListDesktop(props) {
                 return (
                   <tr key={`${collection.id}_desktop`}>
                     <td data-label="Name">{collection.name}</td>
+                    <td data-label="Tokens Count">{collection.tokensCount}</td>
                     <td data-label="Created">{collection.createdAt}</td>
                     <td data-label="Status" className="has-text-centered">
                         {collection.status === 1 ? <FontAwesomeIcon className="mdi" icon={faCircleCheck} /> : <FontAwesomeIcon className="mdi" icon={faArchive} />}

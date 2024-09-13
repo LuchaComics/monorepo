@@ -10,11 +10,13 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
+	eth "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/blockchain/eth"
 	pinobj_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/datastore"
 	s_d "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nft/datastore"
 	nftasset_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/datastore"
 	u_d "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/datastore"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/config/constants"
+	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/utils/cryptowrapper"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/utils/httperror"
 )
 
@@ -28,6 +30,8 @@ type NFTCreateRequestIDO struct {
 	Attributes      []*s_d.NFTMetadataAttribute `bson:"attributes" json:"attributes"`             // These are the attributes for the item, which will show up on the OpenSea page for the item. (see below)
 	BackgroundColor string                      `bson:"background_color" json:"background_color"` // Background color of the item on OpenSea. Must be a six-character hexadecimal without a pre-pended #.
 	YoutubeURL      string                      `bson:"youtube_url" json:"youtube_url"`           // A URL to a YouTube video (only used if animation_url is not provided).
+	ToAddress       string                      `bson:"to_address" json:"to_address"`
+	WalletPassword  string                      `bson:"wallet_password" json:"wallet_password"`
 }
 
 func (impl *NFTControllerImpl) validateCreateRequest(dirtyData *NFTCreateRequestIDO) error {
@@ -64,6 +68,12 @@ func (impl *NFTControllerImpl) validateCreateRequest(dirtyData *NFTCreateRequest
 	if dirtyData.BackgroundColor == "" {
 		e["background_color"] = "missing value"
 	}
+	if dirtyData.ToAddress == "" {
+		e["to_address"] = "missing value"
+	}
+	if dirtyData.WalletPassword == "" {
+		e["wallet_password"] = "missing value"
+	}
 
 	if len(e) != 0 {
 		return httperror.NewForBadRequest(&e)
@@ -92,6 +102,8 @@ func (impl *NFTControllerImpl) Create(ctx context.Context, req *NFTCreateRequest
 
 	// Perform our validation and return validation error on any issues detected.
 	if err := impl.validateCreateRequest(req); err != nil {
+		impl.Logger.Warn("validate nft create request",
+			slog.Any("error", err))
 		return nil, err
 	}
 
@@ -134,7 +146,7 @@ func (impl *NFTControllerImpl) Create(ctx context.Context, req *NFTCreateRequest
 
 		//
 		// STEP 2
-		// Fetch related records.
+		// Fetch related records from our database.
 		//
 
 		// DEVELOPER NOTE: We don't need to check if the fetched records exists
@@ -142,17 +154,20 @@ func (impl *NFTControllerImpl) Create(ctx context.Context, req *NFTCreateRequest
 		// animation can be null so we will handle it below.
 		collection, err := impl.NFTCollectionStorer.GetByID(sessCtx, req.CollectionID)
 		if err != nil {
-			impl.Logger.Error("failed get collection by id", slog.Any("error", err))
+			impl.Logger.Error("failed get collection by id",
+				slog.Any("error", err))
 			return nil, err
 		}
 		imageAsset, err := impl.NFTAssetStorer.GetByID(sessCtx, req.ImageID)
 		if err != nil {
-			impl.Logger.Error("failed get NFT asset by id", slog.Any("error", err))
+			impl.Logger.Error("failed get NFT asset by id",
+				slog.Any("error", err))
 			return nil, err
 		}
 		animationAsset, err := impl.NFTAssetStorer.GetByID(sessCtx, req.AnimationID)
 		if err != nil {
-			impl.Logger.Error("failed get NFT asset by id", slog.Any("error", err))
+			impl.Logger.Error("failed get NFT asset by id",
+				slog.Any("error", err))
 			return nil, err
 		}
 
@@ -162,7 +177,7 @@ func (impl *NFTControllerImpl) Create(ctx context.Context, req *NFTCreateRequest
 		// new next available token.
 		//
 
-		// Update our metadata record.
+		// Update our NFT record.
 		nft.TokenID = collection.TokensCount // We are doing this because of our smart-contract.
 		nft.CollectionName = collection.Name
 
@@ -171,11 +186,64 @@ func (impl *NFTControllerImpl) Create(ctx context.Context, req *NFTCreateRequest
 		collection.ModifiedAt = time.Now()
 
 		impl.Logger.Debug("nft collection generated new token id",
-			slog.Uint64("metadata_token_id", nft.TokenID),
+			slog.String("collection_id", nft.CollectionID.String()),
+			slog.Uint64("curr_token_id", nft.TokenID),
 			slog.Uint64("new_token_id", collection.TokensCount))
 
 		//
-		// STEP 3
+		// STEP 4
+		// Decrypt the wallet private key (which is saved in our database in
+		// encrypted form) so we can use the plaintext private key for our
+		// ethereum deploy smart contract operation.
+		//
+
+		plaintextPrivateKey, cryptoErr := cryptowrapper.SymmetricKeyDecryption(collection.WalletEncryptedPrivateKey, req.WalletPassword)
+		if cryptoErr != nil {
+			impl.Logger.Error("failed to decrypt wallet private key",
+				slog.Any("error", cryptoErr))
+			return nil, httperror.NewForBadRequestWithSingleField("wallet_password", "incorrect password used")
+		}
+
+		impl.Logger.Debug("decrypted ethereum wallet private key",
+			slog.String("collection_id", collection.ID.Hex()),
+			slog.Uint64("token_id", nft.TokenID))
+
+		//
+		// STEP 5
+		// Connect to ethereum blockchain network via our node.
+		//
+
+		eth := eth.NewAdapter(impl.Logger)
+		if connectErr := eth.ConnectToNodeAtURL(collection.NodeURL); connectErr != nil {
+			impl.Logger.Error("failed connecting to node",
+				slog.Any("error", connectErr))
+			return nil, httperror.NewForBadRequestWithSingleField("node_url", fmt.Sprintf("connection error: %v", connectErr))
+		}
+
+		//
+		// STEP 6
+		// Execute the `mint` funciton to our smart contract in the ethereum
+		// blockchain network. Afterwords update nft record.
+		//
+
+		if mintErr := eth.Mint(collection.SmartContract, plaintextPrivateKey, collection.SmartContractAddress, req.ToAddress); mintErr != nil {
+			impl.Logger.Error("failed minting",
+				slog.Any("error", mintErr))
+			return nil, mintErr
+		}
+
+		impl.Logger.Debug("successfully minted",
+			slog.String("collection_id", collection.ID.Hex()),
+			slog.Uint64("token_id", nft.TokenID),
+			slog.String("smart_contract_address", collection.SmartContractAddress))
+
+		// Update our database record.
+		nft.MintedToAddress = req.ToAddress
+		nft.ModifiedAt = time.Now()
+		nft.ModifiedFromIPAddress = ipAddress
+
+		//
+		// STEP 7
 		// Update our `image` asset to reference our new NFT metadata record and
 		// therefore our system will not garbage collect this asset. What is
 		// our system doing with garbage collection? Basically if our NFT
@@ -194,10 +262,11 @@ func (impl *NFTControllerImpl) Create(ctx context.Context, req *NFTCreateRequest
 		nft.ImageFilename = imageAsset.Filename
 		nft.ImageCID = imageAsset.CID
 
-		impl.Logger.Debug("image asset set")
+		impl.Logger.Debug("image asset set",
+			slog.Uint64("token_id", nft.TokenID))
 
 		//
-		// STEP 4
+		// STEP 8
 		// Same as above step 3 but do this for `animation_url` if the user
 		// uploaded an animation with this metadata.
 		//
@@ -212,13 +281,15 @@ func (impl *NFTControllerImpl) Create(ctx context.Context, req *NFTCreateRequest
 			nft.AnimationFilename = animationAsset.Filename
 			nft.AnimationCID = animationAsset.CID
 
-			impl.Logger.Debug("animation asset set")
+			impl.Logger.Debug("animation asset set",
+				slog.Uint64("token_id", nft.TokenID))
 		} else {
-			impl.Logger.Debug("animation asset ignored")
+			impl.Logger.Debug("animation asset ignored",
+				slog.Uint64("token_id", nft.TokenID))
 		}
 
 		//
-		// STEP 5
+		// STEP 9
 		// Generate our metadata file in our collection directory and add to
 		// IPFS network. Afterwords keep a record of it.
 		//
@@ -254,7 +325,7 @@ func (impl *NFTControllerImpl) Create(ctx context.Context, req *NFTCreateRequest
 			slog.String("cid", metadataFileCID))
 
 		//
-		// STEP 6
+		// STEP 10
 		// Publish to IPNS.
 		//
 
@@ -284,7 +355,7 @@ func (impl *NFTControllerImpl) Create(ctx context.Context, req *NFTCreateRequest
 			slog.String("ipns_path", nft.FileIPNSPath))
 
 		//
-		// STEP 7
+		// STEP 11
 		// Submit our records for saving in our database.
 		//
 
@@ -319,7 +390,7 @@ func (impl *NFTControllerImpl) Create(ctx context.Context, req *NFTCreateRequest
 			slog.Uint64("token_id", nft.TokenID))
 
 		//
-		// STEP 8
+		// STEP 12
 		// Keep a record of our pinned object for IPFS gateway.
 		//
 

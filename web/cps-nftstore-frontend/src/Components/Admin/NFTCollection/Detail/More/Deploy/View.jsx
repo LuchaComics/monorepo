@@ -311,7 +311,7 @@ function AdminNFTCollectionDetailMoreDeployOperation() {
                        </> : <>
                        <article class="message is-info">
                          <div class="message-body">
-                           <strong><FontAwesomeIcon className="fas" icon={faExclamationCircle} />&nbsp;Sufficient funds:</strong>&nbsp;You have enough funds in {collection.blockchain} wallet to proceed with deployment.
+                           <strong><FontAwesomeIcon className="fas" icon={faCheckCircle} />&nbsp;Sufficient funds:</strong>&nbsp;You have enough funds in {collection.blockchain} wallet to proceed with deployment.
                          </div>
                        </article>
                        </>}

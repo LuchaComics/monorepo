@@ -52,6 +52,9 @@ function AdminNFTCollectionListMobile(props) {
               <strong>Name:</strong>&nbsp;{datum.name}
               <br />
               <br />
+              <strong>Tokens:</strong>&nbsp;{datum.tokensCount}
+              <br />
+              <br />
               <strong>Created:</strong>&nbsp;{datum.createdAt}
               <br />
               <br />

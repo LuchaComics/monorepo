@@ -75,14 +75,6 @@ function AdminNFTCollectionDetailForNFTListDesktop(props) {
                         &nbsp;View
                         </Link>
                         <Link
-                          to={`/admin/collection/${collectionID}/nft/${datum.id}/mint`}
-                          class="button is-small is-success"
-                          type="button"
-                        >
-                        <FontAwesomeIcon className="mdi" icon={faCertificate} />
-                        &nbsp;Mint
-                        </Link>
-                        <Link
                           to={`/admin/collection/${collectionID}/nft/${datum.id}/edit`}
                           class="button is-small is-warning"
                           type="button"

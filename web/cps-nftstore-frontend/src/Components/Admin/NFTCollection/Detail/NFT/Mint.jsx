@@ -363,7 +363,7 @@ function AdminNFTCollectionNFTMint() {
                  </> : <>
                  <article class="message is-info">
                    <div class="message-body">
-                     <strong><FontAwesomeIcon className="fas" icon={faExclamationCircle} />&nbsp;Sufficient funds:</strong>&nbsp;You have enough funds in {collection.blockchain} wallet to proceed with minting.
+                     <strong><FontAwesomeIcon className="fas" icon={faCheckCircle} />&nbsp;Sufficient funds:</strong>&nbsp;You have enough funds in {collection.blockchain} wallet to proceed with minting.
                    </div>
                  </article>
                  </>}
@@ -400,7 +400,7 @@ function AdminNFTCollectionNFTMint() {
                             helpText="Please enter the address to be the owner of the new NFT."
                             onChange={(e) => setToAddress(e.target.value)}
                             isRequired={true}
-                            maxWidth="380px"
+                            maxWidth="425px"
                             disabled={balance != "" && balance <= 0}
                           />
 

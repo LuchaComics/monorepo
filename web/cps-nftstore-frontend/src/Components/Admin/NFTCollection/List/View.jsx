@@ -490,7 +490,7 @@ function AdminNFTCollectionList() {
                       <p class="subtitle">
                         No collections.{" "}
                         <b>
-                          <Link to="/admin/collections/add">
+                          <Link to="/admin/collections/add/step-1">
                             Click here&nbsp;
                             <FontAwesomeIcon
                               className="mdi"

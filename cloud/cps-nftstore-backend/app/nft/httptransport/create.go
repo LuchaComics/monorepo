@@ -1,9 +1,11 @@
 package httptransport
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
-	"log"
+	"io"
+	"log/slog"
 	"net/http"
 	_ "time/tzdata"
 
@@ -12,17 +14,21 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/utils/httperror"
 )
 
-func UnmarshalCreateRequest(ctx context.Context, r *http.Request) (*control.NFTCreateRequestIDO, error) {
+func (h *Handler) unmarshalCreateRequest(ctx context.Context, r *http.Request) (*control.NFTCreateRequestIDO, error) {
 	// Initialize our array which will tenant all the results from the remote server.
 	var requestData control.NFTCreateRequestIDO
 
 	defer r.Body.Close()
 
+	var rawJSON bytes.Buffer
+	teeReader := io.TeeReader(r.Body, &rawJSON) // TeeReader allows you to read the JSON and capture it
+
 	// Read the JSON string and convert it into our golang stuct else we need
 	// to send a `400 Bad Request` errror message back to the client,
-	err := json.NewDecoder(r.Body).Decode(&requestData) // [1]
+	err := json.NewDecoder(teeReader).Decode(&requestData)
 	if err != nil {
-		log.Println(err)
+		h.Logger.Error("failed decoding",
+			slog.Any("error", err))
 		return nil, httperror.NewForSingleField(http.StatusBadRequest, "non_field_error", "payload structure is wrong")
 	}
 
@@ -32,8 +38,10 @@ func UnmarshalCreateRequest(ctx context.Context, r *http.Request) (*control.NFTC
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	payload, err := UnmarshalCreateRequest(ctx, r)
+	payload, err := h.unmarshalCreateRequest(ctx, r)
 	if err != nil {
+		h.Logger.Error("unmarshal create request",
+			slog.Any("error", err))
 		httperror.ResponseError(w, err)
 		return
 	}

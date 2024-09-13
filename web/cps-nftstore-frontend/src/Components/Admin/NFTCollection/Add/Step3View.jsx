@@ -43,6 +43,7 @@ import PageLoadingContent from "../../../Reusable/PageLoadingContent";
 import DataDisplayRowText from "../../../Reusable/DataDisplayRowText";
 import DataDisplayRowRadio from "../../../Reusable/DataDisplayRowRadio";
 import DataDisplayRowCheckbox from "../../../Reusable/DataDisplayRowCheckbox";
+import DataDisplayRowTenant from "../../../Reusable/DataDisplayRowTenant";
 import {
     topAlertMessageState,
     topAlertStatusState,
@@ -370,9 +371,9 @@ function AdminNFTCollectionAddStep3() {
                       </Link>
                     </p>
 
-                    <DataDisplayRowText
+                    <DataDisplayRowTenant
                       label="Tenant"
-                      value={addNFTCollection.tenantName}
+                      tenantID={addNFTCollection.tenantID}
                     />
 
                     <DataDisplayRowText

@@ -240,6 +240,8 @@ export const ADD_NFT_COLLECTION_STATE_DEFAULT = {
   nodeURL: "",
   nodeUrl: "",
   smartContract: "",
+  walletMnemonic: "",
+  walletPassword: "",
   tenantID: "",
   tenantId: "",
   tenantName: "",
@@ -249,5 +251,29 @@ export const ADD_NFT_COLLECTION_STATE_DEFAULT = {
 export const addNFTCollectionState = atom({
   key: "addNFTCollection",
   default: ADD_NFT_COLLECTION_STATE_DEFAULT,
+  effects_UNSTABLE: [persistAtom],
+});
+
+// --- NFT --- //
+
+export const ADD_NFT_STATE_DEFAULT = {
+  collectionID: "",
+  name: "",
+  imageID: "",
+  imageFilename: "",
+  description: "",
+  animationID: "",
+  animationFilename: "",
+  externalURL: "",
+  backgroundColor: "",
+  youtubeURL: "",
+  attributes: [],
+  toAddress: "",
+  walletPassword: "",
+};
+
+export const addNFTState = atom({
+  key: "addNFT",
+  default: ADD_NFT_STATE_DEFAULT,
   effects_UNSTABLE: [persistAtom],
 });

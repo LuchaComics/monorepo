@@ -110,16 +110,6 @@ function AdminNFTCollectionDetailForNFTListMobile(props) {
                   </div>
                   <div class="column">
                     <Link
-                      to={`/admin/collection/${collectionID}/nft/${datum.id}/mint`}
-                      class="button is-small is-success is-fullwidth"
-                      type="button"
-                    >
-                    <FontAwesomeIcon className="mdi" icon={faCertificate} />
-                    &nbsp;Mint
-                    </Link>
-                  </div>
-                  <div class="column">
-                    <Link
                       to={`/admin/collection/${collectionID}/nft/${datum.id}/edit`}
                       class="button is-small is-warning is-fullwidth"
                       type="button"

@@ -353,7 +353,7 @@ function AdminNFTCollectionAddStep1() {
                       placeholder="Text input"
                       value={nodeURL}
                       errorText={errors && errors.nodeURL}
-                      helpText={<>Please enter the url to connect to the blockchain node. For local developers use: <i>http://localhost:8545</i></>}
+                      helpText={<>Please enter the url to connect to the blockchain node. For local developers use: <i>http://ganache:8545</i></>}
                       onChange={(e) => setNodeURL(e.target.value)}
                       isRequired={true}
                       maxWidth="380px"
