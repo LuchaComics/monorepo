@@ -205,6 +205,8 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 		port.Collection.OperationGetWalletBalanceByID(w, r)
 	case n == 5 && p[1] == "v1" && p[2] == "nft-collections" && p[3] == "operations" && p[4] == "deploy-smart-contract" && r.Method == http.MethodPost:
 		port.Collection.OperationDeploySmartContract(w, r)
+	case n == 5 && p[1] == "v1" && p[2] == "nft-collections" && p[3] == "operations" && p[4] == "get-token-uri" && r.Method == http.MethodGet:
+		port.Collection.OperationGetTokenURI(w, r)
 
 	// --- NFT METADATA --- //
 	case n == 3 && p[1] == "v1" && p[2] == "nfts" && r.Method == http.MethodGet:

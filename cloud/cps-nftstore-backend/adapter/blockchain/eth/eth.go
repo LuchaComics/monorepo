@@ -31,7 +31,7 @@ type EthereumAdapter interface {
 	GetBalance(accountAddress string) (*big.Float, error)
 	DeploySmartContract(smartContract, privateKey, baseURI string) (string, error)
 	Mint(toAddress string) error
-	GetTokenURI(tokenId *big.Int) (string, error)
+	GetTokenURI(smartContractAddress string, tokenId uint64) (string, error)
 	Shutdown()
 }
 
@@ -243,8 +243,26 @@ func (e *ethBlockchain) Mint(toAddress string) error {
 	return nil //TODO
 }
 
-func (e *ethBlockchain) GetTokenURI(tokenId *big.Int) (string, error) {
-	return "", nil //TODO
+func (e *ethBlockchain) GetTokenURI(smartContractAddressHex string, tokenId uint64) (string, error) {
+	smartContractAddress := common.HexToAddress(smartContractAddressHex)
+	smartContractInstance, newApiErr := NewApi(smartContractAddress, e.client)
+	if newApiErr != nil {
+		e.logger.Error("An error occurred while establishing a connection with the smart contract",
+			slog.Any("error", newApiErr))
+		return "", newApiErr
+	}
+
+	// Create a new big.Int and set its value using SetUint64
+	tokenIdBigInt := new(big.Int).SetUint64(tokenId)
+
+	// Execute the `GetTokenURI` function from our smart contract which is a
+	// standard function provided by following the ERC-721 standard.
+	tokenUri, err := smartContractInstance.TokenURI(nil, tokenIdBigInt)
+	if err != nil {
+		return "", fmt.Errorf("failed getting token uri: %v", err)
+	}
+
+	return tokenUri, nil
 }
 
 func (e *ethBlockchain) Shutdown() {

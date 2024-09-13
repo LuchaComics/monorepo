@@ -65,10 +65,10 @@ const AdminClientDetailMoreDesktop = ({ collection }) => {
                     <>
                         <div className="column">
                           <BubbleLink
-                            title={`Query Token`}
-                            subtitle={`Query the blockchain for our smart contract to query any NFTs that we minted.`}
+                            title={`Query NFT`}
+                            subtitle={`Query a NFT from the blockchain for our smart contract.`}
                             faIcon={faTerminal}
-                            url={`/admin/collection/${collection.id}/more/query-token`}
+                            url={`/admin/collection/${collection.id}/more/query-nft`}
                             bgColour={`has-background-danger-dark`}
                           />
                         </div>
