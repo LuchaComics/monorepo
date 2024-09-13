@@ -4,16 +4,19 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	eth "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/adapter/blockchain/eth"
+	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/config/constants"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/utils/cryptowrapper"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/utils/httperror"
 )
 
 type MintOperationRequestIDO struct {
 	CollectionID   primitive.ObjectID `bson:"collection_id" json:"collection_id"`
+	TokenID        uint64             `bson:"token_id" json:"token_id"`
 	ToAddress      string             `bson:"to_address" json:"to_address"`
 	WalletPassword string             `bson:"wallet_password" json:"wallet_password"`
 }
@@ -42,6 +45,8 @@ func (impl *NFTCollectionControllerImpl) OperationMint(ctx context.Context, req 
 		return valErr
 	}
 
+	ipAddress, _ := ctx.Value(constants.SessionIPAddress).(string)
+
 	//
 	// STEP 1
 	// Fetch all the related records from the database.
@@ -55,6 +60,19 @@ func (impl *NFTCollectionControllerImpl) OperationMint(ctx context.Context, req 
 	}
 	if collection == nil {
 		return httperror.NewForBadRequestWithSingleField("id", "collection does not exist")
+	}
+	nft, err := impl.NFTStorer.GetByTokenID(ctx, req.TokenID)
+	if err != nil {
+		impl.Logger.Error("database get by id error", slog.Any("error", err))
+		return err
+	}
+	if nft == nil {
+		return httperror.NewForBadRequestWithSingleField("id", "nft does not exist")
+	}
+
+	// Validate the collection with token.
+	if nft.TokenID != collection.TokensCount {
+		return httperror.NewForBadRequestWithSingleField("token_id", "this nft token cannot be minted because it is not in the queque to be minted yet")
 	}
 
 	//
@@ -98,6 +116,23 @@ func (impl *NFTCollectionControllerImpl) OperationMint(ctx context.Context, req 
 	impl.Logger.Debug("successfully minted",
 		slog.String("collection_id", collection.ID.Hex()),
 		slog.String("smart_contract_address", collection.SmartContractAddress))
+
+	//
+	// STEP 5
+	// Update our database record.
+	//
+
+	nft.MintedToAddress = req.ToAddress
+	nft.ModifiedAt = time.Now()
+	nft.ModifiedFromIPAddress = ipAddress
+	if err := impl.NFTStorer.UpdateByID(ctx, nft); err != nil {
+		impl.Logger.Error("database get by id error", slog.Any("error", err))
+		return err
+	}
+
+	impl.Logger.Debug("updated nft in database",
+		slog.String("collection_id", collection.ID.Hex()),
+		slog.Uint64("token_id", nft.TokenID))
 
 	return nil
 }

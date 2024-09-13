@@ -19,14 +19,11 @@ func (h *Handler) OperationMint(w http.ResponseWriter, r *http.Request) {
 
 	// Read the JSON string and convert it into our golang stuct else we need
 	// to send a `400 Bad Request` errror message back to the client,
-	err := json.NewDecoder(r.Body).Decode(&requestData) // [1]
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
 		httperror.ResponseError(w, httperror.NewForSingleField(http.StatusBadRequest, "non_field_error", "payload structure is wrong"))
 		return
 	}
-
-	err := h.Controller.OperationMint(ctx, &requestData)
-	if err != nil {
+	if err := h.Controller.OperationMint(ctx, &requestData); err != nil {
 		httperror.ResponseError(w, err)
 		return
 	}

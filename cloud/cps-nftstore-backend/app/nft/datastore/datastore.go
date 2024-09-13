@@ -49,6 +49,7 @@ type NFT struct {
 	YoutubeURL            string                  `bson:"youtube_url" json:"youtube_url"`           // A URL to a YouTube video (only used if animation_url is not provided).
 	FileCID               string                  `bson:"file_cid" json:"file_cid"`
 	FileIPNSPath          string                  `bson:"file_ipns_path" json:"file_ipns_path"` // The path of this metadata file in the IPFS network utilizing IPNS.
+	MintedToAddress       string                  `bson:"minted_to_address" json:"minted_to_address"`
 }
 
 type NFTMetadataFile struct {
@@ -92,9 +93,7 @@ type NFTListResult struct {
 type NFTStorer interface {
 	Create(ctx context.Context, m *NFT) error
 	GetByID(ctx context.Context, id primitive.ObjectID) (*NFT, error)
-	GetByName(ctx context.Context, name string) (*NFT, error)
-	GetByPaymentProcessorPurchaseID(ctx context.Context, paymentProcessorPurchaseID string) (*NFT, error)
-	GetByComicSubmissionID(ctx context.Context, comicSubmissionID primitive.ObjectID) (*NFT, error)
+	GetByTokenID(ctx context.Context, tokenID uint64) (*NFT, error)
 	UpdateByID(ctx context.Context, m *NFT) error
 	ListByFilter(ctx context.Context, m *NFTPaginationListFilter) (*NFTPaginationListResult, error)
 	ListByNFTCollection(ctx context.Context, nftCollectionID primitive.ObjectID) (*NFTPaginationListResult, error)

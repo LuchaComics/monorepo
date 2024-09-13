@@ -13,7 +13,6 @@ import (
 	"math"
 	"math/big"
 
-	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-cli/api"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -325,7 +324,7 @@ func (e *ethBlockchain) Mint(smartContract, privateKey, smartContractAddressHex,
 
 	smartContractAddress := common.HexToAddress(smartContractAddressHex)
 	toAddress := common.HexToAddress(toAddressHex)
-	instance, err := api.NewApi(smartContractAddress, e.client)
+	instance, err := NewApi(smartContractAddress, e.client)
 	if err != nil {
 		log.Fatalf("An error occurred while establishing a connection with the smart contract : %v", err)
 	}
