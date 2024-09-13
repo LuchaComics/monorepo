@@ -31,7 +31,7 @@ func (impl *NFTCollectionControllerImpl) OperationGetTokenURI(ctx context.Contex
 		impl.Logger.Error("failed connecting to node", slog.Any("error", connectErr))
 		return nil, httperror.NewForBadRequestWithSingleField("node_url", fmt.Sprintf("connection error: %v", connectErr))
 	}
-	tokenURI, getErr := eth.GetTokenURI(m.WalletAccountAddress, tokenID)
+	tokenURI, getErr := eth.GetTokenURI(m.SmartContractAddress, tokenID)
 	if getErr != nil {
 		impl.Logger.Error("failed getting balance", slog.Any("error", getErr))
 		return nil, getErr

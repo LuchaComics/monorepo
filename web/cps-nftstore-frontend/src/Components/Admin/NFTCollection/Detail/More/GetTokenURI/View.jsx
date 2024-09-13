@@ -24,7 +24,12 @@ import {
   faBuilding,
   faEllipsis,
   faOperation,
-  faCubes
+  faCubes,
+  faTable,
+  faArrowRight,
+  faRotateBack,
+  faCube,
+  faArrowUpRightFromSquare
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 import { useParams } from "react-router-dom";
@@ -66,6 +71,7 @@ function AdminNFTCollectionDetailMoreGetTokenURIOperation() {
   const [isFetching, setFetching] = useState(false);
   const [forceURL, setForceURL] = useState("");
   const [collection, setCollection] = useState({});
+  const [tokenURI, setTokenURI] = useState("");
 
   // Form submission states.
   const [tokenID, setTokenID] = useState("");
@@ -133,7 +139,8 @@ function AdminNFTCollectionDetailMoreGetTokenURIOperation() {
       setTopAlertMessage("");
     }, 2000);
 
-    setForceURL("/admin/collections");
+    console.log(response);
+    setTokenURI(response.uri)
   }
 
   function onOperationError(apiErr) {
@@ -271,51 +278,103 @@ function AdminNFTCollectionDetailMoreGetTokenURIOperation() {
 
                 {collection && (
                   <div className="container">
-                    <p>
-                      Please all required field(s) before submitting.
-                    </p>
-                    <br />
+                    {tokenURI
+                        ?
+                        <>
+                            <section class="hero is-medium has-background-white-ter">
+                              <div class="hero-body">
+                                <p class="title">
+                                  <FontAwesomeIcon className="fas" icon={faCube} />
+                                  &nbsp;Non-Fungible Token
+                                </p>
+                                <p class="subtitle">
+                                  <b>Token URI:</b>&nbsp;<i>{tokenURI}</i>
+                                </p>
+                                <p>View the token contents from either a <Link target="_blank" rel="noreferrer" to={`${process.env.REACT_APP_API_PROTOCOL}://${process.env.REACT_APP_API_DOMAIN}/${tokenURI}`}>local gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>&nbsp;or&nbsp;
+                                <Link target="_blank" rel="noreferrer" to={`https://ipfs.io${tokenURI}`}>public gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>.</p>
+                              </div>
+                            </section>
 
-                    <FormInputField
-                      label="Token ID"
-                      type="number"
-                      name="tokenID"
-                      placeholder="Text input"
-                      value={tokenID}
-                      errorText={errors && errors.tokenId}
-                      helpText=""
-                      onChange={(e) => setTokenID(e.target.value)}
-                      isRequired={true}
-                      maxWidth="380px"
-                    />
+                            {/* Bottom Navigation */}
+                            <div className="columns pt-5">
+                              <div className="column is-half">
+                                <Link
+                                  className="button is-fullwidth-mobile"
+                                  to={`/admin/collection/${id}/more`}
+                                >
+                                  <FontAwesomeIcon className="fas" icon={faArrowLeft} />
+                                  &nbsp;Back to Detail
+                                </Link>
+                              </div>
+                              <div className="column is-half has-text-right">
+                                <button
+                                  className="button is-success is-fullwidth-mobile"
+                                  onClick={(e)=>{
+                                      setTokenID("");
+                                      setTokenURI("");
+                                  }}
+                                  type="button"
+                                >
+                                  <FontAwesomeIcon
+                                    className="fas"
+                                    icon={faRotateBack}
+                                    type="button"
+                                  />
+                                  &nbsp;Clear Results
+                                </button>
+                              </div>
+                            </div>
+                        </>
+                        :
+                        <>
+                            <p>
+                              Use the following form to lookup the contents of the NFT that was minted for the specific <b>Token ID.</b>
+                            </p>
+                            <br />
 
-                    {/* Bottom Navigation */}
-                    <div className="columns pt-5">
-                      <div className="column is-half">
-                        <Link
-                          className="button is-fullwidth-mobile"
-                          to={`/admin/collection/${id}/more`}
-                        >
-                          <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                          &nbsp;Back to Detail
-                        </Link>
-                      </div>
-                      <div className="column is-half has-text-right">
-                        <button
-                          className="button is-success is-fullwidth-mobile"
-                          onClick={onSubmitClick}
-                          type="button"
-                        >
-                          <FontAwesomeIcon
-                            className="fas"
-                            icon={faCheckCircle}
-                            type="button"
-                          />
-                          &nbsp;Submit
-                        </button>
-                      </div>
+                            <FormInputField
+                              label="Token ID"
+                              type="number"
+                              name="tokenID"
+                              placeholder="Text input"
+                              value={tokenID}
+                              errorText={errors && errors.tokenId}
+                              helpText=""
+                              onChange={(e) => setTokenID(e.target.value)}
+                              isRequired={true}
+                              maxWidth="380px"
+                            />
+
+                            {/* Bottom Navigation */}
+                            <div className="columns pt-5">
+                              <div className="column is-half">
+                                <Link
+                                  className="button is-fullwidth-mobile"
+                                  to={`/admin/collection/${id}/more`}
+                                >
+                                  <FontAwesomeIcon className="fas" icon={faArrowLeft} />
+                                  &nbsp;Back to Detail
+                                </Link>
+                              </div>
+                              <div className="column is-half has-text-right">
+                                <button
+                                  className="button is-success is-fullwidth-mobile"
+                                  onClick={onSubmitClick}
+                                  type="button"
+                                >
+                                  <FontAwesomeIcon
+                                    className="fas"
+                                    icon={faCheckCircle}
+                                    type="button"
+                                  />
+                                  &nbsp;Submit
+                                </button>
+                              </div>
+                            </div>
+
+                        </>
+                    }
                     </div>
-                  </div>
                 )}
               </>
             )}

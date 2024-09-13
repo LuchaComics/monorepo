@@ -134,7 +134,8 @@ func (impl *NFTCollectionControllerImpl) OperationDeploySmartContract(ctx contex
 		//     which will be the `owner` that is able to mint NFTs. You as the
 		//     programmer will have to review the smart contract to verify
 		//     yourself.
-		smartContractAddress, deployErr := eth.DeploySmartContract(collection.SmartContract, plaintextPrivateKey, collection.IPNSName)
+		baseTokenURI := fmt.Sprintf("%v/", collection.IPNSName)
+		smartContractAddress, deployErr := eth.DeploySmartContract(collection.SmartContract, plaintextPrivateKey, baseTokenURI)
 		if deployErr != nil {
 			impl.Logger.Error("failed deploying to ethereum blockchain",
 				slog.Any("error", deployErr))
