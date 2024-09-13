@@ -134,8 +134,10 @@ export const CPS_USER_CHANGE_PASSWORD_OPERATION_API_ENDPOINT =
     HTTP_API_SERVER + "/api/v1/nft-collections/operations/wallet-balance?collection_id={collectionID}";
   export const CPS_NFT_COLLECTION_DEPLOY_SMART_CONTRACT_OPERATION_API_URL =
     HTTP_API_SERVER + "/api/v1/nft-collections/operations/deploy-smart-contract";
-  export const CPS_NFT_COLLECTION_QUERY_NFT_OPERATION_API_URL =
+  export const CPS_NFT_COLLECTION_GET_TOKEN_URI_OPERATION_API_URL =
     HTTP_API_SERVER + "/api/v1/nft-collections/operations/get-token-uri?collection_id={collectionID}&token_id={tokenID}";
+  export const CPS_NFT_COLLECTION_MINT_OPERATION_API_URL =
+      HTTP_API_SERVER + "/api/v1/nft-collections/operations/mint";
 
 // NFT
 export const CPS_NFTS_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/nfts";

@@ -305,20 +305,20 @@ function AdminNFTCollectionDetailMoreDeployOperation() {
                         {balance <= 0 ? <>
                            <article class="message is-danger">
                              <div class="message-body">
-                               <strong><FontAwesomeIcon className="fas" icon={faExclamationCircle} />&nbsp;Not enough coins:</strong>&nbsp;Please add some coins to your {collection.blockchain} wallet before proceeding with deployment.
+                               <strong><FontAwesomeIcon className="fas" icon={faExclamationCircle} />&nbsp;Not enough funds:</strong>&nbsp;Please add some funds to your {collection.blockchain} wallet before proceeding with deployment.
                              </div>
                            </article>
                        </> : <>
                        <article class="message is-info">
                          <div class="message-body">
-                           <strong><FontAwesomeIcon className="fas" icon={faExclamationCircle} />&nbsp;Sufficient coins amount:</strong>&nbsp;You have enough coins in {collection.blockchain} wallet to proceed with deployment.
+                           <strong><FontAwesomeIcon className="fas" icon={faExclamationCircle} />&nbsp;Sufficient funds:</strong>&nbsp;You have enough funds in {collection.blockchain} wallet to proceed with deployment.
                          </div>
                        </article>
                        </>}
                       </>}
                       <div className="container content">
                         <p>
-                          You are about to <b>deploy</b> the smart contract, called <u>{collection.smartContract}</u> in this collection, to the <i>{collection.blockchain} blockchain</i>; as a result, this will cost you coins from your wallet. This action cannot be undone and the smart contract will exist permanently on the blochain.
+                          You are about to <b>deploy</b> the smart contract, called <u>{collection.smartContract}</u> in this collection, to the <i>{collection.blockchain} blockchain</i>; as a result, this will cost you funds from your wallet. This action cannot be undone and the smart contract will exist permanently on the blochain.
                         </p>
                         <p>Before proceeding, it is recommended you have done the following:</p>
                         <ul>

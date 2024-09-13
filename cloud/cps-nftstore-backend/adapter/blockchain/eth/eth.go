@@ -8,10 +8,12 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
+	"log"
 	"log/slog"
 	"math"
 	"math/big"
 
+	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-cli/api"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -30,7 +32,7 @@ type EthereumAdapter interface {
 	NewWalletFromMnemonic(mnemonic string) (*EthereumWallet, error)
 	GetBalance(accountAddress string) (*big.Float, error)
 	DeploySmartContract(smartContract, privateKey, baseURI string) (string, error)
-	Mint(toAddress string) error
+	Mint(smartContract, privateKey, smartContractAddressHex, toAddressHex string) error
 	GetTokenURI(smartContractAddress string, tokenId uint64) (string, error)
 	Shutdown()
 }
@@ -239,8 +241,104 @@ func (e *ethBlockchain) DeploySmartContract(smartContract, privateKey, baseURI s
 	return smartContractAddressHex, nil
 }
 
-func (e *ethBlockchain) Mint(toAddress string) error {
-	return nil //TODO
+func (e *ethBlockchain) Mint(smartContract, privateKey, smartContractAddressHex, toAddressHex string) error {
+	// Defensive code: Make sure the programmer is using only the specified
+	// smart contract or error. This adapter can only support the following
+	// smart contract.
+	if smartContract != "Collectible Protection Service Submissions" {
+		e.logger.Error("wront smart contract used")
+		return fmt.Errorf("unsupported smart contract: %v", smartContract)
+	}
+
+	//
+	// STEP 1
+	// Get our public and wallet address derived from the private key.
+	// Afterwords generate the necessary variables for generating a transaction
+	// request to the blockchain.
+	//
+
+	privateKeyECDSA, convertErr := crypto.HexToECDSA(privateKey)
+	if convertErr != nil {
+		e.logger.Error("failed to convert from hex to ecdsa", slog.Any("error", convertErr))
+		return fmt.Errorf("failed to convert private key value from hex to ecdsa: %v", convertErr)
+	}
+
+	publicKey := privateKeyECDSA.Public()
+	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		e.logger.Error("failed to get public key from private key")
+		return fmt.Errorf("cannot assert type: %v", "publicKey is not of type *ecdsa.PublicKey")
+	}
+
+	// Figure out who we're sending the ETH to, in this case it is our wallet.
+	walletAccountAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
+
+	//
+	// STEP 2
+	// Generate `nounce` for our request to the blockchain.
+	//
+
+	// We need to get the account nonce. Every transaction requires a nonce.
+	// A nonce by definition is a number that is only used once.
+	// Every new transaction from an account must have a nonce that the
+	// previous nonce incremented by 1
+	nonce, nonceErr := e.client.PendingNonceAt(context.Background(), walletAccountAddress)
+	if nonceErr != nil {
+		e.logger.Error("failed getting pending nonce", slog.Any("error", nonceErr))
+		return fmt.Errorf("failed getting pending nonce: %v", nonceErr)
+	}
+
+	//
+	// STEP 3
+	// Generate our actual request to the blockchain.
+	//
+
+	auth := bind.NewKeyedTransactor(privateKeyECDSA)
+	auth.Nonce = big.NewInt(int64(nonce))
+
+	// The next step is to set the amount of ETH that we'll be transferring.
+	// However we must convert ether to wei since that's what the Ethereum
+	// blockchain uses. Ether supports up to 18 decimal places so 1 ETH is 1
+	// plus 18 zeros. Because we are making a request to our smart contract
+	// that doesn't require any payment, so set to zero.
+	auth.Value = big.NewInt(0) // in wei
+
+	// We need to set a gas prices for our transaction; however, gas prices are
+	// always fluctuating based on market demand and what users are willing to
+	// pay, so hardcoding a gas price is sometimes not ideal. The go-ethereum
+	// client provides the `SuggestGasPrice` function for getting the average
+	// gas price based on x number of previous blocks.
+	gasPrice, suggestErr := e.client.SuggestGasPrice(context.Background())
+	if suggestErr != nil {
+		e.logger.Error("failed getting suggested gas price", slog.Any("error", suggestErr))
+		return fmt.Errorf("failed getting suggested gas price: %v", suggestErr)
+	}
+	auth.GasPrice = gasPrice // The gas price must be set in `wei`.
+
+	// The gas limit for a standard ETH transfer measured in `units`.
+	auth.GasLimit = uint64(6000000) // in units
+
+	//
+	// STEP 3
+	// Submit our request to the blockchain.
+	//
+
+	smartContractAddress := common.HexToAddress(smartContractAddressHex)
+	toAddress := common.HexToAddress(toAddressHex)
+	instance, err := api.NewApi(smartContractAddress, e.client)
+	if err != nil {
+		log.Fatalf("An error occurred while establishing a connection with the smart contract : %v", err)
+	}
+
+	tx, err := instance.SafeMint(auth, toAddress)
+	if err != nil {
+		return fmt.Errorf("failed minting: %v", err)
+	}
+
+	// Ignore our transaction.
+	_ = tx
+
+	return nil
 }
 
 func (e *ethBlockchain) GetTokenURI(smartContractAddressHex string, tokenId uint64) (string, error) {

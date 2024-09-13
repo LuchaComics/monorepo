@@ -21,7 +21,10 @@ import {
   faArrowLeft,
   faCube,
   faFile,
-  faCertificate
+  faCertificate,
+  faArrowRight,
+  faMoneyBillAlt,
+  faExclamationCircle
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
@@ -30,6 +33,11 @@ import {
   putNFTUpdateAPI,
   getNFTDetailAPI,
 } from "../../../../../API/NFT";
+import {
+  getCollectionDetailAPI,
+  getCollectionWalletBalanceAPI,
+  postCollectionMintOperationAPI,
+} from "../../../../../API/NFTCollection";
 import FormErrorBox from "../../../../Reusable/FormErrorBox";
 import FormInputField from "../../../../Reusable/FormInputField";
 import FormTextareaField from "../../../../Reusable/FormTextareaField";
@@ -69,14 +77,17 @@ function AdminNFTCollectionNFTMint() {
   //// Component states.
   ////
 
-  // Form state.
+  // GUI related states.
   const [errors, setErrors] = useState({});
   const [isFetching, setFetching] = useState(false);
   const [forceURL, setForceURL] = useState("");
+  const [collection, setCollection] = useState({});
+  const [balance, setBalance] = useState("");
 
-  // Form fields
+  // Form submission states.
   const [tokenID, setTokenID] = useState(0);
-  const [name, setName] = useState("");
+  const [toAddress, setToAddress] = useState("");
+  const [walletPassword, setWalletPassword] = useState("");
 
   ////
   //// Event handling.
@@ -88,14 +99,13 @@ function AdminNFTCollectionNFTMint() {
       setErrors({});
 
       const jsonData = {
-          id: rid,
-          token_id: tokenID,
           collection_id: id,
-          name: name,
+          token_id: tokenID,
+          to_address: toAddress,
+          wallet_password: walletPassword,
       };
 
-    putNFTUpdateAPI(
-      rid,
+    postCollectionMintOperationAPI(
       jsonData,
       onAdminNFTCollectionNFTMintSuccess,
       onAdminNFTCollectionNFTMintError,
@@ -108,6 +118,8 @@ function AdminNFTCollectionNFTMint() {
   ////
   //// API.
   ////
+
+  // --- MINT --- //
 
   function onAdminNFTCollectionNFTMintSuccess(response) {
     // For debugging purposes only.
@@ -160,12 +172,13 @@ function AdminNFTCollectionNFTMint() {
     setFetching(false);
   }
 
+  // --- DETAIL --- //
+
   function onAdminNFTCollectionNFTDetailSuccess(response) {
       // For debugging purposes only.
       console.log("onAdminNFTCollectionNFTDetailSuccess: Starting...");
       console.log("onAdminNFTCollectionNFTDetailSuccess: response:", response);
       setTokenID(response.tokenId);
-      setName(response.name);
   }
 
   function onAdminNFTCollectionNFTDetailError(apiErr) {
@@ -197,6 +210,30 @@ function AdminNFTCollectionNFTMint() {
     setFetching(false);
   }
 
+  // --- BALANCE OPERATION --- //
+
+  function onWalletBalanceSuccess(response) {
+    console.log("onWalletBalanceSuccess: Starting...");
+    console.log("onWalletBalanceSuccess: response:", response);
+    setBalance(response.value);
+  }
+
+  function onWalletBalanceError(apiErr) {
+    console.log("onWalletBalanceError: Starting...");
+    setErrors(apiErr);
+
+    // The following code will cause the screen to scroll to the top of
+    // the page. Please see ``react-scroll`` for more information:
+    // https://github.com/fisshy/react-scroll
+    var scroll = Scroll.animateScroll;
+    scroll.scrollToTop();
+  }
+
+  function onWalletBalanceDone() {
+    console.log("onWalletBalanceDone: Starting...");
+    setFetching(false);
+  }
+
   // --- All --- //
 
   const onUnauthorized = () => {
@@ -219,6 +256,14 @@ function AdminNFTCollectionNFTMint() {
         onAdminNFTCollectionNFTDetailError,
         onAdminNFTCollectionNFTDetailDone,
         onUnauthorized,
+      );
+
+      getCollectionWalletBalanceAPI(
+          id,
+          onWalletBalanceSuccess,
+          onWalletBalanceError,
+          onWalletBalanceDone,
+          onUnauthorized
       );
     }
 
@@ -308,61 +353,108 @@ function AdminNFTCollectionNFTMint() {
               <PageLoadingContent displayMessage={"Submitting..."} />
             ) : (
               <>
-                <FormErrorBox errors={errors} />
-                <div class="container">
-                  <article class="message is-warning">
-                    <div class="message-body">
-                      <strong>Warning:</strong> TODO - implement.
-                    </div>
-                  </article>
+                {balance != "" && <>
+                  {balance <= 0 ? <>
+                     <article class="message is-danger">
+                       <div class="message-body">
+                         <strong><FontAwesomeIcon className="fas" icon={faExclamationCircle} />&nbsp;Not enough funds:</strong>&nbsp;Please add some funds to your {collection.blockchain} wallet before proceeding with deployment.
+                       </div>
+                     </article>
+                 </> : <>
+                 <article class="message is-info">
+                   <div class="message-body">
+                     <strong><FontAwesomeIcon className="fas" icon={faExclamationCircle} />&nbsp;Sufficient funds:</strong>&nbsp;You have enough funds in {collection.blockchain} wallet to proceed with minting.
+                   </div>
+                 </article>
+                 </>}
+                </>}
+                {(balance !== "" && balance <= 0) ?
+                    <>
+                        <section class="hero is-medium has-background-white-ter">
+                          <div class="hero-body">
+                            <p class="title">
+                              <FontAwesomeIcon className="fas" icon={faMoneyBillAlt} />
+                              &nbsp;Not enough funds
+                            </p>
+                            <p class="subtitle">
+                              It appears the wallet account for this smart contract does not have enough funds to mint a token. Please add some funds to the wallent account.
+                            </p>
+                          </div>
+                        </section>
+                    </>
+                    :
+                    <>
+                        <FormErrorBox errors={errors} />
+                        <div class="container content">
 
-                  <FormInputField
-                    label="Name"
-                    name="name"
-                    placeholder="Text input"
-                    value={name}
-                    errorText={errors && errors.name}
-                    helpText=""
-                    onChange={(e) => setName(e.target.value)}
-                    isRequired={true}
-                    maxWidth="150px"
-                  />
+                          <p>
+                            You are about to <b>mint</b> this NFT to the <i>{collection.blockchain} blockchain</i>; as a result, this will cost you funds from your wallet. This action cannot be undone and the NFT will exist permanently on the blochain.
+                          </p>
 
-                  <div class="columns pt-5">
-                    <div class="column is-half">
-                      <Link
-                        to={`/admin/collection/${id}/nft/${rid}`}
-                        class="button is-hidden-touch"
-                      >
-                        <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                        &nbsp;Back
-                      </Link>
-                      <Link
-                        to={`/admin/collection/${id}/nft/${rid}`}
-                        class="button is-fullwidth is-hidden-desktop"
-                      >
-                        <FontAwesomeIcon className="fas" icon={faArrowLeft} />
-                        &nbsp;Back
-                      </Link>
-                    </div>
-                    <div class="column is-half has-text-right">
-                      <button
-                        class="button is-medium is-primary is-hidden-touch"
-                        onClick={onSubmitClick}
-                      >
-                        <FontAwesomeIcon className="fas" icon={faCheckCircle} />
-                        &nbsp;Submit for Minting
-                      </button>
-                      <button
-                        class="button is-medium is-primary is-fullwidth is-hidden-desktop"
-                        onClick={onSubmitClick}
-                      >
-                        <FontAwesomeIcon className="fas" icon={faCheckCircle} />
-                        &nbsp;Submit for Minting
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                          <FormInputField
+                            label="To Address"
+                            name="toAddress"
+                            placeholder="Text input"
+                            value={toAddress}
+                            errorText={errors && errors.toAddress}
+                            helpText="Please enter the address to be the owner of the new NFT."
+                            onChange={(e) => setToAddress(e.target.value)}
+                            isRequired={true}
+                            maxWidth="380px"
+                            disabled={balance != "" && balance <= 0}
+                          />
+
+                          <FormInputField
+                            label="Wallet Password"
+                            type="password"
+                            name="walletPassword"
+                            placeholder="Text input"
+                            value={walletPassword}
+                            errorText={errors && errors.walletPassword}
+                            helpText="Please enter the password you set during NFT collection creation process."
+                            onChange={(e) => setWalletPassword(e.target.value)}
+                            isRequired={true}
+                            maxWidth="380px"
+                            disabled={balance != "" && balance <= 0}
+                          />
+
+                          <div class="columns pt-5">
+                            <div class="column is-half">
+                              <Link
+                                to={`/admin/collection/${id}/nft/${rid}`}
+                                class="button is-hidden-touch"
+                              >
+                                <FontAwesomeIcon className="fas" icon={faArrowLeft} />
+                                &nbsp;Back
+                              </Link>
+                              <Link
+                                to={`/admin/collection/${id}/nft/${rid}`}
+                                class="button is-fullwidth is-hidden-desktop"
+                              >
+                                <FontAwesomeIcon className="fas" icon={faArrowLeft} />
+                                &nbsp;Back
+                              </Link>
+                            </div>
+                            <div class="column is-half has-text-right">
+                              <button
+                                class="button is-medium is-primary is-hidden-touch"
+                                onClick={onSubmitClick}
+                              >
+                                <FontAwesomeIcon className="fas" icon={faCheckCircle} />
+                                &nbsp;Submit for NFT Minting
+                              </button>
+                              <button
+                                class="button is-medium is-primary is-fullwidth is-hidden-desktop"
+                                onClick={onSubmitClick}
+                              >
+                                <FontAwesomeIcon className="fas" icon={faCheckCircle} />
+                                &nbsp;Submit for NFT Minting
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                    </>
+                }
               </>
             )}
           </nav>

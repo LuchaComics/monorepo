@@ -33,6 +33,7 @@ type NFTCollectionController interface {
 	OperationGetWalletBalanceByID(ctx context.Context, id primitive.ObjectID) (*GetWalletBalanceOperationResponseIDO, error)
 	OperationDeploySmartContract(ctx context.Context, req *DeploySmartContractOperationRequestIDO) (*collection_s.NFTCollection, error)
 	OperationGetTokenURI(ctx context.Context, collectionID primitive.ObjectID, tokenID uint64) (*GetTokenURIResponseIDO, error)
+	OperationMint(ctx context.Context, req *MintOperationRequestIDO) error
 }
 
 type NFTCollectionControllerImpl struct {
