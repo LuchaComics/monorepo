@@ -5,16 +5,21 @@ pragma solidity ^0.8.20;
 import "./node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "./node_modules/@openzeppelin/contracts/access/Ownable.sol";
 
-contract CollectibleProtectionServicesToken is ERC721, Ownable {
+contract CollectibleProtectionServiceSubmissions is ERC721, Ownable {
     uint256 private _nextTokenId;
+    string private _baseTokenURI;
 
     constructor(address initialOwner)
-        ERC721("CollectibleProtectionServicesToken", "CPST")
+        ERC721("Collectible Protection Service Submissions", "CPSS")
         Ownable(initialOwner)
     {}
 
-    function _baseURI() internal pure override returns (string memory) {
-        return "ipns://xyz/";
+    function _baseURI() internal view override returns (string memory) {
+        return _baseTokenURI;
+    }
+
+    function setBaseURI(string calldata baseURI) external onlyOwner {
+        _baseTokenURI = baseURI;
     }
 
     function safeMint(address to) public onlyOwner {

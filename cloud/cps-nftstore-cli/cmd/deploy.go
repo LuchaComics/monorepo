@@ -14,7 +14,7 @@ func init() {
 
 var deployCmd = &cobra.Command{
 	Use:   "deploy",
-	Short: "Deploy the `CollectibleProtectionServicesToken` smart contract to the blockchain for the first time.",
+	Short: "Deploy the `CollectibleProtectionServiceSubmissions` smart contract to the blockchain for the first time.",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("deploying...")

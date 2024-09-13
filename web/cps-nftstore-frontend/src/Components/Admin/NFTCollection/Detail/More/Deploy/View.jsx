@@ -149,8 +149,8 @@ function AdminNFTCollectionDetailMoreDeployOperation() {
   function onDeploySuccess(response) {
     console.log("onDeploySuccess: Starting...");
 
-    // Add a temporary banner message in the app and then clear itself after 2 seconds.
-    setTopAlertMessage("Collection archived");
+    // Add a temporary banner message in the app and then clear itself after 4 seconds.
+    setTopAlertMessage("Collection deployed");
     setTopAlertStatus("success");
     setTimeout(() => {
       console.log("onSuccess: Delayed for 2 seconds.");
@@ -160,7 +160,7 @@ function AdminNFTCollectionDetailMoreDeployOperation() {
         topAlertStatus,
       );
       setTopAlertMessage("");
-    }, 2000);
+    }, 4000);
 
     setForceURL("/admin/collection/" + id + "/more");
   }

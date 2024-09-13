@@ -14,7 +14,7 @@ func init() {
 
 var balanceCmd = &cobra.Command{
 	Use:   "balance",
-	Short: "Deploy the `CollectibleProtectionServicesToken` smart contract to the blockchain for the first time.",
+	Short: "Deploy the `CollectibleProtectionServiceSubmissions` smart contract to the blockchain for the first time.",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		adapter := eth.NewAdapter(cliConfig)

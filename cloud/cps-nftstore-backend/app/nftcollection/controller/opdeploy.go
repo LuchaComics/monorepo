@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -54,7 +55,7 @@ func (impl *NFTCollectionControllerImpl) OperationDeploySmartContract(ctx contex
 	// tenantID, _ := ctx.Value(constants.SessionUserTenantID).(primitive.ObjectID)
 	// tenantName, _ := ctx.Value(constants.SessionUserTenantName).(string)
 	// tenantTimezone, _ := ctx.Value(constants.SessionUserTenantTimezone).(string)
-	// ipAddress, _ := ctx.Value(constants.SessionIPAddress).(string)
+	ipAddress, _ := ctx.Value(constants.SessionIPAddress).(string)
 
 	// Check if the user has the necessary permissions
 	switch userRole {
@@ -133,10 +134,34 @@ func (impl *NFTCollectionControllerImpl) OperationDeploySmartContract(ctx contex
 		//     which will be the `owner` that is able to mint NFTs. You as the
 		//     programmer will have to review the smart contract to verify
 		//     yourself.
-		if deployErr := eth.DeploySmartContract(collection.SmartContract, plaintextPrivateKey); deployErr != nil {
-			impl.Logger.Error("failed deploying to ethereum blockchain", slog.Any("error", deployErr))
+		smartContractAddress, deployErr := eth.DeploySmartContract(collection.SmartContract, plaintextPrivateKey, collection.IPNSName)
+		if deployErr != nil {
+			impl.Logger.Error("failed deploying to ethereum blockchain",
+				slog.Any("error", deployErr))
 			return nil, httperror.NewForBadRequestWithSingleField("deployment_error", fmt.Sprintf("failed deploying: %v", deployErr))
 		}
+
+		impl.Logger.Debug("successfully deploy smart contract to blockchain",
+			slog.String("collection_id", collection.ID.Hex()),
+			slog.String("smart_contract_address", smartContractAddress))
+
+		//
+		// STEP 5
+		// Update our database record.
+		//
+
+		collection.SmartContractAddress = smartContractAddress
+		collection.SmartContractStatus = collection_s.SmartContractStatusDeployed
+		collection.ModifiedAt = time.Now()
+		collection.ModifiedFromIPAddress = ipAddress
+
+		if updateErr := impl.NFTCollectionStorer.UpdateByID(ctx, collection); updateErr != nil {
+			impl.Logger.Error("database update by id error", slog.Any("error", updateErr))
+			return nil, updateErr
+		}
+
+		impl.Logger.Debug("collection updated in database",
+			slog.String("collection_id", collection.ID.Hex()))
 
 		return collection, nil
 	}
