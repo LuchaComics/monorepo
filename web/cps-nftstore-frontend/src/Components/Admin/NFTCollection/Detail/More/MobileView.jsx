@@ -78,12 +78,12 @@ const AdminClientDetailMoreMobile = ({ collection }) => {
               <tr>
                 <td>
                   <FontAwesomeIcon className="fas" icon={faTerminal} />
-                  &nbsp;Query NFT
+                  &nbsp;Get Token URI
                 </td>
                 <td>
                   <div className="buttons is-right">
                     <Link
-                      to={`/admin/collection/${collection.id}/more/query-nft`}
+                      to={`/admin/collection/${collection.id}/more/get-token-uri`}
                       className="is-small"
                     >
                       View&nbsp;

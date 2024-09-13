@@ -60,8 +60,8 @@ function AdminNFTCollectionListDesktop(props) {
                     <td data-label="Name">{collection.name}</td>
                     <td data-label="Tokens Count">{collection.tokensCount}</td>
                     <td data-label="Created">{collection.createdAt}</td>
-                    <td data-label="Status" className="has-text-centered">
-                        {collection.status === 1 ? <FontAwesomeIcon className="mdi" icon={faCircleCheck} /> : <FontAwesomeIcon className="mdi" icon={faArchive} />}
+                    <td data-label="Status">
+                        {collection.status === 1 ? <><FontAwesomeIcon className="mdi" icon={faCircleCheck} />&nbsp;Active</> : <><FontAwesomeIcon className="mdi" icon={faArchive} />&nbsp;Archived</>}
                     </td>
                     <td class="is-actions-cell">
                       <div class="buttons is-right">

@@ -221,7 +221,7 @@ function AdminNFTCollectionDetailMoreGetTokenURIOperation() {
               <li className="is-active">
                 <Link aria-current="page">
                   <FontAwesomeIcon className="fas" icon={faTerminal} />
-                  &nbsp;Query NFT
+                  &nbsp;Get Token URI
                 </Link>
               </li>
             </ul>
@@ -261,7 +261,7 @@ function AdminNFTCollectionDetailMoreGetTokenURIOperation() {
                 <div className="column">
                   <p className="title is-4">
                     <FontAwesomeIcon className="fas" icon={faTerminal} />
-                    &nbsp;Query NFT
+                    &nbsp;Get Token URI
                   </p>
                 </div>
                 <div className="column has-text-right"></div>

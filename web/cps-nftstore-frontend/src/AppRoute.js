@@ -200,7 +200,7 @@ function AppRoute() {
                   />
                   <Route
                     exact
-                    path="/admin/collection/:id/more/query-nft"
+                    path="/admin/collection/:id/more/get-token-uri"
                     element={<AdminNFTCollectionDetailMoreGetTokenURIOperation />}
                   />
 
