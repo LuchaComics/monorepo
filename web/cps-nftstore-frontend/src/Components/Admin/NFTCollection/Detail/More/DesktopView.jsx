@@ -31,7 +31,8 @@ import {
   faBoxOpen,
   faTrashCan,
   faHomeCollection,
-  faRocket
+  faRocket,
+  faTerminal
 } from "@fortawesome/free-solid-svg-icons";
 
 import BubbleLink from "../../../../Reusable/EveryPage/BubbleLink";
@@ -48,17 +49,31 @@ const AdminClientDetailMoreDesktop = ({ collection }) => {
           <div className="container">
             <div className="columns is-vcentered is-multiline">
               {/* ---------------------------------------------------------------------- */}
-              {collection.smartContractStatus === 1 && (
-                <div className="column">
-                  <BubbleLink
-                    title={`Deploy`}
-                    subtitle={`Deploy smart contract to blockchain.`}
-                    faIcon={faRocket}
-                    url={`/admin/collection/${collection.id}/more/deploy`}
-                    bgColour={`has-background-danger-dark`}
-                  />
-                </div>
-              )}
+              {collection.smartContractStatus === 1 ? (
+                <>
+                    <div className="column">
+                      <BubbleLink
+                        title={`Deploy`}
+                        subtitle={`Deploy smart contract to blockchain.`}
+                        faIcon={faRocket}
+                        url={`/admin/collection/${collection.id}/more/deploy`}
+                        bgColour={`has-background-danger-dark`}
+                      />
+                    </div>
+                </>
+                ) : (
+                    <>
+                        <div className="column">
+                          <BubbleLink
+                            title={`Query Token`}
+                            subtitle={`Query the blockchain for our smart contract to query any NFTs that we minted.`}
+                            faIcon={faTerminal}
+                            url={`/admin/collection/${collection.id}/more/query-token`}
+                            bgColour={`has-background-danger-dark`}
+                          />
+                        </div>
+                    </>
+                )}
               {/* ---------------------------------------------------------------------- */}
             </div>
           </div>

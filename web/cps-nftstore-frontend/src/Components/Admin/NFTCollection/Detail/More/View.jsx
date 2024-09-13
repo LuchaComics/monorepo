@@ -249,39 +249,15 @@ function AdminNFTCollectionDetailMore() {
                       </ul>
                     </div>
 
-                    {collection.smartContractStatus === 1 ? (
-                        <>
-                            <AdminNFTCollectionDetailMoreDesktop
-                              collection={collection}
-                            />
-                            <AdminNFTCollectionDetailMoreMobile
-                              collection={collection}
-                              currentCollection={currentCollection}
-                            />
-                        </>
-                    ) : (
-                        <section class="hero is-medium has-background-white-ter">
-                          <div class="hero-body">
-                            <p class="title">
-                              <FontAwesomeIcon className="fas" icon={faHammer} />
-                              &nbsp;Ready for minting
-                            </p>
-                            <p class="subtitle">
-                              Your NFT collection is now running on the ethereum blockchain and you are ready to start minting NFTs!{" "}
-                              <b>
-                                <Link to={`/admin/collection/${id}/nfts/add`}>
-                                  Click here&nbsp;
-                                  <FontAwesomeIcon
-                                    className="mdi"
-                                    icon={faArrowRight}
-                                  />
-                                </Link>
-                              </b>{" "}
-                              to get started creating your first NFT collection.
-                            </p>
-                          </div>
-                        </section>
-                    )}
+                    <>
+                        <AdminNFTCollectionDetailMoreDesktop
+                          collection={collection}
+                        />
+                        <AdminNFTCollectionDetailMoreMobile
+                          collection={collection}
+                          currentCollection={currentCollection}
+                        />
+                    </>
 
                     {/* Bottom Navigation */}
                     <div className="columns pt-5">

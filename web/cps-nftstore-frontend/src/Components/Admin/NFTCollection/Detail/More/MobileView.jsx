@@ -31,7 +31,8 @@ import {
   faBoxOpen,
   faTrashCan,
   faHomeCollection,
-  faRocket
+  faRocket,
+  faTerminal
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 import { useParams } from "react-router-dom";
@@ -55,23 +56,43 @@ const AdminClientDetailMoreMobile = ({ collection }) => {
           </thead>
           <tbody>
             {/* ---------------------------------------------------------------------- */}
-            {collection.smartContractStatus === 1 && <tr>
-              <td>
-                <FontAwesomeIcon className="fas" icon={faRocket} />
-                &nbsp;Deploy
-              </td>
-              <td>
-                <div className="buttons is-right">
-                  <Link
-                    to={`/admin/collection/${collection.id}/more/deploy`}
-                    className="is-small"
-                  >
-                    View&nbsp;
-                    <FontAwesomeIcon className="mdi" icon={faChevronRight} />
-                  </Link>
-                </div>
-              </td>
-            </tr>}
+            {collection.smartContractStatus === 1 ? <>
+                <tr>
+                  <td>
+                    <FontAwesomeIcon className="fas" icon={faRocket} />
+                    &nbsp;Deploy
+                  </td>
+                  <td>
+                    <div className="buttons is-right">
+                      <Link
+                        to={`/admin/collection/${collection.id}/more/deploy`}
+                        className="is-small"
+                      >
+                        View&nbsp;
+                        <FontAwesomeIcon className="mdi" icon={faChevronRight} />
+                      </Link>
+                    </div>
+                  </td>
+                </tr>
+            </> : <>
+              <tr>
+                <td>
+                  <FontAwesomeIcon className="fas" icon={faTerminal} />
+                  &nbsp;Query Token
+                </td>
+                <td>
+                  <div className="buttons is-right">
+                    <Link
+                      to={`/admin/collection/${collection.id}/more/query-token`}
+                      className="is-small"
+                    >
+                      View&nbsp;
+                      <FontAwesomeIcon className="mdi" icon={faChevronRight} />
+                    </Link>
+                  </div>
+                </td>
+              </tr>
+            </>}
             {/* ---------------------------------------------------------------------- */}
 
           </tbody>
