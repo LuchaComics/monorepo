@@ -174,7 +174,7 @@ function AdminDashboard() {
                   </Link>
                   <br />
                   <br />
-                  <Link to={"/admin/collections/add"}>
+                  <Link to={"/admin/collections/add/step-1"}>
                     Add&nbsp;
                     <FontAwesomeIcon className="fas" icon={faArrowRight} />
                   </Link>
