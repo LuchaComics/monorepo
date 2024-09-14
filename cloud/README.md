@@ -1,4 +1,4 @@
-# ☁️ Cloud / Backend Web-Services
+# ☁️ Backend Web-Services
 
 This folder contains all the backend projects that are open sourced by [Lucha Comics](https://github.com/LuchaComics). Here are their details:
 
