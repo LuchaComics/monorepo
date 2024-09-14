@@ -21,5 +21,9 @@ data
 .env.production
 .env.qa
 
+# Do not share our mongodb backups
+dump
+dump/*
+
 # Do not share some templates
 static/Pedigree.pdf
