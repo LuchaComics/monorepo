@@ -3,7 +3,7 @@ import { Link, Navigate } from "react-router-dom";
 import Scroll from "react-scroll";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faTrashCan,
+  faBox,
   faTasks,
   faTachometer,
   faPlus,
@@ -313,8 +313,8 @@ function AdminTenantDetail() {
                     class="button is-small is-danger is-fullwidth-mobile"
                     type="button"
                   >
-                    <FontAwesomeIcon className="mdi" icon={faTrashCan} />
-                    &nbsp;Delete
+                    <FontAwesomeIcon className="mdi" icon={faBox} />
+                    &nbsp;Archive
                   </button>
                 </div>
               </div>
