@@ -10,6 +10,8 @@ The purpose of this project is to provide NFT minting for the **Collectible Prot
 
 * Manage NFTs
 
+* Mint NFTs via **"Collectible Protection Service Submissions"** smart contract
+
 * Handles file uploads to IPFS to get `cid` values.
 
 * Handles `IPNS`
@@ -17,15 +19,18 @@ The purpose of this project is to provide NFT minting for the **Collectible Prot
 ## Installation
 
 1. Download and install the following onto your computer before proceeding:
-  * Golang
-  * Taskfile
-  * Node
-  * Docker
+  * [git](https://git-scm.com/downloads)
+  * [Golang](https://go.dev/dl/)
+  * [Taskfile](https://taskfile.dev/installation/)
+  * [Node](https://nodejs.org/en/download/package-manager)
+  * [Docker](https://www.docker.com/products/docker-desktop/)
 
 2. Go to your `~/go/src/github.com` folder and clone this monorepo.
 
     ```shell
     cd ~/go/src/github.com
+    mkdir LuchaComics
+    cd LuchaComics
     git clone git@github.com:LuchaComics/monorepo.git
     ```
 
@@ -43,9 +48,11 @@ The purpose of this project is to provide NFT minting for the **Collectible Prot
     docker-compose -p cps_nftstore_backend -f docker-compose.yml up
     ```
 
+6. Congratulations, the backend is running, now please go to the [`cps-nftstore-frontend`](../../web/cps-nftstore-frontend) repository and startup the frontend to access this backend via the web-browser.
+
 ## Documentation
 
-TODO
+See the [**Documentation**](/docs) folder.
 
 ## Contributing
 
