@@ -1,8 +1,8 @@
-# Collectible Protection Services NFT Store
+# Collectible Protection Services NFT Store (Backend)
 
 **Project still under active development - use at your own risk**
 
-The purpose of this project is to provide NFT minting for the **Collectible Protection Services Submission Token** NFT.
+The purpose of this project is to provide NFT collection management and NFT minting **backend services** using the  **Collectible Protection Service Submissions** NFT for [Collectible Protection Service](https://cpscapsule.com). This backend has a GUI, accessible via web-browser, through the frontend project found in the [`cps-nftstore-frontend`](../../web/cps-nftstore-frontend) repository.
 
 ## Features
 
@@ -25,13 +25,14 @@ The purpose of this project is to provide NFT minting for the **Collectible Prot
   * [Node](https://nodejs.org/en/download/package-manager)
   * [Docker](https://www.docker.com/products/docker-desktop/)
 
-2. Go to your `~/go/src/github.com` folder and clone this monorepo.
+2. Go to your `~/go/src/github.com` folder and clone this monorepo. Then go to the backend project.
 
     ```shell
     cd ~/go/src/github.com
     mkdir LuchaComics
     cd LuchaComics
     git clone git@github.com:LuchaComics/monorepo.git
+    cd ./monorepo/cloud/cps-nftstore-backend
     ```
 
 3. Duplicate the provided sample environment variables of the project.
