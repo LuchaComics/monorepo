@@ -129,7 +129,7 @@ services:
     stdin_open: true
     build:
       context: .
-      dockerfile: ./ganache.Dockerfile
+      dockerfile: ./ganache-cli.Dockerfile
     restart: unless-stopped
     ports:
       - "8545:8545"
