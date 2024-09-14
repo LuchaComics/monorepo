@@ -10,11 +10,11 @@ The purpose of this project is to provide NFT minting for the **Collectible Prot
 
 * Manage NFTs
 
-* Mint NFTs via **"Collectible Protection Service Submissions"** smart contract
+* Mint NFTs via **"Collectible Protection Service Submissions"** smart contract which dynamic and has no tokens limit
 
-* Handles file uploads to IPFS to get `cid` values.
+* Automatically handles file uploads to IPFS to get `cid` values for pinning.
 
-* Handles `IPNS`
+* Automatically handles `IPNS` management for each NFT collection used.
 
 ## Installation
 
@@ -52,7 +52,7 @@ The purpose of this project is to provide NFT minting for the **Collectible Prot
 
 ## Documentation
 
-See the [**Documentation**](/docs) folder.
+See the [**Documentation**](./docs) folder.
 
 ## Contributing
 
