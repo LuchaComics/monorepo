@@ -364,72 +364,6 @@ function AdminTenantDetail() {
                     />
 
                     <p class="subtitle is-6">
-                      <FontAwesomeIcon className="fas" icon={faChartPie} />
-                      &nbsp;Metrics
-                    </p>
-                    <hr />
-
-                    <FormTextOptionRow
-                      label="How many comic books are you planning to submit to us per month?"
-                      selectedValue={tenant.estimatedSubmissionsPerMonth}
-                      options={
-                        ESTIMATED_SUBMISSION_PER_MONTH_WITH_EMPTY_OPTIONS
-                      }
-                    />
-
-                    <FormTextChoiceRow
-                      label="Are you currently submitting to any other grading companies?"
-                      value={tenant.hasOtherGradingService}
-                      opt1Value={1}
-                      opt1Label="Yes"
-                      opt2Value={2}
-                      opt2Label="No"
-                    />
-
-                    {tenant.hasOtherGradingService === 1 && (
-                      <FormRowText
-                        label="Other Grading Service Name"
-                        value={tenant.otherGradingServiceName}
-                        helpText=""
-                      />
-                    )}
-
-                    <FormTextChoiceRow
-                      label="Would you like to receive a welcome package? This package includes promotional items and tools to help you improve your submissions, as well as our service terms and conditions.?"
-                      value={tenant.requestWelcomePackage}
-                      opt1Value={1}
-                      opt1Label="Yes"
-                      opt2Value={2}
-                      opt2Label="No"
-                    />
-
-                    <FormTextOptionRow
-                      label="How long has your tenant been operating for?"
-                      selectedValue={tenant.howLongTenantOperating}
-                      options={
-                        HOW_LONG_HAS_YOUR_STORE_BEEN_OPERATING_FOR_WITH_EMPTY_OPTIONS
-                      }
-                    />
-
-                    <FormRowText
-                      label="Tell us about your level of experience with grading comics? (Optional)"
-                      value={tenant.gradingComicsExperience}
-                      helpText=""
-                    />
-
-                    <FormRowText
-                      label="Please describe how you could become a good retail partner for CPS"
-                      value={tenant.retailPartnershipReason}
-                      helpText=""
-                    />
-
-                    <FormRowText
-                      label="Please describe how CPS could help you grow your business"
-                      value={tenant.cpsPartnershipReason}
-                      helpText=""
-                    />
-
-                    <p class="subtitle is-6">
                       <FontAwesomeIcon className="fas" icon={faCogs} />
                       &nbsp;Settings
                     </p>
@@ -448,18 +382,6 @@ function AdminTenantDetail() {
                       opt4Label="Error"
                       opt5Value={5}
                       opt5Label="Archived"
-                    />
-
-                    <FormTextOptionRow
-                      label="Level"
-                      selectedValue={tenant.level}
-                      options={ORGANIZATION_LEVEL_WITH_EMPTY_OPTIONS}
-                    />
-
-                    <FormTextOptionRow
-                      label="Special Collection"
-                      selectedValue={tenant.specialCollection}
-                      options={USER_SPECIAL_COLLECTION_WITH_EMPTY_OPTIONS}
                     />
 
                     <FormRowText
