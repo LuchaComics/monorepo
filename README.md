@@ -4,8 +4,8 @@ The purpose of this repository is to store all the open-source software develope
 
 This repository is organized in the following major folders:
 
-* ☁️ [`cloud`](./cloud) - Contains all backend web-services related projects.
-* 🌎[`web`](./web) - Contains all frontend related projects.
+* [`cloud`](./cloud/README.md) - Contains all backend web-services related projects.
+* [`web`](./web/README.md) - Contains all frontend related projects.
 
 ## 🤝 Contributing
 
