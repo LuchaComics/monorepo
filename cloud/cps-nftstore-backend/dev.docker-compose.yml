@@ -133,6 +133,8 @@ services:
     restart: unless-stopped
     ports:
       - "8545:8545"
+    volumes:
+      - ./data/ganache_data:/ganache_data
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
