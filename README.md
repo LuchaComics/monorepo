@@ -1,4 +1,4 @@
-# 🏢 Collectible Protection Services Monorepo
+# 🏢 Lucha Comics Monorepo
 
 The purpose of this repository is to store all the open-source software developed (or currently developing) by [Lucha Comics](https://github.com/LuchaComics).
 
