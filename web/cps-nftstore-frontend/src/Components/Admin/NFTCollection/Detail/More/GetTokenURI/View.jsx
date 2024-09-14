@@ -127,7 +127,7 @@ function AdminNFTCollectionDetailMoreGetTokenURIOperation() {
     console.log("onOperationSuccess: Starting...");
 
     // Add a temporary banner message in the app and then clear itself after 2 seconds.
-    setTopAlertMessage("Collection archived");
+    setTopAlertMessage("Queried blockchain successfully");
     setTopAlertStatus("success");
     setTimeout(() => {
       console.log("onSuccess: Delayed for 2 seconds.");
@@ -290,7 +290,7 @@ function AdminNFTCollectionDetailMoreGetTokenURIOperation() {
                                 <p class="subtitle">
                                   <b>Token URI:</b>&nbsp;<i>{tokenURI}</i>
                                 </p>
-                                <p>View the token contents from either a <Link target="_blank" rel="noreferrer" to={`${process.env.REACT_APP_API_PROTOCOL}://${process.env.REACT_APP_API_DOMAIN}/${tokenURI}`}>local gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>&nbsp;or&nbsp;
+                                <p>View this token contents from either a <Link target="_blank" rel="noreferrer" to={`${process.env.REACT_APP_API_PROTOCOL}://${process.env.REACT_APP_API_DOMAIN}/${tokenURI}`}>local gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>&nbsp;or a&nbsp;
                                 <Link target="_blank" rel="noreferrer" to={`https://ipfs.io${tokenURI}`}>public gateway&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link>.</p>
                               </div>
                             </section>
