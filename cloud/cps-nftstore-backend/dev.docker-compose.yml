@@ -108,20 +108,21 @@ services:
       - ./data/ipfs:/ipfs
       - ./data/ipfs:/ipns
     environment:
+      - IPFS_PROFILE=server
       - IPFS_PATH=/data/ipfs
     ports:
       - "4001:4001" # default libp2p swarm port - should be open to public for all nodes if possible
-      - "5001:5001" # API port - provides write/admin access to the node, shouldn't be exposed at all
-      - "8080:8080" # Gateway + read only API subset - quite safe to expose, but operating public gateway may still be a risk in some ways
+     # - "5001:5001" # API port - provides write/admin access to the node, shouldn't be exposed at all
+     # - "8080:8080" # Gateway + read only API subset - quite safe to expose, but operating public gateway may still be a risk in some ways
 
       # The following ports only listen on the loopback interface, so are not remotely reachable by default.
       # If you want to override these or add more ports, see https://docs.docker.com/compose/extends/ .
 
       # API port, which includes admin operations, so you probably don't want this remotely accessible.
-      #- 127.0.0.1:5001:5001
+      - 127.0.0.1:5001:5001
 
       # HTTP Gateway
-      #- 127.0.0.1:8080:8080
+      - 127.0.0.1:8080:8080
 
   # Ethereum testnet for developer purposes.
   ganache:
