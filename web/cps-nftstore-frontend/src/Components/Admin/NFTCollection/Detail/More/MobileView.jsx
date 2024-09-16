@@ -92,6 +92,23 @@ const AdminClientDetailMoreMobile = ({ collection }) => {
                   </div>
                 </td>
               </tr>
+              <tr>
+                <td>
+                  <FontAwesomeIcon className="fas" icon={faTerminal} />
+                  &nbsp;Backup
+                </td>
+                <td>
+                  <div className="buttons is-right">
+                    <Link
+                      to={`/admin/collection/${collection.id}/more/backup`}
+                      className="is-small"
+                    >
+                      View&nbsp;
+                      <FontAwesomeIcon className="mdi" icon={faChevronRight} />
+                    </Link>
+                  </div>
+                </td>
+              </tr>
             </>}
             {/* ---------------------------------------------------------------------- */}
 

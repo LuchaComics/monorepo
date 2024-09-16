@@ -137,7 +137,11 @@ export const CPS_USER_CHANGE_PASSWORD_OPERATION_API_ENDPOINT =
   export const CPS_NFT_COLLECTION_GET_TOKEN_URI_OPERATION_API_URL =
     HTTP_API_SERVER + "/api/v1/nft-collections/operations/get-token-uri?collection_id={collectionID}&token_id={tokenID}";
   export const CPS_NFT_COLLECTION_MINT_OPERATION_API_URL =
-      HTTP_API_SERVER + "/api/v1/nft-collections/operations/mint";
+    HTTP_API_SERVER + "/api/v1/nft-collections/operations/mint";
+  export const CPS_NFT_COLLECTION_JSON_BACKUP_OPERATION_API_ENDPOINT =
+    HTTP_API_SERVER + "/api/v1/nft-collections/operations/backup/json";
+  export const CPS_NFT_COLLECTION_XML_BACKUP_OPERATION_API_ENDPOINT =
+    HTTP_API_SERVER + "/api/v1/nft-collections/operations/backup/xml";
 
 // NFT
 export const CPS_NFTS_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/nfts";

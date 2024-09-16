@@ -62,7 +62,7 @@ func (c *NFTCollectionControllerImpl) UpdateByID(ctx context.Context, ns *domain
 }
 
 func (c *NFTCollectionControllerImpl) UpdateRelatedMetadata(ctx context.Context, ns *domain.NFTCollection) error {
-	res, listErr := c.NFTStorer.ListByNFTCollection(ctx, ns.ID)
+	res, listErr := c.NFTStorer.ListByNFTCollectionID(ctx, ns.ID)
 	if listErr != nil {
 		c.Logger.Error("database list by nft collection error", slog.Any("error", listErr))
 		return listErr

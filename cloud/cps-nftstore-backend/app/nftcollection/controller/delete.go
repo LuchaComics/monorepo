@@ -26,7 +26,7 @@ func (impl *NFTCollectionControllerImpl) DeleteByID(ctx context.Context, id prim
 	// from the database.
 	//
 
-	metadataRes, listErr := impl.NFTStorer.ListByNFTCollection(ctx, id)
+	metadataRes, listErr := impl.NFTStorer.ListByNFTCollectionID(ctx, id)
 	if listErr != nil {
 		impl.Logger.Error("database list by nft collection error", slog.Any("error", listErr))
 		return listErr

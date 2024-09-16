@@ -17,7 +17,9 @@ import {
   CPS_NFT_COLLECTION_CHECK_WALLET_BALANCE_OPERATION_API_URL,
   CPS_NFT_COLLECTION_DEPLOY_SMART_CONTRACT_OPERATION_API_URL,
   CPS_NFT_COLLECTION_GET_TOKEN_URI_OPERATION_API_URL,
-  CPS_NFT_COLLECTION_MINT_OPERATION_API_URL
+  CPS_NFT_COLLECTION_MINT_OPERATION_API_URL,
+  CPS_NFT_COLLECTION_JSON_BACKUP_OPERATION_API_ENDPOINT,
+  CPS_NFT_COLLECTION_XML_BACKUP_OPERATION_API_ENDPOINT
 } from "../Constants/API";
 
 export function getCollectionListAPI(
@@ -644,4 +646,45 @@ export function postCollectionMintOperationAPI(
     .then(onDoneCallback);
 }
 
-//
+
+export function postJSONBackupCollectionAPI(
+  data,
+  onSuccessCallback,
+  onErrorCallback,
+  onDoneCallback,
+  onUnauthorizedCallback,
+) {
+    const axios = getCustomAxios(onUnauthorizedCallback);
+
+    axios
+      .post(CPS_NFT_COLLECTION_JSON_BACKUP_OPERATION_API_ENDPOINT, data, {
+        responseType: 'blob', // Set responseType to blob for file download
+      })
+      .then((successResponse) => {
+        console.log("postJSONBackupCollectionAPI: All response headers:", successResponse.headers);
+
+        const contentDisposition = successResponse.headers['content-disposition'];
+        let filename = "backup.json"; // Default filename fallback
+
+        // Extract filename from Content-Disposition header if available
+        if (contentDisposition && contentDisposition.indexOf('attachment') !== -1) {
+          const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+          if (filenameMatch && filenameMatch.length === 2) {
+            filename = filenameMatch[1];
+          }
+        }
+
+        const contentType = successResponse.headers['content-type'] || 'application/json'; // Default content type
+
+        console.log("contentDisposition:", contentDisposition);
+        console.log("contentType:", contentType);
+
+        // Pass the blob data, filename, and content type to the success callback
+        onSuccessCallback(successResponse.data, filename, contentType);
+      })
+      .catch((exception) => {
+        let errors = camelizeKeys(exception);
+        onErrorCallback(errors);
+      })
+      .then(onDoneCallback);
+}

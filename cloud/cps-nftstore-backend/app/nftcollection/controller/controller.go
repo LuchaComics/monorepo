@@ -34,6 +34,7 @@ type NFTCollectionController interface {
 	OperationDeploySmartContract(ctx context.Context, req *DeploySmartContractOperationRequestIDO) (*collection_s.NFTCollection, error)
 	OperationGetTokenURI(ctx context.Context, collectionID primitive.ObjectID, tokenID uint64) (*GetTokenURIResponseIDO, error)
 	OperationMint(ctx context.Context, req *MintOperationRequestIDO) error
+	OperationBackup(ctx context.Context, req *NFTCollectionBackupOperationRequestIDO) (*NFTCollectionBackupOperationResponseIDO, error)
 }
 
 type NFTCollectionControllerImpl struct {

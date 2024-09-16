@@ -37,6 +37,7 @@ import AdminNFTCollectionNFTAddStep3 from "./Components/Admin/NFTCollection/Deta
 import AdminNFTCollectionNFTDetail from "./Components/Admin/NFTCollection/Detail/NFT/Detail";
 import AdminNFTCollectionNFTUpdate from "./Components/Admin/NFTCollection/Detail/NFT/Update";
 import AdminNFTCollectionNFTMint from "./Components/Admin/NFTCollection/Detail/NFT/Mint";
+import AdminNFTCollectionNFTBackup from "./Components/Admin/NFTCollection/Detail/More/Backup/View";
 
 // Users
 import AdminUserList from "./Components/Admin/User/List/View";
@@ -246,6 +247,12 @@ function AppRoute() {
                     path="/admin/collection/:id/nft/:rid/mint"
                     element={<AdminNFTCollectionNFTMint />}
                   />
+                  <Route
+                    exact
+                    path="/admin/collection/:id/more/backup"
+                    element={<AdminNFTCollectionNFTBackup />}
+                  />
+
 
                   {/* User */}
                   <Route

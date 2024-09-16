@@ -96,7 +96,7 @@ type NFTStorer interface {
 	GetByTokenID(ctx context.Context, tokenID uint64) (*NFT, error)
 	UpdateByID(ctx context.Context, m *NFT) error
 	ListByFilter(ctx context.Context, m *NFTPaginationListFilter) (*NFTPaginationListResult, error)
-	ListByNFTCollection(ctx context.Context, nftCollectionID primitive.ObjectID) (*NFTPaginationListResult, error)
+	ListByNFTCollectionID(ctx context.Context, nftCollectionID primitive.ObjectID) (*NFTPaginationListResult, error)
 	ListAsSelectOptionByFilter(ctx context.Context, f *NFTPaginationListFilter) ([]*NFTAsSelectOption, error)
 	DeleteByID(ctx context.Context, id primitive.ObjectID) error
 	CheckIfExistsByID(ctx context.Context, id primitive.ObjectID) (bool, error)

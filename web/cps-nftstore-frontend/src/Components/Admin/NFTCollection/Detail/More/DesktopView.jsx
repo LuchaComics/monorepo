@@ -72,6 +72,15 @@ const AdminClientDetailMoreDesktop = ({ collection }) => {
                             bgColour={`has-background-danger-dark`}
                           />
                         </div>
+                        <div className="column">
+                          <BubbleLink
+                            title={`Backup`}
+                            subtitle={`Backup everything you need to restore this colleciton.`}
+                            faIcon={faTerminal}
+                            url={`/admin/collection/${collection.id}/more/backup`}
+                            bgColour={`has-background-danger-dark`}
+                          />
+                        </div>
                     </>
                 )}
               {/* ---------------------------------------------------------------------- */}

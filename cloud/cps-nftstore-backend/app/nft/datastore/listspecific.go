@@ -6,7 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (impl NFTStorerImpl) ListByNFTCollection(ctx context.Context, nftCollectionID primitive.ObjectID) (*NFTPaginationListResult, error) {
+func (impl NFTStorerImpl) ListByNFTCollectionID(ctx context.Context, nftCollectionID primitive.ObjectID) (*NFTPaginationListResult, error) {
 	f := &NFTPaginationListFilter{
 		CollectionID:    nftCollectionID,
 		Cursor:          "",
