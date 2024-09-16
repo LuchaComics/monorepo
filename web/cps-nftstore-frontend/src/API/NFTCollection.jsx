@@ -19,7 +19,8 @@ import {
   CPS_NFT_COLLECTION_GET_TOKEN_URI_OPERATION_API_URL,
   CPS_NFT_COLLECTION_MINT_OPERATION_API_URL,
   CPS_NFT_COLLECTION_JSON_BACKUP_OPERATION_API_ENDPOINT,
-  CPS_NFT_COLLECTION_XML_BACKUP_OPERATION_API_ENDPOINT
+  CPS_NFT_COLLECTION_XML_BACKUP_OPERATION_API_ENDPOINT,
+  CPS_NFT_COLLECTION_RESTORE_OPERATION_API_ENDPOINT
 } from "../Constants/API";
 
 export function getCollectionListAPI(
@@ -687,4 +688,49 @@ export function postJSONBackupCollectionAPI(
         onErrorCallback(errors);
       })
       .then(onDoneCallback);
+}
+
+
+export function postNFTCollectionRestoreOperationAPI(
+  filename,
+  mimeType,
+  formdata, // This should be a File object or Blob
+  onSuccessCallback,
+  onErrorCallback,
+  onDoneCallback,
+  onUnauthorizedCallback,
+) {
+    // Defensive code.
+    if (filename === undefined || filename === null || filename === "") {
+      onErrorCallback({"filename": "does not exist: "+filename});
+      return;
+    }
+    if (mimeType === undefined || mimeType === null || mimeType === "") {
+      onErrorCallback({"mimeType": "does not exist: "+mimeType});
+      return;
+    }
+
+  const axios = getCustomAxios(onUnauthorizedCallback);
+
+  axios
+    .post(CPS_NFT_COLLECTION_RESTORE_OPERATION_API_ENDPOINT, formdata, {
+      headers: {
+        "Content-Type": mimeType,
+        "Content-Disposition": `attachment; filename=${filename}`, // Add filename here
+      },
+    })
+    .then((successResponse) => {
+      const responseData = successResponse.data;
+
+      // Snake-case from API to camel-case for React.
+      const data = camelizeKeys(responseData);
+
+      // Return the callback data.
+      onSuccessCallback(data);
+    })
+    .catch((exception) => {
+      let errors = camelizeKeys(exception);
+      onErrorCallback(errors);
+    })
+    .then(onDoneCallback);
 }

@@ -24,6 +24,7 @@ import AdminNFTCollectionList from "./Components/Admin/NFTCollection/List/View";
 import AdminNFTCollectionAddStep1 from "./Components/Admin/NFTCollection/Add/Step1View";
 import AdminNFTCollectionAddStep2 from "./Components/Admin/NFTCollection/Add/Step2View";
 import AdminNFTCollectionAddStep3 from "./Components/Admin/NFTCollection/Add/Step3View";
+import AdminNFTCollectionAddViaBackupfile from "./Components/Admin/NFTCollection/Add/ViaBackupFile";
 import AdminNFTCollectionDetail from "./Components/Admin/NFTCollection/Detail/View";
 import AdminNFTCollectionUpdate from "./Components/Admin/NFTCollection/Update/View";
 import AdminNFTCollectionDetailMore from "./Components/Admin/NFTCollection/Detail/More/View";
@@ -178,6 +179,11 @@ function AppRoute() {
                     exact
                     path="/admin/collections/add/step-3"
                     element={<AdminNFTCollectionAddStep3 />}
+                  />
+                  <Route
+                    exact
+                    path="/admin/collections/add-via-backupfile"
+                    element={<AdminNFTCollectionAddViaBackupfile />}
                   />
                   <Route
                     exact

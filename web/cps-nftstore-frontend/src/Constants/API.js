@@ -142,6 +142,8 @@ export const CPS_USER_CHANGE_PASSWORD_OPERATION_API_ENDPOINT =
     HTTP_API_SERVER + "/api/v1/nft-collections/operations/backup/json";
   export const CPS_NFT_COLLECTION_XML_BACKUP_OPERATION_API_ENDPOINT =
     HTTP_API_SERVER + "/api/v1/nft-collections/operations/backup/xml";
+  export const CPS_NFT_COLLECTION_RESTORE_OPERATION_API_ENDPOINT =
+      HTTP_API_SERVER + "/api/v1/nft-collections/operations/restore";
 
 // NFT
 export const CPS_NFTS_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/nfts";

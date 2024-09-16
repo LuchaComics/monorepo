@@ -11,6 +11,7 @@ import (
 	pinobject_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/datastore"
 	nft_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nft/datastore"
 	nftasset_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftasset/datastore"
+	a_d "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
 	collection_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
 	tenant_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/tenant/datastore"
 	user_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/user/datastore"
@@ -35,6 +36,7 @@ type NFTCollectionController interface {
 	OperationGetTokenURI(ctx context.Context, collectionID primitive.ObjectID, tokenID uint64) (*GetTokenURIResponseIDO, error)
 	OperationMint(ctx context.Context, req *MintOperationRequestIDO) error
 	OperationBackup(ctx context.Context, req *NFTCollectionBackupOperationRequestIDO) (*NFTCollectionBackupOperationResponseIDO, error)
+	OperationRestore(ctx context.Context, req *NFTCollectionOperationRestoreRequestIDO) (*a_d.NFTCollection, error)
 }
 
 type NFTCollectionControllerImpl struct {
