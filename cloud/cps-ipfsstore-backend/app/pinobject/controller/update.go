@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"mime/multipart"
 	"time"
@@ -134,7 +135,7 @@ func (impl *PinObjectControllerImpl) UpdateByRequestID(ctx context.Context, req 
 			os.Filename = req.FileName
 
 			// Upload to IPFS network.
-			_, cid, err := impl.IPFS.UploadMultipart(ctx, req.File, req.FileName, "uploads")
+			_, cid, err := impl.IPFS.UploadMultipart(ctx, req.File, req.FileName, fmt.Sprintf("dir_%v", req.ProjectID.Hex()))
 			if err != nil {
 				impl.Logger.Error("failed uploading to IPFS", slog.Any("error", err))
 				return nil, err

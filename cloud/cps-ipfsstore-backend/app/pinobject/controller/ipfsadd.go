@@ -116,7 +116,7 @@ func (impl *PinObjectControllerImpl) IpfsAdd(ctx context.Context, req *IpfsAddRe
 		}
 
 		// Upload to IPFS network.
-		_, cid, err := impl.IPFS.UploadBytes(ctx, req.Data, req.Filename, "uploads")
+		_, cid, err := impl.IPFS.UploadBytes(ctx, req.Data, req.Filename, fmt.Sprintf("dir_%v", project.ID.Hex()))
 		if err != nil {
 			impl.Logger.Error("failed uploading to IPFS", slog.Any("error", err))
 			return nil, err

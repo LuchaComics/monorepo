@@ -62,8 +62,6 @@ type PinObject struct {
 	Content []byte `bson:"-" json:"content,omitempty"`
 
 	Filename    string `bson:"filename" json:"filename,omitempty"`
-	ObjectKey   string `bson:"object_key" json:"object_key,omitempty"`
-	ObjectURL   string `bson:"object_url" json:"object_url,omitempty"`
 	ContentType int8   `bson:"content_type" json:"content_type,omitempty"`
 
 	TenantID       primitive.ObjectID `bson:"tenant_id,omitempty" json:"tenant_id,omitempty"`

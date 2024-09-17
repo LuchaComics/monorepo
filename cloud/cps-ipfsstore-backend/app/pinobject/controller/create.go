@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"mime/multipart"
 	"time"
@@ -77,7 +78,10 @@ func (impl *PinObjectControllerImpl) Create(ctx context.Context, req *PinObjectC
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
 
 		// Upload to IPFS network.
-		_, cid, err := impl.IPFS.UploadMultipart(ctx, req.File, req.Meta["filename"], "uploads")
+		_, cid, err := impl.IPFS.UploadMultipart(ctx,
+			req.File,
+			req.Meta["filename"],
+			fmt.Sprintf("dir_%v", req.ProjectID.Hex()))
 		if err != nil {
 			impl.Logger.Error("failed uploading to IPFS", slog.Any("error", err))
 			return nil, err
