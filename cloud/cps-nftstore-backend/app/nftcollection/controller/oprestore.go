@@ -3,12 +3,14 @@ package controller
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
+	pinobj_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/ipfsgateway/datastore"
 	a_d "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/utils/httperror"
 )
@@ -91,9 +93,9 @@ func (impl *NFTCollectionControllerImpl) OperationRestore(ctx context.Context, r
 		// we abort with an error.
 		//
 
-		nftCollectionDoesExist, existsErr := impl.NFTCollectionStorer.CheckIfExistsByID(sessCtx, reqPayload.NFTCollection.ID)
-		if existsErr != nil {
-			return nil, existsErr
+		nftCollectionDoesExist, nftColExistsErr := impl.NFTCollectionStorer.CheckIfExistsByID(sessCtx, reqPayload.NFTCollection.ID)
+		if nftColExistsErr != nil {
+			return nil, nftColExistsErr
 		}
 		if nftCollectionDoesExist {
 			return nil, httperror.NewForBadRequestWithSingleField("message", "collection already exists, restoration cancelled")
@@ -129,17 +131,96 @@ func (impl *NFTCollectionControllerImpl) OperationRestore(ctx context.Context, r
 
 		//
 		// STEP 5
-		// Iterate through all the NFT assets and save to the database.
+		// Iterate through all the NFT assets and then (1) save to the database
+		// and (2) pin to IPFS network.
 		//
 
-		// TODO
+		for _, asset := range reqPayload.NFTAssets {
+			assetsDoesExist, aExErr := impl.NFTAssetStorer.CheckIfExistsByID(sessCtx, asset.ID)
+			if aExErr != nil {
+				impl.Logger.Error("failed to check by id in nft assets to database", slog.Any("error", aExErr))
+				return nil, aExErr
+			}
+			if assetsDoesExist {
+				impl.Logger.Error("nft asset already exists error")
+				return nil, httperror.NewForBadRequestWithSingleField("message", "nft asset already exists, restoration cancelled")
+			}
+
+			if err := impl.NFTAssetStorer.Create(sessCtx, asset); err != nil {
+				impl.Logger.Error("database create error", slog.Any("error", err))
+				return nil, err
+			}
+
+			impl.Logger.Debug("successfully created nft asset file",
+				slog.String("id", asset.ID.Hex()))
+
+			pinObject := &pinobj_s.PinObject{
+				ID:          primitive.NewObjectID(),
+				IPNSPath:    "", // Set to empty b/c this pin is not mounted to IPNS.
+				CID:         asset.CID,
+				Content:     nil,
+				Filename:    asset.Filename,
+				ContentType: asset.ContentType,
+				CreatedAt:   asset.CreatedAt,
+				ModifiedAt:  asset.ModifiedAt,
+			}
+			if createdErr := impl.PinObjectStorer.Create(sessCtx, pinObject); createdErr != nil {
+				impl.Logger.Error("database create error", slog.Any("error", createdErr))
+				return nil, err
+			}
+
+			impl.Logger.Debug("nft asset file pinned",
+				slog.String("cid", pinObject.CID))
+		}
 
 		//
 		// STEP 6
-		// Iterate through all the NFTs and save to the database.
-		//
+		// Iterate through all the NFTs and then (1) save to the database
+		// and (2) pin to IPFS network.
 
-		// TODO
+		for _, nft := range reqPayload.NFTs {
+			nftDoesExist, nftExErr := impl.NFTStorer.CheckIfExistsByID(sessCtx, nft.ID)
+			if nftExErr != nil {
+				impl.Logger.Error("failed to check by id in nfts to database", slog.Any("error", nftExErr))
+				return nil, nftExErr
+			}
+			if nftDoesExist {
+				impl.Logger.Error("nft already exists error")
+				return nil, httperror.NewForBadRequestWithSingleField("message", "nft already exists, restoration cancelled")
+			}
+
+			if err := impl.NFTStorer.Create(sessCtx, nft); err != nil {
+				impl.Logger.Error("database create error", slog.Any("error", err))
+				return nil, err
+			}
+
+			if err := impl.NFTStorer.Create(sessCtx, nft); err != nil {
+				impl.Logger.Error("failed to create nft to database",
+					slog.Any("error", err))
+				return nil, err
+			}
+
+			impl.Logger.Debug("nft created",
+				slog.Uint64("token_id", nft.TokenID))
+
+			pinObject := &pinobj_s.PinObject{
+				ID:          primitive.NewObjectID(),
+				IPNSPath:    nft.FileIPNSPath,
+				CID:         nft.FileCID,
+				Content:     nil,
+				Filename:    fmt.Sprintf("%v", nft.TokenID), // We set it to this way b/c it is required by our `Smart Contract` to write the names like this - This is not an error!
+				ContentType: "application/json",
+				CreatedAt:   nft.CreatedAt,
+				ModifiedAt:  nft.ModifiedAt,
+			}
+			if createdErr := impl.PinObjectStorer.Create(sessCtx, pinObject); createdErr != nil {
+				impl.Logger.Error("database create error", slog.Any("error", createdErr))
+				return nil, err
+			}
+
+			impl.Logger.Debug("nft metedata file pinned",
+				slog.String("pinObject", pinObject.CID))
+		}
 
 		// return res, nil
 		return reqPayload.NFTCollection, nil
