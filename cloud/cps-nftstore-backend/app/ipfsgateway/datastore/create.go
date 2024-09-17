@@ -24,7 +24,9 @@ func (impl PinObjectStorerImpl) Create(ctx context.Context, u *PinObject) error 
 
 	// check for errors in the insertion
 	if err != nil {
-		impl.Logger.Error("database insert error", slog.Any("error", err))
+		impl.Logger.Error("database insert error",
+			slog.Any("error", err))
+		return err
 	}
 
 	// // display the id of the newly inserted object

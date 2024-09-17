@@ -23,7 +23,9 @@ func (impl UserStorerImpl) Create(ctx context.Context, u *User) error {
 
 	// check for errors in the insertion
 	if err != nil {
-		impl.Logger.Error("database insert error", slog.Any("error", err))
+		impl.Logger.Error("database failed create error",
+			slog.Any("error", err))
+		return err
 	}
 
 	return nil

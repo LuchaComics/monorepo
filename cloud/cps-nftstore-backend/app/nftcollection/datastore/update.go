@@ -18,6 +18,7 @@ func (impl NFTCollectionStorerImpl) UpdateByID(ctx context.Context, m *NFTCollec
 	_, err := impl.Collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		impl.Logger.Error("database update by id error", slog.Any("error", err))
+		return err
 	}
 
 	// // display the number of documents updated

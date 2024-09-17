@@ -17,7 +17,9 @@ func (impl NFTStorerImpl) UpdateByID(ctx context.Context, m *NFT) error {
 	// execute the UpdateOne() function to update the first matching document
 	_, err := impl.Collection.UpdateOne(ctx, filter, update)
 	if err != nil {
-		impl.Logger.Error("database update by id error", slog.Any("error", err))
+		impl.Logger.Error("database update by id error",
+			slog.Any("error", err))
+		return err
 	}
 
 	// // display the number of documents updated

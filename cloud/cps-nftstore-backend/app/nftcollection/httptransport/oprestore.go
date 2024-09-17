@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	a_c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/controller"
-	a_s "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/app/nftcollection/datastore"
 	"github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/utils/httperror"
 )
 
@@ -55,11 +54,7 @@ func (h *Handler) OperationRestore(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	MarshalOperationRestoreResponse(nftcollection, w)
-}
-
-func MarshalOperationRestoreResponse(res *a_s.NFTCollection, w http.ResponseWriter) {
-	if err := json.NewEncoder(w).Encode(&res); err != nil {
+	if err := json.NewEncoder(w).Encode(&nftcollection); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

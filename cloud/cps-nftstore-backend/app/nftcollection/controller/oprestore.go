@@ -107,13 +107,13 @@ func (impl *NFTCollectionControllerImpl) OperationRestore(ctx context.Context, r
 		// node that we are connected to, if not then error.
 		//
 
-		keyNameExists, keyExistsErr := impl.IPFS.CheckIfKeyNameExists(sessCtx, reqPayload.NFTCollection.IPNSKeyName)
-		if keyExistsErr != nil {
-			return nil, keyExistsErr
-		}
-		if !keyNameExists {
-			return nil, httperror.NewForBadRequestWithSingleField("ipns_key_name", "missing key in ipfs node")
-		}
+		// keyNameExists, keyExistsErr := impl.IPFS.CheckIfKeyNameExists(sessCtx, reqPayload.NFTCollection.IPNSKeyName)
+		// if keyExistsErr != nil {
+		// 	return nil, keyExistsErr
+		// }
+		// if !keyNameExists {
+		// 	return nil, httperror.NewForBadRequestWithSingleField("ipns_key_name", "missing key in ipfs node")
+		// }
 
 		//
 		// STEP 4
@@ -147,7 +147,7 @@ func (impl *NFTCollectionControllerImpl) OperationRestore(ctx context.Context, r
 			}
 
 			if err := impl.NFTAssetStorer.Create(sessCtx, asset); err != nil {
-				impl.Logger.Error("database create error", slog.Any("error", err))
+				impl.Logger.Error("database nft asset create error", slog.Any("error", err))
 				return nil, err
 			}
 
@@ -165,7 +165,7 @@ func (impl *NFTCollectionControllerImpl) OperationRestore(ctx context.Context, r
 				ModifiedAt:  asset.ModifiedAt,
 			}
 			if createdErr := impl.PinObjectStorer.Create(sessCtx, pinObject); createdErr != nil {
-				impl.Logger.Error("database create error", slog.Any("error", createdErr))
+				impl.Logger.Error("database create pin object for nft asset error", slog.Any("error", createdErr))
 				return nil, err
 			}
 
@@ -190,7 +190,7 @@ func (impl *NFTCollectionControllerImpl) OperationRestore(ctx context.Context, r
 			}
 
 			if err := impl.NFTStorer.Create(sessCtx, nft); err != nil {
-				impl.Logger.Error("database create error", slog.Any("error", err))
+				impl.Logger.Error("database create nft error", slog.Any("error", err))
 				return nil, err
 			}
 
@@ -214,7 +214,7 @@ func (impl *NFTCollectionControllerImpl) OperationRestore(ctx context.Context, r
 				ModifiedAt:  nft.ModifiedAt,
 			}
 			if createdErr := impl.PinObjectStorer.Create(sessCtx, pinObject); createdErr != nil {
-				impl.Logger.Error("database create error", slog.Any("error", createdErr))
+				impl.Logger.Error("database create pin object for nft error", slog.Any("error", createdErr))
 				return nil, err
 			}
 
