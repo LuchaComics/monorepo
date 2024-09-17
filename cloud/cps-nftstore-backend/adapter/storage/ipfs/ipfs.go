@@ -62,7 +62,7 @@ type ipfsStorager struct {
 //
 
 func NewStorage(appConf *c.Conf, logger *slog.Logger) IPFSStorager {
-	logger.Debug("connecting to ipfs node...")
+	logger.Debug("connecting to remote ipfs node...")
 
 	// The following block of code will be used to resolve the dns of our
 	// other docker container to get the `ipfs-node` ip address.
@@ -98,7 +98,7 @@ func NewStorage(appConf *c.Conf, logger *slog.Logger) IPFSStorager {
 		api:    api,
 	}
 
-	logger.Debug("connected to ipfs node")
+	logger.Debug("connected to remote ipfs node")
 
 	// Try uploading a sample file to verify our ipfs adapter works.
 	sampleDirCid, sampleFileCid, sampleErr := ipfsStorage.UploadString(context.Background(), "Hello world via `Collectibles Protective Services`!", "sample.txt", "sampledir")

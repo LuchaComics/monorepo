@@ -4,17 +4,17 @@ tasks:
   start:
     desc: Start the backend in developer mode
     cmds:
-      - docker-compose -p cps_nftstore_backend -f dev.docker-compose.yml up --remove-orphans
+      - docker-compose -p cps_nftstore_dev_backend -f dev.docker-compose.yml up --remove-orphans
 
   end:
     desc: Stop the backend in developer mode
     cmds:
-      - docker-compose -p cps_nftstore_backend -f dev.docker-compose.yml down
+      - docker-compose -p cps_nftstore_dev_backend -f dev.docker-compose.yml down
 
   console:
     desc: Open console in (developer mode) running backend
     cmds:
-      - docker exec -it cps_nftstore_backend bash
+      - docker exec -it cps_nftstore_dev_backend bash
 
   wire:
     desc: Generate new compile-time dependency injection file, called `wire_gen.go`, which is needed by our app.
@@ -47,9 +47,7 @@ tasks:
     cmds:
       - openssl rand -hex 64.
 
-  deploylinux:
+  startlinux:
     desc: Build project using linux containerization and start the backend in production mode.
     cmds:
-      - docker build -f Dockerfile --rm -t registry.digitalocean.com/ssp/cps-nftstore-backend:prod --platform linux/amd64 .
-      - docker tag registry.digitalocean.com/ssp/cps-nftstore-backend:prod registry.digitalocean.com/ssp/cps-nftstore-backend:prod
-      - docker-compose -p cps_nftstore_backend -f docker-compose.yml up --remove-orphans
+      - docker-compose -p cps_nftstore_prod_backend -f prod.docker-compose.yml up --remove-orphans

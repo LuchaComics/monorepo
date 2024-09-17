@@ -3,12 +3,12 @@
 # dependent on the `MongoDB` database cluster running concurrently with this
 # server for developer purposes. This configuration has hot-reloading activated.
 #
-# $ docker-compose -p cps_nftstore -f dev.docker-compose.yml up   #
+# $ docker-compose -p cps_nftstore_dev -f dev.docker-compose.yml up   #
 #
 
 services:
   db1:
-    container_name: cps_nftstore_db1
+    container_name: cps_nftstore_dev_db1
     image: mongo:7.0
     command:
       [
@@ -33,11 +33,11 @@ services:
       start_interval: 1s
       retries: 30
     volumes:
-      - "db1_data:/data/db"
-      - "db1_config:/data/configdb"
+      - "db1_dev_data:/data/db"
+      - "db1_dev_config:/data/configdb"
 
   db2:
-    container_name: cps_nftstore_db2
+    container_name: cps_nftstore_dev_db2
     image: mongo:7.0
     command:
       [
@@ -55,11 +55,11 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - "db2_data:/data/db"
-      - "db2_config:/data/configdb"
+      - "db2_dev_data:/data/db"
+      - "db2_dev_config:/data/configdb"
 
   db3:
-    container_name: cps_nftstore_db3
+    container_name: cps_nftstore_dev_db3
     image: mongo:7.0
     command:
       [
@@ -77,11 +77,11 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - "db3_data:/data/db"
-      - "db3_config:/data/configdb"
+      - "db3_dev_data:/data/db"
+      - "db3_dev_config:/data/configdb"
 
   mongo-express:
-    container_name: cps_nftstore_db_admin
+    container_name: cps_nftstore_dev_db_admin
     image: mongo-express:latest
     environment:
       - ME_CONFIG_MONGODB_SERVER=db1
@@ -100,13 +100,13 @@ services:
     restart: unless-stopped
 
   ipfs-node:
-    container_name: cps_nftstore_ipfs_node
+    container_name: cps_nftstore_dev_ipfs_node
     image: ipfs/kubo:master-latest
     restart: unless-stopped
     volumes:
-      - ./data/ipfs:/data/ipfs
-      - ./data/ipfs:/ipfs
-      - ./data/ipfs:/ipns
+      - ./data/dev/ipfs:/data/ipfs
+      - ./data/dev/ipfs:/ipfs
+      - ./data/dev/ipfs:/ipns
     environment:
       - IPFS_PROFILE=server
       - IPFS_PATH=/data/ipfs
@@ -126,7 +126,7 @@ services:
 
   # Ethereum testnet for developer purposes.
   ganache:
-    container_name: cps_nftstore_ganache
+    container_name: cps_nftstore_dev_ganache
     stdin_open: true
     build:
       context: .
@@ -135,13 +135,13 @@ services:
     ports:
       - "8545:8545"
     volumes:
-      - ./data/ganache_data:/ganache_data
+      - ./data/dev/ganache:/ganache_data
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
   # The main application.
   app:
-    container_name: cps_nftstore_backend_app
+    container_name: cps_nftstore_dev_backend_app
     stdin_open: true
     environment:
       CPS_NFTSTORE_BACKEND_IP: 0.0.0.0
@@ -191,9 +191,9 @@ services:
       - "host.docker.internal:host-gateway"
 
 volumes:
-  db1_data:
-  db2_data:
-  db3_data:
-  db1_config:
-  db2_config:
-  db3_config:
+  db1_dev_data:
+  db2_dev_data:
+  db3_dev_data:
+  db1_dev_config:
+  db2_dev_config:
+  db3_dev_config:

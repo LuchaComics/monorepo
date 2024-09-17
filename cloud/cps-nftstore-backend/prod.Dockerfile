@@ -49,7 +49,7 @@ CMD [ "/cps-nftstore-backend" ]
 
 # BUILD
 # (Run following from project root directory!)
-# docker build -f Dockerfile -t LuchaComics/cps-nftstore-backend:latest --platform linux/amd64 .
+# docker build -f prod.Dockerfile -t LuchaComics/cps-nftstore-backend:latest --platform linux/amd64 .
 
 # EXECUTE
 # docker tag LuchaComics/cps-nftstore-backend:latest LuchaComics/cps-nftstore-backend:latest

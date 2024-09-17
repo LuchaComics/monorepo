@@ -28,7 +28,7 @@
 5. Start the backend server by running the following in your console.
 
     ```shell
-    docker-compose -p cps_nftstore_backend -f docker-compose.yml up
+    docker-compose -p cps_nftstore_backend -f prod.docker-compose.yml up
     ```
 
-6. Congratulations, the backend is running, now please go to the [`cps-nftstore-frontend`](../../web/cps-nftstore-frontend) repository and startup the frontend to access this backend via the web-browser.
+6. Congratulations, the backend is running, now please go to the [`cps-nftstore-frontend`](../../../web/cps-nftstore-frontend) repository and startup the frontend to access this backend via the web-browser.

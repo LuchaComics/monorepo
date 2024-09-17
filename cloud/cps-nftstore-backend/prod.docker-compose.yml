@@ -3,12 +3,12 @@
 # dependent on the `MongoDB` database cluster running concurrently with this
 # server for production purposes.
 #
-# $ docker-compose -p cps_nftstore -f docker-compose.yml up   #
+# $ docker-compose -p cps_nftstore_prod -f prod.docker-compose.yml up   #
 #
 
 services:
   db1:
-    container_name: cps_nftstore_db1
+    container_name: cps_nftstore_prod_db1
     image: mongo:7.0
     command:
       [
@@ -37,7 +37,7 @@ services:
       - "db1_prod_config:/data/configdb"
 
   db2:
-    container_name: cps_nftstore_db2
+    container_name: cps_nftstore_prod_db2
     image: mongo:7.0
     command:
       [
@@ -59,7 +59,7 @@ services:
       - "db2_prod_config:/data/configdb"
 
   db3:
-    container_name: cps_nftstore_db3
+    container_name: cps_nftstore_prod_db3
     image: mongo:7.0
     command:
       [
@@ -81,13 +81,13 @@ services:
       - "db3_prod_config:/data/configdb"
 
   ipfs-node:
-    container_name: cps_nftstore_ipfs_node
+    container_name: cps_nftstore_prod_ipfs_node
     image: ipfs/kubo:master-latest
     restart: unless-stopped
     volumes:
-      - ./data/ipfs:/data/ipfs
-      - ./data/ipfs:/ipfs
-      - ./data/ipfs:/ipns
+      - ./data/prod/ipfs:/data/ipfs
+      - ./data/prod/ipfs:/ipfs
+      - ./data/prod/ipfs:/ipns
     environment:
       - IPFS_PROFILE=server
       - IPFS_PATH=/data/ipfs
@@ -107,7 +107,7 @@ services:
 
   # The main application.
   app:
-    container_name: cps_nftstore_backend_app
+    container_name: cps_nftstore_prod_backend_app
     stdin_open: true
     environment:
       CPS_NFTSTORE_BACKEND_IP: 0.0.0.0
@@ -130,7 +130,7 @@ services:
       CPS_NFTSTORE_BACKEND_APP_ENABLE_2FA_ON_REGISTRATION: ${CPS_NFTSTORE_BACKEND_APP_ENABLE_2FA_ON_REGISTRATION}
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: ./prod.Dockerfile
     restart: unless-stopped
     ports:
       - "8000:8000" # CPS NFTSTORE Application Port.

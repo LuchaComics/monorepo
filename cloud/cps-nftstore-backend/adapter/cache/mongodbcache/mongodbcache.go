@@ -2,12 +2,12 @@ package mongodbcache
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/faabiosr/cachego"
 	"github.com/faabiosr/cachego/mongo"
 	mongo_client "go.mongodb.org/mongo-driver/mongo"
-	"log/slog"
 
 	c "github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend/config"
 )
