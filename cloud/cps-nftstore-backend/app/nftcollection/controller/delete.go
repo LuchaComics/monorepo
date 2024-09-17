@@ -65,6 +65,10 @@ func (impl *NFTCollectionControllerImpl) DeleteByID(ctx context.Context, id prim
 				impl.Logger.Error("database delete by id error", slog.Any("error", deleteErr))
 				return nil, deleteErr
 			}
+			if err := impl.PinObjectStorer.DeleteByCID(sessCtx, metadata.FileCID); err != nil {
+				impl.Logger.Error("failed deleting pin object error", slog.Any("error", err))
+				return nil, err
+			}
 		}
 
 		//
@@ -85,6 +89,10 @@ func (impl *NFTCollectionControllerImpl) DeleteByID(ctx context.Context, id prim
 			}
 			if deleteErr := impl.NFTAssetStorer.DeleteByID(sessCtx, asset.ID); deleteErr != nil {
 				impl.Logger.Error("database delete by id error", slog.Any("error", deleteErr))
+				return nil, deleteErr
+			}
+			if deleteErr := impl.PinObjectStorer.DeleteByCID(sessCtx, asset.CID); deleteErr != nil {
+				impl.Logger.Error("failed deleting pin object error", slog.Any("error", deleteErr))
 				return nil, deleteErr
 			}
 		}
