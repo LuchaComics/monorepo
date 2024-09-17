@@ -25,15 +25,10 @@ import (
 )
 
 type IPFSStorager interface {
-	// Uploads content to IPFS from different sources
-	UploadString(ctx context.Context, content string) (cid string, err error)
-	UploadBytes(ctx context.Context, content []byte) (cid string, err error)
-	UploadMultipart(ctx context.Context, file multipart.File) (cid string, err error)
-
 	// Uploads content to IPFS within a specified directory
-	UploadStringToDir(ctx context.Context, content, fileName, dirName string) (dirCid, fileCid string, err error)
-	UploadBytesToDir(ctx context.Context, content []byte, fileName, dirName string) (dirCid, fileCid string, err error)
-	UploadMultipartToDir(ctx context.Context, file multipart.File, fileName, dirName string) (dirCid, fileCid string, err error)
+	UploadString(ctx context.Context, content, fileName, dirName string) (dirCid, fileCid string, err error)
+	UploadBytes(ctx context.Context, content []byte, fileName, dirName string) (dirCid, fileCid string, err error)
+	UploadMultipart(ctx context.Context, file multipart.File, fileName, dirName string) (dirCid, fileCid string, err error)
 
 	// Retrieves content from IPFS
 	Get(ctx context.Context, cid string) ([]byte, error)
@@ -106,7 +101,7 @@ func NewStorage(appConf *c.Conf, logger *slog.Logger) IPFSStorager {
 	logger.Debug("connected to ipfs node")
 
 	// Try uploading a sample file to verify our ipfs adapter works.
-	sampleDirCid, sampleFileCid, sampleErr := ipfsStorage.UploadStringToDir(context.Background(), "Hello world via `Collectibles Protective Services`!", "sample.txt", "sampledir")
+	sampleDirCid, sampleFileCid, sampleErr := ipfsStorage.UploadString(context.Background(), "Hello world via `Collectibles Protective Services`!", "sample.txt", "sampledir")
 	if sampleErr != nil {
 		log.Fatalf("failed uploading sample: %v\n", sampleErr)
 	}
@@ -132,23 +127,7 @@ type ipfsApiAddResponse struct {
 	Size string `json:"Size"`
 }
 
-func (s *ipfsStorager) UploadString(ctx context.Context, fileContent string) (string, error) {
-	// Create a reader for the file content
-	content := strings.NewReader(fileContent)
-
-	// Upload the content to IPFS
-	cid, err := s.api.Unixfs().Add(ctx, ipfsFiles.NewReaderFile(content))
-	if err != nil {
-		return "", fmt.Errorf("failed to upload content from string: %v", err)
-	}
-
-	// Remove "/ipfs/" prefix if present
-	cidString := strings.TrimPrefix(cid.String(), "/ipfs/")
-
-	return cidString, nil
-}
-
-func (s *ipfsStorager) UploadStringToDir(ctx context.Context, fileContent string, fileName string, directoryName string) (string, string, error) {
+func (s *ipfsStorager) UploadString(ctx context.Context, fileContent string, fileName string, directoryName string) (string, string, error) {
 	// Debug log the start of the upload process
 	s.logger.Debug("starting to upload file to IPFS")
 
@@ -246,27 +225,7 @@ func (s *ipfsStorager) UploadStringToDir(ctx context.Context, fileContent string
 	return dirCid, fileCid, nil
 }
 
-func (s *ipfsStorager) UploadMultipart(ctx context.Context, file multipart.File) (string, error) {
-	// Debug log the start of the upload process
-	s.logger.Debug("starting to upload file to IPFS")
-
-	// Ensure the file gets closed when the function ends
-	defer file.Close()
-
-	// Upload the file to IPFS
-	res, err := s.api.Unixfs().Add(ctx, ipfsFiles.NewReaderFile(file))
-	if err != nil {
-		return "", fmt.Errorf("failed to add file to IPFS: %v", err)
-	}
-
-	// Retrieve the CID (Content Identifier) for the uploaded file and
-	// remove "/ipfs/" prefix if present
-	cidString := strings.TrimPrefix(res.String(), "/ipfs/")
-
-	return cidString, nil
-}
-
-func (s *ipfsStorager) UploadMultipartToDir(ctx context.Context, file multipart.File, fileName string, directoryName string) (string, string, error) {
+func (s *ipfsStorager) UploadMultipart(ctx context.Context, file multipart.File, fileName string, directoryName string) (string, string, error) {
 	// Debug log the start of the upload process
 	s.logger.Debug("starting to upload file to IPFS")
 
@@ -364,20 +323,7 @@ func (s *ipfsStorager) UploadMultipartToDir(ctx context.Context, file multipart.
 	return dirCid, fileCid, nil
 }
 
-func (s *ipfsStorager) UploadBytes(ctx context.Context, fileContent []byte) (string, error) {
-	content := bytes.NewReader(fileContent) // THIS IS WRONG PLEASE REPAIR
-	cid, err := s.api.Unixfs().Add(context.Background(), ipfsFiles.NewReaderFile(content))
-	if err != nil {
-		return "", fmt.Errorf("failed to upload content from string: %v", err)
-	}
-
-	// Remove "/ipfs/" prefix if present
-	cidString := strings.TrimPrefix(cid.String(), "/ipfs/")
-
-	return cidString, nil
-}
-
-func (s *ipfsStorager) UploadBytesToDir(ctx context.Context, fileContent []byte, fileName string, directoryName string) (string, string, error) {
+func (s *ipfsStorager) UploadBytes(ctx context.Context, fileContent []byte, fileName string, directoryName string) (string, string, error) {
 	// Debug log the start of the upload process
 	s.logger.Debug("starting to upload file to IPFS")
 

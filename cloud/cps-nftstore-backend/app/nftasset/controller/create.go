@@ -73,7 +73,7 @@ func (impl *NFTAssetControllerImpl) Create(ctx context.Context, req *NFTAssetCre
 		//
 
 		// Add our file to the IPFS network (within our specific directory name).
-		_, nftAssetFileCID, ipfsUploadErr := impl.IPFS.UploadBytesToDir(sessCtx, req.Data, req.Filename, "nftassets")
+		_, nftAssetFileCID, ipfsUploadErr := impl.IPFS.UploadBytes(sessCtx, req.Data, req.Filename, "nftassets")
 		if ipfsUploadErr != nil {
 			impl.Logger.Error("failed uploading NFT asset file",
 				slog.Any("error", ipfsUploadErr))

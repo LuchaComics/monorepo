@@ -46,3 +46,10 @@ tasks:
     desc: Generate a unique key.
     cmds:
       - openssl rand -hex 64.
+
+  deploylinux:
+    desc: Build project using linux containerization and start the backend in production mode.
+    cmds:
+      - docker build -f Dockerfile --rm -t registry.digitalocean.com/ssp/cps-nftstore-backend:prod --platform linux/amd64 .
+      - docker tag registry.digitalocean.com/ssp/cps-nftstore-backend:prod registry.digitalocean.com/ssp/cps-nftstore-backend:prod
+      - docker-compose -p cps_nftstore_backend -f docker-compose.yml up --remove-orphans

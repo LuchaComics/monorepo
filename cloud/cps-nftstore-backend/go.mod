@@ -121,6 +121,7 @@ require (
 	github.com/prometheus/common v0.53.0 // indirect
 	github.com/prometheus/procfs v0.15.0 // indirect
 	github.com/relvacode/iso8601 v1.3.0 // indirect
+	github.com/rjeczalik/notify v0.9.1 // indirect
 	github.com/samber/lo v1.39.0 // indirect
 	github.com/shirou/gopsutil v3.21.4-0.20210419000835-c7a38de76ee5+incompatible // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect

@@ -206,7 +206,7 @@ func (impl *NFTCollectionControllerImpl) Create(ctx context.Context, req *NFTCol
 		//
 
 		// Create a new directory in IPFS with a sample file named "0" (representing the first token)
-		collectionDirCID, firstTokenFileCID, uploadErr := impl.IPFS.UploadStringToDir(
+		collectionDirCID, firstTokenFileCID, uploadErr := impl.IPFS.UploadString(
 			context.Background(),
 			"Hello world via `Collectibles Protective Services`!", // Sample content for the file
 			"0", // First token ID

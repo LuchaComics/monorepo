@@ -1,51 +1,139 @@
 # HOW TO USE:
-# $ docker-compose -p cps-nftstore -f docker-compose.yml up   #
+# The purpose of this docker-compose is to setup our application which is
+# dependent on the `MongoDB` database cluster running concurrently with this
+# server for production purposes.
+#
+# $ docker-compose -p cps_nftstore -f docker-compose.yml up   #
 #
 
-version: "3.8"
 services:
-  caddy:
-    container_name: cps_nftstore_backend_caddy
-    image: "caddy:2-alpine"
-    restart: unless-stopped
+  db1:
+    container_name: cps_nftstore_db1
+    image: mongo:7.0
+    command:
+      [
+        "--replSet",
+        "rs0",
+        "--bind_ip_all",
+        "--port",
+        "27017",
+        "--quiet",
+        "--logpath",
+        "/dev/null",
+      ]
     ports:
-      - "80:80"
-      - "443:443"
+      - 27017:27017
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'host.docker.internal:27017',priority:1},{_id:1,host:'host.docker.internal:27018',priority:0.5},{_id:2,host:'host.docker.internal:27019',priority:0.5}]}) }" | mongosh --port 27017 --quiet
+      interval: 5s
+      timeout: 30s
+      start_period: 0s
+      start_interval: 1s
+      retries: 30
     volumes:
-      - "$PWD/Caddyfile:/etc/caddy/Caddyfile"
-      - "caddy_data:/data"
-      - "caddy_config:/config"
-    networks:
-      - web
-      - caddy_internal
+      - "db1_data:/data/db"
+      - "db1_config:/data/configdb"
 
-  # The purpose of this service is to store our application data.
-  db:
-    container_name: cps-nftstore_mongodb
-    image: mongo:6.0.5-jammy
+  db2:
+    container_name: cps_nftstore_db2
+    image: mongo:7.0
+    command:
+      [
+        "--replSet",
+        "rs0",
+        "--bind_ip_all",
+        "--port",
+        "27018",
+        "--quiet",
+        "--logpath",
+        "/dev/null",
+      ]
     ports:
-      - "27017:27017"
+      - 27018:27018
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
-      - mongodb_data:/data/db
-      - mongodb_config:/data/configdb
+      - "db2_data:/data/db"
+      - "db2_config:/data/configdb"
+
+  db3:
+    container_name: cps_nftstore_db3
+    image: mongo:7.0
+    command:
+      [
+        "--replSet",
+        "rs0",
+        "--bind_ip_all",
+        "--port",
+        "27019",
+        "--quiet",
+        "--logpath",
+        "/dev/null",
+      ]
+    ports:
+      - 27019:27019
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - "db3_data:/data/db"
+      - "db3_config:/data/configdb"
+
+  mongo-express:
+    container_name: cps_nftstore_db_admin
+    image: mongo-express:latest
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=db1
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_MONGODB_URI=mongodb://db1:27017,db2:27018,db3:27019/?replicaSet=rs0
+    ports:
+      - "8081:8081"
+    depends_on:
+      - db1
+      - db2
+      - db3
+    links:
+      - db1
+      - db2
+      - db3
     restart: unless-stopped
-    logging:
-      driver: none
-    networks:
-      - caddy_internal
+
+  ipfs-node:
+    container_name: cps_nftstore_ipfs_node
+    image: ipfs/kubo:master-latest
+    restart: unless-stopped
+    volumes:
+      - ./data/ipfs:/data/ipfs
+      - ./data/ipfs:/ipfs
+      - ./data/ipfs:/ipns
+    environment:
+      - IPFS_PROFILE=server
+      - IPFS_PATH=/data/ipfs
+    ports:
+      - "4001:4001" # default libp2p swarm port - should be open to public for all nodes if possible
+     # - "5001:5001" # API port - provides write/admin access to the node, shouldn't be exposed at all
+     # - "8080:8080" # Gateway + read only API subset - quite safe to expose, but operating public gateway may still be a risk in some ways
+
+      # The following ports only listen on the loopback interface, so are not remotely reachable by default.
+      # If you want to override these or add more ports, see https://docs.docker.com/compose/extends/ .
+
+      # API port, which includes admin operations, so you probably don't want this remotely accessible.
+      - 127.0.0.1:5001:5001
+
+      # HTTP Gateway
+      - 127.0.0.1:8080:8080
 
   # The main application.
   app:
     container_name: cps_nftstore_backend_app
-    image: "rodolfossp/cps-nftstore-backend:latest"
     stdin_open: true
-    restart: unless-stopped
     environment:
       CPS_NFTSTORE_BACKEND_IP: 0.0.0.0
       CPS_NFTSTORE_BACKEND_PORT: 8000
       CPS_NFTSTORE_BACKEND_HMAC_SECRET: ${CPS_NFTSTORE_BACKEND_HMAC_SECRET}
       CPS_NFTSTORE_BACKEND_HAS_DEBUGGING: ${CPS_NFTSTORE_BACKEND_HAS_DEBUGGING}
-      CPS_NFTSTORE_BACKEND_DB_URI: ${CPS_NFTSTORE_BACKEND_DB_URI}
+      CPS_NFTSTORE_BACKEND_DB_URI: mongodb://db1:27017,db2:27018,db3:27019/?replicaSet=rs0 # This is dependent on the configuration in our docker-compose file (see above).
       CPS_NFTSTORE_BACKEND_DB_NAME: ${CPS_NFTSTORE_BACKEND_DB_NAME}
       CPS_NFTSTORE_BACKEND_INITIAL_ADMIN_EMAIL: ${CPS_NFTSTORE_BACKEND_INITIAL_ADMIN_EMAIL} # Required email for root admin when project starts up
       CPS_NFTSTORE_BACKEND_INITIAL_ADMIN_PASSWORD: ${CPS_NFTSTORE_BACKEND_INITIAL_ADMIN_PASSWORD} # Required password for root admin when project starts up
@@ -59,30 +147,36 @@ services:
       CPS_NFTSTORE_BACKEND_MAILGUN_SENDER_EMAIL: ${CPS_NFTSTORE_BACKEND_MAILGUN_SENDER_EMAIL}
       CPS_NFTSTORE_BACKEND_MAILGUN_MAINTENANCE_EMAIL: ${CPS_NFTSTORE_BACKEND_MAILGUN_MAINTENANCE_EMAIL}
       CPS_NFTSTORE_BACKEND_APP_ENABLE_2FA_ON_REGISTRATION: ${CPS_NFTSTORE_BACKEND_APP_ENABLE_2FA_ON_REGISTRATION}
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000" # CPS NFTSTORE Application Port.
+      # - "4001:4001" # default libp2p swarm port - should be open to public for all nodes if possible
+      # - "5001:5001" # API port - provides write/admin access to the node, shouldn't be exposed at all
+      # - "8080:8080" # Gateway + read only API subset - quite safe to expose, but operating public gateway may still be a risk in some ways
     depends_on:
-      - db
+      - db1
+      - db2
+      - db3
+      - ipfs-node
     links:
-      - db
-    volumes:
-      - app_data:/data
-    networks:
-      - caddy_internal
-
-networks:
-  web:
-    external: true
-  caddy_internal:
-    external: false
-    driver: bridge
+      - db1
+      - db2
+      - db3
+      - ipfs-node
+    volumes: # Connect the local filesystem with the docker filesystem. DO NOT REMOVE.
+      - ./:/go/src/github.com/LuchaComics/monorepo/cloud/cps-nftstore-backend # IMPORTANT: Required for hotreload via `CompileDaemon`.
+    cap_add: # See: https://github.com/AdguardTeam/AdGuardHome/issues/5903
+      - NET_ADMIN
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 volumes:
-  app_data:
-    external: true
-  mongodb_data:
-    external: true
-  mongodb_config:
-    external: true
-  caddy_data:
-    external: true
-  caddy_config:
-    external: true
+  db1_data:
+  db2_data:
+  db3_data:
+  db1_config:
+  db2_config:
+  db3_config:

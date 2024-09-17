@@ -201,7 +201,7 @@ func (impl *NFTControllerImpl) UpdateByID(ctx context.Context, req *NFTUpdateReq
 			return nil, err
 		}
 
-		dirCid, metadataFileCID, ipfsUploadErr := impl.IPFS.UploadBytesToDir(sessCtx, metadataFileBin, fmt.Sprintf("%v", os.TokenID), collection.IPFSDirectoryName)
+		dirCid, metadataFileCID, ipfsUploadErr := impl.IPFS.UploadBytes(sessCtx, metadataFileBin, fmt.Sprintf("%v", os.TokenID), collection.IPFSDirectoryName)
 		if ipfsUploadErr != nil {
 			impl.Logger.Error("failed uploading NFT metadata file",
 				slog.Any("error", ipfsUploadErr))
