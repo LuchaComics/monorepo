@@ -33,8 +33,8 @@ services:
       start_interval: 1s
       retries: 30
     volumes:
-      - "db1_data:/data/db"
-      - "db1_config:/data/configdb"
+      - "db1_prod_data:/data/db"
+      - "db1_prod_config:/data/configdb"
 
   db2:
     container_name: cps_nftstore_db2
@@ -55,8 +55,8 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - "db2_data:/data/db"
-      - "db2_config:/data/configdb"
+      - "db2_prod_data:/data/db"
+      - "db2_prod_config:/data/configdb"
 
   db3:
     container_name: cps_nftstore_db3
@@ -77,27 +77,8 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - "db3_data:/data/db"
-      - "db3_config:/data/configdb"
-
-  mongo-express:
-    container_name: cps_nftstore_db_admin
-    image: mongo-express:latest
-    environment:
-      - ME_CONFIG_MONGODB_SERVER=db1
-      - ME_CONFIG_MONGODB_PORT=27017
-      - ME_CONFIG_MONGODB_URI=mongodb://db1:27017,db2:27018,db3:27019/?replicaSet=rs0
-    ports:
-      - "8081:8081"
-    depends_on:
-      - db1
-      - db2
-      - db3
-    links:
-      - db1
-      - db2
-      - db3
-    restart: unless-stopped
+      - "db3_prod_data:/data/db"
+      - "db3_prod_config:/data/configdb"
 
   ipfs-node:
     container_name: cps_nftstore_ipfs_node
@@ -174,9 +155,9 @@ services:
       - "host.docker.internal:host-gateway"
 
 volumes:
-  db1_data:
-  db2_data:
-  db3_data:
-  db1_config:
-  db2_config:
-  db3_config:
+  db1_prod_data:
+  db2_prod_data:
+  db3_prod_data:
+  db1_prod_config:
+  db2_prod_config:
+  db3_prod_config:
