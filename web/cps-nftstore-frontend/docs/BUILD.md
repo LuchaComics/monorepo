@@ -27,10 +27,8 @@
     task start
     ```
 
-5. Congratulations, the frontend is running, now please go to the [`cps-nftstore-backend`](../../cloud/cps-nftstore-backend) repository and startup the backend if you haven't already started it. You may now access the frontend via [http://127.0.0.1:8000](http://127.0.0.1:8000) in your favourite browser.
+5. Congratulations, the frontend is running, now please go to the [`cps-nftstore-backend`](../../cloud/cps-nftstore-backend) repository and startup the backend if you haven't already started it. You may now access the frontend via [http://127.0.0.1:3000](http://127.0.0.1:3000) in your favourite browser.
 
 ## Developers Notes:
 * When you run `task start` then this loads up the development environment variables.
 * If you don't want to use `Taskfile` then use the following alternative `npm run start:dev`.
-* You can run `npm run start:qa"` to load up the quality assurance environment variables.
-* You can run `npm run start:prod"` to load up the production environment variables.
