@@ -4,7 +4,7 @@ The purpose of this `cps-ipfsstore-backend` is to operate as **file hosting serv
 
 **In Active Development - use at your own risk.**
 
-## Features
+## ⭐️ Features
 
 - Administration
 
@@ -16,28 +16,18 @@ The purpose of this `cps-ipfsstore-backend` is to operate as **file hosting serv
 
 - Delete files and stop their sharing
 
-## Installation
+## 📕 Documentation
 
-TODO
+See the [**Documentation**](./docs) for more information.
 
-1. Clone the [this project](git@github.com:LuchaComics/cps-ipfsstore-backend.git).
+## 🛠️ Building
 
-2. Setup `S3 / Object Storage` service.
+See [Build Instructions](./docs/BUILD.md) for more information on building **CPS NFT Store (backend)** and working with the source code.
 
-3. Setup `mailgun`.
+## 🤝 Contributing
 
-4. Setup `Stripe`.
+Found a bug? Want a feature to improve the package? Please create an [issue](https://github.com/LuchaComics/monorepo/issues/new).
 
-5. Copy and paste the `env_sample` into `.env`.
+## 📝 License
 
-6. Adjust the variables inside your `.env` file.
-
-7. Run the server.
-
-
-## Usage
-
-TODO
-
-## Learn more about us
-Visit our website at [Collectible Protection Services (CPS)](https://cpscapsule.com/about/).
+This application is licensed under the [**GNU Affero General Public License v3.0**](https://opensource.org/license/agpl-v3). See [LICENSE](LICENSE) for more information.

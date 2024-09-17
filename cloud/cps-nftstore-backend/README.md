@@ -4,7 +4,7 @@
 
 The purpose of this project is to provide NFT collection management and NFT minting **backend services** using the  **Collectible Protection Service Submissions** NFT for [Collectible Protection Service](https://cpscapsule.com). This backend has a GUI, accessible via web-browser, through the frontend project found in the [`cps-nftstore-frontend`](../../web/cps-nftstore-frontend) repository.
 
-## Features
+## ⭐️ Features
 
 * Manage NFT Collections
 
@@ -16,18 +16,18 @@ The purpose of this project is to provide NFT collection management and NFT mint
 
 * Automatically handles `IPNS` management for each NFT collection used.
 
-## Documentation
+## 📕 Documentation
 
 See the [**Documentation**](./docs) for more information.
 
-## Building
+## 🛠️ Building
 
 See [Build Instructions](./docs/BUILD.md) for more information on building **CPS NFT Store (backend)** and working with the source code.
 
-## Contributing
+## 🤝 Contributing
 
 Found a bug? Want a feature to improve the package? Please create an [issue](https://github.com/LuchaComics/monorepo/issues/new).
 
-## License
+## 📝 License
 
 This application is licensed under the [**GNU Affero General Public License v3.0**](https://opensource.org/license/agpl-v3). See [LICENSE](LICENSE) for more information.

@@ -1,27 +1,23 @@
-Not ready
+# Collectible Protection Services (Backend)
 
-Docker Image: https://hub.docker.com/repository/docker/rodolfossp/cps-backend
+**Project still under active development - use at your own risk**
 
-Note: Brochure Site - https://cpscapsule.com
+## ⭐️ Features
 
+TODO
 
-- https://stephenn.com/2023/06/gopher-wrangling.-effective-error-handling-in-go/
-https://github.com/golang/go/wiki/CodeReviewComments#initialisms
+## 📕 Documentation
 
-https://github.com/golang/go/wiki/CodeReviewComments#initialisms
+See the [**Documentation**](./docs) for more information. (TODO)
 
-# Installation
+## 🛠️ Building
 
-1. Clone the [this project](git@github.com:LuchaComics/cps-backend.git).
+See [Build Instructions](./docs/BUILD.md) for more information on building **CPS (backend)** and working with the source code. (TODO)
 
-2. Setup `S3 / Object Storage` service.
+## 🤝 Contributing
 
-3. Setup `mailgun`.
+Found a bug? Want a feature to improve the package? Please create an [issue](https://github.com/LuchaComics/monorepo/issues/new).
 
-4. Setup `Stripe`.
+## 📝 License
 
-5. Copy and paste the `env_sample` into `.env`.
-
-6. Adjust the variables inside your `.env` file.
-
-7. Run the server.
+This application is licensed under the [**GNU Affero General Public License v3.0**](https://opensource.org/license/agpl-v3). See [LICENSE](LICENSE) for more information.
