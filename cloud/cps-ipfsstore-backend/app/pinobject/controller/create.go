@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"mime/multipart"
 	"time"
@@ -78,30 +77,17 @@ func (impl *PinObjectControllerImpl) Create(ctx context.Context, req *PinObjectC
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
 
 		// Upload to IPFS network.
-		cid, err := impl.IPFS.AddFileContentFromMulipartFile(ctx, req.File)
+		_, cid, err := impl.IPFS.UploadMultipart(ctx, req.File, req.Meta["filename"], "uploads")
 		if err != nil {
 			impl.Logger.Error("failed uploading to IPFS", slog.Any("error", err))
 			return nil, err
 		}
 
 		// Pin the file so it won't get deleted by IPFS garbage collection.
-		if err := impl.IPFS.PinContent(ctx, cid); err != nil {
+		if err := impl.IPFS.Pin(ctx, cid); err != nil {
 			impl.Logger.Error("failed pinning to IPFS", slog.Any("error", err))
 			return nil, err
 		}
-
-		// Upload to s3 (concurrently).
-		objectKey := fmt.Sprintf("%v/%v/%v/%v/%v", "projects", req.ProjectID.Hex(), "cids", cid, req.Meta["filename"])
-		go func(file multipart.File, objkey string) {
-			impl.Logger.Debug("beginning private s3 image upload...")
-			if err := impl.S3.UploadContentFromMulipart(context.Background(), objkey, file); err != nil {
-				impl.Logger.Error("private s3 upload error", slog.Any("error", err))
-				// Do not return an error, simply continue this function as there might
-				// be a case were the file was removed on the s3 bucket by ourselves
-				// or some other reason.
-			}
-			impl.Logger.Debug("Finished private s3 image upload")
-		}(req.File, objectKey)
 
 		// Extract from our session the following data.
 		orgID, _ := sessCtx.Value(constants.SessionUserTenantID).(primitive.ObjectID)
@@ -133,9 +119,9 @@ func (impl *PinObjectControllerImpl) Create(ctx context.Context, req *PinObjectC
 			ModifiedFromIPAddress: ipAdress,
 
 			// S3
-			Filename:  req.Meta["filename"],
-			ObjectKey: objectKey,
-			ObjectURL: "",
+			Filename: req.Meta["filename"],
+			// ObjectKey: objectKey,
+			// ObjectURL: "",
 		}
 
 		// Save to database.

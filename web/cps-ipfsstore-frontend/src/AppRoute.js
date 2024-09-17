@@ -44,9 +44,6 @@ import AdminUserMoreOperationChangePassword from "./Components/Admin/User/Detail
 import AdminUserMoreOperation2FAToggle from "./Components/Admin/User/Detail/More/2FA/View";
 import AdminUserUpdate from "./Components/Admin/User/Update/View";
 
-// IPFS
-import AdminIPFSDashboard from "./Components/Admin/IPFS/Dashboard";
-
 //---------------//
 // Common System //
 //---------------//
@@ -255,13 +252,6 @@ function AppRoute() {
                     exact
                     path="/admin/user/:id/more/change-2fa"
                     element={<AdminUserMoreOperation2FAToggle />}
-                  />
-
-                  {/* IPFS */}
-                  <Route
-                    exact
-                    path="/admin/ipfs"
-                    element={<AdminIPFSDashboard />}
                   />
 
                   {/* Dashboard */}

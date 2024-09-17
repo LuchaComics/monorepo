@@ -195,17 +195,6 @@ export default (props) => {
                   &nbsp;All Users
                 </Link>
               </li>
-              <li>
-                <Link
-                  onClick={onLinkClickCloseHamburgerMenuIfMobile}
-                  to="/admin/ipfs"
-                  class={`has-text-grey-light ${location.pathname.includes("ipfs") && "is-active"}`}
-                >
-                  <FontAwesomeIcon className="fas" icon={faCloud} />
-                  &nbsp;IPFS
-                </Link>
-              </li>
-
             </ul>
 
             <p class="menu-label has-text-grey-light">Account</p>

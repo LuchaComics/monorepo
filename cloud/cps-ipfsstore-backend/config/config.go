@@ -9,7 +9,6 @@ import (
 type Conf struct {
 	AppServer        serverConf
 	DB               dbConfig
-	AWS              awsConfig
 	PDFBuilder       pdfBuilderConfig
 	Emailer          mailgunConfig
 	PaymentProcessor paymentProcessorConfig
@@ -33,14 +32,6 @@ type serverConf struct {
 type dbConfig struct {
 	URI  string
 	Name string
-}
-
-type awsConfig struct {
-	AccessKey  string
-	SecretKey  string
-	Endpoint   string
-	Region     string
-	BucketName string
 }
 
 type pdfBuilderConfig struct {
@@ -68,9 +59,9 @@ type paymentProcessorConfig struct {
 }
 
 type ipfsConfig struct {
-	BinaryOperatingSystem string
-	BinaryCPUArchitecture string
-	GatewayRPCURL         string
+	GatewayRPCURL string
+	Username      string
+	Password      string
 }
 
 func New() *Conf {
@@ -90,12 +81,6 @@ func New() *Conf {
 	c.DB.URI = getEnv("CPS_IPFSSTORE_BACKEND_DB_URI", true)
 	c.DB.Name = getEnv("CPS_IPFSSTORE_BACKEND_DB_NAME", true)
 
-	c.AWS.AccessKey = getEnv("CPS_IPFSSTORE_BACKEND_AWS_ACCESS_KEY", true)
-	c.AWS.SecretKey = getEnv("CPS_IPFSSTORE_BACKEND_AWS_SECRET_KEY", true)
-	c.AWS.Endpoint = getEnv("CPS_IPFSSTORE_BACKEND_AWS_ENDPOINT", true)
-	c.AWS.Region = getEnv("CPS_IPFSSTORE_BACKEND_AWS_REGION", true)
-	c.AWS.BucketName = getEnv("CPS_IPFSSTORE_BACKEND_AWS_BUCKET_NAME", true)
-
 	c.PDFBuilder.CBFFTemplatePath = getEnv("CPS_IPFSSTORE_BACKEND_PDF_BUILDER_CBFF_TEMPLATE_FILE_PATH", true)
 	c.PDFBuilder.PCTemplatePath = getEnv("CPS_IPFSSTORE_BACKEND_PDF_BUILDER_PC_TEMPLATE_FILE_PATH", true)
 	c.PDFBuilder.CCIMGTemplatePath = getEnv("CPS_IPFSSTORE_BACKEND_PDF_BUILDER_CCIMG_TEMPLATE_FILE_PATH", true)
@@ -114,10 +99,9 @@ func New() *Conf {
 	c.PaymentProcessor.PublicKey = getEnv("CPS_IPFSSTORE_BACKEND_PAYMENT_PROCESSOR_PUBLIC_KEY", true)
 	c.PaymentProcessor.WebhookSecretKey = getEnv("CPS_IPFSSTORE_BACKEND_PAYMENT_PROCESSOR_WEBHOOK_SECRET_KEY", true)
 
-	// c.IPFSNode.DomainOrIPAddress = getEnv("CPS_IPFSSTORE_BACKEND_IPFS_NODE_DOMAIN_OR_IP_ADDRESS", true)
-	c.IPFSNode.BinaryOperatingSystem = getEnv("CPS_IPFSSTORE_BACKEND_IPFS_NODE_OS", true)
-	c.IPFSNode.BinaryCPUArchitecture = getEnv("CPS_IPFSSTORE_BACKEND_IPFS_NODE_ARCH", true)
-	c.IPFSNode.GatewayRPCURL = getEnv("CPS_IPFSSTORE_BACKEND_IPFS_NODE_RPC_GATEWAY_URL", true)
+	c.IPFSNode.GatewayRPCURL = getEnv("CPS_IPFSSTORE_BACKEND_IPFS_NODE_RPC_GATEWAY_URL", false)
+	c.IPFSNode.Username = getEnv("CPS_IPFSSTORE_BACKEND_IPFS_NODE_RPC_GATEWAY_USERNAME", false)
+	c.IPFSNode.Password = getEnv("CPS_IPFSSTORE_BACKEND_IPFS_NODE_RPC_GATEWAY_PASSWORD", false)
 
 	return &c
 }

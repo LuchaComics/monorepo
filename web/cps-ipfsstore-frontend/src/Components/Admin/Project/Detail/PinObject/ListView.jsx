@@ -205,7 +205,7 @@ function AdminProjectDetailForPinObjectList() {
 
     // Update notification.
     setTopAlertStatus("success");
-    setTopAlertMessage("PinObject deleted");
+    setTopAlertMessage("Pin deleted");
     setTimeout(() => {
       console.log(
         "onDeleteConfirmButtonClick: topAlertMessage, topAlertStatus:",

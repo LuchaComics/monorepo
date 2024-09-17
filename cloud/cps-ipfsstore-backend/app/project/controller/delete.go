@@ -23,7 +23,7 @@ func (impl *ProjectControllerImpl) DeleteByID(ctx context.Context, id primitive.
 	// Get all the pinned objects and delete them from our local IPFS node's file system and unpin from sharing in IPFS network.
 	pp, err := impl.PinObjectStorer.ListByProjectID(ctx, id)
 	for _, p := range pp.Results {
-		if err := impl.IPFS.DeleteContent(ctx, p.CID); err != nil {
+		if err := impl.IPFS.Unpin(ctx, p.CID); err != nil {
 			impl.Logger.Error("ipfs failed to delete",
 				slog.String("cid", p.CID),
 				slog.Any("error", err))

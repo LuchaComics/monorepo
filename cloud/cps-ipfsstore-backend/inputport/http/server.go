@@ -218,8 +218,6 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 		// --- IPFS GATEWAY --- //
 	case n == 2 && p[0] == "ipfs" && r.Method == http.MethodGet:
 		port.IpfsGateway.GetByContentID(w, r, p[1])
-	case n == 4 && p[1] == "v1" && p[2] == "ipfs" && p[3] == "info" && r.Method == http.MethodGet:
-		port.IpfsGateway.GetIpfsNodeInfo(w, r)
 
 	// --- CATCH ALL: D.N.E. ---
 	default:

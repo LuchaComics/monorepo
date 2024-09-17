@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"mime/multipart"
 	"time"
@@ -98,15 +97,15 @@ func (impl *PinObjectControllerImpl) UpdateByRequestID(ctx context.Context, req 
 
 		// Update the file if the user uploaded a new file.
 		if req.File != nil {
-			// Proceed to delete the physical files from AWS s3.
-			if err := impl.S3.DeleteByKeys(sessCtx, []string{os.ObjectKey}); err != nil {
-				impl.Logger.Warn("s3 delete by keys error", slog.Any("error", err))
-				// Do not return an error, simply continue this function as there might
-				// be a case were the file was removed on the s3 bucket by ourselves
-				// or some other reason.
-			}
+			// // Proceed to delete the physical files from AWS s3.
+			// if err := impl.S3.DeleteByKeys(sessCtx, []string{os.ObjectKey}); err != nil {
+			// 	impl.Logger.Warn("s3 delete by keys error", slog.Any("error", err))
+			// 	// Do not return an error, simply continue this function as there might
+			// 	// be a case were the file was removed on the s3 bucket by ourselves
+			// 	// or some other reason.
+			// }
 			// Proceed to delete the physical files from IPFS.
-			if err := impl.IPFS.DeleteContent(sessCtx, os.CID); err != nil {
+			if err := impl.IPFS.Unpin(sessCtx, os.CID); err != nil {
 				impl.Logger.Warn("ipfs delete by CID error", slog.Any("error", err))
 				// Do not return an error, simply continue this function as there might
 				// be a case were the file was removed on the s3 bucket by ourselves
@@ -114,35 +113,35 @@ func (impl *PinObjectControllerImpl) UpdateByRequestID(ctx context.Context, req 
 			}
 
 			// The following code will choose the directory we will upload based on the image type.
-			var directory string = "projects"
+			// var directory string = "projects"
 
 			// Generate the key of our upload.
-			objectKey := fmt.Sprintf("%v/%v/%v", directory, req.ProjectID.Hex(), req.FileName)
+			// objectKey := fmt.Sprintf("%v/%v/%v", directory, req.ProjectID.Hex(), req.FileName)
 
-			go func(file multipart.File, objkey string) {
-				impl.Logger.Debug("beginning private s3 image upload...")
-				if err := impl.S3.UploadContentFromMulipart(context.Background(), objkey, file); err != nil {
-					impl.Logger.Error("private s3 upload error", slog.Any("error", err))
-					// Do not return an error, simply continue this function as there might
-					// be a case were the file was removed on the s3 bucket by ourselves
-					// or some other reason.
-				}
-				impl.Logger.Debug("Finished private s3 image upload")
-			}(req.File, objectKey)
+			// go func(file multipart.File, objkey string) {
+			// 	impl.Logger.Debug("beginning private s3 image upload...")
+			// 	if err := impl.S3.UploadContentFromMulipart(context.Background(), objkey, file); err != nil {
+			// 		impl.Logger.Error("private s3 upload error", slog.Any("error", err))
+			// 		// Do not return an error, simply continue this function as there might
+			// 		// be a case were the file was removed on the s3 bucket by ourselves
+			// 		// or some other reason.
+			// 	}
+			// 	impl.Logger.Debug("Finished private s3 image upload")
+			// }(req.File, objectKey)
 
 			// Update file.
-			os.ObjectKey = objectKey
+			// os.ObjectKey = objectKey
 			os.Filename = req.FileName
 
 			// Upload to IPFS network.
-			cid, err := impl.IPFS.AddFileContentFromMulipartFile(ctx, req.File)
+			_, cid, err := impl.IPFS.UploadMultipart(ctx, req.File, req.FileName, "uploads")
 			if err != nil {
 				impl.Logger.Error("failed uploading to IPFS", slog.Any("error", err))
 				return nil, err
 			}
 
 			// Pin the file so it won't get deleted by IPFS garbage collection.
-			if err := impl.IPFS.PinContent(ctx, cid); err != nil {
+			if err := impl.IPFS.Pin(ctx, cid); err != nil {
 				impl.Logger.Error("failed pinning to IPFS", slog.Any("error", err))
 				return nil, err
 			}

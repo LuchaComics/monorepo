@@ -2,14 +2,14 @@ package controller
 
 import (
 	"context"
-	"time"
+
+	"log/slog"
 
 	domain "github.com/LuchaComics/monorepo/cloud/cps-ipfsstore-backend/app/pinobject/datastore"
 	user_d "github.com/LuchaComics/monorepo/cloud/cps-ipfsstore-backend/app/user/datastore"
 	"github.com/LuchaComics/monorepo/cloud/cps-ipfsstore-backend/config/constants"
 	"github.com/LuchaComics/monorepo/cloud/cps-ipfsstore-backend/utils/httperror"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"log/slog"
 )
 
 func (c *PinObjectControllerImpl) ListByFilter(ctx context.Context, f *domain.PinObjectPaginationListFilter) (*domain.PinObjectPaginationListResult, error) {
@@ -32,15 +32,15 @@ func (c *PinObjectControllerImpl) ListByFilter(ctx context.Context, f *domain.Pi
 	}
 	c.Logger.Debug("fetched pinobjects", slog.Any("aa", aa))
 
-	for _, a := range aa.Results {
-		// Generate the URL.
-		fileURL, err := c.S3.GetPresignedURL(ctx, a.ObjectKey, 5*time.Minute)
-		if err != nil {
-			c.Logger.Error("s3 failed get presigned url error", slog.Any("error", err))
-			return nil, err
-		}
-		a.ObjectURL = fileURL
-	}
+	// for _, a := range aa.Results {
+	// 	// // Generate the URL.
+	// 	// fileURL, err := c.S3.GetPresignedURL(ctx, a.ObjectKey, 5*time.Minute)
+	// 	// if err != nil {
+	// 	// 	c.Logger.Error("s3 failed get presigned url error", slog.Any("error", err))
+	// 	// 	return nil, err
+	// 	// }
+	// 	// a.ObjectURL = fileURL
+	// }
 	return aa, err
 }
 

@@ -21,7 +21,7 @@ func (impl *IpfsGatewayControllerImpl) GetByContentID(ctx context.Context, cid s
 		return nil, httperror.NewForNotFoundWithSingleField("cid", "does not exist")
 	}
 
-	content, err := impl.IPFS.GetContent(ctx, m.CID)
+	content, err := impl.IPFS.Get(ctx, m.CID)
 	if err != nil {
 		impl.Logger.Error("get content by cid via ipfs error", slog.Any("error", err))
 		return nil, err

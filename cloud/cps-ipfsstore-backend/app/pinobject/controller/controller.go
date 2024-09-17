@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"log"
 
 	"log/slog"
 
@@ -10,7 +9,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 
 	ipfs_storage "github.com/LuchaComics/monorepo/cloud/cps-ipfsstore-backend/adapter/storage/ipfs"
-	s3_storage "github.com/LuchaComics/monorepo/cloud/cps-ipfsstore-backend/adapter/storage/s3"
 	pin_s "github.com/LuchaComics/monorepo/cloud/cps-ipfsstore-backend/app/pinobject/datastore"
 	pinobject_s "github.com/LuchaComics/monorepo/cloud/cps-ipfsstore-backend/app/pinobject/datastore"
 	project_s "github.com/LuchaComics/monorepo/cloud/cps-ipfsstore-backend/app/project/datastore"
@@ -41,7 +39,6 @@ type PinObjectControllerImpl struct {
 	Password        password.Provider
 	JWT             jwt.Provider
 	IPFS            ipfs_storage.IPFSStorager
-	S3              s3_storage.S3Storager
 	DbClient        *mongo.Client
 	ProjectStorer   project_s.ProjectStorer
 	PinObjectStorer pinobject_s.PinObjectStorer
@@ -55,7 +52,6 @@ func NewController(
 	passwordp password.Provider,
 	jwtp jwt.Provider,
 	ipfs ipfs_storage.IPFSStorager,
-	s3 s3_storage.S3Storager,
 	client *mongo.Client,
 	proj_storer project_s.ProjectStorer,
 	pin_storer pinobject_s.PinObjectStorer,
@@ -67,7 +63,6 @@ func NewController(
 		UUID:            uuidp,
 		Password:        passwordp,
 		JWT:             jwtp,
-		S3:              s3,
 		IPFS:            ipfs,
 		DbClient:        client,
 		ProjectStorer:   proj_storer,
@@ -75,11 +70,11 @@ func NewController(
 		UserStorer:      usr_storer,
 	}
 	s.Logger.Debug("pinobject controller initialization started...")
-	if err := s.s3SyncWithIpfs(context.Background()); err != nil {
-		// It is important that we crash the app on startup to meet the
-		// requirements of `google/wire` framework.
-		log.Fatal(err)
-	}
+	// if err := s.s3SyncWithIpfs(context.Background()); err != nil {
+	// 	// It is important that we crash the app on startup to meet the
+	// 	// requirements of `google/wire` framework.
+	// 	log.Fatal(err)
+	// }
 	s.Logger.Debug("pinobject controller initialized")
 	return s
 }

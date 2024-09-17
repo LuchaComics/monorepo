@@ -1,210 +1,648 @@
 package ipfs
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"log/slog"
 	"mime/multipart"
+	"net"
+	"net/http"
+	"strings"
+	"time"
 
-	ipfscliwrapper "github.com/bartmika/ipfs-cli-wrapper"
+	"github.com/ipfs/boxo/path"
+	"github.com/ipfs/go-cid"
+	ipfsFiles "github.com/ipfs/go-ipfs-files"
+	"github.com/ipfs/kubo/client/rpc"
+	"github.com/ipfs/kubo/core/coreiface/options"
+	ma "github.com/multiformats/go-multiaddr"
 
 	c "github.com/LuchaComics/monorepo/cloud/cps-ipfsstore-backend/config"
 )
 
 type IPFSStorager interface {
-	AddFileContentFromMulipartFile(ctx context.Context, file multipart.File) (string, error)
-	AddFileContent(ctx context.Context, fileContent []byte) (string, error)
-	AddFileContentAndPin(ctx context.Context, fileContent []byte) (string, error)
-	GetContent(ctx context.Context, cidString string) ([]byte, error)
-	PinContent(ctx context.Context, cidString string) error
+	// Uploads content to IPFS within a specified directory
+	UploadString(ctx context.Context, content, fileName, dirName string) (dirCid, fileCid string, err error)
+	UploadBytes(ctx context.Context, content []byte, fileName, dirName string) (dirCid, fileCid string, err error)
+	UploadMultipart(ctx context.Context, file multipart.File, fileName, dirName string) (dirCid, fileCid string, err error)
+
+	// Retrieves content from IPFS
+	Get(ctx context.Context, cid string) ([]byte, error)
+
+	// Manages pinning of content in IPFS
+	Pin(ctx context.Context, cid string) error
+	Unpin(ctx context.Context, cid string) error
 	ListPins(ctx context.Context) ([]string, error)
-	UnpinContent(ctx context.Context, cidString string) error
-	DeleteContent(ctx context.Context, cidString string) error
-	Id(ctx context.Context) (*IpfsNodeInfo, error)
+
+	// IPNS-related methods
+	GenerateKey(ctx context.Context, keyName string) (ipnsName string, err error)
+	PublishToIPNS(ctx context.Context, keyName, dirCid string) (ipnsName string, err error)
+
+	CheckIfKeyNameExists(ctx context.Context, keyName string) (bool, error)
+	RemoveKey(ctx context.Context, keyName string) error
+
+	// Shutdown the IPFS service
 	Shutdown()
 }
 
 type ipfsStorager struct {
-	ipfsBinFilepath string
-	ipfsCliWrapper  ipfscliwrapper.IpfsCliWrapper
-	logger          *slog.Logger
+	api    *rpc.HttpApi
+	logger *slog.Logger
+	apiUrl string
 }
 
-type IpfsNodeInfo struct {
-	ID              string   `json:"ID"`
-	PublicKey       string   `json:"PublicKey"`
-	Addresses       []string `json:"Addresses"`
-	AgentVersion    string   `json:"AgentVersion"`
-	ProtocolVersion string   `json:"ProtocolVersion"`
+// DEVELOPERS NOTE:
+// Useful links as follows:
+// - https://github.com/ipfs/kubo/tree/master/client/rpc
+// - https://pkg.go.dev/github.com/ipfs/kubo/client/rpc
+//
+
+func basicAuth(projectId, projectSecret string) string {
+	auth := projectId + ":" + projectSecret
+	return base64.StdEncoding.EncodeToString([]byte(auth))
 }
 
 func NewStorage(appConf *c.Conf, logger *slog.Logger) IPFSStorager {
-	logger.Debug("ipfs storage adapter initializing...",
-		slog.String("os", appConf.IPFSNode.BinaryOperatingSystem),
-		slog.String("arch", appConf.IPFSNode.BinaryCPUArchitecture),
-	)
-
-	launcher, initErr := ipfscliwrapper.NewWrapper(
-		ipfscliwrapper.WithOverrideDaemonInitialWarmupDuration(25), // Wait 25 seconds for IPFS to startup for the first time. This is dependent on your machine.
-		ipfscliwrapper.WithContinousOperation(),
-		ipfscliwrapper.WithOverrideBinaryOsAndArch(appConf.IPFSNode.BinaryOperatingSystem, appConf.IPFSNode.BinaryCPUArchitecture),
-		ipfscliwrapper.WithDenylist("badbits.deny", "https://badbits.dwebops.pub/badbits.deny"), // Taken from https://github.com/ipfs/kubo/blob/master/docs/content-blocking.md#denylist-file-format
-	)
-	if initErr != nil {
-		log.Fatalf("failed creating ipfs-launcher: %v", initErr)
-	}
-	if launcher == nil {
-		log.Fatal("cannot return nil launcher")
-	}
-
-	if startErr := launcher.StartDaemonInBackground(); startErr != nil {
-		log.Fatal(startErr)
-	}
-
-	logger.Debug("ipfs storage adapter setup ipfs node")
+	logger.Debug("connecting to ipfs node...")
 
 	// Create our storage handler for IPFS.
-	ipfsStorage := &ipfsStorager{
-		ipfsBinFilepath: "./bin/kubo/ipfs",
-		ipfsCliWrapper:  launcher,
-		logger:          logger,
+	var ipfsStorage *ipfsStorager
+
+	if appConf.IPFSNode.GatewayRPCURL != "" {
+		//
+		// CASE 1 OF 2:
+		//
+
+		httpClient := &http.Client{}
+		httpApi, err := rpc.NewURLApiWithClient(appConf.IPFSNode.GatewayRPCURL, httpClient)
+		if err != nil {
+			log.Fatalf("failed to create IPFS HTTP API client: %v", err)
+		}
+		httpApi.Headers.Add("Authorization", "Basic "+basicAuth(appConf.IPFSNode.Username, appConf.IPFSNode.Password))
+
+		// Create our storage handler for IPFS.
+		ipfsStorage = &ipfsStorager{
+			apiUrl: appConf.IPFSNode.GatewayRPCURL,
+			logger: logger,
+			api:    httpApi,
+		}
+	} else {
+		//
+		// CASE 2 OF 2:
+		//
+
+		// The following block of code will be used to resolve the dns of our
+		// other docker container to get the `ipfs-node` ip address.
+		var ipfsIP string
+		ips, err := net.LookupIP("ipfs-node")
+		if err != nil {
+			log.Fatalf("failed to lookup dns record: %v", err)
+		}
+		for _, ip := range ips {
+			ipfsIP = ip.String()
+			break
+		}
+
+		// Step 1: Define the remote IPFS server address (replace with your remote IPFS server address)
+		ipfsAddress := fmt.Sprintf("/ip4/%s/tcp/5001", ipfsIP) // Example: Replace with your remote IPFS server address
+
+		// Step 2: Create a Multiaddr using the remote IPFS address
+		multiaddr, err := ma.NewMultiaddr(ipfsAddress)
+		if err != nil {
+			log.Fatalf("failed to create multiaddr: %v", err)
+		}
+
+		// Step 3: Create a new IPFS HTTP API client using the remote server address
+		api, err := rpc.NewApi(multiaddr)
+		if err != nil {
+			log.Fatalf("failed to create IPFS HTTP API client: %v", err)
+		}
+
+		// Create our storage handler for IPFS.
+		ipfsStorage = &ipfsStorager{
+			apiUrl: ipfsIP,
+			logger: logger,
+			api:    api,
+		}
 	}
 
-	// DEVELOPERS NOTE:
-	// The following code will create a sample file so we can verify our
-	// ipfs adapter is confirmed working.
-	sampleBytes := "Hello world via `Collectibles Protective Services` IPFS store!"
-	sampleCid, addFileContentErr := ipfsStorage.AddFileContentAndPin(context.Background(), []byte(sampleBytes))
-	if addFileContentErr != nil {
-		log.Fatalf("failed adding sample file with error: %v", addFileContentErr)
+	logger.Debug("connected to ipfs node")
+
+	// Try uploading a sample file to verify our ipfs adapter works.
+	sampleDirCid, sampleFileCid, sampleErr := ipfsStorage.UploadString(context.Background(), "Hello world via `Collectibles Protective Services`!", "sample.txt", "sampledir")
+	if sampleErr != nil {
+		log.Fatalf("failed uploading sample: %v\n", sampleErr)
 	}
-	logger.Debug("ipfs storage successfully saved sample file",
-		slog.String("sample_cid", sampleCid))
+	logger.Debug("ipfs storage adapter successfully uploaded sample file",
+		slog.String("dir_cid", sampleDirCid),
+		slog.String("file_cid", sampleFileCid))
+
+	cids, listErr := ipfsStorage.ListPins(context.Background())
+	if listErr != nil {
+		log.Fatalf("failed listing: %v\n", sampleErr)
+	}
+	logger.Debug("ipfs storage adapter listed successfully",
+		slog.Any("cids", cids),
+		slog.Int("cids_len", len(cids)))
 
 	// Return our ipfs storage handler.
 	return ipfsStorage
 }
 
-func (impl *ipfsStorager) AddFileContentFromMulipartFile(ctx context.Context, file multipart.File) (string, error) {
-	fileContent, err := convertFileToBytes(file)
+type ipfsApiAddResponse struct {
+	Name string `json:"Name"`
+	Hash string `json:"Hash"`
+	Size string `json:"Size"`
+}
+
+func (s *ipfsStorager) UploadString(ctx context.Context, fileContent string, fileName string, directoryName string) (string, string, error) {
+	// Debug log the start of the upload process
+	s.logger.Debug("starting to upload file to IPFS")
+
+	// Create an in-memory reader for the file content
+	fileReader := strings.NewReader(fileContent)
+
+	// Prepare the multipart form data
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+
+	// Create a form file field in the writer and include the directory structure
+	fileField, err := writer.CreateFormFile(directoryName+"/"+fileName, fileName)
 	if err != nil {
-		return "", fmt.Errorf("failed convert file to bytes array: %w", err)
+		s.logger.Error("x1")
+		return "", "", fmt.Errorf("failed to create form file field: %v", err)
 	}
-	return impl.AddFileContent(ctx, fileContent)
+
+	// Copy the file content into the multipart form file field
+	_, err = io.Copy(fileField, fileReader)
+	if err != nil {
+		s.logger.Error("x2")
+		return "", "", fmt.Errorf("failed to copy file content: %v", err)
+	}
+
+	// Close the writer to complete the form
+	err = writer.Close()
+	if err != nil {
+		s.logger.Error("x3")
+		return "", "", fmt.Errorf("failed to close writer: %v", err)
+	}
+
+	// Make the request to IPFS API to add files wrapped within a directory
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://%s:5001/api/v0/add?wrap-with-directory=true&cid-version=1", s.apiUrl), body)
+	if err != nil {
+		s.logger.Error("x4")
+		return "", "", fmt.Errorf("failed to create request: %v", err)
+	}
+
+	// Set the content type header for multipart form data
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	// Perform the request
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		s.logger.Error("x5")
+		return "", "", fmt.Errorf("failed to perform request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	jsonData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		// Handle error
+	}
+
+	// Remove the escape characters
+	jsonString := strings.ReplaceAll(string(jsonData), "\\", "")
+
+	// Split the string by newlines
+	jsonObjects := strings.Split(strings.TrimSpace(jsonString), "\n")
+
+	// Slice to store the parsed structs
+	var responses []ipfsApiAddResponse
+
+	// Loop through the JSON objects and unmarshal them
+	for _, jsonObject := range jsonObjects {
+		if len(strings.TrimSpace(jsonObject)) == 0 {
+			continue // skip empty lines
+		}
+
+		var resp ipfsApiAddResponse
+		err := json.Unmarshal([]byte(jsonObject), &resp)
+		if err != nil {
+			fmt.Printf("Failed to unmarshal JSON object: %v\n", err)
+			continue
+		}
+
+		// Append to the slice
+		responses = append(responses, resp)
+	}
+
+	var fileCid string
+	var dirCid string
+
+	// Print the parsed structs
+	for _, r := range responses {
+		if r.Name == fileName {
+			fileCid = r.Hash
+		} else {
+			dirCid = r.Hash
+
+		}
+	}
+
+	return dirCid, fileCid, nil
 }
 
-func (impl *ipfsStorager) AddFileContent(ctx context.Context, fileContent []byte) (string, error) {
-	cid, addFileErr := impl.ipfsCliWrapper.AddFileContent(ctx, fileContent)
-	if addFileErr != nil {
-		impl.logger.Error("failed to save file locally",
-			slog.Any("error", addFileErr))
-		return "", fmt.Errorf("failed to save file locally: %v", addFileErr)
+func (s *ipfsStorager) UploadMultipart(ctx context.Context, file multipart.File, fileName string, directoryName string) (string, string, error) {
+	// Debug log the start of the upload process
+	s.logger.Debug("starting to upload file to IPFS")
+
+	// Create an in-memory reader for the file content
+	fileReader := ipfsFiles.NewReaderFile(file)
+
+	// Prepare the multipart form data
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+
+	// Create a form file field in the writer and include the directory structure
+	fileField, err := writer.CreateFormFile(directoryName+"/"+fileName, fileName)
+	if err != nil {
+		s.logger.Error("x1")
+		return "", "", fmt.Errorf("failed to create form file field: %v", err)
 	}
-	return cid, nil
+
+	// Copy the file content into the multipart form file field
+	_, err = io.Copy(fileField, fileReader)
+	if err != nil {
+		s.logger.Error("x2")
+		return "", "", fmt.Errorf("failed to copy file content: %v", err)
+	}
+
+	// Close the writer to complete the form
+	err = writer.Close()
+	if err != nil {
+		s.logger.Error("x3")
+		return "", "", fmt.Errorf("failed to close writer: %v", err)
+	}
+
+	// Make the request to IPFS API to add files wrapped within a directory
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://%s:5001/api/v0/add?wrap-with-directory=true&cid-version=1", s.apiUrl), body)
+	if err != nil {
+		s.logger.Error("x4")
+		return "", "", fmt.Errorf("failed to create request: %v", err)
+	}
+
+	// Set the content type header for multipart form data
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	// Perform the request
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		s.logger.Error("x5")
+		return "", "", fmt.Errorf("failed to perform request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	jsonData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		// Handle error
+	}
+
+	// Remove the escape characters
+	jsonString := strings.ReplaceAll(string(jsonData), "\\", "")
+
+	// Split the string by newlines
+	jsonObjects := strings.Split(strings.TrimSpace(jsonString), "\n")
+
+	// Slice to store the parsed structs
+	var responses []ipfsApiAddResponse
+
+	// Loop through the JSON objects and unmarshal them
+	for _, jsonObject := range jsonObjects {
+		if len(strings.TrimSpace(jsonObject)) == 0 {
+			continue // skip empty lines
+		}
+
+		var resp ipfsApiAddResponse
+		err := json.Unmarshal([]byte(jsonObject), &resp)
+		if err != nil {
+			fmt.Printf("Failed to unmarshal JSON object: %v\n", err)
+			continue
+		}
+
+		// Append to the slice
+		responses = append(responses, resp)
+	}
+
+	var fileCid string
+	var dirCid string
+
+	// Print the parsed structs
+	for _, r := range responses {
+		if r.Name == fileName {
+			fileCid = r.Hash
+		} else {
+			dirCid = r.Hash
+
+		}
+	}
+
+	return dirCid, fileCid, nil
 }
 
-func (impl *ipfsStorager) AddFileContentAndPin(ctx context.Context, fileContent []byte) (string, error) {
-	impl.logger.Debug("adding file content to ipfs...")
-	cid, addFileErr := impl.ipfsCliWrapper.AddFileContent(ctx, fileContent)
-	if addFileErr != nil {
-		impl.logger.Error("failed to save file locally",
-			slog.Any("error", addFileErr))
-		return "", fmt.Errorf("failed to save file locally: %v", addFileErr)
-	}
-	impl.logger.Debug("successfullly adding file content to ipfs")
-	impl.logger.Debug("pinning file content to ipfs...")
-	if pinErr := impl.ipfsCliWrapper.Pin(ctx, cid); pinErr != nil {
-		impl.logger.Error("failed to pin local file content",
-			slog.String("cid", cid),
-			slog.Any("error", pinErr))
-		return "", fmt.Errorf("failed to pin local file content: %v", pinErr)
-	}
-	impl.logger.Debug("successfullly pinned file content to ipfs")
+func (s *ipfsStorager) UploadBytes(ctx context.Context, fileContent []byte, fileName string, directoryName string) (string, string, error) {
+	// Debug log the start of the upload process
+	s.logger.Debug("starting to upload file to IPFS")
 
-	return cid, nil
+	// Create an in-memory reader for the file content
+	content := bytes.NewReader(fileContent)
+
+	// Prepare the multipart form data
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+
+	// Create a form file field in the writer and include the directory structure
+	fileField, err := writer.CreateFormFile(directoryName+"/"+fileName, fileName)
+	if err != nil {
+		s.logger.Error("x1")
+		return "", "", fmt.Errorf("failed to create form file field: %v", err)
+	}
+
+	// Copy the file content into the multipart form file field
+	_, err = io.Copy(fileField, content)
+	if err != nil {
+		s.logger.Error("x2")
+		return "", "", fmt.Errorf("failed to copy file content: %v", err)
+	}
+
+	// Close the writer to complete the form
+	err = writer.Close()
+	if err != nil {
+		s.logger.Error("x3")
+		return "", "", fmt.Errorf("failed to close writer: %v", err)
+	}
+
+	// Make the request to IPFS API to add files wrapped within a directory
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://%s:5001/api/v0/add?wrap-with-directory=true&cid-version=1", s.apiUrl), body)
+	if err != nil {
+		s.logger.Error("x4")
+		return "", "", fmt.Errorf("failed to create request: %v", err)
+	}
+
+	// Set the content type header for multipart form data
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	// Perform the request
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		s.logger.Error("x5")
+		return "", "", fmt.Errorf("failed to perform request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	jsonData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		// Handle error
+	}
+
+	// Remove the escape characters
+	jsonString := strings.ReplaceAll(string(jsonData), "\\", "")
+
+	// Split the string by newlines
+	jsonObjects := strings.Split(strings.TrimSpace(jsonString), "\n")
+
+	// Slice to store the parsed structs
+	var responses []ipfsApiAddResponse
+
+	// Loop through the JSON objects and unmarshal them
+	for _, jsonObject := range jsonObjects {
+		if len(strings.TrimSpace(jsonObject)) == 0 {
+			continue // skip empty lines
+		}
+
+		var resp ipfsApiAddResponse
+		err := json.Unmarshal([]byte(jsonObject), &resp)
+		if err != nil {
+			fmt.Printf("Failed to unmarshal JSON object: %v\n", err)
+			continue
+		}
+
+		// Append to the slice
+		responses = append(responses, resp)
+	}
+
+	var fileCid string
+	var dirCid string
+
+	// Print the parsed structs
+	for _, r := range responses {
+		if r.Name == fileName {
+			fileCid = r.Hash
+		} else {
+			dirCid = r.Hash
+
+		}
+	}
+
+	return dirCid, fileCid, nil
 }
 
-func (impl *ipfsStorager) GetContent(ctx context.Context, cidString string) ([]byte, error) {
-	impl.logger.Debug("fetching content from IPFS", slog.String("cid", cidString))
-	content, catErr := impl.ipfsCliWrapper.Cat(ctx, cidString)
-	if catErr != nil {
-		impl.logger.Error("failed fetching content",
-			slog.Any("error", catErr))
-		return []byte{}, fmt.Errorf("failed fetching content: %v", catErr)
+func (s *ipfsStorager) Get(ctx context.Context, cidString string) ([]byte, error) {
+	s.logger.Debug("fetching content from IPFS", slog.String("cid", cidString))
+
+	cid, err := cid.Decode(cidString)
+	if err != nil {
+		s.logger.Error("failed to decode CID", slog.String("cid", cidString), slog.Any("error", err))
+		return nil, fmt.Errorf("failed to decode CID: %v", err)
 	}
 
-	impl.logger.Debug("successfully fetched content from IPFS", slog.String("cid", cidString))
+	// Convert the CID to a path.Path
+	ipfsPath := path.FromCid(cid)
+
+	// Add a timeout to prevent hanging requests.
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Attempt to get the file from IPFS using the path
+	fileNode, err := s.api.Unixfs().Get(ctx, ipfsPath)
+	if err != nil {
+		s.logger.Error("failed to fetch content from IPFS", slog.String("cid", cidString), slog.Any("error", err))
+		return nil, fmt.Errorf("failed to fetch content from IPFS: %v", err)
+	}
+
+	// Convert the file node to a reader
+	fileReader := ipfsFiles.ToFile(fileNode)
+	if fileReader == nil {
+		s.logger.Error("failed to convert IPFS node to file reader", slog.String("cid", cidString))
+		return nil, fmt.Errorf("failed to convert IPFS node to file reader")
+	}
+
+	// Read the content from the file reader
+	content, err := io.ReadAll(fileReader)
+	if err != nil {
+		s.logger.Error("failed to read content from IPFS", slog.String("cid", cidString), slog.Any("error", err))
+		return nil, fmt.Errorf("failed to read content from IPFS: %v", err)
+	}
+
 	return content, nil
 }
 
-func (impl *ipfsStorager) PinContent(ctx context.Context, cidString string) error {
+func (impl *ipfsStorager) Pin(ctx context.Context, cidString string) error {
 	impl.logger.Debug("pinning content to IPFS", slog.String("cid", cidString))
-	if pinErr := impl.ipfsCliWrapper.Pin(ctx, cidString); pinErr != nil {
-		impl.logger.Error("failed to pin locally",
-			slog.String("cid", cidString),
-			slog.Any("error", pinErr))
-		return fmt.Errorf("failed to pin locally: %v", pinErr)
+
+	cid, err := cid.Decode(cidString)
+	if err != nil {
+		impl.logger.Error("failed to decode CID", slog.String("cid", cidString), slog.Any("error", err))
+		return fmt.Errorf("failed to decode CID: %v", err)
 	}
-	impl.logger.Debug("successfully pinned content to IPFS", slog.String("cid", cidString))
+
+	// Convert the CID to a path.Path
+	ipfsPath := path.FromCid(cid)
+
+	// Attempt to pin the content to the IPFS node using the CID
+	if err := impl.api.Pin().Add(ctx, ipfsPath); err != nil {
+		impl.logger.Error("failed to pin content to IPFS", slog.String("cid", cidString), slog.Any("error", err))
+		return fmt.Errorf("failed to pin content to IPFS: %v", err)
+	}
 	return nil
 }
 
 func (impl *ipfsStorager) ListPins(ctx context.Context) ([]string, error) {
-	cids, err := impl.ipfsCliWrapper.ListPins(ctx)
+	// Fetch the pinned items channel
+	pinCh, err := impl.api.Pin().Ls(ctx)
 	if err != nil {
-		impl.logger.Error("failed listing pins",
-			slog.Any("error", err))
-		return []string{}, fmt.Errorf("failed listing pins: %v", err)
+		return nil, fmt.Errorf("failed to list pinned items: %v", err)
 	}
-	return cids, nil
+
+	// Prepare a slice to hold the pinned CIDs
+	pinnedCIDs := make([]string, 0)
+
+	// Read from the channel until it is closed
+	for pin := range pinCh {
+
+		pinnedCIDs = append(pinnedCIDs, pin.Path().RootCid().String())
+	}
+
+	return pinnedCIDs, nil
 }
 
-func (impl *ipfsStorager) UnpinContent(ctx context.Context, cidString string) error {
-	impl.logger.Debug("unpinning content from IPFS", slog.String("cid", cidString))
-	unpinErr := impl.ipfsCliWrapper.Unpin(ctx, cidString)
-	if unpinErr != nil {
-		impl.logger.Error("failed to unpin content",
-			slog.String("cid", cidString),
-			slog.Any("error", unpinErr))
-		return fmt.Errorf("failed to unpin content: %v", unpinErr)
+func (s *ipfsStorager) Unpin(ctx context.Context, cidString string) error {
+	s.logger.Debug("unpinning content from IPFS", slog.String("cid", cidString))
+
+	// Decode the CID string into a CID object
+	c, err := cid.Decode(cidString)
+	if err != nil {
+		s.logger.Error("failed to decode CID", slog.String("cid", cidString), slog.Any("error", err))
+		return fmt.Errorf("failed to decode CID: %v", err)
 	}
-	impl.logger.Debug("successfully unpinned content from IPFS", slog.String("cid", cidString))
+
+	// Convert the CID to a path.Path
+	ipfsPath := path.FromCid(c)
+
+	// Use the IPFS HTTP API to unpin the content
+	err = s.api.Pin().Rm(ctx, ipfsPath)
+	if err != nil {
+		s.logger.Error("failed to unpin content from IPFS", slog.String("cid", cidString), slog.Any("error", err))
+		return fmt.Errorf("failed to unpin content from IPFS: %v", err)
+	}
+
 	return nil
 }
 
-func (s *ipfsStorager) DeleteContent(ctx context.Context, cidString string) error {
-	// To delete content from an IPFS node, you generally need to unpin the content first, and then run the garbage collector to remove unpinned data. However, directly controlling garbage collection isn't typically exposed through the HTTP API, so simply unpinning the content is the standard way to "delete" it from the node.
-	return s.UnpinContent(ctx, cidString)
+func (s *ipfsStorager) GenerateKey(ctx context.Context, keyName string) (string, error) {
+	key, err := s.api.Key().Generate(ctx, keyName)
+	if err != nil {
+		return "", fmt.Errorf("failed to list pinned items: %v", err)
+	}
+	if key == nil {
+		return "", fmt.Errorf("nil key")
+	}
+	// fmt.Println("name:", key.Name())
+	// fmt.Println("path:", key.Path())
+	// fmt.Println("id:", key.ID())
+	return key.Path().String(), nil
 }
 
-func convertFileToBytes(file multipart.File) ([]byte, error) {
-	// Use io.ReadAll to read the entire content of the file into a byte slice
-	fileBytes, err := io.ReadAll(file)
+func (s *ipfsStorager) PublishToIPNS(ctx context.Context, keyName string, directoryCidString string) (string, error) {
+	directoryCid, err := cid.Decode(directoryCidString)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read file: %w", err)
+		s.logger.Error("failed to decode", slog.String("dir_cid", directoryCidString), slog.Any("error", err))
+		return "", fmt.Errorf("failed to decode directory CID: %v", err)
 	}
 
-	return fileBytes, nil
+	// Convert the CID to a path.Path
+	ipfsPath := path.FromCid(directoryCid)
+
+	// Define the option functions
+	optKey := func(settings *options.NamePublishSettings) error {
+		settings.Key = keyName
+		return nil
+	}
+	optValidTime := func(settings *options.NamePublishSettings) error {
+		settings.ValidTime = 24 * time.Hour
+		return nil
+	}
+	optCompatibleWithV1 := func(settings *options.NamePublishSettings) error {
+		settings.CompatibleWithV1 = true
+		return nil
+	}
+	optAllowOffline := func(settings *options.NamePublishSettings) error {
+		settings.AllowOffline = true
+		return nil
+	}
+
+	// Call the IPFS API with the option functions directly
+	res, err := s.api.Name().Publish(ctx, ipfsPath, optKey, optValidTime, optCompatibleWithV1, optAllowOffline)
+	if err != nil {
+		return "", fmt.Errorf("failed to publish to IPNS: %v", err)
+	}
+
+	// // Log and return the result
+	// log.Println(res)
+	// log.Println(res.RoutingKey())
+	// log.Println(res.Cid())
+	// log.Println(res.Peer())
+	// log.Println(res.String())
+	// log.Println(res.AsPath())
+	// log.Println(res.String())
+
+	return res.String(), nil
 }
 
-func (impl *ipfsStorager) Id(ctx context.Context) (*IpfsNodeInfo, error) {
-	info, err := impl.ipfsCliWrapper.Id(ctx)
+func (s *ipfsStorager) CheckIfKeyNameExists(ctx context.Context, keyName string) (bool, error) {
+	keyAPI := s.api.Key()
+
+	keys, err := keyAPI.List(ctx)
 	if err != nil {
-		impl.logger.Error("failed getting ipfds node info",
-			slog.Any("error", err))
-		return nil, fmt.Errorf("failed getting ipfds node info: %v", err)
+		return false, err
 	}
-	return &IpfsNodeInfo{
-		ID:              info.ID,
-		PublicKey:       info.PublicKey,
-		Addresses:       info.Addresses,
-		AgentVersion:    info.AgentVersion,
-		ProtocolVersion: info.ProtocolVersion,
-	}, nil
+	for _, key := range keys {
+		if key.Name() == keyName {
+			return true, nil
+		}
+	}
+
+	// return res.String(), nil
+	return false, nil
+}
+
+func (s *ipfsStorager) RemoveKey(ctx context.Context, keyName string) error {
+	keyAPI := s.api.Key()
+
+	_, rmKeyErr := keyAPI.Remove(ctx, keyName)
+	if rmKeyErr != nil {
+		return rmKeyErr
+	}
+
+	return rmKeyErr
 }
 
 func (impl *ipfsStorager) Shutdown() {
-	impl.ipfsCliWrapper.ShutdownDaemon()
 }

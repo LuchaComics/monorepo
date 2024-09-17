@@ -55,19 +55,19 @@ func (impl *PinObjectControllerImpl) DeleteByRequestID(ctx context.Context, requ
 			return nil, err
 		}
 
-		// Proceed to delete the physical files from AWS s3.
-		if err := impl.S3.DeleteByKeys(sessCtx, []string{pinobject.ObjectKey}); err != nil {
-			impl.Logger.Warn("s3 delete by keys error",
-				slog.Any("request_id", requestID),
-				slog.Any("error", err))
-			// Do not return an error, simply continue this function as there might
-			// be a case were the file was removed on the s3 bucket by ourselves
-			// or some other reason.
-		}
-		impl.Logger.Debug("pin deleted from s3")
+		// // Proceed to delete the physical files from AWS s3.
+		// if err := impl.S3.DeleteByKeys(sessCtx, []string{pinobject.ObjectKey}); err != nil {
+		// 	impl.Logger.Warn("s3 delete by keys error",
+		// 		slog.Any("request_id", requestID),
+		// 		slog.Any("error", err))
+		// 	// Do not return an error, simply continue this function as there might
+		// 	// be a case were the file was removed on the s3 bucket by ourselves
+		// 	// or some other reason.
+		// }
+		// impl.Logger.Debug("pin deleted from s3")
 
 		// Proceed to delete the physical files from IPFS.
-		if err := impl.IPFS.DeleteContent(sessCtx, pinobject.CID); err != nil {
+		if err := impl.IPFS.Unpin(sessCtx, pinobject.CID); err != nil {
 			impl.Logger.Warn("ipfs delete by CID error",
 				slog.Any("request_id", requestID),
 				slog.Any("error", err))

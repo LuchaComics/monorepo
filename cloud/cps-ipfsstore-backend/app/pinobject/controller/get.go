@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"time"
 
 	"log/slog"
 
@@ -35,14 +34,14 @@ func (c *PinObjectControllerImpl) GetByID(ctx context.Context, id primitive.Obje
 		return nil, httperror.NewForNotFoundWithSingleField("request_id", "does not exist")
 	}
 
-	// Generate the URL.
-	fileURL, err := c.S3.GetPresignedURL(ctx, m.ObjectKey, 5*time.Minute)
-	if err != nil {
-		c.Logger.Error("s3 failed get presigned url error", slog.Any("error", err))
-		return nil, err
-	}
-
-	m.ObjectURL = fileURL
+	// // Generate the URL.
+	// fileURL, err := c.S3.GetPresignedURL(ctx, m.ObjectKey, 5*time.Minute)
+	// if err != nil {
+	// 	c.Logger.Error("s3 failed get presigned url error", slog.Any("error", err))
+	// 	return nil, err
+	// }
+	//
+	// m.ObjectURL = fileURL
 	return m, err
 }
 
@@ -71,13 +70,13 @@ func (c *PinObjectControllerImpl) GetByRequestID(ctx context.Context, requestID 
 	}
 
 	// Generate the URL.
-	fileURL, err := c.S3.GetPresignedURL(ctx, m.ObjectKey, 5*time.Minute)
-	if err != nil {
-		c.Logger.Error("s3 failed get presigned url error", slog.Any("error", err))
-		return nil, err
-	}
-
-	m.ObjectURL = fileURL
+	// fileURL, err := c.S3.GetPresignedURL(ctx, m.ObjectKey, 5*time.Minute)
+	// if err != nil {
+	// 	c.Logger.Error("s3 failed get presigned url error", slog.Any("error", err))
+	// 	return nil, err
+	// }
+	//
+	// m.ObjectURL = fileURL
 	return m, err
 }
 
@@ -93,7 +92,7 @@ func (impl *PinObjectControllerImpl) GetWithContentByRequestID(ctx context.Conte
 		return nil, httperror.NewForNotFoundWithSingleField("request_id", "does not exist")
 	}
 
-	content, err := impl.IPFS.GetContent(ctx, m.CID)
+	content, err := impl.IPFS.Get(ctx, m.CID)
 	if err != nil {
 		impl.Logger.Error("get content by cid via ipfs error", slog.Any("error", err))
 		return nil, err

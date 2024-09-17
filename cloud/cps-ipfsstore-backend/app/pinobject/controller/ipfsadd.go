@@ -116,31 +116,31 @@ func (impl *PinObjectControllerImpl) IpfsAdd(ctx context.Context, req *IpfsAddRe
 		}
 
 		// Upload to IPFS network.
-		cid, err := impl.IPFS.AddFileContent(ctx, req.Data)
+		_, cid, err := impl.IPFS.UploadBytes(ctx, req.Data, req.Filename, "uploads")
 		if err != nil {
 			impl.Logger.Error("failed uploading to IPFS", slog.Any("error", err))
 			return nil, err
 		}
 
 		// Pin the file so it won't get deleted by IPFS garbage collection.
-		if err := impl.IPFS.PinContent(ctx, cid); err != nil {
+		if err := impl.IPFS.Pin(ctx, cid); err != nil {
 			impl.Logger.Error("failed pinning to IPFS", slog.Any("error", err))
 			return nil, err
 		}
 
-		// Add to S3.
-		// Generate the key of our upload.
-		objectKey := fmt.Sprintf("%v/%v/%v/%v/%v", "projects", project.ID.Hex(), "cids", cid, req.Filename)
-		go func(content []byte, objkey string) {
-			impl.Logger.Debug("beginning private s3 upload...")
-			if err := impl.S3.UploadContentFromBytes(context.Background(), objkey, content); err != nil {
-				impl.Logger.Error("private s3 upload error", slog.Any("error", err))
-				// Do not return an error, simply continue this function as there might
-				// be a case were the file was removed on the s3 bucket by ourselves
-				// or some other reason.
-			}
-			impl.Logger.Debug("Finished private s3 upload")
-		}(req.Data, objectKey)
+		// // Add to S3.
+		// // Generate the key of our upload.
+		// objectKey := fmt.Sprintf("%v/%v/%v/%v/%v", "projects", project.ID.Hex(), "cids", cid, req.Filename)
+		// go func(content []byte, objkey string) {
+		// 	impl.Logger.Debug("beginning private s3 upload...")
+		// 	if err := impl.S3.UploadContentFromBytes(context.Background(), objkey, content); err != nil {
+		// 		impl.Logger.Error("private s3 upload error", slog.Any("error", err))
+		// 		// Do not return an error, simply continue this function as there might
+		// 		// be a case were the file was removed on the s3 bucket by ourselves
+		// 		// or some other reason.
+		// 	}
+		// 	impl.Logger.Debug("Finished private s3 upload")
+		// }(req.Data, objectKey)
 
 		// For developer purposes only.
 		ipAdress, _ := sessCtx.Value(constants.SessionIPAddress).(string)
@@ -179,9 +179,9 @@ func (impl *PinObjectControllerImpl) IpfsAdd(ctx context.Context, req *IpfsAddRe
 			ModifiedFromIPAddress: ipAdress,
 
 			// S3
-			Filename:  req.Filename,
-			ObjectKey: objectKey,
-			ObjectURL: "",
+			Filename: req.Filename,
+			// ObjectKey: objectKey,
+			// ObjectURL: "",
 		}
 		if err := impl.PinObjectStorer.Create(sessCtx, pinObject); err != nil {
 			impl.Logger.Error("database create error", slog.Any("error", err))
