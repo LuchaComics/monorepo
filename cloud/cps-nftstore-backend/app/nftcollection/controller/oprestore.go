@@ -107,13 +107,13 @@ func (impl *NFTCollectionControllerImpl) OperationRestore(ctx context.Context, r
 		// node that we are connected to, if not then error.
 		//
 
-		// keyNameExists, keyExistsErr := impl.IPFS.CheckIfKeyNameExists(sessCtx, reqPayload.NFTCollection.IPNSKeyName)
-		// if keyExistsErr != nil {
-		// 	return nil, keyExistsErr
-		// }
-		// if !keyNameExists {
-		// 	return nil, httperror.NewForBadRequestWithSingleField("ipns_key_name", "missing key in ipfs node")
-		// }
+		keyNameExists, keyExistsErr := impl.IPFS.CheckIfKeyNameExists(sessCtx, reqPayload.NFTCollection.IPNSKeyName)
+		if keyExistsErr != nil {
+			return nil, keyExistsErr
+		}
+		if !keyNameExists {
+			return nil, httperror.NewForBadRequestWithSingleField("ipns_key_name", "missing key in ipfs node")
+		}
 
 		//
 		// STEP 4
