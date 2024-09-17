@@ -69,11 +69,17 @@ func (impl *NFTCollectionControllerImpl) DeleteByID(ctx context.Context, id prim
 	// Delete the collection folder from IPFS network.
 	//
 
-	impl.Logger.Debug("deleted all nft metadata files from ipfs for this collection")
 	if err := impl.IPFS.Unpin(ctx, d.IPFSDirectoryCID); err != nil {
 		impl.Logger.Error("ipfs failed unpinning directory error", slog.Any("error", err))
 		return err
 	}
+	impl.Logger.Debug("deleted all nft metadata files from ipfs for this collection")
+
+	if err := impl.IPFS.RemoveKey(ctx, d.IPNSKeyName); err != nil {
+		impl.Logger.Error("ipfs removed key error", slog.Any("error", err))
+		return err
+	}
+	impl.Logger.Debug("removed collection ipns key from the ipfs node")
 
 	//
 	// STEP 4

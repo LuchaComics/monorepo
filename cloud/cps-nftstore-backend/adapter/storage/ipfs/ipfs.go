@@ -48,6 +48,7 @@ type IPFSStorager interface {
 	PublishToIPNS(ctx context.Context, keyName, dirCid string) (ipnsName string, err error)
 
 	CheckIfKeyNameExists(ctx context.Context, keyName string) (bool, error)
+	RemoveKey(ctx context.Context, keyName string) error
 
 	// Shutdown the IPFS service
 	Shutdown()
@@ -651,6 +652,17 @@ func (s *ipfsStorager) CheckIfKeyNameExists(ctx context.Context, keyName string)
 
 	// return res.String(), nil
 	return false, nil
+}
+
+func (s *ipfsStorager) RemoveKey(ctx context.Context, keyName string) error {
+	keyAPI := s.api.Key()
+
+	_, rmKeyErr := keyAPI.Remove(ctx, keyName)
+	if rmKeyErr != nil {
+		return rmKeyErr
+	}
+
+	return rmKeyErr
 }
 
 func (impl *ipfsStorager) Shutdown() {
