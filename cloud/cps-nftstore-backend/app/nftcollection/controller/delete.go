@@ -59,7 +59,7 @@ func (impl *NFTCollectionControllerImpl) DeleteByID(ctx context.Context, id prim
 		for _, metadata := range metadataRes.Results {
 			if err := impl.IPFS.Unpin(sessCtx, metadata.FileCID); err != nil {
 				impl.Logger.Error("ipfs failed unpinning file error", slog.Any("error", err))
-				return nil, err
+				// Skip any errors that occur during the IPFS unpinning process.
 			}
 			if deleteErr := impl.NFTStorer.DeleteByID(sessCtx, metadata.ID); deleteErr != nil {
 				impl.Logger.Error("database delete by id error", slog.Any("error", deleteErr))
@@ -85,7 +85,7 @@ func (impl *NFTCollectionControllerImpl) DeleteByID(ctx context.Context, id prim
 		for _, asset := range assetsRes.Results {
 			if err := impl.IPFS.Unpin(sessCtx, asset.CID); err != nil {
 				impl.Logger.Error("ipfs failed unpinning file error", slog.Any("error", err))
-				return nil, err
+				// Skip any errors that occur during the IPFS unpinning process.
 			}
 			if deleteErr := impl.NFTAssetStorer.DeleteByID(sessCtx, asset.ID); deleteErr != nil {
 				impl.Logger.Error("database delete by id error", slog.Any("error", deleteErr))
@@ -104,13 +104,13 @@ func (impl *NFTCollectionControllerImpl) DeleteByID(ctx context.Context, id prim
 
 		if err := impl.IPFS.Unpin(sessCtx, d.IPFSDirectoryCID); err != nil {
 			impl.Logger.Error("ipfs failed unpinning directory error", slog.Any("error", err))
-			return nil, err
+			// Skip any errors that occur during the IPFS unpinning process.
 		}
 		impl.Logger.Debug("deleted all nft metadata files from ipfs for this collection")
 
 		if err := impl.IPFS.RemoveKey(sessCtx, d.IPNSKeyName); err != nil {
 			impl.Logger.Error("ipfs removed key error", slog.Any("error", err))
-			return nil, err
+			// Skip any errors that occur during the IPFS unpinning process.
 		}
 		impl.Logger.Debug("removed collection ipns key from the ipfs node")
 

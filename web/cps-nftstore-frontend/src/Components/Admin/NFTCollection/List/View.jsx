@@ -520,7 +520,7 @@ function AdminNFTCollectionList() {
               <div class="column is-half has-text-right"></div>
             </div>
           </nav>
-          <div className="has-text-right has-text-grey">
+          <div className="has-text-right has-text-grey is-size-7">
             <Link to={`/admin/collections/add-via-backupfile`} className="has-text-grey">
               Restore via a backup file&nbsp;
               <FontAwesomeIcon className="mdi" icon={faArrowRight} />
