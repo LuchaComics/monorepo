@@ -32,7 +32,8 @@ import {
   faTrashCan,
   faHomeCollection,
   faRocket,
-  faTerminal
+  faTerminal,
+  faBox
 } from "@fortawesome/free-solid-svg-icons";
 
 import BubbleLink from "../../../../Reusable/EveryPage/BubbleLink";
@@ -76,9 +77,9 @@ const AdminClientDetailMoreDesktop = ({ collection }) => {
                           <BubbleLink
                             title={`Backup`}
                             subtitle={`Backup everything you need to restore this colleciton.`}
-                            faIcon={faTerminal}
+                            faIcon={faBox}
                             url={`/admin/collection/${collection.id}/more/backup`}
-                            bgColour={`has-background-danger-dark`}
+                            bgColour={`has-background-warning-dark`}
                           />
                         </div>
                     </>

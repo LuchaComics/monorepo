@@ -32,7 +32,8 @@ import {
   faTrashCan,
   faHomeCollection,
   faRocket,
-  faTerminal
+  faTerminal,
+  faBox
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 import { useParams } from "react-router-dom";
@@ -94,7 +95,7 @@ const AdminClientDetailMoreMobile = ({ collection }) => {
               </tr>
               <tr>
                 <td>
-                  <FontAwesomeIcon className="fas" icon={faTerminal} />
+                  <FontAwesomeIcon className="fas" icon={faBox} />
                   &nbsp;Backup
                 </td>
                 <td>
