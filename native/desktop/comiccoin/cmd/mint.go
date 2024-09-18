@@ -5,11 +5,12 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain"
+		"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
+		kvs "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/keyvaluestore/leveldb"
 )
 
 func init() {
@@ -33,13 +34,21 @@ func mintCmd() *cobra.Command {
 				os.Exit(1)
 			}
 
-			blochchain, err := blockchain.NewPoABlockchain(key)
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(1)
+            cfg := &config.Config{
+				DB: config.DBConfig{
+					DataDir:flagDataDir,
+				},
 			}
+			kvs := kvs.NewKeyValueStorer(cfg)
 
-			spew.Dump(blochchain)
+			blockchain := blockchain.NewPoABlockchain(kvs, key)
+
+			// record transactions on the blockchain for Alice, Bob, and John
+			blockchain.AddBlock("Alice", "Bob", 5)
+			blockchain.AddBlock("John", "Bob", 2)
+
+			// check if the blockchain is valid; expecting true
+			fmt.Println(blockchain.IsValid())
 		},
 	}
 
