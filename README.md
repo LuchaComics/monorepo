@@ -2,9 +2,12 @@
 
 The purpose of this repository is to store all the open-source software developed (or currently developing) by [Lucha Comics](https://github.com/LuchaComics).
 
+## 🗂️ Directory Structure
+
 This repository is organized in the following major folders:
 
 * [`cloud`](./cloud/README.md) - Contains all backend web-services related projects.
+* [`native`](./native/README.md) - Contains all projects which can be executed on specific devices.
 * [`web`](./web/README.md) - Contains all frontend related projects.
 
 ## 🤝 Contributing
