@@ -54,7 +54,7 @@ type PoABlockchain struct {
 	chain         []*Block
 	difficulty    int
 	Database      keyvaluestore.KeyValueStorer
-	lastHash      string
+	currentHash   string
 }
 
 func NewPoABlockchain(kvs keyvaluestore.KeyValueStorer, authorizedKey *keystore.Key) *PoABlockchain {
@@ -93,12 +93,12 @@ func NewPoABlockchain(kvs keyvaluestore.KeyValueStorer, authorizedKey *keystore.
 	//
 
 	// We need to always keep a record of the last Hash for our application.
-	lastHashBin, err := kvs.Get([]byte("lh"))
+	currentHashBin, err := kvs.Get([]byte("lh"))
 	if err != nil {
 		log.Printf("failed getting `lh` from kvs: %v", err)
 	}
-	lastHash := string(lastHashBin)
-	fmt.Println("lastHash ->>", lastHash)
+	currentHash := string(currentHashBin)
+	fmt.Println("currentHash ->>", currentHash)
 
 	//
 	//
@@ -116,7 +116,7 @@ func NewPoABlockchain(kvs keyvaluestore.KeyValueStorer, authorizedKey *keystore.
 		[]*Block{genesisBlock},
 		difficulty,
 		kvs,
-		lastHash,
+		currentHash,
 	}
 }
 
