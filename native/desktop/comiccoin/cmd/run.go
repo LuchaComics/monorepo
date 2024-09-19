@@ -44,6 +44,7 @@ var runCmd = &cobra.Command{
 		// Load up our configuration.
 		cfg := &config.Config{
 			BlockchainDifficulty: 1,
+			AppPort:              9000,
 			DB: config.DBConfig{
 				DataDir: flagDataDir,
 			},
