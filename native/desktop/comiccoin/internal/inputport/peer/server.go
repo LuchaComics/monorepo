@@ -1,4 +1,4 @@
-package ipfs
+package peer
 
 import (
 	"log"
@@ -10,7 +10,7 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport"
 )
 
-type ipfsInputPort struct {
+type peerInputPort struct {
 	cfg        *config.Config
 	kvs        keyvaluestore.KeyValueStorer
 	blockchain *blockchain.Blockchain
@@ -21,19 +21,19 @@ func NewInputPort(
 	kvs keyvaluestore.KeyValueStorer,
 	bc *blockchain.Blockchain,
 ) inputport.InputPortServer {
-	return &ipfsInputPort{
+	return &peerInputPort{
 		cfg:        cfg,
 		kvs:        kvs,
 		blockchain: bc,
 	}
 }
 
-func (s *ipfsInputPort) Run() {
-	log.Println("running ipfs")
+func (s *peerInputPort) Run() {
+	log.Println("running peer")
 	time.Sleep(10 * time.Second)
 
 }
 
-func (s *ipfsInputPort) Shutdown() {
-
+func (s *peerInputPort) Shutdown() {
+	log.Println("shutting down")
 }

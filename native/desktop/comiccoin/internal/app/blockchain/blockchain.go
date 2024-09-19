@@ -92,7 +92,6 @@ func NewBlockchain(
 		log.Fatalf("failed initializing blockchain because of missing genesis block")
 	} else {
 		bc.LastHash = string(lastHashBin)
-		log.Println("fetched latest hash:", bc.LastHash)
 	}
 	return bc
 }
