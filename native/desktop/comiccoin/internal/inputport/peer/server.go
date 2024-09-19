@@ -1,8 +1,12 @@
 package peer
 
 import (
+	"fmt"
 	"log"
 	"time"
+
+	"github.com/libp2p/go-libp2p"
+	"github.com/libp2p/go-libp2p/core/host"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/keyvaluestore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain"
@@ -14,7 +18,7 @@ type peerInputPort struct {
 	cfg        *config.Config
 	kvs        keyvaluestore.KeyValueStorer
 	blockchain *blockchain.Blockchain
-	// host       host.Host
+	host       host.Host
 }
 
 func NewInputPort(
@@ -29,11 +33,18 @@ func NewInputPort(
 	// 	log.Fatalf("failed making this node a p2p host: %v", err)
 	// }
 
+	sourcePort := 9000
+
+	h, err := makeHost(sourcePort)
+	if err != nil {
+		log.Fatalf("failed to make p2p host: %v", err)
+	}
+
 	return &peerInputPort{
 		cfg:        cfg,
 		kvs:        kvs,
 		blockchain: bc,
-		// host:       h,
+		host:       h,
 	}
 }
 
@@ -45,24 +56,17 @@ func (s *peerInputPort) Run() {
 
 func (s *peerInputPort) Shutdown() {
 	log.Println("shutting down")
-
+	s.host.Close()
 }
 
-// func makeHost(port int) (host.Host, error) {
-// 	// Creates a new RSA key pair for this host.
-// 	prvKey, _, err := crypto.GenerateKeyPairWithReader(crypto.RSA, 2048, randomness)
-// 	if err != nil {
-// 		log.Println(err)
-// 		return nil, err
-// 	}
-//
-// 	// 0.0.0.0 will listen on any interface device.
-// 	sourceMultiAddr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", port))
-//
-// 	// libp2p.New constructs a new libp2p Host.
-// 	// Other options can be added here.
-// 	return libp2p.New(
-// 		libp2p.ListenAddrs(sourceMultiAddr),
-// 		libp2p.Identity(prvKey),
-// 	)
-// }
+func makeHost(port int) (host.Host, error) {
+	node, err := libp2p.New()
+	if err != nil {
+		return nil, err
+	}
+
+	// print the node's listening addresses
+	fmt.Println("Listen addresses:", node.Addrs())
+
+	return node, nil
+}
