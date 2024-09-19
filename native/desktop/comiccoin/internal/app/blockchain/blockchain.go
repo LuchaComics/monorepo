@@ -7,10 +7,11 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/keyvaluestore"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
+
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/keyvaluestore"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 )
 
 type Blockchain struct {

@@ -6,12 +6,13 @@ import (
 	"log"
 	"os"
 
-	kvs "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/keyvaluestore/leveldb"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
+
+	kvs "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/keyvaluestore/leveldb"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 )
 
 func init() {
