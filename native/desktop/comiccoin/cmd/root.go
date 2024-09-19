@@ -8,9 +8,11 @@ import (
 )
 
 var (
-	flagKeystoreFile string // Location of the wallet keystore
-	flagDataDir      string // Location of the database directory
-	flagPassword     string
+	flagKeystoreFile     string // Location of the wallet keystore
+	flagDataDir          string // Location of the database directory
+	flagPassword         string
+	flagCoinbaseAddress  string
+	flagRecipientAddress string
 )
 
 // Initialize function will be called when every command gets called.

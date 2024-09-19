@@ -1,167 +1,146 @@
 package blockchain
 
 import (
-	"crypto/ecdsa"
-	"crypto/rand"
+	"encoding/json"
 	"fmt"
 	"log"
+	"math/big"
 	"time"
 
-	"github.com/ethereum/go-ethereum/accounts/keystore"
-
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/keyvaluestore"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
+	"github.com/ethereum/go-ethereum/accounts/keystore"
+	"github.com/ethereum/go-ethereum/common"
 )
 
-type AuthorizedNode struct {
-	Address    string
-	PrivateKey *ecdsa.PrivateKey
+type Blockchain struct {
+	LastHash    string
+	Difficulty  int
+	Database    keyvaluestore.KeyValueStorer
+	CoinbaseKey *keystore.Key
 }
 
-func (node *AuthorizedNode) Sign(data []byte) ([]byte, error) {
-	return ecdsa.SignASN1(rand.Reader, node.PrivateKey, data)
-}
-
-// // PoABlockchain struct represents a Blochcain based on a `proof of authority`
-// // consensus model.
-// type PoABlockchain struct {
-// 	genesisBlock     *Block
-// 	chain            []*Block
-// 	difficulty       int
-// 	AuthorizedNodes  []*AuthorizedNode
-// 	CurrentNodeIndex int
-// }
-//
-// func NewPoABlockchain(authorizedKey *keystore.Key) (*PoABlockchain, error) {
-// 	blockchain := &PoABlockchain{
-// 		chain:            []*Block{NewGenesisBlock()},
-// 		AuthorizedNodes:  make([]*AuthorizedNode, 1),
-// 		CurrentNodeIndex: 0,
-// 	}
-//
-// 	blockchain.AuthorizedNodes[0] = &AuthorizedNode{
-// 		Address:    authorizedKey.Address.Hex(),
-// 		PrivateKey: authorizedKey.PrivateKey,
-// 	}
-//
-// 	return blockchain, nil
-// }
-
-// PoABlockchain struct represents a Blochcain based on a `proof of authority`
-// consensus model.
-type PoABlockchain struct {
-	authorizedKey *keystore.Key
-	genesisBlock  *Block
-	chain         []*Block
-	difficulty    int
-	Database      keyvaluestore.KeyValueStorer
-	currentHash   string
-}
-
-func NewPoABlockchain(kvs keyvaluestore.KeyValueStorer, authorizedKey *keystore.Key) *PoABlockchain {
-	//
-	// STEP 1:
-	// Look up our `Genesis` block in our database and if it does not exist then
-	// we need to create it and save it to the database.
-	//
-
-	var genesisBlock *Block
-	gensisBlockBin, err := kvs.Get([]byte("genesis"))
-	if err != nil {
-		log.Printf("failed getting `gensis` from kvs: %v", err)
+func NewBlockchain(
+	cfg *config.Config,
+	kvs keyvaluestore.KeyValueStorer,
+	coinbaseKey *keystore.Key,
+) *Blockchain {
+	bc := &Blockchain{
+		Difficulty:  cfg.BlockchainDifficulty,
+		Database:    kvs,
+		CoinbaseKey: coinbaseKey,
 	}
-	fmt.Println("gensisBlockBin ->>", gensisBlockBin)
 
-	if gensisBlockBin == nil {
-		genesisBlock = &Block{
-			Hash:      "0",
-			Timestamp: time.Now(),
-		}
-		err := kvs.Set([]byte("genesis"), genesisBlock.Serialize())
+	// Check if we have a genesis block
+	lastHashBytes, err := kvs.Get([]byte("LAST_HASH"))
+	if err != nil || lastHashBytes == nil || string(lastHashBytes) == "" {
+		log.Println("err:", err)
+		// No existing blockchain found, create genesis block
+		genesisBlock := NewGenesisBlock(coinbaseKey)
+		genesisBlock.Hash = genesisBlock.CalculateHash()
+
+		// Store genesis block
+		blockData, err := json.Marshal(genesisBlock)
 		if err != nil {
-			log.Printf("failed setting `gensis` to kvs: %v", err)
+			log.Fatalf("Failed to marshal genesis block: %v", err)
 		}
-		fmt.Println("created genesis")
+		err = kvs.Set([]byte(genesisBlock.Hash), blockData)
+		if err != nil {
+			log.Fatalf("Failed to store genesis block: %v", err)
+		}
+
+		// Update last hash
+		err = kvs.Set([]byte("LAST_HASH"), []byte(genesisBlock.Hash))
+		if err != nil {
+			log.Fatalf("Failed to store last hash: %v", err)
+		}
+
+		bc.LastHash = genesisBlock.Hash
+		log.Println("generated first hash:", bc.LastHash)
 	} else {
-		genesisBlock = Deserialize(gensisBlockBin)
-		fmt.Println("fetched genesis")
+		bc.LastHash = string(lastHashBytes)
+		log.Println("fetched latest hash:", bc.LastHash)
 	}
-
-	//
-	// STEP 2:
-	// Lookup our latest block hash and if it doesn't exist then we will set
-	// our `Genesis` block as our latest block hash
-	//
-
-	// We need to always keep a record of the last Hash for our application.
-	currentHashBin, err := kvs.Get([]byte("lh"))
-	if err != nil {
-		log.Printf("failed getting `lh` from kvs: %v", err)
-	}
-	currentHash := string(currentHashBin)
-	fmt.Println("currentHash ->>", currentHash)
-
-	//
-	//
-	//
-
-	difficulty := 1
-
-	//
-	//
-	//
-
-	return &PoABlockchain{
-		authorizedKey,
-		genesisBlock,
-		[]*Block{genesisBlock},
-		difficulty,
-		kvs,
-		currentHash,
-	}
+	return bc
 }
 
-func (b *PoABlockchain) AddBlock(from, to string, amount float64) {
-	blockData := map[string]interface{}{
-		"from":   from,
-		"to":     to,
-		"amount": amount,
+func (bc *Blockchain) Close() error {
+	return bc.Database.Close()
+}
+
+func (bc *Blockchain) AddBlock(transactions []*Transaction) error {
+	lastHash := bc.LastHash
+	if lastHash == "" {
+		log.Fatal("cannot have empty last hash!")
+	} else {
+		log.Println("AddBlock: lastHash:", lastHash)
 	}
-	lastBlock := b.chain[len(b.chain)-1]
-	newBlock := Block{
-		Data:         blockData,
-		PreviousHash: lastBlock.Hash,
+
+	newBlock := &Block{
+		PreviousHash: lastHash,
 		Timestamp:    time.Now(),
-	}
-	newBlock.mine(b.difficulty)
-	fmt.Println(newBlock.Hash)
-
-	if err := b.Database.Set([]byte(fmt.Sprintf("hash_%v", newBlock.Hash)), newBlock.Serialize()); err != nil {
-		log.Fatalf("failed to set db: %v", err)
-	}
-	if err := b.Database.Set([]byte("lh"), []byte(newBlock.Hash)); err != nil {
-		log.Fatalf("failed to set db: %v", err)
+		Difficulty:   bc.Difficulty,
+		Transactions: transactions,
 	}
 
-	b.chain = append(b.chain, &newBlock)
+	newBlock.Mine(bc.Difficulty)
+
+	if newBlock.Hash == "" {
+		log.Fatal("cannot have empty newBlock.Hash!")
+	} else {
+		log.Println("AddBlock: newBlock.Hash:", newBlock.Hash)
+	}
+
+	// Store new block
+	blockData, err := json.Marshal(newBlock)
+	if err != nil {
+		return fmt.Errorf("failed to marshal new block: %v", err)
+	}
+	err = bc.Database.Set([]byte(newBlock.Hash), blockData)
+	if err != nil {
+		return fmt.Errorf("failed to store new block: %v", err)
+	}
+
+	// Update last hash
+	err = bc.Database.Set([]byte("LAST_HASH"), []byte(newBlock.Hash))
+	if err != nil {
+		return fmt.Errorf("failed to update last hash: %v", err)
+	}
+
+	bc.LastHash = newBlock.Hash
+	return nil
 }
 
-func (b PoABlockchain) IsValid() bool {
-	for i := range b.chain[1:] {
-		previousBlock := b.chain[i]
-		currentBlock := b.chain[i+1]
-		if currentBlock.Hash != currentBlock.calculateHash() || currentBlock.PreviousHash != previousBlock.Hash {
-			return false
+func (bc *Blockchain) GetBalance(address common.Address) (*big.Int, error) {
+	balance := new(big.Int)
+	currentHash := bc.LastHash
+
+	for {
+		blockData, err := bc.Database.Get([]byte(currentHash))
+		if err != nil {
+			return nil, fmt.Errorf("failed to get block data: %v", err)
 		}
-	}
-	return true
-}
 
-// func (chain *PoABlockchain) AddBlock(Data string) {
-// 	prevBlock := chain.blocks[len(chain.blocks)-1]
-// 	new := CreateBlock(Data, prevBlock.Hash)
-// 	chain.blocks = append(chain.blocks, new)
-// }
-//
-// func (chain *PoABlockchain) GetBlocks() []*Block {
-// 	return chain.blocks
-// }
+		var block Block
+		err = json.Unmarshal(blockData, &block)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal block data: %v", err)
+		}
+
+		for _, tx := range block.Transactions {
+			if tx.From == address {
+				balance.Sub(balance, tx.Value)
+			}
+			if tx.To == address {
+				balance.Add(balance, tx.Value)
+			}
+		}
+
+		if block.PreviousHash == "" {
+			break // Genesis block reached
+		}
+		currentHash = block.PreviousHash
+	}
+
+	return balance, nil
+}

@@ -40,8 +40,8 @@ func walletNewAccountCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&flagDataDir, "datadir", "", "Absolute path to your node's data dir where the DB will be/is stored")
-	cmd.MarkFlagRequired("datadir")
+	cmd.Flags().StringVar(&flagDataDir, "datadir", "./data", "Absolute path to your node's data dir where the DB will be/is stored")
+	// cmd.MarkFlagRequired("datadir")
 	cmd.Flags().StringVar(&flagPassword, "password", "", "The password to encrypt the new wallet")
 	cmd.MarkFlagRequired("password")
 

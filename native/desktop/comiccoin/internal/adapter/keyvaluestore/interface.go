@@ -6,4 +6,7 @@ type KeyValueStorer interface {
 	Get(key []byte) ([]byte, error)
 	Set(key []byte, val []byte) error
 	Delete(key []byte) error
+	View(key []byte, processFunc func(key, value []byte) error) error
+	ViewFromFirst(processFunc func(key, value []byte) error) error
+	Close() error
 }

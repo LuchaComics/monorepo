@@ -1,7 +1,8 @@
 package config
 
 type Config struct {
-	DB DBConfig
+	BlockchainDifficulty int
+	DB                   DBConfig
 }
 
 type DBConfig struct {
