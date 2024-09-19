@@ -45,13 +45,16 @@ func NewBlockchainWithCoinbaseKey(
 
 		// Store genesis block in our database, to begin, we need to
 		// serialize it into []bytes array.
-		blockData, err := json.Marshal(genesisBlock)
+		genesisBlockBin, err := json.Marshal(genesisBlock)
 		if err != nil {
 			log.Fatalf("Failed to marshal genesis block: %v", err)
 		}
+		if genesisBlockBin == nil { // Defensive code for programmer.
+			log.Fatal("did not marshal genesis block")
+		}
 
 		// Save our genesis hash.
-		err = kvs.Setf(blockData, "BLOCK_%v", genesisBlock.Hash)
+		err = kvs.Setf(genesisBlockBin, "BLOCK_%v", genesisBlock.Hash)
 		if err != nil {
 			log.Fatalf("Failed to store genesis block: %v", err)
 		}
@@ -106,6 +109,15 @@ func (bc *Blockchain) AddBlock(transactions []*Transaction) error {
 	if lastHash == "" {
 		log.Fatal("cannot have empty last hash!")
 	}
+	log.Println("fetching last block")
+	// Fetch the last known block to compare with our newly created block.
+	oldBlockBin, err := bc.Database.Getf("BLOCK_%v", lastHash)
+	if err != nil {
+		return fmt.Errorf("failed to lookup `BLOCK_%v` in database: %v", lastHash, err)
+	}
+	log.Println("fetched last block:", string(oldBlockBin))
+	oldBlock := DeserializeBlock(oldBlockBin)
+	log.Println("deserialized last block")
 
 	newBlock := &Block{
 		PreviousHash: lastHash,
@@ -116,29 +128,32 @@ func (bc *Blockchain) AddBlock(transactions []*Transaction) error {
 
 	newBlock.Mine(bc.Difficulty)
 
-	// Defensive code for code sanity check.
+	// Defensive code for programmer code sanity check.
 	if newBlock.Hash == "" {
 		log.Fatal("cannot have empty newBlock.Hash!")
 	}
 
-	// Store new block
-	blockData, err := json.Marshal(newBlock)
-	if err != nil {
-		return fmt.Errorf("failed to marshal new block: %v", err)
+	if isBlockValid(newBlock, oldBlock) {
+		// Store new block
+		blockData, err := json.Marshal(newBlock)
+		if err != nil {
+			return fmt.Errorf("failed to marshal new block: %v", err)
+		}
+
+		err = bc.Database.Setf(blockData, "BLOCK_%v", newBlock.Hash)
+		if err != nil {
+			return fmt.Errorf("failed to store new block: %v", err)
+		}
+
+		// Update last hash
+		err = bc.Database.Setf([]byte(newBlock.Hash), "LAST_HASH")
+		if err != nil {
+			return fmt.Errorf("failed to update last hash: %v", err)
+		}
+
+		bc.LastHash = newBlock.Hash
 	}
 
-	err = bc.Database.Setf(blockData, "BLOCK_%v", newBlock.Hash)
-	if err != nil {
-		return fmt.Errorf("failed to store new block: %v", err)
-	}
-
-	// Update last hash
-	err = bc.Database.Setf([]byte(newBlock.Hash), "LAST_HASH")
-	if err != nil {
-		return fmt.Errorf("failed to update last hash: %v", err)
-	}
-
-	bc.LastHash = newBlock.Hash
 	return nil
 }
 
@@ -174,4 +189,25 @@ func (bc *Blockchain) GetBalance(address common.Address) (*big.Int, error) {
 	}
 
 	return balance, nil
+}
+
+func isBlockValid(newBlock, oldBlock *Block) bool {
+	// if oldBlock.Index+1 != newBlock.Index {
+	// 	return false
+	// }
+
+	if oldBlock.Hash != newBlock.PreviousHash {
+		return false
+	}
+
+	if newBlock.CalculateHash() != newBlock.Hash {
+		return false
+	}
+
+	var txVerified bool = true
+	for _, tx := range newBlock.Transactions {
+		txVerified = txVerified && tx.Verify()
+	}
+
+	return txVerified
 }

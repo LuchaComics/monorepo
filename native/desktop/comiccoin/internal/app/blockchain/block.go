@@ -18,7 +18,7 @@ import (
 
 type Block struct {
 	Hash         string         `json:"hash"`
-	PreviousHash string         `json:"previousHash"`
+	PreviousHash string         `json:"previous_hash"`
 	Timestamp    time.Time      `json:"timestamp"`
 	Nonce        uint64         `json:"nonce"`
 	Difficulty   int            `json:"difficulty"`
@@ -76,11 +76,19 @@ func (b *Block) Serialize() []byte {
 }
 
 func DeserializeBlock(data []byte) *Block {
-	var block Block
-	decoder := gob.NewDecoder(bytes.NewReader(data))
-	err := decoder.Decode(&block)
+	block := &Block{}
+	err := json.Unmarshal(data, block)
 	if err != nil {
 		log.Fatalf("failed to deserialize block: %v", err)
 	}
-	return &block
+	return block
+
+	// DEVELOPERS NOTE: Depercated code.
+	// var block Block
+	// decoder := gob.NewDecoder(bytes.NewReader(data))
+	// err := decoder.Decode(&block)
+	// if err != nil {
+	// 	log.Fatalf("failed to deserialize block: %v", err)
+	// }
+	// return &block
 }
