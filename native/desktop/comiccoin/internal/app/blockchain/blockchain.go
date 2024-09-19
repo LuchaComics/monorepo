@@ -31,6 +31,11 @@ func NewBlockchain(
 		CoinbaseKey: coinbaseKey,
 	}
 
+	// Defensive code.
+	if cfg.BlockchainDifficulty <= 0 {
+		log.Fatal("cannot have blochain difficulty less then or equal to zero")
+	}
+
 	// Check if we have a genesis block
 	lastHashBytes, err := kvs.Get([]byte("LAST_HASH"))
 	if err != nil || lastHashBytes == nil || string(lastHashBytes) == "" {
