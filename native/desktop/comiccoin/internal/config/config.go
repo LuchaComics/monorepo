@@ -2,8 +2,13 @@ package config
 
 type Config struct {
 	BlockchainDifficulty int
-	AppPort              int
+	Peer                 PeerConfig
 	DB                   DBConfig
+}
+
+type PeerConfig struct {
+	ListenPort int
+	RandomSeed int64
 }
 
 type DBConfig struct {

@@ -1,8 +1,6 @@
 package http
 
 import (
-	"log"
-
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/keyvaluestore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
@@ -28,9 +26,7 @@ func NewInputPort(
 }
 
 func (s *httpInputPort) Run() {
-	log.Println("TODO: Impl. Run()")
 }
 
 func (s *httpInputPort) Shutdown() {
-	log.Println("TODO: Impl. Shutdown()")
 }

@@ -16,6 +16,7 @@ import (
 
 var (
 	flagBootstrapPeers string
+	flagRandomSeed     int64
 )
 
 func init() {
@@ -24,6 +25,11 @@ func init() {
 	// runCmd.MarkFlagRequired("datadir")
 	// runCmd.Flags().StringVar(&flagBootstrapPeers, "bootstrap-peers", "", "The list of IPFS peerIDs used to synchronize our blockchain with")
 	// runCmd.MarkFlagRequired("bootstrap-peers")
+
+	runCmd.Flags().IntVar(&flagListenPort, "listen-port", 9000, "The port to listen to for other peers")
+	runCmd.MarkFlagRequired("listen-port")
+	runCmd.Flags().Int64Var(&flagRandomSeed, "random-seed", 0, "If the seed is zero, use real cryptographic randomness. Otherwise, use a deterministic randomness source to make generated keys stay the same across multiple runs. Do not set in production mode!")
+	runCmd.MarkFlagRequired("random-seed")
 }
 
 var runCmd = &cobra.Command{
@@ -44,7 +50,10 @@ var runCmd = &cobra.Command{
 		// Load up our configuration.
 		cfg := &config.Config{
 			BlockchainDifficulty: 1,
-			AppPort:              9000,
+			Peer: config.PeerConfig{
+				ListenPort: flagListenPort,
+				RandomSeed: flagRandomSeed,
+			},
 			DB: config.DBConfig{
 				DataDir: flagDataDir,
 			},

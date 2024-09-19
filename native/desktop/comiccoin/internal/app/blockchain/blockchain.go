@@ -18,6 +18,9 @@ type Blockchain struct {
 	LastHash   string
 	Difficulty int
 	Database   keyvaluestore.KeyValueStorer
+
+	// Channel to send new blocks or results to peer nodes
+	resultCh chan *Block
 }
 
 func NewBlockchainWithCoinbaseKey(
@@ -28,6 +31,7 @@ func NewBlockchainWithCoinbaseKey(
 	bc := &Blockchain{
 		Difficulty: cfg.BlockchainDifficulty,
 		Database:   kvs,
+		resultCh:   make(chan *Block),
 	}
 
 	// Defensive code.
@@ -210,4 +214,9 @@ func isBlockValid(newBlock, oldBlock *Block) bool {
 	}
 
 	return txVerified
+}
+
+// Subscribe returns the channel so you can listen for new results.
+func (bc *Blockchain) Subscribe() <-chan *Block {
+	return bc.resultCh
 }
