@@ -51,8 +51,8 @@ func NewBlockchainWithCoinbaseKey(
 		}
 
 		// Save our genesis hash.
-		genesisID := fmt.Sprintf("HASH_%v", genesisBlock.Hash)
-		err = kvs.Set([]byte(genesisID), blockData)
+		blockKey := fmt.Sprintf("BLOCK_%v", genesisBlock.Hash)
+		err = kvs.Set([]byte(blockKey), blockData)
 		if err != nil {
 			log.Fatalf("Failed to store genesis block: %v", err)
 		}
@@ -129,8 +129,8 @@ func (bc *Blockchain) AddBlock(transactions []*Transaction) error {
 		return fmt.Errorf("failed to marshal new block: %v", err)
 	}
 
-	blockID := fmt.Sprintf("HASH_%v", newBlock.Hash)
-	err = bc.Database.Set([]byte(blockID), blockData)
+	blockKey := fmt.Sprintf("BLOCK_%v", newBlock.Hash)
+	err = bc.Database.Set([]byte(blockKey), blockData)
 	if err != nil {
 		return fmt.Errorf("failed to store new block: %v", err)
 	}
@@ -150,8 +150,8 @@ func (bc *Blockchain) GetBalance(address common.Address) (*big.Int, error) {
 	currentHash := bc.LastHash
 
 	for {
-		blockID := fmt.Sprintf("HASH_%v", currentHash)
-		blockData, err := bc.Database.Get([]byte(blockID))
+		blockKey := fmt.Sprintf("BLOCK_%v", currentHash)
+		blockData, err := bc.Database.Get([]byte(blockKey))
 		if err != nil {
 			return nil, fmt.Errorf("failed to get block data: %v", err)
 		}
