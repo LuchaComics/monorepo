@@ -37,7 +37,7 @@ func NewBlockchainWithCoinbaseKey(
 
 	// Check if we have a genesis block. If we do not have it then we will need
 	// to generate it here in our initialization.
-	lastHashBin, err := kvs.Get([]byte("LAST_HASH"))
+	lastHashBin, err := kvs.Getf("LAST_HASH")
 	if err != nil || lastHashBin == nil || string(lastHashBin) == "" {
 		// No existing blockchain found, create genesis block
 		genesisBlock := NewGenesisBlock(coinbaseKey)
@@ -51,14 +51,13 @@ func NewBlockchainWithCoinbaseKey(
 		}
 
 		// Save our genesis hash.
-		blockKey := fmt.Sprintf("BLOCK_%v", genesisBlock.Hash)
-		err = kvs.Set([]byte(blockKey), blockData)
+		err = kvs.Setf(blockData, "BLOCK_%v", genesisBlock.Hash)
 		if err != nil {
 			log.Fatalf("Failed to store genesis block: %v", err)
 		}
 
 		// Save our last hash
-		err = kvs.Set([]byte("LAST_HASH"), []byte(genesisBlock.Hash))
+		err = kvs.Setf([]byte(genesisBlock.Hash), "LAST_HASH")
 		if err != nil {
 			log.Fatalf("Failed to store last hash: %v", err)
 		}
@@ -85,7 +84,7 @@ func NewBlockchain(
 	}
 
 	// Check for our latest block
-	lastHashBin, err := kvs.Get([]byte("LAST_HASH"))
+	lastHashBin, err := kvs.Getf("LAST_HASH")
 	if err != nil || lastHashBin == nil || string(lastHashBin) == "" {
 		if err != nil {
 			log.Fatalf("failed initializing blockchain with error: %v", err)
@@ -129,14 +128,13 @@ func (bc *Blockchain) AddBlock(transactions []*Transaction) error {
 		return fmt.Errorf("failed to marshal new block: %v", err)
 	}
 
-	blockKey := fmt.Sprintf("BLOCK_%v", newBlock.Hash)
-	err = bc.Database.Set([]byte(blockKey), blockData)
+	err = bc.Database.Setf(blockData, "BLOCK_%v", newBlock.Hash)
 	if err != nil {
 		return fmt.Errorf("failed to store new block: %v", err)
 	}
 
 	// Update last hash
-	err = bc.Database.Set([]byte("LAST_HASH"), []byte(newBlock.Hash))
+	err = bc.Database.Setf([]byte(newBlock.Hash), "LAST_HASH")
 	if err != nil {
 		return fmt.Errorf("failed to update last hash: %v", err)
 	}
@@ -150,8 +148,7 @@ func (bc *Blockchain) GetBalance(address common.Address) (*big.Int, error) {
 	currentHash := bc.LastHash
 
 	for {
-		blockKey := fmt.Sprintf("BLOCK_%v", currentHash)
-		blockData, err := bc.Database.Get([]byte(blockKey))
+		blockData, err := bc.Database.Getf("BLOCK_%v", currentHash)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get block data: %v", err)
 		}

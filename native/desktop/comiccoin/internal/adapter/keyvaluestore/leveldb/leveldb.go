@@ -1,6 +1,7 @@
 package leveldb
 
 import (
+	"fmt"
 	"log"
 	"path/filepath"
 
@@ -37,9 +38,21 @@ func (impl *keyValueStorerImpl) Get(key []byte) ([]byte, error) {
 	return impl.db.Get(key, nil)
 }
 
+func (impl *keyValueStorerImpl) Getf(format string, a ...any) ([]byte, error) {
+	k := fmt.Sprintf(format, a...)
+	kBin := []byte(k)
+	return impl.Get(kBin)
+}
+
 func (impl *keyValueStorerImpl) Set(key []byte, val []byte) error {
 	impl.db.Delete(key, nil)
 	return impl.db.Put(key, val, nil)
+}
+
+func (impl *keyValueStorerImpl) Setf(val []byte, format string, a ...any) error {
+	k := fmt.Sprintf(format, a...)
+	kBin := []byte(k)
+	return impl.Set(kBin, val)
 }
 
 func (impl *keyValueStorerImpl) Delete(key []byte) error {
