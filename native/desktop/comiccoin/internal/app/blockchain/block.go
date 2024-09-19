@@ -57,12 +57,12 @@ func (b *Block) CalculateHash() string {
 }
 
 func (b *Block) Mine(difficulty int) {
-	log.Println("Mine: b.Hash (premine):", b.Hash)
+	// log.Println("Mine: b.Hash (premine):", b.Hash)
 	for !strings.HasPrefix(b.Hash, strings.Repeat("0", difficulty)) {
 		b.Nonce++
 		b.Hash = b.CalculateHash()
 	}
-	log.Println("Mine: b.Hash (postmine):", b.Hash)
+	// log.Println("Mine: b.Hash (postmine):", b.Hash)
 }
 
 func (b *Block) Serialize() []byte {

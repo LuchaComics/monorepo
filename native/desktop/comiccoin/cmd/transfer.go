@@ -27,23 +27,6 @@ func transferCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			//
 			// STEP 1
-			// Load up a wallet which has coins in it.
-			//
-
-			senderKeyJson, err := ioutil.ReadFile(flagKeystoreFile) // TODO: CHANGE To coinbase key
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(1)
-			}
-
-			senderKey, err := keystore.DecryptKey(senderKeyJson, flagPassword) // TODO: CHANGE To coinbase key
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(1)
-			}
-
-			//
-			// STEP 2
 			// Load up our blockchain.
 			//
 
@@ -55,17 +38,39 @@ func transferCmd() *cobra.Command {
 			}
 			kvs := kvs.NewKeyValueStorer(cfg)
 
-			bc := blockchain.NewBlockchain(cfg, kvs, senderKey)
+			bc := blockchain.NewBlockchain(cfg, kvs)
 			defer bc.Close()
+
+			//
+			// STEP 2
+			// Load up a wallet which has coins in it.
+			//
+
+			senderKeyJson, err := ioutil.ReadFile(flagKeystoreFile)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
+
+			senderKey, err := keystore.DecryptKey(senderKeyJson, flagPassword)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 
 			//
 			// STEP 3
 			//
 
-			recipientAddress := common.HexToAddress(flagRecipientAddress)
+			// DEVELOPERS NOTE: This is the lowest amount, example 1 wei
+			transferAmount := new(big.Int).SetUint64(flagAmount)
 
-			transferAmount := new(big.Int).SetUint64(1 * 1e18) // 1 coin
-			tx := blockchain.NewTransaction(senderKey.Address, recipientAddress, transferAmount, []byte("Transfer amount"), 0)
+			// DEVELOPERS NOTE: If you want to transfer the full unit of a coin
+			// feel free to use this code instead.
+			// transferAmount := new(big.Int).SetUint64(1 * 1e18) // 1 coin (ex: 1 eth)
+
+			recipientAddress := common.HexToAddress(flagRecipientAddress)
+			tx := blockchain.NewTransaction(senderKey.Address, recipientAddress, transferAmount, []byte(""), 0)
 			err = tx.Sign(senderKey.PrivateKey)
 			if err != nil {
 				log.Fatalf("Failed to sign transaction: %v", err)
@@ -84,14 +89,14 @@ func transferCmd() *cobra.Command {
 
 			senderBalance, err := bc.GetBalance(senderKey.Address)
 			if err != nil {
-				log.Fatalf("Failed to get balance: %v", err)
+				log.Fatalf("Failed to get balance of sender: %v", err)
 			}
 			recipientBalance, err := bc.GetBalance(recipientAddress)
 			if err != nil {
-				log.Fatalf("Failed to get balance: %v", err)
+				log.Fatalf("Failed to get balance of recipient: %v", err)
 			}
-			fmt.Printf("senders balance: %s\n", senderBalance.String())
-			fmt.Printf("recipient balance: %s\n", recipientBalance.String())
+			fmt.Printf("senders's updated balance: %s\n", senderBalance.String())
+			fmt.Printf("recipient's updated balance: %s\n", recipientBalance.String())
 		},
 	}
 
@@ -101,8 +106,8 @@ func transferCmd() *cobra.Command {
 	cmd.MarkFlagRequired("keystore")
 	cmd.Flags().StringVar(&flagPassword, "sender-password", "", "The password to decrypt the coin sender's wallet")
 	cmd.MarkFlagRequired("password")
-	cmd.Flags().StringVar(&flagCoinbaseAddress, "coinbase-address", "", "The address of the coinbase")
-	cmd.MarkFlagRequired("coinbase-address")
+	cmd.Flags().Uint64Var(&flagAmount, "amount", 0, "Amount of coins to transfer from sender to recipient")
+	cmd.MarkFlagRequired("amount")
 	cmd.Flags().StringVar(&flagRecipientAddress, "recipient-address", "", "The address of the coin(s) recipient")
 	cmd.MarkFlagRequired("recipient-address")
 

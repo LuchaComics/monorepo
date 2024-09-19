@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 
 	"github.com/davecgh/go-spew/spew"
@@ -31,12 +32,13 @@ func walletNewAccountCmd() *cobra.Command {
 		Use:   "new-account",
 		Short: "Creates a new account with a new set of a elliptic-curve Private + Public keys.",
 		Run: func(cmd *cobra.Command, args []string) {
+			log.Println("Creating new wallet...")
 			acc, err := wallet.NewKeystoreAccount(flagDataDir, flagPassword)
 			if err != nil {
 				fmt.Println(err)
 				os.Exit(1)
 			}
-			fmt.Printf("New account created: %s\n", acc.Hex())
+			fmt.Printf("New wallet created - your address: %s\n", acc.Hex())
 		},
 	}
 

@@ -15,21 +15,19 @@ import (
 )
 
 type Blockchain struct {
-	LastHash    string
-	Difficulty  int
-	Database    keyvaluestore.KeyValueStorer
-	CoinbaseKey *keystore.Key
+	LastHash   string
+	Difficulty int
+	Database   keyvaluestore.KeyValueStorer
 }
 
-func NewBlockchain(
+func NewBlockchainWithCoinbaseKey(
 	cfg *config.Config,
 	kvs keyvaluestore.KeyValueStorer,
 	coinbaseKey *keystore.Key,
 ) *Blockchain {
 	bc := &Blockchain{
-		Difficulty:  cfg.BlockchainDifficulty,
-		Database:    kvs,
-		CoinbaseKey: coinbaseKey,
+		Difficulty: cfg.BlockchainDifficulty,
+		Database:   kvs,
 	}
 
 	// Defensive code.
@@ -37,34 +35,64 @@ func NewBlockchain(
 		log.Fatal("cannot have blochain difficulty less then or equal to zero")
 	}
 
-	// Check if we have a genesis block
-	lastHashBytes, err := kvs.Get([]byte("LAST_HASH"))
-	if err != nil || lastHashBytes == nil || string(lastHashBytes) == "" {
-		log.Println("err:", err)
+	// Check if we have a genesis block. If we do not have it then we will need
+	// to generate it here in our initialization.
+	lastHashBin, err := kvs.Get([]byte("LAST_HASH"))
+	if err != nil || lastHashBin == nil || string(lastHashBin) == "" {
 		// No existing blockchain found, create genesis block
 		genesisBlock := NewGenesisBlock(coinbaseKey)
-		genesisBlock.Hash = genesisBlock.CalculateHash()
+		genesisBlock.Mine(bc.Difficulty)
 
-		// Store genesis block
+		// Store genesis block in our database, to begin, we need to
+		// serialize it into []bytes array.
 		blockData, err := json.Marshal(genesisBlock)
 		if err != nil {
 			log.Fatalf("Failed to marshal genesis block: %v", err)
 		}
-		err = kvs.Set([]byte(genesisBlock.Hash), blockData)
+
+		// Save our genesis hash.
+		genesisID := fmt.Sprintf("HASH_%v", genesisBlock.Hash)
+		err = kvs.Set([]byte(genesisID), blockData)
 		if err != nil {
 			log.Fatalf("Failed to store genesis block: %v", err)
 		}
 
-		// Update last hash
+		// Save our last hash
 		err = kvs.Set([]byte("LAST_HASH"), []byte(genesisBlock.Hash))
 		if err != nil {
 			log.Fatalf("Failed to store last hash: %v", err)
 		}
 
 		bc.LastHash = genesisBlock.Hash
-		log.Println("generated first hash:", bc.LastHash)
 	} else {
-		bc.LastHash = string(lastHashBytes)
+		bc.LastHash = string(lastHashBin)
+	}
+	return bc
+}
+
+func NewBlockchain(
+	cfg *config.Config,
+	kvs keyvaluestore.KeyValueStorer,
+) *Blockchain {
+	bc := &Blockchain{
+		Difficulty: cfg.BlockchainDifficulty,
+		Database:   kvs,
+	}
+
+	// Defensive code.
+	if cfg.BlockchainDifficulty <= 0 {
+		log.Fatal("cannot have blochain difficulty less then or equal to zero")
+	}
+
+	// Check for our latest block
+	lastHashBin, err := kvs.Get([]byte("LAST_HASH"))
+	if err != nil || lastHashBin == nil || string(lastHashBin) == "" {
+		if err != nil {
+			log.Fatalf("failed initializing blockchain with error: %v", err)
+		}
+		log.Fatalf("failed initializing blockchain because of missing genesis block")
+	} else {
+		bc.LastHash = string(lastHashBin)
 		log.Println("fetched latest hash:", bc.LastHash)
 	}
 	return bc
@@ -75,11 +103,10 @@ func (bc *Blockchain) Close() error {
 }
 
 func (bc *Blockchain) AddBlock(transactions []*Transaction) error {
+	// Defensive code to protect the programmer.
 	lastHash := bc.LastHash
 	if lastHash == "" {
 		log.Fatal("cannot have empty last hash!")
-	} else {
-		log.Println("AddBlock: lastHash:", lastHash)
 	}
 
 	newBlock := &Block{
@@ -91,10 +118,9 @@ func (bc *Blockchain) AddBlock(transactions []*Transaction) error {
 
 	newBlock.Mine(bc.Difficulty)
 
+	// Defensive code for code sanity check.
 	if newBlock.Hash == "" {
 		log.Fatal("cannot have empty newBlock.Hash!")
-	} else {
-		log.Println("AddBlock: newBlock.Hash:", newBlock.Hash)
 	}
 
 	// Store new block
@@ -102,7 +128,9 @@ func (bc *Blockchain) AddBlock(transactions []*Transaction) error {
 	if err != nil {
 		return fmt.Errorf("failed to marshal new block: %v", err)
 	}
-	err = bc.Database.Set([]byte(newBlock.Hash), blockData)
+
+	blockID := fmt.Sprintf("HASH_%v", newBlock.Hash)
+	err = bc.Database.Set([]byte(blockID), blockData)
 	if err != nil {
 		return fmt.Errorf("failed to store new block: %v", err)
 	}
@@ -122,7 +150,8 @@ func (bc *Blockchain) GetBalance(address common.Address) (*big.Int, error) {
 	currentHash := bc.LastHash
 
 	for {
-		blockData, err := bc.Database.Get([]byte(currentHash))
+		blockID := fmt.Sprintf("HASH_%v", currentHash)
+		blockData, err := bc.Database.Get([]byte(blockID))
 		if err != nil {
 			return nil, fmt.Errorf("failed to get block data: %v", err)
 		}

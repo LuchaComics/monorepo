@@ -2,11 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
-	"os"
 
-	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 
@@ -46,22 +43,6 @@ func balanceGetCmd() *cobra.Command {
 		Use:   "get",
 		Short: "Get balance of account.",
 		Run: func(cmd *cobra.Command, args []string) {
-			// STEP 1
-			// Load up a wallet which has coins in it.
-			//
-
-			senderKeyJson, err := ioutil.ReadFile(flagKeystoreFile) // TODO: CHANGE To coinbase key
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(1)
-			}
-
-			senderKey, err := keystore.DecryptKey(senderKeyJson, flagPassword) // TODO: CHANGE To coinbase key
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(1)
-			}
-
 			//
 			// STEP 1
 			// Load up our blockchain.
@@ -75,7 +56,7 @@ func balanceGetCmd() *cobra.Command {
 			}
 			kvs := kvs.NewKeyValueStorer(cfg)
 
-			bc := blockchain.NewBlockchain(cfg, kvs, senderKey)
+			bc := blockchain.NewBlockchain(cfg, kvs)
 			defer bc.Close()
 
 			//
@@ -86,16 +67,15 @@ func balanceGetCmd() *cobra.Command {
 			address := common.HexToAddress(flagRecipientAddress)
 			balance, err := bc.GetBalance(address)
 			if err != nil {
-				log.Fatalf("Failed to get Alice's balance: %v", err)
+				log.Fatalf("Failed to get balance: %v", err)
 			}
 
 			fmt.Printf("Balance: %s\n", balance.String())
 
 		},
 	}
-
-	balanceGetCmd.Flags().StringVar(&flagCoinbaseAddress, "coinbase-address", "", "The address of the coinbase")
-	balanceGetCmd.MarkFlagRequired("coinbase-address")
+	balanceGetCmd.Flags().StringVar(&flagDataDir, "datadir", "./data", "Absolute path to your node's data dir where the DB will be/is stored")
+	// cmd.MarkFlagRequired("datadir")
 	balanceGetCmd.Flags().StringVar(&flagRecipientAddress, "address", "", "The address of the coin(s) receipient")
 	balanceGetCmd.MarkFlagRequired("address")
 
