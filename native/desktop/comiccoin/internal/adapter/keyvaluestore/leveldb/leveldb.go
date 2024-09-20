@@ -3,6 +3,7 @@ package leveldb
 import (
 	"fmt"
 	"log"
+	"log/slog"
 	"path/filepath"
 
 	"github.com/syndtr/goleveldb/leveldb"
@@ -22,7 +23,7 @@ func GetDBDirPath(dataDir string) string {
 	return filepath.Join(dataDir, dbDirName)
 }
 
-func NewKeyValueStorer(cfg *config.Config) keyvaluestore.KeyValueStorer {
+func NewKeyValueStorer(cfg *config.Config, logger *slog.Logger) keyvaluestore.KeyValueStorer {
 	if cfg.DB.DataDir == "" {
 		log.Fatal("cannot have empty dir")
 	}
@@ -35,8 +36,8 @@ func NewKeyValueStorer(cfg *config.Config) keyvaluestore.KeyValueStorer {
 	}
 }
 
-func (impl *keyValueStorerImpl) Get(key []byte) ([]byte, error) {
-	bin, err := impl.db.Get(key, nil)
+func (impl *keyValueStorerImpl) Get(key string) ([]byte, error) {
+	bin, err := impl.db.Get([]byte(key), nil)
 	if err == dberr.ErrNotFound {
 		return nil, nil
 	}
@@ -45,13 +46,12 @@ func (impl *keyValueStorerImpl) Get(key []byte) ([]byte, error) {
 
 func (impl *keyValueStorerImpl) Getf(format string, a ...any) ([]byte, error) {
 	k := fmt.Sprintf(format, a...)
-	kBin := []byte(k)
-	return impl.Get(kBin)
+	return impl.Get(k)
 }
 
-func (impl *keyValueStorerImpl) Set(key []byte, val []byte) error {
-	impl.db.Delete(key, nil)
-	err := impl.db.Put(key, val, nil)
+func (impl *keyValueStorerImpl) Set(key string, val []byte) error {
+	impl.db.Delete([]byte(key), nil)
+	err := impl.db.Put([]byte(key), val, nil)
 	if err == dberr.ErrNotFound {
 		return nil
 	}
@@ -60,21 +60,20 @@ func (impl *keyValueStorerImpl) Set(key []byte, val []byte) error {
 
 func (impl *keyValueStorerImpl) Setf(val []byte, format string, a ...any) error {
 	k := fmt.Sprintf(format, a...)
-	kBin := []byte(k)
-	return impl.Set(kBin, val)
+	return impl.Set(k, val)
 }
 
-func (impl *keyValueStorerImpl) Delete(key []byte) error {
-	err := impl.db.Delete(key, nil)
+func (impl *keyValueStorerImpl) Delete(key string) error {
+	err := impl.db.Delete([]byte(key), nil)
 	if err == dberr.ErrNotFound {
 		return nil
 	}
 	return err
 }
 
-func (impl *keyValueStorerImpl) View(key []byte, processFunc func(key, value []byte) error) error {
+func (impl *keyValueStorerImpl) View(key string, processFunc func(key, value []byte) error) error {
 	iter := impl.db.NewIterator(nil, nil)
-	for ok := iter.Seek(key); ok; ok = iter.Next() {
+	for ok := iter.Seek([]byte(key)); ok; ok = iter.Next() {
 		// Call the passed function for each key-value pair.
 		err := processFunc(iter.Key(), iter.Value())
 		if err == dberr.ErrNotFound {

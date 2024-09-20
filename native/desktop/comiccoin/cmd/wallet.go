@@ -1,16 +1,16 @@
 package cmd
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
-	"os"
+	"log/slog"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/wallet"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/logger"
 )
 
 func init() {
@@ -32,13 +32,14 @@ func walletNewAccountCmd() *cobra.Command {
 		Use:   "new-account",
 		Short: "Creates a new account with a new set of a elliptic-curve Private + Public keys.",
 		Run: func(cmd *cobra.Command, args []string) {
-			log.Println("Creating new wallet...")
+			logger := logger.NewProvider()
+
+			logger.Debug("Creating new wallet...")
 			acc, err := wallet.NewKeystoreAccount(flagDataDir, flagPassword)
 			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
+				log.Fatalf("NewKeystoreAccount error: %v", err)
 			}
-			fmt.Printf("New wallet created - your address: %s\n", acc.Hex())
+			logger.Debug("New wallet created.", slog.String("account", acc.Hex()))
 		},
 	}
 
@@ -57,14 +58,12 @@ func walletPrintPrivKeyCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			keyJson, err := ioutil.ReadFile(flagKeystoreFile)
 			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(1)
+				log.Fatalf("failed reading file: %v", err)
 			}
 
 			key, err := keystore.DecryptKey(keyJson, flagPassword)
 			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(1)
+				log.Fatalf("failed decrypting file: %v", err)
 			}
 
 			spew.Dump(key)
