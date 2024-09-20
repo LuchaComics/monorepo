@@ -2,6 +2,8 @@ package peer
 
 import (
 	"bufio"
+	"encoding/json"
+	"fmt"
 	"log"
 )
 
@@ -25,16 +27,24 @@ func (peer *peerInputPort) requestHandler(rw *bufio.ReadWriter) {
 	//
 
 	if peer.blockchain.IsBlockchainEmpty {
-		if _, err := rw.WriteString("FETCH_BLOCK|NONE\n"); err != nil {
+		req := &StreamCommunicationIDO{
+			Type: StreamCommunicationTypeRequestBlockchain,
+		}
+		bin, _ := json.Marshal(req)
+		str := string(bin)
+		str = fmt.Sprintf("%s\n", str)
+		if _, err := rw.WriteString(str); err != nil {
 			log.Printf("Finished running request handler with write error: %v\n", err)
 			return
 		}
-
 		if err := rw.Flush(); err != nil {
 			log.Fatal(err)
 		}
 
 		log.Println("Blockchain download request submitted successfully.")
+	}
+	if peer.blockchain.IsBlockchainInSynch == false {
+		//TODO:
 	}
 
 	//

@@ -176,50 +176,78 @@ func (bc *Blockchain) AddBlockWithMintingOfTransactions(transactions []*Transact
 }
 
 func (bc *Blockchain) AddBlock(newBlock *Block) error {
-	// Defensive code to protect the programmer.
-	lastHash := bc.LastHash
-	if lastHash == "" {
-		log.Fatal("cannot have empty last hash!")
-	}
-	log.Println("fetching last block")
-	// Fetch the last known block to compare with our newly created block.
-	oldBlockBin, err := bc.Database.Getf("BLOCK_%v", lastHash)
+	// // Defensive code to protect the programmer.
+	// lastHash := bc.LastHash
+	// if lastHash == "" {
+	// 	log.Fatal("cannot have empty last hash!")
+	// }
+	// log.Println("fetching last block")
+	// // Fetch the last known block to compare with our newly created block.
+	// oldBlockBin, err := bc.Database.Getf("BLOCK_%v", lastHash)
+	// if err != nil {
+	// 	return fmt.Errorf("failed to lookup `BLOCK_%v` in database: %v", lastHash, err)
+	// }
+	// log.Println("fetched last block:", string(oldBlockBin))
+	// oldBlock, _ := DeserializeBlock(oldBlockBin)
+	// log.Println("deserialized last block")
+	//
+	// if isBlockValid(newBlock, oldBlock) {
+	// 	// Store new block
+	// 	blockData, err := json.Marshal(newBlock)
+	// 	if err != nil {
+	// 		return fmt.Errorf("failed to marshal new block: %v", err)
+	// 	}
+	//
+	// 	err = bc.Database.Setf(blockData, "BLOCK_%v", newBlock.Hash)
+	// 	if err != nil {
+	// 		return fmt.Errorf("failed to store new block: %v", err)
+	// 	}
+	//
+	// 	// Update last hash
+	// 	err = bc.Database.Setf([]byte(newBlock.Hash), "LAST_HASH")
+	// 	if err != nil {
+	// 		return fmt.Errorf("failed to update last hash: %v", err)
+	// 	}
+	//
+	// 	// Publish to subscribers
+	// 	select {
+	// 	case bc.resultCh <- newBlock:
+	// 		// Do nothing
+	// 	case <-context.TODO().Done():
+	// 		// DO nothing
+	// 	}
+	//
+	// 	bc.LastHash = newBlock.Hash
+	// }
+	//
+	// return nil
+
+	// Store new block
+	blockData, err := json.Marshal(newBlock)
 	if err != nil {
-		return fmt.Errorf("failed to lookup `BLOCK_%v` in database: %v", lastHash, err)
-	}
-	log.Println("fetched last block:", string(oldBlockBin))
-	oldBlock, _ := DeserializeBlock(oldBlockBin)
-	log.Println("deserialized last block")
-
-	if isBlockValid(newBlock, oldBlock) {
-		// Store new block
-		blockData, err := json.Marshal(newBlock)
-		if err != nil {
-			return fmt.Errorf("failed to marshal new block: %v", err)
-		}
-
-		err = bc.Database.Setf(blockData, "BLOCK_%v", newBlock.Hash)
-		if err != nil {
-			return fmt.Errorf("failed to store new block: %v", err)
-		}
-
-		// Update last hash
-		err = bc.Database.Setf([]byte(newBlock.Hash), "LAST_HASH")
-		if err != nil {
-			return fmt.Errorf("failed to update last hash: %v", err)
-		}
-
-		// Publish to subscribers
-		select {
-		case bc.resultCh <- newBlock:
-			// Do nothing
-		case <-context.TODO().Done():
-			// DO nothing
-		}
-
-		bc.LastHash = newBlock.Hash
+		return fmt.Errorf("failed to marshal new block: %v", err)
 	}
 
+	err = bc.Database.Setf(blockData, "BLOCK_%v", newBlock.Hash)
+	if err != nil {
+		return fmt.Errorf("failed to store new block: %v", err)
+	}
+
+	// Update last hash
+	err = bc.Database.Setf([]byte(newBlock.Hash), "LAST_HASH")
+	if err != nil {
+		return fmt.Errorf("failed to update last hash: %v", err)
+	}
+
+	// Publish to subscribers
+	select {
+	case bc.resultCh <- newBlock:
+		// Do nothing
+	case <-context.TODO().Done():
+		// DO nothing
+	}
+
+	bc.LastHash = newBlock.Hash
 	return nil
 }
 
