@@ -75,13 +75,13 @@ func (b *Block) Serialize() []byte {
 	return result.Bytes()
 }
 
-func DeserializeBlock(data []byte) *Block {
+func DeserializeBlock(data []byte) (*Block, error) {
 	block := &Block{}
 	err := json.Unmarshal(data, block)
 	if err != nil {
-		log.Fatalf("failed to deserialize block: %v", err)
+		return nil, fmt.Errorf("failed to deserialize block: %v", err)
 	}
-	return block
+	return block, nil
 
 	// DEVELOPERS NOTE: Depercated code.
 	// var block Block

@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -18,6 +19,11 @@ type Blockchain struct {
 	LastHash   string
 	Difficulty int
 	Database   keyvaluestore.KeyValueStorer
+
+	// Used to indicate we need to synch our blockchain with the network.
+	IsBlockchainInSynch bool
+
+	IsBlockchainEmpty bool
 
 	// Channel to send new blocks or results to peer nodes
 	resultCh chan *Block
@@ -70,8 +76,10 @@ func NewBlockchainWithCoinbaseKey(
 		}
 
 		bc.LastHash = genesisBlock.Hash
+		bc.IsBlockchainInSynch = true
 	} else {
 		bc.LastHash = string(lastHashBin)
+		bc.IsBlockchainInSynch = false
 	}
 	return bc
 }
@@ -96,10 +104,16 @@ func NewBlockchain(
 		if err != nil {
 			log.Fatalf("failed initializing blockchain with error: %v", err)
 		}
-		log.Fatalf("failed initializing blockchain because of missing genesis block")
+		log.Println("empty blockchain, need to download from network")
+		bc.IsBlockchainEmpty = true
+		bc.LastHash = ""
 	} else {
 		bc.LastHash = string(lastHashBin)
 	}
+
+	// We set this to false so we can always synch on startup.
+	bc.IsBlockchainInSynch = false
+
 	return bc
 }
 
@@ -107,7 +121,7 @@ func (bc *Blockchain) Close() error {
 	return bc.Database.Close()
 }
 
-func (bc *Blockchain) AddBlock(transactions []*Transaction) error {
+func (bc *Blockchain) AddBlockWithMintingOfTransactions(transactions []*Transaction) error {
 	// Defensive code to protect the programmer.
 	lastHash := bc.LastHash
 	if lastHash == "" {
@@ -120,7 +134,7 @@ func (bc *Blockchain) AddBlock(transactions []*Transaction) error {
 		return fmt.Errorf("failed to lookup `BLOCK_%v` in database: %v", lastHash, err)
 	}
 	log.Println("fetched last block:", string(oldBlockBin))
-	oldBlock := DeserializeBlock(oldBlockBin)
+	oldBlock, _ := DeserializeBlock(oldBlockBin)
 	log.Println("deserialized last block")
 
 	newBlock := &Block{
@@ -153,6 +167,54 @@ func (bc *Blockchain) AddBlock(transactions []*Transaction) error {
 		err = bc.Database.Setf([]byte(newBlock.Hash), "LAST_HASH")
 		if err != nil {
 			return fmt.Errorf("failed to update last hash: %v", err)
+		}
+
+		bc.LastHash = newBlock.Hash
+	}
+
+	return nil
+}
+
+func (bc *Blockchain) AddBlock(newBlock *Block) error {
+	// Defensive code to protect the programmer.
+	lastHash := bc.LastHash
+	if lastHash == "" {
+		log.Fatal("cannot have empty last hash!")
+	}
+	log.Println("fetching last block")
+	// Fetch the last known block to compare with our newly created block.
+	oldBlockBin, err := bc.Database.Getf("BLOCK_%v", lastHash)
+	if err != nil {
+		return fmt.Errorf("failed to lookup `BLOCK_%v` in database: %v", lastHash, err)
+	}
+	log.Println("fetched last block:", string(oldBlockBin))
+	oldBlock, _ := DeserializeBlock(oldBlockBin)
+	log.Println("deserialized last block")
+
+	if isBlockValid(newBlock, oldBlock) {
+		// Store new block
+		blockData, err := json.Marshal(newBlock)
+		if err != nil {
+			return fmt.Errorf("failed to marshal new block: %v", err)
+		}
+
+		err = bc.Database.Setf(blockData, "BLOCK_%v", newBlock.Hash)
+		if err != nil {
+			return fmt.Errorf("failed to store new block: %v", err)
+		}
+
+		// Update last hash
+		err = bc.Database.Setf([]byte(newBlock.Hash), "LAST_HASH")
+		if err != nil {
+			return fmt.Errorf("failed to update last hash: %v", err)
+		}
+
+		// Publish to subscribers
+		select {
+		case bc.resultCh <- newBlock:
+			// Do nothing
+		case <-context.TODO().Done():
+			// DO nothing
 		}
 
 		bc.LastHash = newBlock.Hash

@@ -81,7 +81,7 @@ func transferCmd() *cobra.Command {
 				log.Fatalf("Failed to sign transaction: %v", err)
 			}
 
-			err = bc.AddBlock([]*blockchain.Transaction{tx})
+			err = bc.AddBlockWithMintingOfTransactions([]*blockchain.Transaction{tx})
 			if err != nil {
 				log.Fatalf("Failed to add block: %v", err)
 			}

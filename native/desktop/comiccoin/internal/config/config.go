@@ -7,8 +7,9 @@ type Config struct {
 }
 
 type PeerConfig struct {
-	ListenPort int
-	RandomSeed int64
+	ListenPort     int
+	RandomSeed     int64
+	BootstrapPeers string
 }
 
 type DBConfig struct {
