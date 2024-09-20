@@ -57,7 +57,3 @@ func (impl *blockchainControllerImpl) NewGenesisBlock(ctx context.Context, coinb
 
 	return genesisBlock, nil
 }
-
-func (impl *blockchainControllerImpl) GetBlock(ctx context.Context, hash string) (*block_ds.Block, error) {
-	return impl.blockStorer.GetByHash(ctx, hash)
-}

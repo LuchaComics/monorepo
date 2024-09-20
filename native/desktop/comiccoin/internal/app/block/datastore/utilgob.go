@@ -3,7 +3,6 @@ package datastore
 import (
 	"bytes"
 	"encoding/gob"
-	"encoding/json"
 	"fmt"
 )
 
@@ -18,8 +17,17 @@ func (b *Block) Serialize() ([]byte, error) {
 }
 
 func NewBlockFromDeserialize(data []byte) (*Block, error) {
+	// Variable we will use to return.
 	block := &Block{}
-	err := json.Unmarshal(data, block)
+
+	// Defensive code: If programmer entered empty bytes then we will
+	// return nil deserialization result.
+	if data == nil {
+		return nil, nil
+	}
+
+	decoder := gob.NewDecoder(bytes.NewReader(data))
+	err := decoder.Decode(&block)
 	if err != nil {
 		return nil, fmt.Errorf("failed to deserialize block: %v", err)
 	}

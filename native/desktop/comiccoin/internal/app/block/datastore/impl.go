@@ -1,6 +1,9 @@
 package datastore
 
-import "context"
+import (
+	"context"
+	"log/slog"
+)
 
 func (impl *blockStorerImpl) Insert(ctx context.Context, b *Block) error {
 	bBytes, err := b.Serialize()
@@ -20,6 +23,10 @@ func (impl *blockStorerImpl) GetByHash(ctx context.Context, hash string) (*Block
 	}
 	b, err := NewBlockFromDeserialize(bBytes)
 	if err != nil {
+		impl.logger.Error("failed to deserialize",
+			slog.String("hash", hash),
+			slog.String("bin", string(bBytes)),
+			slog.Any("error", err))
 		return nil, err
 	}
 	return b, nil
