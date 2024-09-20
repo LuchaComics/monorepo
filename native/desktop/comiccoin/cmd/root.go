@@ -14,6 +14,7 @@ var (
 	flagCoinbaseAddress  string
 	flagRecipientAddress string
 	flagAmount           uint64
+	flagKeypairName      string
 )
 
 // Initialize function will be called when every command gets called.
