@@ -91,6 +91,7 @@ func (impl *keyValueStorerImpl) View(key []byte, processFunc func(key, value []b
 func (impl *keyValueStorerImpl) ViewFromFirst(processFunc func(key, value []byte) error) error {
 	iter := impl.db.NewIterator(nil, nil)
 	for ok := iter.First(); ok; ok = iter.Next() {
+		log.Println("ViewFromFirst: key:", iter.Key(), "val:", iter.Value())
 		// Call the passed function for each key-value pair.
 		err := processFunc(iter.Key(), iter.Value())
 		if err == dberr.ErrNotFound {

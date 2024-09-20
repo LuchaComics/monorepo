@@ -59,7 +59,7 @@ func NewInputPort(
 	} else {
 		//
 		// CASE 2 OF 2:
-		// PEER MODE
+		// DIAL MODE
 		//
 
 		h, err := libp2p.New(
@@ -217,4 +217,20 @@ func (peer *peerInputPort) handleStream(s network.Stream) {
 	go peer.requestHandler(rw)  // a.k.a. writer to network
 
 	// stream 's' will stay open until you close it (or the other side closes it).
+}
+
+const (
+	StreamMessageTypeRequestLatestBlock = 0
+	StreamMessageTypeRespondLatestBlock = 1
+
+	StreamMessageTypeRequestBlock = 2
+	StreamMessageTypeRespondBlock = 3
+)
+
+type StreamMessageIDO struct {
+	Type int `json:"type"`
+
+	Hash string `json:"hash"`
+
+	Block *blockchain.Block `json:"block"`
 }

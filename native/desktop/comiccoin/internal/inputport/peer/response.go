@@ -6,24 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
-
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain"
 )
-
-const (
-	StreamCommunicationTypeRequestBlockchain = iota
-	StreamCommunicationTypeRequestBlock      = iota
-	StreamCommunicationTypeRespondBlockchain = iota
-	StreamCommunicationTypeRespondBlock      = iota
-)
-
-type StreamCommunicationIDO struct {
-	Type int `json:"type"`
-
-	Hash string `json:"hash"`
-
-	Block []byte `json:"block"`
-}
 
 func (peer *peerInputPort) responseHandler(rw *bufio.ReadWriter) {
 	log.Println("Running response handler...")
@@ -44,72 +27,155 @@ func (peer *peerInputPort) responseHandler(rw *bufio.ReadWriter) {
 		}
 
 		// Deserialize the JSON string into StreamRequestIDO
-		var req StreamCommunicationIDO
+		req := &StreamMessageIDO{}
 		if err := json.Unmarshal([]byte(requestStr), &req); err != nil {
-			fmt.Printf("Error unmarshaling JSON: %v\n", err)
+			fmt.Printf("Error unmarshaling JSON in stream message: %v\n", err)
 			break
 		}
 
 		// Log the deserialized request for debugging
-		log.Printf("Request Type: %d, Hash: %s\n", req.Type, req.Hash)
+		log.Printf("responseHandler | Request Type: %d, Hash: %s\n", req.Type, req.Hash)
 
 		switch req.Type {
-		case StreamCommunicationTypeRequestBlock:
+		case StreamMessageTypeRequestLatestBlock:
 			{
-				//TODO: IMPL.
-				fmt.Println("Received a request to fetch the latest block")
-				err := peer.kvs.View([]byte(fmt.Sprintf("BLOCK_%v", req.Hash)), func(key, value []byte) error {
-					// Do something with key and value
-					fmt.Printf("Uploading block with key: %s, value: %s\n", key, value)
+				lastHash := peer.blockchain.LastHash
+				log.Println("Sending latest hash:", lastHash)
+				block, err := peer.blockchain.GetBlock(lastHash)
+				if err != nil {
+					log.Printf("failed getting block: %v\n", err)
+					log.Printf("StreamMessageTypeRequestLatestBlock: req: %v\n", requestStr)
+					break
+				}
+				if block == nil {
+					log.Printf("no block found")
+					break
+				}
 
-					// Return nil to indicate success
-					return nil
-				})
-				if err != nil {
-					fmt.Printf("Error sending data: %v\n", err)
+				res := &StreamMessageIDO{
+					Type:  StreamMessageTypeRespondLatestBlock,
+					Block: block,
+				}
+				bin, _ := json.Marshal(res)
+				str := string(bin)
+				str = fmt.Sprintf("%s\n", str)
+				if _, err := rw.WriteString(str); err != nil {
+					log.Printf("Finished running response handler with write error: %v\n", err)
 					break
 				}
+				if err := rw.Flush(); err != nil {
+					log.Fatal(err)
+				}
+				log.Println("Sent latest hash:", lastHash)
 			}
-		case StreamCommunicationTypeRequestBlockchain:
+		case StreamMessageTypeRespondLatestBlock:
 			{
-				fmt.Println("Received a request to fetch the entire blockchain")
-				err := peer.kvs.ViewFromFirst(func(key, value []byte) error {
-					res := &StreamCommunicationIDO{
-						Type:  StreamCommunicationTypeRespondBlockchain,
-						Block: value,
-					}
-					bin, _ := json.Marshal(res)
-					str := string(bin)
-					str = fmt.Sprintf("%s\n", str)
-					if _, err := rw.WriteString(str); err != nil {
-						log.Printf("Finished running response handler with write error: %v\n", err)
-						return err
-					}
-					if err := rw.Flush(); err != nil {
-						log.Fatal(err)
-					}
-
-					// Return nil to indicate success
-					return nil
-				})
-				if err != nil {
-					fmt.Printf("Error sending response data: %v\n", err)
-					break
-				}
-			}
-		case StreamCommunicationTypeRespondBlockchain:
-			{
-				block, err := blockchain.DeserializeBlock(req.Block)
-				if err != nil {
-					fmt.Printf("Error unmarshalling response data: %v\n", err)
-					break
-				}
-				fmt.Printf("Saving blockchain data: %v\n", block)
-				if err := peer.blockchain.AddBlock(block); err != nil {
+				log.Printf("Saving latest block: %v\n", req.Block.Hash)
+				if err := peer.blockchain.AddBlock(req.Block); err != nil {
 					fmt.Printf("failed adding block to blockchain: %v\n", err)
 					break
 				}
+				log.Printf("Saved latest block: %v\n", req.Block.Hash)
 
+				// Do we have the previous block in our database? If so then
+				// skip else make another fetch request. Also if we get to the
+				// genesis block then stop.
+				if req.Block.PreviousHash != "" {
+					block, err := peer.blockchain.GetBlock(req.Block.PreviousHash)
+					if err != nil || block == nil {
+						log.Printf("Fetching previous block...")
+
+						req := &StreamMessageIDO{
+							Type: StreamMessageTypeRequestBlock,
+							Hash: req.Block.PreviousHash,
+						}
+						bin, _ := json.Marshal(req)
+						str := string(bin)
+						str = fmt.Sprintf("%s\n", str)
+						if _, err := rw.WriteString(str); err != nil {
+							log.Printf("Finished running request handler with write error: %v\n", err)
+							return
+						}
+						if err := rw.Flush(); err != nil {
+							log.Fatal(err)
+						}
+						log.Printf("Submited fetching previous block...")
+					}
+				}
+			}
+		case StreamMessageTypeRequestBlock:
+			{
+				log.Println("Sending block at hash:", req.Hash)
+				block, err := peer.blockchain.GetBlock(req.Hash)
+				if err != nil {
+					log.Printf("failed getting block: %v\n", err)
+					log.Printf("StreamMessageTypeRequestBlock: req: %v\n", requestStr)
+					break
+				}
+				if block == nil {
+					log.Printf("no block found")
+					break
+				}
+
+				res := &StreamMessageIDO{
+					Type:  StreamMessageTypeRespondBlock,
+					Block: block,
+				}
+				bin, _ := json.Marshal(res)
+				str := string(bin)
+				str = fmt.Sprintf("%s\n", str)
+				if _, err := rw.WriteString(str); err != nil {
+					log.Printf("Finished running response handler with write error: %v\n", err)
+					break
+				}
+				if err := rw.Flush(); err != nil {
+					log.Fatal(err)
+				}
+
+				log.Println("Sent block at hash:", req.Hash)
+			}
+		case StreamMessageTypeRespondBlock:
+			{
+
+				log.Printf("Saving a block: %v\n", req.Block.Hash)
+				if err := peer.blockchain.AddBlock(req.Block); err != nil {
+					fmt.Printf("failed adding block to blockchain: %v\n", err)
+					break
+				}
+				log.Printf("Saved a block: %v\n", req.Block.Hash)
+
+				// Do we have the previous block in our database? If so then
+				// skip else make another fetch request. Also if we get to the
+				// genesis block then stop.
+				if req.Block.PreviousHash != "" {
+					log.Printf("Has previous has, fetching it now...")
+					block, err := peer.blockchain.GetBlock(req.Block.PreviousHash)
+					if err != nil {
+						log.Printf("failed getting block: %v\n", err)
+						log.Printf("StreamMessageTypeRespondBlock: req: %v\n", requestStr)
+						break
+					}
+					if block == nil {
+						log.Printf("Fetching previous block...")
+
+						req := &StreamMessageIDO{
+							Type: StreamMessageTypeRequestBlock,
+							Hash: block.PreviousHash,
+						}
+						bin, _ := json.Marshal(req)
+						str := string(bin)
+						str = fmt.Sprintf("%s\n", str)
+						if _, err := rw.WriteString(str); err != nil {
+							log.Printf("Finished running request handler with write error: %v\n", err)
+							return
+						}
+						if err := rw.Flush(); err != nil {
+							log.Fatal(err)
+						}
+						log.Printf("Submited fetching previous block...")
+
+					}
+				}
 			}
 		}
 	}

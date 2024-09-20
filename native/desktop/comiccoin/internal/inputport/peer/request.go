@@ -7,45 +7,49 @@ import (
 	"log"
 )
 
-const (
-	StreamRequestTypeGetBlock = iota
-)
-
-type StreamRequestIDO struct {
-	Type int    `json:"type"`
-	Hash string `json:"hash"`
-}
-
 // requestPeer listens for new blocks from our local blockchain and if new blocks come in then we broadcast them to the P2P network
 func (peer *peerInputPort) requestHandler(rw *bufio.ReadWriter) {
 	log.Println("Running request handler...")
 
 	//
 	// STEP 1:
-	// On startup of application, if our blockchain is empty then we need to
-	// send a request to our peer to download the entire blockchain locally.
 	//
 
-	if peer.blockchain.IsBlockchainEmpty {
-		req := &StreamCommunicationIDO{
-			Type: StreamCommunicationTypeRequestBlockchain,
-		}
-		bin, _ := json.Marshal(req)
-		str := string(bin)
-		str = fmt.Sprintf("%s\n", str)
-		if _, err := rw.WriteString(str); err != nil {
-			log.Printf("Finished running request handler with write error: %v\n", err)
-			return
-		}
-		if err := rw.Flush(); err != nil {
-			log.Fatal(err)
-		}
+	req := &StreamMessageIDO{
+		Type: StreamMessageTypeRequestLatestBlock,
+	}
+	bin, _ := json.Marshal(req)
+	str := string(bin)
+	str = fmt.Sprintf("%s\n", str)
+	if _, err := rw.WriteString(str); err != nil {
+		log.Printf("Finished running request handler with write error: %v\n", err)
+		return
+	}
+	if err := rw.Flush(); err != nil {
+		log.Fatal(err)
+	}
 
-		log.Println("Blockchain download request submitted successfully.")
-	}
-	if peer.blockchain.IsBlockchainInSynch == false {
-		//TODO:
-	}
+	// if peer.blockchain.IsBlockchainEmpty {
+	// 	log.Println("Fetching request to download entire blockchain....")
+	// 	req := &StreamMessageIDO{
+	// 		Type: StreamMessageTypeRequestBlockchain,
+	// 	}
+	// 	bin, _ := json.Marshal(req)
+	// 	str := string(bin)
+	// 	str = fmt.Sprintf("%s\n", str)
+	// 	if _, err := rw.WriteString(str); err != nil {
+	// 		log.Printf("Finished running request handler with write error: %v\n", err)
+	// 		return
+	// 	}
+	// 	if err := rw.Flush(); err != nil {
+	// 		log.Fatal(err)
+	// 	}
+	//
+	// 	log.Println("Fetch request submitted successfully.")
+	// }
+	// if peer.blockchain.IsBlockchainInSynch == false {
+	// 	//TODO:
+	// }
 
 	//
 	// STEP 2:
