@@ -57,7 +57,8 @@ func NewInputPort(
 	// Only applies on the receiving side.
 	node.host.SetStreamHandler(fetchProtocolVersion, func(stream network.Stream) {
 		node.logger.Info("Got a new stream!")
-		go NewFetchProtocol(node, stream)
+		fp := NewFetchProtocol(node, stream)
+		go fp.Run(ctx)
 		// 'stream' will stay open until you close it (or the other side closes it).
 	})
 
@@ -115,7 +116,8 @@ func (node *nodeInputPort) Run() {
 			continue
 		} else {
 			node.logger.Info("Got a new stream!")
-			go NewFetchProtocol(node, stream)
+			fp := NewFetchProtocol(node, stream)
+			go fp.Run(ctx)
 			// 'stream' will stay open until you close it (or the other side closes it).
 		}
 
@@ -128,11 +130,4 @@ func (node *nodeInputPort) Run() {
 func (node *nodeInputPort) Shutdown() {
 	node.logger.Info("Gracefully shutting down p2p node")
 	node.host.Close()
-}
-
-func (node *nodeInputPort) handleStream(stream network.Stream) {
-	node.logger.Info("Got a new stream!")
-	worker := NewServiceWorker(node, stream)
-	go worker.Start(context.Background())
-	// 'stream' will stay open until you close it (or the other side closes it).
 }
