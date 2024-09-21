@@ -5,10 +5,10 @@ import (
 	"context"
 	"log"
 	"log/slog"
-	"time"
 
+	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p/core/host"
-	"github.com/libp2p/go-libp2p/core/peer"
+	"github.com/libp2p/go-libp2p/p2p/discovery/routing"
 	drouting "github.com/libp2p/go-libp2p/p2p/discovery/routing"
 	dutil "github.com/libp2p/go-libp2p/p2p/discovery/util"
 
@@ -24,7 +24,8 @@ type nodeInputPort struct {
 	keypairStorer        keypair_ds.KeypairStorer
 	blockchainController blockchain_c.BlockchainController
 	host                 host.Host
-	peerAddresses        []*peer.AddrInfo
+	kademliaDHT          *dht.IpfsDHT
+	routingDiscovery     *routing.RoutingDiscovery
 }
 
 func NewInputPort(
@@ -68,57 +69,57 @@ func NewInputPort(
 			slog.Any("error", err))
 		log.Fatal(err)
 	}
-
-	// Wait a bit to let bootstrapping finish (really bootstrap should block until it's ready, but that isn't the case yet.)
-	time.Sleep(1 * time.Second)
+	node.kademliaDHT = kademliaDHT
 
 	// We use a rendezvous point "meet me here" to announce our location.
 	// This is like telling your friends to meet you at the Eiffel Tower.
-	logger.Info("Announcing ourselves...")
-	routingDiscovery := drouting.NewRoutingDiscovery(kademliaDHT)
+	node.logger.Info("Announcing ourselves...")
+	routingDiscovery := drouting.NewRoutingDiscovery(node.kademliaDHT)
 	dutil.Advertise(ctx, routingDiscovery, node.cfg.Peer.RendezvousString)
-	logger.Debug("Successfully announced!")
-
-	// Now, look for others who have announced
-	// This is like your friend telling you the location to meet you.
-	logger.Debug("Searching for other peers...")
-	peerChan, err := routingDiscovery.FindPeers(ctx, node.cfg.Peer.RendezvousString)
-	if err != nil {
-		panic(err)
-	}
-
-	for peer := range peerChan {
-		if peer.ID == host.ID() {
-			continue
-		}
-		logger.Debug("Found peer:",
-			slog.Any("peer", peer))
-
-		logger.Debug("Connecting to:",
-			slog.Any("peer", peer))
-
-		stream, err := host.NewStream(ctx, peer.ID, "/p2p/1.0.0")
-
-		if err != nil {
-			logger.Warn("Connection failed:",
-				slog.Any("error", err))
-			continue
-		} else {
-			rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
-
-			go writeData(rw)
-			go readData(rw)
-		}
-
-		logger.Info("Connected to:",
-			slog.Any("peer", peer))
-	}
+	node.logger.Debug("Successfully announced!")
+	node.routingDiscovery = routingDiscovery
 
 	return node
 }
 
 func (node *nodeInputPort) Run() {
+	ctx := context.Background()
 	node.logger.Info("Running p2p node")
+
+	// Now, look for others who have announced
+	// This is like your friend telling you the location to meet you.
+	node.logger.Debug("Searching for other peers...")
+	peerChan, err := node.routingDiscovery.FindPeers(ctx, node.cfg.Peer.RendezvousString)
+	if err != nil {
+		panic(err)
+	}
+
+	for peer := range peerChan {
+		if peer.ID == node.host.ID() {
+			continue
+		}
+		node.logger.Debug("Found peer:",
+			slog.Any("peer", peer))
+
+		node.logger.Debug("Connecting to:",
+			slog.Any("peer", peer))
+
+		stream, err := node.host.NewStream(ctx, peer.ID, "/p2p/1.0.0")
+
+		if err != nil {
+			node.logger.Warn("Connection failed:",
+				slog.Any("error", err))
+			continue
+		} else {
+			rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
+
+			go node.writeData(rw)
+			go node.readData(rw)
+		}
+
+		node.logger.Info("Connected to:",
+			slog.Any("peer", peer))
+	}
 
 }
 

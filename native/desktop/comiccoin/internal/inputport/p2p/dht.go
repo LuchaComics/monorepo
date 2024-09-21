@@ -3,6 +3,7 @@ package p2p
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p/core/peer"
@@ -33,6 +34,10 @@ func (node *nodeInputPort) newKademliaDHT(ctx context.Context) (*dht.IpfsDHT, er
 	if err = kademliaDHT.Bootstrap(ctx); err != nil {
 		panic(err)
 	}
+
+	// Wait a bit to let bootstrapping finish (really bootstrap should block until it's ready, but that isn't the case yet.)
+	time.Sleep(1 * time.Second)
+
 	return kademliaDHT, nil
 
 	//
