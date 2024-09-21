@@ -15,7 +15,8 @@ func (impl *blockchainControllerImpl) GetBalanceByAddress(ctx context.Context, a
 	if err != nil {
 		return nil, fmt.Errorf("failed to get last hash: %v", err)
 	}
-	impl.logger.Debug("lookup last hash", slog.String("last_hash", currentHash))
+	impl.logger.Debug("lookup last hash",
+		slog.String("last_hash", currentHash))
 
 	// Iterate through all the blocks.
 	for {
