@@ -46,7 +46,7 @@ func runCmd() *cobra.Command {
 				BlockchainDifficulty: 1,
 				Peer: config.PeerConfig{
 					ListenPort:     flagListenPort,
-					RandomSeed:     flagRandomSeed,
+					KeyName:        flagKeypairName,
 					BootstrapPeers: flagBootstrapPeers,
 				},
 				DB: config.DBConfig{

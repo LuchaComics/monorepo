@@ -8,7 +8,7 @@ type Config struct {
 
 type PeerConfig struct {
 	ListenPort     int
-	RandomSeed     int64
+	KeyName        string
 	BootstrapPeers string
 }
 

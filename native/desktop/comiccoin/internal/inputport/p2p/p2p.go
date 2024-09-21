@@ -1,6 +1,7 @@
 package p2p
 
 import (
+	"log"
 	"log/slog"
 
 	"github.com/libp2p/go-libp2p/core/host"
@@ -12,7 +13,7 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport"
 )
 
-type peerNodeInputPort struct {
+type nodeInputPort struct {
 	cfg                  *config.Config
 	logger               *slog.Logger
 	keypairStorer        keypair_ds.KeypairStorer
@@ -46,12 +47,20 @@ func NewInputPort(
 		//
 		// Link :https://ldej.nl/post/building-an-echo-application-with-libp2p/
 
-		return &peerNodeInputPort{
+		node := &nodeInputPort{
 			cfg:                  cfg,
 			logger:               logger,
 			keypairStorer:        kp,
 			blockchainController: bc,
 		}
+
+		host, err := node.newHostWithPredictableIdentifier()
+		if err != nil {
+			log.Fatal(err)
+		}
+		node.host = host
+
+		return node
 	}
 
 	//
@@ -61,7 +70,7 @@ func NewInputPort(
 
 	logger.Info("Starting p2p node", slog.String("mode", "dial"))
 
-	return &peerNodeInputPort{
+	return &nodeInputPort{
 		cfg:                  cfg,
 		logger:               logger,
 		keypairStorer:        kp,
@@ -69,12 +78,12 @@ func NewInputPort(
 	}
 }
 
-func (node *peerNodeInputPort) Run() {
+func (node *nodeInputPort) Run() {
 	node.logger.Info("Running p2p node")
 
 }
 
-func (node *peerNodeInputPort) Shutdown() {
+func (node *nodeInputPort) Shutdown() {
 	node.logger.Info("Gracefully shutting down p2p node")
-	// s.host.Close()
+	node.host.Close()
 }
