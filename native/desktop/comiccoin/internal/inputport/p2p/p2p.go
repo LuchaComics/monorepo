@@ -1,13 +1,13 @@
 package p2p
 
 import (
-	"bufio"
 	"context"
 	"log"
 	"log/slog"
 
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p/core/host"
+	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/p2p/discovery/routing"
 	drouting "github.com/libp2p/go-libp2p/p2p/discovery/routing"
 	dutil "github.com/libp2p/go-libp2p/p2p/discovery/util"
@@ -55,7 +55,11 @@ func NewInputPort(
 	// Set a function as stream handler.
 	// This function is called when a peer connects, and starts a stream with this protocol.
 	// Only applies on the receiving side.
-	node.host.SetStreamHandler("/p2p/1.0.0", node.handleStream)
+	node.host.SetStreamHandler(fetchProtocolVersion, func(stream network.Stream) {
+		node.logger.Info("Got a new stream!")
+		go NewFetchProtocol(node, stream)
+		// 'stream' will stay open until you close it (or the other side closes it).
+	})
 
 	// Start a DHT, for use in peer discovery. We can't just make a new DHT
 	// client because we want each peer to maintain its own local copy of the
@@ -104,17 +108,15 @@ func (node *nodeInputPort) Run() {
 		node.logger.Debug("Connecting to:",
 			slog.Any("peer", peer))
 
-		stream, err := node.host.NewStream(ctx, peer.ID, "/p2p/1.0.0")
-
+		stream, err := node.host.NewStream(ctx, peer.ID, fetchProtocolVersion)
 		if err != nil {
 			node.logger.Warn("Connection failed:",
 				slog.Any("error", err))
 			continue
 		} else {
-			rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
-
-			go node.writeData(rw)
-			go node.readData(rw)
+			node.logger.Info("Got a new stream!")
+			go NewFetchProtocol(node, stream)
+			// 'stream' will stay open until you close it (or the other side closes it).
 		}
 
 		node.logger.Info("Connected to:",
@@ -126,4 +128,11 @@ func (node *nodeInputPort) Run() {
 func (node *nodeInputPort) Shutdown() {
 	node.logger.Info("Gracefully shutting down p2p node")
 	node.host.Close()
+}
+
+func (node *nodeInputPort) handleStream(stream network.Stream) {
+	node.logger.Info("Got a new stream!")
+	worker := NewServiceWorker(node, stream)
+	go worker.Start(context.Background())
+	// 'stream' will stay open until you close it (or the other side closes it).
 }

@@ -4,21 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-
-	"github.com/libp2p/go-libp2p/core/network"
 )
-
-func (node *nodeInputPort) handleStream(stream network.Stream) {
-	node.logger.Info("Got a new stream!")
-
-	// Create a buffer stream for non-blocking read and write.
-	rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
-
-	go node.readData(rw)
-	go node.writeData(rw)
-
-	// 'stream' will stay open until you close it (or the other side closes it).
-}
 
 func (node *nodeInputPort) readData(rw *bufio.ReadWriter) {
 	for {
