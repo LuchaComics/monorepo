@@ -1,9 +1,12 @@
 package cmd
 
 import (
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/spf13/cobra"
 
 	kvs "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/keyvaluestore/leveldb"
 	block_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/block/datastore"
@@ -13,14 +16,9 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport/p2p"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/logger"
-	"github.com/spf13/cobra"
 )
 
-var (
-	flagBootstrapPeers string
-	flagListenPort     int
-	flagRandomSeed     int64
-)
+var ()
 
 func init() {
 	rootCmd.AddCommand(runCmd())
@@ -42,12 +40,18 @@ func runCmd() *cobra.Command {
 			done := make(chan os.Signal, 1)
 			signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL, syscall.SIGUSR1)
 
+			bootstrapPeers, err := StringToAddres(flagBootstrapPeers)
+			if err != nil {
+				log.Fatalf("Failed converting string to multi-addresses: %v\n", err)
+			}
+
 			cfg := &config.Config{
 				BlockchainDifficulty: 1,
 				Peer: config.PeerConfig{
-					ListenPort:     flagListenPort,
-					KeyName:        flagKeypairName,
-					BootstrapPeers: flagBootstrapPeers,
+					ListenPort:       flagListenPort,
+					KeyName:          flagKeypairName,
+					RendezvousString: flagRendezvousString,
+					BootstrapPeers:   bootstrapPeers,
 				},
 				DB: config.DBConfig{
 					DataDir: flagDataDir,
@@ -89,6 +93,11 @@ func runCmd() *cobra.Command {
 	runCmd.MarkFlagRequired("keypair-name")
 	runCmd.Flags().StringVar(&flagBootstrapPeers, "bootstrap-peers", "", "The list of peers used to synchronize our blockchain with")
 	// runCmd.MarkFlagRequired("bootstrap-peers")
+
+	runCmd.Flags().StringVar(&flagRendezvousString, "rendezvous", "meet me here",
+		"Unique string to identify group of nodes. Share this with your friends to let them connect with you")
+	runCmd.Flags().StringVar(&flagBootstrapPeers, "peer", "", "Adds a peer multiaddress to the bootstrap list")
+	runCmd.Flags().StringVar(&flagListenAddresses, "listen", "", "Adds a multiaddress to the listen list")
 
 	return runCmd
 }

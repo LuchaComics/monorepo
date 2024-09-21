@@ -1,5 +1,9 @@
 package config
 
+import (
+	maddr "github.com/multiformats/go-multiaddr"
+)
+
 type Config struct {
 	BlockchainDifficulty int
 	Peer                 PeerConfig
@@ -7,9 +11,11 @@ type Config struct {
 }
 
 type PeerConfig struct {
-	ListenPort     int
-	KeyName        string
-	BootstrapPeers string
+	ListenPort       int
+	KeyName          string
+	RendezvousString string
+	BootstrapPeers   []maddr.Multiaddr
+	ListenAddresses  []maddr.Multiaddr
 }
 
 type DBConfig struct {

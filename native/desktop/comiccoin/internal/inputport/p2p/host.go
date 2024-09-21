@@ -58,8 +58,8 @@ func (node *nodeInputPort) newHostWithPredictableIdentifier() (host.Host, error)
 	fullAddr := addr.Encapsulate(hostAddr)
 
 	node.logger.Info("host ready to accept peers",
-		slog.Any("host_address", hostAddr),
 		slog.Any("full_address", fullAddr),
+		slog.Any("host_id", basicHost.ID()),
 		slog.String("note", "you can replace `127.0.0.1` with your public ip when connecting to this peer"),
 	)
 
