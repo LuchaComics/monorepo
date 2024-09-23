@@ -10,10 +10,11 @@ import (
 
 	kvs "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/keyvaluestore/leveldb"
 	block_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/block/datastore"
-	ledger_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/ledger/controller"
 	keypair_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/keypair/datastore"
 	lasthash_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/lasthash/datastore"
+	ledger_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/ledger/controller"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport/http"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport/p2p"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/logger"
 )
@@ -63,7 +64,8 @@ func runCmd() *cobra.Command {
 			lastHashDS := lasthash_ds.NewDatastore(cfg, logger, kvs)
 			blockDS := block_ds.NewDatastore(cfg, logger, kvs)
 			ledgerController := ledger_c.NewController(cfg, logger, lastHashDS, blockDS)
-			node := p2p.NewInputPort(cfg, logger, keypairDS, ledgerController)
+			peerNode := p2p.NewInputPort(cfg, logger, keypairDS, ledgerController)
+			httpServ := http.NewInputPort(cfg, logger, keypairDS, ledgerController)
 
 			//
 			// STEP 2
@@ -72,8 +74,10 @@ func runCmd() *cobra.Command {
 
 			// Run in background the peer to peer node which will synchronize our
 			// ledger with the network.
-			go node.Run()
-			defer node.Shutdown()
+			go peerNode.Run()
+			go httpServ.Run()
+			defer peerNode.Shutdown()
+			defer httpServ.Shutdown()
 
 			//
 			// STEP 3
@@ -87,13 +91,12 @@ func runCmd() *cobra.Command {
 	}
 	runCmd.Flags().StringVar(&flagDataDir, "datadir", "./data", "Absolute path to your node's data dir where the DB will be/is stored")
 	// runCmd.MarkFlagRequired("datadir")
-	runCmd.Flags().IntVar(&flagListenPort, "listen-port", 9000, "The port to listen to for other peers")
+	runCmd.Flags().IntVar(&flagListenPort, "listen-port", 26642, "The port to listen to for other peers")
 	runCmd.MarkFlagRequired("listen-port")
 	runCmd.Flags().StringVar(&flagKeypairName, "keypair-name", "", "The name of keypairs to apply to this server.")
 	runCmd.MarkFlagRequired("keypair-name")
 	runCmd.Flags().StringVar(&flagBootstrapPeers, "bootstrap-peers", "", "The list of peers used to synchronize our ledger with")
 	// runCmd.MarkFlagRequired("bootstrap-peers")
-
 	runCmd.Flags().StringVar(&flagRendezvousString, "rendezvous", "meet me here",
 		"Unique string to identify group of nodes. Share this with your friends to let them connect with you")
 	runCmd.Flags().StringVar(&flagBootstrapPeers, "peer", "", "Adds a peer multiaddress to the bootstrap list")
