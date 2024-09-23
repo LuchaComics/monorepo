@@ -10,7 +10,7 @@ import (
 
 	kvs "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/keyvaluestore/leveldb"
 	block_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/block/datastore"
-	blockchain_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain/controller"
+	ledger_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/ledger/controller"
 	keypair_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/keypair/datastore"
 	lasthash_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/lasthash/datastore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
@@ -62,8 +62,8 @@ func runCmd() *cobra.Command {
 			keypairDS := keypair_ds.NewDatastore(cfg, logger, kvs)
 			lastHashDS := lasthash_ds.NewDatastore(cfg, logger, kvs)
 			blockDS := block_ds.NewDatastore(cfg, logger, kvs)
-			blockchainController := blockchain_c.NewController(cfg, logger, lastHashDS, blockDS)
-			node := p2p.NewInputPort(cfg, logger, keypairDS, blockchainController)
+			ledgerController := ledger_c.NewController(cfg, logger, lastHashDS, blockDS)
+			node := p2p.NewInputPort(cfg, logger, keypairDS, ledgerController)
 
 			//
 			// STEP 2
@@ -71,7 +71,7 @@ func runCmd() *cobra.Command {
 			//
 
 			// Run in background the peer to peer node which will synchronize our
-			// blockchain with the network.
+			// ledger with the network.
 			go node.Run()
 			defer node.Shutdown()
 
@@ -91,7 +91,7 @@ func runCmd() *cobra.Command {
 	runCmd.MarkFlagRequired("listen-port")
 	runCmd.Flags().StringVar(&flagKeypairName, "keypair-name", "", "The name of keypairs to apply to this server.")
 	runCmd.MarkFlagRequired("keypair-name")
-	runCmd.Flags().StringVar(&flagBootstrapPeers, "bootstrap-peers", "", "The list of peers used to synchronize our blockchain with")
+	runCmd.Flags().StringVar(&flagBootstrapPeers, "bootstrap-peers", "", "The list of peers used to synchronize our ledger with")
 	// runCmd.MarkFlagRequired("bootstrap-peers")
 
 	runCmd.Flags().StringVar(&flagRendezvousString, "rendezvous", "meet me here",

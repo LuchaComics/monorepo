@@ -21,7 +21,7 @@ func init() {
 
 var walletCmd = &cobra.Command{
 	Use:   "wallet",
-	Short: "Manages blockchain accounts and keys.",
+	Short: "Manages ledger accounts and keys.",
 	Run: func(cmd *cobra.Command, args []string) {
 		// Do nothing...
 	},

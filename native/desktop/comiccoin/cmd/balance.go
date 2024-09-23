@@ -7,7 +7,7 @@ import (
 
 	kvs "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/keyvaluestore/leveldb"
 	block_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/block/datastore"
-	blockchain_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain/controller"
+	ledger_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/ledger/controller"
 	lasthash_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/lasthash/datastore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/logger"
@@ -49,7 +49,7 @@ func balanceGetCmd() *cobra.Command {
 			kvs := kvs.NewKeyValueStorer(cfg, logger)
 			lastHashDS := lasthash_ds.NewDatastore(cfg, logger, kvs)
 			blockDS := block_ds.NewDatastore(cfg, logger, kvs)
-			blockchainController := blockchain_c.NewController(cfg, logger, lastHashDS, blockDS)
+			ledgerController := ledger_c.NewController(cfg, logger, lastHashDS, blockDS)
 
 			// // Generate our new balance
 			// logger.Info("Creating balance...")
@@ -65,7 +65,7 @@ func balanceGetCmd() *cobra.Command {
 
 			ctx := context.Background()
 			address := common.HexToAddress(flagRecipientAddress)
-			balance, err := blockchainController.GetBalanceByAddress(ctx, address)
+			balance, err := ledgerController.GetBalanceByAddress(ctx, address)
 			if err != nil {
 				log.Fatalf("Failed to get balance: %v", err)
 			}

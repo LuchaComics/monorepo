@@ -41,7 +41,7 @@ func (f *FetchProtocol) onFetchRequest(ctx context.Context, s network.Stream) {
 			f.node.logger.Debug("fetching latest block(s) from p2p network...")
 
 			// ALGORITHM.
-			// 1. Lookup in my local blockchain for the latest hash
+			// 1. Lookup in my local ledger for the latest hash
 			// 2. If no latest hash found, send
 			// 2. Submit request
 			// 3. Repeat above every minute

@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-func (impl *blockchainControllerImpl) GetBalanceByAddress(ctx context.Context, address common.Address) (*big.Int, error) {
+func (impl *ledgerControllerImpl) GetBalanceByAddress(ctx context.Context, address common.Address) (*big.Int, error) {
 	balance := new(big.Int)
 	currentHash, err := impl.lastHashStorer.Get(ctx)
 	if err != nil {

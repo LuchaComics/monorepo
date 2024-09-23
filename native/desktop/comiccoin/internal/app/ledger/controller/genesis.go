@@ -12,7 +12,7 @@ import (
 	block_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/block/datastore"
 )
 
-func (impl *blockchainControllerImpl) NewGenesisBlock(ctx context.Context, coinbaseKey *keystore.Key) (*block_ds.Block, error) {
+func (impl *ledgerControllerImpl) NewGenesisBlock(ctx context.Context, coinbaseKey *keystore.Key) (*block_ds.Block, error) {
 	if coinbaseKey == nil {
 		return nil, fmt.Errorf("missing: %v", "coinbase")
 	}

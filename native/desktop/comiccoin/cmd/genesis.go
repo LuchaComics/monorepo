@@ -11,7 +11,7 @@ import (
 
 	kvs "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/keyvaluestore/leveldb"
 	block_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/block/datastore"
-	blockchain_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain/controller"
+	ledger_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/ledger/controller"
 	lasthash_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/lasthash/datastore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/logger"
@@ -24,7 +24,7 @@ func init() {
 func genesisCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "genesis",
-		Short: "Initialize `ComicCoin` blockchain by creating the genesis block",
+		Short: "Initialize `ComicCoin` ledger by creating the genesis block",
 		Run: func(cmd *cobra.Command, args []string) {
 			logger := logger.NewProvider()
 
@@ -49,7 +49,7 @@ func genesisCmd() *cobra.Command {
 
 			//
 			// STEP 2
-			// Load up our blockchain.
+			// Load up our ledger.
 			//
 
 			// Load up the configuration.
@@ -64,11 +64,11 @@ func genesisCmd() *cobra.Command {
 			kvs := kvs.NewKeyValueStorer(cfg, logger)
 			lastHashDS := lasthash_ds.NewDatastore(cfg, logger, kvs)
 			blockDS := block_ds.NewDatastore(cfg, logger, kvs)
-			blockchainController := blockchain_c.NewController(cfg, logger, lastHashDS, blockDS)
+			ledgerController := ledger_c.NewController(cfg, logger, lastHashDS, blockDS)
 
 			// Generate our genesis
 			ctx := context.Background()
-			genesisBlock, err := blockchainController.NewGenesisBlock(ctx, coinbaseKey)
+			genesisBlock, err := ledgerController.NewGenesisBlock(ctx, coinbaseKey)
 			if err != nil {
 				log.Fatalf("failed to generate genesis block: %v", err)
 
