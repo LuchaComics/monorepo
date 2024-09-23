@@ -11,8 +11,8 @@ import (
 
 	kvs "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/keyvaluestore/leveldb"
 	block_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/block/datastore"
-	ledger_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/ledger/controller"
 	lasthash_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/lasthash/datastore"
+	ledger_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/ledger/controller"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/logger"
 )
@@ -54,6 +54,9 @@ func genesisCmd() *cobra.Command {
 
 			// Load up the configuration.
 			cfg := &config.Config{
+				App: config.AppConfig{
+					DirPath: flagDataDir,
+				},
 				BlockchainDifficulty: 1,
 				DB: config.DBConfig{
 					DataDir: flagDataDir,

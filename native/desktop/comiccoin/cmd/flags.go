@@ -56,5 +56,7 @@ var (
 	flagListenAddresses  string
 	flagProtocolID       string
 
-	flagListenPort int
+	flagListenHTTPPort       int
+	flagListenHTTPIP         string
+	flagListenPeerToPeerPort int
 )

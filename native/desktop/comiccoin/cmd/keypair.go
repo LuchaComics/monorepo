@@ -33,6 +33,9 @@ func keypairNewCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			// Load up our dependencies and configuration
 			cfg := &config.Config{
+				App: config.AppConfig{
+					DirPath: flagDataDir,
+				},
 				BlockchainDifficulty: 1,
 				DB: config.DBConfig{
 					DataDir: flagDataDir,
