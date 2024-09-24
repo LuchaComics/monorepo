@@ -30,7 +30,13 @@ type ledgerControllerImpl struct {
 	blockStorer    block_ds.BlockStorer
 }
 
-func NewController(cfg *config.Config, logger *slog.Logger, as a_ds.AccountStorer, lhDS lasthash_ds.LastHashStorer, blockDS block_ds.BlockStorer) LedgerController {
+func NewController(
+	cfg *config.Config,
+	logger *slog.Logger,
+	as a_ds.AccountStorer,
+	lhDS lasthash_ds.LastHashStorer,
+	blockDS block_ds.BlockStorer,
+) LedgerController {
 	// Defensive code to protect the programmer from any errors.
 	if cfg.BlockchainDifficulty <= 0 {
 		log.Fatal("cannot have blochain difficulty less then or equal to zero")
