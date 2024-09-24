@@ -16,21 +16,6 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/logger"
 )
 
-func httpJsonApiLedgerCmd() *cobra.Command {
-	var cmd = &cobra.Command{
-		Use:   "ledger",
-		Short: "Execute commands related operation on the blockchain ledger",
-		Run: func(cmd *cobra.Command, args []string) {
-			// Do nothing...
-		},
-	}
-
-	// Attach our sub-commands for `ledger`
-	cmd.AddCommand(httpJsonApiLedgerGetBalanceCmd())
-
-	return cmd
-}
-
 var (
 	flagWalletAddress string
 )

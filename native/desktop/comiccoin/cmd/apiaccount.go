@@ -24,7 +24,7 @@ const (
 
 func httpJsonApiNewAccountCmd() *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "new-account",
+		Use:   "new",
 		Short: "Creates a new wallet in our ComicCoin node local filesystem and encrypts it with the inputted password",
 		Run: func(cmd *cobra.Command, args []string) {
 			logger := logger.NewProvider()
@@ -126,7 +126,7 @@ func httpJsonApiNewAccountCmd() *cobra.Command {
 
 func httpJsonApiGetAccountCmd() *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "account",
+		Use:   "get",
 		Short: "Get account detail",
 		Run: func(cmd *cobra.Command, args []string) {
 			logger := logger.NewProvider()
@@ -219,7 +219,7 @@ func httpJsonApiGetAccountCmd() *cobra.Command {
 
 func httpJsonApiListAccountsCmd() *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "list-accounts",
+		Use:   "list",
 		Short: "List all local accounts",
 		Run: func(cmd *cobra.Command, args []string) {
 			logger := logger.NewProvider()
