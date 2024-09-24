@@ -12,20 +12,20 @@ import (
 	drouting "github.com/libp2p/go-libp2p/p2p/discovery/routing"
 	dutil "github.com/libp2p/go-libp2p/p2p/discovery/util"
 
-	ledger_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/ledger/controller"
 	keypair_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/keypair/datastore"
+	ledger_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/ledger/controller"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport"
 )
 
 type nodeInputPort struct {
-	cfg                  *config.Config
-	logger               *slog.Logger
-	keypairStorer        keypair_ds.KeypairStorer
+	cfg              *config.Config
+	logger           *slog.Logger
+	keypairStorer    keypair_ds.KeypairStorer
 	ledgerController ledger_c.LedgerController
-	host                 host.Host
-	kademliaDHT          *dht.IpfsDHT
-	routingDiscovery     *routing.RoutingDiscovery
+	host             host.Host
+	kademliaDHT      *dht.IpfsDHT
+	routingDiscovery *routing.RoutingDiscovery
 }
 
 func NewInputPort(
@@ -40,9 +40,9 @@ func NewInputPort(
 	// node and then the rest of this function pertains to setting up a p2p
 	// network to utilize in our app.
 	node := &nodeInputPort{
-		cfg:                  cfg,
-		logger:               logger,
-		keypairStorer:        kp,
+		cfg:              cfg,
+		logger:           logger,
+		keypairStorer:    kp,
 		ledgerController: bc,
 	}
 
@@ -89,7 +89,9 @@ func NewInputPort(
 
 func (node *nodeInputPort) Run() {
 	ctx := context.Background()
-	node.logger.Info("Running p2p node")
+	node.logger.Info("Running P2P node",
+		slog.Int("listen_port", node.cfg.Peer.ListenPort),
+	)
 
 	// Now, look for others who have announced
 	// This is like your friend telling you the location to meet you.

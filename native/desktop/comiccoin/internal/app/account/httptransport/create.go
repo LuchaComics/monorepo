@@ -40,10 +40,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	MarshalCreateResponse(res, w)
-}
-
-func MarshalCreateResponse(res *acc_c.AccountDetailResponseIDO, w http.ResponseWriter) {
+	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(&res); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

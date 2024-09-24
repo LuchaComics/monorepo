@@ -6,7 +6,6 @@ type AccountCreateRequestIDO struct {
 }
 
 type AccountDetailResponseIDO struct {
-	Name           string `json:"name"`
-	WalletFilepath string `json:"wallet_filepath"`
-	WalletAddress  string `json:"wallet_address"`
+	Name          string `json:"name"`
+	WalletAddress string `json:"wallet_address"`
 }

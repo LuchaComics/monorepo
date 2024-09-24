@@ -14,14 +14,14 @@ func GetKeystoreDirPath(dataDir string) string {
 	return filepath.Join(dataDir, keystoreDirName)
 }
 
-func NewKeystoreAccount(dataDir, password string) (common.Address, error) {
+func NewKeystoreAccount(dataDir, password string) (common.Address, string, error) {
 	ks := keystore.NewKeyStore(GetKeystoreDirPath(dataDir), keystore.StandardScryptN, keystore.StandardScryptP)
 	acc, err := ks.NewAccount(password)
 	if err != nil {
-		return common.Address{}, err
+		return common.Address{}, "", err
 	}
 
-	return acc.Address, nil
+	return acc.Address, acc.URL.Path, nil
 }
 
 // func SignTransactionWithKeystoreAccount(tx blockchain.Transaction, acc common.Address, pwd, keystoreDir string) (blockchain.SignedTransaction, error) {

@@ -79,7 +79,7 @@ func runCmd() *cobra.Command {
 			peerNode := p2p.NewInputPort(cfg, logger, keypairDS, ledgerController)
 			httpMiddleware := httpmiddle.NewMiddleware(cfg, logger)
 			httpServ := http.NewInputPort(cfg, logger, httpMiddleware, accountHttp)
-
+			_ = peerNode
 			//
 			// STEP 2
 			// Execute our application.
@@ -87,9 +87,9 @@ func runCmd() *cobra.Command {
 
 			// Run in background the peer to peer node which will synchronize our
 			// ledger with the network.
-			go peerNode.Run()
+			// go peerNode.Run()
 			go httpServ.Run()
-			defer peerNode.Shutdown()
+			// defer peerNode.Shutdown()
 			defer httpServ.Shutdown()
 
 			//
@@ -107,7 +107,7 @@ func runCmd() *cobra.Command {
 	runCmd.Flags().IntVar(&flagListenPeerToPeerPort, "listen-p2p-port", 26642, "The port to listen to for other peers")
 	// runCmd.MarkFlagRequired("listen-port")
 
-	runCmd.Flags().IntVar(&flagListenHTTPPort, "listen-http-port", 26642, "The port to listen to for the HTTP JSON API server")
+	runCmd.Flags().IntVar(&flagListenHTTPPort, "listen-http-port", 8000, "The port to listen to for the HTTP JSON API server")
 	runCmd.Flags().StringVar(&flagListenHTTPIP, "listen-http-ip", "127.0.0.1", "The IP address to attach our HTTP JSON API server")
 
 	runCmd.Flags().StringVar(&flagKeypairName, "keypair-name", "", "The name of keypairs to apply to this server")

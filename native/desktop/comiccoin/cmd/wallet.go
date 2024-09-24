@@ -35,11 +35,13 @@ func walletNewAccountCmd() *cobra.Command {
 			logger := logger.NewProvider()
 
 			logger.Debug("Creating new wallet...")
-			acc, err := wallet.NewKeystoreAccount(flagDataDir, flagPassword)
+			acc, walletFilepath, err := wallet.NewKeystoreAccount(flagDataDir, flagPassword)
 			if err != nil {
 				log.Fatalf("NewKeystoreAccount error: %v", err)
 			}
-			logger.Debug("New wallet created.", slog.String("account", acc.Hex()))
+			logger.Debug("New wallet created.",
+				slog.String("filepath", walletFilepath),
+				slog.String("account", acc.Hex()))
 		},
 	}
 

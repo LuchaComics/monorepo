@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	"log"
 	"log/slog"
 	"net/http"
 
@@ -61,7 +62,15 @@ func NewInputPort(
 
 func (port *httpInputPort) Run() {
 	// ctx := context.Background()
-	port.logger.Info("Running HTTP JSON API")
+	port.logger.Info("Running HTTP JSON API",
+		slog.Int("listen_port", port.cfg.App.HTTPPort),
+		slog.String("listen_ip", port.cfg.App.HTTPIP))
+	if err := port.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		port.logger.Error("listen failed", slog.Any("error", err))
+
+		// DEVELOPERS NOTE: We terminate app here b/c dependency injection not allowed to fail, so fail here at startup of app.
+		log.Fatalf("failed to listen and server: %v", err)
+	}
 }
 
 func (port *httpInputPort) Shutdown() {
@@ -76,11 +85,17 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 	p := ctx.Value("url_split").([]string)
 	n := len(p)
 
+	port.logger.Info("",
+		slog.Any("method", r.Method),
+		slog.Any("url_tokens", p),
+		slog.Int("url_token_count", n))
+
 	switch {
 	// case n == 3 && p[1] == "v1" && p[2] == "accounts" && r.Method == http.MethodGet:
 	// 	port.account.List(w, r)
-	case n == 3 && p[1] == "v1" && p[2] == "accounts" && r.Method == http.MethodPost:
+	case n == 3 && p[0] == "v1" && p[1] == "api" && p[2] == "accounts" && r.Method == http.MethodPost:
 		port.account.Create(w, r)
+		break
 	// case n == 4 && p[1] == "v1" && p[2] == "comic-submission" && r.Method == http.MethodGet:
 	// 	port.ComicSubmission.GetByID(w, r, p[3])
 	// case n == 4 && p[1] == "v1" && p[2] == "comic-submission" && r.Method == http.MethodPut:
@@ -92,9 +107,12 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 	// --- CATCH ALL: D.N.E. ---
 	default:
 		port.logger.Debug("404 request",
-			slog.Int("n", n),
-			slog.String("m", r.Method),
-			slog.Any("p", p),
+			slog.Any("t[0]", p[0]),
+			slog.Any("t[1]", p[1]),
+			slog.Any("t[2]", p[2]),
+			slog.Any("method", r.Method),
+			slog.Any("url_tokens", p),
+			slog.Int("url_token_count", n),
 		)
 		http.NotFound(w, r)
 	}

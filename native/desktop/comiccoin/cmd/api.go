@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"log/slog"
 	"net/http"
@@ -12,6 +13,10 @@ import (
 
 	a_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/controller"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/logger"
+)
+
+var (
+	flagAccountName string
 )
 
 func init() {
@@ -43,7 +48,7 @@ func httpJsonApiNewAccountCmd() *cobra.Command {
 			httpEndpoint := fmt.Sprintf("http://%s:%d%s", flagListenHTTPIP, flagListenHTTPPort, accountsURL)
 
 			req := &a_c.AccountCreateRequestIDO{
-				Name:           "test",
+				Name:           flagAccountName,
 				WalletPassword: flagPassword,
 			}
 
@@ -73,24 +78,44 @@ func httpJsonApiNewAccountCmd() *cobra.Command {
 
 			defer res.Body.Close()
 
-			post := &a_c.AccountDetailResponseIDO{}
-			derr := json.NewDecoder(res.Body).Decode(post)
-			if derr != nil {
-				log.Fatalf("failed to decode response: %v", err)
+			log.Fatal(res)
+
+			if res.StatusCode == http.StatusBadRequest || res.StatusCode == http.StatusInternalServerError {
+				e := make(map[string]string)
+				var rawJSON bytes.Buffer
+				teeReader := io.TeeReader(res.Body, &rawJSON) // TeeReader allows you to read the JSON and capture it
+
+				// Try to decode the response as a string first
+				err := json.NewDecoder(teeReader).Decode(&e)
+				if err != nil {
+					logger.Error("decoding string error",
+						slog.Any("err", err),
+						slog.String("json", rawJSON.String()),
+					)
+					return
+				}
+
+				logger.Debug("Parsed error response",
+					slog.Any("errors", e),
+				)
+				return
 			}
 
-			if res.StatusCode != http.StatusCreated {
-				log.Fatal("failed to get created status")
-			}
-
-			logger.Debug("Account created",
-				slog.String("name", post.Name),
-				slog.String("filepath", post.WalletFilepath),
-				slog.String("address", post.WalletAddress),
-			)
+			// post := &a_c.AccountDetailResponseIDO{}
+			// derr := json.NewDecoder(res.Body).Decode(post)
+			// if derr != nil {
+			// 	log.Fatalf("failed to decode response: %v", derr)
+			// }
+			//
+			// logger.Debug("Account created",
+			// 	slog.String("name", post.Name),
+			// 	slog.String("address", post.WalletAddress),
+			// )
 		},
 	}
 
+	cmd.Flags().StringVar(&flagAccountName, "account-name", "", "The name to assign this account")
+	cmd.MarkFlagRequired("account-name")
 	cmd.Flags().StringVar(&flagPassword, "password", "", "The password to encrypt the new wallet with")
 	cmd.MarkFlagRequired("password")
 	cmd.Flags().IntVar(&flagListenHTTPPort, "http-port", 8000, "The HTTP JSON API server's port")
