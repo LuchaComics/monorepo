@@ -9,7 +9,7 @@ import (
 	"github.com/rs/cors"
 
 	account_http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/httptransport"
-	ledger_http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/ledger/httptransport"
+	blockchain_http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain/httptransport"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport"
 	mid "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport/http/middleware"
@@ -20,7 +20,7 @@ type httpInputPort struct {
 	logger  *slog.Logger
 	server  *http.Server
 	account *account_http.Handler
-	ledger  *ledger_http.Handler
+	blockchain  *blockchain_http.Handler
 }
 
 func NewInputPort(
@@ -28,7 +28,7 @@ func NewInputPort(
 	logger *slog.Logger,
 	mid mid.Middleware,
 	acc *account_http.Handler,
-	ledg *ledger_http.Handler,
+	ledg *blockchain_http.Handler,
 ) inputport.InputPortServer {
 	// Initialize the ServeMux.
 	mux := http.NewServeMux()
@@ -55,7 +55,7 @@ func NewInputPort(
 		logger:  logger,
 		server:  srv,
 		account: acc,
-		ledger:  ledg,
+		blockchain:  ledg,
 	}
 
 	// Attach the HTTP server controller to the ServerMux.
@@ -108,8 +108,8 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 		port.account.DeleteByName(w, r, p[3])
 
 	// --- LEDGER --- //
-	case n == 5 && p[0] == "v1" && p[1] == "api" && p[2] == "ledger" && p[4] == "balance" && r.Method == http.MethodGet:
-		port.ledger.GetBalanceByAccountName(w, r, p[3])
+	case n == 5 && p[0] == "v1" && p[1] == "api" && p[2] == "blockchain" && p[4] == "balance" && r.Method == http.MethodGet:
+		port.blockchain.GetBalanceByAccountName(w, r, p[3])
 
 	// --- CATCH ALL: D.N.E. ---
 	default:

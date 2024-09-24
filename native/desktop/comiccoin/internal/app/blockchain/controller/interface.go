@@ -13,17 +13,16 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 )
 
-// LedgerController represents a ledger to record all transactions of ComicCoin.
-// The purpose of this controller is to provide operations on the ledger like
-// add block, get block, etc. Functionality like minting, verification, etc
-// are done elsewere.
-type LedgerController interface {
+// BlockchainController provides all the functionality that can be performed
+// on the `ComicCoin` cryptocurrency.
+
+type BlockchainController interface {
 	NewGenesisBlock(ctx context.Context, coinbaseKey *keystore.Key) (*block_ds.Block, error)
 	GetBlock(ctx context.Context, hash string) (*block_ds.Block, error)
-	GetBalanceByAccountName(ctx context.Context, accountName string) (*LedgerBalanceResponseIDO, error)
+	GetBalanceByAccountName(ctx context.Context, accountName string) (*BlockchainBalanceResponseIDO, error)
 }
 
-type ledgerControllerImpl struct {
+type blockchainControllerImpl struct {
 	logger         *slog.Logger
 	accountStorer  a_ds.AccountStorer
 	lastHashStorer lasthash_ds.LastHashStorer
@@ -36,13 +35,13 @@ func NewController(
 	as a_ds.AccountStorer,
 	lhDS lasthash_ds.LastHashStorer,
 	blockDS block_ds.BlockStorer,
-) LedgerController {
+) BlockchainController {
 	// Defensive code to protect the programmer from any errors.
 	if cfg.BlockchainDifficulty <= 0 {
 		log.Fatal("cannot have blochain difficulty less then or equal to zero")
 	}
 
-	return &ledgerControllerImpl{
+	return &blockchainControllerImpl{
 		logger:         logger,
 		accountStorer:  as,
 		lastHashStorer: lhDS,

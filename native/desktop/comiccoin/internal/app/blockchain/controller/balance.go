@@ -10,11 +10,11 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/utils/httperror"
 )
 
-type LedgerBalanceResponseIDO struct {
+type BlockchainBalanceResponseIDO struct {
 	Amount *big.Int `json:"amount"`
 }
 
-func (impl *ledgerControllerImpl) GetBalanceByAccountName(ctx context.Context, accountName string) (*LedgerBalanceResponseIDO, error) {
+func (impl *blockchainControllerImpl) GetBalanceByAccountName(ctx context.Context, accountName string) (*BlockchainBalanceResponseIDO, error) {
 	account, err := impl.accountStorer.GetByName(ctx, accountName)
 	if err != nil {
 		impl.logger.Error("failed getting account",
@@ -72,7 +72,7 @@ func (impl *ledgerControllerImpl) GetBalanceByAccountName(ctx context.Context, a
 		currentHash = block.PreviousHash
 	}
 
-	return &LedgerBalanceResponseIDO{
+	return &BlockchainBalanceResponseIDO{
 		Amount: balance,
 	}, nil
 }

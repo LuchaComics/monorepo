@@ -15,8 +15,8 @@ import (
 	block_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/block/datastore"
 	keypair_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/keypair/datastore"
 	lasthash_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/lasthash/datastore"
-	ledger_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/ledger/controller"
-	ledger_http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/ledger/httptransport"
+	blockchain_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain/controller"
+	blockchain_http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain/httptransport"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport/http"
 	httpmiddle "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport/http/middleware"
@@ -75,12 +75,12 @@ func runCmd() *cobra.Command {
 			keypairDS := keypair_ds.NewDatastore(cfg, logger, kvs)
 			lastHashDS := lasthash_ds.NewDatastore(cfg, logger, kvs)
 			blockDS := block_ds.NewDatastore(cfg, logger, kvs)
-			ledgerController := ledger_c.NewController(cfg, logger, accountDS, lastHashDS, blockDS)
+			blockchainController := blockchain_c.NewController(cfg, logger, accountDS, lastHashDS, blockDS)
 			accountHttp := acc_http.NewHandler(logger, accountController)
-			ledgerHttp := ledger_http.NewHandler(logger, ledgerController)
-			peerNode := p2p.NewInputPort(cfg, logger, keypairDS, ledgerController)
+			blockchainHttp := blockchain_http.NewHandler(logger, blockchainController)
+			peerNode := p2p.NewInputPort(cfg, logger, keypairDS, blockchainController)
 			httpMiddleware := httpmiddle.NewMiddleware(cfg, logger)
-			httpServ := http.NewInputPort(cfg, logger, httpMiddleware, accountHttp, ledgerHttp)
+			httpServ := http.NewInputPort(cfg, logger, httpMiddleware, accountHttp, blockchainHttp)
 			_ = peerNode
 			//
 			// STEP 2
@@ -88,7 +88,7 @@ func runCmd() *cobra.Command {
 			//
 
 			// Run in background the peer to peer node which will synchronize our
-			// ledger with the network.
+			// blockchain with the network.
 			// go peerNode.Run()
 			go httpServ.Run()
 			// defer peerNode.Shutdown()
@@ -114,7 +114,7 @@ func runCmd() *cobra.Command {
 
 	runCmd.Flags().StringVar(&flagKeypairName, "keypair-name", "", "The name of keypairs to apply to this server")
 	runCmd.MarkFlagRequired("keypair-name")
-	runCmd.Flags().StringVar(&flagBootstrapPeers, "bootstrap-peers", "", "The list of peers used to synchronize our ledger with")
+	runCmd.Flags().StringVar(&flagBootstrapPeers, "bootstrap-peers", "", "The list of peers used to synchronize our blockchain with")
 	// runCmd.MarkFlagRequired("bootstrap-peers")
 	runCmd.Flags().StringVar(&flagRendezvousString, "rendezvous", "meet me here",
 		"Unique string to identify group of nodes. Share this with your friends to let them connect with you")

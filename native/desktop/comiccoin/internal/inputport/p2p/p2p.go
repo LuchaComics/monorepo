@@ -13,7 +13,7 @@ import (
 	dutil "github.com/libp2p/go-libp2p/p2p/discovery/util"
 
 	keypair_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/keypair/datastore"
-	ledger_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/ledger/controller"
+	blockchain_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain/controller"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport"
 )
@@ -22,7 +22,7 @@ type nodeInputPort struct {
 	cfg              *config.Config
 	logger           *slog.Logger
 	keypairStorer    keypair_ds.KeypairStorer
-	ledgerController ledger_c.LedgerController
+	blockchainController blockchain_c.BlockchainController
 	host             host.Host
 	kademliaDHT      *dht.IpfsDHT
 	routingDiscovery *routing.RoutingDiscovery
@@ -32,7 +32,7 @@ func NewInputPort(
 	cfg *config.Config,
 	logger *slog.Logger,
 	kp keypair_ds.KeypairStorer,
-	bc ledger_c.LedgerController,
+	bc blockchain_c.BlockchainController,
 ) inputport.InputPortServer {
 	ctx := context.Background()
 
@@ -43,7 +43,7 @@ func NewInputPort(
 		cfg:              cfg,
 		logger:           logger,
 		keypairStorer:    kp,
-		ledgerController: bc,
+		blockchainController: bc,
 	}
 
 	host, err := node.newHostWithPredictableIdentifier()

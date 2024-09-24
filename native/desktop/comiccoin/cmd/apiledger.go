@@ -12,7 +12,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	a_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/ledger/controller"
+	a_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain/controller"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/logger"
 )
 
@@ -22,18 +22,18 @@ var (
 
 // HTTP endpoints
 const (
-	ledgerBalanceURL = "/v1/api/ledger/${ACCOUNT_NAME}/balance"
+	blockchainBalanceURL = "/v1/api/blockchain/${ACCOUNT_NAME}/balance"
 )
 
-func httpJsonApiLedgerGetBalanceCmd() *cobra.Command {
+func httpJsonApiBlockchainGetBalanceCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "balance",
-		Short: "Get balance of the account in the ledger",
+		Short: "Get balance of the account in the blockchain",
 		Run: func(cmd *cobra.Command, args []string) {
 			logger := logger.NewProvider()
-			logger.Debug("Get ledger detail...")
+			logger.Debug("Get blockchain detail...")
 
-			modifiedBalanceDetailURL := strings.ReplaceAll(ledgerBalanceURL, "${ACCOUNT_NAME}", flagAccountName)
+			modifiedBalanceDetailURL := strings.ReplaceAll(blockchainBalanceURL, "${ACCOUNT_NAME}", flagAccountName)
 			httpEndpoint := fmt.Sprintf("http://%s:%d%s", flagListenHTTPIP, flagListenHTTPPort, modifiedBalanceDetailURL)
 
 			r, err := http.NewRequest("GET", httpEndpoint, nil)
@@ -94,7 +94,7 @@ func httpJsonApiLedgerGetBalanceCmd() *cobra.Command {
 			var rawJSON bytes.Buffer
 			teeReader := io.TeeReader(res.Body, &rawJSON) // TeeReader allows you to read the JSON and capture it
 
-			post := &a_c.LedgerBalanceResponseIDO{}
+			post := &a_c.BlockchainBalanceResponseIDO{}
 			if err := json.NewDecoder(teeReader).Decode(&post); err != nil {
 				logger.Error("decoding string error",
 					slog.Any("err", err),
@@ -103,13 +103,13 @@ func httpJsonApiLedgerGetBalanceCmd() *cobra.Command {
 				return
 			}
 
-			logger.Debug("Ledger balance retrieved",
+			logger.Debug("Blockchain balance retrieved",
 				slog.Any("amount", post.Amount),
 			)
 		},
 	}
 
-	cmd.Flags().StringVar(&flagAccountName, "account-name", "", "The name of the account we want to lookup in the ledger to get our balance for")
+	cmd.Flags().StringVar(&flagAccountName, "account-name", "", "The name of the account we want to lookup in the blockchain to get our balance for")
 	cmd.MarkFlagRequired("account-name")
 	cmd.Flags().IntVar(&flagListenHTTPPort, "http-port", 8000, "The HTTP JSON API server's port")
 	cmd.Flags().StringVar(&flagListenHTTPIP, "http-ip", "127.0.0.1", "The HTTP JSON API server's ip-address")

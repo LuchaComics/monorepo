@@ -23,7 +23,7 @@ func init() {
 	// Attach `API` sub-commands to our main root.
 	rootCmd.AddCommand(httpJsonApiCmd)
 	httpJsonApiCmd.AddCommand(httpJsonApiAccountCmd())
-	httpJsonApiCmd.AddCommand(httpJsonApiLedgerCmd())
+	httpJsonApiCmd.AddCommand(httpJsonApiBlockchainCmd())
 }
 
 var rootCmd = &cobra.Command{
@@ -67,17 +67,17 @@ func httpJsonApiAccountCmd() *cobra.Command {
 	return cmd
 }
 
-func httpJsonApiLedgerCmd() *cobra.Command {
+func httpJsonApiBlockchainCmd() *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "ledger",
-		Short: "Execute commands related to the blockchain ledger",
+		Use:   "blockchain",
+		Short: "Execute commands related to the blockchain blockchain",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Do nothing...
 		},
 	}
 
-	// Attach our sub-commands for `ledger`
-	cmd.AddCommand(httpJsonApiLedgerGetBalanceCmd())
+	// Attach our sub-commands for `blockchain`
+	cmd.AddCommand(httpJsonApiBlockchainGetBalanceCmd())
 
 	return cmd
 }
