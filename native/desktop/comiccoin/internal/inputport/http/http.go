@@ -95,9 +95,8 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 	// 	port.account.List(w, r)
 	case n == 3 && p[0] == "v1" && p[1] == "api" && p[2] == "accounts" && r.Method == http.MethodPost:
 		port.account.Create(w, r)
-		break
-	// case n == 4 && p[1] == "v1" && p[2] == "comic-submission" && r.Method == http.MethodGet:
-	// 	port.ComicSubmission.GetByID(w, r, p[3])
+	case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "account" && r.Method == http.MethodGet:
+		port.account.GetByName(w, r, p[3])
 	// case n == 4 && p[1] == "v1" && p[2] == "comic-submission" && r.Method == http.MethodPut:
 	// 	port.ComicSubmission.UpdateByID(w, r, p[3])
 	// case n == 4 && p[1] == "v1" && p[2] == "comic-submission" && r.Method == http.MethodDelete:

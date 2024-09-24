@@ -15,11 +15,14 @@ var (
 	flagRecipientAddress string
 	flagAmount           uint64
 	flagKeypairName      string
+	flagAccountName      string
 )
 
 // Initialize function will be called when every command gets called.
 func init() {
-
+	rootCmd.AddCommand(httpJsonApiCmd)
+	httpJsonApiCmd.AddCommand(httpJsonApiNewAccountCmd())
+	httpJsonApiCmd.AddCommand(httpJsonApiGetAccountCmd())
 }
 
 var rootCmd = &cobra.Command{
@@ -36,4 +39,12 @@ func Execute() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+}
+
+var httpJsonApiCmd = &cobra.Command{
+	Use:   "api",
+	Short: "Execute commands for local running ComicCoin node instance via HTTP JSON API",
+	Run: func(cmd *cobra.Command, args []string) {
+		// Do nothing...
+	},
 }
