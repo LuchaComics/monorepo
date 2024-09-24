@@ -11,6 +11,11 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 )
 
+// Account struct represents a users wallets that contain keys (private/public).
+// Note: The keys remain encrypted at rest and requires user password input to
+// decrypt so the account can be used for transfering coins.
+// Note: Private key - Used to sign transactions
+// Note: Public key - Acts as the user’s address.
 type Account struct {
 	Name           string         `json:"name"`
 	WalletFilepath string         `json:"wallet_filepath"`

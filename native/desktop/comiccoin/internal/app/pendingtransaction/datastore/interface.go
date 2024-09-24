@@ -17,13 +17,22 @@ import (
 // they will be deleted from our system as they will live in the blockchain
 // afterwords.
 type PendingTransaction struct {
-	ID        string         `json:"id"`
-	From      common.Address `json:"from"`
-	To        common.Address `json:"to"`
-	Value     *big.Int       `json:"value"`
-	Data      []byte         `json:"data"`
-	Nonce     uint64         `json:"nonce"`
-	Signature []byte         `json:"signature"`
+	ID string `json:"id"`
+
+	// Sender's public key
+	From common.Address `json:"from"`
+
+	// Recipient’s public key
+	To common.Address `json:"to"`
+
+	// Amount of coins being transferred
+	Amount *big.Int `json:"amount"`
+
+	// Data is any NFT related data attached
+	Data []byte `json:"data"`
+
+	// Signature is signed by sender’s private key to prove authenticity.
+	Signature []byte `json:"signature"`
 }
 
 type PendingTransactionStorer interface {
