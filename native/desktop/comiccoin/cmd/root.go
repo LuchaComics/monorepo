@@ -23,6 +23,7 @@ func init() {
 	rootCmd.AddCommand(httpJsonApiCmd)
 	httpJsonApiCmd.AddCommand(httpJsonApiNewAccountCmd())
 	httpJsonApiCmd.AddCommand(httpJsonApiGetAccountCmd())
+	httpJsonApiCmd.AddCommand(httpJsonApiListAccountsCmd())
 }
 
 var rootCmd = &cobra.Command{

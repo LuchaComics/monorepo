@@ -91,8 +91,8 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 		slog.Int("url_token_count", n))
 
 	switch {
-	// case n == 3 && p[1] == "v1" && p[2] == "accounts" && r.Method == http.MethodGet:
-	// 	port.account.List(w, r)
+	case n == 3 && p[0] == "v1" && p[1] == "api" && p[2] == "accounts" && r.Method == http.MethodGet:
+		port.account.List(w, r)
 	case n == 3 && p[0] == "v1" && p[1] == "api" && p[2] == "accounts" && r.Method == http.MethodPost:
 		port.account.Create(w, r)
 	case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "account" && r.Method == http.MethodGet:

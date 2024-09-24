@@ -8,15 +8,10 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 )
 
-// type Account struct {
-// 	Name           string         `json:"hash"`
-// 	WalletFilepath string         `json:"wallet_filepath"`
-// 	WalletAddress  common.Address `json:"wallet_address"`
-// }
-
 type AccountController interface {
 	Create(ctx context.Context, b *AccountCreateRequestIDO) (*AccountDetailResponseIDO, error)
 	GetByName(ctx context.Context, name string) (*AccountDetailResponseIDO, error)
+	List(ctx context.Context) ([]*AccountDetailResponseIDO, error)
 }
 
 type accountControllerImpl struct {

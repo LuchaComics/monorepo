@@ -216,3 +216,92 @@ func httpJsonApiGetAccountCmd() *cobra.Command {
 
 	return cmd
 }
+
+func httpJsonApiListAccountsCmd() *cobra.Command {
+	var cmd = &cobra.Command{
+		Use:   "list-accounts",
+		Short: "List all local accounts",
+		Run: func(cmd *cobra.Command, args []string) {
+			logger := logger.NewProvider()
+			logger.Debug("List accounts...")
+
+			httpEndpoint := fmt.Sprintf("http://%s:%d%s", flagListenHTTPIP, flagListenHTTPPort, accountsURL)
+
+			r, err := http.NewRequest("GET", httpEndpoint, nil)
+			if err != nil {
+				log.Fatalf("failed to setup get request: %v", err)
+			}
+
+			r.Header.Add("Content-Type", "application/json")
+
+			logger.Debug("Submitting to HTTP JSON API",
+				slog.String("url", httpEndpoint),
+				slog.String("method", "GET"))
+
+			client := &http.Client{}
+			res, err := client.Do(r)
+			if err != nil {
+				log.Fatalf("failed to do post request: %v", err)
+			}
+
+			defer res.Body.Close()
+
+			if res.StatusCode == http.StatusNotFound {
+				log.Fatalf("http endpoint does not exist for: %v", httpEndpoint)
+			}
+
+			if res.StatusCode == http.StatusBadRequest {
+				e := make(map[string]string)
+				var rawJSON bytes.Buffer
+				teeReader := io.TeeReader(res.Body, &rawJSON) // TeeReader allows you to read the JSON and capture it
+
+				// Try to decode the response as a string first
+				var jsonStr string
+				err := json.NewDecoder(teeReader).Decode(&jsonStr)
+				if err != nil {
+					logger.Error("decoding string error",
+						slog.Any("err", err),
+						slog.String("json", rawJSON.String()),
+					)
+					return
+				}
+
+				// Now try to decode the string into a map
+				err = json.Unmarshal([]byte(jsonStr), &e)
+				if err != nil {
+					logger.Error("decoding map error",
+						slog.Any("err", err),
+						slog.String("json", jsonStr),
+					)
+					return
+				}
+
+				logger.Debug("Parsed error response",
+					slog.Any("errors", e),
+				)
+				return
+			}
+
+			var rawJSON bytes.Buffer
+			teeReader := io.TeeReader(res.Body, &rawJSON) // TeeReader allows you to read the JSON and capture it
+
+			posts := &[]a_c.AccountDetailResponseIDO{}
+			if err := json.NewDecoder(teeReader).Decode(&posts); err != nil {
+				logger.Error("decoding string error",
+					slog.Any("err", err),
+					slog.String("json", rawJSON.String()),
+				)
+				return
+			}
+
+			logger.Debug("",
+				slog.Any("posts", posts),
+			)
+		},
+	}
+
+	cmd.Flags().IntVar(&flagListenHTTPPort, "http-port", 8000, "The HTTP JSON API server's port")
+	cmd.Flags().StringVar(&flagListenHTTPIP, "http-ip", "127.0.0.1", "The HTTP JSON API server's ip-address")
+
+	return cmd
+}

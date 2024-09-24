@@ -33,5 +33,23 @@ func (impl *accountStorerImpl) GetByName(ctx context.Context, name string) (*Acc
 }
 
 func (impl *accountStorerImpl) List(ctx context.Context) ([]*Account, error) {
-	return nil, nil
+	res := make([]*Account, 0)
+	seekThenIterateKey := ""
+	err := impl.dbClient.Iterate("account-", seekThenIterateKey, func(key, value []byte) error {
+		account, err := NewAccountFromDeserialize(value)
+		if err != nil {
+			impl.logger.Error("failed to deserialize",
+				slog.String("key", string(key)),
+				slog.String("value", string(value)),
+				slog.Any("error", err))
+			return err
+		}
+
+		res = append(res, account)
+
+		// Return nil to indicate success
+		return nil
+	})
+
+	return res, err
 }
