@@ -6,8 +6,6 @@ import (
 	"log/slog"
 
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/utils/httperror"
-	a_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/datastore"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/wallet"
 )
 
 func (impl *accountControllerImpl) validateCreateRequest(ctx context.Context, dirtyData *AccountCreateRequestIDO) error {
@@ -47,32 +45,20 @@ func (impl *accountControllerImpl) Create(ctx context.Context, req *AccountCreat
 	impl.logger.Debug("Creating new wallet...",
 		slog.Any("req", req))
 
-	acc, walletFilepath, err := wallet.NewKeystoreAccount(impl.config.App.DirPath, req.WalletPassword)
-	if err != nil {
-		impl.logger.Error("failed creating new keystore account",
-			slog.Any("name", req.Name),
-			slog.Any("error", err))
-		return nil, fmt.Errorf("failed creating new keystore account: %s", err)
-	}
-
-	account := &a_ds.Account{
-		Name:           req.Name,
-		WalletAddress:  acc,
-		WalletFilepath: walletFilepath,
-	}
-	if insertErr := impl.accountStorer.Insert(ctx, account); insertErr != nil {
+	account, insertErr := impl.accountStorer.Insert(ctx, req.Name, req.WalletPassword)
+	if insertErr != nil {
 		impl.logger.Error("failed inserting new account into database",
 			slog.Any("name", req.Name),
-			slog.Any("error", err))
-		return nil, fmt.Errorf("failed inserting into database: %s", err)
+			slog.Any("error", insertErr))
+		return nil, fmt.Errorf("failed inserting into database: %s", insertErr)
 	}
 
 	impl.logger.Debug("New wallet created.",
-		slog.String("account", acc.Hex()),
-		slog.String("wallet_filepath", walletFilepath))
+		slog.String("account", account.WalletAddress.Hex()),
+		slog.String("wallet_filepath", account.WalletFilepath))
 
 	return &AccountDetailResponseIDO{
 		Name:          req.Name,
-		WalletAddress: acc.Hex(),
+		WalletAddress: account.WalletAddress.Hex(),
 	}, nil
 }

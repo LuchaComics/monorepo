@@ -14,7 +14,7 @@ func getKeystoreDirPath(dataDir string) string {
 	return filepath.Join(dataDir, keystoreDirName)
 }
 
-func newKeystoreAccount(dataDir, password string) (common.Address, string, error) {
+func newKeystore(dataDir, password string) (common.Address, string, error) {
 	ks := keystore.NewKeyStore(getKeystoreDirPath(dataDir), keystore.StandardScryptN, keystore.StandardScryptP)
 	acc, err := ks.NewAccount(password)
 	if err != nil {

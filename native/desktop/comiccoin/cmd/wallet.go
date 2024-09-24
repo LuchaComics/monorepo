@@ -11,9 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	kvs "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/keyvaluestore/leveldb"
-	a_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/datastore"
 	acc_s "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/datastore"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/wallet"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/logger"
 )
@@ -55,25 +53,15 @@ func walletNewAccountCmd() *cobra.Command {
 			// Create our wallet in our filesystem.
 			//
 
-			logger.Debug("Creating new wallet...")
-			acc, walletFilepath, err := wallet.NewKeystoreAccount(flagDataDir, flagPassword)
-			if err != nil {
-				log.Fatalf("NewKeystoreAccount error: %v", err)
-			}
-			logger.Debug("New wallet created.",
-				slog.String("wallet_filepath", walletFilepath),
-				slog.String("wallet_address", acc.Hex()))
-
-			account := &a_ds.Account{
-				Name:           flagAccountName,
-				WalletAddress:  acc,
-				WalletFilepath: walletFilepath,
-			}
-			if insertErr := accountStorer.Insert(context.Background(), account); insertErr != nil {
+			account, insertErr := accountStorer.Insert(context.Background(), flagAccountName, flagPassword)
+			if insertErr != nil {
 				logger.Error("failed inserting new account into database",
 					slog.Any("name", flagAccountName),
-					slog.Any("error", err))
-				log.Fatalf("failed inserting into database: %s", err)
+					slog.Any("error", insertErr))
+				log.Fatalf("failed inserting into database: %s", insertErr)
+			}
+			if account == nil {
+				log.Fatal("account does not exist")
 			}
 		},
 	}

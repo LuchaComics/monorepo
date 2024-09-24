@@ -2,21 +2,37 @@ package datastore
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"log/slog"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 )
 
-func (impl *accountStorerImpl) Insert(ctx context.Context, b *Account) error {
-	bBytes, err := b.Serialize()
+func (impl *accountStorerImpl) Insert(ctx context.Context, accountName, accountWalletPassword string) (*Account, error) {
+	walletAddress, walletFilepath, err := newKeystore(impl.config.App.DirPath, accountWalletPassword)
 	if err != nil {
-		return err
+		impl.logger.Error("failed creating new keystore",
+			slog.Any("name", accountName),
+			slog.Any("error", err))
+		return nil, fmt.Errorf("failed creating new keystore: %s", err)
 	}
-	if err := impl.dbClient.Setf(bBytes, "account-%v", b.Name); err != nil {
-		return err
+
+	account := &Account{
+		Name:           accountName,
+		WalletAddress:  walletAddress,
+		WalletFilepath: walletFilepath,
 	}
-	return nil
+
+	bBytes, err := account.Serialize()
+	if err != nil {
+		return nil, err
+	}
+	if err := impl.dbClient.Setf(bBytes, "account-%v", accountName); err != nil {
+		return nil, err
+	}
+
+	return account, nil
 }
 
 func (impl *accountStorerImpl) GetByName(ctx context.Context, name string) (*Account, error) {

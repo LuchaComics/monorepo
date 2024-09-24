@@ -18,7 +18,7 @@ type Account struct {
 }
 
 type AccountStorer interface {
-	Insert(ctx context.Context, b *Account) error
+	Insert(ctx context.Context, accountName, accountWalletPassword string) (*Account, error)
 	GetByName(ctx context.Context, name string) (*Account, error)
 	List(ctx context.Context) ([]*Account, error)
 	DeleteByName(ctx context.Context, name string) error
