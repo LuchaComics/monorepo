@@ -53,3 +53,11 @@ func (impl *accountStorerImpl) List(ctx context.Context) ([]*Account, error) {
 
 	return res, err
 }
+
+func (impl *accountStorerImpl) DeleteByName(ctx context.Context, name string) error {
+	err := impl.dbClient.Deletef("account-%v", name)
+	if err != nil {
+		return err
+	}
+	return nil
+}

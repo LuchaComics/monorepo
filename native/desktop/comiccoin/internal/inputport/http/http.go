@@ -97,12 +97,10 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 		port.account.Create(w, r)
 	case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "account" && r.Method == http.MethodGet:
 		port.account.GetByName(w, r, p[3])
-	// case n == 4 && p[1] == "v1" && p[2] == "comic-submission" && r.Method == http.MethodPut:
-	// 	port.ComicSubmission.UpdateByID(w, r, p[3])
-	// case n == 4 && p[1] == "v1" && p[2] == "comic-submission" && r.Method == http.MethodDelete:
-	// 	port.ComicSubmission.ArchiveByID(w, r, p[3])
-	// case n == 5 && p[1] == "v1" && p[2] == "comic-submission" && p[4] == "perma-delete" && r.Method == http.MethodDelete:
-	// 	port.ComicSubmission.DeleteByID(w, r, p[3])
+	// case n == 4 && p[0] == "v1" && p[1] == "account" && r.Method == http.MethodPut:
+	// 	port.account.UpdateByName(w, r, p[3])
+	case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "account" && r.Method == http.MethodDelete:
+		port.account.DeleteByName(w, r, p[3])
 	// --- CATCH ALL: D.N.E. ---
 	default:
 		port.logger.Debug("404 request",

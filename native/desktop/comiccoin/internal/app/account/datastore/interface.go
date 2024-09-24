@@ -20,6 +20,7 @@ type AccountStorer interface {
 	Insert(ctx context.Context, b *Account) error
 	GetByName(ctx context.Context, name string) (*Account, error)
 	List(ctx context.Context) ([]*Account, error)
+	DeleteByName(ctx context.Context, name string) error
 }
 
 type accountStorerImpl struct {

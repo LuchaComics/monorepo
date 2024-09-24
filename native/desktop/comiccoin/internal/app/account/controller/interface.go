@@ -12,6 +12,7 @@ type AccountController interface {
 	Create(ctx context.Context, b *AccountCreateRequestIDO) (*AccountDetailResponseIDO, error)
 	GetByName(ctx context.Context, name string) (*AccountDetailResponseIDO, error)
 	List(ctx context.Context) ([]*AccountDetailResponseIDO, error)
+	DeleteByName(ctx context.Context, name string) error
 }
 
 type accountControllerImpl struct {
