@@ -16,6 +16,7 @@ import (
 	keypair_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/keypair/datastore"
 	lasthash_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/lasthash/datastore"
 	ledger_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/ledger/controller"
+	ledger_http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/ledger/httptransport"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport/http"
 	httpmiddle "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport/http/middleware"
@@ -76,9 +77,10 @@ func runCmd() *cobra.Command {
 			blockDS := block_ds.NewDatastore(cfg, logger, kvs)
 			ledgerController := ledger_c.NewController(cfg, logger, accountDS, lastHashDS, blockDS)
 			accountHttp := acc_http.NewHandler(logger, accountController)
+			ledgerHttp := ledger_http.NewHandler(logger, ledgerController)
 			peerNode := p2p.NewInputPort(cfg, logger, keypairDS, ledgerController)
 			httpMiddleware := httpmiddle.NewMiddleware(cfg, logger)
-			httpServ := http.NewInputPort(cfg, logger, httpMiddleware, accountHttp)
+			httpServ := http.NewInputPort(cfg, logger, httpMiddleware, accountHttp, ledgerHttp)
 			_ = peerNode
 			//
 			// STEP 2

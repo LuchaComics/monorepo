@@ -20,10 +20,14 @@ var (
 
 // Initialize function will be called when every command gets called.
 func init() {
+	// API
 	rootCmd.AddCommand(httpJsonApiCmd)
 	httpJsonApiCmd.AddCommand(httpJsonApiNewAccountCmd())
 	httpJsonApiCmd.AddCommand(httpJsonApiGetAccountCmd())
 	httpJsonApiCmd.AddCommand(httpJsonApiListAccountsCmd())
+
+	// LEDGER
+	httpJsonApiCmd.AddCommand(httpJsonApiLedgerCmd())
 }
 
 var rootCmd = &cobra.Command{

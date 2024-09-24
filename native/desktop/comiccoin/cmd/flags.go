@@ -10,6 +10,17 @@ import (
 	maddr "github.com/multiformats/go-multiaddr"
 )
 
+var (
+	flagRendezvousString string
+	flagBootstrapPeers   string
+	flagListenAddresses  string
+	flagProtocolID       string
+
+	flagListenHTTPPort       int
+	flagListenHTTPIP         string
+	flagListenPeerToPeerPort int
+)
+
 // A new type we need for writing a custom flag parser
 type addrList []maddr.Multiaddr
 
@@ -49,14 +60,3 @@ func StringsToAddrs(addrStrings []string) (maddrs []maddr.Multiaddr, err error) 
 	}
 	return
 }
-
-var (
-	flagRendezvousString string
-	flagBootstrapPeers   string
-	flagListenAddresses  string
-	flagProtocolID       string
-
-	flagListenHTTPPort       int
-	flagListenHTTPIP         string
-	flagListenPeerToPeerPort int
-)

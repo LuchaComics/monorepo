@@ -4,10 +4,8 @@ import (
 	"context"
 	"log"
 	"log/slog"
-	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
-	"github.com/ethereum/go-ethereum/common"
 
 	a_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/datastore"
 	block_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/block/datastore"
@@ -22,7 +20,7 @@ import (
 type LedgerController interface {
 	NewGenesisBlock(ctx context.Context, coinbaseKey *keystore.Key) (*block_ds.Block, error)
 	GetBlock(ctx context.Context, hash string) (*block_ds.Block, error)
-	GetBalanceByAddress(ctx context.Context, address common.Address) (*big.Int, error)
+	GetBalanceByAccountName(ctx context.Context, accountName string) (*LedgerBalanceResponseIDO, error)
 }
 
 type ledgerControllerImpl struct {

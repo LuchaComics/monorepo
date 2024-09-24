@@ -5,17 +5,40 @@ import (
 	"fmt"
 	"log/slog"
 	"math/big"
+	"net/http"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/utils/httperror"
 )
 
-func (impl *ledgerControllerImpl) GetBalanceByAddress(ctx context.Context, address common.Address) (*big.Int, error) {
+type LedgerBalanceResponseIDO struct {
+	Amount *big.Int `json:"amount"`
+}
+
+func (impl *ledgerControllerImpl) GetBalanceByAccountName(ctx context.Context, accountName string) (*LedgerBalanceResponseIDO, error) {
+	account, err := impl.accountStorer.GetByName(ctx, accountName)
+	if err != nil {
+		impl.logger.Error("failed getting account",
+			slog.String("account_name", accountName),
+			slog.Any("error", err))
+		return nil, httperror.NewForSingleField(http.StatusBadRequest, "message", fmt.Sprintf("error getting account: %v", err))
+	}
+	if account == nil {
+		impl.logger.Error("failed getting account as account d.n.e.",
+			slog.Any("account_name", accountName))
+		return nil, httperror.NewForSingleField(http.StatusBadRequest, "message", fmt.Sprintf("does not exist for name: %v", accountName))
+
+	}
+
 	balance := new(big.Int)
 	currentHash, err := impl.lastHashStorer.Get(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get last hash: %v", err)
+		impl.logger.Error("failed to get last hash",
+			slog.Any("account_name", accountName),
+			slog.Any("error", err))
+		return nil, httperror.NewForSingleField(http.StatusBadRequest, "message", fmt.Sprintf("failed to get last hash: %v", err))
 	}
 	impl.logger.Debug("lookup last hash",
+		slog.Any("account_name", accountName),
 		slog.String("last_hash", currentHash))
 
 	// Iterate through all the blocks.
@@ -24,7 +47,7 @@ func (impl *ledgerControllerImpl) GetBalanceByAddress(ctx context.Context, addre
 		if err != nil {
 			impl.logger.Error("failed to get block datah",
 				slog.String("hash", currentHash))
-			return nil, fmt.Errorf("failed to get block data: %v", err)
+			return nil, httperror.NewForSingleField(http.StatusBadRequest, "message", fmt.Sprintf("failed to get block data: %v", err))
 		}
 
 		// DEVELOPERS NOTE:
@@ -35,10 +58,10 @@ func (impl *ledgerControllerImpl) GetBalanceByAddress(ctx context.Context, addre
 		}
 
 		for _, tx := range block.Transactions {
-			if tx.From == address {
+			if tx.From == account.WalletAddress {
 				balance.Sub(balance, tx.Value)
 			}
-			if tx.To == address {
+			if tx.To == account.WalletAddress {
 				balance.Add(balance, tx.Value)
 			}
 		}
@@ -49,5 +72,7 @@ func (impl *ledgerControllerImpl) GetBalanceByAddress(ctx context.Context, addre
 		currentHash = block.PreviousHash
 	}
 
-	return balance, nil
+	return &LedgerBalanceResponseIDO{
+		Amount: balance,
+	}, nil
 }

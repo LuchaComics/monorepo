@@ -9,6 +9,7 @@ import (
 	"github.com/rs/cors"
 
 	account_http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/httptransport"
+	ledger_http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/ledger/httptransport"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport"
 	mid "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport/http/middleware"
@@ -19,6 +20,7 @@ type httpInputPort struct {
 	logger  *slog.Logger
 	server  *http.Server
 	account *account_http.Handler
+	ledger  *ledger_http.Handler
 }
 
 func NewInputPort(
@@ -26,6 +28,7 @@ func NewInputPort(
 	logger *slog.Logger,
 	mid mid.Middleware,
 	acc *account_http.Handler,
+	ledg *ledger_http.Handler,
 ) inputport.InputPortServer {
 	// Initialize the ServeMux.
 	mux := http.NewServeMux()
@@ -52,6 +55,7 @@ func NewInputPort(
 		logger:  logger,
 		server:  srv,
 		account: acc,
+		ledger:  ledg,
 	}
 
 	// Attach the HTTP server controller to the ServerMux.
@@ -91,6 +95,7 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 		slog.Int("url_token_count", n))
 
 	switch {
+	// --- ACCOUNTS --- //
 	case n == 3 && p[0] == "v1" && p[1] == "api" && p[2] == "accounts" && r.Method == http.MethodGet:
 		port.account.List(w, r)
 	case n == 3 && p[0] == "v1" && p[1] == "api" && p[2] == "accounts" && r.Method == http.MethodPost:
@@ -101,6 +106,11 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 	// 	port.account.UpdateByName(w, r, p[3])
 	case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "account" && r.Method == http.MethodDelete:
 		port.account.DeleteByName(w, r, p[3])
+
+	// --- LEDGER --- //
+	case n == 5 && p[0] == "v1" && p[1] == "api" && p[2] == "ledger" && p[4] == "balance" && r.Method == http.MethodGet:
+		port.ledger.GetBalanceByAccountName(w, r, p[3])
+
 	// --- CATCH ALL: D.N.E. ---
 	default:
 		port.logger.Debug("404 request",
