@@ -9,14 +9,16 @@ import (
 	"github.com/spf13/cobra"
 
 	kvs "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/keyvaluestore/leveldb"
+	mqb "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/messagequeuebroker/simple"
 	acc_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/controller"
 	acc_s "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/datastore"
 	acc_http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/httptransport"
 	block_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/block/datastore"
-	keypair_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/keypair/datastore"
-	lasthash_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/lasthash/datastore"
 	blockchain_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain/controller"
 	blockchain_http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain/httptransport"
+	keypair_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/keypair/datastore"
+	lasthash_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/lasthash/datastore"
+	pt_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/pendingtransaction/datastore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport/http"
 	httpmiddle "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport/http/middleware"
@@ -70,12 +72,14 @@ func runCmd() *cobra.Command {
 			}
 			logger := logger.NewProvider()
 			kvs := kvs.NewKeyValueStorer(cfg, logger)
+			broker := mqb.NewMessageQueue(cfg, logger)
 			accountDS := acc_s.NewDatastore(cfg, logger, kvs)
 			accountController := acc_c.NewController(cfg, logger, accountDS)
 			keypairDS := keypair_ds.NewDatastore(cfg, logger, kvs)
 			lastHashDS := lasthash_ds.NewDatastore(cfg, logger, kvs)
+			pendingTransactionDS := pt_ds.NewDatastore(cfg, logger, kvs)
 			blockDS := block_ds.NewDatastore(cfg, logger, kvs)
-			blockchainController := blockchain_c.NewController(cfg, logger, accountDS, lastHashDS, blockDS)
+			blockchainController := blockchain_c.NewController(cfg, logger, broker, accountDS, pendingTransactionDS, lastHashDS, blockDS)
 			accountHttp := acc_http.NewHandler(logger, accountController)
 			blockchainHttp := blockchain_http.NewHandler(logger, blockchainController)
 			peerNode := p2p.NewInputPort(cfg, logger, keypairDS, blockchainController)
