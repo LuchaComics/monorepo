@@ -78,19 +78,28 @@ func httpJsonApiNewAccountCmd() *cobra.Command {
 
 			defer res.Body.Close()
 
-			log.Fatal(res)
-
 			if res.StatusCode == http.StatusBadRequest || res.StatusCode == http.StatusInternalServerError {
 				e := make(map[string]string)
 				var rawJSON bytes.Buffer
 				teeReader := io.TeeReader(res.Body, &rawJSON) // TeeReader allows you to read the JSON and capture it
 
 				// Try to decode the response as a string first
-				err := json.NewDecoder(teeReader).Decode(&e)
+				var jsonStr string
+				err := json.NewDecoder(teeReader).Decode(&jsonStr)
 				if err != nil {
 					logger.Error("decoding string error",
 						slog.Any("err", err),
 						slog.String("json", rawJSON.String()),
+					)
+					return
+				}
+
+				// Now try to decode the string into a map
+				err = json.Unmarshal([]byte(jsonStr), &e)
+				if err != nil {
+					logger.Error("decoding map error",
+						slog.Any("err", err),
+						slog.String("json", jsonStr),
 					)
 					return
 				}
@@ -101,16 +110,22 @@ func httpJsonApiNewAccountCmd() *cobra.Command {
 				return
 			}
 
-			// post := &a_c.AccountDetailResponseIDO{}
-			// derr := json.NewDecoder(res.Body).Decode(post)
-			// if derr != nil {
-			// 	log.Fatalf("failed to decode response: %v", derr)
-			// }
-			//
-			// logger.Debug("Account created",
-			// 	slog.String("name", post.Name),
-			// 	slog.String("address", post.WalletAddress),
-			// )
+			var rawJSON bytes.Buffer
+			teeReader := io.TeeReader(res.Body, &rawJSON) // TeeReader allows you to read the JSON and capture it
+
+			post := &a_c.AccountDetailResponseIDO{}
+			if err := json.NewDecoder(teeReader).Decode(&post); err != nil {
+				logger.Error("decoding string error",
+					slog.Any("err", err),
+					slog.String("json", rawJSON.String()),
+				)
+				return
+			}
+
+			logger.Debug("Account created",
+				slog.String("name", post.Name),
+				slog.String("address", post.WalletAddress),
+			)
 		},
 	}
 

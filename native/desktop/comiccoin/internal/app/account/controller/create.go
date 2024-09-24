@@ -24,7 +24,7 @@ func (impl *accountControllerImpl) validateCreateRequest(ctx context.Context, di
 				e["name"] = fmt.Sprintf("failed getting account: %v", err)
 			}
 			if account != nil {
-				e["name"] = "name already exists"
+				e["name"] = "already exists"
 			}
 		}
 		if dirtyData.WalletPassword == "" {
