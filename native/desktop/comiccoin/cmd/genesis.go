@@ -2,14 +2,13 @@ package cmd
 
 import (
 	"context"
-	"io/ioutil"
 	"log"
 	"log/slog"
 
-	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/spf13/cobra"
 
 	kvs "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/keyvaluestore/leveldb"
+	acc_s "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/datastore"
 	block_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/block/datastore"
 	lasthash_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/lasthash/datastore"
 	ledger_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/ledger/controller"
@@ -26,31 +25,14 @@ func genesisCmd() *cobra.Command {
 		Use:   "genesis",
 		Short: "Initialize `ComicCoin` ledger by creating the genesis block",
 		Run: func(cmd *cobra.Command, args []string) {
+			//
+			// STEP 1
+			// Load up our dependencies
+			//
+
 			logger := logger.NewProvider()
 
 			logger.Info("Creating genesis block...")
-
-			//
-			// STEP 1
-			// Load up a wallet which has coins in it.
-			//
-
-			coinbaseKeyJson, err := ioutil.ReadFile(flagKeystoreFile)
-			if err != nil {
-				log.Fatalf("failed reading file: %v", err)
-			}
-
-			coinbaseKey, err := keystore.DecryptKey(coinbaseKeyJson, flagPassword)
-			if err != nil {
-				log.Fatalf("failed decrypting file: %v", err)
-			}
-
-			logger.Info("Coinbase wallet was successfully opened")
-
-			//
-			// STEP 2
-			// Load up our ledger.
-			//
 
 			// Load up the configuration.
 			cfg := &config.Config{
@@ -66,10 +48,28 @@ func genesisCmd() *cobra.Command {
 			// Load up our dependencies
 			kvs := kvs.NewKeyValueStorer(cfg, logger)
 			lastHashDS := lasthash_ds.NewDatastore(cfg, logger, kvs)
+			accountStorer := acc_s.NewDatastore(cfg, logger, kvs)
 			blockDS := block_ds.NewDatastore(cfg, logger, kvs)
-			ledgerController := ledger_c.NewController(cfg, logger, lastHashDS, blockDS)
+			ledgerController := ledger_c.NewController(cfg, logger, accountStorer, lastHashDS, blockDS)
 
+			//
+			// STEP 2
+			// Read the contents of the keystore.
+			//
+
+			coinbaseKey, err := accountStorer.GetKeyByNameAndPassword(context.Background(), flagAccountName, flagPassword)
+			if err != nil {
+				log.Fatalf("failed getting key by account by name: %v", err)
+			}
+			if coinbaseKey == nil {
+				log.Fatalf("failed getting key by account by name because name d.n.e.: %s", flagAccountName)
+			}
+
+			//
+			// STEP 3
 			// Generate our genesis
+			//
+
 			ctx := context.Background()
 			genesisBlock, err := ledgerController.NewGenesisBlock(ctx, coinbaseKey)
 			if err != nil {
@@ -84,10 +84,9 @@ func genesisCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&flagDataDir, "datadir", "./data", "Absolute path to your node's data dir where the DB will be/is stored")
-	// cmd.MarkFlagRequired("datadir")
-	cmd.Flags().StringVar(&flagKeystoreFile, "coinbase-keystore", "", "Absolute path to the coinbase's wallet")
-	cmd.MarkFlagRequired("coinbase-keystore")
-	cmd.Flags().StringVar(&flagPassword, "coinbase-password", "", "The password to decrypt the cointbase's wallet")
+	cmd.Flags().StringVar(&flagAccountName, "coinbase-account-name", "", "The account name of the coinbase wallet")
+	cmd.MarkFlagRequired("coinbase-account-name")
+	cmd.Flags().StringVar(&flagPassword, "coinbase-password", "", "The password to decrypt the cointbase's account wallet")
 	cmd.MarkFlagRequired("coinbase-password")
 
 	return cmd

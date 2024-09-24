@@ -2,7 +2,10 @@ package datastore
 
 import (
 	"context"
+	"io/ioutil"
 	"log/slog"
+
+	"github.com/ethereum/go-ethereum/accounts/keystore"
 )
 
 func (impl *accountStorerImpl) Insert(ctx context.Context, b *Account) error {
@@ -60,4 +63,25 @@ func (impl *accountStorerImpl) DeleteByName(ctx context.Context, name string) er
 		return err
 	}
 	return nil
+}
+
+func (impl *accountStorerImpl) GetKeyByNameAndPassword(ctx context.Context, accountName string, accountWalletPassword string) (*keystore.Key, error) {
+	account, err := impl.GetByName(ctx, accountName)
+	if err != nil {
+		return nil, err
+	}
+	if account == nil {
+		return nil, nil
+	}
+
+	keyJson, err := ioutil.ReadFile(account.WalletFilepath)
+	if err != nil {
+		return nil, nil
+	}
+
+	key, err := keystore.DecryptKey(keyJson, accountWalletPassword)
+	if err != nil {
+		return nil, nil
+	}
+	return key, nil
 }

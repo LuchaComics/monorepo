@@ -9,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 
+	a_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/datastore"
 	block_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/block/datastore"
 	lasthash_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/lasthash/datastore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
@@ -26,11 +27,12 @@ type LedgerController interface {
 
 type ledgerControllerImpl struct {
 	logger         *slog.Logger
+	accountStorer  a_ds.AccountStorer
 	lastHashStorer lasthash_ds.LastHashStorer
 	blockStorer    block_ds.BlockStorer
 }
 
-func NewController(cfg *config.Config, logger *slog.Logger, lhDS lasthash_ds.LastHashStorer, blockDS block_ds.BlockStorer) LedgerController {
+func NewController(cfg *config.Config, logger *slog.Logger, as a_ds.AccountStorer, lhDS lasthash_ds.LastHashStorer, blockDS block_ds.BlockStorer) LedgerController {
 	// Defensive code to protect the programmer from any errors.
 	if cfg.BlockchainDifficulty <= 0 {
 		log.Fatal("cannot have blochain difficulty less then or equal to zero")
@@ -38,6 +40,7 @@ func NewController(cfg *config.Config, logger *slog.Logger, lhDS lasthash_ds.Las
 
 	return &ledgerControllerImpl{
 		logger:         logger,
+		accountStorer:  as,
 		lastHashStorer: lhDS,
 		blockStorer:    blockDS,
 	}

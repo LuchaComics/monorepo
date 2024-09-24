@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/keyvaluestore"
@@ -21,15 +22,18 @@ type AccountStorer interface {
 	GetByName(ctx context.Context, name string) (*Account, error)
 	List(ctx context.Context) ([]*Account, error)
 	DeleteByName(ctx context.Context, name string) error
+	GetKeyByNameAndPassword(ctx context.Context, accountName string, accountWalletPassword string) (*keystore.Key, error)
 }
 
 type accountStorerImpl struct {
+	config   *config.Config
 	logger   *slog.Logger
 	dbClient keyvaluestore.KeyValueStorer
 }
 
 func NewDatastore(cfg *config.Config, logger *slog.Logger, kvs keyvaluestore.KeyValueStorer) AccountStorer {
 	return &accountStorerImpl{
+		config:   cfg,
 		dbClient: kvs,
 		logger:   logger,
 	}
