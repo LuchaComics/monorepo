@@ -1,13 +1,17 @@
 package cmd
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/spf13/cobra"
 
+	dmqb "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/distributedmessagequeue"
 	kvs "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/keyvaluestore/leveldb"
 	mqb "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/messagequeuebroker/simple"
 	acc_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/controller"
@@ -18,13 +22,10 @@ import (
 	blockchain_http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain/httptransport"
 	keypair_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/keypair/datastore"
 	lasthash_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/lasthash/datastore"
-	mempool_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/mempool/controller"
-	mempool_p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/mempool/p2ptransport"
 	pt_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/signedtransaction/datastore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport/http"
 	httpmiddle "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport/http/middleware"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport/p2p"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/logger"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/uuid"
 )
@@ -77,20 +78,33 @@ func runCmd() *cobra.Command {
 			uuid := uuid.NewProvider()
 			kvs := kvs.NewKeyValueStorer(cfg, logger)
 			broker := mqb.NewMessageQueue(cfg, logger)
+			keypairDS := keypair_ds.NewDatastore(cfg, logger, kvs)
+			msgqueue := dmqb.NewDistributedMessageQueueAdapter(cfg, logger, keypairDS)
 			accountDS := acc_s.NewDatastore(cfg, logger, kvs)
 			accountController := acc_c.NewController(cfg, logger, accountDS)
-			keypairDS := keypair_ds.NewDatastore(cfg, logger, kvs)
 			lastHashDS := lasthash_ds.NewDatastore(cfg, logger, kvs)
 			signedTransactionDS := pt_ds.NewDatastore(cfg, logger, kvs)
 			blockDS := block_ds.NewDatastore(cfg, logger, kvs)
-			blockchainController := blockchain_c.NewController(cfg, logger, uuid, broker, accountDS, signedTransactionDS, lastHashDS, blockDS)
+			blockchainController := blockchain_c.NewController(cfg, logger, uuid, broker, msgqueue, accountDS, signedTransactionDS, lastHashDS, blockDS)
 			accountHttp := acc_http.NewHandler(logger, accountController)
 			blockchainHttp := blockchain_http.NewHandler(logger, blockchainController)
-			mempoolController := mempool_c.NewController(cfg, logger, uuid, broker, signedTransactionDS)
-			mempoolNode := mempool_p2p.NewNode(logger, mempoolController)
-			peerNode := p2p.NewInputPort(cfg, logger, keypairDS, mempoolNode)
+			// mempoolController := mempool_c.NewController(cfg, logger, uuid, broker, msgqueue, signedTransactionDS)
+			// mempoolNode := mempool_p2p.NewNode(logger, mempoolController)
+			// peerNode := p2p.NewInputPort(cfg, logger, keypairDS, mempoolNode)
 			httpMiddleware := httpmiddle.NewMiddleware(cfg, logger)
 			httpServ := http.NewInputPort(cfg, logger, httpMiddleware, accountHttp, blockchainHttp)
+
+			//TODO: DELETE BELOW
+			ctx := context.Background()
+			priv, _, err := keypairDS.GetByName(ctx, cfg.Peer.KeyName)
+			if err != nil {
+				panic("test")
+			}
+			time.Sleep(10 * time.Second)
+			msg := fmt.Sprintf("testing from %v", priv)
+			go msgqueue.Publish(ctx, "mempool", []byte(msg))
+			res := msgqueue.Subscribe(ctx, "mempool")
+			log.Println(string(res))
 
 			//
 			// STEP 2
@@ -99,9 +113,9 @@ func runCmd() *cobra.Command {
 
 			// Run in background the peer to peer node which will synchronize our
 			// blockchain with the network.
-			go peerNode.Run()
+			// go peerNode.Run()
 			go httpServ.Run()
-			defer peerNode.Shutdown()
+			// defer peerNode.Shutdown()
 			defer httpServ.Shutdown()
 
 			//

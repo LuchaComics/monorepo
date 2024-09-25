@@ -7,6 +7,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 
+	dmqb "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/distributedmessagequeue"
 	mqb "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/messagequeuebroker"
 	a_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/datastore"
 	block_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/block/datastore"
@@ -30,6 +31,7 @@ type BlockchainController interface {
 type blockchainControllerImpl struct {
 	logger                  *slog.Logger
 	uuid                    uuid.Provider
+	messageQueue            dmqb.DistributedMessageQueueBroker
 	messageQueueBroker      mqb.MessageQueueBroker
 	accountStorer           a_ds.AccountStorer
 	signedTransactionStorer pt_ds.SignedTransactionStorer
@@ -42,6 +44,7 @@ func NewController(
 	logger *slog.Logger,
 	uuid uuid.Provider,
 	broker mqb.MessageQueueBroker,
+	dmsgq dmqb.DistributedMessageQueueBroker,
 	as a_ds.AccountStorer,
 	pt pt_ds.SignedTransactionStorer,
 	lhDS lasthash_ds.LastHashStorer,
@@ -56,6 +59,7 @@ func NewController(
 		logger:                  logger,
 		uuid:                    uuid,
 		messageQueueBroker:      broker,
+		messageQueue:            dmsgq,
 		accountStorer:           as,
 		signedTransactionStorer: pt,
 		lastHashStorer:          lhDS,
