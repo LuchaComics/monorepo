@@ -13,6 +13,7 @@ import (
 	lasthash_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/lasthash/datastore"
 	pt_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/pendingtransaction/datastore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/uuid"
 )
 
 // BlockchainController provides all the functionality that can be performed
@@ -22,10 +23,13 @@ type BlockchainController interface {
 	NewGenesisBlock(ctx context.Context, coinbaseKey *keystore.Key) (*block_ds.Block, error)
 	GetBlock(ctx context.Context, hash string) (*block_ds.Block, error)
 	GetBalanceByAccountName(ctx context.Context, accountName string) (*BlockchainBalanceResponseIDO, error)
+	Transfer(ctx context.Context, req *BlockchainTransferRequestIDO) (*BlockchainTransferResponseIDO, error)
+	GetPendingTransactions(ctx context.Context) ([]*pt_ds.PendingTransaction, error)
 }
 
 type blockchainControllerImpl struct {
 	logger                   *slog.Logger
+	uuid                     uuid.Provider
 	messageQueueBroker       mqb.MessageQueueBroker
 	accountStorer            a_ds.AccountStorer
 	pendingTransactionStorer pt_ds.PendingTransactionStorer
@@ -36,6 +40,7 @@ type blockchainControllerImpl struct {
 func NewController(
 	cfg *config.Config,
 	logger *slog.Logger,
+	uuid uuid.Provider,
 	broker mqb.MessageQueueBroker,
 	as a_ds.AccountStorer,
 	pt pt_ds.PendingTransactionStorer,
@@ -49,6 +54,7 @@ func NewController(
 
 	return &blockchainControllerImpl{
 		logger:                   logger,
+		uuid:                     uuid,
 		messageQueueBroker:       broker,
 		accountStorer:            as,
 		pendingTransactionStorer: pt,

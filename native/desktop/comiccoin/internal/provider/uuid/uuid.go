@@ -1,10 +1,14 @@
 package uuid
 
-import uuid "github.com/segmentio/ksuid"
+import (
+	"fmt"
+
+	uuid "github.com/segmentio/ksuid"
+)
 
 // Provider provides interface for abstracting UUID generation.
 type Provider interface {
-	NewUUID() string
+	NewUUID(namespace string) string
 }
 
 type uuidProvider struct {
@@ -16,6 +20,6 @@ func NewProvider() Provider {
 }
 
 // NewUUID generates a new UUID.
-func (u uuidProvider) NewUUID() string {
-	return uuid.New().String()
+func (u uuidProvider) NewUUID(namespace string) string {
+	return fmt.Sprintf("%s_%s", namespace, uuid.New().String())
 }

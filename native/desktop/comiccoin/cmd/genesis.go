@@ -16,6 +16,7 @@ import (
 	pt_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/pendingtransaction/datastore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/logger"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/uuid"
 )
 
 func init() {
@@ -49,12 +50,13 @@ func genesisCmd() *cobra.Command {
 
 			// Load up our dependencies
 			kvs := kvs.NewKeyValueStorer(cfg, logger)
+			uuid := uuid.NewProvider()
 			broker := mqb.NewMessageQueue(cfg, logger)
 			lastHashDS := lasthash_ds.NewDatastore(cfg, logger, kvs)
 			accountStorer := acc_s.NewDatastore(cfg, logger, kvs)
 			pendingTransactionDS := pt_ds.NewDatastore(cfg, logger, kvs)
 			blockDS := block_ds.NewDatastore(cfg, logger, kvs)
-			blockchainController := blockchain_c.NewController(cfg, logger, broker, accountStorer, pendingTransactionDS, lastHashDS, blockDS)
+			blockchainController := blockchain_c.NewController(cfg, logger, uuid, broker, accountStorer, pendingTransactionDS, lastHashDS, blockDS)
 
 			//
 			// STEP 2
@@ -83,7 +85,6 @@ func genesisCmd() *cobra.Command {
 
 			logger.Info("Genesis block created successfully",
 				slog.String("hash", genesisBlock.Hash))
-
 		},
 	}
 

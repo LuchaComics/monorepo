@@ -16,11 +16,11 @@ import (
 )
 
 type httpInputPort struct {
-	cfg     *config.Config
-	logger  *slog.Logger
-	server  *http.Server
-	account *account_http.Handler
-	blockchain  *blockchain_http.Handler
+	cfg        *config.Config
+	logger     *slog.Logger
+	server     *http.Server
+	account    *account_http.Handler
+	blockchain *blockchain_http.Handler
 }
 
 func NewInputPort(
@@ -51,11 +51,11 @@ func NewInputPort(
 	// node and then the rest of this function pertains to setting up a p2p
 	// network to utilize in our app.
 	port := &httpInputPort{
-		cfg:     cfg,
-		logger:  logger,
-		server:  srv,
-		account: acc,
-		blockchain:  ledg,
+		cfg:        cfg,
+		logger:     logger,
+		server:     srv,
+		account:    acc,
+		blockchain: ledg,
 	}
 
 	// Attach the HTTP server controller to the ServerMux.
@@ -107,7 +107,11 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 	case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "account" && r.Method == http.MethodDelete:
 		port.account.DeleteByName(w, r, p[3])
 
-	// --- LEDGER --- //
+	// --- BLOCKCHAIN --- //
+	case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "blockchain" && p[4] == "transfer" && r.Method == http.MethodPost:
+		port.blockchain.Transfer(w, r)
+	case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "blockchain" && p[4] == "pending-transactions" && r.Method == http.MethodPost:
+		port.blockchain.GetPendingTransactions(w, r)
 	case n == 5 && p[0] == "v1" && p[1] == "api" && p[2] == "blockchain" && p[4] == "balance" && r.Method == http.MethodGet:
 		port.blockchain.GetBalanceByAccountName(w, r, p[3])
 

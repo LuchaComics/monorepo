@@ -24,6 +24,7 @@ import (
 	httpmiddle "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport/http/middleware"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport/p2p"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/logger"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/uuid"
 )
 
 var ()
@@ -71,6 +72,7 @@ func runCmd() *cobra.Command {
 				},
 			}
 			logger := logger.NewProvider()
+			uuid := uuid.NewProvider()
 			kvs := kvs.NewKeyValueStorer(cfg, logger)
 			broker := mqb.NewMessageQueue(cfg, logger)
 			accountDS := acc_s.NewDatastore(cfg, logger, kvs)
@@ -79,7 +81,7 @@ func runCmd() *cobra.Command {
 			lastHashDS := lasthash_ds.NewDatastore(cfg, logger, kvs)
 			pendingTransactionDS := pt_ds.NewDatastore(cfg, logger, kvs)
 			blockDS := block_ds.NewDatastore(cfg, logger, kvs)
-			blockchainController := blockchain_c.NewController(cfg, logger, broker, accountDS, pendingTransactionDS, lastHashDS, blockDS)
+			blockchainController := blockchain_c.NewController(cfg, logger, uuid, broker, accountDS, pendingTransactionDS, lastHashDS, blockDS)
 			accountHttp := acc_http.NewHandler(logger, accountController)
 			blockchainHttp := blockchain_http.NewHandler(logger, blockchainController)
 			peerNode := p2p.NewInputPort(cfg, logger, keypairDS, blockchainController)
