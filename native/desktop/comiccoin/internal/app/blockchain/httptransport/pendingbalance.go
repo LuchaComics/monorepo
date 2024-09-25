@@ -10,7 +10,7 @@ import (
 func (h *Handler) GetSignedPendingTransactions(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	res, err := h.Controller.GetSignedPendingTransactions(ctx)
+	res, err := h.Controller.GetSignedTransactions(ctx)
 	if err != nil {
 		httperror.ResponseError(w, err)
 		return

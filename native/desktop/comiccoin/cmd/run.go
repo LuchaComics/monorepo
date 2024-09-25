@@ -18,6 +18,8 @@ import (
 	blockchain_http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain/httptransport"
 	keypair_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/keypair/datastore"
 	lasthash_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/lasthash/datastore"
+	mempool_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/mempool/controller"
+	mempool_p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/mempool/p2ptransport"
 	pt_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/signedtransaction/datastore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport/http"
@@ -84,10 +86,12 @@ func runCmd() *cobra.Command {
 			blockchainController := blockchain_c.NewController(cfg, logger, uuid, broker, accountDS, signedTransactionDS, lastHashDS, blockDS)
 			accountHttp := acc_http.NewHandler(logger, accountController)
 			blockchainHttp := blockchain_http.NewHandler(logger, blockchainController)
-			peerNode := p2p.NewInputPort(cfg, logger, keypairDS, blockchainController)
+			mempoolController := mempool_c.NewController(cfg, logger, uuid, broker, signedTransactionDS)
+			mempoolNode := mempool_p2p.NewNode(logger, mempoolController)
+			peerNode := p2p.NewInputPort(cfg, logger, keypairDS, mempoolNode)
 			httpMiddleware := httpmiddle.NewMiddleware(cfg, logger)
 			httpServ := http.NewInputPort(cfg, logger, httpMiddleware, accountHttp, blockchainHttp)
-			_ = peerNode
+
 			//
 			// STEP 2
 			// Execute our application.
@@ -95,9 +99,9 @@ func runCmd() *cobra.Command {
 
 			// Run in background the peer to peer node which will synchronize our
 			// blockchain with the network.
-			// go peerNode.Run()
+			go peerNode.Run()
 			go httpServ.Run()
-			// defer peerNode.Shutdown()
+			defer peerNode.Shutdown()
 			defer httpServ.Shutdown()
 
 			//

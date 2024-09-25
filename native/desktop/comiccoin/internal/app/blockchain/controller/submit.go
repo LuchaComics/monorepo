@@ -118,14 +118,17 @@ func (impl *blockchainControllerImpl) Submit(ctx context.Context, req *Blockchai
 		return nil, signingErr
 	}
 
+	impl.logger.Debug("Pending transaction signed successfully",
+		slog.Uint64("nonce", pt.Nonce))
+
 	//
 	// STEP 3
 	// Save to our database.
 	//
 
-	insertErr := impl.signedTransactionStorer.Insert(ctx, &signedTransaction)
+	insertErr := impl.signedTransactionStorer.Upsert(ctx, &signedTransaction)
 	if insertErr != nil {
-		impl.logger.Debug("Failed to insert the signed transaction into the database",
+		impl.logger.Debug("Failed to insert (or update) the signed transaction into the database",
 			slog.Any("error", insertErr))
 		return nil, insertErr
 	}
@@ -146,7 +149,15 @@ func (impl *blockchainControllerImpl) Submit(ctx context.Context, req *Blockchai
 			slog.Any("error", err))
 		return nil, err
 	}
+
+	// Send our pending signed transaction to our distributed mempool nodes
+	// in the blochcian network. The `mempool` topic is used to
+	// send our signed pending transcation to the actively running in background
+	// mempool node subscriber
 	impl.messageQueueBroker.Publish("mempool", ptBytes)
+
+	impl.logger.Debug("Pending transaction submitted to blockchain!",
+		slog.Uint64("nonce", pt.Nonce))
 
 	return nil, nil
 

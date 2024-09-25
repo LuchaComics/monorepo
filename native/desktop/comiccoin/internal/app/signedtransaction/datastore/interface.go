@@ -9,7 +9,7 @@ import (
 )
 
 type SignedTransactionStorer interface {
-	Insert(ctx context.Context, b *SignedTransaction) error
+	Upsert(ctx context.Context, b *SignedTransaction) error
 	GetByNonce(ctx context.Context, nonce uint64) (*SignedTransaction, error)
 	List(ctx context.Context) ([]*SignedTransaction, error)
 	DeleteByNonce(ctx context.Context, nonce uint64) error

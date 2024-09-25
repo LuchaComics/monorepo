@@ -7,13 +7,12 @@ import (
 
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p/core/host"
-	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/p2p/discovery/routing"
 	drouting "github.com/libp2p/go-libp2p/p2p/discovery/routing"
 	dutil "github.com/libp2p/go-libp2p/p2p/discovery/util"
 
 	keypair_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/keypair/datastore"
-	blockchain_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain/controller"
+	mempool_p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/mempool/p2ptransport"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport"
 )
@@ -22,17 +21,17 @@ type nodeInputPort struct {
 	cfg              *config.Config
 	logger           *slog.Logger
 	keypairStorer    keypair_ds.KeypairStorer
-	blockchainController blockchain_c.BlockchainController
 	host             host.Host
 	kademliaDHT      *dht.IpfsDHT
 	routingDiscovery *routing.RoutingDiscovery
+	MempoolP2P       *mempool_p2p.MempoolNode
 }
 
 func NewInputPort(
 	cfg *config.Config,
 	logger *slog.Logger,
 	kp keypair_ds.KeypairStorer,
-	bc blockchain_c.BlockchainController,
+	mempool *mempool_p2p.MempoolNode,
 ) inputport.InputPortServer {
 	ctx := context.Background()
 
@@ -40,10 +39,10 @@ func NewInputPort(
 	// node and then the rest of this function pertains to setting up a p2p
 	// network to utilize in our app.
 	node := &nodeInputPort{
-		cfg:              cfg,
-		logger:           logger,
-		keypairStorer:    kp,
-		blockchainController: bc,
+		cfg:           cfg,
+		logger:        logger,
+		keypairStorer: kp,
+		MempoolP2P:    mempool,
 	}
 
 	host, err := node.newHostWithPredictableIdentifier()
@@ -52,15 +51,23 @@ func NewInputPort(
 	}
 	node.host = host
 
-	// Set a function as stream handler.
-	// This function is called when a peer connects, and starts a stream with this protocol.
-	// Only applies on the receiving side.
-	node.host.SetStreamHandler(fetchProtocolVersion, func(stream network.Stream) {
-		node.logger.Info("Got a new stream!")
-		fp := NewFetchProtocol(node, stream)
-		go fp.Run(ctx)
-		// 'stream' will stay open until you close it (or the other side closes it).
-	})
+	//
+	// DEVELOPERS NOTES:
+	// This is where we connect all our p2p handlers
+	//
+
+	node.MempoolP2P.Handle(ctx, node.host, "")
+
+	// // THE CODE BELOW IS THE OLD CODE.
+	// // Set a function as stream handler.
+	// // This function is called when a peer connects, and starts a stream with this protocol.
+	// // Only applies on the receiving side.
+	// node.host.SetStreamHandler(fetchProtocolVersion, func(stream network.Stream) {
+	// 	node.logger.Info("Got a new stream!")
+	// 	fp := NewFetchProtocol(node, stream)
+	// 	go fp.Run(ctx)
+	// 	// 'stream' will stay open until you close it (or the other side closes it).
+	// })
 
 	// Start a DHT, for use in peer discovery. We can't just make a new DHT
 	// client because we want each peer to maintain its own local copy of the
@@ -111,17 +118,25 @@ func (node *nodeInputPort) Run() {
 		node.logger.Debug("Connecting to:",
 			slog.Any("peer", peer))
 
-		stream, err := node.host.NewStream(ctx, peer.ID, fetchProtocolVersion)
-		if err != nil {
-			node.logger.Warn("Connection failed:",
-				slog.Any("error", err))
-			continue
-		} else {
-			node.logger.Info("Got a new stream!")
-			fp := NewFetchProtocol(node, stream)
-			go fp.Run(ctx)
-			// 'stream' will stay open until you close it (or the other side closes it).
-		}
+		//
+		// DEVELOPERS NOTES:
+		// This is where we connect all our p2p handlers
+		//
+
+		node.MempoolP2P.Handle(ctx, node.host, peer.ID)
+
+		// THIS IS EXAMPLE OF THE OLD CODE
+		// stream, err := node.host.NewStream(ctx, peer.ID, fetchProtocolVersion)
+		// if err != nil {
+		// 	node.logger.Warn("Connection failed:",
+		// 		slog.Any("error", err))
+		// 	continue
+		// } else {
+		// 	node.logger.Info("Got a new stream!")
+		// 	fp := NewFetchProtocol(node, stream)
+		// 	go fp.Run(ctx)
+		// 	// 'stream' will stay open until you close it (or the other side closes it).
+		// }
 
 		node.logger.Info("Connected to:",
 			slog.Any("peer", peer))

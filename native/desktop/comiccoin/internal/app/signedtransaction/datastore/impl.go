@@ -5,7 +5,9 @@ import (
 	"log/slog"
 )
 
-func (impl *signedTansactionStorerImpl) Insert(ctx context.Context, b *SignedTransaction) error {
+func (impl *signedTansactionStorerImpl) Upsert(ctx context.Context, b *SignedTransaction) error {
+	impl.DeleteByNonce(ctx, b.Nonce)
+
 	bBytes, err := b.Serialize()
 	if err != nil {
 		return err
