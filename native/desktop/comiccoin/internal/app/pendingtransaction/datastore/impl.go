@@ -5,26 +5,26 @@ import (
 	"log/slog"
 )
 
-func (impl *pendingTransactionStorerImpl) Insert(ctx context.Context, b *PendingTransaction) error {
+func (impl *pendingTransactionStorerImpl) Insert(ctx context.Context, b *SignedPendingTransaction) error {
 	bBytes, err := b.Serialize()
 	if err != nil {
 		return err
 	}
-	if err := impl.dbClient.Setf(bBytes, "pending-transaction-%v", b.ID); err != nil {
+	if err := impl.dbClient.Setf(bBytes, "signed-pending-transaction-%v", b.Nonce); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (impl *pendingTransactionStorerImpl) GetByID(ctx context.Context, id string) (*PendingTransaction, error) {
-	bBytes, err := impl.dbClient.Getf("pending-transaction-%v", id)
+func (impl *pendingTransactionStorerImpl) GetByNonce(ctx context.Context, nonce uint64) (*SignedPendingTransaction, error) {
+	bBytes, err := impl.dbClient.Getf("signed-pending-transaction-%v", nonce)
 	if err != nil {
 		return nil, err
 	}
-	b, err := NewPendingTransactionFromDeserialize(bBytes)
+	b, err := NewSignedPendingTransactionFromDeserialize(bBytes)
 	if err != nil {
 		impl.logger.Error("failed to deserialize",
-			slog.String("id", id),
+			slog.Uint64("nonce", nonce),
 			slog.String("bin", string(bBytes)),
 			slog.Any("error", err))
 		return nil, err
@@ -32,11 +32,11 @@ func (impl *pendingTransactionStorerImpl) GetByID(ctx context.Context, id string
 	return b, nil
 }
 
-func (impl *pendingTransactionStorerImpl) List(ctx context.Context) ([]*PendingTransaction, error) {
-	res := make([]*PendingTransaction, 0)
+func (impl *pendingTransactionStorerImpl) List(ctx context.Context) ([]*SignedPendingTransaction, error) {
+	res := make([]*SignedPendingTransaction, 0)
 	seekThenIterateKey := ""
-	err := impl.dbClient.Iterate("pending-transaction-", seekThenIterateKey, func(key, value []byte) error {
-		account, err := NewPendingTransactionFromDeserialize(value)
+	err := impl.dbClient.Iterate("signed-pending-transaction-", seekThenIterateKey, func(key, value []byte) error {
+		account, err := NewSignedPendingTransactionFromDeserialize(value)
 		if err != nil {
 			impl.logger.Error("failed to deserialize",
 				slog.String("key", string(key)),
@@ -54,8 +54,8 @@ func (impl *pendingTransactionStorerImpl) List(ctx context.Context) ([]*PendingT
 	return res, err
 }
 
-func (impl *pendingTransactionStorerImpl) DeleteByID(ctx context.Context, id string) error {
-	err := impl.dbClient.Deletef("pending-transaction-%v", id)
+func (impl *pendingTransactionStorerImpl) DeleteByNonce(ctx context.Context, nonce uint64) error {
+	err := impl.dbClient.Deletef("signed-pending-transaction-%v", nonce)
 	if err != nil {
 		return err
 	}

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"math/big"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 
@@ -21,8 +21,8 @@ type BlockchainTransferRequestIDO struct {
 	// Recipient’s public key
 	To string `json:"to"`
 
-	// Amount of coins being transferred
-	Amount *big.Int `json:"amount"`
+	// Value is amount of coins being transferred
+	Value uint64 `json:"value"`
 
 	// Data is any NFT related data attached
 	Data []byte `json:"data"`
@@ -58,8 +58,8 @@ func (impl *blockchainControllerImpl) validateTransferRequest(ctx context.Contex
 		if dirtyData.To == "" {
 			e["to"] = "missing value"
 		}
-		if dirtyData.Amount == nil {
-			e["amount"] = "missing value"
+		if dirtyData.Value == 0 {
+			e["value"] = "missing value"
 		}
 
 	}
@@ -104,13 +104,15 @@ func (impl *blockchainControllerImpl) Transfer(ctx context.Context, req *Blockch
 	//
 
 	pt := &pt_ds.PendingTransaction{
-		ID:     impl.uuid.NewUUID("pending_transaction"),
-		From:   account.WalletAddress,
-		To:     common.HexToAddress(req.To),
-		Amount: req.Amount,
-		Data:   req.Data,
+		Nonce: uint64(time.Now().Unix()),
+		From:  account.WalletAddress,
+		To:    common.HexToAddress(req.To),
+		Value: req.Value,
+		Data:  req.Data,
 	}
-	if signingErr := pt.Sign(accountKey.PrivateKey); signingErr != nil {
+
+	signedPendingTransaction, signingErr := pt.Sign(accountKey.PrivateKey)
+	if signingErr != nil {
 		impl.logger.Debug("Failed to sign the pending transaction",
 			slog.Any("error", signingErr))
 		return nil, signingErr
@@ -121,7 +123,8 @@ func (impl *blockchainControllerImpl) Transfer(ctx context.Context, req *Blockch
 	// Save to our database.
 	//
 
-	if insertErr := impl.pendingTransactionStorer.Insert(ctx, pt); insertErr != nil {
+	insertErr := impl.pendingTransactionStorer.Insert(ctx, &signedPendingTransaction)
+	if insertErr != nil {
 		impl.logger.Debug("Failed to insert the pending transaction into the database",
 			slog.Any("error", insertErr))
 		return nil, insertErr
@@ -137,7 +140,7 @@ func (impl *blockchainControllerImpl) Transfer(ctx context.Context, req *Blockch
 	// network.
 	//
 
-	ptBytes, err := pt.Serialize()
+	ptBytes, err := signedPendingTransaction.Serialize()
 	if err != nil {
 		impl.logger.Error("Failed to serialize our pending transaction",
 			slog.Any("error", err))

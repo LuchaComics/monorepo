@@ -16,10 +16,10 @@ func (impl *blockchainControllerImpl) RunMinerOperation(ctx context.Context) {
 
 	for true {
 		pendingTransactionBytes := <-sub
-		pendingTransaction, err := pt_ds.NewPendingTransactionFromDeserialize(pendingTransactionBytes)
+		pendingTransaction, err := pt_ds.NewSignedPendingTransactionFromDeserialize(pendingTransactionBytes)
 		if err != nil {
 			impl.logger.Error("pending transaction received",
-				slog.String("id", pendingTransaction.ID))
+				slog.Uint64("nonce", pendingTransaction.Nonce))
 
 			// Do not continue in this loop iteration but skip it and restart it
 			// so we are waiting for the next subscription request instead of
@@ -29,15 +29,15 @@ func (impl *blockchainControllerImpl) RunMinerOperation(ctx context.Context) {
 		if miningErr := impl.mine(ctx, pendingTransaction); miningErr != nil {
 			impl.logger.Error("pending transaction failed mining",
 				slog.Any("error", miningErr),
-				slog.String("id", pendingTransaction.ID))
+				slog.Uint64("nonce", pendingTransaction.Nonce))
 			continue
 		}
 	}
 }
 
-func (impl *blockchainControllerImpl) mine(ctx context.Context, pendingTransaction *pt_ds.PendingTransaction) error {
+func (impl *blockchainControllerImpl) mine(ctx context.Context, pendingTransaction *pt_ds.SignedPendingTransaction) error {
 	impl.logger.Debug("pending transaction received",
-		slog.String("id", pendingTransaction.ID))
+		slog.Uint64("nonce", pendingTransaction.Nonce))
 
 	//
 	// STEP 1:

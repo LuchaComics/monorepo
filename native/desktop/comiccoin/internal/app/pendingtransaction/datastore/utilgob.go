@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-func (b *PendingTransaction) Serialize() ([]byte, error) {
+func (b *SignedPendingTransaction) Serialize() ([]byte, error) {
 	var result bytes.Buffer
 	encoder := gob.NewEncoder(&result)
 	err := encoder.Encode(b)
@@ -16,9 +16,9 @@ func (b *PendingTransaction) Serialize() ([]byte, error) {
 	return result.Bytes(), nil
 }
 
-func NewPendingTransactionFromDeserialize(data []byte) (*PendingTransaction, error) {
+func NewSignedPendingTransactionFromDeserialize(data []byte) (*SignedPendingTransaction, error) {
 	// Variable we will use to return.
-	pendingTransaction := &PendingTransaction{}
+	pendingTransaction := &SignedPendingTransaction{}
 
 	// Defensive code: If programmer entered empty bytes then we will
 	// return nil deserialization result.

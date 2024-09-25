@@ -7,10 +7,10 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/utils/httperror"
 )
 
-func (h *Handler) GetPendingTransactions(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetSignedPendingTransactions(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	res, err := h.Controller.GetPendingTransactions(ctx)
+	res, err := h.Controller.GetSignedPendingTransactions(ctx)
 	if err != nil {
 		httperror.ResponseError(w, err)
 		return

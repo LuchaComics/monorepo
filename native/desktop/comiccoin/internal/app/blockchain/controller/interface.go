@@ -24,7 +24,7 @@ type BlockchainController interface {
 	GetBlock(ctx context.Context, hash string) (*block_ds.Block, error)
 	GetBalanceByAccountName(ctx context.Context, accountName string) (*BlockchainBalanceResponseIDO, error)
 	Transfer(ctx context.Context, req *BlockchainTransferRequestIDO) (*BlockchainTransferResponseIDO, error)
-	GetPendingTransactions(ctx context.Context) ([]*pt_ds.PendingTransaction, error)
+	GetSignedPendingTransactions(ctx context.Context) ([]*pt_ds.SignedPendingTransaction, error)
 }
 
 type blockchainControllerImpl struct {

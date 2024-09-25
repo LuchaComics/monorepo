@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"log/slog"
 	"math/big"
-	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -15,15 +14,6 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/keyvaluestore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 )
-
-type Block struct {
-	Hash         string         `json:"hash"`
-	PreviousHash string         `json:"previous_hash"`
-	Timestamp    time.Time      `json:"timestamp"`
-	Nonce        uint64         `json:"nonce"`
-	Difficulty   int            `json:"difficulty"`
-	Transactions []*Transaction `json:"transactions"`
-}
 
 type BlockStorer interface {
 	Insert(ctx context.Context, b *Block) error
