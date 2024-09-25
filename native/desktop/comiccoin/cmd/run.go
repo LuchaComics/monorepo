@@ -18,7 +18,7 @@ import (
 	blockchain_http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain/httptransport"
 	keypair_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/keypair/datastore"
 	lasthash_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/lasthash/datastore"
-	pt_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/pendingtransaction/datastore"
+	pt_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/signedtransaction/datastore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport/http"
 	httpmiddle "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport/http/middleware"
@@ -79,9 +79,9 @@ func runCmd() *cobra.Command {
 			accountController := acc_c.NewController(cfg, logger, accountDS)
 			keypairDS := keypair_ds.NewDatastore(cfg, logger, kvs)
 			lastHashDS := lasthash_ds.NewDatastore(cfg, logger, kvs)
-			pendingTransactionDS := pt_ds.NewDatastore(cfg, logger, kvs)
+			signedTransactionDS := pt_ds.NewDatastore(cfg, logger, kvs)
 			blockDS := block_ds.NewDatastore(cfg, logger, kvs)
-			blockchainController := blockchain_c.NewController(cfg, logger, uuid, broker, accountDS, pendingTransactionDS, lastHashDS, blockDS)
+			blockchainController := blockchain_c.NewController(cfg, logger, uuid, broker, accountDS, signedTransactionDS, lastHashDS, blockDS)
 			accountHttp := acc_http.NewHandler(logger, accountController)
 			blockchainHttp := blockchain_http.NewHandler(logger, blockchainController)
 			peerNode := p2p.NewInputPort(cfg, logger, keypairDS, blockchainController)

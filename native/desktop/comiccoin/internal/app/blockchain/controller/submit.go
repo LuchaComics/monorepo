@@ -8,7 +8,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	pt_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/pendingtransaction/datastore"
+	pt_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/signedtransaction/datastore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/utils/httperror"
 )
 
@@ -100,10 +100,10 @@ func (impl *blockchainControllerImpl) Submit(ctx context.Context, req *Blockchai
 
 	//
 	// STEP 2
-	// Create our pending transaction and sign it with the accounts private key.
+	// Create our signed transaction and sign it with the accounts private key.
 	//
 
-	pt := &pt_ds.PendingTransaction{
+	pt := &pt_ds.Transaction{
 		Nonce: uint64(time.Now().Unix()),
 		From:  account.WalletAddress,
 		To:    common.HexToAddress(req.To),
@@ -111,9 +111,9 @@ func (impl *blockchainControllerImpl) Submit(ctx context.Context, req *Blockchai
 		Data:  req.Data,
 	}
 
-	signedPendingTransaction, signingErr := pt.Sign(accountKey.PrivateKey)
+	signedTransaction, signingErr := pt.Sign(accountKey.PrivateKey)
 	if signingErr != nil {
-		impl.logger.Debug("Failed to sign the pending transaction",
+		impl.logger.Debug("Failed to sign the signed transaction",
 			slog.Any("error", signingErr))
 		return nil, signingErr
 	}
@@ -123,9 +123,9 @@ func (impl *blockchainControllerImpl) Submit(ctx context.Context, req *Blockchai
 	// Save to our database.
 	//
 
-	insertErr := impl.pendingTransactionStorer.Insert(ctx, &signedPendingTransaction)
+	insertErr := impl.signedTransactionStorer.Insert(ctx, &signedTransaction)
 	if insertErr != nil {
-		impl.logger.Debug("Failed to insert the pending transaction into the database",
+		impl.logger.Debug("Failed to insert the signed transaction into the database",
 			slog.Any("error", insertErr))
 		return nil, insertErr
 	}
@@ -140,13 +140,13 @@ func (impl *blockchainControllerImpl) Submit(ctx context.Context, req *Blockchai
 	// network.
 	//
 
-	ptBytes, err := signedPendingTransaction.Serialize()
+	ptBytes, err := signedTransaction.Serialize()
 	if err != nil {
-		impl.logger.Error("Failed to serialize our pending transaction",
+		impl.logger.Error("Failed to serialize our signed transaction",
 			slog.Any("error", err))
 		return nil, err
 	}
-	impl.messageQueueBroker.Publish("pending-transactions", ptBytes)
+	impl.messageQueueBroker.Publish("mempool", ptBytes)
 
 	return nil, nil
 

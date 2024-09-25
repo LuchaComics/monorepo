@@ -10,28 +10,28 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-// Sign function signs the pending transaction using the user's private key
+// Sign function signs the  transaction using the user's private key
 // and returns a signed version of that transaction.
-func (tx PendingTransaction) Sign(privateKey *ecdsa.PrivateKey) (SignedPendingTransaction, error) {
+func (tx Transaction) Sign(privateKey *ecdsa.PrivateKey) (SignedTransaction, error) {
 
 	// Create a hash of the transaction to prepare it for signing.
 	tran, err := tx.HashWithComicCoinStamp()
 	if err != nil {
-		return SignedPendingTransaction{}, err
+		return SignedTransaction{}, err
 	}
 
 	// Sign the hash using the private key to generate a signature.
 	sig, err := crypto.Sign(tran, privateKey)
 	if err != nil {
-		return SignedPendingTransaction{}, err
+		return SignedTransaction{}, err
 	}
 
 	// Break the signature into the 3 parts: R, S, and V.
 	v, r, s := toSignatureValues(sig)
 
 	// Create the signed transaction, including the original transaction and the signature parts.
-	signedTx := SignedPendingTransaction{
-		PendingTransaction: tx,
+	signedTx := SignedTransaction{
+		Transaction: tx,
 		V:                  v,
 		R:                  r,
 		S:                  s,
@@ -42,7 +42,7 @@ func (tx PendingTransaction) Sign(privateKey *ecdsa.PrivateKey) (SignedPendingTr
 
 // HashWithComicCoinStamp creates a unique hash of the transaction and
 // prepares it for signing by adding a special "stamp".
-func (tx PendingTransaction) HashWithComicCoinStamp() ([]byte, error) {
+func (tx Transaction) HashWithComicCoinStamp() ([]byte, error) {
 	// Convert the transaction into JSON format.
 	txData, err := json.Marshal(tx)
 	if err != nil {
@@ -98,7 +98,7 @@ func toSignatureBytesForDisplay(v, r, s *big.Int) []byte {
 
 // FromAddress extracts the account address from the signed transaction by
 // recovering the public key from the signature.
-func (tx SignedPendingTransaction) FromAddress() (string, error) {
+func (tx SignedTransaction) FromAddress() (string, error) {
 
 	// Create the hash of the transaction to prepare it for extracting the public key.
 	tran, err := tx.HashWithComicCoinStamp()
@@ -122,7 +122,7 @@ func (tx SignedPendingTransaction) FromAddress() (string, error) {
 // Validate checks if the transaction is valid. It verifies the signature,
 // makes sure the account addresses are correct, and checks if the 'from'
 // and 'to' accounts are not the same.
-func (tx SignedPendingTransaction) Validate(chainID uint16) error {
+func (tx SignedTransaction) Validate(chainID uint16) error {
 	// Check if the transaction's chain ID matches the expected one.
 	if tx.ChainID != chainID {
 		return fmt.Errorf("invalid chain id, got[%d] exp[%d]", tx.ChainID, chainID)

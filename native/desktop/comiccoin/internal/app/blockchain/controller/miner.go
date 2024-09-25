@@ -4,40 +4,40 @@ import (
 	"context"
 	"log/slog"
 
-	pt_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/pendingtransaction/datastore"
+	pt_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/signedtransaction/datastore"
 )
 
 func (impl *blockchainControllerImpl) RunMinerOperation(ctx context.Context) {
 	//TODO: IMPL: If this node is authorized miner then run the following code...
 
-	// Subscribe to the `pending-transactions` topic so we can received
-	// all the latest pending transactions to mine!
-	sub := impl.messageQueueBroker.Subscribe("pending-transactions")
+	// Subscribe to the `signed-transactions` topic so we can received
+	// all the latest signed transactions to mine!
+	sub := impl.messageQueueBroker.Subscribe("signed-transactions")
 
 	for true {
-		pendingTransactionBytes := <-sub
-		pendingTransaction, err := pt_ds.NewSignedPendingTransactionFromDeserialize(pendingTransactionBytes)
+		signedTransactionBytes := <-sub
+		signedTransaction, err := pt_ds.NewSignedTransactionFromDeserialize(signedTransactionBytes)
 		if err != nil {
-			impl.logger.Error("pending transaction received",
-				slog.Uint64("nonce", pendingTransaction.Nonce))
+			impl.logger.Error("signed transaction received",
+				slog.Uint64("nonce", signedTransaction.Nonce))
 
 			// Do not continue in this loop iteration but skip it and restart it
 			// so we are waiting for the next subscription request instead of
 			// crashing this function.
 			continue
 		}
-		if miningErr := impl.mine(ctx, pendingTransaction); miningErr != nil {
-			impl.logger.Error("pending transaction failed mining",
+		if miningErr := impl.mine(ctx, signedTransaction); miningErr != nil {
+			impl.logger.Error("signed transaction failed mining",
 				slog.Any("error", miningErr),
-				slog.Uint64("nonce", pendingTransaction.Nonce))
+				slog.Uint64("nonce", signedTransaction.Nonce))
 			continue
 		}
 	}
 }
 
-func (impl *blockchainControllerImpl) mine(ctx context.Context, pendingTransaction *pt_ds.SignedPendingTransaction) error {
-	impl.logger.Debug("pending transaction received",
-		slog.Uint64("nonce", pendingTransaction.Nonce))
+func (impl *blockchainControllerImpl) mine(ctx context.Context, signedTransaction *pt_ds.SignedTransaction) error {
+	impl.logger.Debug("signed transaction received",
+		slog.Uint64("nonce", signedTransaction.Nonce))
 
 	//
 	// STEP 1:
@@ -69,7 +69,7 @@ func (impl *blockchainControllerImpl) mine(ctx context.Context, pendingTransacti
 
 	//
 	// STEP 5:
-	// (If this record exists locally) Delete the pending transaction record
+	// (If this record exists locally) Delete the signed transaction record
 	// from our database.
 	//
 

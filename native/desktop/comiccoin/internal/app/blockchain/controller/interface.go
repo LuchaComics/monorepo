@@ -11,7 +11,7 @@ import (
 	a_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/datastore"
 	block_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/block/datastore"
 	lasthash_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/lasthash/datastore"
-	pt_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/pendingtransaction/datastore"
+	pt_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/signedtransaction/datastore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/uuid"
 )
@@ -24,17 +24,17 @@ type BlockchainController interface {
 	GetBlock(ctx context.Context, hash string) (*block_ds.Block, error)
 	GetBalanceByAccountName(ctx context.Context, accountName string) (*BlockchainBalanceResponseIDO, error)
 	Submit(ctx context.Context, req *BlockchainSubmitRequestIDO) (*BlockchainSubmitResponseIDO, error)
-	GetSignedPendingTransactions(ctx context.Context) ([]*pt_ds.SignedPendingTransaction, error)
+	GetSignedTransactions(ctx context.Context) ([]*pt_ds.SignedTransaction, error)
 }
 
 type blockchainControllerImpl struct {
-	logger                   *slog.Logger
-	uuid                     uuid.Provider
-	messageQueueBroker       mqb.MessageQueueBroker
-	accountStorer            a_ds.AccountStorer
-	pendingTransactionStorer pt_ds.PendingTransactionStorer
-	lastHashStorer           lasthash_ds.LastHashStorer
-	blockStorer              block_ds.BlockStorer
+	logger                  *slog.Logger
+	uuid                    uuid.Provider
+	messageQueueBroker      mqb.MessageQueueBroker
+	accountStorer           a_ds.AccountStorer
+	signedTransactionStorer pt_ds.SignedTransactionStorer
+	lastHashStorer          lasthash_ds.LastHashStorer
+	blockStorer             block_ds.BlockStorer
 }
 
 func NewController(
@@ -43,7 +43,7 @@ func NewController(
 	uuid uuid.Provider,
 	broker mqb.MessageQueueBroker,
 	as a_ds.AccountStorer,
-	pt pt_ds.PendingTransactionStorer,
+	pt pt_ds.SignedTransactionStorer,
 	lhDS lasthash_ds.LastHashStorer,
 	blockDS block_ds.BlockStorer,
 ) BlockchainController {
@@ -53,12 +53,12 @@ func NewController(
 	}
 
 	return &blockchainControllerImpl{
-		logger:                   logger,
-		uuid:                     uuid,
-		messageQueueBroker:       broker,
-		accountStorer:            as,
-		pendingTransactionStorer: pt,
-		lastHashStorer:           lhDS,
-		blockStorer:              blockDS,
+		logger:                  logger,
+		uuid:                    uuid,
+		messageQueueBroker:      broker,
+		accountStorer:           as,
+		signedTransactionStorer: pt,
+		lastHashStorer:          lhDS,
+		blockStorer:             blockDS,
 	}
 }
