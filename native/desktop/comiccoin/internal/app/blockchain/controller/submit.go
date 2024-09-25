@@ -12,7 +12,7 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/utils/httperror"
 )
 
-type BlockchainTransferRequestIDO struct {
+type BlockchainSubmitRequestIDO struct {
 	// Name of the account
 	FromAccountName string `json:"from_account_name"`
 
@@ -28,10 +28,10 @@ type BlockchainTransferRequestIDO struct {
 	Data []byte `json:"data"`
 }
 
-type BlockchainTransferResponseIDO struct {
+type BlockchainSubmitResponseIDO struct {
 }
 
-func (impl *blockchainControllerImpl) validateTransferRequest(ctx context.Context, dirtyData *BlockchainTransferRequestIDO) error {
+func (impl *blockchainControllerImpl) validateSubmitRequest(ctx context.Context, dirtyData *BlockchainSubmitRequestIDO) error {
 	e := make(map[string]string)
 
 	if dirtyData == nil {
@@ -72,8 +72,8 @@ func (impl *blockchainControllerImpl) validateTransferRequest(ctx context.Contex
 	return nil
 }
 
-func (impl *blockchainControllerImpl) Transfer(ctx context.Context, req *BlockchainTransferRequestIDO) (*BlockchainTransferResponseIDO, error) {
-	if err := impl.validateTransferRequest(ctx, req); err != nil {
+func (impl *blockchainControllerImpl) Submit(ctx context.Context, req *BlockchainSubmitRequestIDO) (*BlockchainSubmitResponseIDO, error) {
+	if err := impl.validateSubmitRequest(ctx, req); err != nil {
 		impl.logger.Warn("Validation failed",
 			slog.Any("error", err))
 		return nil, err

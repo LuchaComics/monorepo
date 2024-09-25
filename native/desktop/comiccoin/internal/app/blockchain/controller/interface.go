@@ -23,7 +23,7 @@ type BlockchainController interface {
 	NewGenesisBlock(ctx context.Context, coinbaseKey *keystore.Key) (*block_ds.Block, error)
 	GetBlock(ctx context.Context, hash string) (*block_ds.Block, error)
 	GetBalanceByAccountName(ctx context.Context, accountName string) (*BlockchainBalanceResponseIDO, error)
-	Transfer(ctx context.Context, req *BlockchainTransferRequestIDO) (*BlockchainTransferResponseIDO, error)
+	Submit(ctx context.Context, req *BlockchainSubmitRequestIDO) (*BlockchainSubmitResponseIDO, error)
 	GetSignedPendingTransactions(ctx context.Context) ([]*pt_ds.SignedPendingTransaction, error)
 }
 

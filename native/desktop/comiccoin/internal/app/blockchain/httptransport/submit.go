@@ -9,9 +9,9 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/utils/httperror"
 )
 
-func unmarshalTransferRequest(ctx context.Context, r *http.Request) (*pt_c.BlockchainTransferRequestIDO, error) {
+func unmarshalSubmitRequest(ctx context.Context, r *http.Request) (*pt_c.BlockchainSubmitRequestIDO, error) {
 	// Initialize our array which will store all the results from the remote server.
-	var requestData *pt_c.BlockchainTransferRequestIDO
+	var requestData *pt_c.BlockchainSubmitRequestIDO
 
 	defer r.Body.Close()
 
@@ -25,16 +25,16 @@ func unmarshalTransferRequest(ctx context.Context, r *http.Request) (*pt_c.Block
 	return requestData, nil
 }
 
-func (h *Handler) Transfer(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Submit(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	data, err := unmarshalTransferRequest(ctx, r)
+	data, err := unmarshalSubmitRequest(ctx, r)
 	if err != nil {
 		httperror.ResponseError(w, err)
 		return
 	}
 
-	res, err := h.Controller.Transfer(ctx, data)
+	res, err := h.Controller.Submit(ctx, data)
 	if err != nil {
 		httperror.ResponseError(w, err)
 		return
