@@ -107,8 +107,8 @@ func (port *httpInputPort) HandleRequests(w http.ResponseWriter, r *http.Request
 	case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "account" && r.Method == http.MethodDelete:
 		port.account.DeleteByName(w, r, p[3])
 
-	// --- BLOCKCHAIN --- //
-	case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "blockchain" && p[4] == "submit" && r.Method == http.MethodPost:
+		// --- BLOCKCHAIN --- //
+	case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "blockchain" && p[3] == "submit" && r.Method == http.MethodPost:
 		port.blockchain.Submit(w, r)
 	case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "blockchain" && p[4] == "signed-transactions" && r.Method == http.MethodPost:
 		port.blockchain.GetSignedPendingTransactions(w, r)

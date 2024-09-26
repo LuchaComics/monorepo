@@ -13,6 +13,7 @@ import (
 
 	keypair_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/keypair/datastore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config/constants"
 )
 
 type pubSubBrokerImpl struct {
@@ -50,6 +51,8 @@ func NewAdapter(cfg *config.Config, logger *slog.Logger, kp keypair_ds.KeypairSt
 		cfg:           cfg,
 		logger:        logger,
 		keypairStorer: kp,
+		subs:          make(map[string][]chan []byte),
+		quit:          make(chan struct{}),
 		topics:        make(map[string]*pubsub.Topic, 0),
 	}
 
@@ -58,8 +61,10 @@ func NewAdapter(cfg *config.Config, logger *slog.Logger, kp keypair_ds.KeypairSt
 	h, err := node.newHostWithPredictableIdentifier()
 	node.host = h
 
-	topics := []string{"mempool"}
-	go node.discoverPeers(ctx, h, topics)
+	topicNames := []string{
+		constants.PubSubMempoolTopicName,
+	}
+	go node.discoverPeers(ctx, h, topicNames)
 
 	ps, err := pubsub.NewGossipSub(ctx, h)
 	if err != nil {
@@ -123,6 +128,10 @@ func (impl *pubSubBrokerImpl) Close() {
 	// Close our network channels.
 	for _, topic := range impl.topics {
 		topic.Close()
-
 	}
+}
+
+func (impl *pubSubBrokerImpl) IsSubscriberConnectedToNetwork(ctx context.Context, topicName string) bool {
+	_, ok := impl.topics[topicName]
+	return ok
 }

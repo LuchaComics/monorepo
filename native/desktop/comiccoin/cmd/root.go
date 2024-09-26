@@ -78,6 +78,7 @@ func httpJsonApiBlockchainCmd() *cobra.Command {
 
 	// Attach our sub-commands for `blockchain`
 	cmd.AddCommand(httpJsonApiBlockchainGetBalanceCmd())
+	cmd.AddCommand(httpJsonApiBlockchainSubmitCmd())
 
 	return cmd
 }

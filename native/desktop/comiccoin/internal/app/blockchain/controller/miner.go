@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	pt_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/signedtransaction/datastore"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config/constants"
 )
 
 func (impl *blockchainControllerImpl) RunMinerOperation(ctx context.Context) {
@@ -12,7 +13,7 @@ func (impl *blockchainControllerImpl) RunMinerOperation(ctx context.Context) {
 
 	// Subscribe to the `signed-transactions` topic so we can received
 	// all the latest signed transactions to mine!
-	sub := impl.pubSubBroker.Subscribe(ctx, "mempool")
+	sub := impl.pubSubBroker.Subscribe(ctx, constants.PubSubMempoolTopicName)
 
 	for true {
 		signedTransactionBytes := <-sub

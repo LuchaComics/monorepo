@@ -9,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	pt_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/signedtransaction/datastore"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config/constants"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/utils/httperror"
 )
 
@@ -78,6 +79,12 @@ func (impl *blockchainControllerImpl) Submit(ctx context.Context, req *Blockchai
 			slog.Any("error", err))
 		return nil, err
 	}
+
+	if isConnected := impl.pubSubBroker.IsSubscriberConnectedToNetwork(ctx, constants.PubSubMempoolTopicName); !isConnected {
+		impl.logger.Error("Not connected to distributed network")
+		return nil, httperror.NewForServiceUnavailableWithSingleField("message", "Not connected to distributed network")
+	}
+
 	impl.logger.Debug("Submitting transfer request to the blockchain network...",
 		slog.Any("req", req))
 
@@ -104,11 +111,12 @@ func (impl *blockchainControllerImpl) Submit(ctx context.Context, req *Blockchai
 	//
 
 	pt := &pt_ds.Transaction{
-		Nonce: uint64(time.Now().Unix()),
-		From:  account.WalletAddress,
-		To:    common.HexToAddress(req.To),
-		Value: req.Value,
-		Data:  req.Data,
+		ChainID: impl.config.Blockchain.ChainID,
+		Nonce:   uint64(time.Now().Unix()),
+		From:    account.WalletAddress,
+		To:      common.HexToAddress(req.To),
+		Value:   req.Value,
+		Data:    req.Data,
 	}
 
 	signedTransaction, signingErr := pt.Sign(accountKey.PrivateKey)
@@ -123,18 +131,6 @@ func (impl *blockchainControllerImpl) Submit(ctx context.Context, req *Blockchai
 
 	//
 	// STEP 3
-	// Save to our database.
-	//
-
-	insertErr := impl.signedTransactionStorer.Upsert(ctx, &signedTransaction)
-	if insertErr != nil {
-		impl.logger.Debug("Failed to insert (or update) the signed transaction into the database",
-			slog.Any("error", insertErr))
-		return nil, insertErr
-	}
-
-	//
-	// STEP 4
 	// Submit to the blockchain network to be processed by the consensus
 	// mechanism and verification to be submitted in the blockchain.
 	// We are using `publish-subscribe` pattern with a `message queue` which
@@ -154,7 +150,7 @@ func (impl *blockchainControllerImpl) Submit(ctx context.Context, req *Blockchai
 	// in the blochcian network. The `mempool` topic is used to
 	// send our signed pending transcation to the actively running in background
 	// mempool node subscriber
-	if err := impl.pubSubBroker.Publish(ctx, "mempool", ptBytes); err != nil {
+	if err := impl.pubSubBroker.Publish(ctx, constants.PubSubMempoolTopicName, ptBytes); err != nil {
 		impl.logger.Error("Failed to publish",
 			slog.Any("error", err))
 		return nil, err

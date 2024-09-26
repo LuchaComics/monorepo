@@ -28,6 +28,7 @@ type BlockchainController interface {
 }
 
 type blockchainControllerImpl struct {
+	config                  *config.Config
 	logger                  *slog.Logger
 	uuid                    uuid.Provider
 	pubSubBroker            dpubsub.PublishSubscribeBroker
@@ -48,11 +49,12 @@ func NewController(
 	blockDS block_ds.BlockStorer,
 ) BlockchainController {
 	// Defensive code to protect the programmer from any errors.
-	if cfg.BlockchainDifficulty <= 0 {
+	if cfg.Blockchain.Difficulty <= 0 {
 		log.Fatal("cannot have blochain difficulty less then or equal to zero")
 	}
 
 	return &blockchainControllerImpl{
+		config:                  cfg,
 		logger:                  logger,
 		uuid:                    uuid,
 		pubSubBroker:            psbroker,

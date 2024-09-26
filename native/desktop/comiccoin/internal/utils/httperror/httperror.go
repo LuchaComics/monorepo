@@ -46,6 +46,14 @@ func NewForBadRequestWithSingleField(field string, message string) error {
 	}
 }
 
+// NewForServiceUnavailableWithSingleField create a new HTTPError instance pertaining service unavailable for a single field. This is a convinience constructor.
+func NewForServiceUnavailableWithSingleField(field string, message string) error {
+	return HTTPError{
+		Code:   http.StatusServiceUnavailable,
+		Errors: &map[string]string{field: message},
+	}
+}
+
 // NewForLockedWithSingleField create a new HTTPError instance pertaining to 424 locked for a single field. This is a convinience constructor.
 func NewForLockedWithSingleField(field string, message string) error {
 	return HTTPError{

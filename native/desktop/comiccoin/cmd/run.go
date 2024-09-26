@@ -18,10 +18,13 @@ import (
 	blockchain_http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain/httptransport"
 	keypair_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/keypair/datastore"
 	lasthash_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/lasthash/datastore"
+	mempool_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/mempool/controller"
 	pt_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/signedtransaction/datastore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config/constants"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport/http"
 	httpmiddle "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport/http/middleware"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport/worker"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/logger"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/uuid"
 )
@@ -54,12 +57,15 @@ func runCmd() *cobra.Command {
 			}
 
 			cfg := &config.Config{
+				Blockchain: config.BlockchainConfig{
+					ChainID:    constants.ChainIDMainNet,
+					Difficulty: 1,
+				},
 				App: config.AppConfig{
 					HTTPPort: flagListenHTTPPort,
 					HTTPIP:   flagListenHTTPIP,
 					DirPath:  flagDataDir,
 				},
-				BlockchainDifficulty: 1,
 				Peer: config.PeerConfig{
 					ListenPort:       flagListenPeerToPeerPort,
 					KeyName:          flagKeypairName,
@@ -83,11 +89,14 @@ func runCmd() *cobra.Command {
 			blockchainController := blockchain_c.NewController(cfg, logger, uuid, pubsubbroker, accountDS, signedTransactionDS, lastHashDS, blockDS)
 			accountHttp := acc_http.NewHandler(logger, accountController)
 			blockchainHttp := blockchain_http.NewHandler(logger, blockchainController)
+			mempoolController := mempool_c.NewController(cfg, logger, uuid, pubsubbroker, signedTransactionDS)
 			// mempoolController := mempool_c.NewController(cfg, logger, uuid, broker, msgqueue, signedTransactionDS)
 			// mempoolNode := mempool_p2p.NewNode(logger, mempoolController)
 			// peerNode := p2p.NewInputPort(cfg, logger, keypairDS, mempoolNode)
 			httpMiddleware := httpmiddle.NewMiddleware(cfg, logger)
 			httpServ := http.NewInputPort(cfg, logger, httpMiddleware, accountHttp, blockchainHttp)
+
+			work := worker.NewInputPort(cfg, logger, mempoolController)
 
 			//
 			// STEP 2
@@ -98,8 +107,10 @@ func runCmd() *cobra.Command {
 			// blockchain with the network.
 			// go peerNode.Run()
 			go httpServ.Run()
+			go work.Run()
 			// defer peerNode.Shutdown()
 			defer httpServ.Shutdown()
+			defer work.Shutdown()
 
 			//
 			// STEP 3

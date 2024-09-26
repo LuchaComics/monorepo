@@ -16,6 +16,7 @@ import (
 	lasthash_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/lasthash/datastore"
 	pt_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/signedtransaction/datastore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config/constants"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/logger"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/uuid"
 )
@@ -40,10 +41,13 @@ func genesisCmd() *cobra.Command {
 
 			// Load up the configuration.
 			cfg := &config.Config{
+				Blockchain: config.BlockchainConfig{
+					ChainID:    constants.ChainIDMainNet,
+					Difficulty: 1,
+				},
 				App: config.AppConfig{
 					DirPath: flagDataDir,
 				},
-				BlockchainDifficulty: 1,
 				DB: config.DBConfig{
 					DataDir: flagDataDir,
 				},

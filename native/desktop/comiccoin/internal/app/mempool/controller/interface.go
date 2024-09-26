@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	mqb "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/messagequeuebroker"
+	dpubsub "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/distributedpubsub"
 	pt_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/signedtransaction/datastore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/uuid"
@@ -14,17 +14,15 @@ import (
 // transactions and submitting them to the miner when threshold is met.
 
 type MempoolController interface {
-	// ReadyToDistribute function blocks your execution flow until a new pending signed transaction is received from a message queue and the pending signed transaction is ready to be distributed to the network.
-	ReadyToDistribute(ctx context.Context) (*pt_ds.SignedTransaction, error)
-
-	// Receive function to be called when a pending signed transaction is received from the network.
-	Receive(ctx context.Context, pendingTx *pt_ds.SignedTransaction) error
+	// RunReceiveFromNetworkOperation function to be called when a pending signed transaction is received from the network.
+	RunReceiveFromNetworkOperation(ctx context.Context) error
 }
 
 type mempoolControllerImpl struct {
+	config                  *config.Config
 	logger                  *slog.Logger
 	uuid                    uuid.Provider
-	messageQueueBroker      mqb.MessageQueueBroker
+	pubSubBroker            dpubsub.PublishSubscribeBroker
 	signedTransactionStorer pt_ds.SignedTransactionStorer
 }
 
@@ -32,13 +30,15 @@ func NewController(
 	cfg *config.Config,
 	logger *slog.Logger,
 	uuid uuid.Provider,
-	broker mqb.MessageQueueBroker,
+	psbroker dpubsub.PublishSubscribeBroker,
 	pt pt_ds.SignedTransactionStorer,
 ) MempoolController {
-	return &mempoolControllerImpl{
+	mempool := &mempoolControllerImpl{
+		config:                  cfg,
 		logger:                  logger,
 		uuid:                    uuid,
-		messageQueueBroker:      broker,
+		pubSubBroker:            psbroker,
 		signedTransactionStorer: pt,
 	}
+	return mempool
 }

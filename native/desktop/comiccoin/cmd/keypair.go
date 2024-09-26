@@ -7,6 +7,7 @@ import (
 	kvs "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/keyvaluestore/leveldb"
 	keypair_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/keypair/datastore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config/constants"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/logger"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/spf13/cobra"
@@ -33,10 +34,13 @@ func keypairNewCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			// Load up our dependencies and configuration
 			cfg := &config.Config{
+				Blockchain: config.BlockchainConfig{
+					ChainID:    constants.ChainIDMainNet,
+					Difficulty: 1,
+				},
 				App: config.AppConfig{
 					DirPath: flagDataDir,
 				},
-				BlockchainDifficulty: 1,
 				DB: config.DBConfig{
 					DataDir: flagDataDir,
 				},
@@ -69,7 +73,10 @@ func keypairPrintCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			// Load up our dependencies and configuration
 			cfg := &config.Config{
-				BlockchainDifficulty: 1,
+				Blockchain: config.BlockchainConfig{
+					ChainID:    constants.ChainIDMainNet,
+					Difficulty: 1,
+				},
 				DB: config.DBConfig{
 					DataDir: flagDataDir,
 				},
