@@ -4,31 +4,31 @@ import (
 	"context"
 	"log/slog"
 
-	blockchain_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain/controller"
-	mempool_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/mempool/controller"
+	blockchain_work "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain/worker"
+	mempool_work "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/mempool/worker"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/inputport"
 )
 
 type workerInputPort struct {
-	cfg                  *config.Config
-	logger               *slog.Logger
-	mempoolController    mempool_c.MempoolController
-	blockchainController blockchain_c.BlockchainController
+	cfg              *config.Config
+	logger           *slog.Logger
+	mempoolWorker    mempool_work.MempoolWorker
+	blockchainWorker blockchain_work.BlockchainWorker
 }
 
 func NewInputPort(
 	cfg *config.Config,
 	logger *slog.Logger,
-	mempool mempool_c.MempoolController,
-	blockchain blockchain_c.BlockchainController,
+	mempool mempool_work.MempoolWorker,
+	blockchain blockchain_work.BlockchainWorker,
 ) inputport.InputPortServer {
 
 	port := &workerInputPort{
-		cfg:                  cfg,
-		logger:               logger,
-		mempoolController:    mempool,
-		blockchainController: blockchain,
+		cfg:              cfg,
+		logger:           logger,
+		mempoolWorker:    mempool,
+		blockchainWorker: blockchain,
 	}
 
 	return port
@@ -38,10 +38,10 @@ func (port *workerInputPort) Run() {
 	// ctx := context.Background()
 	port.logger.Info("Running background worker")
 	go func() {
-		port.mempoolController.RunReceiveFromNetworkOperation(context.Background())
+		port.mempoolWorker.RunReceiveFromNetworkOperation(context.Background())
 	}()
 	go func() {
-		port.blockchainController.RunMinerOperationInBackground(context.Background())
+		port.blockchainWorker.RunMinerOperation(context.Background())
 	}()
 }
 
