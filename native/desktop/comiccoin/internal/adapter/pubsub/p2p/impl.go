@@ -1,4 +1,8 @@
-package distributedpubsub
+// Package p2p is used to create a publisher-subscriber pattern which is
+// distributed over the internet and has no central servers to distribute
+// the message content. This package is essentially a wrapper written overtop
+// the `go-libp2p-pubsub` library to make easy-to-use in our app.
+package p2p
 
 import (
 	"context"
@@ -11,6 +15,7 @@ import (
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/p2p/discovery/routing"
 
+	ipubsub "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/pubsub"
 	keypair_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/keypair/datastore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config/constants"
@@ -41,7 +46,7 @@ type pubSubBrokerImpl struct {
 	gossipPubSub *pubsub.PubSub
 }
 
-func NewAdapter(cfg *config.Config, logger *slog.Logger, kp keypair_ds.KeypairStorer) PublishSubscribeBroker {
+func NewAdapter(cfg *config.Config, logger *slog.Logger, kp keypair_ds.KeypairStorer) ipubsub.PubSubBroker {
 	ctx := context.Background()
 
 	// Begin our function by initializing the defaults for our peer-to-peer (p2p)

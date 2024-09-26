@@ -2,50 +2,61 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
-
-	pt_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/signedtransaction/datastore"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config/constants"
+	"time"
 )
 
-func (impl *blockchainControllerImpl) RunMinerOperation(ctx context.Context) {
-	//TODO: IMPL: If this node is authorized miner then run the following code...
+func (impl *blockchainControllerImpl) runMinerOperationInBackground(ctx context.Context) {
+	impl.logger.Info("miner started...")
 
-	// Subscribe to the `signed-transactions` topic so we can received
-	// all the latest signed transactions to mine!
-	sub := impl.pubSubBroker.Subscribe(ctx, constants.PubSubMempoolTopicName)
-
-	for true {
-		signedTransactionBytes := <-sub
-		signedTransaction, err := pt_ds.NewSignedTransactionFromDeserialize(signedTransactionBytes)
-		if err != nil {
-			impl.logger.Error("signed transaction received",
-				slog.Uint64("nonce", signedTransaction.Nonce))
-
-			// Do not continue in this loop iteration but skip it and restart it
-			// so we are waiting for the next subscription request instead of
-			// crashing this function.
-			continue
-		}
-		if miningErr := impl.mine(ctx, signedTransaction); miningErr != nil {
-			impl.logger.Error("signed transaction failed mining",
-				slog.Any("error", miningErr),
-				slog.Uint64("nonce", signedTransaction.Nonce))
-			continue
-		}
+	// Execute the miner tick on startup of this function.
+	if err := impl.handleMineTimerTicker(ctx); err != nil {
+		return
 	}
+
+	// Create a timer that ticks every minute
+	ticker := time.NewTicker(time.Minute)
+
+	// Start the timer in a separate goroutine
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				if err := impl.handleMineTimerTicker(ctx); err != nil {
+					return
+				}
+			case <-ctx.Done():
+				// Clean up and exit
+				ticker.Stop()
+				fmt.Println("Timer stopped")
+				return
+			}
+		}
+	}()
 }
 
-func (impl *blockchainControllerImpl) mine(ctx context.Context, signedTransaction *pt_ds.SignedTransaction) error {
-	impl.logger.Debug("signed transaction received",
-		slog.Uint64("nonce", signedTransaction.Nonce))
+func (impl *blockchainControllerImpl) handleMineTimerTicker(ctx context.Context) error {
+	impl.logger.Debug("miner tick")
+	// slog.Uint64("nonce", signedTransaction.Nonce))
 
 	//
 	// STEP 1:
 	// Fetch all our related data.
 	//
 
-	//TODO: IMPL.
+	txs, err := impl.signedTransactionStorer.List(ctx)
+	if err != nil {
+		impl.logger.Error("failed getting list of pending signed transactions",
+			slog.Any("error", err))
+	}
+
+	// Apply the transactions per block limit.
+	if len(txs) > 0 {
+		txs = txs[:impl.config.Blockchain.TransPerBlock]
+	}
+
+	impl.logger.Debug("miner fetched the following txs", slog.Any("txs", txs))
 
 	//
 	// STEP 2:

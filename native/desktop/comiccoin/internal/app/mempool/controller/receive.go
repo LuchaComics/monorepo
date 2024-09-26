@@ -12,7 +12,7 @@ import (
 func (impl *mempoolControllerImpl) RunReceiveFromNetworkOperation(ctx context.Context) error {
 	// Wait until we are connected to the network...
 	for {
-		isConnected := impl.pubSubBroker.IsSubscriberConnectedToNetwork(ctx, constants.PubSubMempoolTopicName)
+		isConnected := impl.p2pPubSubBroker.IsSubscriberConnectedToNetwork(ctx, constants.PubSubMempoolTopicName)
 		if isConnected {
 			impl.logger.Debug("Mempool connected to network")
 			break
@@ -23,7 +23,7 @@ func (impl *mempoolControllerImpl) RunReceiveFromNetworkOperation(ctx context.Co
 	}
 
 	// Subscribe
-	subscribeChannel := impl.pubSubBroker.Subscribe(ctx, constants.PubSubMempoolTopicName)
+	subscribeChannel := impl.p2pPubSubBroker.Subscribe(ctx, constants.PubSubMempoolTopicName)
 
 	// Receive data from the channel.
 	for {

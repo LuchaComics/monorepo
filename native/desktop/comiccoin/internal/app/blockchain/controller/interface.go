@@ -7,7 +7,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 
-	dpubsub "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/distributedpubsub"
+	pubsub "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/pubsub"
 	a_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/datastore"
 	block_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/block/datastore"
 	lasthash_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/lasthash/datastore"
@@ -31,7 +31,8 @@ type blockchainControllerImpl struct {
 	config                  *config.Config
 	logger                  *slog.Logger
 	uuid                    uuid.Provider
-	pubSubBroker            dpubsub.PublishSubscribeBroker
+	localPubSubBroker       pubsub.PubSubBroker
+	p2pPubSubBroker         pubsub.PubSubBroker
 	accountStorer           a_ds.AccountStorer
 	signedTransactionStorer pt_ds.SignedTransactionStorer
 	lastHashStorer          lasthash_ds.LastHashStorer
@@ -42,7 +43,8 @@ func NewController(
 	cfg *config.Config,
 	logger *slog.Logger,
 	uuid uuid.Provider,
-	psbroker dpubsub.PublishSubscribeBroker,
+	locpsbroker pubsub.PubSubBroker,
+	p2psbroker pubsub.PubSubBroker,
 	as a_ds.AccountStorer,
 	pt pt_ds.SignedTransactionStorer,
 	lhDS lasthash_ds.LastHashStorer,
@@ -52,15 +54,24 @@ func NewController(
 	if cfg.Blockchain.Difficulty <= 0 {
 		log.Fatal("cannot have blochain difficulty less then or equal to zero")
 	}
+	if cfg.Blockchain.TransPerBlock <= 0 {
+		log.Fatal("cannot have blochain transactions per block less then or equal to zero")
+	}
 
-	return &blockchainControllerImpl{
+	impl := &blockchainControllerImpl{
 		config:                  cfg,
 		logger:                  logger,
 		uuid:                    uuid,
-		pubSubBroker:            psbroker,
+		localPubSubBroker:       locpsbroker,
+		p2pPubSubBroker:         p2psbroker,
 		accountStorer:           as,
 		signedTransactionStorer: pt,
 		lastHashStorer:          lhDS,
 		blockStorer:             blockDS,
 	}
+
+	//TODO: Only if miner activated
+	impl.runMinerOperationInBackground(context.Background())
+
+	return impl
 }

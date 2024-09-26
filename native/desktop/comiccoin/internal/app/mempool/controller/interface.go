@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	dpubsub "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/distributedpubsub"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/pubsub"
 	pt_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/signedtransaction/datastore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/provider/uuid"
@@ -16,13 +16,20 @@ import (
 type MempoolController interface {
 	// RunReceiveFromNetworkOperation function to be called when a pending signed transaction is received from the network.
 	RunReceiveFromNetworkOperation(ctx context.Context) error
+
+	// RunSendPendingSignedTransactionsToLocalMineOperation function is to be
+	// executed in the background so it can periodically poll the pending
+	// signed transactions we have locally stored and then batch send those
+	// transactions to the miner.
+	RunSendPendingSignedTransactionsToLocalMineOperation(ctx context.Context) error
 }
 
 type mempoolControllerImpl struct {
 	config                  *config.Config
 	logger                  *slog.Logger
 	uuid                    uuid.Provider
-	pubSubBroker            dpubsub.PublishSubscribeBroker
+	localPubSubBroker       pubsub.PubSubBroker
+	p2pPubSubBroker         pubsub.PubSubBroker
 	signedTransactionStorer pt_ds.SignedTransactionStorer
 }
 
@@ -30,14 +37,16 @@ func NewController(
 	cfg *config.Config,
 	logger *slog.Logger,
 	uuid uuid.Provider,
-	psbroker dpubsub.PublishSubscribeBroker,
+	locpsbroker pubsub.PubSubBroker,
+	p2psbroker pubsub.PubSubBroker,
 	pt pt_ds.SignedTransactionStorer,
 ) MempoolController {
 	mempool := &mempoolControllerImpl{
 		config:                  cfg,
 		logger:                  logger,
 		uuid:                    uuid,
-		pubSubBroker:            psbroker,
+		localPubSubBroker:       locpsbroker,
+		p2pPubSubBroker:         p2psbroker,
 		signedTransactionStorer: pt,
 	}
 	return mempool

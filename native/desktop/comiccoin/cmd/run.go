@@ -8,8 +8,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	dpubsub "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/distributedpubsub"
 	kvs "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/keyvaluestore/leveldb"
+	local_pubsub "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/pubsub/local"
+	p2p_pubsub "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/pubsub/p2p"
 	acc_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/controller"
 	acc_s "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/datastore"
 	acc_http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/httptransport"
@@ -58,8 +59,9 @@ func runCmd() *cobra.Command {
 
 			cfg := &config.Config{
 				Blockchain: config.BlockchainConfig{
-					ChainID:    constants.ChainIDMainNet,
-					Difficulty: 1,
+					ChainID:       constants.ChainIDMainNet,
+					TransPerBlock: 1,
+					Difficulty:    1,
 				},
 				App: config.AppConfig{
 					HTTPPort: flagListenHTTPPort,
@@ -80,16 +82,17 @@ func runCmd() *cobra.Command {
 			uuid := uuid.NewProvider()
 			kvs := kvs.NewKeyValueStorer(cfg, logger)
 			keypairDS := keypair_ds.NewDatastore(cfg, logger, kvs)
-			pubsubbroker := dpubsub.NewAdapter(cfg, logger, keypairDS)
+			localPubSubBroker := local_pubsub.NewAdapter(cfg, logger)
+			p2pPubSubBroker := p2p_pubsub.NewAdapter(cfg, logger, keypairDS)
 			accountDS := acc_s.NewDatastore(cfg, logger, kvs)
 			accountController := acc_c.NewController(cfg, logger, accountDS)
 			lastHashDS := lasthash_ds.NewDatastore(cfg, logger, kvs)
 			signedTransactionDS := pt_ds.NewDatastore(cfg, logger, kvs)
 			blockDS := block_ds.NewDatastore(cfg, logger, kvs)
-			blockchainController := blockchain_c.NewController(cfg, logger, uuid, pubsubbroker, accountDS, signedTransactionDS, lastHashDS, blockDS)
+			blockchainController := blockchain_c.NewController(cfg, logger, uuid, localPubSubBroker, p2pPubSubBroker, accountDS, signedTransactionDS, lastHashDS, blockDS)
 			accountHttp := acc_http.NewHandler(logger, accountController)
 			blockchainHttp := blockchain_http.NewHandler(logger, blockchainController)
-			mempoolController := mempool_c.NewController(cfg, logger, uuid, pubsubbroker, signedTransactionDS)
+			mempoolController := mempool_c.NewController(cfg, logger, uuid, localPubSubBroker, p2pPubSubBroker, signedTransactionDS)
 			// mempoolController := mempool_c.NewController(cfg, logger, uuid, broker, msgqueue, signedTransactionDS)
 			// mempoolNode := mempool_p2p.NewNode(logger, mempoolController)
 			// peerNode := p2p.NewInputPort(cfg, logger, keypairDS, mempoolNode)

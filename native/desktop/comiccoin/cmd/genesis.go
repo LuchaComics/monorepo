@@ -7,8 +7,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	dpubsub "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/distributedpubsub"
 	kvs "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/keyvaluestore/leveldb"
+	local_pubsub "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/pubsub/local"
+	p2p_pubsub "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/pubsub/p2p"
 	acc_s "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/datastore"
 	block_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/block/datastore"
 	blockchain_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain/controller"
@@ -57,12 +58,13 @@ func genesisCmd() *cobra.Command {
 			kvs := kvs.NewKeyValueStorer(cfg, logger)
 			uuid := uuid.NewProvider()
 			keypairDS := keypair_ds.NewDatastore(cfg, logger, kvs)
-			pubsubbroker := dpubsub.NewAdapter(cfg, logger, keypairDS)
+			localPubSubBroker := local_pubsub.NewAdapter(cfg, logger)
+			p2pPubSubBroker := p2p_pubsub.NewAdapter(cfg, logger, keypairDS)
 			lastHashDS := lasthash_ds.NewDatastore(cfg, logger, kvs)
 			accountStorer := acc_s.NewDatastore(cfg, logger, kvs)
 			signedTransactionDS := pt_ds.NewDatastore(cfg, logger, kvs)
 			blockDS := block_ds.NewDatastore(cfg, logger, kvs)
-			blockchainController := blockchain_c.NewController(cfg, logger, uuid, pubsubbroker, accountStorer, signedTransactionDS, lastHashDS, blockDS)
+			blockchainController := blockchain_c.NewController(cfg, logger, uuid, localPubSubBroker, p2pPubSubBroker, accountStorer, signedTransactionDS, lastHashDS, blockDS)
 
 			//
 			// STEP 2

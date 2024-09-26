@@ -80,7 +80,7 @@ func (impl *blockchainControllerImpl) Submit(ctx context.Context, req *Blockchai
 		return nil, err
 	}
 
-	if isConnected := impl.pubSubBroker.IsSubscriberConnectedToNetwork(ctx, constants.PubSubMempoolTopicName); !isConnected {
+	if isConnected := impl.p2pPubSubBroker.IsSubscriberConnectedToNetwork(ctx, constants.PubSubMempoolTopicName); !isConnected {
 		impl.logger.Error("Not connected to distributed network")
 		return nil, httperror.NewForServiceUnavailableWithSingleField("message", "Not connected to distributed network")
 	}
@@ -150,7 +150,7 @@ func (impl *blockchainControllerImpl) Submit(ctx context.Context, req *Blockchai
 	// in the blochcian network. The `mempool` topic is used to
 	// send our signed pending transcation to the actively running in background
 	// mempool node subscriber
-	if err := impl.pubSubBroker.Publish(ctx, constants.PubSubMempoolTopicName, ptBytes); err != nil {
+	if err := impl.p2pPubSubBroker.Publish(ctx, constants.PubSubMempoolTopicName, ptBytes); err != nil {
 		impl.logger.Error("Failed to publish",
 			slog.Any("error", err))
 		return nil, err

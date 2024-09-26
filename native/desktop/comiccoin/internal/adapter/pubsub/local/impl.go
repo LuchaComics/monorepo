@@ -1,7 +1,12 @@
-// Package simple is a basic message queue implementation without any persistence, network functionality, nor anything more complex. This package takes advantage of the golang `goroutines` and provides a simple interface to use throughout your app.
+// Package local is a basic message queue implementation without any
+// persistence, network functionality, nor anything more complex. This package
+// takes advantage of the golang `goroutines` and provides a simple interface
+// to use throughout your app.
 package simple
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"log/slog"
 	"sync"
@@ -24,7 +29,7 @@ type pubSubBrokerImpl struct {
 	closed bool
 }
 
-func NewMessageQueue(cfg *config.Config, logger *slog.Logger) pubsub.PublisherSubscriberBroker {
+func NewAdapter(cfg *config.Config, logger *slog.Logger) pubsub.PubSubBroker {
 	if cfg.DB.DataDir == "" {
 		log.Fatal("cannot have empty dir")
 	}
@@ -35,7 +40,7 @@ func NewMessageQueue(cfg *config.Config, logger *slog.Logger) pubsub.PublisherSu
 	}
 }
 
-func (impl *pubSubBrokerImpl) Subscribe(topic string) <-chan []byte {
+func (impl *pubSubBrokerImpl) Subscribe(ctx context.Context, topic string) <-chan []byte {
 	impl.mu.Lock()
 	defer impl.mu.Unlock()
 
@@ -48,17 +53,18 @@ func (impl *pubSubBrokerImpl) Subscribe(topic string) <-chan []byte {
 	return ch
 }
 
-func (impl *pubSubBrokerImpl) Publish(topic string, msg []byte) {
+func (impl *pubSubBrokerImpl) Publish(ctx context.Context, topic string, msg []byte) error {
 	impl.mu.Lock()
 	defer impl.mu.Unlock()
 
 	if impl.closed {
-		return
+		return fmt.Errorf("pubsub broker closed")
 	}
 
 	for _, ch := range impl.subs[topic] {
 		ch <- msg
 	}
+	return nil
 }
 
 func (impl *pubSubBrokerImpl) Close() {
@@ -77,4 +83,9 @@ func (impl *pubSubBrokerImpl) Close() {
 			close(sub)
 		}
 	}
+}
+
+func (impl *pubSubBrokerImpl) IsSubscriberConnectedToNetwork(ctx context.Context, topicName string) bool {
+	_, ok := impl.subs[topicName]
+	return ok
 }

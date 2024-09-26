@@ -36,6 +36,9 @@ func (port *workerInputPort) Run() {
 	go func() {
 		port.mempoolController.RunReceiveFromNetworkOperation(context.Background())
 	}()
+	go func() {
+		port.mempoolController.RunSendPendingSignedTransactionsToLocalMineOperation(context.Background())
+	}()
 }
 
 func (port *workerInputPort) Shutdown() {
