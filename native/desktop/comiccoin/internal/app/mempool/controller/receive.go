@@ -29,6 +29,9 @@ func (impl *mempoolControllerImpl) RunReceiveFromNetworkOperation(ctx context.Co
 	for {
 		select {
 		case signedTransactionBytes, ok := <-subscribeChannel:
+
+			impl.logger.Debug("Received bytes",
+				slog.Any("bytes", signedTransactionBytes))
 			//
 			// STEP 1
 			// Unmarshal the signed transaction which we received from the
@@ -74,7 +77,7 @@ func (impl *mempoolControllerImpl) RunReceiveFromNetworkOperation(ctx context.Co
 				return insertErr
 			}
 
-			impl.logger.Debug("Saved pending signed submission to mempool",
+			impl.logger.Debug("Saved pending signed submission to database",
 				slog.Any("received", signedTransaction))
 
 		case <-ctx.Done():

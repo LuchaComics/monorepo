@@ -11,8 +11,8 @@ import (
 	local_pubsub "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/pubsub/local"
 	p2p_pubsub "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/pubsub/p2p"
 	acc_s "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/datastore"
-	block_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/block/datastore"
 	blockchain_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain/controller"
+	blockdata_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockdata/datastore"
 	keypair_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/keypair/datastore"
 	lasthash_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/lasthash/datastore"
 	pt_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/signedtransaction/datastore"
@@ -43,11 +43,18 @@ func genesisCmd() *cobra.Command {
 			// Load up the configuration.
 			cfg := &config.Config{
 				Blockchain: config.BlockchainConfig{
-					ChainID:    constants.ChainIDMainNet,
-					Difficulty: 1,
+					ChainID:       constants.ChainIDMainNet,
+					TransPerBlock: 1,
+					Difficulty:    1,
 				},
 				App: config.AppConfig{
 					DirPath: flagDataDir,
+				},
+				Peer: config.PeerConfig{
+					ListenPort:       flagListenPeerToPeerPort,
+					KeyName:          flagKeypairName,
+					RendezvousString: flagRendezvousString,
+					// BootstrapPeers:   bootstrapPeers,
 				},
 				DB: config.DBConfig{
 					DataDir: flagDataDir,
@@ -63,8 +70,8 @@ func genesisCmd() *cobra.Command {
 			lastHashDS := lasthash_ds.NewDatastore(cfg, logger, kvs)
 			accountStorer := acc_s.NewDatastore(cfg, logger, kvs)
 			signedTransactionDS := pt_ds.NewDatastore(cfg, logger, kvs)
-			blockDS := block_ds.NewDatastore(cfg, logger, kvs)
-			blockchainController := blockchain_c.NewController(cfg, logger, uuid, localPubSubBroker, p2pPubSubBroker, accountStorer, signedTransactionDS, lastHashDS, blockDS)
+			blockDataDS := blockdata_ds.NewDatastore(cfg, logger, kvs)
+			blockchainController := blockchain_c.NewController(cfg, logger, uuid, localPubSubBroker, p2pPubSubBroker, accountStorer, signedTransactionDS, lastHashDS, blockDataDS)
 
 			//
 			// STEP 2
@@ -92,11 +99,13 @@ func genesisCmd() *cobra.Command {
 			}
 
 			logger.Info("Genesis block created successfully",
-				slog.String("hash", genesisBlock.Hash))
+				slog.String("zero_hash", genesisBlock.Hash)) // Not a bug, genesis is always zero.
 		},
 	}
 
 	cmd.Flags().StringVar(&flagDataDir, "datadir", "./data", "Absolute path to your node's data dir where the DB will be/is stored")
+	cmd.Flags().StringVar(&flagKeypairName, "keypair-name", "", "The name of keypairs to apply to this server")
+	cmd.MarkFlagRequired("keypair-name")
 	cmd.Flags().StringVar(&flagAccountName, "coinbase-account-name", "", "The account name of the coinbase wallet")
 	cmd.MarkFlagRequired("coinbase-account-name")
 	cmd.Flags().StringVar(&flagPassword, "coinbase-password", "", "The password to decrypt the cointbase's account wallet")

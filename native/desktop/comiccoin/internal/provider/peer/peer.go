@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"log/slog"
+	"sync"
 
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p/core/host"
@@ -24,6 +25,8 @@ type Provider interface {
 	// When other peers make a successful connection to your peer, then method
 	// will send the connected peer through the channel for you to grab.
 	DiscoverPeersChannel(ctx context.Context, h host.Host, rendezvousString string) <-chan peer.AddrInfo
+
+	Close()
 }
 
 type peerProviderImpl struct {
@@ -34,6 +37,9 @@ type peerProviderImpl struct {
 	host             host.Host
 	kademliaDHT      *dht.IpfsDHT
 	routingDiscovery *routing.RoutingDiscovery
+
+	// mu field is used to protect access to the subs and closed fields using a mutex.
+	mu sync.Mutex
 }
 
 // NewProvider constructor that returns the default P2P connected instance.
@@ -77,4 +83,8 @@ func NewProvider(cfg *config.Config, logger *slog.Logger, kp keypair_ds.KeypairS
 
 func (p *peerProviderImpl) GetHost() host.Host {
 	return p.host
+}
+
+func (impl *peerProviderImpl) Close() {
+
 }

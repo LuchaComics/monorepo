@@ -2,7 +2,7 @@ package p2p
 
 import (
 	"context"
-	"log/slog"
+	"log"
 	"time"
 
 	dht "github.com/libp2p/go-libp2p-kad-dht"
@@ -25,15 +25,14 @@ func (node *pubSubBrokerImpl) initDHT(ctx context.Context, h host.Host) *dht.Ipf
 
 	kademliaDHT, err := dht.New(ctx, node.host, options...)
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed createing new dht: %v", err)
 	}
 
 	// Bootstrap the DHT. In the default configuration, this spawns a Background
 	// thread that will refresh the peer table every five minutes.
-	node.logger.Debug("Bootstrapping the DHT",
-		slog.String("RendezvousString", node.cfg.Peer.RendezvousString))
+	node.logger.Debug("Bootstrapping the DHT")
 	if err = kademliaDHT.Bootstrap(ctx); err != nil {
-		panic(err)
+		log.Fatalf("failed boostraping new dht: %v", err)
 	}
 
 	// Wait a bit to let bootstrapping finish (really bootstrap should block until it's ready, but that isn't the case yet.)

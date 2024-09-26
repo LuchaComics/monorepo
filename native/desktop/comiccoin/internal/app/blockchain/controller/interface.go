@@ -9,7 +9,7 @@ import (
 
 	pubsub "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/pubsub"
 	a_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/datastore"
-	block_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/block/datastore"
+	blockdata_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockdata/datastore"
 	lasthash_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/lasthash/datastore"
 	pt_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/signedtransaction/datastore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
@@ -20,11 +20,12 @@ import (
 // on the `ComicCoin` cryptocurrency.
 
 type BlockchainController interface {
-	NewGenesisBlock(ctx context.Context, coinbaseKey *keystore.Key) (*block_ds.Block, error)
-	GetBlock(ctx context.Context, hash string) (*block_ds.Block, error)
+	NewGenesisBlock(ctx context.Context, coinbaseKey *keystore.Key) (*blockdata_ds.BlockData, error)
+	GetBlockData(ctx context.Context, hash string) (*blockdata_ds.BlockData, error)
 	GetBalanceByAccountName(ctx context.Context, accountName string) (*BlockchainBalanceResponseIDO, error)
 	Submit(ctx context.Context, req *BlockchainSubmitRequestIDO) (*BlockchainSubmitResponseIDO, error)
 	GetSignedTransactions(ctx context.Context) ([]*pt_ds.SignedTransaction, error)
+	RunMinerOperationInBackground(ctx context.Context)
 }
 
 type blockchainControllerImpl struct {
@@ -36,7 +37,7 @@ type blockchainControllerImpl struct {
 	accountStorer           a_ds.AccountStorer
 	signedTransactionStorer pt_ds.SignedTransactionStorer
 	lastHashStorer          lasthash_ds.LastHashStorer
-	blockStorer             block_ds.BlockStorer
+	blockDataStorer         blockdata_ds.BlockDataStorer
 }
 
 func NewController(
@@ -48,7 +49,7 @@ func NewController(
 	as a_ds.AccountStorer,
 	pt pt_ds.SignedTransactionStorer,
 	lhDS lasthash_ds.LastHashStorer,
-	blockDS block_ds.BlockStorer,
+	blockDataDS blockdata_ds.BlockDataStorer,
 ) BlockchainController {
 	// Defensive code to protect the programmer from any errors.
 	if cfg.Blockchain.Difficulty <= 0 {
@@ -67,11 +68,7 @@ func NewController(
 		accountStorer:           as,
 		signedTransactionStorer: pt,
 		lastHashStorer:          lhDS,
-		blockStorer:             blockDS,
+		blockDataStorer:         blockDataDS,
 	}
-
-	//TODO: Only if miner activated
-	impl.runMinerOperationInBackground(context.Background())
-
 	return impl
 }

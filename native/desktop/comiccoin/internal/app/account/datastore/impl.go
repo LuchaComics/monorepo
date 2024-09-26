@@ -10,6 +10,10 @@ import (
 )
 
 func (impl *accountStorerImpl) Insert(ctx context.Context, accountName, accountWalletPassword string) (*Account, error) {
+	if impl.config.App.DirPath == "" {
+		return nil, fmt.Errorf("cannot generate new wallet because missing the following config value: %s", "config.App.DirPath")
+	}
+
 	walletAddress, walletFilepath, err := newKeystore(impl.config.App.DirPath, accountWalletPassword)
 	if err != nil {
 		impl.logger.Error("failed creating new keystore",
@@ -23,6 +27,10 @@ func (impl *accountStorerImpl) Insert(ctx context.Context, accountName, accountW
 		WalletAddress:  walletAddress,
 		WalletFilepath: walletFilepath,
 	}
+
+	impl.logger.Debug("creatd wallet",
+		slog.String("data_dir", impl.config.App.DirPath),
+		slog.String("filepath", walletFilepath))
 
 	bBytes, err := account.Serialize()
 	if err != nil {

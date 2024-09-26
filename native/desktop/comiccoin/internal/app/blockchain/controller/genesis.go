@@ -3,57 +3,83 @@ package controller
 import (
 	"context"
 	"fmt"
-	"math/big"
 	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
-	"github.com/ethereum/go-ethereum/common"
 
-	block_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/block/datastore"
+	blockdata_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockdata/datastore"
+	stx_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/signedtransaction/datastore"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/utils/blockchain/merkle"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/utils/blockchain/signature"
 )
 
-func (impl *blockchainControllerImpl) NewGenesisBlock(ctx context.Context, coinbaseKey *keystore.Key) (*block_ds.Block, error) {
+func (impl *blockchainControllerImpl) NewGenesisBlock(ctx context.Context, coinbaseKey *keystore.Key) (*blockdata_ds.BlockData, error) {
 	if coinbaseKey == nil {
 		return nil, fmt.Errorf("missing: %v", "coinbase")
 	}
 
-	initialSupply, _ := new(big.Int).SetString("50000000000000000000", 10) // 50 coins with 18 decimal places
-	genesisTransaction := block_ds.NewTransaction(
-		common.Address{},    // From: zero address for genesis block
-		coinbaseKey.Address, // To: coinbase address (usually the miner's address)
-		initialSupply,       // 50 coins (with 18 decimal places)
-		[]byte("Genesis Block"),
-		0, // Nonce
-	)
-
-	if err := genesisTransaction.Sign(coinbaseKey.PrivateKey); err != nil {
+	initialSupply := uint64(5000000000000000000)
+	tx := &stx_ds.Transaction{
+		ChainID: impl.config.Blockchain.ChainID,
+		Nonce:   0, // Will be calculated later.
+		From:    coinbaseKey.Address,
+		To:      coinbaseKey.Address,
+		Value:   initialSupply,
+		Tip:     0,
+		Data:    make([]byte, 0),
+	}
+	signedTx, err := tx.Sign(coinbaseKey.PrivateKey)
+	if err != nil {
 		return nil, fmt.Errorf("Failed to sign transaction: %v", err)
 	}
 
-	genesisBlock := &block_ds.Block{
-		Hash:         "",
-		PreviousHash: "",
-		Timestamp:    time.Now(),
-		Nonce:        0,
-		Difficulty:   1,
-		Transactions: []*block_ds.Transaction{genesisTransaction},
+	prevBlockHash := signature.ZeroHash
+
+	gasPrice := uint64(impl.config.Blockchain.GasPrice)
+	unitsOfGas := uint64(impl.config.Blockchain.UnitsOfGas)
+	blockTx := blockdata_ds.NewBlockTx(signedTx, gasPrice, unitsOfGas)
+	trans := make([]blockdata_ds.BlockTx, 1)
+	trans = append(trans, blockTx)
+
+	// Construct a merkle tree from the transaction for this block. The root
+	// of this tree will be part of the block to be mined.
+	tree, err := merkle.NewTree(trans)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create merkle tree: %v", err)
 	}
 
-	miningDifficulty := 1
+	// Construct the genesis block.
+	block := blockdata_ds.Block{
+		Header: blockdata_ds.BlockHeader{
+			Number:        0, // Genesis always starts at zero
+			PrevBlockHash: prevBlockHash,
+			TimeStamp:     uint64(time.Now().UTC().UnixMilli()),
+			Beneficiary:   coinbaseKey.Address,
+			Difficulty:    impl.config.Blockchain.Difficulty,
+			MiningReward:  impl.config.Blockchain.MiningReward,
+			// StateRoot:     "",             //args.StateRoot,
+			TransRoot: tree.RootHex(), //
+			Nonce:     0,              // Will be identified by the POW algorithm.
+		},
+		MerkleTree: tree,
+	}
 
-	nonce, hash := genesisBlock.Mine(miningDifficulty)
+	block.PerformPOW(ctx, impl.config.Blockchain.Difficulty)
 
-	// Update our genesis block with our later mining information.
-	genesisBlock.Nonce = nonce
-	genesisBlock.Hash = hash
+	// Attach our nonce
+	// block.Header.Nonce = nonce
+
+	// Create our data.
+	genesisBlockData := blockdata_ds.NewBlockData(block)
 
 	// Save to database.
-	if err := impl.blockStorer.Insert(ctx, genesisBlock); err != nil {
+	if err := impl.blockDataStorer.Insert(ctx, &genesisBlockData); err != nil {
 		return nil, fmt.Errorf("Failed to insert into database: %v", err)
 	}
-	if err := impl.lastHashStorer.Set(ctx, genesisBlock.Hash); err != nil {
+	if err := impl.lastHashStorer.Set(ctx, genesisBlockData.Hash); err != nil {
 		return nil, fmt.Errorf("Failed to set last hash in database: %v", err)
 	}
 
-	return genesisBlock, nil
+	// return genesisBlock, nil
+	return &genesisBlockData, nil
 }

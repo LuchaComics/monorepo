@@ -40,6 +40,9 @@ func walletNewAccountCmd() *cobra.Command {
 			//
 
 			cfg := &config.Config{
+				App: config.AppConfig{
+					DirPath: flagDataDir,
+				},
 				DB: config.DBConfig{
 					DataDir: flagDataDir,
 				},
@@ -86,6 +89,9 @@ func walletPrintPrivKeyCmd() *cobra.Command {
 			//
 
 			cfg := &config.Config{
+				App: config.AppConfig{
+					DirPath: flagDataDir,
+				},
 				DB: config.DBConfig{
 					DataDir: flagDataDir,
 				},

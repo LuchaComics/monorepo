@@ -24,6 +24,7 @@ type BlockchainConfig struct {
 	Difficulty    uint16 `json:"difficulty"`      // How difficult it needs to be to solve the work problem.
 	MiningReward  uint64 `json:"mining_reward"`   // Reward for mining a block.
 	GasPrice      uint64 `json:"gas_price"`       // Fee paid for each transaction mined into a block.
+	UnitsOfGas    uint64 `json:"units_of_gas"`
 }
 
 type AppConfig struct {

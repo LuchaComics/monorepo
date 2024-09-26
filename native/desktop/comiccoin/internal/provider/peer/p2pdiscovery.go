@@ -45,6 +45,9 @@ func (impl *peerProviderImpl) DiscoverPeersChannel(ctx context.Context, h host.H
 
 					anyConnected = true
 
+					impl.mu.Lock()
+					defer impl.mu.Unlock()
+
 					ch <- peer
 				}
 			}

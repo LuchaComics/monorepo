@@ -12,14 +12,14 @@ func (impl *signedTansactionStorerImpl) Upsert(ctx context.Context, b *SignedTra
 	if err != nil {
 		return err
 	}
-	if err := impl.dbClient.Setf(bBytes, "signed--transaction-%v", b.Nonce); err != nil {
+	if err := impl.dbClient.Setf(bBytes, "signed-transaction-%v", b.Nonce); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (impl *signedTansactionStorerImpl) GetByNonce(ctx context.Context, nonce uint64) (*SignedTransaction, error) {
-	bBytes, err := impl.dbClient.Getf("signed--transaction-%v", nonce)
+	bBytes, err := impl.dbClient.Getf("signed-transaction-%v", nonce)
 	if err != nil {
 		return nil, err
 	}
@@ -37,8 +37,12 @@ func (impl *signedTansactionStorerImpl) GetByNonce(ctx context.Context, nonce ui
 func (impl *signedTansactionStorerImpl) List(ctx context.Context) ([]*SignedTransaction, error) {
 	res := make([]*SignedTransaction, 0)
 	seekThenIterateKey := ""
-	err := impl.dbClient.Iterate("signed--transaction-", seekThenIterateKey, func(key, value []byte) error {
-		account, err := NewSignedTransactionFromDeserialize(value)
+	err := impl.dbClient.Iterate("signed-transaction-", seekThenIterateKey, func(key, value []byte) error {
+		// impl.logger.Debug("list-item", slog.Any("key", key))
+
+		item, err := NewSignedTransactionFromDeserialize(value)
+
+		// impl.logger.Debug("", slog.Any("res", item))
 		if err != nil {
 			impl.logger.Error("failed to deserialize",
 				slog.String("key", string(key)),
@@ -47,7 +51,7 @@ func (impl *signedTansactionStorerImpl) List(ctx context.Context) ([]*SignedTran
 			return err
 		}
 
-		res = append(res, account)
+		res = append(res, item)
 
 		// Return nil to indicate success
 		return nil
@@ -57,7 +61,7 @@ func (impl *signedTansactionStorerImpl) List(ctx context.Context) ([]*SignedTran
 }
 
 func (impl *signedTansactionStorerImpl) DeleteByNonce(ctx context.Context, nonce uint64) error {
-	err := impl.dbClient.Deletef("signed--transaction-%v", nonce)
+	err := impl.dbClient.Deletef("signed-transaction-%v", nonce)
 	if err != nil {
 		return err
 	}

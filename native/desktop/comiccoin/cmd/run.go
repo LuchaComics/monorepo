@@ -14,9 +14,9 @@ import (
 	acc_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/controller"
 	acc_s "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/datastore"
 	acc_http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/httptransport"
-	block_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/block/datastore"
 	blockchain_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain/controller"
 	blockchain_http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockchain/httptransport"
+	blockdata_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockdata/datastore"
 	keypair_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/keypair/datastore"
 	lasthash_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/lasthash/datastore"
 	mempool_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/mempool/controller"
@@ -61,7 +61,7 @@ func runCmd() *cobra.Command {
 				Blockchain: config.BlockchainConfig{
 					ChainID:       constants.ChainIDMainNet,
 					TransPerBlock: 1,
-					Difficulty:    1,
+					Difficulty:    2,
 				},
 				App: config.AppConfig{
 					HTTPPort: flagListenHTTPPort,
@@ -88,8 +88,8 @@ func runCmd() *cobra.Command {
 			accountController := acc_c.NewController(cfg, logger, accountDS)
 			lastHashDS := lasthash_ds.NewDatastore(cfg, logger, kvs)
 			signedTransactionDS := pt_ds.NewDatastore(cfg, logger, kvs)
-			blockDS := block_ds.NewDatastore(cfg, logger, kvs)
-			blockchainController := blockchain_c.NewController(cfg, logger, uuid, localPubSubBroker, p2pPubSubBroker, accountDS, signedTransactionDS, lastHashDS, blockDS)
+			blockDataDS := blockdata_ds.NewDatastore(cfg, logger, kvs)
+			blockchainController := blockchain_c.NewController(cfg, logger, uuid, localPubSubBroker, p2pPubSubBroker, accountDS, signedTransactionDS, lastHashDS, blockDataDS)
 			accountHttp := acc_http.NewHandler(logger, accountController)
 			blockchainHttp := blockchain_http.NewHandler(logger, blockchainController)
 			mempoolController := mempool_c.NewController(cfg, logger, uuid, localPubSubBroker, p2pPubSubBroker, signedTransactionDS)
@@ -99,7 +99,7 @@ func runCmd() *cobra.Command {
 			httpMiddleware := httpmiddle.NewMiddleware(cfg, logger)
 			httpServ := http.NewInputPort(cfg, logger, httpMiddleware, accountHttp, blockchainHttp)
 
-			work := worker.NewInputPort(cfg, logger, mempoolController)
+			work := worker.NewInputPort(cfg, logger, mempoolController, blockchainController)
 
 			//
 			// STEP 2

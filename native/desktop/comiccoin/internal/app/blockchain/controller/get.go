@@ -3,9 +3,10 @@ package controller
 import (
 	"context"
 
-	block_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/block/datastore"
+	blockdata_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockdata/datastore"
 )
 
-func (impl *blockchainControllerImpl) GetBlock(ctx context.Context, hash string) (*block_ds.Block, error) {
-	return impl.blockStorer.GetByHash(ctx, hash)
+func (impl *blockchainControllerImpl) GetBlockData(ctx context.Context, hash string) (*blockdata_ds.BlockData, error) {
+	// return impl.blockStorer.GetByHash(ctx, hash)
+	return nil, nil
 }

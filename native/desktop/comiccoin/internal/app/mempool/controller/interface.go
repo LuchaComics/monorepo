@@ -16,12 +16,6 @@ import (
 type MempoolController interface {
 	// RunReceiveFromNetworkOperation function to be called when a pending signed transaction is received from the network.
 	RunReceiveFromNetworkOperation(ctx context.Context) error
-
-	// RunSendPendingSignedTransactionsToLocalMineOperation function is to be
-	// executed in the background so it can periodically poll the pending
-	// signed transactions we have locally stored and then batch send those
-	// transactions to the miner.
-	RunSendPendingSignedTransactionsToLocalMineOperation(ctx context.Context) error
 }
 
 type mempoolControllerImpl struct {

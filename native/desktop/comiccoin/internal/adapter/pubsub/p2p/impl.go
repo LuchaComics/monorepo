@@ -7,6 +7,7 @@ package p2p
 import (
 	"context"
 	"fmt"
+	"log"
 	"log/slog"
 	"sync"
 
@@ -64,6 +65,9 @@ func NewAdapter(cfg *config.Config, logger *slog.Logger, kp keypair_ds.KeypairSt
 	// Run the code which will setup our peer-to-peer node in either `host mode`
 	// or `dial mode`.
 	h, err := node.newHostWithPredictableIdentifier()
+	if err != nil {
+		log.Fatalf("failed setting new host: %v", err)
+	}
 	node.host = h
 
 	topicNames := []string{
@@ -73,7 +77,7 @@ func NewAdapter(cfg *config.Config, logger *slog.Logger, kp keypair_ds.KeypairSt
 
 	ps, err := pubsub.NewGossipSub(ctx, h)
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed setting new gossip sub: %v", err)
 	}
 	node.gossipPubSub = ps
 

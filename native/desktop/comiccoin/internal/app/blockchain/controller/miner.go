@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"log/slog"
 	"time"
+
+	blockdata_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/blockdata/datastore"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/utils/blockchain/merkle"
 )
 
-func (impl *blockchainControllerImpl) runMinerOperationInBackground(ctx context.Context) {
+func (impl *blockchainControllerImpl) RunMinerOperationInBackground(ctx context.Context) {
 	impl.logger.Info("miner started...")
 
 	// Execute the miner tick on startup of this function.
@@ -51,26 +54,77 @@ func (impl *blockchainControllerImpl) handleMineTimerTicker(ctx context.Context)
 			slog.Any("error", err))
 	}
 
+	impl.logger.Debug("miner fetched the following txs", slog.Any("txs", txs))
+
 	// Apply the transactions per block limit.
 	if len(txs) > 0 {
 		txs = txs[:impl.config.Blockchain.TransPerBlock]
 	}
 
-	impl.logger.Debug("miner fetched the following txs", slog.Any("txs", txs))
+	prevBlockHash, err := impl.lastHashStorer.Get(ctx)
+	if err != nil {
+		return fmt.Errorf("Failed to get last hash in database: %v", err)
+	}
+	prevBlock, err := impl.blockDataStorer.GetByHash(ctx, prevBlockHash)
+	if err != nil {
+		return fmt.Errorf("Failed to get lastest block from database: %v", err)
+	}
 
 	//
 	// STEP 2:
 	// Setup our new block
 	//
 
-	//TODO: IMPL.
+	gasPrice := uint64(impl.config.Blockchain.GasPrice)
+	unitsOfGas := uint64(impl.config.Blockchain.UnitsOfGas)
+	trans := make([]blockdata_ds.BlockTx, 1)
+	for _, signedTx := range txs {
+		blockTx := blockdata_ds.NewBlockTx(*signedTx, gasPrice, unitsOfGas)
+		trans = append(trans, blockTx)
+	}
+
+	// Construct a merkle tree from the transaction for this block. The root
+	// of this tree will be part of the block to be mined.
+	tree, err := merkle.NewTree(trans)
+	if err != nil {
+		return fmt.Errorf("Failed to create merkle tree: %v", err)
+	}
+
+	// Construct the genesis block.
+	block := blockdata_ds.Block{
+		Header: blockdata_ds.BlockHeader{
+			Number:        prevBlock.Header.Number + 1,
+			PrevBlockHash: prevBlockHash,
+			TimeStamp:     uint64(time.Now().UTC().UnixMilli()),
+			Beneficiary:   prevBlock.Header.Beneficiary,
+			Difficulty:    impl.config.Blockchain.Difficulty,
+			MiningReward:  impl.config.Blockchain.MiningReward,
+			// StateRoot:     "",             //args.StateRoot, // SKIP!
+			TransRoot: tree.RootHex(), //
+			Nonce:     0,              // Will be identified by the POW algorithm.
+		},
+		MerkleTree: tree,
+	}
 
 	//
 	// STEP 3:
 	// Execute the proof of work to find our nounce to meet the hash difficulty.
 	//
 
-	//TODO: IMPL.
+	if mineErr := block.PerformPOW(ctx, impl.config.Blockchain.Difficulty); mineErr != nil {
+		return fmt.Errorf("Failed to mine block: %v", err)
+	}
+
+	// Attach our nonce
+	// block.Header.Nonce = nonce
+
+	// Create our data.
+	blockData := blockdata_ds.NewBlockData(block)
+
+	impl.logger.Debug("new block data created",
+		slog.Any("mined_nonce", block.Header.Nonce),
+		slog.Any("mined_hash", block.Hash()),
+		slog.Any("blockdata", blockData))
 
 	//
 	// STEP 4:
