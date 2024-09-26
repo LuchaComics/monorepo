@@ -1,19 +1,15 @@
 package cmd
 
 import (
-	"context"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/spf13/cobra"
 
-	dmqb "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/distributedmessagequeue"
+	dpubsub "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/distributedpubsub"
 	kvs "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/keyvaluestore/leveldb"
-	mqb "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/messagequeuebroker/simple"
 	acc_c "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/controller"
 	acc_s "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/datastore"
 	acc_http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/httptransport"
@@ -77,15 +73,14 @@ func runCmd() *cobra.Command {
 			logger := logger.NewProvider()
 			uuid := uuid.NewProvider()
 			kvs := kvs.NewKeyValueStorer(cfg, logger)
-			broker := mqb.NewMessageQueue(cfg, logger)
 			keypairDS := keypair_ds.NewDatastore(cfg, logger, kvs)
-			msgqueue := dmqb.NewDistributedMessageQueueAdapter(cfg, logger, keypairDS)
+			pubsubbroker := dpubsub.NewAdapter(cfg, logger, keypairDS)
 			accountDS := acc_s.NewDatastore(cfg, logger, kvs)
 			accountController := acc_c.NewController(cfg, logger, accountDS)
 			lastHashDS := lasthash_ds.NewDatastore(cfg, logger, kvs)
 			signedTransactionDS := pt_ds.NewDatastore(cfg, logger, kvs)
 			blockDS := block_ds.NewDatastore(cfg, logger, kvs)
-			blockchainController := blockchain_c.NewController(cfg, logger, uuid, broker, msgqueue, accountDS, signedTransactionDS, lastHashDS, blockDS)
+			blockchainController := blockchain_c.NewController(cfg, logger, uuid, pubsubbroker, accountDS, signedTransactionDS, lastHashDS, blockDS)
 			accountHttp := acc_http.NewHandler(logger, accountController)
 			blockchainHttp := blockchain_http.NewHandler(logger, blockchainController)
 			// mempoolController := mempool_c.NewController(cfg, logger, uuid, broker, msgqueue, signedTransactionDS)
@@ -93,18 +88,6 @@ func runCmd() *cobra.Command {
 			// peerNode := p2p.NewInputPort(cfg, logger, keypairDS, mempoolNode)
 			httpMiddleware := httpmiddle.NewMiddleware(cfg, logger)
 			httpServ := http.NewInputPort(cfg, logger, httpMiddleware, accountHttp, blockchainHttp)
-
-			//TODO: DELETE BELOW
-			ctx := context.Background()
-			priv, _, err := keypairDS.GetByName(ctx, cfg.Peer.KeyName)
-			if err != nil {
-				panic("test")
-			}
-			time.Sleep(10 * time.Second)
-			msg := fmt.Sprintf("testing from %v", priv)
-			go msgqueue.Publish(ctx, "mempool", []byte(msg))
-			res := msgqueue.Subscribe(ctx, "mempool")
-			log.Println(string(res))
 
 			//
 			// STEP 2

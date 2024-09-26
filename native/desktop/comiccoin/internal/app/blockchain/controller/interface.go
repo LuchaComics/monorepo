@@ -7,8 +7,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 
-	dmqb "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/distributedmessagequeue"
-	mqb "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/messagequeuebroker"
+	dpubsub "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/distributedpubsub"
 	a_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/account/datastore"
 	block_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/block/datastore"
 	lasthash_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/lasthash/datastore"
@@ -31,8 +30,7 @@ type BlockchainController interface {
 type blockchainControllerImpl struct {
 	logger                  *slog.Logger
 	uuid                    uuid.Provider
-	messageQueue            dmqb.DistributedMessageQueueBroker
-	messageQueueBroker      mqb.MessageQueueBroker
+	pubSubBroker            dpubsub.PublishSubscribeBroker
 	accountStorer           a_ds.AccountStorer
 	signedTransactionStorer pt_ds.SignedTransactionStorer
 	lastHashStorer          lasthash_ds.LastHashStorer
@@ -43,8 +41,7 @@ func NewController(
 	cfg *config.Config,
 	logger *slog.Logger,
 	uuid uuid.Provider,
-	broker mqb.MessageQueueBroker,
-	dmsgq dmqb.DistributedMessageQueueBroker,
+	psbroker dpubsub.PublishSubscribeBroker,
 	as a_ds.AccountStorer,
 	pt pt_ds.SignedTransactionStorer,
 	lhDS lasthash_ds.LastHashStorer,
@@ -58,8 +55,7 @@ func NewController(
 	return &blockchainControllerImpl{
 		logger:                  logger,
 		uuid:                    uuid,
-		messageQueueBroker:      broker,
-		messageQueue:            dmsgq,
+		pubSubBroker:            psbroker,
 		accountStorer:           as,
 		signedTransactionStorer: pt,
 		lastHashStorer:          lhDS,

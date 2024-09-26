@@ -6,11 +6,11 @@ import (
 	"log/slog"
 	"sync"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/messagequeuebroker"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/adapter/pubsub"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 )
 
-type messageQueueBrokerImpl struct {
+type pubSubBrokerImpl struct {
 	// mu field is used to protect access to the subs and closed fields using a mutex.
 	mu sync.Mutex
 
@@ -24,18 +24,18 @@ type messageQueueBrokerImpl struct {
 	closed bool
 }
 
-func NewMessageQueue(cfg *config.Config, logger *slog.Logger) messagequeuebroker.MessageQueueBroker {
+func NewMessageQueue(cfg *config.Config, logger *slog.Logger) pubsub.PublisherSubscriberBroker {
 	if cfg.DB.DataDir == "" {
 		log.Fatal("cannot have empty dir")
 	}
 
-	return &messageQueueBrokerImpl{
+	return &pubSubBrokerImpl{
 		subs: make(map[string][]chan []byte),
 		quit: make(chan struct{}),
 	}
 }
 
-func (impl *messageQueueBrokerImpl) Subscribe(topic string) <-chan []byte {
+func (impl *pubSubBrokerImpl) Subscribe(topic string) <-chan []byte {
 	impl.mu.Lock()
 	defer impl.mu.Unlock()
 
@@ -48,7 +48,7 @@ func (impl *messageQueueBrokerImpl) Subscribe(topic string) <-chan []byte {
 	return ch
 }
 
-func (impl *messageQueueBrokerImpl) Publish(topic string, msg []byte) {
+func (impl *pubSubBrokerImpl) Publish(topic string, msg []byte) {
 	impl.mu.Lock()
 	defer impl.mu.Unlock()
 
@@ -61,7 +61,7 @@ func (impl *messageQueueBrokerImpl) Publish(topic string, msg []byte) {
 	}
 }
 
-func (impl *messageQueueBrokerImpl) Close() {
+func (impl *pubSubBrokerImpl) Close() {
 	impl.mu.Lock()
 	defer impl.mu.Unlock()
 

@@ -154,7 +154,11 @@ func (impl *blockchainControllerImpl) Submit(ctx context.Context, req *Blockchai
 	// in the blochcian network. The `mempool` topic is used to
 	// send our signed pending transcation to the actively running in background
 	// mempool node subscriber
-	impl.messageQueueBroker.Publish("mempool", ptBytes)
+	if err := impl.pubSubBroker.Publish(ctx, "mempool", ptBytes); err != nil {
+		impl.logger.Error("Failed to publish",
+			slog.Any("error", err))
+		return nil, err
+	}
 
 	impl.logger.Debug("Pending transaction submitted to blockchain!",
 		slog.Uint64("nonce", pt.Nonce))

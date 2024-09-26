@@ -1,9 +1,9 @@
-package messagequeuebroker
+package pubsub
 
-// MessageQueueBroker interface is the simple message queue broker interface
+// PubSubBroker interface is the simple message queue broker interface
 // we will need for our application. Regardless of the implementation, all
 // our application needs are the following three functions to operate.
-type MessageQueueBroker interface {
+type PublisherSubscriberBroker interface {
 	// Subscribe method allows a goroutine to subscribe to a topic.
 	Subscribe(topic string) <-chan []byte
 

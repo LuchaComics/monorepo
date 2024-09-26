@@ -1,4 +1,4 @@
-package distributedmessagequeue
+package distributedpubsub
 
 import (
 	"context"
@@ -17,7 +17,7 @@ import (
 // newHostWithPredictableIdentifier function will create a host with an
 // identifier that never changes - it remains the same due to the fact that
 // we are using custom private-public key pairs saved locally in the system.
-func (node *brokerImpl) newHostWithPredictableIdentifier() (host.Host, error) {
+func (node *pubSubBrokerImpl) newHostWithPredictableIdentifier() (host.Host, error) {
 	ctx := context.Background()
 
 	//

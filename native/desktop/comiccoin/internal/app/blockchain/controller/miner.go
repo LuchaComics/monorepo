@@ -12,7 +12,7 @@ func (impl *blockchainControllerImpl) RunMinerOperation(ctx context.Context) {
 
 	// Subscribe to the `signed-transactions` topic so we can received
 	// all the latest signed transactions to mine!
-	sub := impl.messageQueueBroker.Subscribe("signed-transactions")
+	sub := impl.pubSubBroker.Subscribe(ctx, "mempool")
 
 	for true {
 		signedTransactionBytes := <-sub

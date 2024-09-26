@@ -1,4 +1,4 @@
-package distributedmessagequeue
+package distributedpubsub
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/libp2p/go-libp2p/core/peer"
 )
 
-func (node *brokerImpl) initDHT(ctx context.Context, h host.Host) *dht.IpfsDHT {
+func (node *pubSubBrokerImpl) initDHT(ctx context.Context, h host.Host) *dht.IpfsDHT {
 	var options []dht.Option
 	bootstrapPeers := make([]peer.AddrInfo, len(node.cfg.Peer.BootstrapPeers))
 	for i, addr := range node.cfg.Peer.BootstrapPeers {
