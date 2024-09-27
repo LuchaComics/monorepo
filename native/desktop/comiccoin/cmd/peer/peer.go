@@ -1,4 +1,4 @@
-package account
+package peer
 
 import "github.com/spf13/cobra"
 
@@ -11,7 +11,7 @@ var (
 	flagRecipientAddress string
 	flagAmount           uint64
 	flagKeypairName      string
-	flagAccountID        string
+	flagPeerID           string
 
 	flagRendezvousString string
 	flagBootstrapPeers   string
@@ -21,18 +21,20 @@ var (
 	flagListenHTTPPort       int
 	flagListenHTTPIP         string
 	flagListenPeerToPeerPort int
+
+	flagIdentityKeyID string
 )
 
 // HTTP endpoints
 const (
-	accountsURL      = "/v1/api/accounts"
-	accountDetailURL = "/v1/api/account/${ACCOUNT_ID}"
+	accountsURL      = "/v1/api/peers"
+	accountDetailURL = "/v1/api/peer/${ACCOUNT_ID}"
 )
 
-func AccountCmd() *cobra.Command {
+func PeerCmd() *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "account",
-		Short: "Execute commands related to accounts",
+		Use:   "peer",
+		Short: "Execute commands related to peer-to-peer networking",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Do nothing...
 		},
@@ -41,9 +43,9 @@ func AccountCmd() *cobra.Command {
 	// Attach our sub-commands for `account`
 	// Version Command
 	cmd.AddCommand(versionCmd)
-	cmd.AddCommand(runCmd())
-	cmd.AddCommand(httpJsonApiNewAccountCmd())
-	cmd.AddCommand(httpJsonApiGetAccountCmd())
+	cmd.AddCommand(identityCmd())
+	// cmd.AddCommand(httpJsonApiNewPeerCmd())
+	// cmd.AddCommand(httpJsonApiGetPeerCmd())
 
 	return cmd
 }

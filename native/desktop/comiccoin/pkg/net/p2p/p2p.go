@@ -7,13 +7,13 @@ import (
 	"sync"
 
 	dht "github.com/libp2p/go-libp2p-kad-dht"
+	"github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p/p2p/discovery/routing"
 	drouting "github.com/libp2p/go-libp2p/p2p/discovery/routing"
 
-	keypair_ds "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/app/keypair/datastore"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/peer/config"
 )
 
 // Provider provides interface for abstracting P2P netowrking.
@@ -30,9 +30,11 @@ type LibP2PNetwork interface {
 }
 
 type peerProviderImpl struct {
-	cfg           *config.Config
-	logger        *slog.Logger
-	keypairStorer keypair_ds.KeypairStorer
+	cfg    *config.Config
+	logger *slog.Logger
+
+	identityPrivateKey crypto.PrivKey
+	identityPublicKey  crypto.PubKey
 
 	host             host.Host
 	kademliaDHT      *dht.IpfsDHT
@@ -43,16 +45,17 @@ type peerProviderImpl struct {
 }
 
 // NewLibP2PNetwork constructor that returns the default P2P connected instance.
-func NewLibP2PNetwork(cfg *config.Config, logger *slog.Logger, kp keypair_ds.KeypairStorer) LibP2PNetwork {
+func NewLibP2PNetwork(cfg *config.Config, logger *slog.Logger, priv crypto.PrivKey, pub crypto.PubKey) LibP2PNetwork {
 	ctx := context.Background()
 
 	// Begin our function by initializing the defaults for our peer-to-peer (p2p)
 	// node and then the rest of this function pertains to setting up a p2p
 	// network to utilize in our app.
 	impl := &peerProviderImpl{
-		cfg:           cfg,
-		logger:        logger,
-		keypairStorer: kp,
+		cfg:                cfg,
+		logger:             logger,
+		identityPrivateKey: priv,
+		identityPublicKey:  pub,
 	}
 
 	// Run the code which will setup our peer-to-peer node in either `host mode`

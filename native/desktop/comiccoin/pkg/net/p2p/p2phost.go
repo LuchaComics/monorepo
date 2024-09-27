@@ -1,7 +1,6 @@
 package peer
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"time"
@@ -18,7 +17,7 @@ import (
 // identifier that never changes - it remains the same due to the fact that
 // we are using custom private-public key pairs saved locally in the system.
 func (node *peerProviderImpl) newHostWithPredictableIdentifier() (host.Host, error) {
-	ctx := context.Background()
+	// ctx := context.Background()
 
 	//
 	// STEP 1:
@@ -26,12 +25,7 @@ func (node *peerProviderImpl) newHostWithPredictableIdentifier() (host.Host, err
 	// or restarts so we will reuse the key-pair we have saved locally.
 	//
 
-	priv, _, err := node.keypairStorer.GetByName(ctx, node.cfg.Peer.KeyName)
-	if err != nil {
-		node.logger.Error("failed getting keypair by name",
-			slog.Any("error", err))
-		return nil, err
-	}
+	priv := node.identityPrivateKey
 
 	//
 	// STEP 2:
