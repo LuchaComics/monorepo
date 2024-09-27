@@ -5,6 +5,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/cmd/account"
 )
 
 var (
@@ -20,10 +22,7 @@ var (
 
 // Initialize function will be called when every command gets called.
 func init() {
-	// Attach `API` sub-commands to our main root.
-	rootCmd.AddCommand(httpJsonApiCmd)
-	httpJsonApiCmd.AddCommand(httpJsonApiAccountCmd())
-	httpJsonApiCmd.AddCommand(httpJsonApiBlockchainCmd())
+
 }
 
 var rootCmd = &cobra.Command{
@@ -36,49 +35,11 @@ var rootCmd = &cobra.Command{
 }
 
 func Execute() {
+	// Attach `account` sub-commands to our main root.
+	rootCmd.AddCommand(account.AccountCmd())
+
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-}
-
-var httpJsonApiCmd = &cobra.Command{
-	Use:   "api",
-	Short: "Execute commands for local running ComicCoin node instance via HTTP JSON API",
-	Run: func(cmd *cobra.Command, args []string) {
-		// Do nothing...
-	},
-}
-
-func httpJsonApiAccountCmd() *cobra.Command {
-	var cmd = &cobra.Command{
-		Use:   "account",
-		Short: "Execute commands related user accounts",
-		Run: func(cmd *cobra.Command, args []string) {
-			// Do nothing...
-		},
-	}
-
-	// Attach our sub-commands for `account`
-	cmd.AddCommand(httpJsonApiNewAccountCmd())
-	cmd.AddCommand(httpJsonApiGetAccountCmd())
-	cmd.AddCommand(httpJsonApiListAccountsCmd())
-
-	return cmd
-}
-
-func httpJsonApiBlockchainCmd() *cobra.Command {
-	var cmd = &cobra.Command{
-		Use:   "blockchain",
-		Short: "Execute commands related to the blockchain blockchain",
-		Run: func(cmd *cobra.Command, args []string) {
-			// Do nothing...
-		},
-	}
-
-	// Attach our sub-commands for `blockchain`
-	cmd.AddCommand(httpJsonApiBlockchainGetBalanceCmd())
-	cmd.AddCommand(httpJsonApiBlockchainSubmitCmd())
-
-	return cmd
 }
