@@ -4,7 +4,7 @@ import (
 	"log/slog"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/domain"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
 	"github.com/ethereum/go-ethereum/common"
 )

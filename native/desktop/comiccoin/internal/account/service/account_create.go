@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/usecase"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/blockchain/keystore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
 )
@@ -14,17 +15,19 @@ type CreateAccountService struct {
 	config               *config.Config
 	logger               *slog.Logger
 	createAccountUseCase *usecase.CreateAccountUseCase
+	getAccountUseCase    *usecase.GetAccountUseCase
 }
 
 func NewCreateAccountService(
 	cfg *config.Config,
 	logger *slog.Logger,
-	uc *usecase.CreateAccountUseCase,
+	uc1 *usecase.CreateAccountUseCase,
+	uc2 *usecase.GetAccountUseCase,
 ) *CreateAccountService {
-	return &CreateAccountService{cfg, logger, uc}
+	return &CreateAccountService{cfg, logger, uc1, uc2}
 }
 
-func (s *CreateAccountService) Execute(dataDir, id, walletPassword string) error {
+func (s *CreateAccountService) Execute(dataDir, id, walletPassword string) (*domain.Account, error) {
 	//
 	// STEP 1: Validation.
 	//
@@ -42,7 +45,7 @@ func (s *CreateAccountService) Execute(dataDir, id, walletPassword string) error
 	if len(e) != 0 {
 		s.logger.Warn("Failed creating new account",
 			slog.Any("error", e))
-		return httperror.NewForBadRequest(&e)
+		return nil, httperror.NewForBadRequest(&e)
 	}
 
 	//
@@ -54,12 +57,23 @@ func (s *CreateAccountService) Execute(dataDir, id, walletPassword string) error
 		s.logger.Error("failed creating new keystore",
 			slog.Any("id", id),
 			slog.Any("error", err))
-		return fmt.Errorf("failed creating new keystore: %s", err)
+		return nil, fmt.Errorf("failed creating new keystore: %s", err)
 	}
 
 	//
 	// STEP 3: Save to our database.
 	//
 
-	return s.createAccountUseCase.Execute(id, walletAddress, walletFilepath)
+	if err := s.createAccountUseCase.Execute(id, walletAddress, walletFilepath); err != nil {
+		s.logger.Error("failed saving to database",
+			slog.Any("id", id),
+			slog.Any("error", err))
+		return nil, fmt.Errorf("failed saving to database: %s", err)
+	}
+
+	//
+	// STEP 4: Return the account.
+	//
+
+	return s.getAccountUseCase.Execute(id)
 }

@@ -10,7 +10,6 @@ import (
 	dberr "github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/util"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/db"
 )
 
@@ -18,19 +17,19 @@ type keyValueStorerImpl struct {
 	db *leveldb.DB
 }
 
-const dbDirName = "blocks"
+const dbDirName = "db"
 
 func GetDBDirPath(dataDir string) string {
 	return filepath.Join(dataDir, dbDirName)
 }
 
-func NewDatabase(cfg *config.Config, logger *slog.Logger) db.Database {
-	if cfg.DB.DataDir == "" {
+func NewDatabase(dataDir string, logger *slog.Logger) db.Database {
+	if dataDir == "" {
 		log.Fatal("cannot have empty dir")
 	}
-	db, err := leveldb.OpenFile(GetDBDirPath(cfg.DB.DataDir), nil)
+	db, err := leveldb.OpenFile(GetDBDirPath(dataDir), nil)
 	if err != nil {
-		log.Fatal("failed loading up key value storer adapter")
+		log.Fatalf("failed loading up key value storer adapter at %v", dataDir)
 	}
 	return &keyValueStorerImpl{
 		db: db,

@@ -8,9 +8,9 @@ import (
 
 	"github.com/rs/cors"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/interface/http/handler"
 	mid "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/interface/http/middleware"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
 )
 
 type HTTPServer interface {
@@ -23,6 +23,7 @@ type httpServerImpl struct {
 	logger                   *slog.Logger
 	server                   *http.Server
 	createAccountHTTPHandler *handler.CreateAccountHTTPHandler
+	getAccountHTTPHandler    *handler.GetAccountHTTPHandler
 }
 
 func NewHTTPServer(
@@ -30,6 +31,7 @@ func NewHTTPServer(
 	logger *slog.Logger,
 	mid mid.Middleware,
 	createAccountHTTPHandler *handler.CreateAccountHTTPHandler,
+	getAccountHTTPHandler *handler.GetAccountHTTPHandler,
 ) HTTPServer {
 	// Initialize the ServeMux.
 	mux := http.NewServeMux()
@@ -56,6 +58,7 @@ func NewHTTPServer(
 		logger:                   logger,
 		server:                   srv,
 		createAccountHTTPHandler: createAccountHTTPHandler,
+		getAccountHTTPHandler:    getAccountHTTPHandler,
 	}
 
 	// Attach the HTTP server controller to the ServerMux.
@@ -100,8 +103,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 	// 	port.account.List(w, r)
 	case n == 3 && p[0] == "v1" && p[1] == "api" && p[2] == "accounts" && r.Method == http.MethodPost:
 		port.createAccountHTTPHandler.Execute(w, r)
-	// case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "account" && r.Method == http.MethodGet:
-	// 	port.account.GetByName(w, r, p[3])
+	case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "account" && r.Method == http.MethodGet:
+		port.getAccountHTTPHandler.Execute(w, r, p[3])
 	// // case n == 4 && p[0] == "v1" && p[1] == "account" && r.Method == http.MethodPut:
 	// // 	port.account.UpdateByName(w, r, p[3])
 	// case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "account" && r.Method == http.MethodDelete:
