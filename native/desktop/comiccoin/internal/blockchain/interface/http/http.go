@@ -18,11 +18,12 @@ type HTTPServer interface {
 }
 
 type httpServerImpl struct {
-	cfg                      *config.Config
-	logger                   *slog.Logger
-	server                   *http.Server
-	createAccountHTTPHandler *handler.CreateAccountHTTPHandler
-	getAccountHTTPHandler    *handler.GetAccountHTTPHandler
+	cfg                          *config.Config
+	logger                       *slog.Logger
+	server                       *http.Server
+	createAccountHTTPHandler     *handler.CreateAccountHTTPHandler
+	getAccountHTTPHandler        *handler.GetAccountHTTPHandler
+	createTransactionHTTPHandler *handler.CreateTransactionHTTPHandler
 }
 
 func NewHTTPServer(
@@ -31,6 +32,7 @@ func NewHTTPServer(
 	mid mid.Middleware,
 	createAccountHTTPHandler *handler.CreateAccountHTTPHandler,
 	getAccountHTTPHandler *handler.GetAccountHTTPHandler,
+	createTransactionHTTPHandler *handler.CreateTransactionHTTPHandler,
 ) HTTPServer {
 	if cfg.App.HTTPAddress == "" {
 		log.Fatal("missing http address")
@@ -56,11 +58,12 @@ func NewHTTPServer(
 	// node and then the rest of this function pertains to setting up a p2p
 	// network to utilize in our app.
 	port := &httpServerImpl{
-		cfg:                      cfg,
-		logger:                   logger,
-		server:                   srv,
-		createAccountHTTPHandler: createAccountHTTPHandler,
-		getAccountHTTPHandler:    getAccountHTTPHandler,
+		cfg:                          cfg,
+		logger:                       logger,
+		server:                       srv,
+		createAccountHTTPHandler:     createAccountHTTPHandler,
+		getAccountHTTPHandler:        getAccountHTTPHandler,
+		createTransactionHTTPHandler: createTransactionHTTPHandler,
 	}
 
 	// Attach the HTTP server controller to the ServerMux.
@@ -99,17 +102,21 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		slog.Int("url_token_count", n))
 
 	switch {
-	// // --- ACCOUNTS --- //
+	// --- ACCOUNTS --- //
 	// case n == 3 && p[0] == "v1" && p[1] == "api" && p[2] == "accounts" && r.Method == http.MethodGet:
 	// 	port.account.List(w, r)
 	case n == 3 && p[0] == "v1" && p[1] == "api" && p[2] == "accounts" && r.Method == http.MethodPost:
 		port.createAccountHTTPHandler.Execute(w, r)
 	case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "account" && r.Method == http.MethodGet:
 		port.getAccountHTTPHandler.Execute(w, r, p[3])
-	// // case n == 4 && p[0] == "v1" && p[1] == "account" && r.Method == http.MethodPut:
-	// // 	port.account.UpdateByName(w, r, p[3])
-	// case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "account" && r.Method == http.MethodDelete:
-	// 	port.account.DeleteByName(w, r, p[3])
+		// // case n == 4 && p[0] == "v1" && p[1] == "account" && r.Method == http.MethodPut:
+		// // 	port.account.UpdateByName(w, r, p[3])
+		// case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "account" && r.Method == http.MethodDelete:
+		// 	port.account.DeleteByName(w, r, p[3])
+
+		// --- TRANSACTIONS --- //
+	case n == 3 && p[0] == "v1" && p[1] == "api" && p[2] == "txs" && r.Method == http.MethodPost:
+		port.createTransactionHTTPHandler.Execute(w, r)
 
 	// --- CATCH ALL: D.N.E. ---
 	default:

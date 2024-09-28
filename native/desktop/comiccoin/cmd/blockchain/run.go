@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config/constants"
 	account_http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/http"
 	account_httphandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/http/handler"
 	httpmiddle "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/http/middleware"
@@ -41,6 +42,11 @@ func runCmd() *cobra.Command {
 			// }
 
 			cfg := &config.Config{
+				Blockchain: config.BlockchainConfig{
+					ChainID:       constants.ChainIDMainNet,
+					TransPerBlock: 1,
+					Difficulty:    2,
+				},
 				App: config.AppConfig{
 					DirPath:     flagDataDir,
 					HTTPAddress: flagListenHTTPAddress,
@@ -70,11 +76,13 @@ func runCmd() *cobra.Command {
 			// HTTP
 			createAccountHTTPHandler := account_httphandler.NewCreateAccountHTTPHandler(cfg, logger, createAccountService)
 			getAccountHTTPHandler := account_httphandler.NewGetAccountHTTPHandler(cfg, logger, getAccountService)
+			createTransactionHTTPHandler := account_httphandler.NewCreateTransactionHTTPHandler(cfg, logger, getKeyService)
 			httpMiddleware := httpmiddle.NewMiddleware(cfg, logger)
 			httpServ := account_http.NewHTTPServer(
 				cfg, logger, httpMiddleware,
 				createAccountHTTPHandler,
 				getAccountHTTPHandler,
+				createTransactionHTTPHandler,
 			)
 
 			// RPC

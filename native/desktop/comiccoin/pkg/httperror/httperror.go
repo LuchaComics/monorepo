@@ -46,6 +46,14 @@ func NewForBadRequestWithSingleField(field string, message string) error {
 	}
 }
 
+// NewForNotFoundWithSingleField create a new HTTPError instance pertaining to 404 not found for a single field. This is a convinience constructor.
+func NewForNotFoundWithSingleField(field string, message string) error {
+	return HTTPError{
+		Code:   http.StatusNotFound,
+		Errors: &map[string]string{field: message},
+	}
+}
+
 // NewForServiceUnavailableWithSingleField create a new HTTPError instance pertaining service unavailable for a single field. This is a convinience constructor.
 func NewForServiceUnavailableWithSingleField(field string, message string) error {
 	return HTTPError{

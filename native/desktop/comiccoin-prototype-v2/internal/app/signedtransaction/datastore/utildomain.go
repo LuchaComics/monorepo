@@ -32,9 +32,9 @@ func (tx Transaction) Sign(privateKey *ecdsa.PrivateKey) (SignedTransaction, err
 	// Create the signed transaction, including the original transaction and the signature parts.
 	signedTx := SignedTransaction{
 		Transaction: tx,
-		V:                  v,
-		R:                  r,
-		S:                  s,
+		V:           v,
+		R:           r,
+		S:           s,
 	}
 
 	return signedTx, nil

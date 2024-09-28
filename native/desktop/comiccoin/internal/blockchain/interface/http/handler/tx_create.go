@@ -7,26 +7,27 @@ import (
 	"net/http"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/service"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
 )
 
-type SubmitHTTPHandler struct {
-	config *config.Config
-	logger *slog.Logger
-	// createAccountService *service.SubmitService
+type CreateTransactionHTTPHandler struct {
+	config        *config.Config
+	logger        *slog.Logger
+	getKeyService *service.GetKeyService
 }
 
-func NewSubmitHTTPHandler(
+func NewCreateTransactionHTTPHandler(
 	cfg *config.Config,
 	logger *slog.Logger,
-	// s *service.SubmitService,
-) *SubmitHTTPHandler {
-	return &SubmitHTTPHandler{cfg, logger}
+	getKeyService *service.GetKeyService,
+) *CreateTransactionHTTPHandler {
+	return &CreateTransactionHTTPHandler{cfg, logger, getKeyService}
 }
 
-type BlockchainSubmitRequestIDO struct {
+type BlockchainCreateTransactionRequestIDO struct {
 	// Name of the account
-	FromAccountName string `json:"from_account_name"`
+	FromAccountID string `json:"from_account_id"`
 
 	AccountWalletPassword string `json:"account_wallet_password"`
 
@@ -40,13 +41,13 @@ type BlockchainSubmitRequestIDO struct {
 	Data []byte `json:"data"`
 }
 
-type BlockchainSubmitResponseIDO struct {
+type BlockchainCreateTransactionResponseIDO struct {
 }
 
-func (h *SubmitHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
+func (h *CreateTransactionHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	requestPayload, err := unmarshalSubmitRequest(ctx, r)
+	requestPayload, err := unmarshalCreateTransactionRequest(ctx, r)
 	if err != nil {
 		httperror.ResponseError(w, err)
 		return
@@ -54,12 +55,17 @@ func (h *SubmitHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
 
 	_ = requestPayload
 
-	// account, serviceErr := h.createAccountService.Execute(h.config.App.DirPath, requestPayload.ID, requestPayload.WalletPassword)
-	// if serviceErr != nil {
-	// 	httperror.ResponseError(w, serviceErr)
-	// 	return
-	// }
-	//
+	key, serviceErr := h.getKeyService.Execute(requestPayload.FromAccountID, requestPayload.AccountWalletPassword)
+	if serviceErr != nil {
+		httperror.ResponseError(w, serviceErr)
+		return
+	}
+	if key == nil {
+		notFoundErr := httperror.NewForNotFoundWithSingleField("account_id", "account does not exist")
+		httperror.ResponseError(w, notFoundErr)
+		return
+	}
+
 	// // Conver to our HTTP response and send back to the user.
 	// responsePayload := &AccountCreateResponseIDO{
 	// 	ID:            account.ID,
@@ -73,9 +79,9 @@ func (h *SubmitHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
 	// }
 }
 
-func unmarshalSubmitRequest(ctx context.Context, r *http.Request) (*BlockchainSubmitRequestIDO, error) {
+func unmarshalCreateTransactionRequest(ctx context.Context, r *http.Request) (*BlockchainCreateTransactionRequestIDO, error) {
 	// Initialize our array which will store all the results from the remote server.
-	var requestData *BlockchainSubmitRequestIDO
+	var requestData *BlockchainCreateTransactionRequestIDO
 
 	defer r.Body.Close()
 
