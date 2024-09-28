@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -36,10 +37,10 @@ func runCmd() *cobra.Command {
 			done := make(chan os.Signal, 1)
 			signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL, syscall.SIGUSR1)
 
-			// bootstrapPeers, err := StringToAddres(flagBootstrapPeers)
-			// if err != nil {
-			// 	log.Fatalf("Failed converting string to multi-addresses: %v\n", err)
-			// }
+			bootstrapPeers, err := StringToAddres(flagBootstrapPeers)
+			if err != nil {
+				log.Fatalf("Failed converting string to multi-addresses: %v\n", err)
+			}
 
 			cfg := &config.Config{
 				Blockchain: config.BlockchainConfig{
@@ -54,6 +55,12 @@ func runCmd() *cobra.Command {
 				},
 				DB: config.DBConfig{
 					DataDir: flagDataDir,
+				},
+				Peer: config.PeerConfig{
+					ListenPort:       flagListenPeerToPeerPort,
+					KeyName:          flagKeypairName,
+					RendezvousString: flagRendezvousString,
+					BootstrapPeers:   bootstrapPeers,
 				},
 			}
 			logger := logger.NewLogger()
@@ -112,6 +119,8 @@ func runCmd() *cobra.Command {
 	cmd.Flags().StringVar(&flagDataDir, "datadir", "./data", "Absolute path to your node's data dir where the DB will be/is stored")
 	cmd.Flags().StringVar(&flagListenHTTPAddress, "listen-http-address", "127.0.0.1:8000", "The IP and port to attach for our HTTP JSON API server")
 	cmd.Flags().StringVar(&flagListenRPCAddress, "listen-rpc-address", "localhost:8001", "The ip and port to listen to for the TCP RPC server")
+	cmd.Flags().StringVar(&flagIdentityKeyID, "identitykey-id", "", "The unique identifier  to use to lookup the identity key and assign to this peer")
+	cmd.MarkFlagRequired("identity-key-id")
 
 	return cmd
 }

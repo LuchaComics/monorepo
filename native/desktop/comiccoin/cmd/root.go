@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/cmd/blockchain"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/cmd/peer"
 )
 
 var (
@@ -38,7 +37,6 @@ var rootCmd = &cobra.Command{
 func Execute() {
 	// Attach sub-commands to our main root.
 	rootCmd.AddCommand(blockchain.BlockchainCmd())
-	rootCmd.AddCommand(peer.PeerCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)

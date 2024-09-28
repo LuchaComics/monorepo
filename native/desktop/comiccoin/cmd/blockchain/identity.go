@@ -1,4 +1,4 @@
-package peer
+package blockchain
 
 import (
 	"log"
@@ -6,10 +6,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/peer/config"
-	ik_repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/peer/repo"
-	ik_s "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/peer/service"
-	ik_use "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/peer/usecase"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
+	ik_repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo"
+	ik_s "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/service"
+	ik_use "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
 	dbase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/db/leveldb"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/logger"
 )
@@ -31,18 +31,18 @@ func identityCmd() *cobra.Command {
 func newIdentityCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "new",
-		Short: "Creates new identity key",
+		Short: "Creates new identity key for our ComicCoin node required for the peer-to-peer network",
 		Run: func(cmd *cobra.Command, args []string) {
 			//
 			// STEP 1
 			// Load up our dependencies and configuration
 			//
 
+			// We can setup minimal settings as the systems affect don't have
+			// much configuration to deal with.
 			cfg := &config.Config{
 				App: config.AppConfig{
-					HTTPPort: flagListenHTTPPort,
-					HTTPIP:   flagListenHTTPIP,
-					DirPath:  flagDataDir,
+					DirPath: flagDataDir,
 				},
 				DB: config.DBConfig{
 					DataDir: flagDataDir,
@@ -84,11 +84,12 @@ func getIdentityCmd() *cobra.Command {
 			// Load up our dependencies and configuration
 			//
 
+			// DEVELOPERS NOTE:
+			// We can setup minimal settings as the systems affect don't have
+			// much configuration to deal with.
 			cfg := &config.Config{
 				App: config.AppConfig{
-					HTTPPort: flagListenHTTPPort,
-					HTTPIP:   flagListenHTTPIP,
-					DirPath:  flagDataDir,
+					DirPath: flagDataDir,
 				},
 				DB: config.DBConfig{
 					DataDir: flagDataDir,

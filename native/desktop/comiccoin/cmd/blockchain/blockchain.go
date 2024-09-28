@@ -24,6 +24,8 @@ var (
 
 	flagListenHTTPAddress string
 	flagListenRPCAddress  string
+
+	flagIdentityKeyID string
 )
 
 // // HTTP endpoints

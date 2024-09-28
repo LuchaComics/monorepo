@@ -1,4 +1,4 @@
-package peer
+package blockchain
 
 // DEVELOPERS NOTE:
 // Special thanks to the following link:

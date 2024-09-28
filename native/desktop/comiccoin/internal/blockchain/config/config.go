@@ -1,9 +1,14 @@
 package config
 
+import (
+	maddr "github.com/multiformats/go-multiaddr"
+)
+
 type Config struct {
 	Blockchain BlockchainConfig
 	App        AppConfig
 	DB         DBConfig
+	Peer       PeerConfig
 }
 
 type BlockchainConfig struct {
@@ -33,4 +38,12 @@ type AppConfig struct {
 type DBConfig struct {
 	// Location of were to save the database files.
 	DataDir string
+}
+
+type PeerConfig struct {
+	ListenPort       int
+	KeyName          string
+	RendezvousString string
+	BootstrapPeers   []maddr.Multiaddr
+	ListenAddresses  []maddr.Multiaddr
 }
