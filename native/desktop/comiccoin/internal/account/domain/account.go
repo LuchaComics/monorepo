@@ -14,9 +14,10 @@ import (
 // Note: Private key - Used to sign transactions
 // Note: Public key - Acts as the user’s address.
 type Account struct {
-	ID             string         `json:"id"`
-	WalletFilepath string         `json:"wallet_filepath"`
-	WalletAddress  common.Address `json:"wallet_address"`
+	ID             string          `json:"id"`
+	Balance        uint64          `json:"balance"`
+	WalletFilepath string          `json:"wallet_filepath"`
+	WalletAddress  *common.Address `json:"wallet_address"`
 }
 
 type AccountRepository interface {

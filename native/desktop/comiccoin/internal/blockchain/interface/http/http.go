@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
@@ -33,6 +32,10 @@ func NewHTTPServer(
 	createAccountHTTPHandler *handler.CreateAccountHTTPHandler,
 	getAccountHTTPHandler *handler.GetAccountHTTPHandler,
 ) HTTPServer {
+	if cfg.App.HTTPAddress == "" {
+		log.Fatal("missing http address")
+	}
+
 	// Initialize the ServeMux.
 	mux := http.NewServeMux()
 
@@ -42,9 +45,8 @@ func NewHTTPServer(
 	handler := cors.AllowAll().Handler(mux)
 
 	// Bind the HTTP server to the assigned address and port.
-	addr := fmt.Sprintf("%s:%d", cfg.App.HTTPIP, cfg.App.HTTPPort)
 	srv := &http.Server{
-		Addr:    addr,
+		Addr:    cfg.App.HTTPAddress,
 		Handler: handler,
 	}
 
@@ -70,8 +72,7 @@ func NewHTTPServer(
 func (port *httpServerImpl) Run() {
 	// ctx := context.Background()
 	port.logger.Info("Running HTTP JSON API",
-		slog.Int("listen_port", port.cfg.App.HTTPPort),
-		slog.String("listen_ip", port.cfg.App.HTTPIP))
+		slog.String("listen_address", port.cfg.App.HTTPAddress))
 	if err := port.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		port.logger.Error("listen failed", slog.Any("error", err))
 

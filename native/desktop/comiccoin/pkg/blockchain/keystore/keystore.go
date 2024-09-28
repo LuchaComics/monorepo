@@ -1,6 +1,8 @@
 package keystore
 
 import (
+	"fmt"
+	"io/ioutil"
 	"path/filepath"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
@@ -22,6 +24,19 @@ func NewKeystore(dataDir, password string) (common.Address, string, error) {
 	}
 
 	return acc.Address, acc.URL.Path, nil
+}
+
+func GetKeyAfterDecryptingWalletAtFilepath(walletFilepath string, walletPassword string) (*keystore.Key, error) {
+	keyJson, err := ioutil.ReadFile(walletFilepath)
+	if err != nil {
+		return nil, fmt.Errorf("failed reading file: %v", err)
+	}
+
+	key, err := keystore.DecryptKey(keyJson, walletPassword)
+	if err != nil {
+		return nil, fmt.Errorf("failed decrypting file: %v", err)
+	}
+	return key, nil
 }
 
 // func SignTransactionWithKeystoreAccount(tx blockchain.Transaction, acc common.Address, pwd, keystoreDir string) (blockchain.SignedTransaction, error) {

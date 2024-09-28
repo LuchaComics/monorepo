@@ -11,6 +11,7 @@ import (
 	account_http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/interface/http"
 	account_httphandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/interface/http/handler"
 	httpmiddle "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/interface/http/middleware"
+	account_rpc "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/interface/rpc"
 	account_repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/repo"
 	account_s "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/service"
 	account_usecase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/usecase"
@@ -41,9 +42,9 @@ func runCmd() *cobra.Command {
 
 			cfg := &config.Config{
 				App: config.AppConfig{
-					HTTPPort: flagListenHTTPPort,
-					HTTPIP:   flagListenHTTPIP,
-					DirPath:  flagDataDir,
+					DirPath:     flagDataDir,
+					HTTPAddress: flagListenHTTPAddress,
+					RPCAddress:  flagListenRPCAddress,
 				},
 				DB: config.DBConfig{
 					DataDir: flagDataDir,
@@ -51,11 +52,22 @@ func runCmd() *cobra.Command {
 			}
 			logger := logger.NewLogger()
 			db := dbase.NewDatabase(cfg.DB.DataDir, logger)
+
+			// Repo
 			accountRepo := account_repo.NewAccountRepo(cfg, logger, db)
+
+			// Use-case
 			createAccountUseCase := account_usecase.NewCreateAccountUseCase(cfg, logger, accountRepo)
 			getAccountUseCase := account_usecase.NewGetAccountUseCase(cfg, logger, accountRepo)
-			createAccountService := account_s.NewCreateAccountService(cfg, logger, createAccountUseCase, getAccountUseCase)
+			accountDecryptKeyUseCase := account_usecase.NewAccountDecryptKeyUseCase(cfg, logger, accountRepo)
+			accountEncryptKeyUseCase := account_usecase.NewAccountEncryptKeyUseCase(cfg, logger, accountRepo)
+
+			// Service
+			createAccountService := account_s.NewCreateAccountService(cfg, logger, createAccountUseCase, getAccountUseCase, accountEncryptKeyUseCase)
 			getAccountService := account_s.NewGetAccountService(cfg, logger, getAccountUseCase)
+			getKeyService := account_s.NewGetKeyService(cfg, logger, getAccountUseCase, accountDecryptKeyUseCase)
+
+			// HTTP
 			createAccountHTTPHandler := account_httphandler.NewCreateAccountHTTPHandler(cfg, logger, createAccountService)
 			getAccountHTTPHandler := account_httphandler.NewGetAccountHTTPHandler(cfg, logger, getAccountService)
 			httpMiddleware := httpmiddle.NewMiddleware(cfg, logger)
@@ -63,6 +75,12 @@ func runCmd() *cobra.Command {
 				cfg, logger, httpMiddleware,
 				createAccountHTTPHandler,
 				getAccountHTTPHandler,
+			)
+
+			// RPC
+			rpcServ := account_rpc.NewRPCServer(
+				cfg, logger,
+				getKeyService,
 			)
 
 			//
@@ -75,15 +93,17 @@ func runCmd() *cobra.Command {
 			// blockchain with the network.
 			// go peerNode.Run()
 			go httpServ.Run()
+			go rpcServ.Run()
 			defer httpServ.Shutdown()
+			defer rpcServ.Shutdown()
 
 			<-done
 		},
 	}
 
 	cmd.Flags().StringVar(&flagDataDir, "datadir", "./data", "Absolute path to your node's data dir where the DB will be/is stored")
-	cmd.Flags().IntVar(&flagListenHTTPPort, "listen-http-port", 8000, "The port to listen to for the HTTP JSON API server")
-	cmd.Flags().StringVar(&flagListenHTTPIP, "listen-http-ip", "127.0.0.1", "The IP address to attach our HTTP JSON API server")
+	cmd.Flags().StringVar(&flagListenHTTPAddress, "listen-http-address", "127.0.0.1:8000", "The IP and port to attach for our HTTP JSON API server")
+	cmd.Flags().StringVar(&flagListenRPCAddress, "listen-rpc-address", "localhost:8001", "The ip and port to listen to for the TCP RPC server")
 
 	return cmd
 }

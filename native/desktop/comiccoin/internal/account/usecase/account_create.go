@@ -3,8 +3,8 @@ package usecase
 import (
 	"log/slog"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -19,7 +19,7 @@ func NewCreateAccountUseCase(config *config.Config, logger *slog.Logger, repo do
 	return &CreateAccountUseCase{config, logger, repo}
 }
 
-func (uc *CreateAccountUseCase) Execute(id string, walletAddress common.Address, walletFilepath string) error {
+func (uc *CreateAccountUseCase) Execute(id string, walletAddress *common.Address, walletFilepath string) error {
 	//
 	// STEP 1: Validation.
 	//
@@ -28,7 +28,7 @@ func (uc *CreateAccountUseCase) Execute(id string, walletAddress common.Address,
 	if id == "" {
 		e["id"] = "missing value"
 	}
-	if walletAddress.String() == "" {
+	if walletAddress == nil {
 		e["wallet_address"] = "missing value"
 	}
 	if walletFilepath == "" {

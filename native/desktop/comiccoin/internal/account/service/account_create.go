@@ -7,15 +7,15 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/usecase"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/blockchain/keystore"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
 )
 
 type CreateAccountService struct {
-	config               *config.Config
-	logger               *slog.Logger
-	createAccountUseCase *usecase.CreateAccountUseCase
-	getAccountUseCase    *usecase.GetAccountUseCase
+	config                   *config.Config
+	logger                   *slog.Logger
+	createAccountUseCase     *usecase.CreateAccountUseCase
+	getAccountUseCase        *usecase.GetAccountUseCase
+	accountEncryptKeyUseCase *usecase.AccountEncryptKeyUseCase
 }
 
 func NewCreateAccountService(
@@ -23,8 +23,9 @@ func NewCreateAccountService(
 	logger *slog.Logger,
 	uc1 *usecase.CreateAccountUseCase,
 	uc2 *usecase.GetAccountUseCase,
+	uc3 *usecase.AccountEncryptKeyUseCase,
 ) *CreateAccountService {
-	return &CreateAccountService{cfg, logger, uc1, uc2}
+	return &CreateAccountService{cfg, logger, uc1, uc2, uc3}
 }
 
 func (s *CreateAccountService) Execute(dataDir, id, walletPassword string) (*domain.Account, error) {
@@ -52,7 +53,7 @@ func (s *CreateAccountService) Execute(dataDir, id, walletPassword string) (*dom
 	// STEP 2: Create the encryted physical wallet on file.
 	//
 
-	walletAddress, walletFilepath, err := keystore.NewKeystore(dataDir, walletPassword)
+	walletAddress, walletFilepath, err := s.accountEncryptKeyUseCase.Execute(dataDir, walletPassword)
 	if err != nil {
 		s.logger.Error("failed creating new keystore",
 			slog.Any("id", id),

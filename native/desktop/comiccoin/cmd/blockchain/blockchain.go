@@ -1,4 +1,4 @@
-package account
+package blockchain
 
 import "github.com/spf13/cobra"
 
@@ -11,7 +11,7 @@ var (
 	flagRecipientAddress string
 	flagAmount           uint64
 	flagKeypairName      string
-	flagAccountID        string
+	flagBlockchainID     string
 
 	flagRendezvousString string
 	flagBootstrapPeers   string
@@ -28,25 +28,25 @@ var (
 
 // HTTP endpoints
 const (
-	accountsURL      = "/v1/api/accounts"
-	accountDetailURL = "/v1/api/account/${ACCOUNT_ID}"
+	blockchainsURL      = "/v1/api/blockchains"
+	blockchainDetailURL = "/v1/api/blockchain/${ACCOUNT_ID}"
 )
 
-func AccountCmd() *cobra.Command {
+func BlockchainCmd() *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "account",
-		Short: "Execute commands related to accounts",
+		Use:   "blockchain",
+		Short: "Execute commands related to the blockchain",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Do nothing...
 		},
 	}
 
-	// Attach our sub-commands for `account`
+	// Attach our sub-commands for `blockchain`
 	// Version Command
 	cmd.AddCommand(versionCmd)
-	cmd.AddCommand(runCmd())
-	cmd.AddCommand(httpJsonApiNewAccountCmd())
-	cmd.AddCommand(httpJsonApiGetAccountCmd())
+	// cmd.AddCommand(runCmd())
+	// cmd.AddCommand(httpJsonApiNewBlockchainCmd())
+	// cmd.AddCommand(httpJsonApiGetBlockchainCmd())
 
 	return cmd
 }

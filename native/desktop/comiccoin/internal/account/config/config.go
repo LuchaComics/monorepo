@@ -11,12 +11,13 @@ type AppConfig struct {
 	// save to.
 	DirPath string
 
-	// HttpPort variable is the port that the HTTP JSON API server will listen
-	// on for this application. Do not expose to public!
-	HTTPPort int
+	// HTTPAddress variable is the address and port that the HTTP JSON API
+	// server will listen on for this application. Do not expose to public!
+	HTTPAddress string
 
-	// HttpIP variable is the address to bind the HTTP JSON API server onto.
-	HTTPIP string
+	// RPCAddress variable is the address and port that the TCP RCP
+	// server will listen on for this application. Do not expose to public!
+	RPCAddress string
 }
 
 type DBConfig struct {
