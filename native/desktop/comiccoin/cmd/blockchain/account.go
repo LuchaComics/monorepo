@@ -8,7 +8,7 @@ const (
 	accountDetailURL = "/v1/api/account/${ACCOUNT_ID}"
 )
 
-func AccountCmd() *cobra.Command {
+func accountCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "account",
 		Short: "Execute commands related to accounts",
