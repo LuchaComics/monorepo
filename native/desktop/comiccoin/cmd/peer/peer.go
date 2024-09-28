@@ -34,7 +34,7 @@ const (
 func PeerCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "peer",
-		Short: "Execute commands related to peer-to-peer networking",
+		Short: "Execute commands related to ComicCoin blockchain peer-to-peer networking functionality",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Do nothing...
 		},

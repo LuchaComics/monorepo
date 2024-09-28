@@ -11,23 +11,21 @@ import (
 type GetAccountUseCase struct {
 	config *config.Config
 	logger *slog.Logger
+	repo   domain.AccountRepository
 }
 
-func NewGetAccountUseCase(config *config.Config, logger *slog.Logger) *GetAccountUseCase {
-	return &GetAccountUseCase{config, logger}
+func NewGetAccountUseCase(config *config.Config, logger *slog.Logger, repo domain.AccountRepository) *GetAccountUseCase {
+	return &GetAccountUseCase{config, logger, repo}
 }
 
-func (uc *GetAccountUseCase) Execute(accountID string, walletPassword string) (*domain.Account, error) {
+func (uc *GetAccountUseCase) Execute(id string) (*domain.Account, error) {
 	//
 	// STEP 1: Validation.
 	//
 
 	e := make(map[string]string)
-	if accountID == "" {
-		e["account_id"] = "missing value"
-	}
-	if walletPassword == "" {
-		e["wallet_password"] = "missing value"
+	if id == "" {
+		e["id"] = "missing value"
 	}
 	if len(e) != 0 {
 		uc.logger.Warn("Failed getting account",
@@ -39,6 +37,5 @@ func (uc *GetAccountUseCase) Execute(accountID string, walletPassword string) (*
 	// STEP 2: Insert into database.
 	//
 
-	return uc.repo.GetByHash(hash)
-	return nil, nil
+	return uc.repo.GetByID(id)
 }

@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 )
 
 type Middleware interface {

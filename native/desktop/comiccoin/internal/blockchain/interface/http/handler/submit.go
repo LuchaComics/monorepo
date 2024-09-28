@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
 )
 
@@ -51,6 +51,8 @@ func (h *SubmitHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
 		httperror.ResponseError(w, err)
 		return
 	}
+
+	_ = requestPayload
 
 	// account, serviceErr := h.createAccountService.Execute(h.config.App.DirPath, requestPayload.ID, requestPayload.WalletPassword)
 	// if serviceErr != nil {

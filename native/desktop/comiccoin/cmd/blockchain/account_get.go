@@ -1,4 +1,4 @@
-package account
+package blockchain
 
 import (
 	"bytes"
@@ -12,7 +12,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	ah "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/interface/http/handler"
+	ah "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/http/handler"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/logger"
 )
 

@@ -8,9 +8,9 @@ import (
 	"net/rpc"
 	"time"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/interface/rpc/handler"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/service"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/rpc/handler"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/service"
 )
 
 type RPCServer interface {

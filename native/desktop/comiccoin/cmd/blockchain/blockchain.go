@@ -11,7 +11,7 @@ var (
 	flagRecipientAddress string
 	flagAmount           uint64
 	flagKeypairName      string
-	flagBlockchainID     string
+	flagAccountID        string
 
 	flagRendezvousString string
 	flagBootstrapPeers   string
@@ -26,27 +26,24 @@ var (
 	flagListenRPCAddress  string
 )
 
-// HTTP endpoints
-const (
-	blockchainsURL      = "/v1/api/blockchains"
-	blockchainDetailURL = "/v1/api/blockchain/${ACCOUNT_ID}"
-)
+// // HTTP endpoints
+// const (
+// 	accountsURL      = "/v1/api/accounts"
+// 	accountDetailURL = "/v1/api/account/${ACCOUNT_ID}"
+// )
 
 func BlockchainCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "blockchain",
-		Short: "Execute commands related to the blockchain",
+		Short: "Commands related to blockchain operations (Create Account, Submit Payment, etc)",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Do nothing...
 		},
 	}
 
-	// Attach our sub-commands for `blockchain`
-	// Version Command
-	cmd.AddCommand(versionCmd)
-	// cmd.AddCommand(runCmd())
-	// cmd.AddCommand(httpJsonApiNewBlockchainCmd())
-	// cmd.AddCommand(httpJsonApiGetBlockchainCmd())
+	// Attach our sub-commands
+	cmd.AddCommand(AccountCmd())
+	cmd.AddCommand(runCmd())
 
 	return cmd
 }

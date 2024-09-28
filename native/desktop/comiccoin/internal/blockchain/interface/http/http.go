@@ -7,9 +7,9 @@ import (
 
 	"github.com/rs/cors"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/interface/http/handler"
-	mid "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/interface/http/middleware"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/http/handler"
+	mid "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/http/middleware"
 )
 
 type HTTPServer interface {

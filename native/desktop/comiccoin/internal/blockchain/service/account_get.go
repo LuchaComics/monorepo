@@ -3,9 +3,9 @@ package service
 import (
 	"log/slog"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/domain"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/usecase"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
 )
 

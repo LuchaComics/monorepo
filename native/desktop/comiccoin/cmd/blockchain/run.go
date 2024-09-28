@@ -8,7 +8,13 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
-	blockdata_repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo"
+	account_http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/http"
+	account_httphandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/http/handler"
+	httpmiddle "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/http/middleware"
+	account_rpc "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/rpc"
+	account_repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo"
+	account_s "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/service"
+	account_usecase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
 	dbase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/db/leveldb"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/logger"
 )
@@ -16,7 +22,7 @@ import (
 func runCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "run",
-		Short: "Runs the blockchain",
+		Short: "Runs the blockchain application",
 		Run: func(cmd *cobra.Command, args []string) {
 			//
 			// STEP 1
@@ -48,56 +54,56 @@ func runCmd() *cobra.Command {
 			db := dbase.NewDatabase(cfg.DB.DataDir, logger)
 
 			// Repo
-			blockdataRepo := blockdata_repo.NewBlockDataRepo(cfg, logger, db)
+			accountRepo := account_repo.NewAccountRepo(cfg, logger, db)
 
-			// // Use-case
-			// createBlockchainUseCase := blockchain_usecase.NewCreateBlockchainUseCase(cfg, logger, blockchainRepo)
-			// getBlockchainUseCase := blockchain_usecase.NewGetBlockchainUseCase(cfg, logger, blockchainRepo)
-			// blockchainDecryptKeyUseCase := blockchain_usecase.NewBlockchainDecryptKeyUseCase(cfg, logger, blockchainRepo)
-			// blockchainEncryptKeyUseCase := blockchain_usecase.NewBlockchainEncryptKeyUseCase(cfg, logger, blockchainRepo)
+			// Use-case
+			createAccountUseCase := account_usecase.NewCreateAccountUseCase(cfg, logger, accountRepo)
+			getAccountUseCase := account_usecase.NewGetAccountUseCase(cfg, logger, accountRepo)
+			accountDecryptKeyUseCase := account_usecase.NewAccountDecryptKeyUseCase(cfg, logger, accountRepo)
+			accountEncryptKeyUseCase := account_usecase.NewAccountEncryptKeyUseCase(cfg, logger, accountRepo)
+
+			// Service
+			createAccountService := account_s.NewCreateAccountService(cfg, logger, createAccountUseCase, getAccountUseCase, accountEncryptKeyUseCase)
+			getAccountService := account_s.NewGetAccountService(cfg, logger, getAccountUseCase)
+			getKeyService := account_s.NewGetKeyService(cfg, logger, getAccountUseCase, accountDecryptKeyUseCase)
+
+			// HTTP
+			createAccountHTTPHandler := account_httphandler.NewCreateAccountHTTPHandler(cfg, logger, createAccountService)
+			getAccountHTTPHandler := account_httphandler.NewGetAccountHTTPHandler(cfg, logger, getAccountService)
+			httpMiddleware := httpmiddle.NewMiddleware(cfg, logger)
+			httpServ := account_http.NewHTTPServer(
+				cfg, logger, httpMiddleware,
+				createAccountHTTPHandler,
+				getAccountHTTPHandler,
+			)
+
+			// RPC
+			rpcServ := account_rpc.NewRPCServer(
+				cfg, logger,
+				getKeyService,
+			)
+
 			//
-			// // Service
-			// createBlockchainService := blockchain_s.NewCreateBlockchainService(cfg, logger, createBlockchainUseCase, getBlockchainUseCase, blockchainEncryptKeyUseCase)
-			// getBlockchainService := blockchain_s.NewGetBlockchainService(cfg, logger, getBlockchainUseCase)
-			// getKeyService := blockchain_s.NewGetKeyService(cfg, logger, getBlockchainUseCase, blockchainDecryptKeyUseCase)
+			// STEP 3
+			// Run the main loop blocking code while other input ports run in
+			// background.
 			//
-			// // HTTP
-			// createBlockchainHTTPHandler := blockchain_httphandler.NewCreateBlockchainHTTPHandler(cfg, logger, createBlockchainService)
-			// getBlockchainHTTPHandler := blockchain_httphandler.NewGetBlockchainHTTPHandler(cfg, logger, getBlockchainService)
-			// httpMiddleware := httpmiddle.NewMiddleware(cfg, logger)
-			// httpServ := blockchain_http.NewHTTPServer(
-			// 	cfg, logger, httpMiddleware,
-			// 	createBlockchainHTTPHandler,
-			// 	getBlockchainHTTPHandler,
-			// )
-			//
-			// // RPC
-			// rpcServ := blockchain_rpc.NewRPCServer(
-			// 	cfg, logger,
-			// 	getKeyService,
-			// )
-			//
-			// //
-			// // STEP 3
-			// // Run the main loop blocking code while other input ports run in
-			// // background.
-			// //
-			//
-			// // Run in background the peer to peer node which will synchronize our
-			// // blockchain with the network.
-			// // go peerNode.Run()
-			// go httpServ.Run()
-			// go rpcServ.Run()
-			// defer httpServ.Shutdown()
-			// defer rpcServ.Shutdown()
+
+			// Run in background the peer to peer node which will synchronize our
+			// blockchain with the network.
+			// go peerNode.Run()
+			go httpServ.Run()
+			go rpcServ.Run()
+			defer httpServ.Shutdown()
+			defer rpcServ.Shutdown()
 
 			<-done
 		},
 	}
 
 	cmd.Flags().StringVar(&flagDataDir, "datadir", "./data", "Absolute path to your node's data dir where the DB will be/is stored")
-	cmd.Flags().StringVar(&flagListenHTTPAddress, "listen-http-address", "127.0.0.1:8010", "The IP and port to attach for our HTTP JSON API server")
-	cmd.Flags().StringVar(&flagListenRPCAddress, "listen-rpc-address", "localhost:8011", "The ip and port to listen to for the TCP RPC server")
+	cmd.Flags().StringVar(&flagListenHTTPAddress, "listen-http-address", "127.0.0.1:8000", "The IP and port to attach for our HTTP JSON API server")
+	cmd.Flags().StringVar(&flagListenRPCAddress, "listen-rpc-address", "localhost:8001", "The ip and port to listen to for the TCP RPC server")
 
 	return cmd
 }

@@ -6,7 +6,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/cmd/account"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/cmd/blockchain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/cmd/peer"
 )
@@ -37,10 +36,9 @@ var rootCmd = &cobra.Command{
 }
 
 func Execute() {
-	// Attach `account` sub-commands to our main root.
-	rootCmd.AddCommand(account.AccountCmd())
-	rootCmd.AddCommand(peer.PeerCmd())
+	// Attach sub-commands to our main root.
 	rootCmd.AddCommand(blockchain.BlockchainCmd())
+	rootCmd.AddCommand(peer.PeerCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)

@@ -4,8 +4,8 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/account/service"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/service"
 )
 
 type AccountServer struct {
