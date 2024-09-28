@@ -15,10 +15,14 @@ import (
 	httpmiddle "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/http/middleware"
 	account_rpc "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/rpc"
 	account_repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo"
+	ik_repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo"
 	account_s "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/service"
+	ik_s "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/service"
 	account_usecase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
+	ik_use "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
 	dbase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/db/leveldb"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/logger"
+	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p"
 )
 
 func runCmd() *cobra.Command {
@@ -68,17 +72,61 @@ func runCmd() *cobra.Command {
 
 			// Repo
 			accountRepo := account_repo.NewAccountRepo(cfg, logger, db)
+			ikRepo := ik_repo.NewIdentityKeyRepo(cfg, logger, db)
 
 			// Use-case
 			createAccountUseCase := account_usecase.NewCreateAccountUseCase(cfg, logger, accountRepo)
 			getAccountUseCase := account_usecase.NewGetAccountUseCase(cfg, logger, accountRepo)
 			accountDecryptKeyUseCase := account_usecase.NewAccountDecryptKeyUseCase(cfg, logger, accountRepo)
 			accountEncryptKeyUseCase := account_usecase.NewAccountEncryptKeyUseCase(cfg, logger, accountRepo)
+			ikCreateUseCase := ik_use.NewCreateIdentityKeyUseCase(cfg, logger, ikRepo)
+			ikGetUseCase := ik_use.NewGetIdentityKeyUseCase(cfg, logger, ikRepo)
 
 			// Service
 			createAccountService := account_s.NewCreateAccountService(cfg, logger, createAccountUseCase, getAccountUseCase, accountEncryptKeyUseCase)
 			getAccountService := account_s.NewGetAccountService(cfg, logger, getAccountUseCase)
 			getKeyService := account_s.NewGetKeyService(cfg, logger, getAccountUseCase, accountDecryptKeyUseCase)
+			ikCreateService := ik_s.NewCreateIdentityKeyService(cfg, logger, ikCreateUseCase, ikGetUseCase)
+			ikGetService := ik_s.NewGetIdentityKeyService(cfg, logger, ikGetUseCase)
+
+			// Get our identity key.
+			ik, err := ikGetService.Execute(flagIdentityKeyID)
+			if err != nil {
+				log.Fatalf("Failed getting identity key: %v", err)
+			}
+			if ik == nil {
+				log.Fatal("Failed getting identity key: d.n.e.")
+			}
+			logger.Debug("Identity key found")
+
+			privateKey, _ := ik.GetPrivateKey()
+			publicKey, _ := ik.GetPublicKey()
+			libp2pnet := p2p.NewLibP2PNetwork(cfg, logger, privateKey, publicKey)
+
+			//TODO
+			_ = ikCreateService
+			_ = ikGetService
+			_ = libp2pnet
+
+			//TODO
+			// USE CASES - NETWORK
+			// - Share Signed Pending Transaction (Publisher)
+			// - Receive Signed Pending Transaction (Subscriber)
+			// - Share Purpose Block Data (Publisher)
+			// - Receive Purpose Block Data (Subscriber)
+			// - Share Block Data (Publisher)
+			// - Receive Block Data (Subscriber)
+			// - Ask Latest Block Hash (Req-Res)
+			// - Receive Latest Block Hash (Req-Res)
+			// - Ask Block Data (Req-Res)
+			// - Receive Block Data (Req-Res)
+
+			// USE CASES - HTTP
+			// Send/Receive Signed Pending Transaction
+			// Send/Receive Purpose Block Data
+			// Send/Receive Block Data
+			// Send/Receive Latest Block Hash
+			// Send/Receive Block Data
 
 			// HTTP
 			createAccountHTTPHandler := account_httphandler.NewCreateAccountHTTPHandler(cfg, logger, createAccountService)
@@ -120,7 +168,7 @@ func runCmd() *cobra.Command {
 	cmd.Flags().StringVar(&flagListenHTTPAddress, "listen-http-address", "127.0.0.1:8000", "The IP and port to attach for our HTTP JSON API server")
 	cmd.Flags().StringVar(&flagListenRPCAddress, "listen-rpc-address", "localhost:8001", "The ip and port to listen to for the TCP RPC server")
 	cmd.Flags().StringVar(&flagIdentityKeyID, "identitykey-id", "", "The unique identifier  to use to lookup the identity key and assign to this peer")
-	cmd.MarkFlagRequired("identity-key-id")
+	cmd.MarkFlagRequired("identitykey-id")
 
 	return cmd
 }
