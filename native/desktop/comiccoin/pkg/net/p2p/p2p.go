@@ -1,4 +1,4 @@
-package peer
+package p2p
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	dht "github.com/libp2p/go-libp2p-kad-dht"
+	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/peer"
@@ -21,10 +22,15 @@ type LibP2PNetwork interface {
 	// Returns your peer's host.
 	GetHost() host.Host
 
+	IsHostMode() bool
+
+	AdvertiseWithRendezvousString(ctx context.Context, h host.Host, rendezvousString string)
+
+	DiscoverPeersAtRendezvousString(ctx context.Context, h host.Host, rendezvousString string, peerConnectedFunc func(peer.AddrInfo) error)
+
 	// Your peer advertises a rendezvous point and waits for other peers to join.
 	// When other peers make a successful connection to your peer, then method
 	// will send the connected peer through the channel for you to grab.
-	DiscoverPeersChannel(ctx context.Context, h host.Host, rendezvousString string) <-chan peer.AddrInfo
 
 	Close()
 }
@@ -36,12 +42,27 @@ type peerProviderImpl struct {
 	identityPrivateKey crypto.PrivKey
 	identityPublicKey  crypto.PubKey
 
+	// mu field is used to protect access to the subs and closed fields using a mutex.
+	mu sync.Mutex
+
 	host             host.Host
+	isHostMode       bool
 	kademliaDHT      *dht.IpfsDHT
 	routingDiscovery *routing.RoutingDiscovery
 
-	// mu field is used to protect access to the subs and closed fields using a mutex.
-	mu sync.Mutex
+	// The list of connected peers.
+	peers map[string]map[peer.ID]*peer.AddrInfo
+
+	// --- Publish-Subscriber variables below... ---
+
+	// The quit field is a channel that is closed when the `message queue broker` is closed, allowing goroutines that are blocked on the channel to unblock and exit.
+	quit chan struct{}
+
+	// The closed field is a flag that indicates whether the `message queue broker` has been closed.
+	closed bool
+
+	topics       map[string]*pubsub.Topic
+	gossipPubSub *pubsub.PubSub
 }
 
 // NewLibP2PNetwork constructor that returns the default P2P connected instance.
@@ -56,6 +77,7 @@ func NewLibP2PNetwork(cfg *config.Config, logger *slog.Logger, priv crypto.PrivK
 		logger:             logger,
 		identityPrivateKey: priv,
 		identityPublicKey:  pub,
+		peers:              make(map[string]map[peer.ID]*peer.AddrInfo, 0),
 	}
 
 	// Run the code which will setup our peer-to-peer node in either `host mode`
@@ -78,14 +100,22 @@ func NewLibP2PNetwork(cfg *config.Config, logger *slog.Logger, priv crypto.PrivK
 	routingDiscovery := drouting.NewRoutingDiscovery(impl.kademliaDHT)
 	impl.routingDiscovery = routingDiscovery
 
-	// peerCh := impl.DiscoverPeersChannel(ctx, h, cfg.Peer.RendezvousString)
-	// peer := <-peerCh
+	// Load up the gossip pub-sub
+	ps, err := pubsub.NewGossipSub(ctx, h)
+	if err != nil {
+		log.Fatalf("failed setting new gossip sub: %v", err)
+	}
+	impl.gossipPubSub = ps
 
 	return impl
 }
 
 func (p *peerProviderImpl) GetHost() host.Host {
 	return p.host
+}
+
+func (p *peerProviderImpl) IsHostMode() bool {
+	return p.isHostMode
 }
 
 func (impl *peerProviderImpl) Close() {

@@ -16,6 +16,7 @@ import (
 	account_rpc "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/rpc"
 	account_repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo"
 	ik_repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo"
+	stxdto_repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo"
 	account_s "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/service"
 	ik_s "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/service"
 	account_usecase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
@@ -70,22 +71,10 @@ func runCmd() *cobra.Command {
 			logger := logger.NewLogger()
 			db := dbase.NewDatabase(cfg.DB.DataDir, logger)
 
-			// Repo
-			accountRepo := account_repo.NewAccountRepo(cfg, logger, db)
+			// ------ Peer-to-Peer (P2P) ------
 			ikRepo := ik_repo.NewIdentityKeyRepo(cfg, logger, db)
-
-			// Use-case
-			createAccountUseCase := account_usecase.NewCreateAccountUseCase(cfg, logger, accountRepo)
-			getAccountUseCase := account_usecase.NewGetAccountUseCase(cfg, logger, accountRepo)
-			accountDecryptKeyUseCase := account_usecase.NewAccountDecryptKeyUseCase(cfg, logger, accountRepo)
-			accountEncryptKeyUseCase := account_usecase.NewAccountEncryptKeyUseCase(cfg, logger, accountRepo)
 			ikCreateUseCase := ik_use.NewCreateIdentityKeyUseCase(cfg, logger, ikRepo)
 			ikGetUseCase := ik_use.NewGetIdentityKeyUseCase(cfg, logger, ikRepo)
-
-			// Service
-			createAccountService := account_s.NewCreateAccountService(cfg, logger, createAccountUseCase, getAccountUseCase, accountEncryptKeyUseCase)
-			getAccountService := account_s.NewGetAccountService(cfg, logger, getAccountUseCase)
-			getKeyService := account_s.NewGetKeyService(cfg, logger, getAccountUseCase, accountDecryptKeyUseCase)
 			ikCreateService := ik_s.NewCreateIdentityKeyService(cfg, logger, ikCreateUseCase, ikGetUseCase)
 			ikGetService := ik_s.NewGetIdentityKeyService(cfg, logger, ikGetUseCase)
 
@@ -101,12 +90,13 @@ func runCmd() *cobra.Command {
 
 			privateKey, _ := ik.GetPrivateKey()
 			publicKey, _ := ik.GetPublicKey()
-			libp2pnet := p2p.NewLibP2PNetwork(cfg, logger, privateKey, publicKey)
+			libP2PNetwork := p2p.NewLibP2PNetwork(cfg, logger, privateKey, publicKey)
+			signedTxDTORepo := stxdto_repo.NewSignedTransactionDTORepo(cfg, logger, libP2PNetwork)
 
 			//TODO
 			_ = ikCreateService
 			_ = ikGetService
-			_ = libp2pnet
+			_ = signedTxDTORepo
 
 			//TODO
 			// USE CASES - NETWORK
@@ -128,6 +118,21 @@ func runCmd() *cobra.Command {
 			// Send/Receive Latest Block Hash
 			// Send/Receive Block Data
 
+			// ------ Repo ------
+			accountRepo := account_repo.NewAccountRepo(cfg, logger, db)
+
+			// ------ Use-case ------
+			createAccountUseCase := account_usecase.NewCreateAccountUseCase(cfg, logger, accountRepo)
+			getAccountUseCase := account_usecase.NewGetAccountUseCase(cfg, logger, accountRepo)
+			accountDecryptKeyUseCase := account_usecase.NewAccountDecryptKeyUseCase(cfg, logger, accountRepo)
+			accountEncryptKeyUseCase := account_usecase.NewAccountEncryptKeyUseCase(cfg, logger, accountRepo)
+
+			// ------ Service ------
+			createAccountService := account_s.NewCreateAccountService(cfg, logger, createAccountUseCase, getAccountUseCase, accountEncryptKeyUseCase)
+			getAccountService := account_s.NewGetAccountService(cfg, logger, getAccountUseCase)
+			getKeyService := account_s.NewGetKeyService(cfg, logger, getAccountUseCase, accountDecryptKeyUseCase)
+
+			// ------ Interface ------
 			// HTTP
 			createAccountHTTPHandler := account_httphandler.NewCreateAccountHTTPHandler(cfg, logger, createAccountService)
 			getAccountHTTPHandler := account_httphandler.NewGetAccountHTTPHandler(cfg, logger, getAccountService)
@@ -169,6 +174,8 @@ func runCmd() *cobra.Command {
 	cmd.Flags().StringVar(&flagListenRPCAddress, "listen-rpc-address", "localhost:8001", "The ip and port to listen to for the TCP RPC server")
 	cmd.Flags().StringVar(&flagIdentityKeyID, "identitykey-id", "", "The unique identifier  to use to lookup the identity key and assign to this peer")
 	cmd.MarkFlagRequired("identitykey-id")
+	cmd.Flags().IntVar(&flagListenPeerToPeerPort, "listen-p2p-port", 26642, "The port to listen to for other peers")
+	cmd.Flags().StringVar(&flagBootstrapPeers, "bootstrap-peers", "", "The list of peers used to synchronize our blockchain with")
 
 	return cmd
 }

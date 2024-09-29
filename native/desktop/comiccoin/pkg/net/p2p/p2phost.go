@@ -1,4 +1,4 @@
-package peer
+package p2p
 
 import (
 	"fmt"
@@ -18,6 +18,10 @@ import (
 // we are using custom private-public key pairs saved locally in the system.
 func (node *peerProviderImpl) newHostWithPredictableIdentifier() (host.Host, error) {
 	// ctx := context.Background()
+
+	if node.cfg.Peer.ListenPort == 0 {
+		return nil, fmt.Errorf("missing to p2p listen port: %v", node.cfg.Peer.ListenPort)
+	}
 
 	//
 	// STEP 1:

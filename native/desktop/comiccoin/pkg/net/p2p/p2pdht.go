@@ -1,4 +1,4 @@
-package peer
+package p2p
 
 import (
 	"context"
@@ -19,7 +19,10 @@ func (node *peerProviderImpl) newKademliaDHT(ctx context.Context) *dht.IpfsDHT {
 	}
 	if len(bootstrapPeers) == 0 {
 		options = append(options, dht.Mode(dht.ModeServer))
-		node.logger.Info("Running p2p node as dht server")
+		node.logger.Info("Running p2p node in host mode")
+		node.isHostMode = true
+	} else {
+		node.logger.Info("Running p2p node in dialer mode")
 	}
 	options = append(options, dht.BootstrapPeers(bootstrapPeers...))
 
