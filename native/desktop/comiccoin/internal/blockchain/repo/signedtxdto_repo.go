@@ -24,7 +24,7 @@ type signedTransactionDTORepoImpl struct {
 	logger        *slog.Logger
 	libP2PNetwork p2p.LibP2PNetwork
 	topic         *pubsub.Topic
-	subs          map[peer.ID]*pubsub.Subscription
+	sub           *pubsub.Subscription
 }
 
 func NewSignedTransactionDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork p2p.LibP2PNetwork) domain.SignedTransactionDTORepository {
@@ -38,7 +38,7 @@ func NewSignedTransactionDTORepo(cfg *config.Config, logger *slog.Logger, libP2P
 		logger:        logger,
 		libP2PNetwork: libP2PNetwork,
 		topic:         nil,
-		subs:          make(map[peer.ID]*pubsub.Subscription, 0),
+		sub:           nil,
 	}
 
 	//
@@ -81,6 +81,27 @@ func NewSignedTransactionDTORepo(cfg *config.Config, logger *slog.Logger, libP2P
 
 	//
 	// STEP 5:
+	// Subscribe our peer to this topic.
+	//
+
+	sub, err := topic.Subscribe()
+	if err != nil {
+		impl.logger.Error("failed subscribing to our topic",
+			slog.Any("error", err),
+			slog.String("topic_name", topicName))
+		log.Fatalf("failed subscribing to our topic: %v", err)
+	}
+	if sub == nil {
+		err := fmt.Errorf("failed subscribing to our topic: %v", "topic does not exist")
+		impl.logger.Error("failed subscribing to our topic",
+			slog.Any("error", err),
+			slog.String("topic_name", topicName))
+		log.Fatalf("failed subscribing to our topic: %v", err)
+	}
+	impl.sub = sub
+
+	//
+	// STEP 5:
 	// When our repository loads up, we need to create a background goroutine
 	// which will wait for new connections and get our list of peers that
 	// connect in real-time to our application for this particular repository.
@@ -99,38 +120,6 @@ func NewSignedTransactionDTORepo(cfg *config.Config, logger *slog.Logger, libP2P
 			//
 
 			impl.libP2PNetwork.DiscoverPeersAtRendezvousString(context.Background(), impl.libP2PNetwork.GetHost(), rendezvousString, func(p peer.AddrInfo) error {
-				impl.logger.Debug("connecting...",
-					slog.Any("peer_id", p.ID),
-					slog.String("topic_name", topicName))
-
-				//
-				// STEP 2:
-				// Subscribe our peer to this topic.
-				//
-
-				sub, err := impl.topic.Subscribe()
-				if err != nil {
-					impl.logger.Error("failed subscribing to our topic",
-						slog.Any("error", err),
-						slog.Any("peer_id", p.ID),
-						slog.String("topic_name", topicName))
-					return err
-				}
-				if sub == nil {
-					err := fmt.Errorf("failed subscribing to our topic: %v", "topic does not exist")
-					impl.logger.Error("failed subscribing to our topic",
-						slog.Any("error", err),
-						slog.Any("peer_id", p.ID),
-						slog.String("topic_name", topicName))
-					return err
-				}
-
-				//
-				// STEP 3:
-				// Save our new peer subscription so we can use it later.
-				//
-
-				impl.subs[p.ID] = sub
 
 				impl.logger.Debug("subscribed",
 					slog.Any("peer_id", p.ID),
@@ -159,6 +148,9 @@ func (impl *signedTransactionDTORepoImpl) BroadcastToP2PNetwork(ctx context.Cont
 		return err
 	}
 
+	// Developers Note:
+	// https://github.com/libp2p/go-libp2p/blob/master/examples/pubsub/basic-chat-with-rendezvous/main.go#L115
+
 	if err := impl.topic.Publish(ctx, bdBytes); err != nil {
 		impl.logger.Error("Failed to publish",
 			slog.String("topic_name", topicName),
@@ -173,51 +165,38 @@ func (impl *signedTransactionDTORepoImpl) BroadcastToP2PNetwork(ctx context.Cont
 
 func (impl *signedTransactionDTORepoImpl) ReceiveFromP2PNetwork(ctx context.Context) (*domain.SignedTransactionDTO, error) {
 	//
-	// STEP 1:
-	// We will iterate over each subscription we have and listen for incoming
-	// messages.
+	// STEP 2:
+	// We will receive the incoming message from our P2P network.
 	//
 
-	for _, sub := range impl.subs {
+	// Developers Note:
+	// https://github.com/libp2p/go-libp2p/blob/master/examples/pubsub/basic-chat-with-rendezvous/main.go#L121
 
-		//
-		// STEP 2:
-		// We will receive the incoming message from our P2P network.
-		//
-
-		msg, err := sub.Next(ctx)
-		if err != nil {
-			impl.logger.Error("Failed to receive message",
-				slog.Any("error", err),
-				slog.String("topic_name", topicName))
-			continue
-		}
-
-		//
-		// STEP 3:
-		// We need to deserialize the incoming message into our DTO.
-		//
-
-		stxDTO, err := domain.NewSignedTransactionDTOFromDeserialize(msg.Data)
-		if err != nil {
-			impl.logger.Error("Failed to deserialize message",
-				slog.Any("error", err),
-				slog.String("topic_name", topicName))
-			continue
-		}
-
-		//
-		// STEP 4:
-		// Return the DTO.
-		//
-
-		return stxDTO, nil
+	msg, err := impl.sub.Next(ctx)
+	if err != nil {
+		impl.logger.Error("Failed to receive message",
+			slog.Any("error", err),
+			slog.String("topic_name", topicName))
+		return nil, err
 	}
 
 	//
-	// STEP 5:
-	// If we didn't receive any messages then return without any problems.
+	// STEP 3:
+	// We need to deserialize the incoming message into our DTO.
 	//
 
-	return nil, nil
+	stxDTO, err := domain.NewSignedTransactionDTOFromDeserialize(msg.Data)
+	if err != nil {
+		impl.logger.Error("Failed to deserialize message",
+			slog.Any("error", err),
+			slog.String("topic_name", topicName))
+		return nil, err
+	}
+
+	//
+	// STEP 4:
+	// Return the DTO.
+	//
+
+	return stxDTO, nil
 }
