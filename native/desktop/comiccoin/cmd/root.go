@@ -8,6 +8,7 @@ import (
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/cmd/blockchain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/cmd/daemon"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/cmd/version"
 )
 
 var (
@@ -39,6 +40,7 @@ func Execute() {
 	// Attach sub-commands to our main root.
 	rootCmd.AddCommand(blockchain.BlockchainCmd())
 	rootCmd.AddCommand(daemon.DaemonCmd())
+	rootCmd.AddCommand(version.VersionCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
