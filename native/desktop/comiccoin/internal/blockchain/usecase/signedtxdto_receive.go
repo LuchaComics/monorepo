@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
@@ -29,14 +28,15 @@ func (uc *ReceiveSignedTransactionDTOUseCase) Execute(ctx context.Context) (*dom
 
 	dto, err := uc.repo.ReceiveFromP2PNetwork(ctx)
 	if err != nil {
-		uc.logger.Warn("failed receiving signed transaction dto from network",
+		uc.logger.Error("failed receiving signed transaction dto from network",
 			slog.Any("error", err))
 		return nil, err
 	}
 	if dto == nil {
-		uc.logger.Warn("failed receiving signed transaction dto from network",
-			slog.Any("error", "dto does not exist"))
-		return nil, fmt.Errorf("received dto does not exist")
+		return nil, nil
+		// uc.logger.Error("failed receiving signed transaction dto from network",
+		// 	slog.Any("error", "dto does not exist"))
+		// return nil, fmt.Errorf("received dto does not exist")
 	}
 
 	//

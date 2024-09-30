@@ -17,6 +17,8 @@ import (
 	httphandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/http/handler"
 	httpmiddle "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/http/middleware"
 	rpc "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/rpc"
+	taskmng "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/task"
+	taskmnghandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/task/handler"
 	repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo"
 	service "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/service"
 	usecase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
@@ -146,7 +148,6 @@ func DaemonCmd() *cobra.Command {
 			accountEncryptKeyUseCase := usecase.NewAccountEncryptKeyUseCase(cfg, logger, accountRepo)
 			broadcastSignedTxDTOUseCase := usecase.NewBroadcastSignedTransactionDTOUseCase(cfg, logger, signedTxDTORepo)
 			receiveSignedTxDTOUseCase := usecase.NewReceiveSignedTransactionDTOUseCase(cfg, logger, signedTxDTORepo)
-			_ = receiveSignedTxDTOUseCase //TODO: Impl.
 
 			// ------ Service ------
 			createAccountService := service.NewCreateAccountService(cfg, logger, createAccountUseCase, getAccountUseCase, accountEncryptKeyUseCase)
@@ -154,6 +155,7 @@ func DaemonCmd() *cobra.Command {
 			getKeyService := service.NewGetKeyService(cfg, logger, getAccountUseCase, accountDecryptKeyUseCase)
 			_ = getKeyService
 			createTxService := service.NewCreateTransactionService(cfg, logger, getAccountUseCase, accountDecryptKeyUseCase, broadcastSignedTxDTOUseCase)
+			mempoolReceiveSignedTxService := service.NewMempoolReceiveService(cfg, logger, receiveSignedTxDTOUseCase)
 
 			// ------ Interface ------
 			// HTTP
@@ -174,6 +176,14 @@ func DaemonCmd() *cobra.Command {
 				getKeyService,
 			)
 
+			// TASK MANAGER
+			th1 := taskmnghandler.NewMempoolReceiveTaskHandler(cfg, logger, mempoolReceiveSignedTxService)
+			taskManager := taskmng.NewTaskManager(
+				cfg,
+				logger,
+				th1,
+			)
+
 			//
 			// STEP 3
 			// Run the main loop blocking code while other input ports run in
@@ -185,8 +195,10 @@ func DaemonCmd() *cobra.Command {
 			// go peerNode.Run()
 			go httpServ.Run()
 			go rpcServ.Run()
+			go taskManager.Run()
 			defer httpServ.Shutdown()
 			defer rpcServ.Shutdown()
+			defer taskManager.Shutdown()
 
 			<-done
 		},
