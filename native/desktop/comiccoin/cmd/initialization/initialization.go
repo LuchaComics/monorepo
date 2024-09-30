@@ -1,7 +1,9 @@
 package initialization
 
 import (
+	"fmt"
 	"log"
+	"log/slog"
 
 	"github.com/spf13/cobra"
 
@@ -12,6 +14,8 @@ import (
 	ik_use "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
 	dbase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/db/leveldb"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/logger"
+	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p"
+	ma "github.com/multiformats/go-multiaddr"
 )
 
 var (
@@ -38,6 +42,12 @@ func InitCmd() *cobra.Command {
 				DB: config.DBConfig{
 					DataDir: flagDataDir,
 				},
+				Peer: config.PeerConfig{
+					ListenPort:       26642, // Our application port
+					KeyName:          "",
+					RendezvousString: "",
+					BootstrapPeers:   nil,
+				},
 			}
 			logger := logger.NewLogger()
 			db := dbase.NewDatabase(cfg.DB.DataDir, logger)
@@ -54,14 +64,31 @@ func InitCmd() *cobra.Command {
 
 			logger.Info("Blockchain node intitializing...")
 
-			ik, err := ikCreateService.Execute(flagIdentityKeyID)
+			identityKey, err := ikCreateService.Execute(flagIdentityKeyID)
 			if err != nil {
 				log.Fatalf("Failed creating identity key: %v", err)
 			}
-			if ik == nil {
+			if identityKey == nil {
 				log.Fatal("Failed creating identity key: d.n.e.")
 			}
-			logger.Info("Blockchain node intitialized and ready")
+
+			privateKey, _ := identityKey.GetPrivateKey()
+			publicKey, _ := identityKey.GetPublicKey()
+			libP2PNetwork := p2p.NewLibP2PNetwork(cfg, logger, privateKey, publicKey)
+			h := libP2PNetwork.GetHost()
+
+			// Build host multiaddress
+			hostAddr, _ := ma.NewMultiaddr(fmt.Sprintf("/ipfs/%s", h.ID()))
+
+			// Now we can build a full multiaddress to reach this host
+			// by encapsulating both addresses:
+			addr := h.Addrs()[0]
+			fullAddr := addr.Encapsulate(hostAddr)
+
+			logger.Info("Blockchain node intitialized and ready",
+				slog.Any("peer identity", h.ID()),
+				slog.Any("full address", fullAddr),
+			)
 		},
 	}
 

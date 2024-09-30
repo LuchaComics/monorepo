@@ -10,7 +10,6 @@ import (
 	"github.com/libp2p/go-libp2p/p2p/net/connmgr"
 	"github.com/libp2p/go-libp2p/p2p/security/noise"
 	libp2ptls "github.com/libp2p/go-libp2p/p2p/security/tls"
-	ma "github.com/multiformats/go-multiaddr"
 )
 
 // newHostWithPredictableIdentifier function will create a host with an
@@ -82,25 +81,6 @@ func (node *peerProviderImpl) newHostWithPredictableIdentifier() (host.Host, err
 			slog.Any("error", err))
 		return nil, err
 	}
-
-	//
-	// STEP 3:
-	// Output to user's console some useful information.
-	//
-
-	// Build host multiaddress
-	hostAddr, _ := ma.NewMultiaddr(fmt.Sprintf("/ipfs/%s", basicHost.ID()))
-
-	// Now we can build a full multiaddress to reach this host
-	// by encapsulating both addresses:
-	addr := basicHost.Addrs()[0]
-	fullAddr := addr.Encapsulate(hostAddr)
-
-	node.logger.Info("host ready to accept peers",
-		slog.Any("full_address", fullAddr),
-		slog.Any("host_id", basicHost.ID()),
-		slog.String("note", "you can replace `127.0.0.1` with your public ip when connecting to this peer"),
-	)
 
 	return basicHost, nil
 }
