@@ -48,8 +48,8 @@ services:
       dockerfile: ./dev.Dockerfile
     restart: unless-stopped
     ports:
-      - "8000:8000"   # HTTP JSON API - Must be private and not accessible to internet.
-      - "8001:8001"   # TCP RPC - Must be private and not accessible to internet.
+      - "127.0.0.1:8000:8000"   # HTTP JSON API - Must be private and not accessible to internet.
+      - "127.0.0.1:8001:8001"   # TCP RPC - Must be private and not accessible to internet.
       - "26642:26642" # P2P - Must be open to public internet.
       # - "4001:4001" # default libp2p swarm port - should be open to public for all nodes if possible
       # - "5001:5001" # API port - provides write/admin access to the node, shouldn't be exposed at all
@@ -60,10 +60,6 @@ services:
     #   # - ipfs-node
     volumes: # Connect the local filesystem with the docker filesystem. DO NOT REMOVE.
       - ./:/go/src/github.com/LuchaComics/monorepo/native/desktop/comiccoin # IMPORTANT: Required for hotreload via `CompileDaemon`.
-    cap_add: # See: https://github.com/AdguardTeam/AdGuardHome/issues/5903
-      - NET_ADMIN
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
 volumes:
   db1_dev_data:
