@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/cmd/blockchain"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/cmd/daemon"
 )
 
 var (
@@ -37,6 +38,7 @@ var rootCmd = &cobra.Command{
 func Execute() {
 	// Attach sub-commands to our main root.
 	rootCmd.AddCommand(blockchain.BlockchainCmd())
+	rootCmd.AddCommand(daemon.DaemonCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)

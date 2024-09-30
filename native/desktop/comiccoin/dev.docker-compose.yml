@@ -1,0 +1,74 @@
+# HOW TO USE:
+# The purpose of this docker-compose is to setup our application which is
+# dependent on the `MongoDB` database cluster running concurrently with this
+# server for developer purposes. This configuration has hot-reloading activated.
+#
+# $ docker-compose -p comiccoin_dev -f dev.docker-compose.yml up
+#
+
+services:
+  # ipfs-node:
+  #   container_name: comiccoin_dev_ipfs_node
+  #   image: ipfs/kubo:master-latest
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./data/dev/ipfs:/data/ipfs
+  #     - ./data/dev/ipfs:/ipfs
+  #     - ./data/dev/ipfs:/ipns
+  #   environment:
+  #     - IPFS_PROFILE=server
+  #     - IPFS_PATH=/data/ipfs
+  #   ports:
+  #     - "4001:4001" # default libp2p swarm port - should be open to public for all nodes if possible
+  #    # - "5001:5001" # API port - provides write/admin access to the node, shouldn't be exposed at all
+  #    # - "8080:8080" # Gateway + read only API subset - quite safe to expose, but operating public gateway may still be a risk in some ways
+  #
+  #     # The following ports only listen on the loopback interface, so are not remotely reachable by default.
+  #     # If you want to override these or add more ports, see https://docs.docker.com/compose/extends/ .
+  #
+  #     # API port, which includes admin operations, so you probably don't want this remotely accessible.
+  #     - 127.0.0.1:5001:5001
+  #
+  #     # HTTP Gateway
+  #     - 127.0.0.1:8080:8080
+
+  # The node in the blockchain whom is set to `host mode` and runs `dht server` to coordinate connecting all the other blockchain nods.
+  node0:
+    container_name: comiccoin_dev_node0
+    stdin_open: true
+    environment:
+      COMICCOIN_DATADIR: ${COMICCOIN_NODE_0_DATADIR}
+      COMICCOIN_IDENTITYKEY_ID: ${COMICCOIN_NODE_0_IDENTITYKEY_ID}
+      COMICCOIN_LISTEN_HTTP_ADDRESS: ${COMICCOIN_NODE_0_LISTEN_HTTP_ADDRESS}
+      COMICCOIN_LISTEN_RPC_ADDRESS: ${COMICCOIN_NODE_0_LISTEN_RPC_ADDRESS}
+      COMICCOIN_LISTEN_P2P_PORT: ${COMICCOIN_NODE_0_LISTEN_P2P_PORT}
+      COMICCOIN_BOOTSTRAP_PEERS: ${COMICCOIN_NODE_0_BOOTSTRAP_PEERS}
+    build:
+      context: .
+      dockerfile: ./dev.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"   # HTTP JSON API - Must be private and not accessible to internet.
+      - "8001:8001"   # TCP RPC - Must be private and not accessible to internet.
+      - "26642:26642" # P2P - Must be open to public internet.
+      # - "4001:4001" # default libp2p swarm port - should be open to public for all nodes if possible
+      # - "5001:5001" # API port - provides write/admin access to the node, shouldn't be exposed at all
+      # - "8080:8080" # Gateway + read only API subset - quite safe to expose, but operating public gateway may still be a risk in some ways
+    # depends_on:
+    #   # - ipfs-node
+    # links:
+    #   # - ipfs-node
+    volumes: # Connect the local filesystem with the docker filesystem. DO NOT REMOVE.
+      - ./:/go/src/github.com/LuchaComics/monorepo/native/desktop/comiccoin # IMPORTANT: Required for hotreload via `CompileDaemon`.
+    cap_add: # See: https://github.com/AdguardTeam/AdGuardHome/issues/5903
+      - NET_ADMIN
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  db1_dev_data:
+  db2_dev_data:
+  db3_dev_data:
+  db1_dev_config:
+  db2_dev_config:
+  db3_dev_config:

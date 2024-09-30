@@ -45,7 +45,7 @@ func BlockchainCmd() *cobra.Command {
 
 	// Attach our sub-commands
 	cmd.AddCommand(accountCmd())
-	cmd.AddCommand(runCmd())
+	// cmd.AddCommand(runCmd())
 	cmd.AddCommand(identityCmd())
 
 	return cmd
