@@ -78,6 +78,12 @@ func DaemonCmd() *cobra.Command {
 			ikCreateService := ik_s.NewCreateIdentityKeyService(cfg, logger, ikCreateUseCase, ikGetUseCase)
 			ikGetService := ik_s.NewGetIdentityKeyService(cfg, logger, ikGetUseCase)
 
+			// If nothing was set then we use a default value. We do this to
+			// simplify the user's experience.
+			if flagIdentityKeyID == "" {
+				flagIdentityKeyID = constants.DefaultIdentityKeyID
+			}
+
 			// Get our identity key.
 			ik, err := ikGetService.Execute(flagIdentityKeyID)
 			if err != nil {
@@ -172,8 +178,7 @@ func DaemonCmd() *cobra.Command {
 	cmd.Flags().StringVar(&flagDataDir, "datadir", "./data", "Absolute path to your node's data dir where the DB will be/is stored")
 	cmd.Flags().StringVar(&flagListenHTTPAddress, "listen-http-address", "127.0.0.1:8000", "The IP and port to attach for our HTTP JSON API server")
 	cmd.Flags().StringVar(&flagListenRPCAddress, "listen-rpc-address", "localhost:8001", "The ip and port to listen to for the TCP RPC server")
-	cmd.Flags().StringVar(&flagIdentityKeyID, "identitykey-id", "", "The unique identifier  to use to lookup the identity key and assign to this peer")
-	cmd.MarkFlagRequired("identitykey-id")
+	cmd.Flags().StringVar(&flagIdentityKeyID, "identitykey-id", "", "If you would like to use a custom identity then this is the identifier used to lookup a custom identity profile to assign for this blockchain node.")
 	cmd.Flags().IntVar(&flagListenPeerToPeerPort, "listen-p2p-port", 26642, "The port to listen to for other peers")
 	cmd.Flags().StringVar(&flagBootstrapPeers, "bootstrap-peers", "", "The list of peers used to synchronize our blockchain with")
 
