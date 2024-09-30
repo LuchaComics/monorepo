@@ -37,12 +37,12 @@ services:
     container_name: comiccoin_dev_node0
     stdin_open: true
     environment:
-      COMICCOIN_DATADIR: ${COMICCOIN_NODE_0_DATADIR}
-      COMICCOIN_IDENTITYKEY_ID: ${COMICCOIN_NODE_0_IDENTITYKEY_ID}
-      COMICCOIN_LISTEN_HTTP_ADDRESS: ${COMICCOIN_NODE_0_LISTEN_HTTP_ADDRESS}
-      COMICCOIN_LISTEN_RPC_ADDRESS: ${COMICCOIN_NODE_0_LISTEN_RPC_ADDRESS}
-      COMICCOIN_LISTEN_P2P_PORT: ${COMICCOIN_NODE_0_LISTEN_P2P_PORT}
-      COMICCOIN_BOOTSTRAP_PEERS: ${COMICCOIN_NODE_0_BOOTSTRAP_PEERS}
+      COMICCOIN_DATADIR: ./data/peer1/blockchain
+      COMICCOIN_IDENTITYKEY_ID: peer1
+      COMICCOIN_LISTEN_HTTP_ADDRESS: 127.0.0.1:8000
+      COMICCOIN_LISTEN_RPC_ADDRESS: 127.0.0.1:8001
+      COMICCOIN_LISTEN_P2P_PORT: "26642"
+      COMICCOIN_BOOTSTRAP_PEERS: ""
     build:
       context: .
       dockerfile: ./dev.Dockerfile
@@ -57,9 +57,51 @@ services:
     # depends_on:
     #   # - ipfs-node
     # links:
-    #   # - ipfs-node
+      # - ipfs-node
     volumes: # Connect the local filesystem with the docker filesystem. DO NOT REMOVE.
       - ./:/go/src/github.com/LuchaComics/monorepo/native/desktop/comiccoin # IMPORTANT: Required for hotreload via `CompileDaemon`.
+    networks:
+      - p2ptestnet_internal
+
+  # Simulate a peer in the network
+  node1:
+    container_name: comiccoin_dev_node1
+    stdin_open: true
+    environment:
+      COMICCOIN_DATADIR: ./data/peer2/blockchain
+      COMICCOIN_IDENTITYKEY_ID: peer2
+      COMICCOIN_LISTEN_HTTP_ADDRESS: 127.0.0.1:8002
+      COMICCOIN_LISTEN_RPC_ADDRESS: 127.0.0.1:8003
+      COMICCOIN_LISTEN_P2P_PORT: "26643"
+      COMICCOIN_BOOTSTRAP_PEERS: ${COMICCOIN_NODE_1_BOOTSTRAP_PEERS}
+    build:
+      context: .
+      dockerfile: ./dev.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8002:8000"   # HTTP JSON API - Must be private and not accessible to internet.
+      - "127.0.0.1:8003:8001"   # TCP RPC - Must be private and not accessible to internet.
+      - "26643:26643" # P2P - Must be open to public internet.
+      # - "4001:4001" # default libp2p swarm port - should be open to public for all nodes if possible
+      # - "5001:5001" # API port - provides write/admin access to the node, shouldn't be exposed at all
+      # - "8080:8080" # Gateway + read only API subset - quite safe to expose, but operating public gateway may still be a risk in some ways
+    depends_on:
+      # - ipfs-node
+      - node0
+    links:
+      # - ipfs-node
+      - node0
+    volumes: # Connect the local filesystem with the docker filesystem. DO NOT REMOVE.
+      - ./:/go/src/github.com/LuchaComics/monorepo/native/desktop/comiccoin # IMPORTANT: Required for hotreload via `CompileDaemon`.
+    networks:
+      - p2ptestnet_internal
+
+networks:
+  web:
+    external: true
+  p2ptestnet_internal:
+    external: false
+    driver: bridge
 
 volumes:
   db1_dev_data:

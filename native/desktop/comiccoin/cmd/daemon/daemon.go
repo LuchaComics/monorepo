@@ -1,11 +1,14 @@
 package daemon
 
 import (
+	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 
+	ma "github.com/multiformats/go-multiaddr"
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
@@ -97,6 +100,21 @@ func DaemonCmd() *cobra.Command {
 			privateKey, _ := ik.GetPrivateKey()
 			publicKey, _ := ik.GetPublicKey()
 			libP2PNetwork := p2p.NewLibP2PNetwork(cfg, logger, privateKey, publicKey)
+			h := libP2PNetwork.GetHost()
+
+			// Build host multiaddress
+			hostAddr, _ := ma.NewMultiaddr(fmt.Sprintf("/ipfs/%s", h.ID()))
+
+			// Now we can build a full multiaddress to reach this host
+			// by encapsulating both addresses:
+			addr := h.Addrs()[0]
+			fullAddr := addr.Encapsulate(hostAddr)
+
+			logger.Info("Blockchain node ready",
+				slog.Any("peer identity", h.ID()),
+				slog.Any("full address", fullAddr),
+			)
+
 			signedTxDTORepo := stxdto_repo.NewSignedTransactionDTORepo(cfg, logger, libP2PNetwork)
 
 			//TODO

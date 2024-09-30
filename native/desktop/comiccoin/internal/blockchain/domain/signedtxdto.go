@@ -1,7 +1,10 @@
 package domain
 
 import (
+	"bytes"
 	"context"
+	"encoding/gob"
+	"fmt"
 	"math/big"
 )
 
@@ -15,6 +18,34 @@ type SignedTransactionDTO struct {
 }
 
 type SignedTransactionDTORepository interface {
-	Broadcast(ctx context.Context, bd *SignedTransactionDTO) error
+	Broadcast(ctx context.Context, dto *SignedTransactionDTO) error
 	Receive(ctx context.Context) (*SignedTransactionDTO, error)
+}
+
+func (dto *SignedTransactionDTO) Serialize() ([]byte, error) {
+	var result bytes.Buffer
+	encoder := gob.NewEncoder(&result)
+	err := encoder.Encode(dto)
+	if err != nil {
+		return nil, fmt.Errorf("failed to serialize block data: %v", err)
+	}
+	return result.Bytes(), nil
+}
+
+func NewSignedTransactionDTOFromDeserialize(data []byte) (*SignedTransactionDTO, error) {
+	// Variable we will use to return.
+	dto := &SignedTransactionDTO{}
+
+	// Defensive code: If programmer entered empty bytes then we will
+	// return nil deserialization result.
+	if data == nil {
+		return nil, nil
+	}
+
+	decoder := gob.NewDecoder(bytes.NewReader(data))
+	err := decoder.Decode(&dto)
+	if err != nil {
+		return nil, fmt.Errorf("failed to deserialize block data: %v", err)
+	}
+	return dto, nil
 }

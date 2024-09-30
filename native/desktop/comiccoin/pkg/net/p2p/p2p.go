@@ -22,6 +22,9 @@ type LibP2PNetwork interface {
 	// Returns your peer's host.
 	GetHost() host.Host
 
+	// Return the pub-sub handler for this peer.
+	GetPubSubSingletonInstance() *pubsub.PubSub
+
 	IsHostMode() bool
 
 	AdvertiseWithRendezvousString(ctx context.Context, h host.Host, rendezvousString string)
@@ -112,6 +115,10 @@ func NewLibP2PNetwork(cfg *config.Config, logger *slog.Logger, priv crypto.PrivK
 
 func (p *peerProviderImpl) GetHost() host.Host {
 	return p.host
+}
+
+func (p *peerProviderImpl) GetPubSubSingletonInstance() *pubsub.PubSub {
+	return p.gossipPubSub
 }
 
 func (p *peerProviderImpl) IsHostMode() bool {
