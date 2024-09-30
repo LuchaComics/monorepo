@@ -101,7 +101,6 @@ func NewSignedTransactionDTORepo(cfg *config.Config, logger *slog.Logger, libP2P
 			impl.libP2PNetwork.DiscoverPeersAtRendezvousString(context.Background(), impl.libP2PNetwork.GetHost(), rendezvousString, func(p peer.AddrInfo) error {
 				impl.logger.Debug("connecting...",
 					slog.Any("peer_id", p.ID),
-					slog.Any("is_host", impl.libP2PNetwork.IsHostMode()),
 					slog.String("topic_name", topicName))
 
 				//
@@ -114,7 +113,6 @@ func NewSignedTransactionDTORepo(cfg *config.Config, logger *slog.Logger, libP2P
 					impl.logger.Error("failed subscribing to our topic",
 						slog.Any("error", err),
 						slog.Any("peer_id", p.ID),
-						slog.Any("is_host", impl.libP2PNetwork.IsHostMode()),
 						slog.String("topic_name", topicName))
 					return err
 				}
@@ -123,7 +121,6 @@ func NewSignedTransactionDTORepo(cfg *config.Config, logger *slog.Logger, libP2P
 					impl.logger.Error("failed subscribing to our topic",
 						slog.Any("error", err),
 						slog.Any("peer_id", p.ID),
-						slog.Any("is_host", impl.libP2PNetwork.IsHostMode()),
 						slog.String("topic_name", topicName))
 					return err
 				}
@@ -137,7 +134,6 @@ func NewSignedTransactionDTORepo(cfg *config.Config, logger *slog.Logger, libP2P
 
 				impl.logger.Debug("subscribed",
 					slog.Any("peer_id", p.ID),
-					slog.Any("is_host", impl.libP2PNetwork.IsHostMode()),
 					slog.String("topic", topicName))
 
 				// Return nil to indicate success (no errors occured).
@@ -149,7 +145,7 @@ func NewSignedTransactionDTORepo(cfg *config.Config, logger *slog.Logger, libP2P
 	return impl
 }
 
-func (impl *signedTransactionDTORepoImpl) Broadcast(ctx context.Context, bd *domain.SignedTransactionDTO) error {
+func (impl *signedTransactionDTORepoImpl) BroadcastToP2PNetwork(ctx context.Context, bd *domain.SignedTransactionDTO) error {
 	//
 	// STEP 1
 	// Marshal the DTO into a binary payload which we can send over the network.
@@ -175,7 +171,52 @@ func (impl *signedTransactionDTORepoImpl) Broadcast(ctx context.Context, bd *dom
 	return nil
 }
 
-func (impl *signedTransactionDTORepoImpl) Receive(ctx context.Context) (*domain.SignedTransactionDTO, error) {
-	//TODO: IMPl.
+func (impl *signedTransactionDTORepoImpl) ReceiveFromP2PNetwork(ctx context.Context) (*domain.SignedTransactionDTO, error) {
+	//
+	// STEP 1:
+	// We will iterate over each subscription we have and listen for incoming
+	// messages.
+	//
+
+	for _, sub := range impl.subs {
+		//
+		// STEP 2:
+		// We will receive the incoming message from our P2P network.
+		//
+
+		msg, err := sub.Next(ctx)
+		if err != nil {
+			impl.logger.Error("Failed to receive message",
+				slog.Any("error", err),
+				slog.String("topic_name", topicName))
+			continue
+		}
+
+		//
+		// STEP 3:
+		// We need to deserialize the incoming message into our DTO.
+		//
+
+		stxDTO, err := domain.NewSignedTransactionDTOFromDeserialize(msg.Data)
+		if err != nil {
+			impl.logger.Error("Failed to deserialize message",
+				slog.Any("error", err),
+				slog.String("topic_name", topicName))
+			continue
+		}
+
+		//
+		// STEP 4:
+		// Return the DTO.
+		//
+
+		return stxDTO, nil
+	}
+
+	//
+	// STEP 5:
+	// If we didn't receive any messages then return without any problems.
+	//
+
 	return nil, nil
 }

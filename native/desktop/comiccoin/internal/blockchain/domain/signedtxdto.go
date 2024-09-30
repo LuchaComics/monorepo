@@ -18,8 +18,8 @@ type SignedTransactionDTO struct {
 }
 
 type SignedTransactionDTORepository interface {
-	Broadcast(ctx context.Context, dto *SignedTransactionDTO) error
-	Receive(ctx context.Context) (*SignedTransactionDTO, error)
+	BroadcastToP2PNetwork(ctx context.Context, dto *SignedTransactionDTO) error
+	ReceiveFromP2PNetwork(ctx context.Context) (*SignedTransactionDTO, error)
 }
 
 func (dto *SignedTransactionDTO) Serialize() ([]byte, error) {
