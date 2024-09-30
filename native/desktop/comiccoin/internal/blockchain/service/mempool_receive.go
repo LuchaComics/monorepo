@@ -40,7 +40,10 @@ func (s *MempoolReceiveService) Execute(ctx context.Context) error {
 		return err
 	}
 	if stx == nil {
-		s.logger.Warn("mempool did not receive anything")
+		// Developer Note:
+		// If we haven't received anything, that means we haven't connected to
+		// the distributed / P2P network, so all we can do at the moment is to
+		// pause the execution for 1 second and then retry again.
 		time.Sleep(1 * time.Second)
 		return nil
 	}

@@ -33,10 +33,10 @@ func (uc *ReceiveSignedTransactionDTOUseCase) Execute(ctx context.Context) (*dom
 		return nil, err
 	}
 	if dto == nil {
+		// Developer Note:
+		// If we haven't received anything, that means we haven't connected to
+		// the distributed / P2P network, so all we can do is return nil.
 		return nil, nil
-		// uc.logger.Error("failed receiving signed transaction dto from network",
-		// 	slog.Any("error", "dto does not exist"))
-		// return nil, fmt.Errorf("received dto does not exist")
 	}
 
 	//
@@ -82,6 +82,9 @@ func (uc *ReceiveSignedTransactionDTOUseCase) Execute(ctx context.Context) (*dom
 			slog.Any("error", e))
 		return nil, httperror.NewForBadRequest(&e)
 	}
+
+	uc.logger.Debug("Received signed transaction dto from network",
+		slog.Any("nonce", ido.Nonce))
 
 	return ido, nil
 }

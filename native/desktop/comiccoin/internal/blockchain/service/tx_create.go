@@ -132,7 +132,7 @@ func (s *CreateTransactionService) Execute(
 		return err
 	}
 
-	s.logger.Debug("Pending transaction submitted to blockchain!",
+	s.logger.Debug("Pending signed transaction submitted to blockchain",
 		slog.Uint64("nonce", stx.Nonce))
 
 	return nil

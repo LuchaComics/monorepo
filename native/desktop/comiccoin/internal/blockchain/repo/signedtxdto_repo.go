@@ -179,6 +179,7 @@ func (impl *signedTransactionDTORepoImpl) ReceiveFromP2PNetwork(ctx context.Cont
 	//
 
 	for _, sub := range impl.subs {
+
 		//
 		// STEP 2:
 		// We will receive the incoming message from our P2P network.

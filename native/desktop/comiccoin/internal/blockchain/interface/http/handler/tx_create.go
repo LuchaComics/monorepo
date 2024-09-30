@@ -27,17 +27,17 @@ func NewCreateTransactionHTTPHandler(
 	return &CreateTransactionHTTPHandler{cfg, logger, createTransactionService}
 }
 
-type BlockchainCreateTransactionRequestIDO struct {
+type CreateTransactionRequestIDO struct {
 	// Name of the account
-	FromAccountID string `json:"from_account_id"`
+	SenderAccountID string `json:"sender_account_id"`
 
-	AccountWalletPassword string `json:"account_wallet_password"`
-
-	// Recipient’s public key
-	To string `json:"to"`
+	SenderAccountPassword string `json:"sender_account_password"`
 
 	// Value is amount of coins being transferred
 	Value uint64 `json:"value"`
+
+	// Recipient’s public key
+	RecipientAddress string `json:"recipient_address"`
 
 	// Data is any NFT related data attached
 	Data []byte `json:"data"`
@@ -55,12 +55,12 @@ func (h *CreateTransactionHTTPHandler) Execute(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	toAddr := common.HexToAddress(req.To)
+	toAddr := common.HexToAddress(req.RecipientAddress)
 
 	serviceExecErr := h.service.Execute(
 		ctx,
-		req.FromAccountID,
-		req.AccountWalletPassword,
+		req.SenderAccountID,
+		req.SenderAccountPassword,
 		&toAddr,
 		req.Value,
 		req.Data,
@@ -73,9 +73,9 @@ func (h *CreateTransactionHTTPHandler) Execute(w http.ResponseWriter, r *http.Re
 	w.WriteHeader(http.StatusCreated)
 }
 
-func unmarshalCreateTransactionRequest(ctx context.Context, r *http.Request) (*BlockchainCreateTransactionRequestIDO, error) {
+func unmarshalCreateTransactionRequest(ctx context.Context, r *http.Request) (*CreateTransactionRequestIDO, error) {
 	// Initialize our array which will store all the results from the remote server.
-	var requestData *BlockchainCreateTransactionRequestIDO
+	var requestData *CreateTransactionRequestIDO
 
 	defer r.Body.Close()
 
