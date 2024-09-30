@@ -13,17 +13,13 @@ import (
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config/constants"
-	account_http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/http"
-	account_httphandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/http/handler"
+	http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/http"
+	httphandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/http/handler"
 	httpmiddle "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/http/middleware"
-	account_rpc "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/rpc"
-	account_repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo"
-	ik_repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo"
-	stxdto_repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo"
-	account_s "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/service"
-	ik_s "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/service"
-	account_usecase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
-	ik_use "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
+	rpc "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/rpc"
+	repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo"
+	service "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/service"
+	usecase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
 	dbase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/db/leveldb"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/logger"
 	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p"
@@ -75,11 +71,11 @@ func DaemonCmd() *cobra.Command {
 			db := dbase.NewDatabase(cfg.DB.DataDir, logger)
 
 			// ------ Peer-to-Peer (P2P) ------
-			ikRepo := ik_repo.NewIdentityKeyRepo(cfg, logger, db)
-			ikCreateUseCase := ik_use.NewCreateIdentityKeyUseCase(cfg, logger, ikRepo)
-			ikGetUseCase := ik_use.NewGetIdentityKeyUseCase(cfg, logger, ikRepo)
-			ikCreateService := ik_s.NewCreateIdentityKeyService(cfg, logger, ikCreateUseCase, ikGetUseCase)
-			ikGetService := ik_s.NewGetIdentityKeyService(cfg, logger, ikGetUseCase)
+			ikRepo := repo.NewIdentityKeyRepo(cfg, logger, db)
+			ikCreateUseCase := usecase.NewCreateIdentityKeyUseCase(cfg, logger, ikRepo)
+			ikGetUseCase := usecase.NewGetIdentityKeyUseCase(cfg, logger, ikRepo)
+			ikCreateService := service.NewCreateIdentityKeyService(cfg, logger, ikCreateUseCase, ikGetUseCase)
+			ikGetService := service.NewGetIdentityKeyService(cfg, logger, ikGetUseCase)
 
 			// If nothing was set then we use a default value. We do this to
 			// simplify the user's experience.
@@ -115,16 +111,13 @@ func DaemonCmd() *cobra.Command {
 				slog.Any("full address", fullAddr),
 			)
 
-			signedTxDTORepo := stxdto_repo.NewSignedTransactionDTORepo(cfg, logger, libP2PNetwork)
-
 			//TODO
 			_ = ikCreateService
 			_ = ikGetService
-			_ = signedTxDTORepo
 
 			//TODO
 			// USE CASES - NETWORK
-			// - Share Signed Pending Transaction (Publisher)
+			// - ✅ Share Signed Pending Transaction (Publisher)
 			// - Receive Signed Pending Transaction (Subscriber)
 			// - Share Purpose Block Data (Publisher)
 			// - Receive Purpose Block Data (Subscriber)
@@ -143,26 +136,32 @@ func DaemonCmd() *cobra.Command {
 			// Send/Receive Block Data
 
 			// ------ Repo ------
-			accountRepo := account_repo.NewAccountRepo(cfg, logger, db)
+			accountRepo := repo.NewAccountRepo(cfg, logger, db)
+			signedTxDTORepo := repo.NewSignedTransactionDTORepo(cfg, logger, libP2PNetwork)
 
 			// ------ Use-case ------
-			createAccountUseCase := account_usecase.NewCreateAccountUseCase(cfg, logger, accountRepo)
-			getAccountUseCase := account_usecase.NewGetAccountUseCase(cfg, logger, accountRepo)
-			accountDecryptKeyUseCase := account_usecase.NewAccountDecryptKeyUseCase(cfg, logger, accountRepo)
-			accountEncryptKeyUseCase := account_usecase.NewAccountEncryptKeyUseCase(cfg, logger, accountRepo)
+			createAccountUseCase := usecase.NewCreateAccountUseCase(cfg, logger, accountRepo)
+			getAccountUseCase := usecase.NewGetAccountUseCase(cfg, logger, accountRepo)
+			accountDecryptKeyUseCase := usecase.NewAccountDecryptKeyUseCase(cfg, logger, accountRepo)
+			accountEncryptKeyUseCase := usecase.NewAccountEncryptKeyUseCase(cfg, logger, accountRepo)
+			broadcastSignedTxDTOUseCase := usecase.NewBroadcastSignedTransactionDTOUseCase(cfg, logger, signedTxDTORepo)
+			receiveSignedTxDTOUseCase := usecase.NewReceiveSignedTransactionDTOUseCase(cfg, logger, signedTxDTORepo)
+			_ = receiveSignedTxDTOUseCase //TODO: Impl.
 
 			// ------ Service ------
-			createAccountService := account_s.NewCreateAccountService(cfg, logger, createAccountUseCase, getAccountUseCase, accountEncryptKeyUseCase)
-			getAccountService := account_s.NewGetAccountService(cfg, logger, getAccountUseCase)
-			getKeyService := account_s.NewGetKeyService(cfg, logger, getAccountUseCase, accountDecryptKeyUseCase)
+			createAccountService := service.NewCreateAccountService(cfg, logger, createAccountUseCase, getAccountUseCase, accountEncryptKeyUseCase)
+			getAccountService := service.NewGetAccountService(cfg, logger, getAccountUseCase)
+			getKeyService := service.NewGetKeyService(cfg, logger, getAccountUseCase, accountDecryptKeyUseCase)
+			_ = getKeyService
+			createTxService := service.NewCreateTransactionService(cfg, logger, getAccountUseCase, accountDecryptKeyUseCase, broadcastSignedTxDTOUseCase)
 
 			// ------ Interface ------
 			// HTTP
-			createAccountHTTPHandler := account_httphandler.NewCreateAccountHTTPHandler(cfg, logger, createAccountService)
-			getAccountHTTPHandler := account_httphandler.NewGetAccountHTTPHandler(cfg, logger, getAccountService)
-			createTransactionHTTPHandler := account_httphandler.NewCreateTransactionHTTPHandler(cfg, logger, getKeyService)
+			createAccountHTTPHandler := httphandler.NewCreateAccountHTTPHandler(cfg, logger, createAccountService)
+			getAccountHTTPHandler := httphandler.NewGetAccountHTTPHandler(cfg, logger, getAccountService)
+			createTransactionHTTPHandler := httphandler.NewCreateTransactionHTTPHandler(cfg, logger, createTxService)
 			httpMiddleware := httpmiddle.NewMiddleware(cfg, logger)
-			httpServ := account_http.NewHTTPServer(
+			httpServ := http.NewHTTPServer(
 				cfg, logger, httpMiddleware,
 				createAccountHTTPHandler,
 				getAccountHTTPHandler,
@@ -170,7 +169,7 @@ func DaemonCmd() *cobra.Command {
 			)
 
 			// RPC
-			rpcServ := account_rpc.NewRPCServer(
+			rpcServ := rpc.NewRPCServer(
 				cfg, logger,
 				getKeyService,
 			)

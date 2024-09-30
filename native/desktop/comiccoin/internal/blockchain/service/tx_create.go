@@ -1,23 +1,25 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"time"
+
+	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
-	"github.com/ethereum/go-ethereum/accounts/keystore"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 type CreateTransactionService struct {
-	config                   *config.Config
-	logger                   *slog.Logger
-	getAccountUseCase        *usecase.GetAccountUseCase
-	accountDecryptKeyUseCase *usecase.AccountDecryptKeyUseCase
+	config                               *config.Config
+	logger                               *slog.Logger
+	getAccountUseCase                    *usecase.GetAccountUseCase
+	accountDecryptKeyUseCase             *usecase.AccountDecryptKeyUseCase
+	broadcastSignedTransactionDTOUseCase *usecase.BroadcastSignedTransactionDTOUseCase
 }
 
 func NewCreateTransactionService(
@@ -25,16 +27,19 @@ func NewCreateTransactionService(
 	logger *slog.Logger,
 	uc1 *usecase.GetAccountUseCase,
 	uc2 *usecase.AccountDecryptKeyUseCase,
+	uc3 *usecase.BroadcastSignedTransactionDTOUseCase,
 ) *CreateTransactionService {
-	return &CreateTransactionService{cfg, logger, uc1, uc2}
+	return &CreateTransactionService{cfg, logger, uc1, uc2, uc3}
 }
 
 func (s *CreateTransactionService) Execute(
-	fromAccountID, accountWalletPassword string,
+	ctx context.Context,
+	fromAccountID string,
+	accountWalletPassword string,
 	to *common.Address,
 	value uint64,
 	data []byte,
-) (*keystore.Key, error) {
+) error {
 	//
 	// STEP 1: Validation.
 	//
@@ -55,7 +60,7 @@ func (s *CreateTransactionService) Execute(
 	if len(e) != 0 {
 		s.logger.Warn("Failed creating new account",
 			slog.Any("error", e))
-		return nil, httperror.NewForBadRequest(&e)
+		return httperror.NewForBadRequest(&e)
 	}
 
 	//
@@ -67,10 +72,10 @@ func (s *CreateTransactionService) Execute(
 		s.logger.Error("failed getting from database",
 			slog.Any("from_account_id", fromAccountID),
 			slog.Any("error", err))
-		return nil, fmt.Errorf("failed getting from database: %s", err)
+		return fmt.Errorf("failed getting from database: %s", err)
 	}
 	if account == nil {
-		return nil, fmt.Errorf("failed getting from database: %s", "d.n.e.")
+		return fmt.Errorf("failed getting from database: %s", "d.n.e.")
 	}
 
 	key, err := s.accountDecryptKeyUseCase.Execute(account.WalletFilepath, accountWalletPassword)
@@ -78,14 +83,21 @@ func (s *CreateTransactionService) Execute(
 		s.logger.Error("failed getting key",
 			slog.Any("from_account_id", fromAccountID),
 			slog.Any("error", err))
-		return nil, fmt.Errorf("failed getting key: %s", err)
+		return fmt.Errorf("failed getting key: %s", err)
 	}
 	if key == nil {
-		return nil, fmt.Errorf("failed getting key: %s", "d.n.e.")
+		return fmt.Errorf("failed getting key: %s", "d.n.e.")
 	}
 
 	//
-	// STEP 2
+	// STEP 3:
+	// Verify the account has enough balance before proceeding.
+	//
+
+	//TODO: IMPL.
+
+	//
+	// STEP 4
 	// Create our pending transaction and sign it with the accounts private key.
 	//
 
@@ -102,42 +114,26 @@ func (s *CreateTransactionService) Execute(
 	if signingErr != nil {
 		s.logger.Debug("Failed to sign the signed transaction",
 			slog.Any("error", signingErr))
-		return nil, signingErr
+		return signingErr
 	}
 
 	s.logger.Debug("Pending transaction signed successfully",
 		slog.Uint64("nonce", stx.Nonce))
 
-	//TODO: IMPL.
-	// //
-	// // STEP 3
-	// // Submit to the blockchain network to be processed by the consensus
-	// // mechanism and verification to be submitted in the blockchain.
-	// // We are using `publish-subscribe` pattern with a `message queue` which
-	// // will `publish` the message to the broker so the broker will pass it
-	// // along to the subscriber which will submit this to the peer-to-peer
-	// // network.
-	// //
 	//
-	// ptBytes, err := signedTransaction.Serialize()
-	// if err != nil {
-	// 	impl.logger.Error("Failed to serialize our signed transaction",
-	// 		slog.Any("error", err))
-	// 	return nil, err
-	// }
+	// STEP 3
+	// Send our pending signed transaction to our distributed mempool nodes
+	// in the blochcian network.
 	//
-	// // Send our pending signed transaction to our distributed mempool nodes
-	// // in the blochcian network. The `mempool` topic is used to
-	// // send our signed pending transcation to the actively running in background
-	// // mempool node subscriber
-	// if err := impl.p2pPubSubBroker.Publish(ctx, constants.PubSubMempoolTopicName, ptBytes); err != nil {
-	// 	impl.logger.Error("Failed to publish",
-	// 		slog.Any("error", err))
-	// 	return nil, err
-	// }
-	//
-	// impl.logger.Debug("Pending transaction submitted to blockchain!",
-	// 	slog.Uint64("nonce", pt.Nonce))
 
-	return nil, nil
+	if err := s.broadcastSignedTransactionDTOUseCase.Execute(ctx, &stx); err != nil {
+		s.logger.Error("Failed to broadcast to the blockchain network",
+			slog.Any("error", err))
+		return err
+	}
+
+	s.logger.Debug("Pending transaction submitted to blockchain!",
+		slog.Uint64("nonce", stx.Nonce))
+
+	return nil
 }
