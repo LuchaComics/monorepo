@@ -30,7 +30,17 @@ func (s *MiningService) Execute(ctx context.Context) error {
 	s.kmutex.Acquire("mining-service")
 	defer s.kmutex.Release("mining-service")
 
-	//TODO: IMPL.
+	//TODO: IMPL:
+	//-------------------------------
+	// Get all pending block txs.
+	// Create block data
+	// Submit to blockchain network
+	//      TODO: Receive purposed blockdata
+	//      TODO: Verify purposed blockdata
+	//      TODO: Add blockdata to blockchain
+	//      TODO: Broadcast to p2p network the new blockdata.
+	// Delete all pending block txs.
+	//-------------------------------
 
 	return nil
 }
