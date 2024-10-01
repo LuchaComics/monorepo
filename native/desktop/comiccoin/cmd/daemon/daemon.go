@@ -122,7 +122,7 @@ func DaemonCmd() *cobra.Command {
 			//TODO
 			// USE CASES - NETWORK
 			// - ✅ Share Signed Pending Transaction (Publisher)
-			// - Receive Signed Pending Transaction (Subscriber)
+			// - ✅ Receive Signed Pending Transaction (Subscriber)
 			// - Share Purpose Block Data (Publisher)
 			// - Receive Purpose Block Data (Subscriber)
 			// - Share Block Data (Publisher)
@@ -166,8 +166,8 @@ func DaemonCmd() *cobra.Command {
 			listAllPendingBlockTxUseCase := usecase.NewListAllPendingBlockTransactionUseCase(cfg, logger, pendingBlockTxRepo)
 			deleteAllPendingBlockTxUseCase := usecase.NewDeleteAllPendingBlockTransactionUseCase(cfg, logger, pendingBlockTxRepo)
 
-			_ = listAllPendingBlockTxUseCase   // TODO: IMPL IN MINER
-			_ = deleteAllPendingBlockTxUseCase // TODO: IMPL IN MINER
+			// Mining
+			proofOfWorkUseCase := usecase.NewProofOfWorkUseCase(cfg, logger)
 
 			// ------------ Service ------------
 			// Account
@@ -184,6 +184,9 @@ func DaemonCmd() *cobra.Command {
 			// Mempool
 			mempoolReceiveService := service.NewMempoolReceiveService(cfg, logger, kmutex, receiveMempoolTxDTOUseCase, createMempoolTransactionUseCase)
 			mempoolBatchSendService := service.NewMempoolBatchSendService(cfg, logger, kmutex, listAllMempoolTransactionUseCase, createPendingBlockTxUseCase, deleteAllMempoolTransactionUseCase)
+
+			// Miner
+			miningService := service.NewMiningService(cfg, logger, kmutex, listAllPendingBlockTxUseCase, proofOfWorkUseCase, deleteAllPendingBlockTxUseCase)
 
 			// ------------ Interface ------------
 			// HTTP
@@ -207,11 +210,13 @@ func DaemonCmd() *cobra.Command {
 			// TASK MANAGER
 			tm1 := taskmnghandler.NewMempoolReceiveTaskHandler(cfg, logger, mempoolReceiveService)
 			tm2 := taskmnghandler.NewMempoolBatchSendTaskHandler(cfg, logger, mempoolBatchSendService)
+			tm3 := taskmnghandler.NewMiningTaskHandler(cfg, logger, miningService)
 			taskManager := taskmng.NewTaskManager(
 				cfg,
 				logger,
 				tm1,
 				tm2,
+				tm3,
 			)
 
 			//

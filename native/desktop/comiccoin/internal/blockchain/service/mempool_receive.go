@@ -64,8 +64,8 @@ func (s *MempoolReceiveService) Execute(ctx context.Context) error {
 
 	// Lock the mempool's database so we coordinate when we delete the mempool
 	// and when we add mempool.
-	s.kmutex.Acquire("mempool")
-	defer s.kmutex.Release("mempool")
+	s.kmutex.Acquire("mempool-service")
+	defer s.kmutex.Release("mempool-service")
 
 	if err := s.createMempoolTransactionUseCase.Execute(stx); err != nil {
 		s.logger.Error("mempool failed saving mempool transaction",

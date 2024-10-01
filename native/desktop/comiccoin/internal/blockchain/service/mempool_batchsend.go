@@ -42,8 +42,8 @@ func (s *MempoolBatchSendService) Execute(ctx context.Context) error {
 
 	// Lock the mempool's database so we coordinate when we delete the mempool
 	// and when we add mempool.
-	s.kmutex.Acquire("mempool")
-	defer s.kmutex.Release("mempool")
+	s.kmutex.Acquire("mempool-service")
+	defer s.kmutex.Release("mempool-service")
 
 	stxs, err := s.listAllMempoolTransactionDTOUseCase.Execute()
 	if err != nil {

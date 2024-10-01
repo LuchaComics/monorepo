@@ -19,6 +19,7 @@ type taskManagerImpl struct {
 	logger                      *slog.Logger
 	mempoolReceiveTaskHandler   *task.MempoolReceiveTaskHandler
 	mempoolBatchSendTaskHandler *task.MempoolBatchSendTaskHandler
+	miningTaskHandler           *task.MiningTaskHandler
 }
 
 func NewTaskManager(
@@ -26,12 +27,14 @@ func NewTaskManager(
 	logger *slog.Logger,
 	mempoolReceiveTaskHandler *task.MempoolReceiveTaskHandler,
 	mempoolBatchSendTaskHandler *task.MempoolBatchSendTaskHandler,
+	miningTaskHandler *task.MiningTaskHandler,
 ) TaskManager {
 	port := &taskManagerImpl{
 		cfg:                         cfg,
 		logger:                      logger,
 		mempoolReceiveTaskHandler:   mempoolReceiveTaskHandler,
 		mempoolBatchSendTaskHandler: mempoolBatchSendTaskHandler,
+		miningTaskHandler:           miningTaskHandler,
 	}
 	return port
 }
@@ -54,6 +57,16 @@ func (port *taskManagerImpl) Run() {
 			taskErr := port.mempoolBatchSendTaskHandler.Execute(ctx)
 			if taskErr != nil {
 				port.logger.Error("failed executing mempool batch send task, restarting task in 1 minute...", slog.Any("error", taskErr))
+				time.Sleep(1 * time.Minute)
+			}
+			time.Sleep(1 * time.Minute)
+		}
+	}()
+	go func() {
+		for {
+			taskErr := port.miningTaskHandler.Execute(ctx)
+			if taskErr != nil {
+				port.logger.Error("failed executing mining task, restarting task in 1 minute...", slog.Any("error", taskErr))
 				time.Sleep(1 * time.Minute)
 			}
 			time.Sleep(1 * time.Minute)
