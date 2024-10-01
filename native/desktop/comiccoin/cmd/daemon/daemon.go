@@ -144,6 +144,8 @@ func DaemonCmd() *cobra.Command {
 			mempoolTxRepo := repo.NewMempoolTransactionRepo(cfg, logger, db)
 			mempoolTransactionDTORepo := repo.NewMempoolTransactionDTORepo(cfg, logger, libP2PNetwork)
 			pendingBlockTxRepo := repo.NewPendingBlockTransactionRepo(cfg, logger, db)
+			latestBlockDataHashRepo := repo.NewLastBlockDataHashRepo(cfg, logger, db)
+			blockDataRepo := repo.NewBlockDataRepo(cfg, logger, db)
 
 			// ------------ Use-case ------------
 			// Account
@@ -166,6 +168,14 @@ func DaemonCmd() *cobra.Command {
 			listAllPendingBlockTxUseCase := usecase.NewListAllPendingBlockTransactionUseCase(cfg, logger, pendingBlockTxRepo)
 			deleteAllPendingBlockTxUseCase := usecase.NewDeleteAllPendingBlockTransactionUseCase(cfg, logger, pendingBlockTxRepo)
 
+			// Latest BlockData Hash
+			getLastBlockDataHashUseCase := usecase.NewGetLastBlockDataHashUseCase(cfg, logger, latestBlockDataHashRepo)
+			setLastBlockDataHashUseCase := usecase.NewSetLastBlockDataHashUseCase(cfg, logger, latestBlockDataHashRepo)
+
+			// Block Data
+			getBlockDataUseCase := usecase.NewGetBlockDataUseCase(cfg, logger, blockDataRepo)
+			createBlockDataUseCase := usecase.NewCreateBlockDataUseCase(cfg, logger, blockDataRepo)
+
 			// Mining
 			proofOfWorkUseCase := usecase.NewProofOfWorkUseCase(cfg, logger)
 
@@ -179,14 +189,40 @@ func DaemonCmd() *cobra.Command {
 			_ = getKeyService // TODO: USE IN FUTURE
 
 			// Transaction
-			createTxService := service.NewCreateTransactionService(cfg, logger, getAccountUseCase, accountDecryptKeyUseCase, broadcastMempoolTxDTOUseCase)
+			createTxService := service.NewCreateTransactionService(
+				cfg,
+				logger,
+				getAccountUseCase,
+				accountDecryptKeyUseCase,
+				broadcastMempoolTxDTOUseCase)
 
 			// Mempool
-			mempoolReceiveService := service.NewMempoolReceiveService(cfg, logger, kmutex, receiveMempoolTxDTOUseCase, createMempoolTransactionUseCase)
-			mempoolBatchSendService := service.NewMempoolBatchSendService(cfg, logger, kmutex, listAllMempoolTransactionUseCase, createPendingBlockTxUseCase, deleteAllMempoolTransactionUseCase)
+			mempoolReceiveService := service.NewMempoolReceiveService(
+				cfg,
+				logger,
+				kmutex,
+				receiveMempoolTxDTOUseCase,
+				createMempoolTransactionUseCase)
+			mempoolBatchSendService := service.NewMempoolBatchSendService(
+				cfg,
+				logger,
+				kmutex,
+				listAllMempoolTransactionUseCase,
+				createPendingBlockTxUseCase,
+				deleteAllMempoolTransactionUseCase)
 
 			// Miner
-			miningService := service.NewMiningService(cfg, logger, kmutex, listAllPendingBlockTxUseCase, proofOfWorkUseCase, deleteAllPendingBlockTxUseCase)
+			miningService := service.NewMiningService(
+				cfg,
+				logger,
+				kmutex,
+				listAllPendingBlockTxUseCase,
+				getLastBlockDataHashUseCase,
+				setLastBlockDataHashUseCase,
+				getBlockDataUseCase,
+				createBlockDataUseCase,
+				proofOfWorkUseCase,
+				deleteAllPendingBlockTxUseCase)
 
 			// ------------ Interface ------------
 			// HTTP

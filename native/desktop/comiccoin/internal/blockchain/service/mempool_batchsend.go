@@ -74,6 +74,10 @@ func (s *MempoolBatchSendService) Execute(ctx context.Context) error {
 	// Queue our signed transactions for the miner.
 	//
 
+	s.logger.Debug("mempool submitting to minging service",
+		slog.Any("txs_count", len(stxs)),
+	)
+
 	for _, stx := range stxs {
 		pendingBlockTx := &domain.PendingBlockTransaction{
 			MempoolTransaction: *stx,
