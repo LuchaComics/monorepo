@@ -12,8 +12,8 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/kmutexutil"
 )
 
-// MiningValidationService represents (TODO)
-type MiningValidationService struct {
+// ValidationService represents (TODO)
+type ValidationService struct {
 	config                             *config.Config
 	logger                             *slog.Logger
 	kmutex                             kmutexutil.KMutexProvider
@@ -24,7 +24,7 @@ type MiningValidationService struct {
 	setLastBlockDataHashUseCase        *usecase.SetLastBlockDataHashUseCase
 }
 
-func NewMiningValidationService(
+func NewValidationService(
 	cfg *config.Config,
 	logger *slog.Logger,
 	kmutex kmutexutil.KMutexProvider,
@@ -33,11 +33,13 @@ func NewMiningValidationService(
 	uc3 *usecase.GetBlockDataUseCase,
 	uc4 *usecase.CreateBlockDataUseCase,
 	uc5 *usecase.SetLastBlockDataHashUseCase,
-) *MiningValidationService {
-	return &MiningValidationService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5}
+) *ValidationService {
+	return &ValidationService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5}
 }
 
-func (s *MiningValidationService) Execute(ctx context.Context) error {
+func (s *ValidationService) Execute(ctx context.Context) error {
+	s.logger.Debug("starting validation service...")
+	defer s.logger.Debug("finished validation service")
 
 	//
 	// STEP 1

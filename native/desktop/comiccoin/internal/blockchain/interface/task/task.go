@@ -20,6 +20,7 @@ type taskManagerImpl struct {
 	mempoolReceiveTaskHandler   *task.MempoolReceiveTaskHandler
 	mempoolBatchSendTaskHandler *task.MempoolBatchSendTaskHandler
 	miningTaskHandler           *task.MiningTaskHandler
+	validationTaskHandler       *task.ValidationTaskHandler
 }
 
 func NewTaskManager(
@@ -28,6 +29,7 @@ func NewTaskManager(
 	mempoolReceiveTaskHandler *task.MempoolReceiveTaskHandler,
 	mempoolBatchSendTaskHandler *task.MempoolBatchSendTaskHandler,
 	miningTaskHandler *task.MiningTaskHandler,
+	validationTaskHandler *task.ValidationTaskHandler,
 ) TaskManager {
 	port := &taskManagerImpl{
 		cfg:                         cfg,
@@ -35,6 +37,7 @@ func NewTaskManager(
 		mempoolReceiveTaskHandler:   mempoolReceiveTaskHandler,
 		mempoolBatchSendTaskHandler: mempoolBatchSendTaskHandler,
 		miningTaskHandler:           miningTaskHandler,
+		validationTaskHandler:       validationTaskHandler,
 	}
 	return port
 }
@@ -67,6 +70,16 @@ func (port *taskManagerImpl) Run() {
 			taskErr := port.miningTaskHandler.Execute(ctx)
 			if taskErr != nil {
 				port.logger.Error("failed executing mining task, restarting task in 1 minute...", slog.Any("error", taskErr))
+				time.Sleep(1 * time.Minute)
+			}
+			time.Sleep(1 * time.Minute)
+		}
+	}()
+	go func() {
+		for {
+			taskErr := port.validationTaskHandler.Execute(ctx)
+			if taskErr != nil {
+				port.logger.Error("failed executing validation task, restarting task in 1 minute...", slog.Any("error", taskErr))
 				time.Sleep(1 * time.Minute)
 			}
 			time.Sleep(1 * time.Minute)

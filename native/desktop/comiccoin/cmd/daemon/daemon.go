@@ -120,13 +120,6 @@ func DaemonCmd() *cobra.Command {
 			_ = ikGetService
 
 			//TODO
-			// USE CASES - NETWORK
-			// - ✅ Share Signed Pending Transaction (Publisher)
-			// - ✅ Receive Signed Pending Transaction (Subscriber)
-			// - Share Purpose Block Data (Publisher)
-			// - Receive Purpose Block Data (Subscriber)
-			// - Share Block Data (Publisher)
-			// - Receive Block Data (Subscriber)
 			// - Ask Latest Block Hash (Req-Res)
 			// - Receive Latest Block Hash (Req-Res)
 			// - Ask Block Data (Req-Res)
@@ -317,8 +310,8 @@ func DaemonCmd() *cobra.Command {
 				broadcastProposedBlockDataDTOUseCase,
 				deleteAllPendingBlockTxUseCase)
 
-			// Miner Validation
-			miningValidationService := service.NewMiningValidationService(
+			// Validation
+			validationService := service.NewValidationService(
 				cfg,
 				logger,
 				kmutex,
@@ -328,8 +321,6 @@ func DaemonCmd() *cobra.Command {
 				createBlockDataUseCase,
 				setLastBlockDataHashUseCase,
 			)
-
-			_ = miningValidationService
 
 			// ------------ Interface ------------
 			// HTTP
@@ -376,12 +367,18 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				miningService)
+			tm4 := taskmnghandler.NewValidationTaskHandler(
+				cfg,
+				logger,
+				validationService)
+
 			taskManager := taskmng.NewTaskManager(
 				cfg,
 				logger,
 				tm1,
 				tm2,
 				tm3,
+				tm4,
 			)
 
 			//
