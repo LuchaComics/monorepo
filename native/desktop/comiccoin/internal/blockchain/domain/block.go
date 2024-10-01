@@ -64,7 +64,7 @@ func isHashSolved(difficulty uint16, hash string) bool {
 var ErrChainForked = errors.New("blockchain forked, start resync")
 
 // ValidateBlock takes a block and validates it to be included into the blockchain.
-func (b Block) ValidateBlock(previousBlock Block, stateRoot string, evHandler func(v string, args ...any)) error {
+func (b Block) ValidateBlock(previousBlock *Block, stateRoot string) error {
 	//
 	// VALIDATION 1:
 	// Check: chain is not forked
@@ -157,4 +157,19 @@ func (b Block) ValidateBlock(previousBlock Block, stateRoot string, evHandler fu
 	}
 
 	return nil
+}
+
+// ToBlock converts a storage block into a database block.
+func ToBlock(blockData *BlockData) (*Block, error) {
+	tree, err := merkle.NewTree(blockData.Trans)
+	if err != nil {
+		return &Block{}, err
+	}
+
+	block := &Block{
+		Header:     blockData.Header,
+		MerkleTree: tree,
+	}
+
+	return block, nil
 }
