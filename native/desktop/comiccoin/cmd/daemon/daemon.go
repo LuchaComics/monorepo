@@ -258,7 +258,6 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				proposedBlockDataDTORepo)
-			_ = receiveProposedBlockDataDTOUseCase // TODO: Use later!
 
 			// ------------ Service ------------
 			// Account
@@ -317,6 +316,20 @@ func DaemonCmd() *cobra.Command {
 				proofOfWorkUseCase,
 				broadcastProposedBlockDataDTOUseCase,
 				deleteAllPendingBlockTxUseCase)
+
+			// Miner Validation
+			miningValidationService := service.NewMiningValidationService(
+				cfg,
+				logger,
+				kmutex,
+				receiveProposedBlockDataDTOUseCase,
+				getLastBlockDataHashUseCase,
+				getBlockDataUseCase,
+				createBlockDataUseCase,
+				setLastBlockDataHashUseCase,
+			)
+
+			_ = miningValidationService
 
 			// ------------ Interface ------------
 			// HTTP

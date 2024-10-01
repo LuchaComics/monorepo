@@ -146,7 +146,7 @@ func (s *MiningService) Execute(ctx context.Context) error {
 	}
 
 	//
-	// STEP 3:
+	// STEP 4:
 	// Execute the proof of work to find our nounce to meet the hash difficulty.
 	//
 
@@ -163,12 +163,32 @@ func (s *MiningService) Execute(ctx context.Context) error {
 		slog.Uint64("nonce", block.Header.Nonce))
 
 	//
-	// STEP 4:
+	// STEP 5:
+	// Handle case of another miner executing the mine before this
+	// current mine and hence our blockchain is out of sync and thus
+	// invalidating this current mining operation.
+
+	//TODO: IMPL.
+
+	//
+	// STEP 6:
+	// Save to database.
+	//
+
+	// Convert into saving for our database and transmitting over network.
+	blockData := domain.NewBlockData(block)
+
+	if err := s.createBlockDataUseCase.Execute(blockData.Hash, blockData.Header, blockData.Trans); err != nil {
+		s.logger.Error("Failed to save block data to blockchain",
+			slog.Any("error", powErr))
+		return fmt.Errorf("Failed to save block data to blockchain: %v", powErr)
+	}
+
+	//
+	// STEP 7:
 	// Broadcast to the distributed / P2P blockchain network our new proposed
 	// block data.
 	//
-
-	blockData := domain.NewBlockData(block)
 
 	// Convert to our new datastructure.
 	purposeBlockData := &domain.ProposedBlockData{
