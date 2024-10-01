@@ -6,26 +6,26 @@ import (
 	"fmt"
 )
 
-// PurposedBlockData represents what can be serialized to disk and over the network.
-type PurposedBlockData struct {
+// ProposedBlockData represents what can be serialized to disk and over the network.
+type ProposedBlockData struct {
 	Hash   string             `json:"hash"`
 	Header *BlockHeader       `json:"block_header"`
 	Trans  []BlockTransaction `json:"trans"`
 }
 
-func (b *PurposedBlockData) Serialize() ([]byte, error) {
+func (b *ProposedBlockData) Serialize() ([]byte, error) {
 	var result bytes.Buffer
 	encoder := gob.NewEncoder(&result)
 	err := encoder.Encode(b)
 	if err != nil {
-		return nil, fmt.Errorf("failed to serialize purposed block data: %v", err)
+		return nil, fmt.Errorf("failed to serialize proposed block data: %v", err)
 	}
 	return result.Bytes(), nil
 }
 
-func NewPurposedBlockDataFromDeserialize(data []byte) (*PurposedBlockData, error) {
+func NewProposedBlockDataFromDeserialize(data []byte) (*ProposedBlockData, error) {
 	// Variable we will use to return.
-	account := &PurposedBlockData{}
+	account := &ProposedBlockData{}
 
 	// Defensive code: If programmer entered empty bytes then we will
 	// return nil deserialization result.
@@ -36,7 +36,7 @@ func NewPurposedBlockDataFromDeserialize(data []byte) (*PurposedBlockData, error
 	decoder := gob.NewDecoder(bytes.NewReader(data))
 	err := decoder.Decode(&account)
 	if err != nil {
-		return nil, fmt.Errorf("failed to deserialize purposed block data: %v", err)
+		return nil, fmt.Errorf("failed to deserialize proposed block data: %v", err)
 	}
 	return account, nil
 }

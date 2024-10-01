@@ -9,17 +9,17 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
 )
 
-type ReceivePurposedBlockDataDTOUseCase struct {
+type ReceiveProposedBlockDataDTOUseCase struct {
 	config *config.Config
 	logger *slog.Logger
-	repo   domain.PurposedBlockDataDTORepository
+	repo   domain.ProposedBlockDataDTORepository
 }
 
-func NewReceivePurposedBlockDataDTOUseCase(config *config.Config, logger *slog.Logger, repo domain.PurposedBlockDataDTORepository) *ReceivePurposedBlockDataDTOUseCase {
-	return &ReceivePurposedBlockDataDTOUseCase{config, logger, repo}
+func NewReceiveProposedBlockDataDTOUseCase(config *config.Config, logger *slog.Logger, repo domain.ProposedBlockDataDTORepository) *ReceiveProposedBlockDataDTOUseCase {
+	return &ReceiveProposedBlockDataDTOUseCase{config, logger, repo}
 }
 
-func (uc *ReceivePurposedBlockDataDTOUseCase) Execute(ctx context.Context) (*domain.PurposedBlockData, error) {
+func (uc *ReceiveProposedBlockDataDTOUseCase) Execute(ctx context.Context) (*domain.ProposedBlockData, error) {
 	//
 	// STEP 1:
 	// Wait to receive from the P2P Network. It just takes one node to publish
@@ -45,7 +45,7 @@ func (uc *ReceivePurposedBlockDataDTOUseCase) Execute(ctx context.Context) (*dom
 	// validation before returning it for this function.
 	//
 
-	ido := &domain.PurposedBlockData{
+	ido := &domain.ProposedBlockData{
 		Hash:   dto.Hash,
 		Header: dto.Header,
 		Trans:  dto.Trans,
@@ -81,7 +81,7 @@ func (uc *ReceivePurposedBlockDataDTOUseCase) Execute(ctx context.Context) (*dom
 		return nil, httperror.NewForBadRequest(&e)
 	}
 
-	uc.logger.Debug("Received purposed block data dto from network",
+	uc.logger.Debug("Received proposed block data dto from network",
 		slog.Any("hash", ido.Hash))
 
 	return ido, nil

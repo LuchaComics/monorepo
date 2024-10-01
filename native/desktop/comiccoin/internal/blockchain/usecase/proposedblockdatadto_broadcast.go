@@ -9,17 +9,17 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
 )
 
-type BroadcastPurposedBlockDataDTOUseCase struct {
+type BroadcastProposedBlockDataDTOUseCase struct {
 	config *config.Config
 	logger *slog.Logger
-	repo   domain.PurposedBlockDataDTORepository
+	repo   domain.ProposedBlockDataDTORepository
 }
 
-func NewBroadcastPurposedBlockDataDTOUseCase(config *config.Config, logger *slog.Logger, repo domain.PurposedBlockDataDTORepository) *BroadcastPurposedBlockDataDTOUseCase {
-	return &BroadcastPurposedBlockDataDTOUseCase{config, logger, repo}
+func NewBroadcastProposedBlockDataDTOUseCase(config *config.Config, logger *slog.Logger, repo domain.ProposedBlockDataDTORepository) *BroadcastProposedBlockDataDTOUseCase {
+	return &BroadcastProposedBlockDataDTOUseCase{config, logger, repo}
 }
 
-func (uc *BroadcastPurposedBlockDataDTOUseCase) Execute(ctx context.Context, stx *domain.PurposedBlockData) error {
+func (uc *BroadcastProposedBlockDataDTOUseCase) Execute(ctx context.Context, stx *domain.ProposedBlockData) error {
 	//
 	// STEP 1: Validation.
 	//
@@ -38,7 +38,7 @@ func (uc *BroadcastPurposedBlockDataDTOUseCase) Execute(ctx context.Context, stx
 	// STEP 2: Create our strucutre.
 	//
 
-	dto := &domain.PurposedBlockDataDTO{
+	dto := &domain.ProposedBlockDataDTO{
 		Hash:   stx.Hash,
 		Header: stx.Header,
 		Trans:  stx.Trans,

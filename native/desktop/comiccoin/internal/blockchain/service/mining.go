@@ -23,7 +23,7 @@ type MiningService struct {
 	getBlockDataUseCase                     *usecase.GetBlockDataUseCase
 	createBlockDataUseCase                  *usecase.CreateBlockDataUseCase
 	proofOfWorkUseCase                      *usecase.ProofOfWorkUseCase
-	broadcastPurposedBlockDataDTOUseCase    *usecase.BroadcastPurposedBlockDataDTOUseCase
+	broadcastProposedBlockDataDTOUseCase    *usecase.BroadcastProposedBlockDataDTOUseCase
 	deleteAllPendingBlockTransactionUseCase *usecase.DeleteAllPendingBlockTransactionUseCase
 }
 
@@ -37,7 +37,7 @@ func NewMiningService(
 	uc4 *usecase.GetBlockDataUseCase,
 	uc5 *usecase.CreateBlockDataUseCase,
 	uc6 *usecase.ProofOfWorkUseCase,
-	uc7 *usecase.BroadcastPurposedBlockDataDTOUseCase,
+	uc7 *usecase.BroadcastProposedBlockDataDTOUseCase,
 	uc8 *usecase.DeleteAllPendingBlockTransactionUseCase,
 ) *MiningService {
 	return &MiningService{config, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8}
@@ -164,23 +164,23 @@ func (s *MiningService) Execute(ctx context.Context) error {
 
 	//
 	// STEP 4:
-	// Broadcast to the distributed / P2P blockchain network our new purposed
+	// Broadcast to the distributed / P2P blockchain network our new proposed
 	// block data.
 	//
 
 	blockData := domain.NewBlockData(block)
 
 	// Convert to our new datastructure.
-	purposeBlockData := &domain.PurposedBlockData{
+	purposeBlockData := &domain.ProposedBlockData{
 		Hash:   blockData.Hash,
 		Header: blockData.Header,
 		Trans:  blockData.Trans,
 	}
 
-	if err := s.broadcastPurposedBlockDataDTOUseCase.Execute(ctx, purposeBlockData); err != nil {
-		s.logger.Error("Failed to broadcast purposed block data",
+	if err := s.broadcastProposedBlockDataDTOUseCase.Execute(ctx, purposeBlockData); err != nil {
+		s.logger.Error("Failed to broadcast proposed block data",
 			slog.Any("error", powErr))
-		return fmt.Errorf("Failed to broadcast purposed block data: %v", powErr)
+		return fmt.Errorf("Failed to broadcast proposed block data: %v", powErr)
 	}
 
 	return nil
