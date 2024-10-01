@@ -40,7 +40,7 @@ func (s *MempoolReceiveService) Execute(ctx context.Context) error {
 
 	stx, err := s.receiveMempoolTransactionDTOUseCase.Execute(ctx)
 	if err != nil {
-		s.logger.Error("mempool failed receiving",
+		s.logger.Error("mempool failed receiving dto",
 			slog.Any("error", err))
 		return err
 	}
@@ -53,8 +53,8 @@ func (s *MempoolReceiveService) Execute(ctx context.Context) error {
 		return nil
 	}
 
-	s.logger.Debug("received from network",
-		slog.Any("nonce", stx.Nonce),
+	s.logger.Debug("received dto from network",
+		slog.Any("tx_nonce", stx.Nonce),
 	)
 
 	//
@@ -68,13 +68,13 @@ func (s *MempoolReceiveService) Execute(ctx context.Context) error {
 	defer s.kmutex.Release("mempool")
 
 	if err := s.createMempoolTransactionUseCase.Execute(stx); err != nil {
-		s.logger.Error("mempool failed saving signed transaction",
+		s.logger.Error("mempool failed saving mempool transaction",
 			slog.Any("error", err))
 		return err
 	}
 
 	s.logger.Debug("saved to mempool",
-		slog.Any("nonce", stx.Nonce),
+		slog.Any("tx_nonce", stx.Nonce),
 	)
 
 	return nil

@@ -47,7 +47,7 @@ func (s *MempoolBatchSendService) Execute(ctx context.Context) error {
 
 	stxs, err := s.listAllMempoolTransactionDTOUseCase.Execute()
 	if err != nil {
-		s.logger.Error("mempool failed listing signed transaction",
+		s.logger.Error("mempool failed listing mempool transaction",
 			slog.Any("error", err))
 		return err
 	}
@@ -65,6 +65,7 @@ func (s *MempoolBatchSendService) Execute(ctx context.Context) error {
 	//    send the transactions to the miner.
 	if len(stxs) < int(s.config.Blockchain.TransPerBlock) {
 		// Do nothing, just return this function with nothing.
+		s.logger.Debug("mempool skipped submitted to minging service")
 		return nil
 	}
 
@@ -85,6 +86,9 @@ func (s *MempoolBatchSendService) Execute(ctx context.Context) error {
 				slog.Any("error", createErr))
 			return createErr
 		}
+		s.logger.Debug("mempool submitted to minging service",
+			slog.Any("tx_nonce", stx.Nonce),
+		)
 	}
 
 	//
@@ -93,7 +97,7 @@ func (s *MempoolBatchSendService) Execute(ctx context.Context) error {
 	//
 
 	if deleteAllErr := s.deleteAllMempoolTransactionDTOUseCase.Execute(); err != nil {
-		s.logger.Error("mempool failed deleting all pending block transaction",
+		s.logger.Error("mempool failed deleting all mempool transaction",
 			slog.Any("error", deleteAllErr))
 		return nil
 	}

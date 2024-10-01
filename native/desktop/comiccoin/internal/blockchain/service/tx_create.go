@@ -112,13 +112,13 @@ func (s *CreateTransactionService) Execute(
 
 	stx, signingErr := tx.Sign(key.PrivateKey)
 	if signingErr != nil {
-		s.logger.Debug("Failed to sign the signed transaction",
+		s.logger.Debug("Failed to sign the transaction",
 			slog.Any("error", signingErr))
 		return signingErr
 	}
 
 	s.logger.Debug("Pending transaction signed successfully",
-		slog.Uint64("nonce", stx.Nonce))
+		slog.Uint64("tx_nonce", stx.Nonce))
 
 	mempoolTx := &domain.MempoolTransaction{
 		Transaction: stx.Transaction,
@@ -140,7 +140,7 @@ func (s *CreateTransactionService) Execute(
 	}
 
 	s.logger.Debug("Pending signed transaction submitted to blockchain",
-		slog.Uint64("nonce", stx.Nonce))
+		slog.Uint64("tx_nonce", stx.Nonce))
 
 	return nil
 }
