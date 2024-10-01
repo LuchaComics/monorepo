@@ -107,3 +107,7 @@ func (tx MempoolTransaction) FromAddress() (string, error) {
 	// Convert the public key to an account address.
 	return crypto.PubkeyToAddress(*publicKey).String(), nil
 }
+
+func (tx MempoolTransaction) ToSignedTransaction() *SignedTransaction {
+	return &SignedTransaction{}
+}

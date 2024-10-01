@@ -1,9 +1,12 @@
 package usecase
 
 import (
+	"context"
 	"log/slog"
+	"math/big"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
 )
 
@@ -16,17 +19,17 @@ func NewProofOfWorkUseCase(config *config.Config, logger *slog.Logger) *ProofOfW
 	return &ProofOfWorkUseCase{config, logger}
 }
 
-func (uc *ProofOfWorkUseCase) Execute(id string) (uint64, error) {
+func (uc *ProofOfWorkUseCase) Execute(ctx context.Context, b *domain.Block, difficulty uint16) (uint64, error) {
 	//
-	// STEP 1: Validation. (TODO: IMPL)
+	// STEP 1: Validation.
 	//
 
 	e := make(map[string]string)
-	if id == "" {
-		e["id"] = "missing value"
+	if b == nil {
+		e["block"] = "missing value"
 	}
 	if len(e) != 0 {
-		uc.logger.Warn("Failed creating new account",
+		uc.logger.Warn("Failed executing proof of work",
 			slog.Any("error", e))
 		return 0, httperror.NewForBadRequest(&e)
 	}
@@ -35,7 +38,26 @@ func (uc *ProofOfWorkUseCase) Execute(id string) (uint64, error) {
 	// STEP 2: Create our strucutre.
 	//
 
-	//TODO: IMPL
+	// Choose zero starting point for the nonce. After this, the nonce
+	// will be incremented by 1 until a solution is found by us or another node.
+	nBig := big.NewInt(0)
+	b.Header.Nonce = nBig.Uint64()
+
+	for {
+		// Did we timeout trying to solve the problem.
+		if ctx.Err() != nil {
+			return 0, ctx.Err()
+		}
+
+		// Hash the block and check if we have solved the puzzle.
+		hash := b.Hash()
+		if !isHashSolved(b.Header.Difficulty, hash) {
+			b.Header.Nonce++
+			continue
+		} else {
+			break
+		}
+	}
 
 	return 0, nil
 }

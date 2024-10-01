@@ -2,10 +2,14 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/blockchain/merkle"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/kmutexutil"
 )
 
@@ -56,7 +60,7 @@ func (s *MiningService) Execute(ctx context.Context) error {
 
 	pendingBlockTxs, err := s.listAllPendingBlockTransactionUseCase.Execute()
 	if err != nil {
-		s.logger.Debug("failed listing pending block transactions",
+		s.logger.Error("failed listing pending block transactions",
 			slog.Any("error", err))
 		return nil
 	}
@@ -68,10 +72,88 @@ func (s *MiningService) Execute(ctx context.Context) error {
 		slog.Int("count", len(pendingBlockTxs)),
 	)
 
-	//TODO: IMPL:
+	//
+	// STEP 2:
+	// Lookup the most recent block (data) in our blockchain
+	//
+
+	prevBlockDataHash, err := s.getLastBlockDataHashUseCase.Execute()
+	if err != nil {
+		s.logger.Error("Failed to get last hash in database",
+			slog.Any("error", err))
+		return fmt.Errorf("Failed to get last hash in database: %v", err)
+	}
+	if prevBlockDataHash == "" {
+		s.logger.Error("Blockchain not initialized error")
+		return fmt.Errorf("Error: %v", "blockchain not initialized")
+	}
+	prevBlockData, err := s.getBlockDataUseCase.Execute(string(prevBlockDataHash))
+	if err != nil {
+		s.logger.Error("Error getting block data frin database",
+			slog.Any("error", err))
+		return fmt.Errorf("Failed to get lastest block data from database: %v", err)
+	}
+	if prevBlockData == nil {
+		s.logger.Error("Block data does not exist in database",
+			slog.Any("hash", prevBlockDataHash))
+		return fmt.Errorf("Block data does not exist in database for hash: %v", prevBlockDataHash)
+	}
+
+	//
+	// STEP 3:
+	// Setup our new block.
+	//
+
+	gasPrice := uint64(s.config.Blockchain.GasPrice)
+	unitsOfGas := uint64(s.config.Blockchain.UnitsOfGas)
+	trans := make([]domain.BlockTransaction, 1)
+	for _, pendingBlockTx := range pendingBlockTxs {
+		// Create our block.
+		blockTx := domain.BlockTransaction{
+			SignedTransaction: *pendingBlockTx.MempoolTransaction.ToSignedTransaction(),
+			TimeStamp:         uint64(time.Now().UTC().UnixMilli()),
+			GasPrice:          gasPrice,
+			GasUnits:          unitsOfGas,
+		}
+		trans = append(trans, blockTx)
+	}
+
+	// Construct a merkle tree from the transaction for this block. The root
+	// of this tree will be part of the block to be mined.
+	tree, err := merkle.NewTree(trans)
+	if err != nil {
+		return fmt.Errorf("Failed to create merkle tree: %v", err)
+	}
+
+	// Construct the genesis block.
+	block := domain.Block{
+		Header: domain.BlockHeader{
+			Number:        prevBlockData.Header.Number + 1,
+			PrevBlockHash: string(prevBlockDataHash),
+			TimeStamp:     uint64(time.Now().UTC().UnixMilli()),
+			Beneficiary:   prevBlockData.Header.Beneficiary,
+			Difficulty:    s.config.Blockchain.Difficulty,
+			MiningReward:  s.config.Blockchain.MiningReward,
+			// StateRoot:     "",             //args.StateRoot, // SKIP!
+			TransRoot: tree.RootHex(), //
+			Nonce:     0,              // Will be identified by the POW algorithm.
+		},
+		MerkleTree: tree,
+	}
+
+	//
+	// STEP 3:
+	// Execute the proof of work to find our nounce to meet the hash difficulty.
+	//
+
+	nonce, powErr := s.proofOfWorkUseCase.Execute(ctx, &block, s.config.Blockchain.Difficulty)
+	if powErr != nil {
+		return fmt.Errorf("Failed to mine block: %v", powErr)
+	}
+
+	_ = nonce
+
 	//-------------------------------
-	// Get all pending block txs.
-	// Create block data
 	// Submit to blockchain network
 	//      TODO: Receive purposed blockdata
 	//      TODO: Verify purposed blockdata

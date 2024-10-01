@@ -3,7 +3,10 @@ package domain
 import (
 	"bytes"
 	"encoding/gob"
+	"encoding/hex"
 	"fmt"
+
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/blockchain/signature"
 )
 
 // BlockTransaction represents the transaction as it's recorded inside a block. This
@@ -41,4 +44,23 @@ func NewBlockTransactionFromDeserialize(data []byte) (*BlockTransaction, error) 
 		return nil, fmt.Errorf("failed to deserialize block data: %v", err)
 	}
 	return dto, nil
+}
+
+// Hash implements the merkle Hashable interface for providing a hash
+// of a block transaction.
+func (tx BlockTransaction) Hash() ([]byte, error) {
+	str := signature.Hash(tx)
+
+	// Need to remove the 0x prefix from the hash.
+	return hex.DecodeString(str[2:])
+}
+
+// Equals implements the merkle Hashable interface for providing an equality
+// check between two block transactions. If the nonce and signatures are the
+// same, the two blocks are the same.
+func (tx BlockTransaction) Equals(otherTx BlockTransaction) bool {
+	txSig := signature.ToSignatureBytes(tx.V, tx.R, tx.S)
+	otherTxSig := signature.ToSignatureBytes(otherTx.V, otherTx.R, otherTx.S)
+
+	return tx.Nonce == otherTx.Nonce && bytes.Equal(txSig, otherTxSig)
 }

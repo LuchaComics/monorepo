@@ -140,52 +140,130 @@ func DaemonCmd() *cobra.Command {
 			// Send/Receive Block Data
 
 			// ------------ Repo ------------
-			accountRepo := repo.NewAccountRepo(cfg, logger, db)
-			mempoolTxRepo := repo.NewMempoolTransactionRepo(cfg, logger, db)
-			mempoolTransactionDTORepo := repo.NewMempoolTransactionDTORepo(cfg, logger, libP2PNetwork)
-			pendingBlockTxRepo := repo.NewPendingBlockTransactionRepo(cfg, logger, db)
-			latestBlockDataHashRepo := repo.NewLastBlockDataHashRepo(cfg, logger, db)
-			blockDataRepo := repo.NewBlockDataRepo(cfg, logger, db)
+			accountRepo := repo.NewAccountRepo(
+				cfg,
+				logger,
+				db)
+			mempoolTxRepo := repo.NewMempoolTransactionRepo(
+				cfg,
+				logger,
+				db)
+			mempoolTransactionDTORepo := repo.NewMempoolTransactionDTORepo(
+				cfg,
+				logger,
+				libP2PNetwork)
+			pendingBlockTxRepo := repo.NewPendingBlockTransactionRepo(
+				cfg,
+				logger,
+				db)
+			latestBlockDataHashRepo := repo.NewLastBlockDataHashRepo(
+				cfg,
+				logger,
+				db)
+			blockDataRepo := repo.NewBlockDataRepo(
+				cfg,
+				logger,
+				db)
 
 			// ------------ Use-case ------------
 			// Account
-			createAccountUseCase := usecase.NewCreateAccountUseCase(cfg, logger, accountRepo)
-			getAccountUseCase := usecase.NewGetAccountUseCase(cfg, logger, accountRepo)
-			accountDecryptKeyUseCase := usecase.NewAccountDecryptKeyUseCase(cfg, logger, accountRepo)
-			accountEncryptKeyUseCase := usecase.NewAccountEncryptKeyUseCase(cfg, logger, accountRepo)
+			createAccountUseCase := usecase.NewCreateAccountUseCase(
+				cfg,
+				logger,
+				accountRepo)
+			getAccountUseCase := usecase.NewGetAccountUseCase(
+				cfg,
+				logger,
+				accountRepo)
+			accountDecryptKeyUseCase := usecase.NewAccountDecryptKeyUseCase(
+				cfg,
+				logger,
+				accountRepo)
+			accountEncryptKeyUseCase := usecase.NewAccountEncryptKeyUseCase(
+				cfg,
+				logger,
+				accountRepo)
 
 			// Mempool Transaction DTO
-			broadcastMempoolTxDTOUseCase := usecase.NewBroadcastMempoolTransactionDTOUseCase(cfg, logger, mempoolTransactionDTORepo)
-			receiveMempoolTxDTOUseCase := usecase.NewReceiveMempoolTransactionDTOUseCase(cfg, logger, mempoolTransactionDTORepo)
+			broadcastMempoolTxDTOUseCase := usecase.NewBroadcastMempoolTransactionDTOUseCase(
+				cfg,
+				logger,
+				mempoolTransactionDTORepo)
+			receiveMempoolTxDTOUseCase := usecase.NewReceiveMempoolTransactionDTOUseCase(
+				cfg,
+				logger,
+				mempoolTransactionDTORepo)
 
 			// Mempool Transaction
-			createMempoolTransactionUseCase := usecase.NewCreateMempoolTransactionUseCase(cfg, logger, mempoolTxRepo)
-			listAllMempoolTransactionUseCase := usecase.NewListAllMempoolTransactionUseCase(cfg, logger, mempoolTxRepo)
-			deleteAllMempoolTransactionUseCase := usecase.NewDeleteAllMempoolTransactionUseCase(cfg, logger, mempoolTxRepo)
+			createMempoolTransactionUseCase := usecase.NewCreateMempoolTransactionUseCase(
+				cfg,
+				logger,
+				mempoolTxRepo)
+			listAllMempoolTransactionUseCase := usecase.NewListAllMempoolTransactionUseCase(
+				cfg,
+				logger,
+				mempoolTxRepo)
+			deleteAllMempoolTransactionUseCase := usecase.NewDeleteAllMempoolTransactionUseCase(
+				cfg,
+				logger,
+				mempoolTxRepo)
 
 			// Purposed Block Transaction
-			createPendingBlockTxUseCase := usecase.NewCreatePendingBlockTransactionUseCase(cfg, logger, pendingBlockTxRepo)
-			listAllPendingBlockTxUseCase := usecase.NewListAllPendingBlockTransactionUseCase(cfg, logger, pendingBlockTxRepo)
-			deleteAllPendingBlockTxUseCase := usecase.NewDeleteAllPendingBlockTransactionUseCase(cfg, logger, pendingBlockTxRepo)
+			createPendingBlockTxUseCase := usecase.NewCreatePendingBlockTransactionUseCase(
+				cfg,
+				logger,
+				pendingBlockTxRepo)
+			listAllPendingBlockTxUseCase := usecase.NewListAllPendingBlockTransactionUseCase(
+				cfg,
+				logger,
+				pendingBlockTxRepo)
+			deleteAllPendingBlockTxUseCase := usecase.NewDeleteAllPendingBlockTransactionUseCase(
+				cfg,
+				logger,
+				pendingBlockTxRepo)
 
 			// Latest BlockData Hash
-			getLastBlockDataHashUseCase := usecase.NewGetLastBlockDataHashUseCase(cfg, logger, latestBlockDataHashRepo)
-			setLastBlockDataHashUseCase := usecase.NewSetLastBlockDataHashUseCase(cfg, logger, latestBlockDataHashRepo)
+			getLastBlockDataHashUseCase := usecase.NewGetLastBlockDataHashUseCase(
+				cfg,
+				logger,
+				latestBlockDataHashRepo)
+			setLastBlockDataHashUseCase := usecase.NewSetLastBlockDataHashUseCase(
+				cfg,
+				logger,
+				latestBlockDataHashRepo)
 
 			// Block Data
-			getBlockDataUseCase := usecase.NewGetBlockDataUseCase(cfg, logger, blockDataRepo)
-			createBlockDataUseCase := usecase.NewCreateBlockDataUseCase(cfg, logger, blockDataRepo)
+			getBlockDataUseCase := usecase.NewGetBlockDataUseCase(
+				cfg,
+				logger,
+				blockDataRepo)
+			createBlockDataUseCase := usecase.NewCreateBlockDataUseCase(
+				cfg,
+				logger,
+				blockDataRepo)
 
 			// Mining
 			proofOfWorkUseCase := usecase.NewProofOfWorkUseCase(cfg, logger)
 
 			// ------------ Service ------------
 			// Account
-			createAccountService := service.NewCreateAccountService(cfg, logger, createAccountUseCase, getAccountUseCase, accountEncryptKeyUseCase)
-			getAccountService := service.NewGetAccountService(cfg, logger, getAccountUseCase)
+			createAccountService := service.NewCreateAccountService(
+				cfg,
+				logger,
+				createAccountUseCase,
+				getAccountUseCase,
+				accountEncryptKeyUseCase)
+			getAccountService := service.NewGetAccountService(
+				cfg,
+				logger,
+				getAccountUseCase)
 
 			// Key
-			getKeyService := service.NewGetKeyService(cfg, logger, getAccountUseCase, accountDecryptKeyUseCase)
+			getKeyService := service.NewGetKeyService(
+				cfg,
+				logger,
+				getAccountUseCase,
+				accountDecryptKeyUseCase)
 			_ = getKeyService // TODO: USE IN FUTURE
 
 			// Transaction
@@ -226,12 +304,25 @@ func DaemonCmd() *cobra.Command {
 
 			// ------------ Interface ------------
 			// HTTP
-			createAccountHTTPHandler := httphandler.NewCreateAccountHTTPHandler(cfg, logger, createAccountService)
-			getAccountHTTPHandler := httphandler.NewGetAccountHTTPHandler(cfg, logger, getAccountService)
-			createTransactionHTTPHandler := httphandler.NewCreateTransactionHTTPHandler(cfg, logger, createTxService)
-			httpMiddleware := httpmiddle.NewMiddleware(cfg, logger)
+			createAccountHTTPHandler := httphandler.NewCreateAccountHTTPHandler(
+				cfg,
+				logger,
+				createAccountService)
+			getAccountHTTPHandler := httphandler.NewGetAccountHTTPHandler(
+				cfg,
+				logger,
+				getAccountService)
+			createTransactionHTTPHandler := httphandler.NewCreateTransactionHTTPHandler(
+				cfg,
+				logger,
+				createTxService)
+			httpMiddleware := httpmiddle.NewMiddleware(
+				cfg,
+				logger)
 			httpServ := http.NewHTTPServer(
-				cfg, logger, httpMiddleware,
+				cfg,
+				logger,
+				httpMiddleware,
 				createAccountHTTPHandler,
 				getAccountHTTPHandler,
 				createTransactionHTTPHandler,
@@ -244,9 +335,18 @@ func DaemonCmd() *cobra.Command {
 			)
 
 			// TASK MANAGER
-			tm1 := taskmnghandler.NewMempoolReceiveTaskHandler(cfg, logger, mempoolReceiveService)
-			tm2 := taskmnghandler.NewMempoolBatchSendTaskHandler(cfg, logger, mempoolBatchSendService)
-			tm3 := taskmnghandler.NewMiningTaskHandler(cfg, logger, miningService)
+			tm1 := taskmnghandler.NewMempoolReceiveTaskHandler(
+				cfg,
+				logger,
+				mempoolReceiveService)
+			tm2 := taskmnghandler.NewMempoolBatchSendTaskHandler(
+				cfg,
+				logger,
+				mempoolBatchSendService)
+			tm3 := taskmnghandler.NewMiningTaskHandler(
+				cfg,
+				logger,
+				miningService)
 			taskManager := taskmng.NewTaskManager(
 				cfg,
 				logger,
