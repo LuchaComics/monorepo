@@ -17,6 +17,6 @@ func NewGetLastBlockDataHashUseCase(config *config.Config, logger *slog.Logger, 
 	return &GetLastBlockDataHashUseCase{config, logger, repo}
 }
 
-func (uc *GetLastBlockDataHashUseCase) Execute() (domain.LastBlockDataHash, error) {
+func (uc *GetLastBlockDataHashUseCase) Execute() (string, error) {
 	return uc.repo.Get()
 }

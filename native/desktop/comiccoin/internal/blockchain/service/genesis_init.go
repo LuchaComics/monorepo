@@ -124,9 +124,9 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	}
 
 	s.logger.Debug("genesis block created",
-		slog.Uint64("nonce", block.Header.Nonce))
+		slog.String("hash", genesisBlockData.Hash))
 
-	if err := s.setLastBlockDataHashUseCase.Execute(domain.LastBlockDataHash(genesisBlockData.Hash)); err != nil {
+	if err := s.setLastBlockDataHashUseCase.Execute(genesisBlockData.Hash); err != nil {
 		return fmt.Errorf("Failed to save last hash of genesis block data: %v", err)
 	}
 
