@@ -19,10 +19,11 @@ import (
 	rpc "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/rpc"
 	taskmng "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/task"
 	taskmnghandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/task/handler"
-	repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo"
 	service "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/service"
 	usecase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
 	dbase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/db/leveldb"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/kmutexutil"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/logger"
 	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p"
 )
@@ -71,6 +72,7 @@ func DaemonCmd() *cobra.Command {
 			}
 			logger := logger.NewLogger()
 			db := dbase.NewDatabase(cfg.DB.DataDir, logger)
+			kmutex := kmutexutil.NewKMutexProvider()
 
 			// ------ Peer-to-Peer (P2P) ------
 			ikRepo := repo.NewIdentityKeyRepo(cfg, logger, db)
@@ -139,6 +141,7 @@ func DaemonCmd() *cobra.Command {
 
 			// ------ Repo ------
 			accountRepo := repo.NewAccountRepo(cfg, logger, db)
+			signedTxRepo := repo.NewSignedTransactionRepo(cfg, logger, db)
 			signedTxDTORepo := repo.NewSignedTransactionDTORepo(cfg, logger, libP2PNetwork)
 
 			// ------ Use-case ------
@@ -148,6 +151,7 @@ func DaemonCmd() *cobra.Command {
 			accountEncryptKeyUseCase := usecase.NewAccountEncryptKeyUseCase(cfg, logger, accountRepo)
 			broadcastSignedTxDTOUseCase := usecase.NewBroadcastSignedTransactionDTOUseCase(cfg, logger, signedTxDTORepo)
 			receiveSignedTxDTOUseCase := usecase.NewReceiveSignedTransactionDTOUseCase(cfg, logger, signedTxDTORepo)
+			createSignedTransactionUseCase := usecase.NewCreateSignedTransactionUseCase(cfg, logger, signedTxRepo)
 
 			// ------ Service ------
 			createAccountService := service.NewCreateAccountService(cfg, logger, createAccountUseCase, getAccountUseCase, accountEncryptKeyUseCase)
@@ -155,7 +159,7 @@ func DaemonCmd() *cobra.Command {
 			getKeyService := service.NewGetKeyService(cfg, logger, getAccountUseCase, accountDecryptKeyUseCase)
 			_ = getKeyService
 			createTxService := service.NewCreateTransactionService(cfg, logger, getAccountUseCase, accountDecryptKeyUseCase, broadcastSignedTxDTOUseCase)
-			mempoolReceiveSignedTxService := service.NewMempoolReceiveService(cfg, logger, receiveSignedTxDTOUseCase)
+			mempoolReceiveSignedTxService := service.NewMempoolReceiveService(cfg, logger, kmutex, receiveSignedTxDTOUseCase, createSignedTransactionUseCase)
 
 			// ------ Interface ------
 			// HTTP

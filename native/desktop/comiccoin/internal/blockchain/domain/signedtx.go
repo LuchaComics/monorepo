@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"bytes"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"math/big"
@@ -45,4 +47,39 @@ func (tx SignedTransaction) Validate(chainID uint16) error {
 	}
 
 	return nil
+}
+
+type SignedTransactionRepository interface {
+	Upsert(bd *SignedTransaction) error
+	// GetByNonce(nonce uint64) (*SignedTransaction, error)
+	// List() ([]*SignedTransaction, error)
+	// DeleteByNonce(nonce uint64) error
+}
+
+func (stx *SignedTransaction) Serialize() ([]byte, error) {
+	var result bytes.Buffer
+	encoder := gob.NewEncoder(&result)
+	err := encoder.Encode(stx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to serialize block data: %v", err)
+	}
+	return result.Bytes(), nil
+}
+
+func NewSignedTransactionFromDeserialize(data []byte) (*SignedTransaction, error) {
+	// Variable we will use to return.
+	stx := &SignedTransaction{}
+
+	// Defensive code: If programmer entered empty bytes then we will
+	// return nil deserialization result.
+	if data == nil {
+		return nil, nil
+	}
+
+	decoder := gob.NewDecoder(bytes.NewReader(data))
+	err := decoder.Decode(&stx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to deserialize block data: %v", err)
+	}
+	return stx, nil
 }

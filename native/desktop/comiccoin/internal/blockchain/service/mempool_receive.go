@@ -7,6 +7,7 @@ import (
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/kmutexutil"
 )
 
 // MempoolReceiveService represents a single Memory Pool node in the distributed
@@ -15,15 +16,19 @@ import (
 type MempoolReceiveService struct {
 	config                             *config.Config
 	logger                             *slog.Logger
+	kmutex                             kmutexutil.KMutexProvider
 	receiveSignedTransactionDTOUseCase *usecase.ReceiveSignedTransactionDTOUseCase
+	createSignedTransactionUseCase     *usecase.CreateSignedTransactionUseCase
 }
 
 func NewMempoolReceiveService(
 	cfg *config.Config,
 	logger *slog.Logger,
+	kmutex kmutexutil.KMutexProvider,
 	uc1 *usecase.ReceiveSignedTransactionDTOUseCase,
+	uc2 *usecase.CreateSignedTransactionUseCase,
 ) *MempoolReceiveService {
-	return &MempoolReceiveService{cfg, logger, uc1}
+	return &MempoolReceiveService{cfg, logger, kmutex, uc1, uc2}
 }
 
 func (s *MempoolReceiveService) Execute(ctx context.Context) error {
@@ -56,6 +61,21 @@ func (s *MempoolReceiveService) Execute(ctx context.Context) error {
 	// STEP 2:
 	// Save to our local database.
 	//
+
+	// Lock the mempool's database so we coordinate when we delete the mempool
+	// and when we add mempool.
+	s.kmutex.Acquire("mempool")
+	defer s.kmutex.Release("mempool")
+
+	if err := s.createSignedTransactionUseCase.Execute(stx); err != nil {
+		s.logger.Error("mempool failed saving signed transaction",
+			slog.Any("error", err))
+		return err
+	}
+
+	s.logger.Debug("saved to mempool",
+		slog.Any("nonce", stx.Nonce),
+	)
 
 	return nil
 }
