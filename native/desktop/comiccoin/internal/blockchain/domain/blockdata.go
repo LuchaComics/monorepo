@@ -16,7 +16,7 @@ type BlockData struct {
 type BlockDataRepository interface {
 	Upsert(bd *BlockData) error
 	GetByHash(hash string) (*BlockData, error)
-	List() ([]*BlockData, error)
+	ListAll() ([]*BlockData, error)
 	DeleteByHash(hash string) error
 }
 

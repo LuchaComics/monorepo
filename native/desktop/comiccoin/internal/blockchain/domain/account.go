@@ -23,7 +23,7 @@ type Account struct {
 type AccountRepository interface {
 	Upsert(acc *Account) error
 	GetByID(id string) (*Account, error)
-	List() ([]*Account, error)
+	ListAll() ([]*Account, error)
 	DeleteByID(id string) error
 }
 

@@ -45,7 +45,7 @@ func (r *SignedTransactionRepo) GetByNonce(nonce uint64) (*domain.SignedTransact
 	return b, nil
 }
 
-func (r *SignedTransactionRepo) List() ([]*domain.SignedTransaction, error) {
+func (r *SignedTransactionRepo) ListAll() ([]*domain.SignedTransaction, error) {
 	res := make([]*domain.SignedTransaction, 0)
 	seekThenIterateKey := ""
 	err := r.dbClient.Iterate("signed-transaction-", seekThenIterateKey, func(key, value []byte) error {
@@ -73,4 +73,34 @@ func (r *SignedTransactionRepo) DeleteByNonce(nonce uint64) error {
 		return err
 	}
 	return nil
+}
+
+func (r *SignedTransactionRepo) DeleteAll() error {
+	res := make([]*domain.SignedTransaction, 0)
+	seekThenIterateKey := ""
+	err := r.dbClient.Iterate("signed-transaction-", seekThenIterateKey, func(key, value []byte) error {
+		stx, err := domain.NewSignedTransactionFromDeserialize(value)
+		if err != nil {
+			r.logger.Error("failed to deserialize",
+				slog.String("key", string(key)),
+				slog.String("value", string(value)),
+				slog.Any("error", err))
+			return err
+		}
+
+		res = append(res, stx)
+
+		// Return nil to indicate success
+		return nil
+	})
+
+	for _, item := range res {
+		if err := r.DeleteByNonce(item.Nonce); err != nil {
+			r.logger.Error("failed to delete",
+				slog.Any("error", err))
+			return err
+		}
+	}
+
+	return err
 }

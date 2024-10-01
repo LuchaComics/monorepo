@@ -3,8 +3,8 @@ package repo
 import (
 	"log/slog"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
 	dbase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/db"
 )
 
@@ -45,7 +45,7 @@ func (r *AccountRepo) GetByID(id string) (*domain.Account, error) {
 	return b, nil
 }
 
-func (r *AccountRepo) List() ([]*domain.Account, error) {
+func (r *AccountRepo) ListAll() ([]*domain.Account, error) {
 	res := make([]*domain.Account, 0)
 	seekThenIterateKey := ""
 	err := r.dbClient.Iterate("account-", seekThenIterateKey, func(key, value []byte) error {

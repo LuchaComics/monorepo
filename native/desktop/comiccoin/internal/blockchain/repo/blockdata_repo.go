@@ -45,7 +45,7 @@ func (r *BlockDataRepo) GetByHash(hash string) (*domain.BlockData, error) {
 	return b, nil
 }
 
-func (r *BlockDataRepo) List() ([]*domain.BlockData, error) {
+func (r *BlockDataRepo) ListAll() ([]*domain.BlockData, error) {
 	res := make([]*domain.BlockData, 0)
 	seekThenIterateKey := ""
 	err := r.dbClient.Iterate("blockdata-", seekThenIterateKey, func(key, value []byte) error {

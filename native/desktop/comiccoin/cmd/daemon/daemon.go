@@ -74,7 +74,7 @@ func DaemonCmd() *cobra.Command {
 			db := dbase.NewDatabase(cfg.DB.DataDir, logger)
 			kmutex := kmutexutil.NewKMutexProvider()
 
-			// ------ Peer-to-Peer (P2P) ------
+			// ------------ Peer-to-Peer (P2P) ------------
 			ikRepo := repo.NewIdentityKeyRepo(cfg, logger, db)
 			ikCreateUseCase := usecase.NewCreateIdentityKeyUseCase(cfg, logger, ikRepo)
 			ikGetUseCase := usecase.NewGetIdentityKeyUseCase(cfg, logger, ikRepo)
@@ -139,29 +139,44 @@ func DaemonCmd() *cobra.Command {
 			// Send/Receive Latest Block Hash
 			// Send/Receive Block Data
 
-			// ------ Repo ------
+			// ------------ Repo ------------
 			accountRepo := repo.NewAccountRepo(cfg, logger, db)
 			signedTxRepo := repo.NewSignedTransactionRepo(cfg, logger, db)
 			signedTxDTORepo := repo.NewSignedTransactionDTORepo(cfg, logger, libP2PNetwork)
 
-			// ------ Use-case ------
+			// ------------ Use-case ------------
+			// Account
 			createAccountUseCase := usecase.NewCreateAccountUseCase(cfg, logger, accountRepo)
 			getAccountUseCase := usecase.NewGetAccountUseCase(cfg, logger, accountRepo)
 			accountDecryptKeyUseCase := usecase.NewAccountDecryptKeyUseCase(cfg, logger, accountRepo)
 			accountEncryptKeyUseCase := usecase.NewAccountEncryptKeyUseCase(cfg, logger, accountRepo)
+
+			// Signed Transaction DTO
 			broadcastSignedTxDTOUseCase := usecase.NewBroadcastSignedTransactionDTOUseCase(cfg, logger, signedTxDTORepo)
 			receiveSignedTxDTOUseCase := usecase.NewReceiveSignedTransactionDTOUseCase(cfg, logger, signedTxDTORepo)
-			createSignedTransactionUseCase := usecase.NewCreateSignedTransactionUseCase(cfg, logger, signedTxRepo)
 
-			// ------ Service ------
+			// Signed Transaction
+			createSignedTransactionUseCase := usecase.NewCreateSignedTransactionUseCase(cfg, logger, signedTxRepo)
+			listAllSignedTransactionUseCase := usecase.NewListAllSignedTransactionUseCase(cfg, logger, signedTxRepo)
+			deleteAllSignedTransactionUseCase := usecase.NewDeleteAllSignedTransactionUseCase(cfg, logger, signedTxRepo)
+
+			// ------------ Service ------------
+			// Account
 			createAccountService := service.NewCreateAccountService(cfg, logger, createAccountUseCase, getAccountUseCase, accountEncryptKeyUseCase)
 			getAccountService := service.NewGetAccountService(cfg, logger, getAccountUseCase)
+
+			// Key
 			getKeyService := service.NewGetKeyService(cfg, logger, getAccountUseCase, accountDecryptKeyUseCase)
 			_ = getKeyService
-			createTxService := service.NewCreateTransactionService(cfg, logger, getAccountUseCase, accountDecryptKeyUseCase, broadcastSignedTxDTOUseCase)
-			mempoolReceiveSignedTxService := service.NewMempoolReceiveService(cfg, logger, kmutex, receiveSignedTxDTOUseCase, createSignedTransactionUseCase)
 
-			// ------ Interface ------
+			// Transaction
+			createTxService := service.NewCreateTransactionService(cfg, logger, getAccountUseCase, accountDecryptKeyUseCase, broadcastSignedTxDTOUseCase)
+
+			// Mempool
+			mempoolReceiveService := service.NewMempoolReceiveService(cfg, logger, kmutex, receiveSignedTxDTOUseCase, createSignedTransactionUseCase)
+			mempoolBatchSendService := service.NewMempoolBatchSendService(cfg, logger, kmutex, listAllSignedTransactionUseCase, deleteAllSignedTransactionUseCase)
+
+			// ------------ Interface ------------
 			// HTTP
 			createAccountHTTPHandler := httphandler.NewCreateAccountHTTPHandler(cfg, logger, createAccountService)
 			getAccountHTTPHandler := httphandler.NewGetAccountHTTPHandler(cfg, logger, getAccountService)
@@ -181,11 +196,13 @@ func DaemonCmd() *cobra.Command {
 			)
 
 			// TASK MANAGER
-			th1 := taskmnghandler.NewMempoolReceiveTaskHandler(cfg, logger, mempoolReceiveSignedTxService)
+			tm1 := taskmnghandler.NewMempoolReceiveTaskHandler(cfg, logger, mempoolReceiveService)
+			tm2 := taskmnghandler.NewMempoolBatchSendTaskHandler(cfg, logger, mempoolBatchSendService)
 			taskManager := taskmng.NewTaskManager(
 				cfg,
 				logger,
-				th1,
+				tm1,
+				tm2,
 			)
 
 			//

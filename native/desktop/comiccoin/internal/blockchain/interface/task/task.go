@@ -15,20 +15,23 @@ type TaskManager interface {
 }
 
 type taskManagerImpl struct {
-	cfg                *config.Config
-	logger             *slog.Logger
-	mempoolReceiveTask *task.MempoolReceiveTaskHandler
+	cfg                         *config.Config
+	logger                      *slog.Logger
+	mempoolReceiveTaskHandler   *task.MempoolReceiveTaskHandler
+	mempoolBatchSendTaskHandler *task.MempoolBatchSendTaskHandler
 }
 
 func NewTaskManager(
 	cfg *config.Config,
 	logger *slog.Logger,
-	mempoolReceiveTask *task.MempoolReceiveTaskHandler,
+	mempoolReceiveTaskHandler *task.MempoolReceiveTaskHandler,
+	mempoolBatchSendTaskHandler *task.MempoolBatchSendTaskHandler,
 ) TaskManager {
 	port := &taskManagerImpl{
-		cfg:                cfg,
-		logger:             logger,
-		mempoolReceiveTask: mempoolReceiveTask,
+		cfg:                         cfg,
+		logger:                      logger,
+		mempoolReceiveTaskHandler:   mempoolReceiveTaskHandler,
+		mempoolBatchSendTaskHandler: mempoolBatchSendTaskHandler,
 	}
 	return port
 }
@@ -37,13 +40,24 @@ func (port *taskManagerImpl) Run() {
 	ctx := context.Background()
 	port.logger.Info("Running Task Manager")
 
-	for {
-		taskErr := port.mempoolReceiveTask.Execute(ctx)
-		if taskErr != nil {
-			port.logger.Error("failed executing mempool receive task, restarting task in 1 minute...", slog.Any("error", taskErr))
-			time.Sleep(1 * time.Minute)
+	go func() {
+		for {
+			taskErr := port.mempoolReceiveTaskHandler.Execute(ctx)
+			if taskErr != nil {
+				port.logger.Error("failed executing mempool receive task, restarting task in 1 minute...", slog.Any("error", taskErr))
+				time.Sleep(1 * time.Minute)
+			}
 		}
-	}
+	}()
+	go func() {
+		for {
+			taskErr := port.mempoolBatchSendTaskHandler.Execute(ctx)
+			if taskErr != nil {
+				port.logger.Error("failed executing mempool batch send task, restarting task in 1 minute...", slog.Any("error", taskErr))
+				time.Sleep(1 * time.Minute)
+			}
+		}
+	}()
 }
 
 func (port *taskManagerImpl) Shutdown() {
