@@ -15,11 +15,11 @@ import (
 )
 
 const (
-	topicName        = "signedtxdto"
-	rendezvousString = "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain/signedtxdto"
+	topicName        = "mempooltxdto"
+	rendezvousString = "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain/mempooltxdto"
 )
 
-type signedTransactionDTORepoImpl struct {
+type mempoolTransactionDTORepoImpl struct {
 	config        *config.Config
 	logger        *slog.Logger
 	libP2PNetwork p2p.LibP2PNetwork
@@ -27,13 +27,13 @@ type signedTransactionDTORepoImpl struct {
 	sub           *pubsub.Subscription
 }
 
-func NewSignedTransactionDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork p2p.LibP2PNetwork) domain.SignedTransactionDTORepository {
+func NewMempoolTransactionDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork p2p.LibP2PNetwork) domain.MempoolTransactionDTORepository {
 	//
 	// STEP 1
 	// Initialize our instance
 	//
 
-	impl := &signedTransactionDTORepoImpl{
+	impl := &mempoolTransactionDTORepoImpl{
 		config:        cfg,
 		logger:        logger,
 		libP2PNetwork: libP2PNetwork,
@@ -52,7 +52,7 @@ func NewSignedTransactionDTORepo(cfg *config.Config, logger *slog.Logger, libP2P
 
 	//
 	// STEP 3:
-	// We want to implement broadcast sort of system for this signed
+	// We want to implement broadcast sort of system for this mempool
 	// transaction data-transfer object; meaning, any one node in the P2P
 	// network can transmit to all the nodes on the P2P network this data.
 	//
@@ -134,7 +134,7 @@ func NewSignedTransactionDTORepo(cfg *config.Config, logger *slog.Logger, libP2P
 	return impl
 }
 
-func (impl *signedTransactionDTORepoImpl) BroadcastToP2PNetwork(ctx context.Context, bd *domain.SignedTransactionDTO) error {
+func (impl *mempoolTransactionDTORepoImpl) BroadcastToP2PNetwork(ctx context.Context, bd *domain.MempoolTransactionDTO) error {
 	//
 	// STEP 1
 	// Marshal the DTO into a binary payload which we can send over the network.
@@ -163,7 +163,7 @@ func (impl *signedTransactionDTORepoImpl) BroadcastToP2PNetwork(ctx context.Cont
 	return nil
 }
 
-func (impl *signedTransactionDTORepoImpl) ReceiveFromP2PNetwork(ctx context.Context) (*domain.SignedTransactionDTO, error) {
+func (impl *mempoolTransactionDTORepoImpl) ReceiveFromP2PNetwork(ctx context.Context) (*domain.MempoolTransactionDTO, error) {
 	//
 	// STEP 2:
 	// We will receive the incoming message from our P2P network.
@@ -185,7 +185,7 @@ func (impl *signedTransactionDTORepoImpl) ReceiveFromP2PNetwork(ctx context.Cont
 	// We need to deserialize the incoming message into our DTO.
 	//
 
-	stxDTO, err := domain.NewSignedTransactionDTOFromDeserialize(msg.Data)
+	stxDTO, err := domain.NewMempoolTransactionDTOFromDeserialize(msg.Data)
 	if err != nil {
 		impl.logger.Error("Failed to deserialize message",
 			slog.Any("error", err),

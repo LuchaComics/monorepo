@@ -9,17 +9,17 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
 )
 
-type ReceiveSignedTransactionDTOUseCase struct {
+type ReceiveMempoolTransactionDTOUseCase struct {
 	config *config.Config
 	logger *slog.Logger
-	repo   domain.SignedTransactionDTORepository
+	repo   domain.MempoolTransactionDTORepository
 }
 
-func NewReceiveSignedTransactionDTOUseCase(config *config.Config, logger *slog.Logger, repo domain.SignedTransactionDTORepository) *ReceiveSignedTransactionDTOUseCase {
-	return &ReceiveSignedTransactionDTOUseCase{config, logger, repo}
+func NewReceiveMempoolTransactionDTOUseCase(config *config.Config, logger *slog.Logger, repo domain.MempoolTransactionDTORepository) *ReceiveMempoolTransactionDTOUseCase {
+	return &ReceiveMempoolTransactionDTOUseCase{config, logger, repo}
 }
 
-func (uc *ReceiveSignedTransactionDTOUseCase) Execute(ctx context.Context) (*domain.SignedTransaction, error) {
+func (uc *ReceiveMempoolTransactionDTOUseCase) Execute(ctx context.Context) (*domain.MempoolTransaction, error) {
 	//
 	// STEP 1:
 	// Wait to receive from the P2P Network. It just takes one node to publish
@@ -45,7 +45,7 @@ func (uc *ReceiveSignedTransactionDTOUseCase) Execute(ctx context.Context) (*dom
 	// validation before returning it for this function.
 	//
 
-	ido := &domain.SignedTransaction{
+	ido := &domain.MempoolTransaction{
 		Transaction: dto.Transaction,
 		V:           dto.V,
 		R:           dto.R,

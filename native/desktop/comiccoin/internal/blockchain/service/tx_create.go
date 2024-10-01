@@ -15,11 +15,11 @@ import (
 )
 
 type CreateTransactionService struct {
-	config                               *config.Config
-	logger                               *slog.Logger
-	getAccountUseCase                    *usecase.GetAccountUseCase
-	accountDecryptKeyUseCase             *usecase.AccountDecryptKeyUseCase
-	broadcastSignedTransactionDTOUseCase *usecase.BroadcastSignedTransactionDTOUseCase
+	config                                *config.Config
+	logger                                *slog.Logger
+	getAccountUseCase                     *usecase.GetAccountUseCase
+	accountDecryptKeyUseCase              *usecase.AccountDecryptKeyUseCase
+	broadcastMempoolTransactionDTOUseCase *usecase.BroadcastMempoolTransactionDTOUseCase
 }
 
 func NewCreateTransactionService(
@@ -27,7 +27,7 @@ func NewCreateTransactionService(
 	logger *slog.Logger,
 	uc1 *usecase.GetAccountUseCase,
 	uc2 *usecase.AccountDecryptKeyUseCase,
-	uc3 *usecase.BroadcastSignedTransactionDTOUseCase,
+	uc3 *usecase.BroadcastMempoolTransactionDTOUseCase,
 ) *CreateTransactionService {
 	return &CreateTransactionService{cfg, logger, uc1, uc2, uc3}
 }
@@ -120,13 +120,20 @@ func (s *CreateTransactionService) Execute(
 	s.logger.Debug("Pending transaction signed successfully",
 		slog.Uint64("nonce", stx.Nonce))
 
+	mempoolTx := &domain.MempoolTransaction{
+		Transaction: stx.Transaction,
+		V:           stx.V,
+		R:           stx.R,
+		S:           stx.S,
+	}
+
 	//
 	// STEP 3
 	// Send our pending signed transaction to our distributed mempool nodes
 	// in the blochcian network.
 	//
 
-	if err := s.broadcastSignedTransactionDTOUseCase.Execute(ctx, &stx); err != nil {
+	if err := s.broadcastMempoolTransactionDTOUseCase.Execute(ctx, mempoolTx); err != nil {
 		s.logger.Error("Failed to broadcast to the blockchain network",
 			slog.Any("error", err))
 		return err

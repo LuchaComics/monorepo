@@ -9,17 +9,17 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
 )
 
-type BroadcastSignedTransactionDTOUseCase struct {
+type BroadcastMempoolTransactionDTOUseCase struct {
 	config *config.Config
 	logger *slog.Logger
-	repo   domain.SignedTransactionDTORepository
+	repo   domain.MempoolTransactionDTORepository
 }
 
-func NewBroadcastSignedTransactionDTOUseCase(config *config.Config, logger *slog.Logger, repo domain.SignedTransactionDTORepository) *BroadcastSignedTransactionDTOUseCase {
-	return &BroadcastSignedTransactionDTOUseCase{config, logger, repo}
+func NewBroadcastMempoolTransactionDTOUseCase(config *config.Config, logger *slog.Logger, repo domain.MempoolTransactionDTORepository) *BroadcastMempoolTransactionDTOUseCase {
+	return &BroadcastMempoolTransactionDTOUseCase{config, logger, repo}
 }
 
-func (uc *BroadcastSignedTransactionDTOUseCase) Execute(ctx context.Context, stx *domain.SignedTransaction) error {
+func (uc *BroadcastMempoolTransactionDTOUseCase) Execute(ctx context.Context, stx *domain.MempoolTransaction) error {
 	//
 	// STEP 1: Validation.
 	//
@@ -38,7 +38,7 @@ func (uc *BroadcastSignedTransactionDTOUseCase) Execute(ctx context.Context, stx
 	// STEP 2: Create our strucutre.
 	//
 
-	dto := &domain.SignedTransactionDTO{
+	dto := &domain.MempoolTransactionDTO{
 		Transaction: stx.Transaction,
 		V:           stx.V,
 		R:           stx.R,

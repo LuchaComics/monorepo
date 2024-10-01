@@ -8,32 +8,32 @@ import (
 	dbase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/db"
 )
 
-type SignedTransactionRepo struct {
+type MempoolTransactionRepo struct {
 	config   *config.Config
 	logger   *slog.Logger
 	dbClient dbase.Database
 }
 
-func NewSignedTransactionRepo(cfg *config.Config, logger *slog.Logger, db dbase.Database) *SignedTransactionRepo {
-	return &SignedTransactionRepo{cfg, logger, db}
+func NewMempoolTransactionRepo(cfg *config.Config, logger *slog.Logger, db dbase.Database) *MempoolTransactionRepo {
+	return &MempoolTransactionRepo{cfg, logger, db}
 }
 
-func (r *SignedTransactionRepo) Upsert(stx *domain.SignedTransaction) error {
+func (r *MempoolTransactionRepo) Upsert(stx *domain.MempoolTransaction) error {
 	bBytes, err := stx.Serialize()
 	if err != nil {
 		return err
 	}
-	if err := r.dbClient.Setf(bBytes, "signed-transaction-%v", stx.Nonce); err != nil {
+	if err := r.dbClient.Setf(bBytes, "mempool-transaction-%v", stx.Nonce); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *SignedTransactionRepo) ListAll() ([]*domain.SignedTransaction, error) {
-	res := make([]*domain.SignedTransaction, 0)
+func (r *MempoolTransactionRepo) ListAll() ([]*domain.MempoolTransaction, error) {
+	res := make([]*domain.MempoolTransaction, 0)
 	seekThenIterateKey := ""
-	err := r.dbClient.Iterate("signed-transaction-", seekThenIterateKey, func(key, value []byte) error {
-		stx, err := domain.NewSignedTransactionFromDeserialize(value)
+	err := r.dbClient.Iterate("mempool-transaction-", seekThenIterateKey, func(key, value []byte) error {
+		stx, err := domain.NewMempoolTransactionFromDeserialize(value)
 		if err != nil {
 			r.logger.Error("failed to deserialize",
 				slog.String("key", string(key)),
@@ -51,11 +51,11 @@ func (r *SignedTransactionRepo) ListAll() ([]*domain.SignedTransaction, error) {
 	return res, err
 }
 
-func (r *SignedTransactionRepo) DeleteAll() error {
-	res := make([]*domain.SignedTransaction, 0)
+func (r *MempoolTransactionRepo) DeleteAll() error {
+	res := make([]*domain.MempoolTransaction, 0)
 	seekThenIterateKey := ""
-	err := r.dbClient.Iterate("signed-transaction-", seekThenIterateKey, func(key, value []byte) error {
-		stx, err := domain.NewSignedTransactionFromDeserialize(value)
+	err := r.dbClient.Iterate("mempool-transaction-", seekThenIterateKey, func(key, value []byte) error {
+		stx, err := domain.NewMempoolTransactionFromDeserialize(value)
 		if err != nil {
 			r.logger.Error("failed to deserialize",
 				slog.String("key", string(key)),
@@ -71,7 +71,7 @@ func (r *SignedTransactionRepo) DeleteAll() error {
 	})
 
 	for _, item := range res {
-		err := r.dbClient.Deletef("signed-transaction-%v", item.Nonce)
+		err := r.dbClient.Deletef("mempool-transaction-%v", item.Nonce)
 		if err != nil {
 			return err
 		}

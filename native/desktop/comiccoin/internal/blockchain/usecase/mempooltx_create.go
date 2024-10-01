@@ -8,17 +8,17 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
 )
 
-type CreateSignedTransactionUseCase struct {
+type CreateMempoolTransactionUseCase struct {
 	config *config.Config
 	logger *slog.Logger
-	repo   domain.SignedTransactionRepository
+	repo   domain.MempoolTransactionRepository
 }
 
-func NewCreateSignedTransactionUseCase(config *config.Config, logger *slog.Logger, repo domain.SignedTransactionRepository) *CreateSignedTransactionUseCase {
-	return &CreateSignedTransactionUseCase{config, logger, repo}
+func NewCreateMempoolTransactionUseCase(config *config.Config, logger *slog.Logger, repo domain.MempoolTransactionRepository) *CreateMempoolTransactionUseCase {
+	return &CreateMempoolTransactionUseCase{config, logger, repo}
 }
 
-func (uc *CreateSignedTransactionUseCase) Execute(stx *domain.SignedTransaction) error {
+func (uc *CreateMempoolTransactionUseCase) Execute(stx *domain.MempoolTransaction) error {
 	//
 	// STEP 1: Validation.
 	//
@@ -67,7 +67,7 @@ func (uc *CreateSignedTransactionUseCase) Execute(stx *domain.SignedTransaction)
 	// 	Tip:     tip,
 	// 	Data:    data,
 	// }
-	// stx := &domain.SignedTransaction{
+	// stx := &domain.MempoolTransaction{
 	// 	Transaction: tx,
 	// 	V:           v,
 	// 	R:           r,

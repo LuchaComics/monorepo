@@ -14,19 +14,19 @@ import (
 // / P2p blockchain network which waits to receive signed transactions and
 // saves them locally to be processed by our node.
 type MempoolReceiveService struct {
-	config                             *config.Config
-	logger                             *slog.Logger
-	kmutex                             kmutexutil.KMutexProvider
-	receiveSignedTransactionDTOUseCase *usecase.ReceiveSignedTransactionDTOUseCase
-	createSignedTransactionUseCase     *usecase.CreateSignedTransactionUseCase
+	config                              *config.Config
+	logger                              *slog.Logger
+	kmutex                              kmutexutil.KMutexProvider
+	receiveMempoolTransactionDTOUseCase *usecase.ReceiveMempoolTransactionDTOUseCase
+	createMempoolTransactionUseCase     *usecase.CreateMempoolTransactionUseCase
 }
 
 func NewMempoolReceiveService(
 	cfg *config.Config,
 	logger *slog.Logger,
 	kmutex kmutexutil.KMutexProvider,
-	uc1 *usecase.ReceiveSignedTransactionDTOUseCase,
-	uc2 *usecase.CreateSignedTransactionUseCase,
+	uc1 *usecase.ReceiveMempoolTransactionDTOUseCase,
+	uc2 *usecase.CreateMempoolTransactionUseCase,
 ) *MempoolReceiveService {
 	return &MempoolReceiveService{cfg, logger, kmutex, uc1, uc2}
 }
@@ -38,7 +38,7 @@ func (s *MempoolReceiveService) Execute(ctx context.Context) error {
 	// Wait to receive data (which also was validated) from the P2P network.
 	//
 
-	stx, err := s.receiveSignedTransactionDTOUseCase.Execute(ctx)
+	stx, err := s.receiveMempoolTransactionDTOUseCase.Execute(ctx)
 	if err != nil {
 		s.logger.Error("mempool failed receiving",
 			slog.Any("error", err))
@@ -67,7 +67,7 @@ func (s *MempoolReceiveService) Execute(ctx context.Context) error {
 	s.kmutex.Acquire("mempool")
 	defer s.kmutex.Release("mempool")
 
-	if err := s.createSignedTransactionUseCase.Execute(stx); err != nil {
+	if err := s.createMempoolTransactionUseCase.Execute(stx); err != nil {
 		s.logger.Error("mempool failed saving signed transaction",
 			slog.Any("error", err))
 		return err

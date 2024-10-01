@@ -15,21 +15,21 @@ import (
 // / P2p blockchain network which waits to receive signed transactions and
 // saves them locally to be processed by our node.
 type MempoolBatchSendService struct {
-	config                               *config.Config
-	logger                               *slog.Logger
-	kmutex                               kmutexutil.KMutexProvider
-	listAllSignedTransactionDTOUseCase   *usecase.ListAllSignedTransactionUseCase
-	createPendingBlockTransactionUseCase *usecase.CreatePendingBlockTransactionUseCase
-	deleteAllSignedTransactionDTOUseCase *usecase.DeleteAllSignedTransactionUseCase
+	config                                *config.Config
+	logger                                *slog.Logger
+	kmutex                                kmutexutil.KMutexProvider
+	listAllMempoolTransactionDTOUseCase   *usecase.ListAllMempoolTransactionUseCase
+	createPendingBlockTransactionUseCase  *usecase.CreatePendingBlockTransactionUseCase
+	deleteAllMempoolTransactionDTOUseCase *usecase.DeleteAllMempoolTransactionUseCase
 }
 
 func NewMempoolBatchSendService(
 	cfg *config.Config,
 	logger *slog.Logger,
 	kmutex kmutexutil.KMutexProvider,
-	uc1 *usecase.ListAllSignedTransactionUseCase,
+	uc1 *usecase.ListAllMempoolTransactionUseCase,
 	uc2 *usecase.CreatePendingBlockTransactionUseCase,
-	uc3 *usecase.DeleteAllSignedTransactionUseCase,
+	uc3 *usecase.DeleteAllMempoolTransactionUseCase,
 ) *MempoolBatchSendService {
 	return &MempoolBatchSendService{cfg, logger, kmutex, uc1, uc2, uc3}
 }
@@ -45,7 +45,7 @@ func (s *MempoolBatchSendService) Execute(ctx context.Context) error {
 	s.kmutex.Acquire("mempool")
 	defer s.kmutex.Release("mempool")
 
-	stxs, err := s.listAllSignedTransactionDTOUseCase.Execute()
+	stxs, err := s.listAllMempoolTransactionDTOUseCase.Execute()
 	if err != nil {
 		s.logger.Error("mempool failed listing signed transaction",
 			slog.Any("error", err))
@@ -75,10 +75,10 @@ func (s *MempoolBatchSendService) Execute(ctx context.Context) error {
 
 	for _, stx := range stxs {
 		pendingBlockTx := &domain.PendingBlockTransaction{
-			SignedTransaction: *stx,
-			TimeStamp:         uint64(time.Now().Unix()),      // Ethereum: The time the transaction was received.
-			GasPrice:          s.config.Blockchain.GasPrice,   // Ethereum: The price of one unit of gas to be paid for fees.
-			GasUnits:          s.config.Blockchain.UnitsOfGas, // Ethereum: The number of units of gas used for this transaction.
+			MempoolTransaction: *stx,
+			TimeStamp:          uint64(time.Now().Unix()),      // Ethereum: The time the transaction was received.
+			GasPrice:           s.config.Blockchain.GasPrice,   // Ethereum: The price of one unit of gas to be paid for fees.
+			GasUnits:           s.config.Blockchain.UnitsOfGas, // Ethereum: The number of units of gas used for this transaction.
 		}
 		if createErr := s.createPendingBlockTransactionUseCase.Execute(pendingBlockTx); err != nil {
 			s.logger.Error("mempool failed creating pending signed transaction",
@@ -92,7 +92,7 @@ func (s *MempoolBatchSendService) Execute(ctx context.Context) error {
 	// Delete all our signed transactions.
 	//
 
-	if deleteAllErr := s.deleteAllSignedTransactionDTOUseCase.Execute(); err != nil {
+	if deleteAllErr := s.deleteAllMempoolTransactionDTOUseCase.Execute(); err != nil {
 		s.logger.Error("mempool failed deleting all pending block transaction",
 			slog.Any("error", deleteAllErr))
 		return nil

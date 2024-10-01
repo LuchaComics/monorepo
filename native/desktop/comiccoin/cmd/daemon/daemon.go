@@ -141,8 +141,8 @@ func DaemonCmd() *cobra.Command {
 
 			// ------------ Repo ------------
 			accountRepo := repo.NewAccountRepo(cfg, logger, db)
-			signedTxRepo := repo.NewSignedTransactionRepo(cfg, logger, db)
-			signedTxDTORepo := repo.NewSignedTransactionDTORepo(cfg, logger, libP2PNetwork)
+			mempoolTxRepo := repo.NewMempoolTransactionRepo(cfg, logger, db)
+			mempoolTransactionDTORepo := repo.NewMempoolTransactionDTORepo(cfg, logger, libP2PNetwork)
 			pendingBlockTxRepo := repo.NewPendingBlockTransactionRepo(cfg, logger, db)
 
 			// ------------ Use-case ------------
@@ -152,14 +152,14 @@ func DaemonCmd() *cobra.Command {
 			accountDecryptKeyUseCase := usecase.NewAccountDecryptKeyUseCase(cfg, logger, accountRepo)
 			accountEncryptKeyUseCase := usecase.NewAccountEncryptKeyUseCase(cfg, logger, accountRepo)
 
-			// Signed Transaction DTO
-			broadcastSignedTxDTOUseCase := usecase.NewBroadcastSignedTransactionDTOUseCase(cfg, logger, signedTxDTORepo)
-			receiveSignedTxDTOUseCase := usecase.NewReceiveSignedTransactionDTOUseCase(cfg, logger, signedTxDTORepo)
+			// Mempool Transaction DTO
+			broadcastMempoolTxDTOUseCase := usecase.NewBroadcastMempoolTransactionDTOUseCase(cfg, logger, mempoolTransactionDTORepo)
+			receiveMempoolTxDTOUseCase := usecase.NewReceiveMempoolTransactionDTOUseCase(cfg, logger, mempoolTransactionDTORepo)
 
-			// Signed Transaction
-			createSignedTransactionUseCase := usecase.NewCreateSignedTransactionUseCase(cfg, logger, signedTxRepo)
-			listAllSignedTransactionUseCase := usecase.NewListAllSignedTransactionUseCase(cfg, logger, signedTxRepo)
-			deleteAllSignedTransactionUseCase := usecase.NewDeleteAllSignedTransactionUseCase(cfg, logger, signedTxRepo)
+			// Mempool Transaction
+			createMempoolTransactionUseCase := usecase.NewCreateMempoolTransactionUseCase(cfg, logger, mempoolTxRepo)
+			listAllMempoolTransactionUseCase := usecase.NewListAllMempoolTransactionUseCase(cfg, logger, mempoolTxRepo)
+			deleteAllMempoolTransactionUseCase := usecase.NewDeleteAllMempoolTransactionUseCase(cfg, logger, mempoolTxRepo)
 
 			// Purposed Block Transaction
 			createPendingBlockTxUseCase := usecase.NewCreatePendingBlockTransactionUseCase(cfg, logger, pendingBlockTxRepo)
@@ -176,14 +176,14 @@ func DaemonCmd() *cobra.Command {
 
 			// Key
 			getKeyService := service.NewGetKeyService(cfg, logger, getAccountUseCase, accountDecryptKeyUseCase)
-			_ = getKeyService
+			_ = getKeyService // TODO: USE IN FUTURE
 
 			// Transaction
-			createTxService := service.NewCreateTransactionService(cfg, logger, getAccountUseCase, accountDecryptKeyUseCase, broadcastSignedTxDTOUseCase)
+			createTxService := service.NewCreateTransactionService(cfg, logger, getAccountUseCase, accountDecryptKeyUseCase, broadcastMempoolTxDTOUseCase)
 
 			// Mempool
-			mempoolReceiveService := service.NewMempoolReceiveService(cfg, logger, kmutex, receiveSignedTxDTOUseCase, createSignedTransactionUseCase)
-			mempoolBatchSendService := service.NewMempoolBatchSendService(cfg, logger, kmutex, listAllSignedTransactionUseCase, createPendingBlockTxUseCase, deleteAllSignedTransactionUseCase)
+			mempoolReceiveService := service.NewMempoolReceiveService(cfg, logger, kmutex, receiveMempoolTxDTOUseCase, createMempoolTransactionUseCase)
+			mempoolBatchSendService := service.NewMempoolBatchSendService(cfg, logger, kmutex, listAllMempoolTransactionUseCase, createPendingBlockTxUseCase, deleteAllMempoolTransactionUseCase)
 
 			// ------------ Interface ------------
 			// HTTP

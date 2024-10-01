@@ -56,6 +56,7 @@ func (port *taskManagerImpl) Run() {
 				port.logger.Error("failed executing mempool batch send task, restarting task in 1 minute...", slog.Any("error", taskErr))
 				time.Sleep(1 * time.Minute)
 			}
+			time.Sleep(1 * time.Minute)
 		}
 	}()
 }
