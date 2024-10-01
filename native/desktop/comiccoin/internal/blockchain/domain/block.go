@@ -7,7 +7,7 @@ import (
 
 // Block represents a group of transactions batched together.
 type Block struct {
-	Header     BlockHeader
+	Header     *BlockHeader
 	MerkleTree *merkle.Tree[BlockTransaction]
 }
 

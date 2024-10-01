@@ -127,7 +127,7 @@ func (s *MiningService) Execute(ctx context.Context) error {
 
 	// Construct the genesis block.
 	block := domain.Block{
-		Header: domain.BlockHeader{
+		Header: &domain.BlockHeader{
 			Number:        prevBlockData.Header.Number + 1,
 			PrevBlockHash: string(prevBlockDataHash),
 			TimeStamp:     uint64(time.Now().UTC().UnixMilli()),
@@ -151,7 +151,10 @@ func (s *MiningService) Execute(ctx context.Context) error {
 		return fmt.Errorf("Failed to mine block: %v", powErr)
 	}
 
-	_ = nonce
+	block.Header.Nonce = nonce
+
+	s.logger.Debug("mining completed",
+		slog.Uint64("nonce", block.Header.Nonce))
 
 	//-------------------------------
 	// Submit to blockchain network

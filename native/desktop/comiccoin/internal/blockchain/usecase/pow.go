@@ -27,6 +27,10 @@ func (uc *ProofOfWorkUseCase) Execute(ctx context.Context, b *domain.Block, diff
 	e := make(map[string]string)
 	if b == nil {
 		e["block"] = "missing value"
+	} else {
+		if b.Header == nil {
+			e["header"] = "missing value"
+		}
 	}
 	if len(e) != 0 {
 		uc.logger.Warn("Failed executing proof of work",
@@ -59,5 +63,18 @@ func (uc *ProofOfWorkUseCase) Execute(ctx context.Context, b *domain.Block, diff
 		}
 	}
 
-	return 0, nil
+	return b.Header.Nonce, nil
+}
+
+// isHashSolved checks the hash to make sure it complies with
+// the POW rules. We need to match a difficulty number of 0's.
+func isHashSolved(difficulty uint16, hash string) bool {
+	const match = "0x00000000000000000"
+
+	if len(hash) != 66 {
+		return false
+	}
+
+	difficulty += 2
+	return hash[:difficulty] == match[:difficulty]
 }
