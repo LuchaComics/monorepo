@@ -164,6 +164,10 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				db)
+			purposedBlockDataDTORepo := repo.NewPurposedBlockDataDTORepo(
+				cfg,
+				logger,
+				libP2PNetwork)
 
 			// ------------ Use-case ------------
 			// Account
@@ -245,6 +249,17 @@ func DaemonCmd() *cobra.Command {
 			// Mining
 			proofOfWorkUseCase := usecase.NewProofOfWorkUseCase(cfg, logger)
 
+			// Purposed Block Data DTO
+			broadcastPurposedBlockDataDTOUseCase := usecase.NewBroadcastPurposedBlockDataDTOUseCase(
+				cfg,
+				logger,
+				purposedBlockDataDTORepo)
+			receivePurposedBlockDataDTOUseCase := usecase.NewReceivePurposedBlockDataDTOUseCase(
+				cfg,
+				logger,
+				purposedBlockDataDTORepo)
+			_ = receivePurposedBlockDataDTOUseCase // TODO: Use later!
+
 			// ------------ Service ------------
 			// Account
 			createAccountService := service.NewCreateAccountService(
@@ -300,6 +315,7 @@ func DaemonCmd() *cobra.Command {
 				getBlockDataUseCase,
 				createBlockDataUseCase,
 				proofOfWorkUseCase,
+				broadcastPurposedBlockDataDTOUseCase,
 				deleteAllPendingBlockTxUseCase)
 
 			// ------------ Interface ------------

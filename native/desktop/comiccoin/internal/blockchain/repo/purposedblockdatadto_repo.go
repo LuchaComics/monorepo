@@ -15,11 +15,11 @@ import (
 )
 
 const (
-	mempoolTransactionTopicName        = "mempooltxdto"
-	mempoolTransactionRendezvousString = "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain/mempooltxdto"
+	purposedBlockDataDTOTopicName        = "mempooltxdto"
+	purposedBlockDataDTORendezvousString = "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain/purposedblockdatadto"
 )
 
-type mempoolTransactionDTORepoImpl struct {
+type purposedBlockDataDTORepoImpl struct {
 	config        *config.Config
 	logger        *slog.Logger
 	libP2PNetwork p2p.LibP2PNetwork
@@ -27,13 +27,13 @@ type mempoolTransactionDTORepoImpl struct {
 	sub           *pubsub.Subscription
 }
 
-func NewMempoolTransactionDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork p2p.LibP2PNetwork) domain.MempoolTransactionDTORepository {
+func NewPurposedBlockDataDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork p2p.LibP2PNetwork) domain.PurposedBlockDataDTORepository {
 	//
 	// STEP 1
 	// Initialize our instance
 	//
 
-	impl := &mempoolTransactionDTORepoImpl{
+	impl := &purposedBlockDataDTORepoImpl{
 		config:        cfg,
 		logger:        logger,
 		libP2PNetwork: libP2PNetwork,
@@ -43,12 +43,12 @@ func NewMempoolTransactionDTORepo(cfg *config.Config, logger *slog.Logger, libP2
 
 	//
 	// STEP 2:
-	// Create and advertise our `mempoolTransactionRendezvousString` which is essentially telling
+	// Create and advertise our `purposedBlockDataDTORendezvousString` which is essentially telling
 	// our P2P network that clients can meet and communicate in our app at this
 	// specific location.
 	//
 
-	impl.libP2PNetwork.AdvertiseWithRendezvousString(context.Background(), impl.libP2PNetwork.GetHost(), mempoolTransactionRendezvousString)
+	impl.libP2PNetwork.AdvertiseWithRendezvousString(context.Background(), impl.libP2PNetwork.GetHost(), purposedBlockDataDTORendezvousString)
 
 	//
 	// STEP 3:
@@ -70,7 +70,7 @@ func NewMempoolTransactionDTORepo(cfg *config.Config, logger *slog.Logger, libP2
 	// Join the `topic` in the pub-sub.
 	//
 
-	topic, err := psObj.Join(mempoolTransactionRendezvousString)
+	topic, err := psObj.Join(purposedBlockDataDTORendezvousString)
 	if err != nil {
 		log.Fatalf("failed joining pub-sub for topic: %v", err)
 	}
@@ -88,14 +88,14 @@ func NewMempoolTransactionDTORepo(cfg *config.Config, logger *slog.Logger, libP2
 	if err != nil {
 		impl.logger.Error("failed subscribing to our topic",
 			slog.Any("error", err),
-			slog.String("topic_name", mempoolTransactionTopicName))
+			slog.String("topic_name", purposedBlockDataDTOTopicName))
 		log.Fatalf("failed subscribing to our topic: %v", err)
 	}
 	if sub == nil {
 		err := fmt.Errorf("failed subscribing to our topic: %v", "topic does not exist")
 		impl.logger.Error("failed subscribing to our topic",
 			slog.Any("error", err),
-			slog.String("topic_name", mempoolTransactionTopicName))
+			slog.String("topic_name", purposedBlockDataDTOTopicName))
 		log.Fatalf("failed subscribing to our topic: %v", err)
 	}
 	impl.sub = sub
@@ -110,7 +110,7 @@ func NewMempoolTransactionDTORepo(cfg *config.Config, logger *slog.Logger, libP2
 	go func() {
 
 		impl.logger.Debug("waiting for peers to connect to topic...",
-			slog.String("topic_name", mempoolTransactionTopicName))
+			slog.String("topic_name", purposedBlockDataDTOTopicName))
 
 		for {
 
@@ -119,11 +119,11 @@ func NewMempoolTransactionDTORepo(cfg *config.Config, logger *slog.Logger, libP2
 			// Wait to connect with new peers.
 			//
 
-			impl.libP2PNetwork.DiscoverPeersAtRendezvousString(context.Background(), impl.libP2PNetwork.GetHost(), mempoolTransactionRendezvousString, func(p peer.AddrInfo) error {
+			impl.libP2PNetwork.DiscoverPeersAtRendezvousString(context.Background(), impl.libP2PNetwork.GetHost(), purposedBlockDataDTORendezvousString, func(p peer.AddrInfo) error {
 
 				impl.logger.Debug("subscribed",
 					slog.Any("peer_id", p.ID),
-					slog.String("topic", mempoolTransactionTopicName))
+					slog.String("topic", purposedBlockDataDTOTopicName))
 
 				// Return nil to indicate success (no errors occured).
 				return nil
@@ -134,7 +134,7 @@ func NewMempoolTransactionDTORepo(cfg *config.Config, logger *slog.Logger, libP2
 	return impl
 }
 
-func (impl *mempoolTransactionDTORepoImpl) BroadcastToP2PNetwork(ctx context.Context, bd *domain.MempoolTransactionDTO) error {
+func (impl *purposedBlockDataDTORepoImpl) BroadcastToP2PNetwork(ctx context.Context, bd *domain.PurposedBlockDataDTO) error {
 	//
 	// STEP 1
 	// Marshal the DTO into a binary payload which we can send over the network.
@@ -143,7 +143,7 @@ func (impl *mempoolTransactionDTORepoImpl) BroadcastToP2PNetwork(ctx context.Con
 	bdBytes, err := bd.Serialize()
 	if err != nil {
 		impl.logger.Error("Failed to publish",
-			slog.String("topic_name", mempoolTransactionTopicName),
+			slog.String("topic_name", purposedBlockDataDTOTopicName),
 			slog.Any("error", err))
 		return err
 	}
@@ -153,17 +153,17 @@ func (impl *mempoolTransactionDTORepoImpl) BroadcastToP2PNetwork(ctx context.Con
 
 	if err := impl.topic.Publish(ctx, bdBytes); err != nil {
 		impl.logger.Error("Failed to publish",
-			slog.String("topic_name", mempoolTransactionTopicName),
+			slog.String("topic_name", purposedBlockDataDTOTopicName),
 			slog.Any("error", err))
-		return fmt.Errorf("failed to publish: %s", mempoolTransactionTopicName)
+		return fmt.Errorf("failed to publish: %s", purposedBlockDataDTOTopicName)
 	}
 	impl.logger.Debug("Published",
-		slog.Any("topic", mempoolTransactionTopicName))
+		slog.Any("topic", purposedBlockDataDTOTopicName))
 
 	return nil
 }
 
-func (impl *mempoolTransactionDTORepoImpl) ReceiveFromP2PNetwork(ctx context.Context) (*domain.MempoolTransactionDTO, error) {
+func (impl *purposedBlockDataDTORepoImpl) ReceiveFromP2PNetwork(ctx context.Context) (*domain.PurposedBlockDataDTO, error) {
 	//
 	// STEP 2:
 	// We will receive the incoming message from our P2P network.
@@ -176,7 +176,7 @@ func (impl *mempoolTransactionDTORepoImpl) ReceiveFromP2PNetwork(ctx context.Con
 	if err != nil {
 		impl.logger.Error("Failed to receive message",
 			slog.Any("error", err),
-			slog.String("topic_name", mempoolTransactionTopicName))
+			slog.String("topic_name", purposedBlockDataDTOTopicName))
 		return nil, err
 	}
 
@@ -185,11 +185,11 @@ func (impl *mempoolTransactionDTORepoImpl) ReceiveFromP2PNetwork(ctx context.Con
 	// We need to deserialize the incoming message into our DTO.
 	//
 
-	stxDTO, err := domain.NewMempoolTransactionDTOFromDeserialize(msg.Data)
+	stxDTO, err := domain.NewPurposedBlockDataDTOFromDeserialize(msg.Data)
 	if err != nil {
 		impl.logger.Error("Failed to deserialize message",
 			slog.Any("error", err),
-			slog.String("topic_name", mempoolTransactionTopicName))
+			slog.String("topic_name", purposedBlockDataDTOTopicName))
 		return nil, err
 	}
 

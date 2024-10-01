@@ -23,6 +23,7 @@ type MiningService struct {
 	getBlockDataUseCase                     *usecase.GetBlockDataUseCase
 	createBlockDataUseCase                  *usecase.CreateBlockDataUseCase
 	proofOfWorkUseCase                      *usecase.ProofOfWorkUseCase
+	broadcastPurposedBlockDataDTOUseCase    *usecase.BroadcastPurposedBlockDataDTOUseCase
 	deleteAllPendingBlockTransactionUseCase *usecase.DeleteAllPendingBlockTransactionUseCase
 }
 
@@ -36,9 +37,10 @@ func NewMiningService(
 	uc4 *usecase.GetBlockDataUseCase,
 	uc5 *usecase.CreateBlockDataUseCase,
 	uc6 *usecase.ProofOfWorkUseCase,
-	uc7 *usecase.DeleteAllPendingBlockTransactionUseCase,
+	uc7 *usecase.BroadcastPurposedBlockDataDTOUseCase,
+	uc8 *usecase.DeleteAllPendingBlockTransactionUseCase,
 ) *MiningService {
-	return &MiningService{config, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7}
+	return &MiningService{config, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8}
 }
 
 func (s *MiningService) Execute(ctx context.Context) error {
@@ -122,6 +124,8 @@ func (s *MiningService) Execute(ctx context.Context) error {
 	// of this tree will be part of the block to be mined.
 	tree, err := merkle.NewTree(trans)
 	if err != nil {
+		s.logger.Error("Failed to create merkle tree",
+			slog.Any("error", err))
 		return fmt.Errorf("Failed to create merkle tree: %v", err)
 	}
 
@@ -148,6 +152,8 @@ func (s *MiningService) Execute(ctx context.Context) error {
 
 	nonce, powErr := s.proofOfWorkUseCase.Execute(ctx, &block, s.config.Blockchain.Difficulty)
 	if powErr != nil {
+		s.logger.Error("Failed to mine block",
+			slog.Any("error", powErr))
 		return fmt.Errorf("Failed to mine block: %v", powErr)
 	}
 
@@ -156,14 +162,26 @@ func (s *MiningService) Execute(ctx context.Context) error {
 	s.logger.Debug("mining completed",
 		slog.Uint64("nonce", block.Header.Nonce))
 
-	//-------------------------------
-	// Submit to blockchain network
-	//      TODO: Receive purposed blockdata
-	//      TODO: Verify purposed blockdata
-	//      TODO: Add blockdata to blockchain
-	//      TODO: Broadcast to p2p network the new blockdata.
-	// Delete all pending block txs.
-	//-------------------------------
+	//
+	// STEP 4:
+	// Broadcast to the distributed / P2P blockchain network our new purposed
+	// block data.
+	//
+
+	blockData := domain.NewBlockData(block)
+
+	// Convert to our new datastructure.
+	purposeBlockData := &domain.PurposedBlockData{
+		Hash:   blockData.Hash,
+		Header: blockData.Header,
+		Trans:  blockData.Trans,
+	}
+
+	if err := s.broadcastPurposedBlockDataDTOUseCase.Execute(ctx, purposeBlockData); err != nil {
+		s.logger.Error("Failed to broadcast purposed block data",
+			slog.Any("error", powErr))
+		return fmt.Errorf("Failed to broadcast purposed block data: %v", powErr)
+	}
 
 	return nil
 }
