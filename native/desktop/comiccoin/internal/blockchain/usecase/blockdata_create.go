@@ -18,7 +18,7 @@ func NewCreateBlockDataUseCase(config *config.Config, logger *slog.Logger, repo 
 	return &CreateBlockDataUseCase{config, logger, repo}
 }
 
-func (uc *CreateBlockDataUseCase) Execute(hash string, header *domain.BlockHeader, trans []*domain.BlockTransaction) error {
+func (uc *CreateBlockDataUseCase) Execute(hash string, header *domain.BlockHeader, trans []domain.BlockTransaction) error {
 	//
 	// STEP 1: Validation.
 	//

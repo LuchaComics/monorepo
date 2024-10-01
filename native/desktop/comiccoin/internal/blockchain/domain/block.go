@@ -11,6 +11,17 @@ type Block struct {
 	MerkleTree *merkle.Tree[BlockTransaction]
 }
 
+// NewBlockData constructs block data from a block.
+func NewBlockData(block Block) *BlockData {
+	blockData := BlockData{
+		Hash:   block.Hash(),
+		Header: block.Header,
+		Trans:  block.MerkleTree.Values(),
+	}
+
+	return &blockData
+}
+
 // Hash returns the unique hash for the Block.
 func (b Block) Hash() string {
 	if b.Header.Number == 0 {

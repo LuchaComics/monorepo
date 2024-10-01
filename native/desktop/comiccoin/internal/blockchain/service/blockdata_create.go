@@ -52,7 +52,7 @@ func (s *CreateBlockDataService) Execute(dataDir, hash, walletPassword string) (
 	//
 
 	header := &domain.BlockHeader{}
-	trans := make([]*domain.BlockTransaction, 0)
+	trans := make([]domain.BlockTransaction, 0)
 
 	//
 	// STEP 3: Save to our database.

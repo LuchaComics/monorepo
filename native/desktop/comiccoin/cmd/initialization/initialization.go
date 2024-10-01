@@ -26,7 +26,7 @@ var (
 func InitCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "init",
-		Short: "Initializes the blockchain node",
+		Short: "Initializes the peer-to-peer network configuration for this blockchain node",
 		Run: func(cmd *cobra.Command, args []string) {
 			//
 			// STEP 1
