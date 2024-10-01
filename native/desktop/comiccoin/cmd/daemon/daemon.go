@@ -143,6 +143,7 @@ func DaemonCmd() *cobra.Command {
 			accountRepo := repo.NewAccountRepo(cfg, logger, db)
 			signedTxRepo := repo.NewSignedTransactionRepo(cfg, logger, db)
 			signedTxDTORepo := repo.NewSignedTransactionDTORepo(cfg, logger, libP2PNetwork)
+			pendingBlockTxRepo := repo.NewPendingBlockTransactionRepo(cfg, logger, db)
 
 			// ------------ Use-case ------------
 			// Account
@@ -160,6 +161,14 @@ func DaemonCmd() *cobra.Command {
 			listAllSignedTransactionUseCase := usecase.NewListAllSignedTransactionUseCase(cfg, logger, signedTxRepo)
 			deleteAllSignedTransactionUseCase := usecase.NewDeleteAllSignedTransactionUseCase(cfg, logger, signedTxRepo)
 
+			// Purposed Block Transaction
+			createPendingBlockTxUseCase := usecase.NewCreatePendingBlockTransactionUseCase(cfg, logger, pendingBlockTxRepo)
+			listAllPendingBlockTxUseCase := usecase.NewListAllPendingBlockTransactionUseCase(cfg, logger, pendingBlockTxRepo)
+			deleteAllPendingBlockTxUseCase := usecase.NewDeleteAllPendingBlockTransactionUseCase(cfg, logger, pendingBlockTxRepo)
+
+			_ = listAllPendingBlockTxUseCase   // TODO: IMPL IN MINER
+			_ = deleteAllPendingBlockTxUseCase // TODO: IMPL IN MINER
+
 			// ------------ Service ------------
 			// Account
 			createAccountService := service.NewCreateAccountService(cfg, logger, createAccountUseCase, getAccountUseCase, accountEncryptKeyUseCase)
@@ -174,7 +183,7 @@ func DaemonCmd() *cobra.Command {
 
 			// Mempool
 			mempoolReceiveService := service.NewMempoolReceiveService(cfg, logger, kmutex, receiveSignedTxDTOUseCase, createSignedTransactionUseCase)
-			mempoolBatchSendService := service.NewMempoolBatchSendService(cfg, logger, kmutex, listAllSignedTransactionUseCase, deleteAllSignedTransactionUseCase)
+			mempoolBatchSendService := service.NewMempoolBatchSendService(cfg, logger, kmutex, listAllSignedTransactionUseCase, createPendingBlockTxUseCase, deleteAllSignedTransactionUseCase)
 
 			// ------------ Interface ------------
 			// HTTP

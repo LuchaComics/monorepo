@@ -52,8 +52,6 @@ func (tx SignedTransaction) Validate(chainID uint16) error {
 type SignedTransactionRepository interface {
 	Upsert(bd *SignedTransaction) error
 	ListAll() ([]*SignedTransaction, error)
-	GetByNonce(nonce uint64) (*SignedTransaction, error)
-	DeleteByNonce(nonce uint64) error
 	DeleteAll() error
 }
 

@@ -3,8 +3,10 @@ package service
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/kmutexutil"
 )
@@ -17,6 +19,7 @@ type MempoolBatchSendService struct {
 	logger                               *slog.Logger
 	kmutex                               kmutexutil.KMutexProvider
 	listAllSignedTransactionDTOUseCase   *usecase.ListAllSignedTransactionUseCase
+	createPendingBlockTransactionUseCase *usecase.CreatePendingBlockTransactionUseCase
 	deleteAllSignedTransactionDTOUseCase *usecase.DeleteAllSignedTransactionUseCase
 }
 
@@ -25,9 +28,10 @@ func NewMempoolBatchSendService(
 	logger *slog.Logger,
 	kmutex kmutexutil.KMutexProvider,
 	uc1 *usecase.ListAllSignedTransactionUseCase,
-	uc2 *usecase.DeleteAllSignedTransactionUseCase,
+	uc2 *usecase.CreatePendingBlockTransactionUseCase,
+	uc3 *usecase.DeleteAllSignedTransactionUseCase,
 ) *MempoolBatchSendService {
-	return &MempoolBatchSendService{cfg, logger, kmutex, uc1, uc2}
+	return &MempoolBatchSendService{cfg, logger, kmutex, uc1, uc2, uc3}
 }
 
 func (s *MempoolBatchSendService) Execute(ctx context.Context) error {
@@ -60,6 +64,7 @@ func (s *MempoolBatchSendService) Execute(ctx context.Context) error {
 	//    transaction requirement per block and if we meet it then we can
 	//    send the transactions to the miner.
 	if len(stxs) < int(s.config.Blockchain.TransPerBlock) {
+		// Do nothing, just return this function with nothing.
 		return nil
 	}
 
@@ -68,17 +73,30 @@ func (s *MempoolBatchSendService) Execute(ctx context.Context) error {
 	// Queue our signed transactions for the miner.
 	//
 
-	//TODO: IMPL.
+	for _, stx := range stxs {
+		pendingBlockTx := &domain.PendingBlockTransaction{
+			SignedTransaction: *stx,
+			TimeStamp:         uint64(time.Now().Unix()),      // Ethereum: The time the transaction was received.
+			GasPrice:          s.config.Blockchain.GasPrice,   // Ethereum: The price of one unit of gas to be paid for fees.
+			GasUnits:          s.config.Blockchain.UnitsOfGas, // Ethereum: The number of units of gas used for this transaction.
+		}
+		if createErr := s.createPendingBlockTransactionUseCase.Execute(pendingBlockTx); err != nil {
+			s.logger.Error("mempool failed creating pending signed transaction",
+				slog.Any("error", createErr))
+			return createErr
+		}
+	}
 
 	//
 	// STEP 4
 	// Delete all our signed transactions.
 	//
 
-	//TODO: IMPL.
-	// if err := s.deleteAllSignedTransactionDTOUseCase.Execute(); err != nil {
-	// 	return nil
-	// }
+	if deleteAllErr := s.deleteAllSignedTransactionDTOUseCase.Execute(); err != nil {
+		s.logger.Error("mempool failed deleting all pending block transaction",
+			slog.Any("error", deleteAllErr))
+		return nil
+	}
 
 	return nil
 }
