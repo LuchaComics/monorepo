@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	proposedBlockDataDTOTopicName        = "mempooltxdto"
+	proposedBlockDataDTOTopicName        = "proposedblockdatadto"
 	proposedBlockDataDTORendezvousString = "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain/proposedblockdatadto"
 )
 

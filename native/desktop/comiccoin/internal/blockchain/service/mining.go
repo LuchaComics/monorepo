@@ -67,7 +67,8 @@ func (s *MiningService) Execute(ctx context.Context) error {
 		return nil
 	}
 	if len(pendingBlockTxs) <= 0 {
-		s.logger.Debug("no pending block transactions for mining service")
+		s.logger.Debug("skipped mining: has no pending block transactions")
+		return nil
 	}
 
 	s.logger.Debug("executing mining for pending block transactions",

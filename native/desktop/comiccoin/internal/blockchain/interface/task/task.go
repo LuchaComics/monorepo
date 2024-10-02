@@ -21,6 +21,7 @@ type taskManagerImpl struct {
 	mempoolBatchSendTaskHandler *task.MempoolBatchSendTaskHandler
 	miningTaskHandler           *task.MiningTaskHandler
 	validationTaskHandler       *task.ValidationTaskHandler
+	syncBlockDataDTOTaskHandler *task.SyncBlockDataDTOTaskHandler
 }
 
 func NewTaskManager(
@@ -30,6 +31,7 @@ func NewTaskManager(
 	mempoolBatchSendTaskHandler *task.MempoolBatchSendTaskHandler,
 	miningTaskHandler *task.MiningTaskHandler,
 	validationTaskHandler *task.ValidationTaskHandler,
+	syncBlockDataDTOTaskHandler *task.SyncBlockDataDTOTaskHandler,
 ) TaskManager {
 	port := &taskManagerImpl{
 		cfg:                         cfg,
@@ -38,6 +40,7 @@ func NewTaskManager(
 		mempoolBatchSendTaskHandler: mempoolBatchSendTaskHandler,
 		miningTaskHandler:           miningTaskHandler,
 		validationTaskHandler:       validationTaskHandler,
+		syncBlockDataDTOTaskHandler: syncBlockDataDTOTaskHandler,
 	}
 	return port
 }
@@ -83,6 +86,17 @@ func (port *taskManagerImpl) Run() {
 				time.Sleep(1 * time.Minute)
 			}
 			time.Sleep(1 * time.Minute)
+		}
+	}()
+
+	go func() {
+		for {
+			taskErr := port.syncBlockDataDTOTaskHandler.Execute(ctx)
+			if taskErr != nil {
+				port.logger.Error("failed executing syncing task, restarting task in 25 seconds...", slog.Any("error", taskErr))
+				time.Sleep(25 * time.Second)
+			}
+			time.Sleep(25 * time.Second)
 		}
 	}()
 }
