@@ -48,6 +48,7 @@ func (impl *peerProviderImpl) DiscoverPeersAtRendezvousString(ctx context.Contex
 					slog.Any("peer_id", peer.ID),
 					slog.Any("error", err),
 				)
+				continue
 			} else {
 
 				// impl.logger.Debug("111New peer connected",
