@@ -60,7 +60,14 @@ func NewBlockDataDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork 
 
 	host := libP2PNetwork.GetHost()
 
-	// Remove disconnected peer
+	//
+	// STEP 4:
+	// In a peer-to-peer network we need to be away of when peers disconnect
+	// our network, the following code will callback when a peer disconnects so
+	// our repository can remove the peer from our records.
+	//
+
+	//Remove disconnected peer
 	host.Network().Notify(&network.NotifyBundle{
 		DisconnectedF: func(_ network.Network, c network.Conn) {
 			peerID := c.RemotePeer()
@@ -84,7 +91,7 @@ func NewBlockDataDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork 
 	})
 
 	//
-	// STEP 4:
+	// STEP 5:
 	// When our repository loads up, we need to create a background goroutine
 	// which will wait for new connections and get our list of peers that
 	// connect in real-time to our application for this particular repository.
@@ -98,14 +105,14 @@ func NewBlockDataDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork 
 		for {
 
 			//
-			// STEP 5:
+			// STEP 6:
 			// Wait to connect with new peers.
 			//
 
 			impl.libP2PNetwork.DiscoverPeersAtRendezvousString(context.Background(), impl.libP2PNetwork.GetHost(), blockDataDTORendezvousString, func(p peer.AddrInfo) error {
 
 				//
-				// STEP 6
+				// STEP 7
 				// Connect our peer with this peer and keep a record of it.
 				//
 
@@ -177,14 +184,25 @@ func (r *BlockDataDTORepo) ListLatestAfterHashV2(ctx context.Context, afterBlock
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	peerID := r.randomPeerID()
+	if peerID == "" {
+		return nil, errors.New("no valid peers available")
+	}
+
 	// Connect to a random peer
-	peer := r.peers[r.randomPeerID()]
+	peer := r.peers[peerID]
 	if peer == nil {
 		return nil, errors.New("no peers connected")
 	}
 
+	host := r.libP2PNetwork.GetHost()
+
+	if err := host.Connect(ctx, *peer); err != nil {
+		return nil, err
+	}
+
 	// Create a new stream to the peer
-	stream, err := r.libP2PNetwork.GetHost().NewStream(ctx, peer.ID, blockDataDTOProtocolID)
+	stream, err := host.NewStream(ctx, peer.ID, blockDataDTOProtocolID)
 	if err != nil {
 		return nil, err
 	}
