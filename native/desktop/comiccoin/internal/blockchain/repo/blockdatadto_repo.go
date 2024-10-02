@@ -124,19 +124,18 @@ func NewBlockDataDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork 
 
 				// Keep a record of our peers b/c we will need it later.
 				impl.peers[p.ID] = &p
-
-				ctx := context.Background()
-
-				stream, err := host.NewStream(ctx, p.ID, protocol.ID(blockDataDTOProtocolID))
-
-				if err != nil {
-					logger.Warn("Connection failed", slog.Any("error", err))
-					return err
-				} else {
-					handleNewConnection(stream)
-				}
-
-				logger.Info("Connected to", slog.Any("peer", p))
+				// ctx := context.Background()
+				//
+				// stream, err := host.NewStream(ctx, p.ID, protocol.ID(blockDataDTOProtocolID))
+				//
+				// if err != nil {
+				// 	logger.Warn("Connection failed", slog.Any("error", err))
+				// 	return err
+				// } else {
+				// 	handleNewConnection(stream)
+				// }
+				//
+				// logger.Info("Connected to", slog.Any("peer", p))
 
 				// Return nil to indicate success (no errors occured).
 				return nil
@@ -217,30 +216,41 @@ func (r *BlockDataDTORepo) ListLatestAfterHashV2(ctx context.Context, afterBlock
 		return nil, err
 	}
 
-	// Create a new stream to the peer
 	stream, err := host.NewStream(ctx, peer.ID, protocol.ID(blockDataDTOProtocolID))
 	if err != nil {
+		r.logger.Warn("Connection failed", slog.Any("error", err))
 		return nil, err
-	}
-	defer stream.Close()
-
-	// Write the request to the stream
-	req := ListLatestAfterHashRequest{AfterBlockDataHash: afterBlockDataHash}
-	err = json.NewEncoder(stream).Encode(req)
-	if err != nil {
-		stream.Reset() // Reset the stream in case of an error
-		return nil, err
+	} else {
+		handleNewConnection(stream)
 	}
 
-	// Read the response from the stream
-	var resp ListLatestAfterHashResponse
-	err = json.NewDecoder(stream).Decode(&resp)
-	if err != nil {
-		stream.Reset() // Reset the stream in case of an error
-		return nil, err
-	}
+	r.logger.Info("Connected to", slog.Any("peer", peer))
 
-	return resp.BlockDataDTOs, nil
+	// Create a new stream to the peer
+	// stream, err := host.NewStream(ctx, peer.ID, protocol.ID(blockDataDTOProtocolID))
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// defer stream.Close()
+	//
+	// // Write the request to the stream
+	// req := ListLatestAfterHashRequest{AfterBlockDataHash: afterBlockDataHash}
+	// err = json.NewEncoder(stream).Encode(req)
+	// if err != nil {
+	// 	stream.Reset() // Reset the stream in case of an error
+	// 	return nil, err
+	// }
+	//
+	// // Read the response from the stream
+	// var resp ListLatestAfterHashResponse
+	// err = json.NewDecoder(stream).Decode(&resp)
+	// if err != nil {
+	// 	stream.Reset() // Reset the stream in case of an error
+	// 	return nil, err
+	// }
+	//
+	// return resp.BlockDataDTOs, nil
+	return nil, nil
 }
 
 func (r *BlockDataDTORepo) randomPeerID() peer.ID {
