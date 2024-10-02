@@ -15,7 +15,6 @@ import (
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config/constants"
-	taskmnghandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/task/handler"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/service"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
@@ -123,45 +122,110 @@ func doBlockchainSync() {
 	)
 
 	// ------------ Repo ------------
-	blockDataDTORepo := repo.NewBlockDataDTORepo(
+	blockDataRepo := repo.NewBlockDataRepo(
+		cfg,
+		logger,
+		db)
+	_ = blockDataRepo
+
+	blockchainSyncRepo := repo.NewBlockchainSyncRepo(
 		cfg,
 		logger,
 		libP2PNetwork)
 
+	go func() {
+		ctx := context.Background()
+		for {
+			log.Println("sending...")
+			if err := blockchainSyncRepo.SendRequestToRandomPeer(ctx, "test 1 2 3"); err != nil {
+				log.Println("err:", err)
+			}
+			time.Sleep(5 * time.Second)
+		}
+	}()
+	go func() {
+		ctx := context.Background()
+		for {
+			peerID, hash, err := blockchainSyncRepo.ReceiveRequestFromNetwork(ctx)
+			if err != nil {
+				log.Println("err:", err)
+			}
+			log.Println("peerID:", peerID)
+			log.Println("hash:", hash)
+			time.Sleep(5 * time.Second)
+		}
+	}()
+
 	// ------------ Use-case ------------
 
-	// Blockchain Sync'ing
-	listLatestBlockDataAfterHashDTOUseCase := usecase.NewListLatestBlockDataAfterHashDTOUseCase(
-		cfg,
-		logger,
-		blockDataDTORepo)
+	// // Blockchain Sync'ing
+	// uc1 := usecase.NewBlockchainSyncSendRequestUseCase(
+	// 	cfg,
+	// 	logger,
+	// 	libP2PNetwork)
+	// uc2 := usecase.NewBlockchainSyncReceiveRequestUseCase(
+	// 	cfg,
+	// 	logger,
+	// 	libP2PNetwork)
+	// uc3 := usecase.NewBlockchainSyncSendResponseUseCase(
+	// 	cfg,
+	// 	logger,
+	// 	libP2PNetwork,
+	// 	blockDataRepo)
+	// uc4 := usecase.NewBlockchainSyncReceiveResponseUseCase(
+	// 	cfg,
+	// 	logger,
+	// 	libP2PNetwork,
+	// 	blockDataRepo)
+	//
+	// // ------------ Service ------------
+	//
+	// // Blockchain Sync'ing
+	// s1 := service.NewBlockchainSyncServerService(
+	// 	cfg,
+	// 	logger,
+	// 	uc2,
+	// 	uc3)
+	//
+	// s2 := service.NewBlockchainSyncClientService(
+	// 	cfg,
+	// 	logger,
+	// 	uc1,
+	// 	uc4)
+	//
+	// // ------------ Interface ------------
+	//
+	// go func() {
+	// 	ctx := context.Background()
+	// 	if err := s1.Execute(ctx); err != nil {
+	// 		logger.Error("failed executing syncing server, restarting task in 10 seconds...", slog.Any("error", err))
+	// 	}
+	// 	time.Sleep(10 * time.Second)
+	// }()
+	// go func() {
+	// 	ctx := context.Background()
+	// 	if err := s2.Execute(ctx); err != nil {
+	// 		logger.Error("failed executing syncing client, restarting task in 10 seconds...", slog.Any("error", err))
+	// 	}
+	// 	time.Sleep(10 * time.Second)
+	// }()
 
-	// ------------ Service ------------
-
-	// Blockchain Sync'ing
-	syncBlockDataDTOService := service.NewSyncBlockDataDTOService(
-		cfg,
-		logger,
-		listLatestBlockDataAfterHashDTOUseCase)
-
-	// ------------ Interface ------------
-
-	tm5 := taskmnghandler.NewSyncBlockDataDTOTaskHandler(
-		cfg,
-		logger,
-		syncBlockDataDTOService)
+	// tm5 := taskmnghandler.NewSyncBlockDataDTOTaskHandler(
+	// 	cfg,
+	// 	logger,
+	// 	syncBlockDataDTOService)
 
 	go func() {
 
-		ctx := context.Background()
-		for {
-			taskErr := tm5.Execute(ctx)
-			if taskErr != nil {
-				logger.Error("failed executing syncing task, restarting task in 10 seconds...", slog.Any("error", taskErr))
-				time.Sleep(10 * time.Second)
-			}
-			time.Sleep(10 * time.Second)
-		}
+		// ctx := context.Background()
+		// for {
+		// 	taskErr := tm5.Execute(ctx)
+		// 	if taskErr != nil {
+		// 		logger.Error("failed executing syncing task, restarting task in 10 seconds...", slog.Any("error", taskErr))
+		// 		time.Sleep(10 * time.Second)
+		// 	}
+		// 	time.Sleep(10 * time.Second)
+		// }
 	}()
 	<-done
 }
