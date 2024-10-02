@@ -1,15 +1,11 @@
 package repo
 
 import (
-	"bufio"
 	"context"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"log/slog"
 	"math/rand"
-	"os"
 	"time"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
@@ -29,8 +25,11 @@ type BlockDataDTORepo struct {
 	config        *config.Config
 	logger        *slog.Logger
 	libP2PNetwork p2p.LibP2PNetwork
-	// The list of connected peers.
+	// The list of connected peer addresses
 	peers map[peer.ID]*peer.AddrInfo
+
+	// The list of connected peers with a direct stream with tem.
+	streams map[peer.ID]network.Stream
 }
 
 func NewBlockDataDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork p2p.LibP2PNetwork) *BlockDataDTORepo {
@@ -44,6 +43,7 @@ func NewBlockDataDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork 
 		logger:        logger,
 		libP2PNetwork: libP2PNetwork,
 		peers:         make(map[peer.ID]*peer.AddrInfo, 0),
+		streams:       make(map[peer.ID]network.Stream, 0),
 	}
 
 	//
@@ -76,6 +76,14 @@ func NewBlockDataDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork 
 			peerID := c.RemotePeer()
 			impl.logger.Warn("peer disconnected", slog.Any("peer_id", peerID))
 			delete(impl.peers, peerID)
+
+			impl.logger.Warn("stream closed", slog.Any("peer_id", peerID))
+			stream, ok := impl.streams[peerID]
+			if ok {
+				stream.Close()
+				delete(impl.streams, peerID)
+
+			}
 		},
 	})
 
@@ -85,7 +93,7 @@ func NewBlockDataDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork 
 		// Handle incoming streams
 		switch stream.Protocol() {
 		case blockDataDTOProtocolID:
-			handleNewConnection(stream)
+			impl.streams[host.ID()] = stream
 		default:
 			// Handle unknown protocol
 			log.Fatalf("Unknown protocol: %v", stream.Protocol())
@@ -118,24 +126,21 @@ func NewBlockDataDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork 
 				// Connect our peer with this peer and keep a record of it.
 				//
 
+				// Keep a record of our peers b/c we will need it later.
+				impl.peers[p.ID] = &p
+
+				ctx := context.Background()
+				stream, err := host.NewStream(ctx, p.ID, protocol.ID(blockDataDTOProtocolID))
+				if err != nil {
+					// logger.Warn("Connection failed", slog.Any("error", err))
+					return err
+				} else {
+					impl.streams[p.ID] = stream
+				}
+
 				impl.logger.Debug("peer connected",
 					slog.Any("peer_id", p.ID),
 					slog.String("protocol_id", blockDataDTOProtocolID))
-
-				// Keep a record of our peers b/c we will need it later.
-				impl.peers[p.ID] = &p
-				// ctx := context.Background()
-				//
-				// stream, err := host.NewStream(ctx, p.ID, protocol.ID(blockDataDTOProtocolID))
-				//
-				// if err != nil {
-				// 	logger.Warn("Connection failed", slog.Any("error", err))
-				// 	return err
-				// } else {
-				// 	handleNewConnection(stream)
-				// }
-				//
-				// logger.Info("Connected to", slog.Any("peer", p))
 
 				// Return nil to indicate success (no errors occured).
 				return nil
@@ -147,109 +152,11 @@ func NewBlockDataDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork 
 }
 
 func (r *BlockDataDTORepo) ListLatestAfterHash(ctx context.Context, afterBlockDataHash string) ([]*domain.BlockDataDTO, error) {
-	if len(r.peers) == 0 {
-		r.logger.Warn("No peers")
-		return []*domain.BlockDataDTO{}, nil
+	randomPeerID := r.randomPeerID()
+	if randomPeerID == "" {
+		return nil, nil
 	}
 
-	xxx, err := r.ListLatestAfterHashV2(ctx, "")
-	if err != nil {
-		return nil, err
-	}
-
-	//TODO: IMPL.
-	fmt.Println("Todo: ListLatestAfterHash", xxx)
-	return nil, nil
-}
-
-type ListLatestAfterHashRequest struct {
-	AfterBlockDataHash string `json:"after_block_data_hash"`
-}
-
-type ListLatestAfterHashResponse struct {
-	BlockDataDTOs []*domain.BlockDataDTO `json:"block_data_dtos"`
-}
-
-func (r *BlockDataDTORepo) handleListLatestAfterHashRequest(stream network.Stream) {
-	// Read the request from the stream
-	var req ListLatestAfterHashRequest
-	err := json.NewDecoder(stream).Decode(&req)
-	if err != nil {
-		log.Println("Error decoding request:", err)
-		return
-	}
-
-	// Process the request
-	blockDataDTOs, err := r.ListLatestAfterHashV2(context.Background(), req.AfterBlockDataHash)
-	if err != nil {
-		log.Println("Error processing request:", err)
-		return
-	}
-
-	// Send the response back to the client
-	resp := ListLatestAfterHashResponse{BlockDataDTOs: blockDataDTOs}
-	err = json.NewEncoder(stream).Encode(resp)
-	if err != nil {
-		log.Println("Error encoding response:", err)
-		return
-	}
-}
-
-func (r *BlockDataDTORepo) ListLatestAfterHashV2(ctx context.Context, afterBlockDataHash string) ([]*domain.BlockDataDTO, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	peerID := r.randomPeerID()
-	if peerID == "" {
-		return nil, errors.New("no valid peers available")
-	}
-
-	// Connect to a random peer
-	peer := r.peers[peerID]
-	if peer == nil {
-		return nil, errors.New("no peers connected")
-	}
-
-	host := r.libP2PNetwork.GetHost()
-
-	if err := host.Connect(ctx, *peer); err != nil {
-		return nil, err
-	}
-
-	stream, err := host.NewStream(ctx, peer.ID, protocol.ID(blockDataDTOProtocolID))
-	if err != nil {
-		r.logger.Warn("Connection failed", slog.Any("error", err))
-		return nil, err
-	} else {
-		handleNewConnection(stream)
-	}
-
-	r.logger.Info("Connected to", slog.Any("peer", peer))
-
-	// Create a new stream to the peer
-	// stream, err := host.NewStream(ctx, peer.ID, protocol.ID(blockDataDTOProtocolID))
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer stream.Close()
-	//
-	// // Write the request to the stream
-	// req := ListLatestAfterHashRequest{AfterBlockDataHash: afterBlockDataHash}
-	// err = json.NewEncoder(stream).Encode(req)
-	// if err != nil {
-	// 	stream.Reset() // Reset the stream in case of an error
-	// 	return nil, err
-	// }
-	//
-	// // Read the response from the stream
-	// var resp ListLatestAfterHashResponse
-	// err = json.NewDecoder(stream).Decode(&resp)
-	// if err != nil {
-	// 	stream.Reset() // Reset the stream in case of an error
-	// 	return nil, err
-	// }
-	//
-	// return resp.BlockDataDTOs, nil
 	return nil, nil
 }
 
@@ -271,45 +178,34 @@ func (r *BlockDataDTORepo) randomPeerID() peer.ID {
 	return peerIDs[rand.Intn(len(peerIDs))]
 }
 
-func handleStream(stream network.Stream) {
-	handleNewConnection(stream)
-}
-
-func handleNewConnection(stream network.Stream) {
-	rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
-
-	go writeData(rw)
-	go readData(rw)
-}
-
-func writeData(rw *bufio.ReadWriter) {
-	stdReader := bufio.NewReader(os.Stdin)
-	for {
-		sendData, err := stdReader.ReadString('\n')
-		if err != nil {
-			fmt.Println("Error reading from stdin")
-			return
-		}
-		_, err = rw.WriteString(sendData)
-		if err != nil {
-			fmt.Println("Error writing to buffer")
-			return
-		}
-		err = rw.Flush()
-		if err != nil {
-			fmt.Println("Error flushing buffer")
-			return
-		}
+func (r *BlockDataDTORepo) getRandomStream() (network.Stream, error) {
+	peerID := r.randomPeerID()
+	if peerID == "" {
+		return nil, errors.New("no valid peers available")
 	}
+
+	s, _ := r.streams[peerID]
+	return s, nil
 }
 
-func readData(rw *bufio.ReadWriter) {
-	for {
-		str, err := rw.ReadString('\n')
-		if err != nil {
-			fmt.Println("Error reading from buffer")
-			return
-		}
-		fmt.Printf("Received: %s", str)
+func (r *BlockDataDTORepo) getRandomPeer() (*peer.AddrInfo, error) {
+	peerID := r.randomPeerID()
+	if peerID == "" {
+		return nil, errors.New("no valid peers available")
 	}
+
+	// Connect to a random peer
+	peer, _ := r.peers[peerID]
+	if peer == nil {
+		return nil, errors.New("no peers connected")
+	}
+	return peer, nil
+}
+
+type ListLatestAfterHashRequest struct {
+	AfterBlockDataHash string `json:"after_block_data_hash"`
+}
+
+type ListLatestAfterHashResponse struct {
+	BlockDataDTOs []*domain.BlockDataDTO `json:"block_data_dtos"`
 }

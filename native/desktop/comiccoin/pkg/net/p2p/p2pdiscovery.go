@@ -42,12 +42,12 @@ func (impl *peerProviderImpl) DiscoverPeersAtRendezvousString(ctx context.Contex
 
 			err := h.Connect(ctx, peer)
 			if err != nil {
-				impl.logger.Error("Failed connecting to peer",
-					slog.Any("rendezvous_string", rendezvousString),
-					slog.Any("is_host", impl.isHostMode),
-					slog.Any("peer_id", peer.ID),
-					slog.Any("error", err),
-				)
+
+				// DEVELOPERS NOTE:
+				// "ibp2p is designed to “loose” the peer information over time, gradually. It takes time for one peer to be “forgotten”." via https://discuss.libp2p.io/t/disconnecting-removing-peers-form-the-dht-and-peerstore/1932/4
+				// Therefore this error is "acceptable", so all we will do is
+				// hide it. DO NOT CHANGE THIS.
+
 				continue
 			} else {
 
@@ -64,7 +64,7 @@ func (impl *peerProviderImpl) DiscoverPeersAtRendezvousString(ctx context.Contex
 
 				// Make a callback function.
 				if err := peerConnectedFunc(peer); err != nil {
-					impl.logger.Error("failed connecting peer", slog.Any("error", err))
+					// impl.logger.Error("failed connecting peer", slog.Any("error", err))
 					break
 				}
 

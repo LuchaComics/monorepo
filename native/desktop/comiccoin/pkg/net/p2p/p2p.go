@@ -10,6 +10,7 @@ import (
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/libp2p/go-libp2p/core/host"
+	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p/p2p/discovery/routing"
 	drouting "github.com/libp2p/go-libp2p/p2p/discovery/routing"
@@ -109,6 +110,38 @@ func NewLibP2PNetwork(cfg *config.Config, logger *slog.Logger, priv crypto.PrivK
 		log.Fatalf("failed setting new gossip sub: %v", err)
 	}
 	impl.gossipPubSub = ps
+
+	//Remove disconnected peer
+	impl.host.Network().Notify(&network.NotifyBundle{
+		DisconnectedF: func(_ network.Network, c network.Conn) {
+			peerID := c.RemotePeer()
+			impl.logger.Warn("peer disconnected", slog.Any("peer_id", peerID))
+			for _, rendezvousPeers := range impl.peers {
+				_, ok := rendezvousPeers[peerID]
+				if ok {
+					// STEP 1:
+					// Fetch our record.
+					peer := rendezvousPeers[peerID]
+
+					// STEP 2:
+					// Remove our peer from our libp2p networking
+					h.Network().ClosePeer(peer.ID)
+					h.Peerstore().RemovePeer(peer.ID)
+					impl.kademliaDHT.RoutingTable().RemovePeer(peer.ID)
+
+					// STEP 2:
+					// Remove the peer from our library
+					delete(rendezvousPeers, peerID)
+					impl.logger.Warn("deleted peer",
+						slog.Any("rendezvousPeers", rendezvousPeers),
+						slog.Any("rendezvousPeer", rendezvousPeers[peerID]))
+
+					break
+				}
+			}
+			//
+		},
+	})
 
 	return impl
 }

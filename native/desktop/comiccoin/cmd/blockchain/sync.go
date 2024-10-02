@@ -157,10 +157,10 @@ func doBlockchainSync() {
 		for {
 			taskErr := tm5.Execute(ctx)
 			if taskErr != nil {
-				logger.Error("failed executing syncing task, restarting task in 25 seconds...", slog.Any("error", taskErr))
-				time.Sleep(25 * time.Second)
+				logger.Error("failed executing syncing task, restarting task in 10 seconds...", slog.Any("error", taskErr))
+				time.Sleep(10 * time.Second)
 			}
-			time.Sleep(25 * time.Second)
+			time.Sleep(10 * time.Second)
 		}
 	}()
 	<-done
