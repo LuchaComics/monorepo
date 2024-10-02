@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"log/slog"
 	"math/rand"
@@ -94,6 +95,7 @@ func NewBlockDataDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork 
 		switch stream.Protocol() {
 		case blockDataDTOProtocolID:
 			impl.streams[host.ID()] = stream
+			impl.backgroundResponseHandler(stream)
 		default:
 			// Handle unknown protocol
 			log.Fatalf("Unknown protocol: %v", stream.Protocol())
@@ -136,6 +138,7 @@ func NewBlockDataDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork 
 					return err
 				} else {
 					impl.streams[p.ID] = stream
+					impl.backgroundResponseHandler(stream)
 				}
 
 				impl.logger.Debug("peer connected",
@@ -151,13 +154,59 @@ func NewBlockDataDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork 
 	return impl
 }
 
-func (r *BlockDataDTORepo) ListLatestAfterHash(ctx context.Context, afterBlockDataHash string) ([]*domain.BlockDataDTO, error) {
+func (r *BlockDataDTORepo) SendRequestToRandomPeer(ctx context.Context, hash string) error {
 	randomPeerID := r.randomPeerID()
 	if randomPeerID == "" {
-		return nil, nil
+		return nil
 	}
 
-	return nil, nil
+	stream, ok := r.streams[randomPeerID]
+	if !ok {
+		r.logger.Debug("stream does not exist",
+			slog.Any("peer_id", randomPeerID))
+		return fmt.Errorf("stream does not exist for peer_id: %v", randomPeerID)
+	}
+
+	r.logger.Debug("random peer selected, making request now...",
+		slog.Any("peer_id", randomPeerID))
+
+	msg := &domain.StreamMessageDTO{
+		FunctionID: "SendRequestToRandomPeer",
+		Type:       domain.StreamMessageDTOTypeRequest,
+		Content:    []byte(hash),
+	}
+	msgBytes, err := msg.Serialize()
+	if err != nil {
+		return err
+	}
+
+	bytesLen, err := stream.Write(msgBytes)
+	if err != nil {
+		return err
+	}
+
+	r.logger.Debug("sent",
+		slog.Any("bytes", bytesLen),
+		slog.Any("peer_id", randomPeerID))
+
+	return nil
+}
+
+func (r *BlockDataDTORepo) ReceiveRequestFromNetwork(ctx context.Context) (string, string, error) {
+	dataCh := make(chan []byte)
+
+	data := <-dataCh
+	_ = data
+
+	return "", "", nil //TODO: IMPL.
+}
+
+func (r *BlockDataDTORepo) SendResponseToPeer(ctx context.Context, peerID string, data []*domain.BlockDataDTO) error {
+	return nil //TODO: IMPL.
+}
+
+func (r *BlockDataDTORepo) ReceiveResponseFromNetwork(ctx context.Context) ([]*domain.BlockDataDTO, error) {
+	return nil, nil //TODO: IMPL.
 }
 
 func (r *BlockDataDTORepo) randomPeerID() peer.ID {
@@ -202,10 +251,6 @@ func (r *BlockDataDTORepo) getRandomPeer() (*peer.AddrInfo, error) {
 	return peer, nil
 }
 
-type ListLatestAfterHashRequest struct {
-	AfterBlockDataHash string `json:"after_block_data_hash"`
-}
-
-type ListLatestAfterHashResponse struct {
-	BlockDataDTOs []*domain.BlockDataDTO `json:"block_data_dtos"`
+func (r *BlockDataDTORepo) backgroundResponseHandler(s network.Stream) {
+	// buf := bufio.NewReader(s)
 }

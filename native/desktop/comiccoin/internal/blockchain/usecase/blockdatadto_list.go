@@ -19,5 +19,6 @@ func NewListLatestBlockDataAfterHashDTOUseCase(config *config.Config, logger *sl
 }
 
 func (uc *ListLatestBlockDataAfterHashDTOUseCase) Execute(ctx context.Context, hash string) ([]*domain.BlockDataDTO, error) {
-	return uc.repo.ListLatestAfterHash(ctx, hash)
+	// return uc.repo.ListLatestAfterHash(ctx, hash)
+	return nil, nil
 }

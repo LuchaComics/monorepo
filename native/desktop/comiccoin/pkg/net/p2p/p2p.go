@@ -125,6 +125,7 @@ func NewLibP2PNetwork(cfg *config.Config, logger *slog.Logger, priv crypto.PrivK
 
 					// STEP 2:
 					// Remove our peer from our libp2p networking
+					// Special thanks via https://discuss.libp2p.io/t/disconnecting-removing-peers-form-the-dht-and-peerstore/1932/5
 					h.Network().ClosePeer(peer.ID)
 					h.Peerstore().RemovePeer(peer.ID)
 					impl.kademliaDHT.RoutingTable().RemovePeer(peer.ID)
