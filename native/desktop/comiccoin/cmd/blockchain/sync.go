@@ -22,7 +22,6 @@ import (
 	dbase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/db/leveldb"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/logger"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p/simple"
 )
 
 func SyncCmd() *cobra.Command {
@@ -110,8 +109,6 @@ func doBlockchainSync() {
 	libP2PNetwork := p2p.NewLibP2PNetwork(cfg, logger, privateKey, publicKey)
 	h := libP2PNetwork.GetHost()
 
-	smp := simple.NewSimpleMessageProtocol(logger, h, "/lasthash/req/0.0.1", "/lasthash/resp/0.0.1")
-
 	// Build host multiaddress
 	hostAddr, _ := ma.NewMultiaddr(fmt.Sprintf("/ipfs/%s", h.ID()))
 
@@ -125,7 +122,7 @@ func doBlockchainSync() {
 		slog.Any("full address", fullAddr),
 	)
 
-	_ = smp
+	// ------------ Repo ------------
 
 	lbdhDTORepo := repo.NewLastBlockDataHashDTORepo(
 		cfg,

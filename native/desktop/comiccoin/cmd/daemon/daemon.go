@@ -161,10 +161,6 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				libP2PNetwork)
-			blockDataDTORepo := repo.NewBlockDataDTORepo(
-				cfg,
-				logger,
-				libP2PNetwork)
 
 			// ------------ Use-case ------------
 			// Account
@@ -256,12 +252,6 @@ func DaemonCmd() *cobra.Command {
 				logger,
 				proposedBlockDataDTORepo)
 
-			// Blockchain Sync'ing
-			listLatestBlockDataAfterHashDTOUseCase := usecase.NewListLatestBlockDataAfterHashDTOUseCase(
-				cfg,
-				logger,
-				blockDataDTORepo)
-
 			// ------------ Service ------------
 			// Account
 			createAccountService := service.NewCreateAccountService(
@@ -332,12 +322,6 @@ func DaemonCmd() *cobra.Command {
 				setLastBlockDataHashUseCase,
 			)
 
-			// Blockchain Sync'ing
-			syncBlockDataDTOService := service.NewSyncBlockDataDTOService(
-				cfg,
-				logger,
-				listLatestBlockDataAfterHashDTOUseCase)
-
 			// ------------ Interface ------------
 			// HTTP
 			createAccountHTTPHandler := httphandler.NewCreateAccountHTTPHandler(
@@ -387,10 +371,6 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				validationService)
-			tm5 := taskmnghandler.NewSyncBlockDataDTOTaskHandler(
-				cfg,
-				logger,
-				syncBlockDataDTOService)
 
 			taskManager := taskmng.NewTaskManager(
 				cfg,
@@ -399,7 +379,6 @@ func DaemonCmd() *cobra.Command {
 				tm2,
 				tm3,
 				tm4,
-				tm5,
 			)
 
 			//
