@@ -144,14 +144,6 @@ func (impl *LastBlockDataHashDTORepo) SendRequestToRandomPeer(ctx context.Contex
 	return nil
 }
 
-func getPeerIDs(m map[peer.ID][]*simple.SimpleMessageRequest) []peer.ID {
-	peerIDs := make([]peer.ID, 0, len(m))
-	for id := range m {
-		peerIDs = append(peerIDs, id)
-	}
-	return peerIDs
-}
-
 func (impl *LastBlockDataHashDTORepo) ReceiveRequestFromNetwork(ctx context.Context) (peer.ID, error) {
 
 	impl.logger.Debug("ReceiveRequestFromNetwork: running...")
@@ -173,18 +165,6 @@ func (impl *LastBlockDataHashDTORepo) SendResponseToPeer(ctx context.Context, pe
 	}
 	return nil
 
-}
-
-func getPeerIDAndContents(m map[peer.ID][]*simple.SimpleMessageResponse) map[peer.ID][]domain.LastBlockDataHashDTO {
-	result := make(map[peer.ID][]domain.LastBlockDataHashDTO)
-	for peerID, responses := range m {
-		var contents []domain.LastBlockDataHashDTO
-		for _, response := range responses {
-			contents = append(contents, domain.LastBlockDataHashDTO(response.Content))
-		}
-		result[peerID] = contents
-	}
-	return result
 }
 
 func (impl *LastBlockDataHashDTORepo) ReceiveResponseFromNetwork(ctx context.Context) (domain.LastBlockDataHashDTO, error) {
