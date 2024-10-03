@@ -15,7 +15,7 @@ import (
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config/constants"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
+	taskmnghandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/task/handler"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/service"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
@@ -124,61 +124,96 @@ func doBlockchainSync() {
 
 	// ------------ Repo ------------
 
+	latestBlockDataHashRepo := repo.NewLastBlockDataHashRepo(
+		cfg,
+		logger,
+		db)
 	lbdhDTORepo := repo.NewLastBlockDataHashDTORepo(
 		cfg,
 		logger,
 		libP2PNetwork)
 
-	_ = lbdhDTORepo
+	// ------------ Use-case ------------
 
-	// SERVER
-	go func() {
+	// Latest BlockData Hash
+	getLastBlockDataHashUseCase := usecase.NewGetLastBlockDataHashUseCase(
+		cfg,
+		logger,
+		latestBlockDataHashRepo)
+	setLastBlockDataHashUseCase := usecase.NewSetLastBlockDataHashUseCase(
+		cfg,
+		logger,
+		latestBlockDataHashRepo)
+
+	// Blockchain Synchronization
+	uc1 := usecase.NewLastBlockDataHashDTOSendP2PRequestUseCase(
+		cfg,
+		logger,
+		lbdhDTORepo)
+	uc2 := usecase.NewLastBlockDataHashDTOReceiveP2PRequestUseCase(
+		cfg,
+		logger,
+		lbdhDTORepo)
+	uc3 := usecase.NewLastBlockDataHashDTOSendP2PResponseUseCase(
+		cfg,
+		logger,
+		lbdhDTORepo)
+	uc4 := usecase.NewLastBlockDataHashDTOReceiveP2PResponseUseCase(
+		cfg,
+		logger,
+		lbdhDTORepo)
+
+	// ------------ Service ------------
+
+	syncServerService := service.NewBlockchainSyncServerService(
+		cfg,
+		logger,
+		uc2,
+		getLastBlockDataHashUseCase,
+		uc3,
+	)
+	syncClientService := service.NewBlockchainSyncClientService(
+		cfg,
+		logger,
+		uc1,
+		uc4,
+		getLastBlockDataHashUseCase,
+		setLastBlockDataHashUseCase,
+	)
+
+	// ------------ Interface ------------
+
+	// TASK MANAGER
+	tm5 := taskmnghandler.NewBlockchainSyncServerTaskHandler(
+		cfg,
+		logger,
+		syncServerService)
+	tm6 := taskmnghandler.NewBlockchainSyncClientTaskHandler(
+		cfg,
+		logger,
+		syncClientService)
+
+	// ------------ Execution ------------
+
+	go func(server *taskmnghandler.BlockchainSyncServerTaskHandler) {
 		ctx := context.Background()
 		for {
-			//
-			//
-			//
-
-			peerID, err := lbdhDTORepo.ReceiveRequestFromNetwork(ctx)
-			if err != nil {
-				log.Fatal(err)
+			if err := server.Execute(ctx); err != nil {
+				logger.Error("server error", slog.Any("error", err))
 			}
-
-			//
-			//
-			//
-
-			lastBlockDataHash := domain.LastBlockDataHashDTO("X-X-X")
-			if err := lbdhDTORepo.SendResponseToPeer(ctx, peerID, lastBlockDataHash); err != nil {
-				// log.Fatal(err)
-				continue
-			}
-			logger.Info("request server sent to response server")
-
-			logger.Info("wait request server")
 			time.Sleep(10 * time.Second)
 		}
-	}()
+	}(tm5)
 
-	// CLIENT
-	go func() {
+	go func(client *taskmnghandler.BlockchainSyncClientTaskHandler) {
 		ctx := context.Background()
 		for {
-			err := lbdhDTORepo.SendRequestToRandomPeer(ctx)
-			if err != nil {
-				// log.Fatal(err)
-				continue
+			if err := client.Execute(ctx); err != nil {
+				logger.Error("client error", slog.Any("error", err))
 			}
-			res, err := lbdhDTORepo.ReceiveResponseFromNetwork(ctx)
-			if err != nil {
-				log.Fatal(err)
-			}
-			logger.Info("client received", slog.Any("res", res))
-			logger.Info("wait client")
 			time.Sleep(10 * time.Second)
 		}
-
-	}()
+	}(tm6)
 
 	<-done
 }
