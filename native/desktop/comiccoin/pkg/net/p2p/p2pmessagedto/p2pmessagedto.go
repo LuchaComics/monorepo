@@ -242,7 +242,7 @@ func (r *P2PMessageDTORepo) SendToSpecificPeerInNetwork(ctx context.Context, pee
 
 	buf := bufio.NewWriter(stream)
 
-	bytesLen, err := buf.Write(dtoBytes)
+	bytesLen, err := buf.WriteString(fmt.Sprintf("%s\n", dtoBytes))
 	if err != nil {
 		return err
 	}
@@ -298,7 +298,7 @@ func (r *P2PMessageDTORepo) receiveDTOFromStream(stream network.Stream) (*P2PMes
 
 	for {
 		log.Println("xxxx")
-		dtoBytes, err := buf.ReadBytes('\n')
+		dtoStr, err := buf.ReadString('\n')
 		if err == io.EOF {
 			log.Println("--->", ErrStreamClosed)
 			return nil, ErrStreamClosed
@@ -308,10 +308,10 @@ func (r *P2PMessageDTORepo) receiveDTOFromStream(stream network.Stream) (*P2PMes
 			return nil, err
 		}
 
-		log.Println("--->", string(dtoBytes))
+		log.Println("--->", string(dtoStr))
 
-		if len(dtoBytes) > 0 {
-			dto, err := NewP2PMessageDTOFromDeserialize(dtoBytes)
+		if len(dtoStr) > 0 {
+			dto, err := NewP2PMessageDTOFromDeserialize([]byte(dtoStr))
 			if err != nil {
 				return nil, err
 			}

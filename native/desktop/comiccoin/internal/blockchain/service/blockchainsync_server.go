@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"log"
 	"log/slog"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
@@ -25,5 +26,8 @@ func NewBlockchainSyncServerService(
 }
 
 func (s *BlockchainSyncServerService) Execute(ctx context.Context) error {
+
+	err := s.blockchainSyncReceiveRequestUseCase.Execute()
+	log.Println(err)
 	return nil
 }
