@@ -32,9 +32,11 @@ type LibP2PNetwork interface {
 
 	DiscoverPeersAtRendezvousString(ctx context.Context, h host.Host, rendezvousString string, peerConnectedFunc func(peer.AddrInfo) error)
 
-	// Your peer advertises a rendezvous point and waits for other peers to join.
-	// When other peers make a successful connection to your peer, then method
-	// will send the connected peer through the channel for you to grab.
+	PutDataToKademliaDHT(key string, bytes []byte) error
+
+	GetDataFromKademliaDHT(key string) ([]byte, error)
+
+	RemoveDataFromKademliaDHT(key string) error
 
 	Close()
 }

@@ -51,3 +51,25 @@ func (node *peerProviderImpl) newKademliaDHT(ctx context.Context) *dht.IpfsDHT {
 	// Source: https://github.com/libp2p/go-libp2p/blob/master/examples/chat-with-rendezvous/chat.go#L112
 	//
 }
+
+func (impl *peerProviderImpl) PutDataToKademliaDHT(key string, bytes []byte) error {
+	if err := impl.kademliaDHT.PutValue(context.Background(), key, bytes); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (impl *peerProviderImpl) GetDataFromKademliaDHT(key string) ([]byte, error) {
+	bytes, err := impl.kademliaDHT.GetValue(context.Background(), key)
+	if err != nil {
+		return nil, err
+	}
+	return bytes, nil
+}
+
+func (impl *peerProviderImpl) RemoveDataFromKademliaDHT(key string) error {
+	if err := impl.kademliaDHT.PutValue(context.Background(), key, []byte{}); err != nil {
+		return err
+	}
+	return nil
+}

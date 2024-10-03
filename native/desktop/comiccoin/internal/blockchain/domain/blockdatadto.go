@@ -16,18 +16,14 @@ type BlockDataDTO struct {
 }
 
 type BlockDataDTORepository interface {
-	// Function will randomly pick a connected peer and send them a request.
-	SendRequestToRandomPeer(ctx context.Context, hash string) error
+	// Function will add this block data to the distributed / peer-to-peer
+	// network for all peers to discover this data and download remotely to
+	// their peer.
+	UploadToNetwork(ctx context.Context, data *BlockDataDTO) error
 
-	// Function will block your current execution and wait until it receives
-	// any request from the peer-to-peer network. Function will return the
-	// `peerID` that sent the request and the hash value.
-	ReceiveRequestFromNetwork(ctx context.Context) (string, string, error)
-
-	// Function will send sync data to the peer whom requested block data.
-	SendResponseToPeer(ctx context.Context, peerID string, data []*BlockDataDTO) error
-
-	ReceiveResponseFromNetwork(ctx context.Context) ([]*BlockDataDTO, error)
+	// Function will lookup this hash in the distributed / peer-to-peer
+	// network and return the block data.
+	DownloadFromNetwork(ctx context.Context, BlockDataHash string) (*BlockDataDTO, error)
 }
 
 func (b *BlockDataDTO) Serialize() ([]byte, error) {
