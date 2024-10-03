@@ -119,6 +119,8 @@ func NewBlockDataDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork 
 func (r *BlockDataDTORepo) UploadToNetwork(ctx context.Context, data *domain.BlockDataDTO) error {
 	dataBytes, err := data.Serialize()
 	if err != nil {
+		r.logger.Error("failed to serialize data before sharing to kademlia dht",
+			slog.Any("error", err))
 		return err
 	}
 	return r.libP2PNetwork.PutDataToKademliaDHT(data.Hash, dataBytes)
@@ -128,10 +130,14 @@ func (r *BlockDataDTORepo) UploadToNetwork(ctx context.Context, data *domain.Blo
 func (r *BlockDataDTORepo) DownloadFromNetwork(ctx context.Context, blockDataHash string) (*domain.BlockDataDTO, error) {
 	dataBytes, err := r.libP2PNetwork.GetDataFromKademliaDHT(blockDataHash)
 	if err != nil {
+		r.logger.Error("failed getting from kademlia dht",
+			slog.Any("error", err))
 		return nil, err
 	}
 	data, err := domain.NewBlockDataDTOFromDeserialize(dataBytes)
 	if err != nil {
+		r.logger.Error("failed to deserialize data from kademlia dht",
+			slog.Any("error", err))
 		return nil, err
 	}
 	return data, nil

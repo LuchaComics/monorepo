@@ -15,6 +15,7 @@ type BlockchainSyncClientService struct {
 	lastBlockDataHashDTOReceiveP2PResponseUseCase *usecase.BlockchainLastestHashDTOReceiveP2PResponseUseCase
 	getBlockchainLastestHashUseCase               *usecase.GetBlockchainLastestHashUseCase
 	setBlockchainLastestHashUseCase               *usecase.SetBlockchainLastestHashUseCase
+	downloadFromNetworkBlockDataDTOUseCase        *usecase.DownloadFromNetworkBlockDataDTOUseCase
 }
 
 func NewBlockchainSyncClientService(
@@ -24,8 +25,9 @@ func NewBlockchainSyncClientService(
 	uc2 *usecase.BlockchainLastestHashDTOReceiveP2PResponseUseCase,
 	uc3 *usecase.GetBlockchainLastestHashUseCase,
 	uc4 *usecase.SetBlockchainLastestHashUseCase,
+	uc5 *usecase.DownloadFromNetworkBlockDataDTOUseCase,
 ) *BlockchainSyncClientService {
-	return &BlockchainSyncClientService{cfg, logger, uc1, uc2, uc3, uc4}
+	return &BlockchainSyncClientService{cfg, logger, uc1, uc2, uc3, uc4, uc5}
 }
 
 func (s *BlockchainSyncClientService) Execute(ctx context.Context) error {

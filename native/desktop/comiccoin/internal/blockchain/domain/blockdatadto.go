@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+	"log"
 )
 
 // BlockDataDTO is the data-transfer object used by nodes to send back and forth
@@ -31,6 +32,7 @@ func (b *BlockDataDTO) Serialize() ([]byte, error) {
 	encoder := gob.NewEncoder(&result)
 	err := encoder.Encode(b)
 	if err != nil {
+		log.Printf("BlockDataDTO: Serialize: result: %v\n", result)
 		return nil, fmt.Errorf("failed to serialize block data: %v", err)
 	}
 	return result.Bytes(), nil
@@ -49,6 +51,7 @@ func NewBlockDataDTOFromDeserialize(data []byte) (*BlockDataDTO, error) {
 	decoder := gob.NewDecoder(bytes.NewReader(data))
 	err := decoder.Decode(&account)
 	if err != nil {
+		log.Printf("BlockDataDTO: NewBlockDataDTOFromDeserialize: data: %v\n", data)
 		return nil, fmt.Errorf("failed to deserialize block data: %v", err)
 	}
 	return account, nil

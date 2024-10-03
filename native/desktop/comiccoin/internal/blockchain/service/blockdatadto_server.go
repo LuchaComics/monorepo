@@ -27,8 +27,12 @@ func NewBlockDataDTOServerService(
 }
 
 func (s *BlockDataDTOServerService) Execute(ctx context.Context) error {
+	s.logger.Debug("block data dto uploading to network...")
+	defer s.logger.Debug("block data dto uploaded to network")
 	blockDataList, err := s.listAllBlockDataUseCase.Execute()
 	if err != nil {
+		s.logger.Error("failed listing all block data",
+			slog.Any("error", err))
 		return err
 	}
 	if blockDataList == nil {
@@ -42,6 +46,8 @@ func (s *BlockDataDTOServerService) Execute(ctx context.Context) error {
 			Trans:  blockData.Trans,
 		}
 		if err := s.uploadToNetworkBlockDataDTOUseCase.Execute(ctx, blockDataDTO); err != nil {
+			s.logger.Error("failed uploading all block data",
+				slog.Any("error", err))
 			return err
 		}
 	}

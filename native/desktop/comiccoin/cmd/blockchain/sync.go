@@ -132,8 +132,32 @@ func doBlockchainSync() {
 		cfg,
 		logger,
 		libP2PNetwork)
+	blockDataRepo := repo.NewBlockDataRepo(
+		cfg,
+		logger,
+		db)
+	blockDataDTORepo := repo.NewBlockDataDTORepo(
+		cfg,
+		logger,
+		libP2PNetwork)
 
 	// ------------ Use-case ------------
+
+	// Block Data
+	listAllBlockDataUseCase := usecase.NewListAllBlockDataUseCase(
+		cfg,
+		logger,
+		blockDataRepo)
+
+	// Block Data DTO
+	uploadToNetworkBlockDataDTOUseCase := usecase.NewUploadToNetworkBlockDataDTOUseCase(
+		cfg,
+		logger,
+		blockDataDTORepo)
+	downloadFromNetworkBlockDataDTOUseCase := usecase.NewDownloadFromNetworkBlockDataDTOUseCase(
+		cfg,
+		logger,
+		blockDataDTORepo)
 
 	// Latest BlockData Hash
 	getBlockchainLastestHashUseCase := usecase.NewGetBlockchainLastestHashUseCase(
@@ -179,6 +203,13 @@ func doBlockchainSync() {
 		uc4,
 		getBlockchainLastestHashUseCase,
 		setBlockchainLastestHashUseCase,
+		downloadFromNetworkBlockDataDTOUseCase,
+	)
+	uploadServerService := service.NewBlockDataDTOServerService(
+		cfg,
+		logger,
+		listAllBlockDataUseCase,
+		uploadToNetworkBlockDataDTOUseCase,
 	)
 
 	// ------------ Interface ------------
@@ -192,6 +223,10 @@ func doBlockchainSync() {
 		cfg,
 		logger,
 		syncClientService)
+	tm7 := taskmnghandler.NewBlockDataDTOServerTaskHandler(
+		cfg,
+		logger,
+		uploadServerService)
 
 	// ------------ Execution ------------
 
@@ -214,6 +249,22 @@ func doBlockchainSync() {
 			time.Sleep(10 * time.Second)
 		}
 	}(tm6)
+
+	go func(server *taskmnghandler.BlockDataDTOServerTaskHandler) {
+		ctx := context.Background()
+		for {
+			if err := server.Execute(ctx); err != nil {
+				logger.Error("blockdatabto upload server error",
+					 slog.Any("error", err))
+				time.Sleep(10 * time.Second)
+				continue
+			}
+			time.Sleep(10 * time.Second)
+			logger.Debug("shared local blockchain with network")
+			break
+		}
+
+	}(tm7)
 
 	<-done
 }

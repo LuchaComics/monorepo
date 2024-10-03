@@ -19,5 +19,11 @@ func NewUploadToNetworkBlockDataDTOUseCase(config *config.Config, logger *slog.L
 }
 
 func (uc *UploadToNetworkBlockDataDTOUseCase) Execute(ctx context.Context, data *domain.BlockDataDTO) error {
-	return uc.repo.UploadToNetwork(ctx, data)
+	err := uc.repo.UploadToNetwork(ctx, data)
+	if err != nil {
+		uc.logger.Error("failed uploading the block data to the network",
+			slog.Any("error", err))
+		return err
+	}
+	return nil
 }

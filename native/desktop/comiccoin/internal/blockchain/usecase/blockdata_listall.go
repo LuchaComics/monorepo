@@ -18,5 +18,10 @@ func NewListAllBlockDataUseCase(config *config.Config, logger *slog.Logger, repo
 }
 
 func (uc *ListAllBlockDataUseCase) Execute() ([]*domain.BlockData, error) {
-	return nil, nil
+	data, err := uc.repo.ListAll()
+	if err != nil {
+		uc.logger.Error("failed listing all block data", slog.Any("error", err))
+		return nil, err
+	}
+	return data, nil
 }
