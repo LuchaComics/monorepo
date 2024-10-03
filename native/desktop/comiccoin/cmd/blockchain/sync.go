@@ -234,9 +234,9 @@ func doBlockchainSync() {
 		ctx := context.Background()
 		for {
 			if err := server.Execute(ctx); err != nil {
-				logger.Error("server error", slog.Any("error", err))
+				logger.Error("blockchain sync server error", slog.Any("error", err))
 			}
-			time.Sleep(10 * time.Second)
+			time.Sleep(5 * time.Second)
 		}
 	}(tm5)
 
@@ -244,26 +244,27 @@ func doBlockchainSync() {
 		ctx := context.Background()
 		for {
 			if err := client.Execute(ctx); err != nil {
-				logger.Error("client error", slog.Any("error", err))
+				logger.Error("blockchain sync client error", slog.Any("error", err))
 			}
-			time.Sleep(10 * time.Second)
+			time.Sleep(5 * time.Second)
 		}
 	}(tm6)
 
 	go func(server *taskmnghandler.BlockDataDTOServerTaskHandler) {
-		ctx := context.Background()
-		for {
-			if err := server.Execute(ctx); err != nil {
-				logger.Error("blockdatabto upload server error",
-					 slog.Any("error", err))
-				time.Sleep(10 * time.Second)
-				continue
-			}
-			time.Sleep(10 * time.Second)
-			logger.Debug("shared local blockchain with network")
-			break
-		}
+		//TODO: UNCOMMENT BELOW WHEN READY
 
+		// ctx := context.Background()
+		// for {
+		// 	if err := server.Execute(ctx); err != nil {
+		// 		logger.Error("blockdatabto upload server error",
+		// 			slog.Any("error", err))
+		// 		time.Sleep(10 * time.Second)
+		// 		continue
+		// 	}
+		// 	time.Sleep(5 * time.Second)
+		// 	logger.Debug("shared local blockchain with network")
+		// 	break
+		// }
 	}(tm7)
 
 	<-done

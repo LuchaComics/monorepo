@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"log/slog"
-	"time"
 
 	"github.com/libp2p/go-libp2p/core/peer"
 
@@ -22,7 +21,7 @@ func NewBlockchainLastestHashDTOReceiveP2PRequestUseCase(config *config.Config, 
 }
 
 func (uc *BlockchainLastestHashDTOReceiveP2PRequestUseCase) Execute(ctx context.Context) (peer.ID, error) {
-	ctx, cancel := context.WithTimeout(ctx, 45*time.Second) // add a 45-second timeout
-	defer cancel()
+	// ctx, cancel := context.WithTimeout(ctx, 45*time.Second) // add a 45-second timeout
+	// defer cancel()
 	return uc.repo.ReceiveRequestFromNetwork(ctx)
 }

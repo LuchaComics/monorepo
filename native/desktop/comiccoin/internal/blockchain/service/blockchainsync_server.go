@@ -55,17 +55,15 @@ func (s *BlockchainSyncServerService) Execute(ctx context.Context) error {
 	// Lookup the hash we have locally.
 	//
 
-	hash, err := s.getBlockchainLastestHashUseCase.Execute()
+	localHash, err := s.getBlockchainLastestHashUseCase.Execute()
 	if err != nil {
 		s.logger.Error("failed getting latest local hash",
 			slog.Any("error", err))
 		return err
 	}
-	if hash == "" {
-		err := fmt.Errorf("failed getting latest local hash: %v", "hash d.n.e.")
-		s.logger.Error("failed getting latest hash",
-			slog.Any("error", err))
-		return err
+	if localHash == "" {
+		s.logger.Warn("blockchain has no data to server, exiting...")
+		return nil
 	}
 
 	//
@@ -73,11 +71,11 @@ func (s *BlockchainSyncServerService) Execute(ctx context.Context) error {
 	// Send to the peer the hash we have locally.
 	//
 
-	lastHash := domain.BlockchainLastestHashDTO(hash)
+	lastHash := domain.BlockchainLastestHashDTO(localHash)
 
 	if err := s.lastBlockDataHashDTOSendP2PResponseUseCase.Execute(ctx, peerID, lastHash); err != nil {
 		s.logger.Error("failed sending response",
-			slog.Any("hash", lastHash),
+			slog.Any("local_hash", lastHash),
 			slog.Any("peer_id", peerID),
 			slog.Any("error", err))
 		return err

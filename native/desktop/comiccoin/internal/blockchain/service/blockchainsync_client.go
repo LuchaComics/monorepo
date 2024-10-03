@@ -2,7 +2,9 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
@@ -41,7 +43,11 @@ func (s *BlockchainSyncClientService) Execute(ctx context.Context) error {
 
 	err := s.lastBlockDataHashDTOSendP2PRequestUseCase.Execute(ctx)
 	if err != nil {
-		s.logger.Error("failed sending request",
+		if strings.Contains(err.Error(), "no peers connected") {
+			s.logger.Warn("blockchain sync client waiting for clients to connect...")
+			return nil
+		}
+		s.logger.Error("blockchain sync client failed sending request",
 			slog.Any("error", err))
 		return err
 	}
@@ -53,7 +59,7 @@ func (s *BlockchainSyncClientService) Execute(ctx context.Context) error {
 
 	receivedHash, err := s.lastBlockDataHashDTOReceiveP2PResponseUseCase.Execute(ctx)
 	if err != nil {
-		s.logger.Error("failed receiving response",
+		s.logger.Error("blockchain sync client failed receiving response",
 			slog.Any("error", err))
 		return err
 	}
@@ -83,6 +89,19 @@ func (s *BlockchainSyncClientService) Execute(ctx context.Context) error {
 		s.logger.Warn("local blockchain is outdated and needs updating from network",
 			slog.Any("network_hash", receivedHash),
 			slog.Any("local_hash", localHash))
+
+		blockDataDTO, err := s.downloadFromNetworkBlockDataDTOUseCase.Execute(ctx, string(receivedHash))
+		if err != nil {
+			s.logger.Error("blockchain sync client failed download block data from network",
+				slog.Any("error", err))
+			return err
+		}
+		if blockDataDTO != nil {
+			s.logger.Warn("couldn't receive data from network")
+			return fmt.Errorf("could not receive from network for hash: %v", receivedHash)
+		}
+
+		fmt.Println("------>", blockDataDTO)
 
 		//TODO: Save latest hash here...
 

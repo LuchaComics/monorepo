@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"log/slog"
-	"time"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
@@ -20,7 +19,7 @@ func NewBlockchainLastestHashDTOReceiveP2PResponseUseCase(config *config.Config,
 }
 
 func (uc *BlockchainLastestHashDTOReceiveP2PResponseUseCase) Execute(ctx context.Context) (domain.BlockchainLastestHashDTO, error) {
-	ctx, cancel := context.WithTimeout(ctx, 45*time.Second) // add a 45-second timeout
-	defer cancel()
+	// ctx, cancel := context.WithTimeout(ctx, 45*time.Second) // add a 45-second timeout
+	// defer cancel()
 	return uc.repo.ReceiveResponseFromNetwork(ctx)
 }

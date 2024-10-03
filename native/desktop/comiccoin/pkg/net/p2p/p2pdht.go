@@ -54,6 +54,9 @@ func (node *peerProviderImpl) newKademliaDHT(ctx context.Context) *dht.IpfsDHT {
 
 func (impl *peerProviderImpl) PutDataToKademliaDHT(key string, bytes []byte) error {
 	if err := impl.kademliaDHT.PutValue(context.Background(), key, bytes); err != nil {
+		impl.logger.Error("failed putting to kademlia dht",
+			slog.Any("error", err),
+		)
 		return err
 	}
 	return nil
@@ -62,6 +65,9 @@ func (impl *peerProviderImpl) PutDataToKademliaDHT(key string, bytes []byte) err
 func (impl *peerProviderImpl) GetDataFromKademliaDHT(key string) ([]byte, error) {
 	bytes, err := impl.kademliaDHT.GetValue(context.Background(), key)
 	if err != nil {
+		impl.logger.Error("failed getting from kademlia dht",
+			slog.Any("error", err),
+		)
 		return nil, err
 	}
 	return bytes, nil
@@ -69,6 +75,9 @@ func (impl *peerProviderImpl) GetDataFromKademliaDHT(key string) ([]byte, error)
 
 func (impl *peerProviderImpl) RemoveDataFromKademliaDHT(key string) error {
 	if err := impl.kademliaDHT.PutValue(context.Background(), key, []byte{}); err != nil {
+		impl.logger.Error("failed removing from kademlia dht",
+			slog.Any("error", err),
+		)
 		return err
 	}
 	return nil

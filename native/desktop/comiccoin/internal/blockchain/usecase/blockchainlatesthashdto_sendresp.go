@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"log/slog"
-	"time"
 
 	"github.com/libp2p/go-libp2p/core/peer"
 
@@ -22,7 +21,7 @@ func NewBlockchainLastestHashDTOSendP2PResponseUseCase(config *config.Config, lo
 }
 
 func (uc *BlockchainLastestHashDTOSendP2PResponseUseCase) Execute(ctx context.Context, peerID peer.ID, data domain.BlockchainLastestHashDTO) error {
-	ctx, cancel := context.WithTimeout(ctx, 45*time.Second) // add a 45-second timeout
-	defer cancel()
+	// ctx, cancel := context.WithTimeout(ctx, 45*time.Second) // add a 45-second timeout
+	// defer cancel()
 	return uc.repo.SendResponseToPeer(ctx, peerID, data)
 }

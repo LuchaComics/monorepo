@@ -119,19 +119,6 @@ func DaemonCmd() *cobra.Command {
 			_ = ikCreateService
 			_ = ikGetService
 
-			//TODO
-			// - Ask Latest Block Hash (Req-Res)
-			// - Receive Latest Block Hash (Req-Res)
-			// - Ask Block Data (Req-Res)
-			// - Receive Block Data (Req-Res)
-
-			// USE CASES - HTTP
-			// Send/Receive Signed Pending Transaction
-			// Send/Receive Purpose Block Data
-			// Send/Receive Block Data
-			// Send/Receive Latest Block Hash
-			// Send/Receive Block Data
-
 			// ------------ Repo ------------
 			accountRepo := repo.NewAccountRepo(
 				cfg,
