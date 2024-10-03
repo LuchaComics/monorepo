@@ -131,11 +131,15 @@ func (impl *LastBlockDataHashDTORepo) SendRequestToRandomPeer(ctx context.Contex
 		return fmt.Errorf("no peers connected")
 	}
 
+	impl.logger.Debug("SendRequestToRandomPeer: running...")
+
 	// Note: Send empty request because we don't want anything.
 	_, err := impl.smp.SendRequest(randomPeerID, []byte(""))
 	if err != nil {
 		return err
 	}
+
+	impl.logger.Debug("SendRequestToRandomPeer: done")
 
 	return nil
 }
@@ -149,12 +153,16 @@ func getPeerIDs(m map[peer.ID][]*simple.SimpleMessageRequest) []peer.ID {
 }
 
 func (impl *LastBlockDataHashDTORepo) ReceiveRequestsFromNetwork(ctx context.Context) ([]peer.ID, error) {
+
+	impl.logger.Debug("ReceiveRequestsFromNetwork: running...")
 	result, err := impl.smp.WaitForAnyRequests(ctx)
 	if err != nil {
 		return nil, err
 	}
+	impl.logger.Debug("ReceiveRequestsFromNetwork: done")
 
 	peerIDs := getPeerIDs(result)
+	impl.logger.Debug("ReceiveRequestsFromNetwork: results", slog.Any("results", peerIDs))
 	return peerIDs, nil
 }
 

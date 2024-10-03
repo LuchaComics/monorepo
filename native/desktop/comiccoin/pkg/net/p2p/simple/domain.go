@@ -4,21 +4,15 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
-
-	"github.com/libp2p/go-libp2p/core/peer"
 )
 
 type SimpleMessageRequest struct {
 	ID      string
-	From    peer.ID
-	To      peer.ID
 	Content []byte
 }
 
 type SimpleMessageResponse struct {
 	ID      string
-	From    peer.ID
-	To      peer.ID
 	Content []byte
 }
 

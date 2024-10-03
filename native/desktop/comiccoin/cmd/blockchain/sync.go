@@ -1,18 +1,21 @@
 package blockchain
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config/constants"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/service"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
@@ -130,6 +133,47 @@ func doBlockchainSync() {
 		libP2PNetwork)
 
 	_ = lbdhDTORepo
+
+	// SERVER
+	go func() {
+		ctx := context.Background()
+		for {
+			peerIDs, err := lbdhDTORepo.ReceiveRequestsFromNetwork(ctx)
+			if err != nil {
+				log.Fatal(err)
+			}
+			for _, peerID := range peerIDs {
+				lastBlockDataHash := domain.LastBlockDataHashDTO("X-X-X")
+				if err := lbdhDTORepo.SendResponseToPeer(ctx, peerID, lastBlockDataHash); err != nil {
+					// log.Fatal(err)
+					continue
+				}
+				logger.Info("request server sent to response server")
+			}
+			logger.Info("wait request server")
+			time.Sleep(10 * time.Second)
+		}
+	}()
+
+	// CLIENT
+	go func() {
+		ctx := context.Background()
+		for {
+			err := lbdhDTORepo.SendRequestToRandomPeer(ctx)
+			if err != nil {
+				// log.Fatal(err)
+				continue
+			}
+			res, err := lbdhDTORepo.ReceiveResponseFromNetwork(ctx)
+			if err != nil {
+				log.Fatal(err)
+			}
+			logger.Info("client received", slog.Any("res", res))
+			logger.Info("wait client")
+			time.Sleep(10 * time.Second)
+		}
+
+	}()
 
 	<-done
 }
