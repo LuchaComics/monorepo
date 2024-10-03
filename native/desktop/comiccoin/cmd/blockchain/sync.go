@@ -110,7 +110,7 @@ func doBlockchainSync() {
 	libP2PNetwork := p2p.NewLibP2PNetwork(cfg, logger, privateKey, publicKey)
 	h := libP2PNetwork.GetHost()
 
-	smp := simple.NewSimpleMessageProtocol(h, "/lasthash/req/0.0.1", "/lasthash/resp/0.0.1")
+	smp := simple.NewSimpleMessageProtocol(logger, h, "/lasthash/req/0.0.1", "/lasthash/resp/0.0.1")
 
 	// Build host multiaddress
 	hostAddr, _ := ma.NewMultiaddr(fmt.Sprintf("/ipfs/%s", h.ID()))

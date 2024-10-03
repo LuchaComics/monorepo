@@ -82,7 +82,7 @@ func NewLastBlockDataHashDTORepo(cfg *config.Config, logger *slog.Logger, libP2P
 	})
 
 	//
-	smp := simple.NewSimpleMessageProtocol(h, "/lastblockdatahash/req/0.0.1", "/lastblockdatahash/resp/0.0.1")
+	smp := simple.NewSimpleMessageProtocol(logger, h, "/lastblockdatahash/req/0.0.1", "/lastblockdatahash/resp/0.0.1")
 	impl.smp = smp
 
 	//

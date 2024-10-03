@@ -2,6 +2,7 @@ package simple
 
 import (
 	"context"
+	"log/slog"
 	"sync"
 
 	"github.com/libp2p/go-libp2p/core/host"
@@ -11,6 +12,8 @@ import (
 
 // SimpleMessageProtocol type
 type simpleMessageProtocolImpl struct {
+	logger *slog.Logger
+
 	host host.Host // local host
 	mu   sync.Mutex
 

@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"time"
 
 	"github.com/libp2p/go-libp2p/core/host"
@@ -14,8 +14,9 @@ import (
 	"github.com/libp2p/go-libp2p/core/protocol"
 )
 
-func NewSimpleMessageProtocol(host host.Host, protocolIDSimpleMessageRequest protocol.ID, protocolIDSimpleMessageResponse protocol.ID) SimpleMessageProtocol {
+func NewSimpleMessageProtocol(logger *slog.Logger, host host.Host, protocolIDSimpleMessageRequest protocol.ID, protocolIDSimpleMessageResponse protocol.ID) SimpleMessageProtocol {
 	impl := &simpleMessageProtocolImpl{
+		logger:                          logger,
 		host:                            host,
 		requestChan:                     make(chan *SimpleMessageRequest),
 		responseChan:                    make(chan *SimpleMessageResponse),
@@ -29,8 +30,6 @@ func NewSimpleMessageProtocol(host host.Host, protocolIDSimpleMessageRequest pro
 
 // remote peer requests handler
 func (impl *simpleMessageProtocolImpl) onRemoteRequest(s network.Stream) {
-	log.Println("onRemoteRequest: received...")
-
 	//
 	// STEP 1
 	//
@@ -39,26 +38,25 @@ func (impl *simpleMessageProtocolImpl) onRemoteRequest(s network.Stream) {
 	header, err := buf.ReadByte()
 	if err != nil {
 		s.Reset() // Important - don't forget!
-		log.Printf("onRemoteRequest: failed to read message header: %v\n", err)
+		impl.logger.Error("onRemoteRequest: failed to read message header",
+			slog.Any("error", err))
 		return
 	}
-
-	log.Printf("onRemoteRequest: header: %v\n", header)
 
 	//
 	// STEP 2
 	//
 
 	payloadBytes := make([]byte, header)
+
 	n, err := io.ReadFull(buf, payloadBytes)
-	log.Printf("onRemoteRequest: payload has %d bytes\n", n)
 	if err != nil {
 		s.Reset() // Important - don't forget!
-		log.Printf("onRemoteRequest: failed to read message payload: %v\n", err)
+		impl.logger.Error("onRemoteRequest: failed to read message payload",
+			slog.Any("payload_bytes_length", n),
+			slog.Any("error", err))
 		return
 	}
-
-	log.Printf("onRemoteRequest: payload: %v\n", payloadBytes)
 
 	//
 	// STEP 3
@@ -75,14 +73,13 @@ func (impl *simpleMessageProtocolImpl) onRemoteRequest(s network.Stream) {
 	req, err := NewSimpleMessageRequestFromDeserialize(payloadBytes)
 	if err != nil {
 		s.Reset()
-		log.Printf("failed to deserialize remote request: %v\n", err)
+		impl.logger.Error("onRemoteRequest: failed to deserialize remote request",
+			slog.Any("error", err))
 		return
 	}
 
 	// Keep track of whom we received this message from.
 	req.FromPeerID = s.Conn().RemotePeer()
-
-	log.Printf("onRemoteRequest: payload deserialized: %v\n", req)
 
 	//
 	// STEP 5
@@ -93,8 +90,6 @@ func (impl *simpleMessageProtocolImpl) onRemoteRequest(s network.Stream) {
 
 // remote Simple response handler
 func (impl *simpleMessageProtocolImpl) onRemoteResponse(s network.Stream) {
-	log.Println("onRemoteResponse: received...")
-
 	//
 	// STEP 1
 	//
@@ -103,7 +98,8 @@ func (impl *simpleMessageProtocolImpl) onRemoteResponse(s network.Stream) {
 	header, err := buf.ReadByte()
 	if err != nil {
 		s.Reset() // Important - don't forget!
-		log.Printf("onRemoteResponse: failed to read message header: %v\n", err)
+		impl.logger.Error("onRemoteResponse: failed to read message header",
+			slog.Any("error", err))
 		return
 	}
 
@@ -112,11 +108,13 @@ func (impl *simpleMessageProtocolImpl) onRemoteResponse(s network.Stream) {
 	//
 
 	payloadBytes := make([]byte, header)
+
 	n, err := io.ReadFull(buf, payloadBytes)
-	log.Printf("payload has %d bytes", n)
 	if err != nil {
 		s.Reset() // Important - don't forget!
-		log.Printf("onRemoteResponse: failed to read message payload: %v\n", err)
+		impl.logger.Error("onRemoteResponse: failed to read message payload",
+			slog.Any("payload_bytes_length", n),
+			slog.Any("error", err))
 		return
 	}
 
@@ -135,7 +133,8 @@ func (impl *simpleMessageProtocolImpl) onRemoteResponse(s network.Stream) {
 	resp, err := NewSimpleMessageResponseFromDeserialize(payloadBytes)
 	if err != nil {
 		s.Reset()
-		log.Printf("onRemoteResponse: failed to deserialize remote request: %v\n", err)
+		impl.logger.Error("onRemoteResponse: failed to deserialize remote request",
+			slog.Any("error", err))
 		return
 	}
 
@@ -151,8 +150,6 @@ func (impl *simpleMessageProtocolImpl) onRemoteResponse(s network.Stream) {
 
 // local sends to remote
 func (impl *simpleMessageProtocolImpl) SendRequest(peerID peer.ID, content []byte) (string, error) {
-	log.Printf("%s: Sending Simple to: %s....", impl.host.ID(), peerID)
-
 	// DEVELOPERS NOTE:
 	// It's OK if `content` is empty. Do not handle any defensive coding as
 	// there might be cases in which you want to send a request without any
@@ -177,7 +174,8 @@ func (impl *simpleMessageProtocolImpl) SendRequest(peerID peer.ID, content []byt
 
 	s, err := impl.host.NewStream(context.Background(), peerID, impl.protocolIDSimpleMessageRequest)
 	if err != nil {
-		log.Printf("SendRequest NewStream error: %v\n", err)
+		impl.logger.Error("SendRequest: newstream error",
+			slog.Any("error", err))
 		return "", err
 	}
 	defer s.Close()
@@ -188,7 +186,8 @@ func (impl *simpleMessageProtocolImpl) SendRequest(peerID peer.ID, content []byt
 
 	payloadBytes, err := req.Serialize()
 	if err != nil {
-		log.Printf("SendRequest Serialize error: %v\n", err)
+		impl.logger.Error("SendRequest: failed to Serialize",
+			slog.Any("error", err))
 		return "", err
 	}
 
@@ -200,7 +199,8 @@ func (impl *simpleMessageProtocolImpl) SendRequest(peerID peer.ID, content []byt
 	header := []byte{byte(len(payloadBytes))}
 	_, err = s.Write(header)
 	if err != nil {
-		log.Printf("SendRequest: failed to stream message header: %v", err)
+		impl.logger.Error("SendRequest: failed to stream message header",
+			slog.Any("error", err))
 		return "", err
 	}
 
@@ -211,7 +211,8 @@ func (impl *simpleMessageProtocolImpl) SendRequest(peerID peer.ID, content []byt
 
 	_, err = s.Write(payloadBytes)
 	if err != nil {
-		log.Printf("SendRequest: failed to stream message payload: %v", err)
+		impl.logger.Error("SendRequest: failed to stream message payload",
+			slog.Any("error", err))
 		return "", err
 	}
 
@@ -220,8 +221,6 @@ func (impl *simpleMessageProtocolImpl) SendRequest(peerID peer.ID, content []byt
 
 // local sends to remote
 func (impl *simpleMessageProtocolImpl) SendResponse(peerID peer.ID, content []byte) (string, error) {
-	log.Printf("%s: Sending Simple to: %s....", impl.host.ID(), peerID)
-
 	// DEVELOPERS NOTE:
 	// It's OK if `content` is empty. Do not handle any defensive coding as
 	// there might be cases in which you want to send a request without any
@@ -246,7 +245,8 @@ func (impl *simpleMessageProtocolImpl) SendResponse(peerID peer.ID, content []by
 
 	s, err := impl.host.NewStream(context.Background(), peerID, impl.protocolIDSimpleMessageResponse)
 	if err != nil {
-		log.Printf("SendResponse: to open new stream: %v", err)
+		impl.logger.Error("SendResponse: failed to open stream",
+			slog.Any("error", err))
 		return "", err
 	}
 	defer s.Close()
@@ -257,7 +257,8 @@ func (impl *simpleMessageProtocolImpl) SendResponse(peerID peer.ID, content []by
 
 	payloadBytes, err := resp.Serialize()
 	if err != nil {
-		log.Printf("SendResponse: failed to serialize: %v", err)
+		impl.logger.Error("SendResponse: failed to serialize",
+			slog.Any("error", err))
 		return "", err
 	}
 
@@ -269,7 +270,8 @@ func (impl *simpleMessageProtocolImpl) SendResponse(peerID peer.ID, content []by
 	header := []byte{byte(len(payloadBytes))}
 	_, err = s.Write(header)
 	if err != nil {
-		log.Printf("SendResponse: failed to stream message header: %v", err)
+		impl.logger.Error("SendResponse: failed to stream message header",
+			slog.Any("error", err))
 		return "", err
 	}
 
@@ -280,7 +282,8 @@ func (impl *simpleMessageProtocolImpl) SendResponse(peerID peer.ID, content []by
 
 	_, err = s.Write(payloadBytes)
 	if err != nil {
-		log.Printf("SendResponse: failed to stream message payload: %v", err)
+		impl.logger.Error("SendResponse: failed to stream message payload",
+			slog.Any("error", err))
 		return "", err
 	}
 
@@ -288,28 +291,28 @@ func (impl *simpleMessageProtocolImpl) SendResponse(peerID peer.ID, content []by
 }
 
 func (impl *simpleMessageProtocolImpl) WaitAndReceiveRequest(ctx context.Context) (*SimpleMessageRequest, error) {
-	log.Println("WaitForAnyRequests: starting...")
+	impl.logger.Debug("WaitForAnyRequests: starting...")
 	for {
 		select {
 		case req := <-impl.requestChan:
-			log.Println("WaitForAnyRequests: received request...")
+			impl.logger.Debug("WaitForAnyRequests: received request...")
 			return req, nil
 		case <-ctx.Done():
-			log.Println("WaitForAnyRequests: context done")
+			impl.logger.Debug("WaitForAnyRequests: context done")
 			return nil, ctx.Err()
 		}
 	}
 }
 
 func (impl *simpleMessageProtocolImpl) WaitAndReceiveResponse(ctx context.Context) (*SimpleMessageResponse, error) {
-	log.Println("WaitForAnyResponses: starting...")
+	impl.logger.Debug("WaitForAnyResponses: starting...")
 	for {
 		select {
 		case resp := <-impl.responseChan:
-			log.Println("WaitForAnyResponses: received response...")
+			impl.logger.Debug("WaitForAnyResponses: received response...")
 			return resp, nil
 		case <-ctx.Done():
-			log.Println("WaitForAnyResponses: context done")
+			impl.logger.Debug("WaitForAnyResponses: context done")
 			return nil, ctx.Err()
 		}
 	}
