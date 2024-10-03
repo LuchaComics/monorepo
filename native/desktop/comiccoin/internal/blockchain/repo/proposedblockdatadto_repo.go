@@ -123,6 +123,7 @@ func NewProposedBlockDataDTORepo(cfg *config.Config, logger *slog.Logger, libP2P
 
 				impl.logger.Debug("subscribed",
 					slog.Any("peer_id", p.ID),
+					slog.String("dto", "proposedblockdatadto"),
 					slog.String("topic", proposedBlockDataDTOTopicName))
 
 				// Return nil to indicate success (no errors occured).

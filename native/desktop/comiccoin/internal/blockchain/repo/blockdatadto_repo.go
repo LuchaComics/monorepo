@@ -2,8 +2,11 @@ package repo
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
+	"math/rand"
 	"sync"
+	"time"
 
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
@@ -11,12 +14,14 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
 	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p/simple"
 )
 
 type BlockDataDTORepo struct {
 	config        *config.Config
 	logger        *slog.Logger
 	libP2PNetwork p2p.LibP2PNetwork
+	smp           simple.SimpleMessageProtocol
 
 	rendezvousString string
 
@@ -70,11 +75,17 @@ func NewBlockDataDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork 
 	h.Network().Notify(&network.NotifyBundle{
 		DisconnectedF: func(_ network.Network, c network.Conn) {
 			peerID := c.RemotePeer()
-			impl.logger.Warn("peer disconnected", slog.Any("peer_id", peerID))
+			impl.logger.Warn("peer disconnected",
+				slog.Any("peer_id", peerID),
+				slog.String("dto", "blockdatadto"),
+			)
 			delete(impl.peers, peerID)
 
 		},
 	})
+
+	smp := simple.NewSimpleMessageProtocol(logger, h, "/blockdatadto/req/0.0.1", "/blockdatadto/resp/0.0.1")
+	impl.smp = smp
 
 	//
 	// STEP 5:
@@ -105,6 +116,7 @@ func NewBlockDataDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork 
 				impl.peers[p.ID] = &p
 
 				impl.logger.Debug("peer connected",
+					slog.String("dto", "blockdatadto"),
 					slog.Any("peer_id", p.ID))
 
 				// Return nil to indicate success (no errors occured).
@@ -116,28 +128,80 @@ func NewBlockDataDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork 
 	return impl
 }
 
-func (r *BlockDataDTORepo) UploadToNetwork(ctx context.Context, data *domain.BlockDataDTO) error {
+func (r *BlockDataDTORepo) randomPeerID() peer.ID {
+	// Seed the random number generator
+	rand.Seed(time.Now().UnixNano())
+
+	// Get a list of peer IDs
+	peerIDs := make([]peer.ID, 0, len(r.peers))
+	for id := range r.peers {
+		peerIDs = append(peerIDs, id)
+	}
+
+	// Select a random peer ID
+	if len(peerIDs) == 0 {
+		// Handle the case where there are no peers
+		return ""
+	}
+	return peerIDs[rand.Intn(len(peerIDs))]
+}
+
+func (impl *BlockDataDTORepo) SendRequestToRandomPeer(ctx context.Context, blockDataHash string) error {
+	randomPeerID := impl.randomPeerID()
+	if randomPeerID == "" {
+		return fmt.Errorf("no peers connected")
+	}
+
+	impl.logger.Debug("SendRequestToRandomPeer: running...")
+
+	// Note: Send empty request because we don't want anything.
+	_, err := impl.smp.SendRequest(randomPeerID, []byte(blockDataHash))
+	if err != nil {
+		return err
+	}
+
+	impl.logger.Debug("SendRequestToRandomPeer: done")
+
+	return nil
+}
+
+func (impl *BlockDataDTORepo) ReceiveRequestFromNetwork(ctx context.Context) (peer.ID, string, error) {
+	impl.logger.Debug("ReceiveRequestFromNetwork: running...")
+	req, err := impl.smp.WaitAndReceiveRequest(ctx)
+	if err != nil {
+		impl.logger.Error("failed receiving download request from network",
+			slog.Any("error", err))
+		return "", "", err
+	}
+	impl.logger.Debug("ReceiveRequestFromNetwork: done")
+	impl.logger.Debug("ReceiveRequestFromNetwork: results",
+		slog.Any("req", req))
+	return req.FromPeerID, string(req.Content), nil
+}
+
+func (impl *BlockDataDTORepo) SendResponseToPeer(ctx context.Context, peerID peer.ID, data domain.BlockDataDTO) error {
 	dataBytes, err := data.Serialize()
 	if err != nil {
-		r.logger.Error("failed to serialize data before sharing to kademlia dht",
+		impl.logger.Error("failed serializing",
+			slog.Any("error", err))
+		return nil
+	}
+	if _, err := impl.smp.SendResponse(peerID, dataBytes); err != nil {
+		impl.logger.Error("failed sending upload response from network",
 			slog.Any("error", err))
 		return err
 	}
-	return r.libP2PNetwork.PutDataToKademliaDHT(data.Hash, dataBytes)
-
+	return nil
 }
 
-func (r *BlockDataDTORepo) DownloadFromNetwork(ctx context.Context, blockDataHash string) (*domain.BlockDataDTO, error) {
-	dataBytes, err := r.libP2PNetwork.GetDataFromKademliaDHT(blockDataHash)
+func (impl *BlockDataDTORepo) ReceiveResponseFromNetwork(ctx context.Context) (*domain.BlockDataDTO, error) {
+	resp, err := impl.smp.WaitAndReceiveResponse(ctx)
 	if err != nil {
-		r.logger.Error("failed getting from kademlia dht",
-			slog.Any("error", err))
 		return nil, err
 	}
-	data, err := domain.NewBlockDataDTOFromDeserialize(dataBytes)
+
+	data, err := domain.NewBlockDataDTOFromDeserialize(resp.Content)
 	if err != nil {
-		r.logger.Error("failed to deserialize data from kademlia dht",
-			slog.Any("error", err))
 		return nil, err
 	}
 	return data, nil

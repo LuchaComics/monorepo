@@ -123,6 +123,7 @@ func NewMempoolTransactionDTORepo(cfg *config.Config, logger *slog.Logger, libP2
 
 				impl.logger.Debug("subscribed",
 					slog.Any("peer_id", p.ID),
+					slog.String("dto", "mempooltxdto"),
 					slog.String("topic", mempoolTransactionTopicName))
 
 				// Return nil to indicate success (no errors occured).

@@ -6,6 +6,8 @@ import (
 	"encoding/gob"
 	"fmt"
 	"log"
+
+	"github.com/libp2p/go-libp2p/core/peer"
 )
 
 // BlockDataDTO is the data-transfer object used by nodes to send back and forth
@@ -17,14 +19,10 @@ type BlockDataDTO struct {
 }
 
 type BlockDataDTORepository interface {
-	// Function will add this block data to the distributed / peer-to-peer
-	// network for all peers to discover this data and download remotely to
-	// their peer.
-	UploadToNetwork(ctx context.Context, data *BlockDataDTO) error
-
-	// Function will lookup this hash in the distributed / peer-to-peer
-	// network and return the block data.
-	DownloadFromNetwork(ctx context.Context, BlockDataHash string) (*BlockDataDTO, error)
+	SendRequestToRandomPeer(ctx context.Context, blockDataHash string) error
+	ReceiveRequestFromNetwork(ctx context.Context) (peer.ID, string, error)
+	SendResponseToPeer(ctx context.Context, peerID peer.ID, data BlockDataDTO) error
+	ReceiveResponseFromNetwork(ctx context.Context) (*BlockDataDTO, error)
 }
 
 func (b *BlockDataDTO) Serialize() ([]byte, error) {

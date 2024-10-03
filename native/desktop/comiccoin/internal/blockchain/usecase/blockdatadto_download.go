@@ -15,9 +15,11 @@ type DownloadFromNetworkBlockDataDTOUseCase struct {
 }
 
 func NewDownloadFromNetworkBlockDataDTOUseCase(config *config.Config, logger *slog.Logger, repo domain.BlockDataDTORepository) *DownloadFromNetworkBlockDataDTOUseCase {
-	return &DownloadFromNetworkBlockDataDTOUseCase{config, logger, repo}
+	// return &DownloadFromNetworkBlockDataDTOUseCase{config, logger, repo}
+	return nil
 }
 
 func (uc *DownloadFromNetworkBlockDataDTOUseCase) Execute(ctx context.Context, blockDataHash string) (*domain.BlockDataDTO, error) {
-	return uc.repo.DownloadFromNetwork(ctx, blockDataHash)
+	// return uc.repo.DownloadFromNetwork(ctx, blockDataHash)
+	return nil, nil
 }

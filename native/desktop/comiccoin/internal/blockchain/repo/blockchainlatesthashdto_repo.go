@@ -75,7 +75,10 @@ func NewBlockchainLastestHashDTORepo(cfg *config.Config, logger *slog.Logger, li
 	h.Network().Notify(&network.NotifyBundle{
 		DisconnectedF: func(_ network.Network, c network.Conn) {
 			peerID := c.RemotePeer()
-			impl.logger.Warn("peer disconnected", slog.Any("peer_id", peerID))
+			impl.logger.Warn("peer disconnected",
+				slog.Any("peer_id", peerID),
+				slog.String("dto", "lastblockdatahash"),
+			)
 			delete(impl.peers, peerID)
 
 		},
@@ -114,6 +117,7 @@ func NewBlockchainLastestHashDTORepo(cfg *config.Config, logger *slog.Logger, li
 				impl.peers[p.ID] = &p
 
 				impl.logger.Debug("peer connected",
+					slog.String("dto", "lastblockdatahash"),
 					slog.Any("peer_id", p.ID))
 
 				// Return nil to indicate success (no errors occured).
