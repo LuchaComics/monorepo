@@ -151,31 +151,22 @@ func (impl *BlockDataDTORepo) SendRequestToRandomPeer(ctx context.Context, block
 	if randomPeerID == "" {
 		return fmt.Errorf("no peers connected")
 	}
-
-	impl.logger.Debug("SendRequestToRandomPeer: running...")
-
 	// Note: Send empty request because we don't want anything.
 	_, err := impl.smp.SendRequest(randomPeerID, []byte(blockDataHash))
 	if err != nil {
 		return err
 	}
 
-	impl.logger.Debug("SendRequestToRandomPeer: done")
-
 	return nil
 }
 
 func (impl *BlockDataDTORepo) ReceiveRequestFromNetwork(ctx context.Context) (peer.ID, string, error) {
-	impl.logger.Debug("ReceiveRequestFromNetwork: running...")
 	req, err := impl.smp.WaitAndReceiveRequest(ctx)
 	if err != nil {
 		impl.logger.Error("failed receiving download request from network",
 			slog.Any("error", err))
 		return "", "", err
 	}
-	impl.logger.Debug("ReceiveRequestFromNetwork: done")
-	impl.logger.Debug("ReceiveRequestFromNetwork: results",
-		slog.Any("req", req))
 	return req.FromPeerID, string(req.Content), nil
 }
 

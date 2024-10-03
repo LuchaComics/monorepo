@@ -11,46 +11,100 @@ import (
 )
 
 type BlockDataDTOServerService struct {
-	config                             *config.Config
-	logger                             *slog.Logger
-	listAllBlockDataUseCase            *usecase.ListAllBlockDataUseCase
-	uploadToNetworkBlockDataDTOUseCase *usecase.UploadToNetworkBlockDataDTOUseCase
+	config                                *config.Config
+	logger                                *slog.Logger
+	blockDataDTOReceiveP2PRequesttUseCase *usecase.BlockDataDTOReceiveP2PRequesttUseCase
+	getBlockDataUseCase                   *usecase.GetBlockDataUseCase
+	blockDataDTOSendP2PResponsetUseCase   *usecase.BlockDataDTOSendP2PResponsetUseCase
 }
 
 func NewBlockDataDTOServerService(
 	cfg *config.Config,
 	logger *slog.Logger,
-	uc1 *usecase.ListAllBlockDataUseCase,
-	uc2 *usecase.UploadToNetworkBlockDataDTOUseCase,
+	uc1 *usecase.BlockDataDTOReceiveP2PRequesttUseCase,
+	uc2 *usecase.GetBlockDataUseCase,
+	uc3 *usecase.BlockDataDTOSendP2PResponsetUseCase,
 ) *BlockDataDTOServerService {
-	return &BlockDataDTOServerService{cfg, logger, uc1, uc2}
+	return &BlockDataDTOServerService{cfg, logger, uc1, uc2, uc3}
 }
 
 func (s *BlockDataDTOServerService) Execute(ctx context.Context) error {
-	s.logger.Debug("block data dto uploading to network...")
-	defer s.logger.Debug("block data dto uploaded to network")
-	blockDataList, err := s.listAllBlockDataUseCase.Execute()
+	s.logger.Debug("block data dto server running...")
+	defer s.logger.Debug("block data dto server ran")
+
+	//
+	// STEP 1:
+	// Wait to receive any request from the peer-to-peer network.
+	//
+
+	peerID, blockDataHash, err := s.blockDataDTOReceiveP2PRequesttUseCase.Execute(ctx)
 	if err != nil {
-		s.logger.Error("failed listing all block data",
+		s.logger.Error("failed receiving request",
 			slog.Any("error", err))
 		return err
 	}
-	if blockDataList == nil {
-		err := fmt.Errorf("block data results: %v", "does not exist")
+	if peerID == "" {
+		err := fmt.Errorf("failed receiving request: %v", "peer id d.n.e.")
+		s.logger.Error("failed receiving request",
+			slog.Any("error", err))
 		return err
 	}
-	for _, blockData := range blockDataList {
-		blockDataDTO := &domain.BlockDataDTO{
-			Hash:   blockData.Hash,
-			Header: blockData.Header,
-			Trans:  blockData.Trans,
-		}
-		if err := s.uploadToNetworkBlockDataDTOUseCase.Execute(ctx, blockDataDTO); err != nil {
-			s.logger.Error("failed uploading all block data",
-				slog.Any("error", err))
-			return err
-		}
+	if blockDataHash == "" {
+		err := fmt.Errorf("failed receiving request: %v", "hash empty")
+		s.logger.Error("failed receiving request",
+			slog.Any("error", err))
+		return err
 	}
+
+	s.logger.Debug("received download request",
+		slog.Any("peerID", peerID),
+		slog.Any("blockDataHash", blockDataHash),
+	)
+
+	//
+	// STEP 2:
+	// Lookup the hash we have locally.
+	//
+
+	blockData, err := s.getBlockDataUseCase.Execute(blockDataHash)
+	if err != nil {
+		s.logger.Error("failed getting latest local hash",
+			slog.Any("error", err))
+		return err
+	}
+	if blockData == nil {
+		s.logger.Warn("blockchain has no data to server, exiting...")
+		return nil
+	}
+
+	//
+	// STEP 3
+	// Send to the peer the local data we have.
+	//
+
+	blockDataDTO := domain.BlockDataDTO{
+		Hash:   blockData.Hash,
+		Header: blockData.Header,
+		Trans:  blockData.Trans,
+	}
+
+	s.logger.Debug("sending download response...",
+		slog.Any("peerID", peerID),
+		slog.Any("blockDataDTO", blockDataDTO),
+		slog.Any("blockDataHash", blockDataHash),
+	)
+
+	if err := s.blockDataDTOSendP2PResponsetUseCase.Execute(ctx, peerID, blockDataDTO); err != nil {
+		s.logger.Error("failed sending response",
+			slog.Any("peer_id", peerID),
+			slog.Any("error", err))
+		return err
+	}
+
+	s.logger.Debug("sent download response successfully",
+		slog.Any("peerID", peerID),
+		slog.Any("blockDataHash", blockDataHash),
+	)
 
 	return nil
 }

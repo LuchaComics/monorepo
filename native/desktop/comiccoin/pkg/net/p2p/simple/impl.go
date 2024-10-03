@@ -39,6 +39,7 @@ func (impl *simpleMessageProtocolImpl) onRemoteRequest(s network.Stream) {
 	if err != nil {
 		s.Reset() // Important - don't forget!
 		impl.logger.Error("onRemoteRequest: failed to read message header",
+			slog.Any("peer_id", s.Conn().RemotePeer()),
 			slog.Any("error", err))
 		return
 	}
@@ -54,6 +55,7 @@ func (impl *simpleMessageProtocolImpl) onRemoteRequest(s network.Stream) {
 		s.Reset() // Important - don't forget!
 		impl.logger.Error("onRemoteRequest: failed to read message payload",
 			slog.Any("payload_bytes_length", n),
+			slog.Any("peer_id", s.Conn().RemotePeer()),
 			slog.Any("error", err))
 		return
 	}
@@ -74,6 +76,8 @@ func (impl *simpleMessageProtocolImpl) onRemoteRequest(s network.Stream) {
 	if err != nil {
 		s.Reset()
 		impl.logger.Error("onRemoteRequest: failed to deserialize remote request",
+			slog.Any("payload", string(payloadBytes)),
+			slog.Any("peer_id", s.Conn().RemotePeer()),
 			slog.Any("error", err))
 		return
 	}
@@ -99,6 +103,7 @@ func (impl *simpleMessageProtocolImpl) onRemoteResponse(s network.Stream) {
 	if err != nil {
 		s.Reset() // Important - don't forget!
 		impl.logger.Error("onRemoteResponse: failed to read message header",
+			slog.Any("peer_id", s.Conn().RemotePeer()),
 			slog.Any("error", err))
 		return
 	}
@@ -114,6 +119,7 @@ func (impl *simpleMessageProtocolImpl) onRemoteResponse(s network.Stream) {
 		s.Reset() // Important - don't forget!
 		impl.logger.Error("onRemoteResponse: failed to read message payload",
 			slog.Any("payload_bytes_length", n),
+			slog.Any("peer_id", s.Conn().RemotePeer()),
 			slog.Any("error", err))
 		return
 	}
@@ -134,6 +140,8 @@ func (impl *simpleMessageProtocolImpl) onRemoteResponse(s network.Stream) {
 	if err != nil {
 		s.Reset()
 		impl.logger.Error("onRemoteResponse: failed to deserialize remote request",
+			slog.Any("payload", string(payloadBytes)),
+			slog.Any("peer_id", s.Conn().RemotePeer()),
 			slog.Any("error", err))
 		return
 	}

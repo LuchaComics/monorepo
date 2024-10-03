@@ -144,17 +144,29 @@ func doBlockchainSync() {
 	// ------------ Use-case ------------
 
 	// Block Data
-	listAllBlockDataUseCase := usecase.NewListAllBlockDataUseCase(
+	getBlockDataUseCase := usecase.NewGetBlockDataUseCase(
+		cfg,
+		logger,
+		blockDataRepo)
+	createBlockDataUseCase := usecase.NewCreateBlockDataUseCase(
 		cfg,
 		logger,
 		blockDataRepo)
 
 	// Block Data DTO
-	uploadToNetworkBlockDataDTOUseCase := usecase.NewUploadToNetworkBlockDataDTOUseCase(
+	blockDataDTOReceiveP2PResponseUseCase := usecase.NewBlockDataDTOReceiveP2PResponsetUseCase(
 		cfg,
 		logger,
 		blockDataDTORepo)
-	downloadFromNetworkBlockDataDTOUseCase := usecase.NewDownloadFromNetworkBlockDataDTOUseCase(
+	blockDataDTOReceiveP2PRequesttUseCase := usecase.NewBlockDataDTOReceiveP2PRequesttUseCase(
+		cfg,
+		logger,
+		blockDataDTORepo)
+	blockDataDTOSendP2PResponsetUseCase := usecase.NewBlockDataDTOSendP2PResponsetUseCase(
+		cfg,
+		logger,
+		blockDataDTORepo)
+	blockDataDTOSendP2PRequestUseCase := usecase.NewBlockDataDTOSendP2PRequestUseCase(
 		cfg,
 		logger,
 		blockDataDTORepo)
@@ -203,13 +215,18 @@ func doBlockchainSync() {
 		uc4,
 		getBlockchainLastestHashUseCase,
 		setBlockchainLastestHashUseCase,
-		downloadFromNetworkBlockDataDTOUseCase,
+		blockDataDTOSendP2PRequestUseCase,
+		blockDataDTOReceiveP2PResponseUseCase,
+		createBlockDataUseCase,
+		getBlockDataUseCase,
 	)
+
 	uploadServerService := service.NewBlockDataDTOServerService(
 		cfg,
 		logger,
-		listAllBlockDataUseCase,
-		uploadToNetworkBlockDataDTOUseCase,
+		blockDataDTOReceiveP2PRequesttUseCase,
+		getBlockDataUseCase,
+		blockDataDTOSendP2PResponsetUseCase,
 	)
 
 	// ------------ Interface ------------
@@ -251,20 +268,18 @@ func doBlockchainSync() {
 	}(tm6)
 
 	go func(server *taskmnghandler.BlockDataDTOServerTaskHandler) {
-		//TODO: UNCOMMENT BELOW WHEN READY
-
-		// ctx := context.Background()
-		// for {
-		// 	if err := server.Execute(ctx); err != nil {
-		// 		logger.Error("blockdatabto upload server error",
-		// 			slog.Any("error", err))
-		// 		time.Sleep(10 * time.Second)
-		// 		continue
-		// 	}
-		// 	time.Sleep(5 * time.Second)
-		// 	logger.Debug("shared local blockchain with network")
-		// 	break
-		// }
+		ctx := context.Background()
+		for {
+			if err := server.Execute(ctx); err != nil {
+				logger.Error("blockdatabto upload server error",
+					slog.Any("error", err))
+				time.Sleep(10 * time.Second)
+				continue
+			}
+			time.Sleep(5 * time.Second)
+			logger.Debug("shared local blockchain with network")
+			break
+		}
 	}(tm7)
 
 	<-done
