@@ -291,28 +291,22 @@ func (impl *simpleMessageProtocolImpl) SendResponse(peerID peer.ID, content []by
 }
 
 func (impl *simpleMessageProtocolImpl) WaitAndReceiveRequest(ctx context.Context) (*SimpleMessageRequest, error) {
-	impl.logger.Debug("WaitForAnyRequests: starting...")
 	for {
 		select {
 		case req := <-impl.requestChan:
-			impl.logger.Debug("WaitForAnyRequests: received request...")
 			return req, nil
 		case <-ctx.Done():
-			impl.logger.Debug("WaitForAnyRequests: context done")
 			return nil, ctx.Err()
 		}
 	}
 }
 
 func (impl *simpleMessageProtocolImpl) WaitAndReceiveResponse(ctx context.Context) (*SimpleMessageResponse, error) {
-	impl.logger.Debug("WaitForAnyResponses: starting...")
 	for {
 		select {
 		case resp := <-impl.responseChan:
-			impl.logger.Debug("WaitForAnyResponses: received response...")
 			return resp, nil
 		case <-ctx.Done():
-			impl.logger.Debug("WaitForAnyResponses: context done")
 			return nil, ctx.Err()
 		}
 	}
