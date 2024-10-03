@@ -17,8 +17,8 @@ import (
 func NewSimpleMessageProtocol(host host.Host, protocolIDSimpleMessageRequest protocol.ID, protocolIDSimpleMessageResponse protocol.ID) SimpleMessageProtocol {
 	impl := &simpleMessageProtocolImpl{
 		host:                            host,
-		requests:                        make(map[peer.ID][]*SimpleMessageRequest),
-		responses:                       make(map[peer.ID][]*SimpleMessageResponse),
+		requestChan:                     make(chan *SimpleMessageRequest),
+		responseChan:                    make(chan *SimpleMessageResponse),
 		protocolIDSimpleMessageRequest:  protocolIDSimpleMessageRequest,
 		protocolIDSimpleMessageResponse: protocolIDSimpleMessageResponse,
 	}
@@ -71,6 +71,7 @@ func (impl *simpleMessageProtocolImpl) onRemoteRequest(s network.Stream) {
 	// STEP 4
 	//
 
+	// Begin the deserialization
 	req, err := NewSimpleMessageRequestFromDeserialize(payloadBytes)
 	if err != nil {
 		s.Reset()
@@ -78,21 +79,16 @@ func (impl *simpleMessageProtocolImpl) onRemoteRequest(s network.Stream) {
 		return
 	}
 
+	// Keep track of whom we received this message from.
+	req.FromPeerID = s.Conn().RemotePeer()
+
 	log.Printf("onRemoteRequest: payload deserialized: %v\n", req)
 
 	//
 	// STEP 5
 	//
 
-	log.Println("onRemoteRequest: locking request buffer...")
-	impl.mu.Lock()
-
-	arr := impl.requests[s.Conn().RemotePeer()]
-	arr = append(arr, req)
-	impl.requests[s.Conn().RemotePeer()] = arr
-
-	impl.mu.Unlock()
-	log.Println("onRemoteRequest: unlocked request buffer")
+	impl.requestChan <- req
 }
 
 // remote Simple response handler
@@ -135,6 +131,7 @@ func (impl *simpleMessageProtocolImpl) onRemoteResponse(s network.Stream) {
 	// STEP 4
 	//
 
+	// Begin the deserialization
 	resp, err := NewSimpleMessageResponseFromDeserialize(payloadBytes)
 	if err != nil {
 		s.Reset()
@@ -142,16 +139,14 @@ func (impl *simpleMessageProtocolImpl) onRemoteResponse(s network.Stream) {
 		return
 	}
 
+	// Keep track of whom we received this message from.
+	resp.FromPeerID = s.Conn().RemotePeer()
+
 	//
 	// STEP 5
 	//
 
-	impl.mu.Lock()
-	arr := impl.responses[s.Conn().RemotePeer()]
-	arr = append(arr, resp)
-	impl.responses[s.Conn().RemotePeer()] = arr
-	impl.mu.Unlock()
-	log.Println("onRemoteResponse: received:", resp)
+	impl.responseChan <- resp
 }
 
 // local sends to remote
@@ -292,82 +287,30 @@ func (impl *simpleMessageProtocolImpl) SendResponse(peerID peer.ID, content []by
 	return resp.ID, err
 }
 
-func (impl *simpleMessageProtocolImpl) WaitForAnyRequests(ctx context.Context) (map[peer.ID][]*SimpleMessageRequest, error) {
+func (impl *simpleMessageProtocolImpl) WaitAndReceiveRequest(ctx context.Context) (*SimpleMessageRequest, error) {
 	log.Println("WaitForAnyRequests: starting...")
 	for {
-		log.Println("WaitForAnyRequests: locking request buffer...")
-		impl.mu.Lock()
-
-		if len(impl.requests) > 0 {
-			reqCopy := copyMapDeepRequests(impl.requests)
-			impl.requests = make(map[peer.ID][]*SimpleMessageRequest)
-
-			impl.mu.Unlock()
-			log.Println("WaitForAnyRequests: unlocked request buffer")
-
-			log.Println("WaitForAnyRequests: done")
-			return reqCopy, nil
+		select {
+		case req := <-impl.requestChan:
+			log.Println("WaitForAnyRequests: received request...")
+			return req, nil
+		case <-ctx.Done():
+			log.Println("WaitForAnyRequests: context done")
+			return nil, ctx.Err()
 		}
-		impl.mu.Unlock()
-		log.Println("WaitForAnyRequests: unlocked request buffer")
-		log.Println("WaitForAnyRequests: Waiting 1 second")
-		time.Sleep(1 * time.Second)
 	}
 }
 
-func (impl *simpleMessageProtocolImpl) WaitForAnyResponses(ctx context.Context) (map[peer.ID][]*SimpleMessageResponse, error) {
+func (impl *simpleMessageProtocolImpl) WaitAndReceiveResponse(ctx context.Context) (*SimpleMessageResponse, error) {
+	log.Println("WaitForAnyResponses: starting...")
 	for {
-		impl.mu.Lock()
-		defer impl.mu.Unlock()
-		if len(impl.responses) > 0 {
-			reqCopy := copyMapDeepResponses(impl.responses)
-			impl.responses = make(map[peer.ID][]*SimpleMessageResponse)
-			return reqCopy, nil
+		select {
+		case resp := <-impl.responseChan:
+			log.Println("WaitForAnyResponses: received response...")
+			return resp, nil
+		case <-ctx.Done():
+			log.Println("WaitForAnyResponses: context done")
+			return nil, ctx.Err()
 		}
-		time.Sleep(1 * time.Second)
 	}
 }
-
-//	func (impl *simpleMessageProtocolImpl) WaitForResponse() map[peer.ID][]*SimpleMessageResponse {
-//		for {
-//			impl.mu.Lock()
-//			defer impl.mu.Unlock()
-//		}
-//
-//		return impl.responses
-//	}
-//
-//	func (impl *simpleMessageProtocolImpl) ReceiveRequests() map[peer.ID][]*SimpleMessageRequest {
-//		impl.mu.Lock()
-//		defer impl.mu.Unlock()
-//
-//		return impl.requests
-//	}
-//
-//	func (impl *simpleMessageProtocolImpl) WaitForResponse(responseID string) (*SimpleMessageResponse, error) {
-//		for {
-//			reponses := impl.GetResponses()
-//			resp, ok := reponses[responseID]
-//			if !ok {
-//				time.Sleep(5 * time.Second)
-//				continue
-//			}
-//			if resp != nil {
-//				return resp, nil
-//			}
-//		}
-//	}
-//
-//	func (impl *simpleMessageProtocolImpl) WaitForRequest(requestID string) (*SimpleMessageRequest, error) {
-//		for {
-//			requests := impl.GetRequests()
-//			req, ok := requests[requestID]
-//			if !ok {
-//				time.Sleep(5 * time.Second)
-//				continue
-//			}
-//			if req != nil {
-//				return req, nil
-//			}
-//		}
-//	}

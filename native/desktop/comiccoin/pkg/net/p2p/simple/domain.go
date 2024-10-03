@@ -4,16 +4,24 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+
+	"github.com/libp2p/go-libp2p/core/peer"
 )
 
 type SimpleMessageRequest struct {
 	ID      string
 	Content []byte
+
+	// Value set by the receiving node, not the sender in the payload!
+	FromPeerID peer.ID
 }
 
 type SimpleMessageResponse struct {
 	ID      string
 	Content []byte
+
+	// Value set by the receiving node, not the sender in the payload!
+	FromPeerID peer.ID
 }
 
 func (b *SimpleMessageRequest) Serialize() ([]byte, error) {

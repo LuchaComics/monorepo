@@ -138,18 +138,26 @@ func doBlockchainSync() {
 	go func() {
 		ctx := context.Background()
 		for {
-			peerIDs, err := lbdhDTORepo.ReceiveRequestsFromNetwork(ctx)
+			//
+			//
+			//
+
+			peerID, err := lbdhDTORepo.ReceiveRequestFromNetwork(ctx)
 			if err != nil {
 				log.Fatal(err)
 			}
-			for _, peerID := range peerIDs {
-				lastBlockDataHash := domain.LastBlockDataHashDTO("X-X-X")
-				if err := lbdhDTORepo.SendResponseToPeer(ctx, peerID, lastBlockDataHash); err != nil {
-					// log.Fatal(err)
-					continue
-				}
-				logger.Info("request server sent to response server")
+
+			//
+			//
+			//
+
+			lastBlockDataHash := domain.LastBlockDataHashDTO("X-X-X")
+			if err := lbdhDTORepo.SendResponseToPeer(ctx, peerID, lastBlockDataHash); err != nil {
+				// log.Fatal(err)
+				continue
 			}
+			logger.Info("request server sent to response server")
+
 			logger.Info("wait request server")
 			time.Sleep(10 * time.Second)
 		}

@@ -15,10 +15,10 @@ type LastBlockDataHashDTORepository interface {
 	// Function will block your current execution and wait until it receives
 	// any request from the peer-to-peer network. Function will return the
 	// `peerID` that sent the request and the hash value.
-	ReceiveRequestsFromNetwork(ctx context.Context) ([]peer.ID, error)
+	ReceiveRequestFromNetwork(ctx context.Context) (peer.ID, error)
 
 	// Function will send sync data to the peer whom requested block data.
 	SendResponseToPeer(ctx context.Context, peerID peer.ID, data LastBlockDataHashDTO) error
 
-	ReceiveResponseFromNetwork(ctx context.Context) (map[peer.ID][]LastBlockDataHashDTO, error)
+	ReceiveResponseFromNetwork(ctx context.Context) (LastBlockDataHashDTO, error)
 }

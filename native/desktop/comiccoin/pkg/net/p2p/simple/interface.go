@@ -14,9 +14,8 @@ type simpleMessageProtocolImpl struct {
 	host host.Host // local host
 	mu   sync.Mutex
 
-	requests map[peer.ID][]*SimpleMessageRequest
-
-	responses map[peer.ID][]*SimpleMessageResponse
+	requestChan  chan *SimpleMessageRequest
+	responseChan chan *SimpleMessageResponse
 
 	protocolIDSimpleMessageRequest  protocol.ID
 	protocolIDSimpleMessageResponse protocol.ID
@@ -26,12 +25,6 @@ type SimpleMessageProtocol interface {
 	SendRequest(peerID peer.ID, content []byte) (string, error)
 	SendResponse(peerID peer.ID, content []byte) (string, error)
 
-	WaitForAnyResponses(ctx context.Context) (map[peer.ID][]*SimpleMessageResponse, error)
-	WaitForAnyRequests(ctx context.Context) (map[peer.ID][]*SimpleMessageRequest, error)
-
-	// ReceiveResponses() []*SimpleMessageResponse
-	// ReceiveRequests() []*SimpleMessageRequest
-	//
-	// WaitForRequest(requestID string) (*SimpleMessageRequest, error)
-	// WaitForResponse(responseID string) (*SimpleMessageResponse, error)
+	WaitAndReceiveRequest(ctx context.Context) (*SimpleMessageRequest, error)
+	WaitAndReceiveResponse(ctx context.Context) (*SimpleMessageResponse, error)
 }

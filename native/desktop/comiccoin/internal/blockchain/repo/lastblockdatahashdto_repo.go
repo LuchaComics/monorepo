@@ -152,18 +152,17 @@ func getPeerIDs(m map[peer.ID][]*simple.SimpleMessageRequest) []peer.ID {
 	return peerIDs
 }
 
-func (impl *LastBlockDataHashDTORepo) ReceiveRequestsFromNetwork(ctx context.Context) ([]peer.ID, error) {
+func (impl *LastBlockDataHashDTORepo) ReceiveRequestFromNetwork(ctx context.Context) (peer.ID, error) {
 
-	impl.logger.Debug("ReceiveRequestsFromNetwork: running...")
-	result, err := impl.smp.WaitForAnyRequests(ctx)
+	impl.logger.Debug("ReceiveRequestFromNetwork: running...")
+	req, err := impl.smp.WaitAndReceiveRequest(ctx)
 	if err != nil {
-		return nil, err
+		impl.logger.Error("failed receiving request from network", slog.Any("error", err))
+		return "", err
 	}
-	impl.logger.Debug("ReceiveRequestsFromNetwork: done")
-
-	peerIDs := getPeerIDs(result)
-	impl.logger.Debug("ReceiveRequestsFromNetwork: results", slog.Any("results", peerIDs))
-	return peerIDs, nil
+	impl.logger.Debug("ReceiveRequestFromNetwork: done")
+	impl.logger.Debug("ReceiveRequestFromNetwork: results", slog.Any("req", req))
+	return req.FromPeerID, nil
 }
 
 func (impl *LastBlockDataHashDTORepo) SendResponseToPeer(ctx context.Context, peerID peer.ID, data domain.LastBlockDataHashDTO) error {
@@ -188,14 +187,14 @@ func getPeerIDAndContents(m map[peer.ID][]*simple.SimpleMessageResponse) map[pee
 	return result
 }
 
-func (impl *LastBlockDataHashDTORepo) ReceiveResponseFromNetwork(ctx context.Context) (map[peer.ID][]domain.LastBlockDataHashDTO, error) {
-	result, err := impl.smp.WaitForAnyResponses(ctx)
+func (impl *LastBlockDataHashDTORepo) ReceiveResponseFromNetwork(ctx context.Context) (domain.LastBlockDataHashDTO, error) {
+	resp, err := impl.smp.WaitAndReceiveResponse(ctx)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	data := getPeerIDAndContents(result)
-	return data, nil
+	hash := domain.LastBlockDataHashDTO(resp.Content)
+	return hash, nil
 }
 
 func (r *LastBlockDataHashDTORepo) randomPeerID() peer.ID {
