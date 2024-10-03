@@ -82,7 +82,20 @@ func (s *BlockchainSyncClientService) Execute(ctx context.Context) error {
 			slog.Any("network_hash", receivedHash),
 			slog.Any("local_hash", localHash))
 
-		//TODO: IMPLEMENT THE CODE HERE...
+		//TODO: Save latest hash here...
+
+		//TODO: IMPLEMENT THE ALGORITHM...
+		// Algorithm:
+		// 1. Fetch from network the blockdata for `network_hash`
+		// 2. Save blockdata to local database
+		// 3. Lookup `previous_hash` in local database and check if we have it.
+		// 4. If record d.n.e. locally.
+		// 4a. Download blockdata from network.
+		// 4b. Save to local database.
+		// 4c. Lookup `previous_hash` in local database and check if we have it.
+		// 4d. If record d.n.e. locally then start again at step (4a)
+		// 4e. If record exists then finish
+		// 5. Else finish
 
 		return nil
 	} else {
