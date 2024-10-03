@@ -124,11 +124,11 @@ func doBlockchainSync() {
 
 	// ------------ Repo ------------
 
-	latestBlockDataHashRepo := repo.NewLastBlockDataHashRepo(
+	latestBlockDataHashRepo := repo.NewBlockchainLastestHashRepo(
 		cfg,
 		logger,
 		db)
-	lbdhDTORepo := repo.NewLastBlockDataHashDTORepo(
+	lbdhDTORepo := repo.NewBlockchainLastestHashDTORepo(
 		cfg,
 		logger,
 		libP2PNetwork)
@@ -136,29 +136,29 @@ func doBlockchainSync() {
 	// ------------ Use-case ------------
 
 	// Latest BlockData Hash
-	getLastBlockDataHashUseCase := usecase.NewGetLastBlockDataHashUseCase(
+	getBlockchainLastestHashUseCase := usecase.NewGetBlockchainLastestHashUseCase(
 		cfg,
 		logger,
 		latestBlockDataHashRepo)
-	setLastBlockDataHashUseCase := usecase.NewSetLastBlockDataHashUseCase(
+	setBlockchainLastestHashUseCase := usecase.NewSetBlockchainLastestHashUseCase(
 		cfg,
 		logger,
 		latestBlockDataHashRepo)
 
 	// Blockchain Synchronization
-	uc1 := usecase.NewLastBlockDataHashDTOSendP2PRequestUseCase(
+	uc1 := usecase.NewBlockchainLastestHashDTOSendP2PRequestUseCase(
 		cfg,
 		logger,
 		lbdhDTORepo)
-	uc2 := usecase.NewLastBlockDataHashDTOReceiveP2PRequestUseCase(
+	uc2 := usecase.NewBlockchainLastestHashDTOReceiveP2PRequestUseCase(
 		cfg,
 		logger,
 		lbdhDTORepo)
-	uc3 := usecase.NewLastBlockDataHashDTOSendP2PResponseUseCase(
+	uc3 := usecase.NewBlockchainLastestHashDTOSendP2PResponseUseCase(
 		cfg,
 		logger,
 		lbdhDTORepo)
-	uc4 := usecase.NewLastBlockDataHashDTOReceiveP2PResponseUseCase(
+	uc4 := usecase.NewBlockchainLastestHashDTOReceiveP2PResponseUseCase(
 		cfg,
 		logger,
 		lbdhDTORepo)
@@ -169,7 +169,7 @@ func doBlockchainSync() {
 		cfg,
 		logger,
 		uc2,
-		getLastBlockDataHashUseCase,
+		getBlockchainLastestHashUseCase,
 		uc3,
 	)
 	syncClientService := service.NewBlockchainSyncClientService(
@@ -177,8 +177,8 @@ func doBlockchainSync() {
 		logger,
 		uc1,
 		uc4,
-		getLastBlockDataHashUseCase,
-		setLastBlockDataHashUseCase,
+		getBlockchainLastestHashUseCase,
+		setBlockchainLastestHashUseCase,
 	)
 
 	// ------------ Interface ------------

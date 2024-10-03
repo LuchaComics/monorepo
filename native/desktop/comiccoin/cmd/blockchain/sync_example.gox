@@ -127,7 +127,7 @@ func doBlockchainSync() {
 
 	_ = smp
 
-	lbdhDTORepo := repo.NewLastBlockDataHashDTORepo(
+	lbdhDTORepo := repo.NewBlockchainLastestHashDTORepo(
 		cfg,
 		logger,
 		libP2PNetwork)
@@ -151,7 +151,7 @@ func doBlockchainSync() {
 			//
 			//
 
-			lastBlockDataHash := domain.LastBlockDataHashDTO("X-X-X")
+			lastBlockDataHash := domain.BlockchainLastestHashDTO("X-X-X")
 			if err := lbdhDTORepo.SendResponseToPeer(ctx, peerID, lastBlockDataHash); err != nil {
 				// log.Fatal(err)
 				continue

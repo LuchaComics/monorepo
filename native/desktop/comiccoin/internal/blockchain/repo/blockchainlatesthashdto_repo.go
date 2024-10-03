@@ -17,7 +17,7 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p/simple"
 )
 
-type LastBlockDataHashDTORepo struct {
+type BlockchainLastestHashDTORepo struct {
 	config        *config.Config
 	logger        *slog.Logger
 	libP2PNetwork p2p.LibP2PNetwork
@@ -31,7 +31,7 @@ type LastBlockDataHashDTORepo struct {
 	peers map[peer.ID]*peer.AddrInfo
 }
 
-func NewLastBlockDataHashDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork p2p.LibP2PNetwork) domain.LastBlockDataHashDTORepository {
+func NewBlockchainLastestHashDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork p2p.LibP2PNetwork) domain.BlockchainLastestHashDTORepository {
 	rendezvousString := "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain/lastblockdatahashdto"
 
 	//
@@ -39,7 +39,7 @@ func NewLastBlockDataHashDTORepo(cfg *config.Config, logger *slog.Logger, libP2P
 	// Initialize our instance
 	//
 
-	impl := &LastBlockDataHashDTORepo{
+	impl := &BlockchainLastestHashDTORepo{
 		config:           cfg,
 		logger:           logger,
 		libP2PNetwork:    libP2PNetwork,
@@ -125,7 +125,7 @@ func NewLastBlockDataHashDTORepo(cfg *config.Config, logger *slog.Logger, libP2P
 	return impl
 }
 
-func (impl *LastBlockDataHashDTORepo) SendRequestToRandomPeer(ctx context.Context) error {
+func (impl *BlockchainLastestHashDTORepo) SendRequestToRandomPeer(ctx context.Context) error {
 	randomPeerID := impl.randomPeerID()
 	if randomPeerID == "" {
 		return fmt.Errorf("no peers connected")
@@ -144,7 +144,7 @@ func (impl *LastBlockDataHashDTORepo) SendRequestToRandomPeer(ctx context.Contex
 	return nil
 }
 
-func (impl *LastBlockDataHashDTORepo) ReceiveRequestFromNetwork(ctx context.Context) (peer.ID, error) {
+func (impl *BlockchainLastestHashDTORepo) ReceiveRequestFromNetwork(ctx context.Context) (peer.ID, error) {
 
 	impl.logger.Debug("ReceiveRequestFromNetwork: running...")
 	req, err := impl.smp.WaitAndReceiveRequest(ctx)
@@ -157,7 +157,7 @@ func (impl *LastBlockDataHashDTORepo) ReceiveRequestFromNetwork(ctx context.Cont
 	return req.FromPeerID, nil
 }
 
-func (impl *LastBlockDataHashDTORepo) SendResponseToPeer(ctx context.Context, peerID peer.ID, data domain.LastBlockDataHashDTO) error {
+func (impl *BlockchainLastestHashDTORepo) SendResponseToPeer(ctx context.Context, peerID peer.ID, data domain.BlockchainLastestHashDTO) error {
 	dataBytes := []byte(data)
 	_, err := impl.smp.SendResponse(peerID, dataBytes)
 	if err != nil {
@@ -167,17 +167,17 @@ func (impl *LastBlockDataHashDTORepo) SendResponseToPeer(ctx context.Context, pe
 
 }
 
-func (impl *LastBlockDataHashDTORepo) ReceiveResponseFromNetwork(ctx context.Context) (domain.LastBlockDataHashDTO, error) {
+func (impl *BlockchainLastestHashDTORepo) ReceiveResponseFromNetwork(ctx context.Context) (domain.BlockchainLastestHashDTO, error) {
 	resp, err := impl.smp.WaitAndReceiveResponse(ctx)
 	if err != nil {
 		return "", err
 	}
 
-	hash := domain.LastBlockDataHashDTO(resp.Content)
+	hash := domain.BlockchainLastestHashDTO(resp.Content)
 	return hash, nil
 }
 
-func (r *LastBlockDataHashDTORepo) randomPeerID() peer.ID {
+func (r *BlockchainLastestHashDTORepo) randomPeerID() peer.ID {
 	// Seed the random number generator
 	rand.Seed(time.Now().UnixNano())
 

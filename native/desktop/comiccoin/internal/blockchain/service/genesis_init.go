@@ -16,19 +16,19 @@ import (
 )
 
 type CreateGenesisBlockDataService struct {
-	config                      *config.Config
-	logger                      *slog.Logger
-	coinbaseAccountKey          *keystore.Key
-	setLastBlockDataHashUseCase *usecase.SetLastBlockDataHashUseCase
-	createBlockDataUseCase      *usecase.CreateBlockDataUseCase
-	proofOfWorkUseCase          *usecase.ProofOfWorkUseCase
+	config                          *config.Config
+	logger                          *slog.Logger
+	coinbaseAccountKey              *keystore.Key
+	setBlockchainLastestHashUseCase *usecase.SetBlockchainLastestHashUseCase
+	createBlockDataUseCase          *usecase.CreateBlockDataUseCase
+	proofOfWorkUseCase              *usecase.ProofOfWorkUseCase
 }
 
 func NewCreateGenesisBlockDataService(
 	config *config.Config,
 	logger *slog.Logger,
 	coinbaseAccKey *keystore.Key,
-	uc1 *usecase.SetLastBlockDataHashUseCase,
+	uc1 *usecase.SetBlockchainLastestHashUseCase,
 	uc2 *usecase.CreateBlockDataUseCase,
 	uc3 *usecase.ProofOfWorkUseCase,
 ) *CreateGenesisBlockDataService {
@@ -126,7 +126,7 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	s.logger.Debug("genesis block created",
 		slog.String("hash", genesisBlockData.Hash))
 
-	if err := s.setLastBlockDataHashUseCase.Execute(genesisBlockData.Hash); err != nil {
+	if err := s.setBlockchainLastestHashUseCase.Execute(genesisBlockData.Hash); err != nil {
 		return fmt.Errorf("Failed to save last hash of genesis block data: %v", err)
 	}
 

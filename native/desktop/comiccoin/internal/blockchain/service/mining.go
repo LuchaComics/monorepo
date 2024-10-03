@@ -18,8 +18,8 @@ type MiningService struct {
 	logger                                  *slog.Logger
 	kmutex                                  kmutexutil.KMutexProvider
 	listAllPendingBlockTransactionUseCase   *usecase.ListAllPendingBlockTransactionUseCase
-	getLastBlockDataHashUseCase             *usecase.GetLastBlockDataHashUseCase
-	setLastBlockDataHashUseCase             *usecase.SetLastBlockDataHashUseCase
+	getBlockchainLastestHashUseCase         *usecase.GetBlockchainLastestHashUseCase
+	setBlockchainLastestHashUseCase         *usecase.SetBlockchainLastestHashUseCase
 	getBlockDataUseCase                     *usecase.GetBlockDataUseCase
 	createBlockDataUseCase                  *usecase.CreateBlockDataUseCase
 	proofOfWorkUseCase                      *usecase.ProofOfWorkUseCase
@@ -32,8 +32,8 @@ func NewMiningService(
 	logger *slog.Logger,
 	kmutex kmutexutil.KMutexProvider,
 	uc1 *usecase.ListAllPendingBlockTransactionUseCase,
-	uc2 *usecase.GetLastBlockDataHashUseCase,
-	uc3 *usecase.SetLastBlockDataHashUseCase,
+	uc2 *usecase.GetBlockchainLastestHashUseCase,
+	uc3 *usecase.SetBlockchainLastestHashUseCase,
 	uc4 *usecase.GetBlockDataUseCase,
 	uc5 *usecase.CreateBlockDataUseCase,
 	uc6 *usecase.ProofOfWorkUseCase,
@@ -80,7 +80,7 @@ func (s *MiningService) Execute(ctx context.Context) error {
 	// Lookup the most recent block (data) in our blockchain
 	//
 
-	prevBlockDataHash, err := s.getLastBlockDataHashUseCase.Execute()
+	prevBlockDataHash, err := s.getBlockchainLastestHashUseCase.Execute()
 	if err != nil {
 		s.logger.Error("Failed to get last hash in database",
 			slog.Any("error", err))

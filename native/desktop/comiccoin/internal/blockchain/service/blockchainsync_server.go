@@ -13,17 +13,17 @@ import (
 type BlockchainSyncServerService struct {
 	config                                       *config.Config
 	logger                                       *slog.Logger
-	lastBlockDataHashDTOReceiveP2PRequestUseCase *usecase.LastBlockDataHashDTOReceiveP2PRequestUseCase
-	getLastBlockDataHashUseCase                  *usecase.GetLastBlockDataHashUseCase
-	lastBlockDataHashDTOSendP2PResponseUseCase   *usecase.LastBlockDataHashDTOSendP2PResponseUseCase
+	lastBlockDataHashDTOReceiveP2PRequestUseCase *usecase.BlockchainLastestHashDTOReceiveP2PRequestUseCase
+	getBlockchainLastestHashUseCase              *usecase.GetBlockchainLastestHashUseCase
+	lastBlockDataHashDTOSendP2PResponseUseCase   *usecase.BlockchainLastestHashDTOSendP2PResponseUseCase
 }
 
 func NewBlockchainSyncServerService(
 	cfg *config.Config,
 	logger *slog.Logger,
-	uc1 *usecase.LastBlockDataHashDTOReceiveP2PRequestUseCase,
-	uc2 *usecase.GetLastBlockDataHashUseCase,
-	uc3 *usecase.LastBlockDataHashDTOSendP2PResponseUseCase,
+	uc1 *usecase.BlockchainLastestHashDTOReceiveP2PRequestUseCase,
+	uc2 *usecase.GetBlockchainLastestHashUseCase,
+	uc3 *usecase.BlockchainLastestHashDTOSendP2PResponseUseCase,
 ) *BlockchainSyncServerService {
 	return &BlockchainSyncServerService{cfg, logger, uc1, uc2, uc3}
 }
@@ -55,7 +55,7 @@ func (s *BlockchainSyncServerService) Execute(ctx context.Context) error {
 	// Lookup the hash we have locally.
 	//
 
-	hash, err := s.getLastBlockDataHashUseCase.Execute()
+	hash, err := s.getBlockchainLastestHashUseCase.Execute()
 	if err != nil {
 		s.logger.Error("failed getting latest local hash",
 			slog.Any("error", err))
@@ -73,7 +73,7 @@ func (s *BlockchainSyncServerService) Execute(ctx context.Context) error {
 	// Send to the peer the hash we have locally.
 	//
 
-	lastHash := domain.LastBlockDataHashDTO(hash)
+	lastHash := domain.BlockchainLastestHashDTO(hash)
 
 	if err := s.lastBlockDataHashDTOSendP2PResponseUseCase.Execute(ctx, peerID, lastHash); err != nil {
 		s.logger.Error("failed sending response",

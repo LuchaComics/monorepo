@@ -6,9 +6,9 @@ import (
 	"github.com/libp2p/go-libp2p/core/peer"
 )
 
-type LastBlockDataHashDTO string
+type BlockchainLastestHashDTO string
 
-type LastBlockDataHashDTORepository interface {
+type BlockchainLastestHashDTORepository interface {
 	// Function will randomly pick a connected peer and send them a request.
 	SendRequestToRandomPeer(ctx context.Context) error
 
@@ -18,7 +18,7 @@ type LastBlockDataHashDTORepository interface {
 	ReceiveRequestFromNetwork(ctx context.Context) (peer.ID, error)
 
 	// Function will send sync data to the peer whom requested block data.
-	SendResponseToPeer(ctx context.Context, peerID peer.ID, data LastBlockDataHashDTO) error
+	SendResponseToPeer(ctx context.Context, peerID peer.ID, data BlockchainLastestHashDTO) error
 
-	ReceiveResponseFromNetwork(ctx context.Context) (LastBlockDataHashDTO, error)
+	ReceiveResponseFromNetwork(ctx context.Context) (BlockchainLastestHashDTO, error)
 }

@@ -8,17 +8,17 @@ import (
 	dbase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/db"
 )
 
-type LastBlockDataHashRepo struct {
+type BlockchainLastestHashRepo struct {
 	config   *config.Config
 	logger   *slog.Logger
 	dbClient dbase.Database
 }
 
-func NewLastBlockDataHashRepo(cfg *config.Config, logger *slog.Logger, db dbase.Database) *LastBlockDataHashRepo {
-	return &LastBlockDataHashRepo{cfg, logger, db}
+func NewBlockchainLastestHashRepo(cfg *config.Config, logger *slog.Logger, db dbase.Database) *BlockchainLastestHashRepo {
+	return &BlockchainLastestHashRepo{cfg, logger, db}
 }
 
-func (r *LastBlockDataHashRepo) Set(hash string) error {
+func (r *BlockchainLastestHashRepo) Set(hash string) error {
 	hashBytes := []byte(hash)
 	if err := r.dbClient.Set("blockdata", "lasthash", hashBytes); err != nil {
 		r.logger.Error("failed setting last block data hash into database",
@@ -28,7 +28,7 @@ func (r *LastBlockDataHashRepo) Set(hash string) error {
 	return nil
 }
 
-func (r *LastBlockDataHashRepo) Get() (string, error) {
+func (r *BlockchainLastestHashRepo) Get() (string, error) {
 	bin, err := r.dbClient.Get("blockdata", "lasthash")
 	if err != nil {
 		r.logger.Error("failed getting last block data hash from database",

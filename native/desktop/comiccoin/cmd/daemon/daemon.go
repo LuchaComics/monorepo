@@ -149,7 +149,7 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				db)
-			latestBlockDataHashRepo := repo.NewLastBlockDataHashRepo(
+			latestBlockDataHashRepo := repo.NewBlockchainLastestHashRepo(
 				cfg,
 				logger,
 				db)
@@ -220,11 +220,11 @@ func DaemonCmd() *cobra.Command {
 				pendingBlockTxRepo)
 
 			// Latest BlockData Hash
-			getLastBlockDataHashUseCase := usecase.NewGetLastBlockDataHashUseCase(
+			getBlockchainLastestHashUseCase := usecase.NewGetBlockchainLastestHashUseCase(
 				cfg,
 				logger,
 				latestBlockDataHashRepo)
-			setLastBlockDataHashUseCase := usecase.NewSetLastBlockDataHashUseCase(
+			setBlockchainLastestHashUseCase := usecase.NewSetBlockchainLastestHashUseCase(
 				cfg,
 				logger,
 				latestBlockDataHashRepo)
@@ -302,8 +302,8 @@ func DaemonCmd() *cobra.Command {
 				logger,
 				kmutex,
 				listAllPendingBlockTxUseCase,
-				getLastBlockDataHashUseCase,
-				setLastBlockDataHashUseCase,
+				getBlockchainLastestHashUseCase,
+				setBlockchainLastestHashUseCase,
 				getBlockDataUseCase,
 				createBlockDataUseCase,
 				proofOfWorkUseCase,
@@ -316,10 +316,10 @@ func DaemonCmd() *cobra.Command {
 				logger,
 				kmutex,
 				receiveProposedBlockDataDTOUseCase,
-				getLastBlockDataHashUseCase,
+				getBlockchainLastestHashUseCase,
 				getBlockDataUseCase,
 				createBlockDataUseCase,
-				setLastBlockDataHashUseCase,
+				setBlockchainLastestHashUseCase,
 			)
 
 			// ------------ Interface ------------

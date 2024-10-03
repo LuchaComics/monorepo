@@ -11,19 +11,19 @@ import (
 type BlockchainSyncClientService struct {
 	config                                        *config.Config
 	logger                                        *slog.Logger
-	lastBlockDataHashDTOSendP2PRequestUseCase     *usecase.LastBlockDataHashDTOSendP2PRequestUseCase
-	lastBlockDataHashDTOReceiveP2PResponseUseCase *usecase.LastBlockDataHashDTOReceiveP2PResponseUseCase
-	getLastBlockDataHashUseCase                   *usecase.GetLastBlockDataHashUseCase
-	setLastBlockDataHashUseCase                   *usecase.SetLastBlockDataHashUseCase
+	lastBlockDataHashDTOSendP2PRequestUseCase     *usecase.BlockchainLastestHashDTOSendP2PRequestUseCase
+	lastBlockDataHashDTOReceiveP2PResponseUseCase *usecase.BlockchainLastestHashDTOReceiveP2PResponseUseCase
+	getBlockchainLastestHashUseCase               *usecase.GetBlockchainLastestHashUseCase
+	setBlockchainLastestHashUseCase               *usecase.SetBlockchainLastestHashUseCase
 }
 
 func NewBlockchainSyncClientService(
 	cfg *config.Config,
 	logger *slog.Logger,
-	uc1 *usecase.LastBlockDataHashDTOSendP2PRequestUseCase,
-	uc2 *usecase.LastBlockDataHashDTOReceiveP2PResponseUseCase,
-	uc3 *usecase.GetLastBlockDataHashUseCase,
-	uc4 *usecase.SetLastBlockDataHashUseCase,
+	uc1 *usecase.BlockchainLastestHashDTOSendP2PRequestUseCase,
+	uc2 *usecase.BlockchainLastestHashDTOReceiveP2PResponseUseCase,
+	uc3 *usecase.GetBlockchainLastestHashUseCase,
+	uc4 *usecase.SetBlockchainLastestHashUseCase,
 ) *BlockchainSyncClientService {
 	return &BlockchainSyncClientService{cfg, logger, uc1, uc2, uc3, uc4}
 }
@@ -72,7 +72,7 @@ func (s *BlockchainSyncClientService) Execute(ctx context.Context) error {
 
 	// Note: Do not handle any errors, if we have any errors then continue and
 	// fetch the latest hash from network anyway.
-	localHash, _ := s.getLastBlockDataHashUseCase.Execute()
+	localHash, _ := s.getBlockchainLastestHashUseCase.Execute()
 
 	s.logger.Debug("blockchain sync client looked up local hash",
 		slog.Any("local_hash", localHash))

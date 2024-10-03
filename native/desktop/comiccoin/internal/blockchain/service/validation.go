@@ -18,10 +18,10 @@ type ValidationService struct {
 	logger                             *slog.Logger
 	kmutex                             kmutexutil.KMutexProvider
 	receiveProposedBlockDataDTOUseCase *usecase.ReceiveProposedBlockDataDTOUseCase
-	getLastBlockDataHashUseCase        *usecase.GetLastBlockDataHashUseCase
+	getBlockchainLastestHashUseCase    *usecase.GetBlockchainLastestHashUseCase
 	getBlockDataUseCase                *usecase.GetBlockDataUseCase
 	createBlockDataUseCase             *usecase.CreateBlockDataUseCase
-	setLastBlockDataHashUseCase        *usecase.SetLastBlockDataHashUseCase
+	setBlockchainLastestHashUseCase    *usecase.SetBlockchainLastestHashUseCase
 }
 
 func NewValidationService(
@@ -29,10 +29,10 @@ func NewValidationService(
 	logger *slog.Logger,
 	kmutex kmutexutil.KMutexProvider,
 	uc1 *usecase.ReceiveProposedBlockDataDTOUseCase,
-	uc2 *usecase.GetLastBlockDataHashUseCase,
+	uc2 *usecase.GetBlockchainLastestHashUseCase,
 	uc3 *usecase.GetBlockDataUseCase,
 	uc4 *usecase.CreateBlockDataUseCase,
-	uc5 *usecase.SetLastBlockDataHashUseCase,
+	uc5 *usecase.SetBlockchainLastestHashUseCase,
 ) *ValidationService {
 	return &ValidationService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5}
 }
@@ -75,7 +75,7 @@ func (s *ValidationService) Execute(ctx context.Context) error {
 	// Fetch the previous block we have.
 	//
 
-	prevBlockDataHash, err := s.getLastBlockDataHashUseCase.Execute()
+	prevBlockDataHash, err := s.getBlockchainLastestHashUseCase.Execute()
 	if err != nil {
 		s.logger.Error("Failed to get last hash in database",
 			slog.Any("error", err))

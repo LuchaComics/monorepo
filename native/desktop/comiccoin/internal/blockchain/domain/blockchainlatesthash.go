@@ -1,6 +1,6 @@
 package domain
 
-type LastBlockDataHashRepository interface {
+type BlockchainLastestHashRepository interface {
 	Get() (string, error)
 	Set(hash string) error
 }

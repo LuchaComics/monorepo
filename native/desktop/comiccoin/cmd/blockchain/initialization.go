@@ -66,7 +66,7 @@ func doRunInitBlockchain() {
 		cfg,
 		logger,
 		db)
-	latestBlockDataHashRepo := repo.NewLastBlockDataHashRepo(
+	latestBlockDataHashRepo := repo.NewBlockchainLastestHashRepo(
 		cfg,
 		logger,
 		db)
@@ -85,7 +85,7 @@ func doRunInitBlockchain() {
 		cfg,
 		logger,
 		accountRepo)
-	setLastBlockDataHashUseCase := usecase.NewSetLastBlockDataHashUseCase(
+	setBlockchainLastestHashUseCase := usecase.NewSetBlockchainLastestHashUseCase(
 		cfg,
 		logger,
 		latestBlockDataHashRepo)
@@ -122,7 +122,7 @@ func doRunInitBlockchain() {
 		cfg,
 		logger,
 		coinbaseAccountKey,
-		setLastBlockDataHashUseCase,
+		setBlockchainLastestHashUseCase,
 		createBlockDataUseCase,
 		proofOfWorkUseCase,
 	)
