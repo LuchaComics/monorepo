@@ -18,66 +18,80 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 )
 
-// Provider provides interface for abstracting P2P netowrking.
+// Provider provides interface for abstracting P2P networking.
 type LibP2PNetwork interface {
-	// Returns your peer's host.
+	// Returns the host node of the P2P network.
 	GetHost() host.Host
 
-	// Return the pub-sub handler for this peer.
+	// Returns the pub-sub handler for this peer.
 	GetPubSubSingletonInstance() *pubsub.PubSub
 
+	// Returns whether the peer is in host mode or not.
 	IsHostMode() bool
 
+	// Advertise the peer's presence using a rendezvous string.
 	AdvertiseWithRendezvousString(ctx context.Context, h host.Host, rendezvousString string)
 
+	// Discover peers at a rendezvous string and connect to them.
 	DiscoverPeersAtRendezvousString(ctx context.Context, h host.Host, rendezvousString string, peerConnectedFunc func(peer.AddrInfo) error)
 
+	// Put data into the Kademlia DHT.
 	PutDataToKademliaDHT(key string, bytes []byte) error
 
+	// Get data from the Kademlia DHT.
 	GetDataFromKademliaDHT(key string) ([]byte, error)
 
+	// Remove data from the Kademlia DHT.
 	RemoveDataFromKademliaDHT(key string) error
 
+	// Close the P2P network connection.
 	Close()
 }
 
 type peerProviderImpl struct {
-	cfg    *config.Config
+	// The configuration for the P2P network.
+	cfg *config.Config
+
+	// The logger for the P2P network.
 	logger *slog.Logger
 
+	// The private key and public key for the peer's identity.
 	identityPrivateKey crypto.PrivKey
 	identityPublicKey  crypto.PubKey
 
-	// mu field is used to protect access to the subs and closed fields using a mutex.
+	// A mutex to protect access to the subs and closed fields.
 	mu sync.Mutex
 
-	host             host.Host
-	isHostMode       bool
-	kademliaDHT      *dht.IpfsDHT
+	// The host node of the P2P network.
+	host host.Host
+
+	// Whether the peer is in host mode or not.
+	isHostMode bool
+
+	// The Kademlia DHT instance.
+	kademliaDHT *dht.IpfsDHT
+
+	// The routing discovery instance.
 	routingDiscovery *routing.RoutingDiscovery
 
-	// The list of connected peers.
+	// A map of connected peers, keyed by rendezvous string.
 	peers map[string]map[peer.ID]*peer.AddrInfo
 
 	// --- Publish-Subscriber variables below... ---
 
-	// The quit field is a channel that is closed when the `message queue broker` is closed, allowing goroutines that are blocked on the channel to unblock and exit.
-	quit chan struct{}
-
-	// The closed field is a flag that indicates whether the `message queue broker` has been closed.
+	// A flag to indicate whether the message queue broker has been closed.
 	closed bool
 
-	topics       map[string]*pubsub.Topic
+	// A map of pub-sub topics, keyed by topic name.
+	topics map[string]*pubsub.Topic
+
+	// The gossip pub-sub instance.
 	gossipPubSub *pubsub.PubSub
 }
 
-// NewLibP2PNetwork constructor that returns the default P2P connected instance.
+// NewLibP2PNetwork creates a new instance of the P2P network.
 func NewLibP2PNetwork(cfg *config.Config, logger *slog.Logger, priv crypto.PrivKey, pub crypto.PubKey) LibP2PNetwork {
-	ctx := context.Background()
-
-	// Begin our function by initializing the defaults for our peer-to-peer (p2p)
-	// node and then the rest of this function pertains to setting up a p2p
-	// network to utilize in our app.
+	// Create a new instance of the peer provider.
 	impl := &peerProviderImpl{
 		cfg:                cfg,
 		logger:             logger,
@@ -86,54 +100,43 @@ func NewLibP2PNetwork(cfg *config.Config, logger *slog.Logger, priv crypto.PrivK
 		peers:              make(map[string]map[peer.ID]*peer.AddrInfo, 0),
 	}
 
-	// Run the code which will setup our peer-to-peer node in either `host mode`
-	// or `dial mode`.
+	// Create a new host node with a predictable identifier.
 	h, err := impl.newHostWithPredictableIdentifier()
 	if err != nil {
 		log.Fatalf("failed to load host: %v", err)
 	}
 	impl.host = h
 
-	// Start a DHT, for use in peer discovery. We can't just make a new DHT
-	// client because we want each peer to maintain its own local copy of the
-	// DHT, so that the bootstrapping node of the DHT can go down without
-	// inhibiting future peer discovery.
-	//
-	// Source: https://github.com/libp2p/go-libp2p/blob/master/examples/chat-with-rendezvous/chat.go#L112
-	kademliaDHT := impl.newKademliaDHT(ctx)
+	// Create a new Kademlia DHT instance.
+	kademliaDHT := impl.newKademliaDHT(context.Background())
 	impl.kademliaDHT = kademliaDHT
 
+	// Create a new routing discovery instance.
 	routingDiscovery := drouting.NewRoutingDiscovery(impl.kademliaDHT)
 	impl.routingDiscovery = routingDiscovery
 
-	// Load up the gossip pub-sub
-	ps, err := pubsub.NewGossipSub(ctx, h)
+	// Create a new gossip pub-sub instance.
+	ps, err := pubsub.NewGossipSub(context.Background(), h)
 	if err != nil {
 		log.Fatalf("failed setting new gossip sub: %v", err)
 	}
 	impl.gossipPubSub = ps
 
-	//Remove disconnected peer
+	// Set up a notification handler for disconnected peers.
 	impl.host.Network().Notify(&network.NotifyBundle{
 		DisconnectedF: func(_ network.Network, c network.Conn) {
+			// Remove the disconnected peer from the list of connected peers.
 			peerID := c.RemotePeer()
 			impl.logger.Warn("peer disconnected", slog.Any("peer_id", peerID))
 			for _, rendezvousPeers := range impl.peers {
 				_, ok := rendezvousPeers[peerID]
 				if ok {
-					// STEP 1:
-					// Fetch our record.
-					peer := rendezvousPeers[peerID]
+					// Remove the peer from the host node's peerstore.
+					h.Network().ClosePeer(peerID)
+					h.Peerstore().RemovePeer(peerID)
+					impl.kademliaDHT.RoutingTable().RemovePeer(peerID)
 
-					// STEP 2:
-					// Remove our peer from our libp2p networking
-					// Special thanks via https://discuss.libp2p.io/t/disconnecting-removing-peers-form-the-dht-and-peerstore/1932/5
-					h.Network().ClosePeer(peer.ID)
-					h.Peerstore().RemovePeer(peer.ID)
-					impl.kademliaDHT.RoutingTable().RemovePeer(peer.ID)
-
-					// STEP 2:
-					// Remove the peer from our library
+					// Remove the peer from the list of connected peers.
 					delete(rendezvousPeers, peerID)
 					impl.logger.Warn("deleted peer",
 						slog.Any("rendezvousPeers", rendezvousPeers),
@@ -142,25 +145,43 @@ func NewLibP2PNetwork(cfg *config.Config, logger *slog.Logger, priv crypto.PrivK
 					break
 				}
 			}
-			//
 		},
 	})
 
 	return impl
 }
 
+// GetHost returns the host node of the P2P network.
 func (p *peerProviderImpl) GetHost() host.Host {
 	return p.host
 }
 
+// GetPubSubSingletonInstance returns the pub-sub handler for this peer.
 func (p *peerProviderImpl) GetPubSubSingletonInstance() *pubsub.PubSub {
 	return p.gossipPubSub
 }
 
+// IsHostMode returns whether the peer is in host mode or not.
 func (p *peerProviderImpl) IsHostMode() bool {
 	return p.isHostMode
 }
 
+// Close closes the P2P network connection.
 func (impl *peerProviderImpl) Close() {
+	// // Close the gossip pub-sub instance.
+	// impl.gossipPubSub.Close()
 
+	// Close the Kademlia DHT instance.
+	impl.kademliaDHT.Close()
+
+	// Close the host node.
+	impl.host.Close()
+
+	// Set the closed flag to true.
+	impl.mu.Lock()
+	impl.closed = true
+	impl.mu.Unlock()
+
+	// Log a message to indicate that the P2P network connection has been closed.
+	impl.logger.Info("P2P network connection closed")
 }

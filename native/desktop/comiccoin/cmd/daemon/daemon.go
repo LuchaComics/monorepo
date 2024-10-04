@@ -100,6 +100,7 @@ func DaemonCmd() *cobra.Command {
 			privateKey, _ := ik.GetPrivateKey()
 			publicKey, _ := ik.GetPublicKey()
 			libP2PNetwork := p2p.NewLibP2PNetwork(cfg, logger, privateKey, publicKey)
+			defer libP2PNetwork.Close()
 			h := libP2PNetwork.GetHost()
 
 			// Build host multiaddress

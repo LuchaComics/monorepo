@@ -36,9 +36,13 @@ func (impl *simpleProtocolImpl) onRemoteRequest(s network.Stream) {
 	//
 
 	buf := bufio.NewReader(s)
+
+	// Read the length of the payload from the buffer.
+	// This is a 32-bit integer that represents the number of bytes in the payload.
 	var lengthBuffer [4]byte
 	_, err := io.ReadFull(buf, lengthBuffer[:])
 	if err != nil {
+		// If there is an error reading the length, reset the stream and log the error.
 		s.Reset() // Important - don't forget!
 		impl.logger.Error("onRemoteResponse: failed to read message header",
 			slog.Any("peer_id", s.Conn().RemotePeer()),
@@ -46,6 +50,7 @@ func (impl *simpleProtocolImpl) onRemoteRequest(s network.Stream) {
 		return
 	}
 
+	// Convert the length buffer to an integer.
 	payloadLength := int(binary.LittleEndian.Uint32(lengthBuffer[:]))
 
 	//
@@ -96,9 +101,12 @@ func (impl *simpleProtocolImpl) onRemoteResponse(s network.Stream) {
 
 	buf := bufio.NewReader(s)
 
+	// Read the length of the payload from the buffer.
+	// This is a 32-bit integer that represents the number of bytes in the payload.
 	var lengthBuffer [4]byte
 	_, err := io.ReadFull(buf, lengthBuffer[:])
 	if err != nil {
+		// If there is an error reading the length, reset the stream and log the error.
 		s.Reset() // Important - don't forget!
 		impl.logger.Error("onRemoteResponse: failed to read message header",
 			slog.Any("peer_id", s.Conn().RemotePeer()),
@@ -106,6 +114,7 @@ func (impl *simpleProtocolImpl) onRemoteResponse(s network.Stream) {
 		return
 	}
 
+	// Convert the length buffer to an integer.
 	payloadLength := int(binary.LittleEndian.Uint32(lengthBuffer[:]))
 
 	//
@@ -174,6 +183,8 @@ func (impl *simpleProtocolImpl) SendRequest(peerID peer.ID, content []byte) erro
 	// First stream the length of the message to the peer
 	//
 
+	// Read the length of the payload from the buffer.
+	// This is a 32-bit integer that represents the number of bytes in the payload.
 	var lengthBuffer [4]byte
 	binary.LittleEndian.PutUint32(lengthBuffer[:], uint32(len(content)))
 	_, err = s.Write(lengthBuffer[:])
@@ -225,6 +236,8 @@ func (impl *simpleProtocolImpl) SendResponse(peerID peer.ID, content []byte) err
 	// First stream the length of the message to the peer
 	//
 
+	// Read the length of the payload from the buffer.
+	// This is a 32-bit integer that represents the number of bytes in the payload.
 	var lengthBuffer [4]byte
 	binary.LittleEndian.PutUint32(lengthBuffer[:], uint32(len(content)))
 	_, err = s.Write(lengthBuffer[:])
