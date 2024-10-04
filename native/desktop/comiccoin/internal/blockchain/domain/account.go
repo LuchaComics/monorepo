@@ -7,18 +7,27 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
-// Account struct represents a user's wallet, which contains a private key and a public key.
-// The private key is used to sign transactions, while the public key acts as the user's address.
-// Note that the keys are stored encrypted at rest and require the user's password to decrypt.
+// Account struct represents an entity in our blockchain whom has transfered
+// between another account some amount of coins or non-fungible tokens.
+//
+// When you create a wallet it will still not exist on the blockchain, only
+// when you use this wallet to receive or send coins to another wallet will
+// it become logged on the blockchain.
+//
+// When an account exists on the blockchain, that means every node in the peer-
+// -to-peer network will have this account record in their local storage. This
+// is important because every-time a coin is mined, the miner takes a hash of
+// the entire accounts database to verify the values in the account are
+// consistent across all the peer-to-peer nodes in the distributed network;
+// therefore, preventing fraud from occuring.
 type Account struct {
-	// Unique identifier for the account.
-	ID string `json:"id"`
+	// The public address of the account.
+	Address *common.Address `json:"address"`
+
+	Nonce uint64 `json:"nonce"`
 
 	// The balance of the account in coins.
 	Balance uint64 `json:"balance"`
-
-	// The public address of the account.
-	Address *common.Address `json:"address"`
 }
 
 // AccountRepository interface defines the methods for interacting with the account repository.
@@ -27,14 +36,14 @@ type AccountRepository interface {
 	// Upsert inserts or updates an account in the repository.
 	Upsert(acc *Account) error
 
-	// GetByID retrieves an account by its ID.
-	GetByID(id string) (*Account, error)
+	// GetByAddress retrieves an account by its ID.
+	GetByAddress(addr *common.Address) (*Account, error)
 
 	// ListAll retrieves all accounts in the repository.
 	ListAll() ([]*Account, error)
 
 	// DeleteByID deletes an account by its ID.
-	DeleteByID(id string) error
+	DeleteByAddress(addr *common.Address) error
 
 	// HashState returns a hash based on the contents of the accounts and
 	// their balances. This is added to each block and checked by peers.

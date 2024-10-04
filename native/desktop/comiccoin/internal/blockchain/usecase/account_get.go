@@ -6,6 +6,7 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 type GetAccountUseCase struct {
@@ -18,14 +19,14 @@ func NewGetAccountUseCase(config *config.Config, logger *slog.Logger, repo domai
 	return &GetAccountUseCase{config, logger, repo}
 }
 
-func (uc *GetAccountUseCase) Execute(id string) (*domain.Account, error) {
+func (uc *GetAccountUseCase) Execute(walletAddress *common.Address) (*domain.Account, error) {
 	//
 	// STEP 1: Validation.
 	//
 
 	e := make(map[string]string)
-	if id == "" {
-		e["id"] = "missing value"
+	if walletAddress == nil {
+		e["wallet_address"] = "missing value"
 	}
 	if len(e) != 0 {
 		uc.logger.Warn("Failed getting account",
@@ -37,5 +38,5 @@ func (uc *GetAccountUseCase) Execute(id string) (*domain.Account, error) {
 	// STEP 2: Insert into database.
 	//
 
-	return uc.repo.GetByID(id)
+	return uc.repo.GetByAddress(walletAddress)
 }

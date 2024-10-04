@@ -5,7 +5,7 @@ import "github.com/spf13/cobra"
 // HTTP endpoints
 const (
 	accountsURL      = "/v1/api/accounts"
-	accountDetailURL = "/v1/api/account/${ACCOUNT_ID}"
+	accountDetailURL = "/v1/api/account/${ACCOUNT_ADDRESS}"
 )
 
 func accountCmd() *cobra.Command {

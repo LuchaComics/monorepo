@@ -4,6 +4,9 @@ import (
 	"context"
 	"log"
 
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/spf13/cobra"
+
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config/constants"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo"
@@ -11,7 +14,6 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
 	dbase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/db/leveldb"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/logger"
-	"github.com/spf13/cobra"
 )
 
 func InitCmd() *cobra.Command {
@@ -24,8 +26,8 @@ func InitCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&flagDataDir, "datadir", "./data", "Absolute path to your node's data dir where the DB will be/is stored")
-	cmd.Flags().StringVar(&flagAccountID, "coinbase-account-id", "", "The account id of the coinbase wallet")
-	cmd.MarkFlagRequired("coinbase-account-id")
+	cmd.Flags().StringVar(&flagAccountAddress, "coinbase-account-address", "", "The account address of the coinbase wallet")
+	cmd.MarkFlagRequired("coinbase-account-address")
 	cmd.Flags().StringVar(&flagPassword, "coinbase-password", "", "The password to decrypt the cointbase's account wallet")
 	cmd.MarkFlagRequired("coinbase-password")
 
@@ -108,7 +110,9 @@ func doRunInitBlockchain() {
 	// Get our coinbase account.
 	//
 
-	coinbaseAccountKey, err := getKeyService.Execute(flagAccountID, flagPassword)
+	accountAddress := common.HexToAddress(flagAccountAddress)
+
+	coinbaseAccountKey, err := getKeyService.Execute(&accountAddress, flagPassword)
 	if err != nil {
 		log.Fatalf("failed getting account wallet key: %v", err)
 	}

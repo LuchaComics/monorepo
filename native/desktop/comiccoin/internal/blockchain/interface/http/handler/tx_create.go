@@ -29,7 +29,7 @@ func NewCreateTransactionHTTPHandler(
 
 type CreateTransactionRequestIDO struct {
 	// Name of the account
-	SenderAccountID string `json:"sender_account_id"`
+	SenderAccountAddress string `json:"sender_account_address"`
 
 	SenderAccountPassword string `json:"sender_account_password"`
 
@@ -56,10 +56,11 @@ func (h *CreateTransactionHTTPHandler) Execute(w http.ResponseWriter, r *http.Re
 	}
 
 	toAddr := common.HexToAddress(req.RecipientAddress)
+	senderAddr := common.HexToAddress(req.SenderAccountPassword)
 
 	serviceExecErr := h.service.Execute(
 		ctx,
-		req.SenderAccountID,
+		&senderAddr,
 		req.SenderAccountPassword,
 		&toAddr,
 		req.Value,

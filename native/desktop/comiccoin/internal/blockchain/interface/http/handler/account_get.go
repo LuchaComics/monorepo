@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/service"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
@@ -25,14 +27,17 @@ func NewGetAccountHTTPHandler(
 }
 
 type AccountGetResponseIDO struct {
-	ID            string `json:"id"`
 	Address string `json:"address"`
+	Balance uint64 `json:"balance"`
+	Nonce   uint64 `json:"nonce"`
 }
 
-func (h *GetAccountHTTPHandler) Execute(w http.ResponseWriter, r *http.Request, accountID string) {
+func (h *GetAccountHTTPHandler) Execute(w http.ResponseWriter, r *http.Request, accountAddressStr string) {
 	// ctx := r.Context()
 
-	account, serviceErr := h.getAccountService.Execute(accountID)
+	accountAddress := common.HexToAddress(accountAddressStr)
+
+	account, serviceErr := h.getAccountService.Execute(&accountAddress)
 	if serviceErr != nil {
 		httperror.ResponseError(w, serviceErr)
 		return
@@ -40,8 +45,9 @@ func (h *GetAccountHTTPHandler) Execute(w http.ResponseWriter, r *http.Request, 
 
 	// Conver to our HTTP response and send back to the user.
 	responsePayload := &AccountGetResponseIDO{
-		ID:            account.ID,
 		Address: account.Address.String(),
+		Balance: account.Balance,
+		Nonce:   account.Nonce,
 	}
 
 	w.WriteHeader(http.StatusOK)

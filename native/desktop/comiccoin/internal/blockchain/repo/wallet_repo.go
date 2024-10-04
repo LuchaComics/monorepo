@@ -6,6 +6,7 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
 	dbase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/db"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 type WalletRepo struct {
@@ -23,21 +24,21 @@ func (r *WalletRepo) Upsert(wallet *domain.Wallet) error {
 	if err != nil {
 		return err
 	}
-	if err := r.dbClient.Setf(bBytes, "wallet-%v", wallet.AccountID); err != nil {
+	if err := r.dbClient.Setf(bBytes, "wallet-%v", wallet.Address.String()); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *WalletRepo) GetByAccountID(accountID string) (*domain.Wallet, error) {
-	bBytes, err := r.dbClient.Getf("wallet-%v", accountID)
+func (r *WalletRepo) GetByAddress(address *common.Address) (*domain.Wallet, error) {
+	bBytes, err := r.dbClient.Getf("wallet-%v", address.String())
 	if err != nil {
 		return nil, err
 	}
 	b, err := domain.NewWalletFromDeserialize(bBytes)
 	if err != nil {
 		r.logger.Error("failed to deserialize",
-			slog.String("account_id", accountID),
+			slog.Any("account_id", address),
 			slog.String("bin", string(bBytes)),
 			slog.Any("error", err))
 		return nil, err
@@ -45,8 +46,8 @@ func (r *WalletRepo) GetByAccountID(accountID string) (*domain.Wallet, error) {
 	return b, nil
 }
 
-func (r *WalletRepo) DeleteByAccountID(accountID string) error {
-	err := r.dbClient.Deletef("wallet-%v", accountID)
+func (r *WalletRepo) DeleteByAddress(address *common.Address) error {
+	err := r.dbClient.Deletef("wallet-%v", address.String())
 	if err != nil {
 		return err
 	}

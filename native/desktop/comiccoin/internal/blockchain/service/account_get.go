@@ -7,6 +7,7 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 type GetAccountService struct {
@@ -23,14 +24,14 @@ func NewGetAccountService(
 	return &GetAccountService{cfg, logger, uc}
 }
 
-func (s *GetAccountService) Execute(id string) (*domain.Account, error) {
+func (s *GetAccountService) Execute(address *common.Address) (*domain.Account, error) {
 	//
 	// STEP 1: Validation.
 	//
 
 	e := make(map[string]string)
-	if id == "" {
-		e["id"] = "missing value"
+	if address == nil {
+		e["address"] = "missing value"
 	}
 	if len(e) != 0 {
 		s.logger.Warn("Failed getting account",
@@ -42,5 +43,5 @@ func (s *GetAccountService) Execute(id string) (*domain.Account, error) {
 	// STEP 2: Return the account.
 	//
 
-	return s.getAccountUseCase.Execute(id)
+	return s.getAccountUseCase.Execute(address)
 }

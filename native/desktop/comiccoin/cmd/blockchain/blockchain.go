@@ -11,7 +11,7 @@ var (
 	flagRecipientAddress string
 	flagAmount           uint64
 	flagKeypairName      string
-	flagAccountID        string
+	flagAccountAddress   string
 
 	flagRendezvousString string
 	flagBootstrapPeers   string

@@ -8,6 +8,7 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/blockchain/signature"
 	dbase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/db"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 type AccountRepo struct {
@@ -25,21 +26,21 @@ func (r *AccountRepo) Upsert(account *domain.Account) error {
 	if err != nil {
 		return err
 	}
-	if err := r.dbClient.Setf(bBytes, "account-%v", account.ID); err != nil {
+	if err := r.dbClient.Setf(bBytes, "account-%v", account.Address.String()); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *AccountRepo) GetByID(id string) (*domain.Account, error) {
-	bBytes, err := r.dbClient.Getf("account-%v", id)
+func (r *AccountRepo) GetByAddress(addr *common.Address) (*domain.Account, error) {
+	bBytes, err := r.dbClient.Getf("account-%v", addr.String())
 	if err != nil {
 		return nil, err
 	}
 	b, err := domain.NewAccountFromDeserialize(bBytes)
 	if err != nil {
 		r.logger.Error("failed to deserialize",
-			slog.String("id", id),
+			slog.Any("addr", addr),
 			slog.String("bin", string(bBytes)),
 			slog.Any("error", err))
 		return nil, err
@@ -69,8 +70,8 @@ func (r *AccountRepo) ListAll() ([]*domain.Account, error) {
 	return res, err
 }
 
-func (r *AccountRepo) DeleteByID(id string) error {
-	err := r.dbClient.Deletef("account-%v", id)
+func (r *AccountRepo) DeleteByAddress(addr *common.Address) error {
+	err := r.dbClient.Deletef("account-%v", addr.String())
 	if err != nil {
 		return err
 	}
@@ -100,7 +101,7 @@ func (ba byAccount) Len() int {
 // Less helps to sort the list by account id in ascending order to keep the
 // accounts in the right order of processing.
 func (ba byAccount) Less(i, j int) bool {
-	return ba[i].ID < ba[j].ID
+	return ba[i].Address.String() < ba[j].Address.String()
 }
 
 // Swap moves accounts in the order of the account id value.

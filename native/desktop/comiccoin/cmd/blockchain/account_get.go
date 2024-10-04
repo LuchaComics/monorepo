@@ -26,7 +26,7 @@ func httpJsonApiGetAccountCmd() *cobra.Command {
 
 			logger.Debug("Get account detail...")
 
-			modifiedAccountDetailURL := strings.ReplaceAll(accountDetailURL, "${ACCOUNT_ID}", flagAccountID)
+			modifiedAccountDetailURL := strings.ReplaceAll(accountDetailURL, "${ACCOUNT_ADDRESS}", flagAccountAddress)
 			httpEndpoint := fmt.Sprintf("http://%s:%d%s", flagListenHTTPIP, flagListenHTTPPort, modifiedAccountDetailURL)
 
 			r, err := http.NewRequest("GET", httpEndpoint, nil)
@@ -97,14 +97,14 @@ func httpJsonApiGetAccountCmd() *cobra.Command {
 			}
 
 			logger.Debug("Account retrieved",
-				slog.String("id", post.ID),
+				slog.Any("balance", post.Balance),
 				slog.String("address", post.Address),
 			)
 		},
 	}
 
-	cmd.Flags().StringVar(&flagAccountID, "account-id", "", "The ID value to lookup the account by")
-	cmd.MarkFlagRequired("account-id")
+	cmd.Flags().StringVar(&flagAccountAddress, "account-address", "", "The address value to lookup the account by")
+	cmd.MarkFlagRequired("account-address")
 	cmd.Flags().IntVar(&flagListenHTTPPort, "listen-http-port", 8000, "The HTTP JSON API server's port")
 	cmd.Flags().StringVar(&flagListenHTTPIP, "listen-http-ip", "127.0.0.1", "The HTTP JSON API server's ip-address")
 

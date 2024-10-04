@@ -19,15 +19,12 @@ func NewCreateAccountUseCase(config *config.Config, logger *slog.Logger, repo do
 	return &CreateAccountUseCase{config, logger, repo}
 }
 
-func (uc *CreateAccountUseCase) Execute(id string, walletAddress *common.Address) error {
+func (uc *CreateAccountUseCase) Execute(walletAddress *common.Address) error {
 	//
 	// STEP 1: Validation.
 	//
 
 	e := make(map[string]string)
-	if id == "" {
-		e["id"] = "missing value"
-	}
 	if walletAddress == nil {
 		e["address"] = "missing value"
 	}
@@ -42,8 +39,9 @@ func (uc *CreateAccountUseCase) Execute(id string, walletAddress *common.Address
 	//
 
 	account := &domain.Account{
-		ID:      id,
 		Address: walletAddress,
+		Nonce:   0,
+		Balance: 0,
 	}
 
 	//

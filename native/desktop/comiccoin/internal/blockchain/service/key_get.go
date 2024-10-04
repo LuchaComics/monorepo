@@ -8,6 +8,7 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 type GetKeyService struct {
@@ -26,14 +27,14 @@ func NewGetKeyService(
 	return &GetKeyService{cfg, logger, uc1, uc2}
 }
 
-func (s *GetKeyService) Execute(accountID string, walletPassword string) (*keystore.Key, error) {
+func (s *GetKeyService) Execute(walletAddress *common.Address, walletPassword string) (*keystore.Key, error) {
 	//
 	// STEP 1: Validation.
 	//
 
 	e := make(map[string]string)
-	if accountID == "" {
-		e["account_id"] = "missing value"
+	if walletAddress == nil {
+		e["wallet_address"] = "missing value"
 	}
 	if walletPassword == "" {
 		e["wallet_password"] = "missing value"
@@ -48,10 +49,10 @@ func (s *GetKeyService) Execute(accountID string, walletPassword string) (*keyst
 	// STEP 2: Return the account.
 	//
 
-	wallet, err := s.getWalletUseCase.Execute(accountID)
+	wallet, err := s.getWalletUseCase.Execute(walletAddress)
 	if err != nil {
 		s.logger.Error("failed getting from database",
-			slog.Any("account_id", accountID),
+			slog.Any("wallet_address", walletAddress),
 			slog.Any("error", err))
 		return nil, fmt.Errorf("failed getting from database: %s", err)
 	}
@@ -62,7 +63,7 @@ func (s *GetKeyService) Execute(accountID string, walletPassword string) (*keyst
 	key, err := s.walletDecryptKeyUseCase.Execute(wallet.Filepath, walletPassword)
 	if err != nil {
 		s.logger.Error("failed getting key",
-			slog.Any("account_id", accountID),
+			slog.Any("wallet_address", walletAddress),
 			slog.Any("error", err))
 		return nil, fmt.Errorf("failed getting key: %s", err)
 	}

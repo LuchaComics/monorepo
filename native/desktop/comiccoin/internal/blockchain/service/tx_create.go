@@ -36,7 +36,7 @@ func NewCreateTransactionService(
 
 func (s *CreateTransactionService) Execute(
 	ctx context.Context,
-	fromAccountID string,
+	fromAccountAddress *common.Address,
 	accountWalletPassword string,
 	to *common.Address,
 	value uint64,
@@ -47,8 +47,8 @@ func (s *CreateTransactionService) Execute(
 	//
 
 	e := make(map[string]string)
-	if fromAccountID == "" {
-		e["from_account_id"] = "missing value"
+	if fromAccountAddress == nil {
+		e["from_account_address"] = "missing value"
 	}
 	if accountWalletPassword == "" {
 		e["account_wallet_password"] = "missing value"
@@ -69,10 +69,10 @@ func (s *CreateTransactionService) Execute(
 	// STEP 2: Get the account and extract the wallet private/public key.
 	//
 
-	wallet, err := s.getWalletUseCase.Execute(fromAccountID)
+	wallet, err := s.getWalletUseCase.Execute(fromAccountAddress)
 	if err != nil {
 		s.logger.Error("failed getting from database",
-			slog.Any("from_account_id", fromAccountID),
+			slog.Any("from_account_address", fromAccountAddress),
 			slog.Any("error", err))
 		return fmt.Errorf("failed getting from database: %s", err)
 	}
@@ -83,7 +83,7 @@ func (s *CreateTransactionService) Execute(
 	key, err := s.walletDecryptKeyUseCase.Execute(wallet.Filepath, accountWalletPassword)
 	if err != nil {
 		s.logger.Error("failed getting key",
-			slog.Any("from_account_id", fromAccountID),
+			slog.Any("from_account_address", fromAccountAddress),
 			slog.Any("error", err))
 		return fmt.Errorf("failed getting key: %s", err)
 	}

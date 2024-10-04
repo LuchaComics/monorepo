@@ -68,21 +68,33 @@ func (s *CreateAccountService) Execute(dataDir, walletPassword string) (*domain.
 	// Decrypt the wallet so we can extract data from it.
 	//
 
-	walletKey, err := s.walletDecryptKeyUseCase.Execute(walletFilepath, walletPassword)
-	if err != nil {
-		s.logger.Error("failed getting wallet key",
-			slog.Any("data_dir", dataDir),
-			slog.Any("error", err))
-		return nil, fmt.Errorf("failed getting wallet key: %s", err)
-	}
+	// walletKey, err := s.walletDecryptKeyUseCase.Execute(walletFilepath, walletPassword)
+	// if err != nil {
+	// 	s.logger.Error("failed getting wallet key",
+	// 		slog.Any("data_dir", dataDir),
+	// 		slog.Any("error", err))
+	// 	return nil, fmt.Errorf("failed getting wallet key: %s", err)
+	// }
+
+	//
+	// STEP 4:
+	// Converts the wallet's public key to an account value.
+	//
+
+	// // DEVELOPERS NOTE:
+	// // AccountID represents an account id that is used to sign transactions and is
+	// // associated with transactions on the blockchain. This will be the last 20
+	// // bytes of the public key.
+	// privateKey := walletKey.PrivateKey
+	// publicKey := privateKey.PublicKey
+	// accountID := crypto.PubkeyToAddress(publicKey).String()
 
 	//
 	// STEP 3:
 	// Save wallet to our database.
 	//
-	accountID := walletKey.Id.String()
 
-	if err := s.createWalletUseCase.Execute(accountID, walletAddress, walletFilepath); err != nil {
+	if err := s.createWalletUseCase.Execute(walletAddress, walletFilepath); err != nil {
 		s.logger.Error("failed saving to database",
 			slog.Any("data_dir", dataDir),
 			slog.Any("error", err))
@@ -93,7 +105,7 @@ func (s *CreateAccountService) Execute(dataDir, walletPassword string) (*domain.
 	// STEP 4: Create the account.
 	//
 
-	if err := s.createAccountUseCase.Execute(accountID, walletAddress); err != nil {
+	if err := s.createAccountUseCase.Execute(walletAddress); err != nil {
 		s.logger.Error("failed saving to database",
 			slog.Any("data_dir", dataDir),
 			slog.Any("error", err))
@@ -104,5 +116,5 @@ func (s *CreateAccountService) Execute(dataDir, walletPassword string) (*domain.
 	// STEP 5: Return the saved account.
 	//
 
-	return s.getAccountUseCase.Execute(accountID)
+	return s.getAccountUseCase.Execute(walletAddress)
 }

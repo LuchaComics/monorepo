@@ -8,25 +8,22 @@ import (
 )
 
 type Wallet struct {
-	// The account ID this wallet belongs to.
-	AccountID string `json:"id"`
+	// The public address of the wallet.
+	Address *common.Address `json:"address"`
 
 	// The file path where the wallet is stored.
 	Filepath string `json:"filepath"`
-
-	// The public address of the wallet.
-	Address *common.Address `json:"address"`
 }
 
 type WalletRepository interface {
 	// Upsert inserts or updates an wallet in the repository.
 	Upsert(acc *Wallet) error
 
-	// GetByID retrieves an wallet by its AccountID.
-	GetByAccountID(accountID string) (*Wallet, error)
+	// GetByID retrieves an wallet by its Address.
+	GetByAddress(address *common.Address) (*Wallet, error)
 
-	// DeleteByID deletes an wallet by its AccountID.
-	DeleteByAccountID(accountID string) error
+	// DeleteByID deletes an wallet by its Address.
+	DeleteByAddress(address *common.Address) error
 }
 
 // Serialize serializes the wallet into a byte slice.

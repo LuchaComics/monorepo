@@ -24,7 +24,7 @@ func submitTxCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&flagAccountID, "sender-account-id", "", "The id of the account we will use in our coin transfer")
+	cmd.Flags().StringVar(&flagAccountAddress, "sender-account-id", "", "The id of the account we will use in our coin transfer")
 	cmd.MarkFlagRequired("sender-account-id")
 
 	cmd.Flags().StringVar(&flagPassword, "sender-account-password", "", "The password to unlock the account which will transfer the coin")
@@ -52,7 +52,7 @@ func doSubmitTransactionCommand() {
 	httpEndpoint := fmt.Sprintf("http://%s:%d%s", flagListenHTTPIP, flagListenHTTPPort, transactionsURL)
 
 	req := &httphandler.CreateTransactionRequestIDO{
-		SenderAccountID:       flagAccountID,
+		SenderAccountAddress:  flagAccountAddress,
 		SenderAccountPassword: flagPassword,
 		RecipientAddress:      flagRecipientAddress,
 		Value:                 flagAmount,
@@ -61,7 +61,7 @@ func doSubmitTransactionCommand() {
 
 	logger.Debug("Submitting to blockchain",
 		slog.Any("node-url", httpEndpoint),
-		slog.Any("sender-account-id", flagAccountID),
+		slog.Any("sender-account-addresss", flagAccountAddress),
 		slog.Any("sender-account-password", flagPassword),
 		slog.Any("value", flagAmount),
 		slog.Any("recipient-address", flagRecipientAddress),
