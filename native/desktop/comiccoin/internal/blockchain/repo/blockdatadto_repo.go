@@ -8,21 +8,21 @@ import (
 	"sync"
 	"time"
 
+	"github.com/fxamacker/cbor/v2"
 	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo/protocol/blockdatadto"
-	dto_protocol "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo/protocol/blockdatadto"
 	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p/protocol/simple"
 )
 
 type BlockDataDTORepo struct {
 	config        *config.Config
 	logger        *slog.Logger
 	libP2PNetwork p2p.LibP2PNetwork
-	dtoProtocol   blockdatadto.BlockDataDTOProtocol
+	dtoProtocol   simple.SimpleDTOProtocol
 
 	rendezvousString string
 
@@ -85,7 +85,7 @@ func NewBlockDataDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork 
 		},
 	})
 
-	dtoProtocol := dto_protocol.NewBlockDataDTOProtocol(logger, h)
+	dtoProtocol := simple.NewSimpleDTOProtocol(logger, h, "/blockdatadto/req/1.0.0", "/blockdatadto/resp/1.0.0")
 	impl.dtoProtocol = dtoProtocol
 
 	//
@@ -152,7 +152,7 @@ func (impl *BlockDataDTORepo) SendRequestToRandomPeer(ctx context.Context, block
 	if randomPeerID == "" {
 		return fmt.Errorf("no peers connected")
 	}
-	if err := impl.dtoProtocol.SendRequest(randomPeerID, blockDataHash); err != nil {
+	if err := impl.dtoProtocol.SendRequest(randomPeerID, []byte(blockDataHash)); err != nil {
 		return err
 	}
 
@@ -166,11 +166,17 @@ func (impl *BlockDataDTORepo) ReceiveRequestFromNetwork(ctx context.Context) (pe
 			slog.Any("error", err))
 		return "", "", err
 	}
-	return req.FromPeerID, req.ParamHash, nil
+	blockDataHash := string(req.Content)
+	return req.FromPeerID, blockDataHash, nil
 }
 
 func (impl *BlockDataDTORepo) SendResponseToPeer(ctx context.Context, peerID peer.ID, data *domain.BlockDataDTO) error {
-	if err := impl.dtoProtocol.SendResponse(peerID, data); err != nil {
+	dataBytes, err := cbor.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("failed to serialize stream message dto: %v", err)
+	}
+
+	if err := impl.dtoProtocol.SendResponse(peerID, dataBytes); err != nil {
 		impl.logger.Error("failed sending upload response from network",
 			slog.Any("error", err))
 		return err
@@ -184,5 +190,12 @@ func (impl *BlockDataDTORepo) ReceiveResponseFromNetwork(ctx context.Context) (*
 		return nil, err
 	}
 
-	return resp.Payload, nil
+	// Variable we will use to return.
+	dto := &domain.BlockDataDTO{}
+
+	if err := cbor.Unmarshal(resp.Content, &dto); err != nil {
+		return nil, fmt.Errorf("failed to deserialize stream message dto: %v", err)
+	}
+
+	return dto, nil
 }
