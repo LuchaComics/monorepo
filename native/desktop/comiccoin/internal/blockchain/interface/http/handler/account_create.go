@@ -31,7 +31,7 @@ type AccountCreateRequestIDO struct {
 
 type AccountCreateResponseIDO struct {
 	ID            string `json:"id"`
-	WalletAddress string `json:"wallet_address"`
+	Address string `json:"address"`
 }
 
 func (h *CreateAccountHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
@@ -51,7 +51,7 @@ func (h *CreateAccountHTTPHandler) Execute(w http.ResponseWriter, r *http.Reques
 
 	// Conver to our HTTP response and send back to the user.
 	responsePayload := &AccountCreateResponseIDO{
-		WalletAddress: account.WalletAddress.String(),
+		Address: account.Address.String(),
 	}
 
 	w.WriteHeader(http.StatusCreated)

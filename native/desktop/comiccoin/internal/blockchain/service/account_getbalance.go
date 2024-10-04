@@ -79,10 +79,10 @@ func (s *GetAccountBalanceService) Execute(account *domain.Account) (uint64, err
 		// Every block can have one or many transactions, therefore we will
 		// need to iterate through all of them for our computation.
 		for _, tx := range blockData.Trans {
-			if tx.From == account.WalletAddress {
+			if tx.From == account.Address {
 				balanceTotal -= tx.Value
 			}
-			if tx.To == account.WalletAddress {
+			if tx.To == account.Address {
 				balanceTotal += tx.Value
 			}
 		}

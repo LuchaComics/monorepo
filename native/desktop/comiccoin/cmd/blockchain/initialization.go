@@ -62,6 +62,10 @@ func doRunInitBlockchain() {
 	db := dbase.NewDatabase(cfg.DB.DataDir, logger)
 
 	// ------------ Repo ------------
+	walletRepo := repo.NewWalletRepo(
+		cfg,
+		logger,
+		db)
 	accountRepo := repo.NewAccountRepo(
 		cfg,
 		logger,
@@ -77,11 +81,11 @@ func doRunInitBlockchain() {
 
 	// ------------ Use-case ------------
 
-	getAccountUseCase := usecase.NewGetAccountUseCase(
+	walletDecryptKeyUseCase := usecase.NewWalletDecryptKeyUseCase(
 		cfg,
 		logger,
-		accountRepo)
-	accountDecryptKeyUseCase := usecase.NewAccountDecryptKeyUseCase(
+		walletRepo)
+	getAccountUseCase := usecase.NewGetAccountUseCase(
 		cfg,
 		logger,
 		accountRepo)
@@ -101,7 +105,7 @@ func doRunInitBlockchain() {
 		cfg,
 		logger,
 		getAccountUseCase,
-		accountDecryptKeyUseCase)
+		walletDecryptKeyUseCase)
 
 	//
 	// STEP 2:

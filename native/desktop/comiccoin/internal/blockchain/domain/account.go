@@ -20,8 +20,8 @@ type Account struct {
 	// The file path where the wallet is stored.
 	WalletFilepath string `json:"wallet_filepath"`
 
-	// The public address of the wallet.
-	WalletAddress *common.Address `json:"wallet_address"`
+	// The public address of the account.
+	Address *common.Address `json:"address"`
 }
 
 // AccountRepository interface defines the methods for interacting with the account repository.

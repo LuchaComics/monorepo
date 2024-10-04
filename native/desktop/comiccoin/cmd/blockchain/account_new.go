@@ -101,7 +101,7 @@ func httpJsonApiNewAccountCmd() *cobra.Command {
 
 			logger.Debug("Account created",
 				slog.String("id", post.ID),
-				slog.String("address", post.WalletAddress),
+				slog.String("address", post.Address),
 			)
 		},
 	}

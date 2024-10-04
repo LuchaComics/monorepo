@@ -98,7 +98,7 @@ func httpJsonApiGetAccountCmd() *cobra.Command {
 
 			logger.Debug("Account retrieved",
 				slog.String("id", post.ID),
-				slog.String("address", post.WalletAddress),
+				slog.String("address", post.Address),
 			)
 		},
 	}

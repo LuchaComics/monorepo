@@ -29,7 +29,7 @@ func (uc *CreateAccountUseCase) Execute(id string, walletAddress *common.Address
 		e["id"] = "missing value"
 	}
 	if walletAddress == nil {
-		e["wallet_address"] = "missing value"
+		e["address"] = "missing value"
 	}
 	if len(e) != 0 {
 		uc.logger.Warn("Failed creating new account",
@@ -43,7 +43,7 @@ func (uc *CreateAccountUseCase) Execute(id string, walletAddress *common.Address
 
 	account := &domain.Account{
 		ID:            id,
-		WalletAddress: walletAddress,
+		Address: walletAddress,
 	}
 
 	//

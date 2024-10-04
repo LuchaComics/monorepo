@@ -104,7 +104,7 @@ func (s *CreateTransactionService) Execute(
 	tx := &domain.Transaction{
 		ChainID: s.config.Blockchain.ChainID,
 		Nonce:   uint64(time.Now().Unix()),
-		From:    account.WalletAddress,
+		From:    account.Address,
 		To:      to,
 		Value:   value,
 		Data:    data,
