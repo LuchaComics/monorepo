@@ -13,15 +13,15 @@ import (
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
-	protoc "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo/protocol/blockchainlatesthashdto"
 	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p/protocol/simple"
 )
 
 type BlockchainLastestHashDTORepo struct {
 	config        *config.Config
 	logger        *slog.Logger
 	libP2PNetwork p2p.LibP2PNetwork
-	dtoProtocol   protoc.BlockchainLatestHashDTOProtocol
+	dtoProtocol   simple.SimpleDTOProtocol
 
 	rendezvousString string
 
@@ -85,7 +85,7 @@ func NewBlockchainLastestHashDTORepo(cfg *config.Config, logger *slog.Logger, li
 	})
 
 	//
-	dtoProtocol := protoc.NewBlockchainLatestHashDTOProtocol(logger, h)
+	dtoProtocol := simple.NewSimpleDTOProtocol(logger, h, "/lastblockdatahash/req/1.0.0", "/lastblockdatahash/resp/1.0.0")
 	impl.dtoProtocol = dtoProtocol
 
 	//
