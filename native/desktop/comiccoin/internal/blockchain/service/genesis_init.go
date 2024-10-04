@@ -19,25 +19,44 @@ type CreateGenesisBlockDataService struct {
 	config                          *config.Config
 	logger                          *slog.Logger
 	coinbaseAccountKey              *keystore.Key
+	getAccountUseCase               *usecase.GetAccountUseCase
+	getAccountsHashStateUseCase     *usecase.GetAccountsHashStateUseCase
 	setBlockchainLastestHashUseCase *usecase.SetBlockchainLastestHashUseCase
 	createBlockDataUseCase          *usecase.CreateBlockDataUseCase
 	proofOfWorkUseCase              *usecase.ProofOfWorkUseCase
+	upsertAccountUseCase            *usecase.UpsertAccountUseCase
 }
 
 func NewCreateGenesisBlockDataService(
 	config *config.Config,
 	logger *slog.Logger,
 	coinbaseAccKey *keystore.Key,
-	uc1 *usecase.SetBlockchainLastestHashUseCase,
-	uc2 *usecase.CreateBlockDataUseCase,
-	uc3 *usecase.ProofOfWorkUseCase,
+	uc1 *usecase.GetAccountUseCase,
+	uc2 *usecase.GetAccountsHashStateUseCase,
+	uc3 *usecase.SetBlockchainLastestHashUseCase,
+	uc4 *usecase.CreateBlockDataUseCase,
+	uc5 *usecase.ProofOfWorkUseCase,
+	uc6 *usecase.UpsertAccountUseCase,
 ) *CreateGenesisBlockDataService {
-	return &CreateGenesisBlockDataService{config, logger, coinbaseAccKey, uc1, uc2, uc3}
+	return &CreateGenesisBlockDataService{config, logger, coinbaseAccKey, uc1, uc2, uc3, uc4, uc5, uc6}
 }
 
 func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	s.logger.Debug("starting genesis creation service...")
 	defer s.logger.Debug("finished  genesis creation service")
+
+	//
+	// STEP 0:
+	// Defensive code to make sure we have coinbase!
+	//
+
+	coinbaseAccount, err := s.getAccountUseCase.Execute(&s.coinbaseAccountKey.Address)
+	if err != nil {
+		return fmt.Errorf("Failed getting coinbase account: %v", err)
+	}
+	if coinbaseAccount == nil {
+		return fmt.Errorf("Failed getting coinbase account because it does not exist at address: %v", s.coinbaseAccountKey.Address)
+	}
 
 	//
 	// STEP 1:
@@ -81,6 +100,13 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 		return fmt.Errorf("Failed to create merkle tree: %v", err)
 	}
 
+	stateRoot, err := s.getAccountsHashStateUseCase.Execute()
+	if err != nil {
+		s.logger.Error("Failed to create merkle tree",
+			slog.Any("error", err))
+		return fmt.Errorf("Failed to create merkle tree: %v", err)
+	}
+
 	// Construct the genesis block.
 	block := domain.Block{
 		Header: &domain.BlockHeader{
@@ -90,9 +116,9 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 			Beneficiary:   s.coinbaseAccountKey.Address,
 			Difficulty:    s.config.Blockchain.Difficulty,
 			MiningReward:  s.config.Blockchain.MiningReward,
-			// StateRoot:     "",             //args.StateRoot, // SKIP!
-			TransRoot: tree.RootHex(), //
-			Nonce:     0,              // Will be identified by the POW algorithm.
+			StateRoot:     stateRoot,
+			TransRoot:     tree.RootHex(), //
+			Nonce:         0,              // Will be identified by the POW algorithm.
 		},
 		MerkleTree: tree,
 	}
@@ -128,6 +154,15 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 
 	if err := s.setBlockchainLastestHashUseCase.Execute(genesisBlockData.Hash); err != nil {
 		return fmt.Errorf("Failed to save last hash of genesis block data: %v", err)
+	}
+
+	//
+	// STEP 4
+	// Update the `coinbase` account.
+	//
+
+	if err := s.upsertAccountUseCase.Execute(&s.coinbaseAccountKey.Address, initialSupply, 0); err != nil {
+		return fmt.Errorf("Failed to upsert account: %v", err)
 	}
 
 	return nil

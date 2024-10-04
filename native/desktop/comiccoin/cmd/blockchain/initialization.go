@@ -76,6 +76,10 @@ func doRunInitBlockchain() {
 		cfg,
 		logger,
 		db)
+	accountRepo := repo.NewAccountRepo(
+		cfg,
+		logger,
+		db)
 
 	// ------------ Use-case ------------
 
@@ -96,6 +100,18 @@ func doRunInitBlockchain() {
 		logger,
 		blockDataRepo)
 	proofOfWorkUseCase := usecase.NewProofOfWorkUseCase(cfg, logger)
+	getAccountUseCase := usecase.NewGetAccountUseCase(
+		cfg,
+		logger,
+		accountRepo)
+	getAccountsHashStateUseCase := usecase.NewGetAccountsHashStateUseCase(
+		cfg,
+		logger,
+		accountRepo)
+	upsertAccountUseCase := usecase.NewUpsertAccountUseCase(
+		cfg,
+		logger,
+		accountRepo)
 
 	// ------------ Service ------------
 
@@ -126,9 +142,12 @@ func doRunInitBlockchain() {
 		cfg,
 		logger,
 		coinbaseAccountKey,
+		getAccountUseCase,
+		getAccountsHashStateUseCase,
 		setBlockchainLastestHashUseCase,
 		createBlockDataUseCase,
 		proofOfWorkUseCase,
+		upsertAccountUseCase,
 	)
 
 	ctx := context.Background()
