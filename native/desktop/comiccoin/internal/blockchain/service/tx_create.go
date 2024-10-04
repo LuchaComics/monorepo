@@ -96,7 +96,19 @@ func (s *CreateTransactionService) Execute(
 	// Verify the account has enough balance before proceeding.
 	//
 
-	//TODO: IMPL.
+	account, err := s.getAccountUseCase.Execute(fromAccountAddress)
+	if err != nil {
+		s.logger.Error("failed getting account",
+			slog.Any("from_account_address", fromAccountAddress),
+			slog.Any("error", err))
+		return fmt.Errorf("failed getting account: %s", err)
+	}
+	if account == nil {
+		return fmt.Errorf("failed getting account: %s", "d.n.e.")
+	}
+	if account.Balance <= value {
+		return fmt.Errorf("insufficient balance: %d", account.Balance)
+	}
 
 	//
 	// STEP 4
