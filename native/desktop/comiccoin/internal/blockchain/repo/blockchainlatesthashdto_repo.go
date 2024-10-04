@@ -135,29 +135,19 @@ func (impl *BlockchainLastestHashDTORepo) SendRequestToRandomPeer(ctx context.Co
 		return fmt.Errorf("no peers connected")
 	}
 
-	impl.logger.Debug("SendRequestToRandomPeer: running...")
-
 	// Note: Send empty request because we don't want anything.
-
 	if err := impl.dtoProtocol.SendRequest(randomPeerID, []byte("")); err != nil {
 		return err
 	}
-
-	impl.logger.Debug("SendRequestToRandomPeer: done")
-
 	return nil
 }
 
 func (impl *BlockchainLastestHashDTORepo) ReceiveRequestFromNetwork(ctx context.Context) (peer.ID, error) {
-
-	impl.logger.Debug("ReceiveRequestFromNetwork: running...")
 	req, err := impl.dtoProtocol.WaitAndReceiveRequest(ctx)
 	if err != nil {
 		impl.logger.Error("failed receiving request from network", slog.Any("error", err))
 		return "", err
 	}
-	impl.logger.Debug("ReceiveRequestFromNetwork: done")
-	impl.logger.Debug("ReceiveRequestFromNetwork: results", slog.Any("req", req))
 	return req.FromPeerID, nil
 }
 

@@ -75,9 +75,6 @@ func (s *BlockchainSyncClientService) Execute(ctx context.Context) error {
 		return nil
 	}
 
-	s.logger.Debug("blockchain sync client received from network",
-		slog.Any("network_hash", receivedHash))
-
 	//
 	// STEP 3:
 	// Get the latest blockchain hash we have in our local database and compare
@@ -89,26 +86,29 @@ func (s *BlockchainSyncClientService) Execute(ctx context.Context) error {
 	// fetch the latest hash from network anyway.
 	localHash, _ := s.getBlockchainLastestHashUseCase.Execute()
 
-	s.logger.Debug("blockchain sync client looked up local hash",
-		slog.Any("local_hash", localHash))
-
 	if localHash != string(receivedHash) {
 		s.logger.Warn("local blockchain is outdated and needs updating from network",
 			slog.Any("network_hash", receivedHash),
 			slog.Any("local_hash", localHash))
 
-		//TODO: FIX BUG AND CONTINUE DEVELOPMENT
-
-		err := s.runDownloadAndSyncBlockchainFromBlockDataHash(ctx, string(receivedHash))
-		if err != nil {
+		if err := s.runDownloadAndSyncBlockchainFromBlockDataHash(ctx, string(receivedHash)); err != nil {
 			s.logger.Error("blockchain failed to download and sync",
 				slog.Any("error", err))
 			return err
 		}
 
+		// Once our sync has been completed, we can save our latest hash so
+		// we won't have to sync again.
+		if err := s.setBlockchainLastestHashUseCase.Execute(string(receivedHash)); err != nil {
+			s.logger.Error("blockchain failed to save latest hash to database",
+				slog.Any("error", err))
+			return err
+		}
+
+		// Reaching here is success!
 		return nil
 	} else {
-		s.logger.Debug("local blockchain is up-to-date")
+		s.logger.Debug("local blockchain is up-to-date with peer-to-peer network")
 	}
 
 	return nil
