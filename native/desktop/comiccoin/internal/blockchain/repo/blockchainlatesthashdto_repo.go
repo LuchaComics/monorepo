@@ -13,15 +13,15 @@ import (
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
+	protoc "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo/protocol/blockchainlatesthashdto"
 	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p/simple"
 )
 
 type BlockchainLastestHashDTORepo struct {
 	config        *config.Config
 	logger        *slog.Logger
 	libP2PNetwork p2p.LibP2PNetwork
-	smp           simple.SimpleMessageProtocol
+	dtoProtocol   protoc.BlockchainLatestHashDTOProtocol
 
 	rendezvousString string
 
@@ -85,8 +85,8 @@ func NewBlockchainLastestHashDTORepo(cfg *config.Config, logger *slog.Logger, li
 	})
 
 	//
-	smp := simple.NewSimpleMessageProtocol(logger, h, "/lastblockdatahash/req/0.0.1", "/lastblockdatahash/resp/0.0.1")
-	impl.smp = smp
+	dtoProtocol := protoc.NewBlockchainLatestHashDTOProtocol(logger, h)
+	impl.dtoProtocol = dtoProtocol
 
 	//
 	// STEP 5:
@@ -138,7 +138,7 @@ func (impl *BlockchainLastestHashDTORepo) SendRequestToRandomPeer(ctx context.Co
 	impl.logger.Debug("SendRequestToRandomPeer: running...")
 
 	// Note: Send empty request because we don't want anything.
-	_, err := impl.smp.SendRequest(randomPeerID, []byte(""))
+	_, err := impl.dtoProtocol.SendRequest(randomPeerID, []byte(""))
 	if err != nil {
 		return err
 	}
@@ -151,7 +151,7 @@ func (impl *BlockchainLastestHashDTORepo) SendRequestToRandomPeer(ctx context.Co
 func (impl *BlockchainLastestHashDTORepo) ReceiveRequestFromNetwork(ctx context.Context) (peer.ID, error) {
 
 	impl.logger.Debug("ReceiveRequestFromNetwork: running...")
-	req, err := impl.smp.WaitAndReceiveRequest(ctx)
+	req, err := impl.dtoProtocol.WaitAndReceiveRequest(ctx)
 	if err != nil {
 		impl.logger.Error("failed receiving request from network", slog.Any("error", err))
 		return "", err
@@ -163,7 +163,7 @@ func (impl *BlockchainLastestHashDTORepo) ReceiveRequestFromNetwork(ctx context.
 
 func (impl *BlockchainLastestHashDTORepo) SendResponseToPeer(ctx context.Context, peerID peer.ID, data domain.BlockchainLastestHashDTO) error {
 	dataBytes := []byte(data)
-	_, err := impl.smp.SendResponse(peerID, dataBytes)
+	_, err := impl.dtoProtocol.SendResponse(peerID, dataBytes)
 	if err != nil {
 		return err
 	}
@@ -172,7 +172,7 @@ func (impl *BlockchainLastestHashDTORepo) SendResponseToPeer(ctx context.Context
 }
 
 func (impl *BlockchainLastestHashDTORepo) ReceiveResponseFromNetwork(ctx context.Context) (domain.BlockchainLastestHashDTO, error) {
-	resp, err := impl.smp.WaitAndReceiveResponse(ctx)
+	resp, err := impl.dtoProtocol.WaitAndReceiveResponse(ctx)
 	if err != nil {
 		return "", err
 	}

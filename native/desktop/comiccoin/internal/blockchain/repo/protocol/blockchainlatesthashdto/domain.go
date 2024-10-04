@@ -1,4 +1,4 @@
-package simple
+package blockchainlatesthashdto
 
 import (
 	"bytes"
@@ -8,7 +8,7 @@ import (
 	"github.com/libp2p/go-libp2p/core/peer"
 )
 
-type SimpleMessageRequest struct {
+type BlockchainLatestHashDTORequest struct {
 	ID      string `json:"id"`
 	Content []byte `json:"content"`
 
@@ -16,7 +16,7 @@ type SimpleMessageRequest struct {
 	FromPeerID peer.ID `json:"from_peer_id"`
 }
 
-type SimpleMessageResponse struct {
+type BlockchainLatestHashDTOResponse struct {
 	ID      string `json:"id"`
 	Content []byte `json:"content"`
 
@@ -24,7 +24,7 @@ type SimpleMessageResponse struct {
 	FromPeerID peer.ID `json:"from_peer_id"`
 }
 
-func (b *SimpleMessageRequest) Serialize() ([]byte, error) {
+func (b *BlockchainLatestHashDTORequest) Serialize() ([]byte, error) {
 	var result bytes.Buffer
 	encoder := gob.NewEncoder(&result)
 	err := encoder.Encode(b)
@@ -34,9 +34,9 @@ func (b *SimpleMessageRequest) Serialize() ([]byte, error) {
 	return result.Bytes(), nil
 }
 
-func NewSimpleMessageRequestFromDeserialize(data []byte) (*SimpleMessageRequest, error) {
+func NewBlockchainLatestHashDTORequestFromDeserialize(data []byte) (*BlockchainLatestHashDTORequest, error) {
 	// Variable we will use to return.
-	dto := &SimpleMessageRequest{}
+	dto := &BlockchainLatestHashDTORequest{}
 
 	// Defensive code: If programmer entered empty bytes then we will
 	// return nil deserialization result.
@@ -52,7 +52,7 @@ func NewSimpleMessageRequestFromDeserialize(data []byte) (*SimpleMessageRequest,
 	return dto, nil
 }
 
-func (b *SimpleMessageResponse) Serialize() ([]byte, error) {
+func (b *BlockchainLatestHashDTOResponse) Serialize() ([]byte, error) {
 	var result bytes.Buffer
 	encoder := gob.NewEncoder(&result)
 	err := encoder.Encode(b)
@@ -62,9 +62,9 @@ func (b *SimpleMessageResponse) Serialize() ([]byte, error) {
 	return result.Bytes(), nil
 }
 
-func NewSimpleMessageResponseFromDeserialize(data []byte) (*SimpleMessageResponse, error) {
+func NewBlockchainLatestHashDTOResponseFromDeserialize(data []byte) (*BlockchainLatestHashDTOResponse, error) {
 	// Variable we will use to return.
-	dto := &SimpleMessageResponse{}
+	dto := &BlockchainLatestHashDTOResponse{}
 
 	// Defensive code: If programmer entered empty bytes then we will
 	// return nil deserialization result.

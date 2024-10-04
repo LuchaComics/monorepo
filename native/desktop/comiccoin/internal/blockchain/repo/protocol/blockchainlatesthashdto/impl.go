@@ -1,4 +1,4 @@
-package simple
+package blockchainlatesthashdto
 
 import (
 	"bufio"
@@ -14,22 +14,24 @@ import (
 	"github.com/libp2p/go-libp2p/core/protocol"
 )
 
-func NewSimpleMessageProtocol(logger *slog.Logger, host host.Host, protocolIDSimpleMessageRequest protocol.ID, protocolIDSimpleMessageResponse protocol.ID) SimpleMessageProtocol {
-	impl := &simpleMessageProtocolImpl{
-		logger:                          logger,
-		host:                            host,
-		requestChan:                     make(chan *SimpleMessageRequest),
-		responseChan:                    make(chan *SimpleMessageResponse),
-		protocolIDSimpleMessageRequest:  protocolIDSimpleMessageRequest,
-		protocolIDSimpleMessageResponse: protocolIDSimpleMessageResponse,
+func NewBlockchainLatestHashDTOProtocol(logger *slog.Logger, host host.Host) BlockchainLatestHashDTOProtocol {
+	req := protocol.ID("/lastblockdatahash/req/1.0.0")
+	resp := protocol.ID("/lastblockdatahash/resp/1.0.0")
+	impl := &blockchainLatestHashDTOProtocolImpl{
+		logger:                                   logger,
+		host:                                     host,
+		requestChan:                              make(chan *BlockchainLatestHashDTORequest),
+		responseChan:                             make(chan *BlockchainLatestHashDTOResponse),
+		protocolIDBlockchainLatestHashDTORequest: req,
+		protocolIDBlockchainLatestHashDTOResponse: resp,
 	}
-	host.SetStreamHandler(protocolIDSimpleMessageRequest, impl.onRemoteRequest)
-	host.SetStreamHandler(protocolIDSimpleMessageResponse, impl.onRemoteResponse)
+	host.SetStreamHandler(req, impl.onRemoteRequest)
+	host.SetStreamHandler(resp, impl.onRemoteResponse)
 	return impl
 }
 
 // remote peer requests handler
-func (impl *simpleMessageProtocolImpl) onRemoteRequest(s network.Stream) {
+func (impl *blockchainLatestHashDTOProtocolImpl) onRemoteRequest(s network.Stream) {
 	//
 	// STEP 1
 	//
@@ -72,7 +74,7 @@ func (impl *simpleMessageProtocolImpl) onRemoteRequest(s network.Stream) {
 	//
 
 	// Begin the deserialization
-	req, err := NewSimpleMessageRequestFromDeserialize(payloadBytes)
+	req, err := NewBlockchainLatestHashDTORequestFromDeserialize(payloadBytes)
 	if err != nil {
 		s.Reset()
 		impl.logger.Error("onRemoteRequest: failed to deserialize remote request",
@@ -93,7 +95,7 @@ func (impl *simpleMessageProtocolImpl) onRemoteRequest(s network.Stream) {
 }
 
 // remote Simple response handler
-func (impl *simpleMessageProtocolImpl) onRemoteResponse(s network.Stream) {
+func (impl *blockchainLatestHashDTOProtocolImpl) onRemoteResponse(s network.Stream) {
 	//
 	// STEP 1
 	//
@@ -136,7 +138,7 @@ func (impl *simpleMessageProtocolImpl) onRemoteResponse(s network.Stream) {
 	//
 
 	// Begin the deserialization
-	resp, err := NewSimpleMessageResponseFromDeserialize(payloadBytes)
+	resp, err := NewBlockchainLatestHashDTOResponseFromDeserialize(payloadBytes)
 	if err != nil {
 		s.Reset()
 		impl.logger.Error("onRemoteResponse: failed to deserialize remote request",
@@ -157,7 +159,7 @@ func (impl *simpleMessageProtocolImpl) onRemoteResponse(s network.Stream) {
 }
 
 // local sends to remote
-func (impl *simpleMessageProtocolImpl) SendRequest(peerID peer.ID, content []byte) (string, error) {
+func (impl *blockchainLatestHashDTOProtocolImpl) SendRequest(peerID peer.ID, content []byte) (string, error) {
 	// DEVELOPERS NOTE:
 	// It's OK if `content` is empty. Do not handle any defensive coding as
 	// there might be cases in which you want to send a request without any
@@ -171,7 +173,7 @@ func (impl *simpleMessageProtocolImpl) SendRequest(peerID peer.ID, content []byt
 	//
 
 	// create message data
-	req := &SimpleMessageRequest{
+	req := &BlockchainLatestHashDTORequest{
 		ID:      fmt.Sprintf("%v", time.Now().Unix()),
 		Content: content,
 	}
@@ -180,7 +182,7 @@ func (impl *simpleMessageProtocolImpl) SendRequest(peerID peer.ID, content []byt
 	// STEP 2
 	//
 
-	s, err := impl.host.NewStream(context.Background(), peerID, impl.protocolIDSimpleMessageRequest)
+	s, err := impl.host.NewStream(context.Background(), peerID, impl.protocolIDBlockchainLatestHashDTORequest)
 	if err != nil {
 		impl.logger.Error("SendRequest: newstream error",
 			slog.Any("error", err))
@@ -228,7 +230,7 @@ func (impl *simpleMessageProtocolImpl) SendRequest(peerID peer.ID, content []byt
 }
 
 // local sends to remote
-func (impl *simpleMessageProtocolImpl) SendResponse(peerID peer.ID, content []byte) (string, error) {
+func (impl *blockchainLatestHashDTOProtocolImpl) SendResponse(peerID peer.ID, content []byte) (string, error) {
 	// DEVELOPERS NOTE:
 	// It's OK if `content` is empty. Do not handle any defensive coding as
 	// there might be cases in which you want to send a request without any
@@ -242,7 +244,7 @@ func (impl *simpleMessageProtocolImpl) SendResponse(peerID peer.ID, content []by
 	//
 
 	// create message data
-	resp := &SimpleMessageResponse{
+	resp := &BlockchainLatestHashDTOResponse{
 		ID:      fmt.Sprintf("%v", time.Now().Unix()),
 		Content: content,
 	}
@@ -251,7 +253,7 @@ func (impl *simpleMessageProtocolImpl) SendResponse(peerID peer.ID, content []by
 	// STEP 2
 	//
 
-	s, err := impl.host.NewStream(context.Background(), peerID, impl.protocolIDSimpleMessageResponse)
+	s, err := impl.host.NewStream(context.Background(), peerID, impl.protocolIDBlockchainLatestHashDTOResponse)
 	if err != nil {
 		impl.logger.Error("SendResponse: failed to open stream",
 			slog.Any("error", err))
@@ -298,7 +300,7 @@ func (impl *simpleMessageProtocolImpl) SendResponse(peerID peer.ID, content []by
 	return resp.ID, err
 }
 
-func (impl *simpleMessageProtocolImpl) WaitAndReceiveRequest(ctx context.Context) (*SimpleMessageRequest, error) {
+func (impl *blockchainLatestHashDTOProtocolImpl) WaitAndReceiveRequest(ctx context.Context) (*BlockchainLatestHashDTORequest, error) {
 	for {
 		select {
 		case req := <-impl.requestChan:
@@ -309,7 +311,7 @@ func (impl *simpleMessageProtocolImpl) WaitAndReceiveRequest(ctx context.Context
 	}
 }
 
-func (impl *simpleMessageProtocolImpl) WaitAndReceiveResponse(ctx context.Context) (*SimpleMessageResponse, error) {
+func (impl *blockchainLatestHashDTOProtocolImpl) WaitAndReceiveResponse(ctx context.Context) (*BlockchainLatestHashDTOResponse, error) {
 	for {
 		select {
 		case resp := <-impl.responseChan:

@@ -18,8 +18,8 @@ import (
 )
 
 func NewBlockDataDTOProtocol(logger *slog.Logger, host host.Host) BlockDataDTOProtocol {
-	req := protocol.ID("/fetchblockdata/req/1.0.0")
-	resp := protocol.ID("/fetchblockdata/resp/1.0.0")
+	req := protocol.ID("/blockdatadto/req/1.0.0")
+	resp := protocol.ID("/blockdatadto/resp/1.0.0")
 	impl := &blockDataDTOProtocolImpl{
 		logger:                         logger,
 		host:                           host,
