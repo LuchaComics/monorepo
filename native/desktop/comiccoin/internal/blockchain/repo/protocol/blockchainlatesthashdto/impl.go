@@ -3,6 +3,7 @@ package blockchainlatesthashdto
 import (
 	"bufio"
 	"context"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"log/slog"
@@ -101,7 +102,9 @@ func (impl *blockchainLatestHashDTOProtocolImpl) onRemoteResponse(s network.Stre
 	//
 
 	buf := bufio.NewReader(s)
-	header, err := buf.ReadByte()
+
+	var lengthBuffer [4]byte
+	_, err := io.ReadFull(buf, lengthBuffer[:])
 	if err != nil {
 		s.Reset() // Important - don't forget!
 		impl.logger.Error("onRemoteResponse: failed to read message header",
@@ -110,11 +113,13 @@ func (impl *blockchainLatestHashDTOProtocolImpl) onRemoteResponse(s network.Stre
 		return
 	}
 
+	payloadLength := int(binary.LittleEndian.Uint32(lengthBuffer[:]))
+
 	//
 	// STEP 2
 	//
 
-	payloadBytes := make([]byte, header)
+	payloadBytes := make([]byte, payloadLength)
 
 	n, err := io.ReadFull(buf, payloadBytes)
 	if err != nil {
@@ -277,10 +282,11 @@ func (impl *blockchainLatestHashDTOProtocolImpl) SendResponse(peerID peer.ID, co
 	// First stream the length of the message to the peer
 	//
 
-	header := []byte{byte(len(payloadBytes))}
-	_, err = s.Write(header)
+	var lengthBuffer [4]byte
+	binary.LittleEndian.PutUint32(lengthBuffer[:], uint32(len(payloadBytes)))
+	_, err = s.Write(lengthBuffer[:])
 	if err != nil {
-		impl.logger.Error("SendResponse: failed to stream message header",
+		impl.logger.Error("SendRequest: failed to stream message header",
 			slog.Any("error", err))
 		return "", err
 	}
