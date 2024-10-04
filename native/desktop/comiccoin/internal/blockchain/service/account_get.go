@@ -33,7 +33,7 @@ func (s *GetAccountService) Execute(id string) (*domain.Account, error) {
 		e["id"] = "missing value"
 	}
 	if len(e) != 0 {
-		s.logger.Warn("Failed creating new account",
+		s.logger.Warn("Failed getting account",
 			slog.Any("error", e))
 		return nil, httperror.NewForBadRequest(&e)
 	}

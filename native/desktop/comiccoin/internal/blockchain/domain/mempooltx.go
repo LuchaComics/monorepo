@@ -9,18 +9,25 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
-// MempoolTransaction is a mempool version of the transaction. This is how
-// clients like a wallet provide transactions for inclusion into the blockchain.
+// MempoolTransaction represents a transaction that is stored in the mempool.
+// It contains the transaction data, as well as the ECDSA signature and recovery identifier.
 type MempoolTransaction struct {
+	// The transaction data, including sender, recipient, amount, and other metadata.
 	Transaction
-	V *big.Int `json:"v"` // Ethereum: Recovery identifier, either 29 or 30 with ardanID.
-	R *big.Int `json:"r"` // Ethereum: First coordinate of the ECDSA signature.
-	S *big.Int `json:"s"` // Ethereum: Second coordinate of the ECDSA signature.
+
+	// The recovery identifier, either 29 or 30, depending on the Ethereum network.
+	V *big.Int `json:"v"`
+
+	// The first coordinate of the ECDSA signature.
+	R *big.Int `json:"r"`
+
+	// The second coordinate of the ECDSA signature.
+	S *big.Int `json:"s"`
 }
 
-// Validate checks if the transaction is valid. It verifies the signature,
-// makes sure the account addresses are correct, and checks if the 'from'
-// and 'to' accounts are not the same.
+// Validate checks if the transaction is valid.
+// It verifies the signature, makes sure the account addresses are correct,
+// and checks if the 'from' and 'to' accounts are not the same.
 func (tx MempoolTransaction) Validate(chainID uint16) error {
 	// Check if the transaction's chain ID matches the expected one.
 	if tx.ChainID != chainID {
@@ -50,31 +57,46 @@ func (tx MempoolTransaction) Validate(chainID uint16) error {
 	return nil
 }
 
+// MempoolTransactionRepository interface defines the methods for interacting with
+// the mempool transaction repository.
+// This interface provides a way to manage mempool transactions, including upserting, listing, and deleting.
 type MempoolTransactionRepository interface {
+	// Upsert inserts or updates a mempool transaction in the repository.
 	Upsert(bd *MempoolTransaction) error
+
+	// ListAll retrieves all mempool transactions in the repository.
 	ListAll() ([]*MempoolTransaction, error)
+
+	// DeleteAll deletes all mempool transactions in the repository.
 	DeleteAll() error
 }
 
+// Serialize serializes the mempool transaction into a byte slice.
+// This method uses the cbor library to marshal the transaction into a byte slice.
 func (stx *MempoolTransaction) Serialize() ([]byte, error) {
+	// Marshal the transaction into a byte slice using the cbor library.
 	dataBytes, err := cbor.Marshal(stx)
 	if err != nil {
+		// Return an error if the marshaling fails.
 		return nil, fmt.Errorf("failed to serialize mempool transaction: %v", err)
 	}
 	return dataBytes, nil
 }
 
+// NewMempoolTransactionFromDeserialize deserializes a mempool transaction from a byte slice.
+// This method uses the cbor library to unmarshal the byte slice into a transaction.
 func NewMempoolTransactionFromDeserialize(data []byte) (*MempoolTransaction, error) {
-	// Variable we will use to return.
+	// Create a new transaction variable to return.
 	stx := &MempoolTransaction{}
 
-	// Defensive code: If programmer entered empty bytes then we will
-	// return nil deserialization result.
+	// Defensive code: If the input data is empty, return a nil deserialization result.
 	if data == nil {
 		return nil, nil
 	}
 
+	// Unmarshal the byte slice into the transaction variable using the cbor library.
 	if err := cbor.Unmarshal(data, &stx); err != nil {
+		// Return an error if the unmarshaling fails.
 		return nil, fmt.Errorf("failed to deserialize mempool transaction: %v", err)
 	}
 	return stx, nil
@@ -83,7 +105,6 @@ func NewMempoolTransactionFromDeserialize(data []byte) (*MempoolTransaction, err
 // FromAddress extracts the account address from the signed transaction by
 // recovering the public key from the signature.
 func (tx MempoolTransaction) FromAddress() (string, error) {
-
 	// Create the hash of the transaction to prepare it for extracting the public key.
 	tran, err := tx.HashWithComicCoinStamp()
 	if err != nil {
@@ -103,6 +124,7 @@ func (tx MempoolTransaction) FromAddress() (string, error) {
 	return crypto.PubkeyToAddress(*publicKey).String(), nil
 }
 
+// ToSignedTransaction converts the mempool transaction to a signed transaction.
 func (tx MempoolTransaction) ToSignedTransaction() *SignedTransaction {
 	return &SignedTransaction{}
 }

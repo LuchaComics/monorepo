@@ -4,46 +4,81 @@ import (
 	maddr "github.com/multiformats/go-multiaddr"
 )
 
+// Config represents the configuration for the application.
+// It contains settings for the blockchain, application, database, and peer connections.
 type Config struct {
+	// Blockchain configuration.
 	Blockchain BlockchainConfig
-	App        AppConfig
-	DB         DBConfig
-	Peer       PeerConfig
+
+	// Application configuration.
+	App AppConfig
+
+	// Database configuration.
+	DB DBConfig
+
+	// Peer configuration.
+	Peer PeerConfig
 }
 
+// BlockchainConfig represents the configuration for the blockchain.
+// It contains settings for the chain ID, transactions per block, difficulty, mining reward, gas price, and units of gas.
 type BlockchainConfig struct {
-	ChainID       uint16 `json:"chain_id"`        // The chain id represents an unique id for this running instance.
-	TransPerBlock uint16 `json:"trans_per_block"` // The maximum number of transactions that can be in a block.
-	Difficulty    uint16 `json:"difficulty"`      // How difficult it needs to be to solve the work problem.
-	MiningReward  uint64 `json:"mining_reward"`   // Reward for mining a block.
-	GasPrice      uint64 `json:"gas_price"`       // Fee paid for each transaction mined into a block.
-	UnitsOfGas    uint64 `json:"units_of_gas"`
+	// ChainID is the unique ID for this blockchain instance.
+	ChainID uint16 `json:"chain_id"`
+
+	// TransPerBlock is the maximum number of transactions that can be included in a block.
+	TransPerBlock uint16 `json:"trans_per_block"`
+
+	// Difficulty represents how difficult it should be to solve the work problem.
+	Difficulty uint16 `json:"difficulty"`
+
+	// MiningReward is the reward for mining a block.
+	MiningReward uint64 `json:"mining_reward"`
+
+	// GasPrice is the fee paid for each transaction included in a block.
+	GasPrice uint64 `json:"gas_price"`
+
+	// UnitsOfGas represents the units of gas for each transaction.
+	UnitsOfGas uint64 `json:"units_of_gas"`
 }
 
+// AppConfig represents the configuration for the application.
+// It contains settings for the directory path, HTTP address, and RPC address.
 type AppConfig struct {
-	// DirPath variable is the path to the directory where all the files for
-	// this appliction to
-	// save to.
+	// DirPath is the path to the directory where all files for this application are saved.
 	DirPath string
 
-	// HTTPAddress variable is the address and port that the HTTP JSON API
-	// server will listen on for this application. Do not expose to public!
+	// HTTPAddress is the address and port that the HTTP JSON API server will listen on.
+	// Do not expose to the public!
 	HTTPAddress string
 
-	// RPCAddress variable is the address and port that the TCP RCP
-	// server will listen on for this application. Do not expose to public!
+	// RPCAddress is the address and port that the TCP RPC server will listen on.
+	// Do not expose to the public!
 	RPCAddress string
 }
 
+// DBConfig represents the configuration for the database.
+// It contains the location of the database files.
 type DBConfig struct {
-	// Location of were to save the database files.
+	// DataDir is the location of the database files.
 	DataDir string
 }
 
+// PeerConfig represents the configuration for peer connections.
+// It contains settings for the listen port, key name, rendezvous string, bootstrap peers, and listen addresses.
 type PeerConfig struct {
-	ListenPort       int
-	KeyName          string
+	// ListenPort is the port that the peer will listen on.
+	ListenPort int
+
+	// KeyName is the name of the key used for encryption.
+	KeyName string
+
+	// RendezvousString is the string used for rendezvous connections.
 	RendezvousString string
-	BootstrapPeers   []maddr.Multiaddr
-	ListenAddresses  []maddr.Multiaddr
+
+	// BootstrapPeers is a list of multiaddresses for bootstrap peers.
+	BootstrapPeers []maddr.Multiaddr
+
+	// ListenAddresses is a list of multiaddresses that the peer will listen on.
+	ListenAddresses []maddr.Multiaddr
 }

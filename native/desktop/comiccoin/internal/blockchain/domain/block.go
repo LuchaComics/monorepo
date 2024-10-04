@@ -10,17 +10,27 @@ import (
 )
 
 // Block represents a group of transactions batched together.
+// It contains a block header and a Merkle tree of transactions.
 type Block struct {
-	Header     *BlockHeader
+	// Header is the block header, which contains metadata about the block.
+	Header *BlockHeader
+
+	// MerkleTree is the Merkle tree of transactions, which allows for efficient verification of transaction inclusion.
 	MerkleTree *merkle.Tree[BlockTransaction]
 }
 
 // NewBlockData constructs block data from a block.
 func NewBlockData(block Block) *BlockData {
+	// Create a new block data structure to hold the block's metadata and transactions.
 	blockData := BlockData{
-		Hash:   block.Hash(),
+		// Hash is the unique hash of the block.
+		Hash: block.Hash(),
+
+		// Header is the block header, which contains metadata about the block.
 		Header: block.Header,
-		Trans:  block.MerkleTree.Values(),
+
+		// Trans is the list of transactions in the block.
+		Trans: block.MerkleTree.Values(),
 	}
 
 	return &blockData
@@ -28,6 +38,7 @@ func NewBlockData(block Block) *BlockData {
 
 // Hash returns the unique hash for the Block.
 func (b Block) Hash() string {
+	// If this is the genesis block, return a special zero hash.
 	if b.Header.Number == 0 {
 		return signature.ZeroHash
 	}
@@ -49,12 +60,15 @@ func (b Block) Hash() string {
 // isHashSolved checks the hash to make sure it complies with
 // the POW rules. We need to match a difficulty number of 0's.
 func isHashSolved(difficulty uint16, hash string) bool {
+	// Create a string of 0's to match the difficulty.
 	const match = "0x00000000000000000"
 
+	// Check if the hash is long enough to match the difficulty.
 	if len(hash) != 66 {
 		return false
 	}
 
+	// Check if the hash starts with the correct number of 0's.
 	difficulty += 2
 	return hash[:difficulty] == match[:difficulty]
 }
@@ -161,11 +175,13 @@ func (b Block) ValidateBlock(previousBlock *Block, stateRoot string) error {
 
 // ToBlock converts a storage block into a database block.
 func ToBlock(blockData *BlockData) (*Block, error) {
+	// Create a new Merkle tree from the block's transactions.
 	tree, err := merkle.NewTree(blockData.Trans)
 	if err != nil {
 		return &Block{}, err
 	}
 
+	// Create a new block from the block data and Merkle tree.
 	block := &Block{
 		Header:     blockData.Header,
 		MerkleTree: tree,

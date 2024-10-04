@@ -175,6 +175,10 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				accountRepo)
+			getAccountsHashStateUseCase := usecase.NewGetAccountsHashStateUseCase(
+				cfg,
+				logger,
+				accountRepo)
 
 			// Mempool Transaction DTO
 			broadcastMempoolTxDTOUseCase := usecase.NewBroadcastMempoolTransactionDTOUseCase(
@@ -332,6 +336,7 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				kmutex,
+				getAccountsHashStateUseCase,
 				listAllPendingBlockTxUseCase,
 				getBlockchainLastestHashUseCase,
 				setBlockchainLastestHashUseCase,

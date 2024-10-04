@@ -2,9 +2,11 @@ package repo
 
 import (
 	"log/slog"
+	"sort"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/blockchain/signature"
 	dbase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/db"
 )
 
@@ -73,4 +75,35 @@ func (r *AccountRepo) DeleteByID(id string) error {
 		return err
 	}
 	return nil
+}
+
+func (r *AccountRepo) HashState() (string, error) {
+	accounts, err := r.ListAll()
+	if err != nil {
+		return "", err
+	}
+
+	sort.Sort(byAccount(accounts))
+	return signature.Hash(accounts), nil
+}
+
+// =============================================================================
+
+// byAccount provides sorting support by the account id value.
+type byAccount []*domain.Account
+
+// Len returns the number of transactions in the list.
+func (ba byAccount) Len() int {
+	return len(ba)
+}
+
+// Less helps to sort the list by account id in ascending order to keep the
+// accounts in the right order of processing.
+func (ba byAccount) Less(i, j int) bool {
+	return ba[i].ID < ba[j].ID
+}
+
+// Swap moves accounts in the order of the account id value.
+func (ba byAccount) Swap(i, j int) {
+	ba[i], ba[j] = ba[j], ba[i]
 }

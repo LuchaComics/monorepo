@@ -17,6 +17,7 @@ type MiningService struct {
 	config                                  *config.Config
 	logger                                  *slog.Logger
 	kmutex                                  kmutexutil.KMutexProvider
+	getAccountsHashStateUseCase             *usecase.GetAccountsHashStateUseCase
 	listAllPendingBlockTransactionUseCase   *usecase.ListAllPendingBlockTransactionUseCase
 	getBlockchainLastestHashUseCase         *usecase.GetBlockchainLastestHashUseCase
 	setBlockchainLastestHashUseCase         *usecase.SetBlockchainLastestHashUseCase
@@ -31,16 +32,17 @@ func NewMiningService(
 	config *config.Config,
 	logger *slog.Logger,
 	kmutex kmutexutil.KMutexProvider,
-	uc1 *usecase.ListAllPendingBlockTransactionUseCase,
-	uc2 *usecase.GetBlockchainLastestHashUseCase,
-	uc3 *usecase.SetBlockchainLastestHashUseCase,
-	uc4 *usecase.GetBlockDataUseCase,
-	uc5 *usecase.CreateBlockDataUseCase,
-	uc6 *usecase.ProofOfWorkUseCase,
-	uc7 *usecase.BroadcastProposedBlockDataDTOUseCase,
-	uc8 *usecase.DeleteAllPendingBlockTransactionUseCase,
+	uc1 *usecase.GetAccountsHashStateUseCase,
+	uc2 *usecase.ListAllPendingBlockTransactionUseCase,
+	uc3 *usecase.GetBlockchainLastestHashUseCase,
+	uc4 *usecase.SetBlockchainLastestHashUseCase,
+	uc5 *usecase.GetBlockDataUseCase,
+	uc6 *usecase.CreateBlockDataUseCase,
+	uc7 *usecase.ProofOfWorkUseCase,
+	uc8 *usecase.BroadcastProposedBlockDataDTOUseCase,
+	uc9 *usecase.DeleteAllPendingBlockTransactionUseCase,
 ) *MiningService {
-	return &MiningService{config, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8}
+	return &MiningService{config, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9}
 }
 
 func (s *MiningService) Execute(ctx context.Context) error {
@@ -130,6 +132,38 @@ func (s *MiningService) Execute(ctx context.Context) error {
 		return fmt.Errorf("Failed to create merkle tree: %v", err)
 	}
 
+	// Iterate through all the accounts from this local machine, sort them and
+	// then hash all of them - this hash represents our `stateRoot` which is
+	// in essence a snapshot of the current accounts and their balances. Why is this
+	// important?
+	//
+	// At the start of creating a new block to be mined, a hash of this map is
+	// created and stored in the block under the StateRoot field. This allows
+	// each node to validate the current state of the peer’s accounts database
+	// as part of block validation.
+	//
+	// It’s critically important that the order of the account balances are
+	// exact when hashing the data. The Go spec does not define the order of
+	// map iteration and leaves it up to the compiler. Since Go 1.0,
+	// the compiler has chosen to have map iteration be random. This function
+	//  sorts the accounts and their balances into a slice first and then
+	// performs a hash of that slice.
+	//
+	// When a new block is received, the node can take a hash of their current
+	// accounts database and match that to the StateRoot field in the
+	// block header. If these hash values don’t match, then there is fraud
+	//  going on by the peer and their block would be rejected.	//
+	//
+	// SPECIAL THANKS TO:
+	// https://www.ardanlabs.com/blog/2022/05/blockchain-04-fraud-detection.html
+	//
+	stateRoot, err := s.getAccountsHashStateUseCase.Execute()
+	if err != nil {
+		s.logger.Error("Failed to create merkle tree",
+			slog.Any("error", err))
+		return fmt.Errorf("Failed to create merkle tree: %v", err)
+	}
+
 	// Construct the genesis block.
 	block := domain.Block{
 		Header: &domain.BlockHeader{
@@ -139,9 +173,9 @@ func (s *MiningService) Execute(ctx context.Context) error {
 			Beneficiary:   prevBlockData.Header.Beneficiary,
 			Difficulty:    s.config.Blockchain.Difficulty,
 			MiningReward:  s.config.Blockchain.MiningReward,
-			// StateRoot:     "",             //args.StateRoot, // SKIP!
-			TransRoot: tree.RootHex(), //
-			Nonce:     0,              // Will be identified by the POW algorithm.
+			StateRoot:     stateRoot,
+			TransRoot:     tree.RootHex(), //
+			Nonce:         0,              // Will be identified by the POW algorithm.
 		},
 		MerkleTree: tree,
 	}

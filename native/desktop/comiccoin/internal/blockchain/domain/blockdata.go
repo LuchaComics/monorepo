@@ -6,21 +6,43 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
-// BlockData represents what can be serialized to disk and over the network.
+// BlockData represents the data that can be serialized to disk and over the network.
+// It contains the hash of the block, the block header, and the list of transactions in the block.
 type BlockData struct {
-	Hash   string             `json:"hash"`
-	Header *BlockHeader       `json:"block_header"`
-	Trans  []BlockTransaction `json:"trans"`
+	// Hash is the unique hash of the block.
+	Hash string `json:"hash"`
+
+	// Header is the block header, which contains metadata about the block.
+	Header *BlockHeader `json:"block_header"`
+
+	// Trans is the list of transactions in the block.
+	Trans []BlockTransaction `json:"trans"`
 }
 
+// BlockDataRepository is an interface that defines the methods for interacting with block data.
+// It provides methods for upserting, getting, listing, and deleting block data.
 type BlockDataRepository interface {
+	// Upsert upserts a block data into the repository.
+	// It takes a block data and returns an error if one occurs.
 	Upsert(bd *BlockData) error
+
+	// GetByHash gets a block data by its hash.
+	// It takes a hash and returns the block data and an error if one occurs.
 	GetByHash(hash string) (*BlockData, error)
+
+	// ListAll lists all block data in the repository.
+	// It returns a list of block data and an error if one occurs.
 	ListAll() ([]*BlockData, error)
+
+	// DeleteByHash deletes a block data by its hash.
+	// It takes a hash and returns an error if one occurs.
 	DeleteByHash(hash string) error
 }
 
+// Serialize serializes a block data into a byte array.
+// It returns the serialized byte array and an error if one occurs.
 func (b *BlockData) Serialize() ([]byte, error) {
+	// Marshal the block data into a byte array using CBOR.
 	dataBytes, err := cbor.Marshal(b)
 	if err != nil {
 		return nil, fmt.Errorf("failed to serialize block data: %v", err)
@@ -28,6 +50,8 @@ func (b *BlockData) Serialize() ([]byte, error) {
 	return dataBytes, nil
 }
 
+// NewBlockDataFromDeserialize deserializes a block data from a byte array.
+// It returns the deserialized block data and an error if one occurs.
 func NewBlockDataFromDeserialize(data []byte) (*BlockData, error) {
 	// Variable we will use to return.
 	blockData := &BlockData{}
@@ -38,6 +62,7 @@ func NewBlockDataFromDeserialize(data []byte) (*BlockData, error) {
 		return nil, nil
 	}
 
+	// Unmarshal the byte array into a block data using CBOR.
 	if err := cbor.Unmarshal(data, &blockData); err != nil {
 		return nil, fmt.Errorf("failed to deserialize block data: %v", err)
 	}
