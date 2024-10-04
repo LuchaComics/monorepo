@@ -38,20 +38,23 @@ func (impl *blockchainLatestHashDTOProtocolImpl) onRemoteRequest(s network.Strea
 	//
 
 	buf := bufio.NewReader(s)
-	header, err := buf.ReadByte()
+	var lengthBuffer [4]byte
+	_, err := io.ReadFull(buf, lengthBuffer[:])
 	if err != nil {
 		s.Reset() // Important - don't forget!
-		impl.logger.Error("onRemoteRequest: failed to read message header",
+		impl.logger.Error("onRemoteResponse: failed to read message header",
 			slog.Any("peer_id", s.Conn().RemotePeer()),
 			slog.Any("error", err))
 		return
 	}
 
+	payloadLength := int(binary.LittleEndian.Uint32(lengthBuffer[:]))
+
 	//
 	// STEP 2
 	//
 
-	payloadBytes := make([]byte, header)
+	payloadBytes := make([]byte, payloadLength)
 
 	n, err := io.ReadFull(buf, payloadBytes)
 	if err != nil {
@@ -165,26 +168,8 @@ func (impl *blockchainLatestHashDTOProtocolImpl) onRemoteResponse(s network.Stre
 
 // local sends to remote
 func (impl *blockchainLatestHashDTOProtocolImpl) SendRequest(peerID peer.ID, content []byte) (string, error) {
-	// DEVELOPERS NOTE:
-	// It's OK if `content` is empty. Do not handle any defensive coding as
-	// there might be cases in which you want to send a request without any
-	// payload.
-	if content == nil {
-		content = []byte(string(""))
-	}
-
 	//
 	// STEP 1
-	//
-
-	// create message data
-	req := &BlockchainLatestHashDTORequest{
-		ID:      fmt.Sprintf("%v", time.Now().Unix()),
-		Content: content,
-	}
-
-	//
-	// STEP 2
 	//
 
 	s, err := impl.host.NewStream(context.Background(), peerID, impl.protocolIDBlockchainLatestHashDTORequest)
@@ -194,6 +179,24 @@ func (impl *blockchainLatestHashDTOProtocolImpl) SendRequest(peerID peer.ID, con
 		return "", err
 	}
 	defer s.Close()
+
+	// DEVELOPERS NOTE:
+	// It's OK if `content` is empty. Do not handle any defensive coding as
+	// there might be cases in which you want to send a request without any
+	// payload.
+	if content == nil {
+		content = []byte(string(""))
+	}
+
+	//
+	// STEP 2
+	//
+
+	// create message data
+	req := &BlockchainLatestHashDTORequest{
+		ID:      fmt.Sprintf("%v", time.Now().Unix()),
+		Content: content,
+	}
 
 	//
 	// STEP 3
@@ -211,8 +214,9 @@ func (impl *blockchainLatestHashDTOProtocolImpl) SendRequest(peerID peer.ID, con
 	// First stream the length of the message to the peer
 	//
 
-	header := []byte{byte(len(payloadBytes))}
-	_, err = s.Write(header)
+	var lengthBuffer [4]byte
+	binary.LittleEndian.PutUint32(lengthBuffer[:], uint32(len(payloadBytes)))
+	_, err = s.Write(lengthBuffer[:])
 	if err != nil {
 		impl.logger.Error("SendRequest: failed to stream message header",
 			slog.Any("error", err))
