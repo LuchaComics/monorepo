@@ -17,9 +17,6 @@ type Account struct {
 	// The balance of the account in coins.
 	Balance uint64 `json:"balance"`
 
-	// The file path where the wallet is stored.
-	WalletFilepath string `json:"wallet_filepath"`
-
 	// The public address of the account.
 	Address *common.Address `json:"address"`
 }

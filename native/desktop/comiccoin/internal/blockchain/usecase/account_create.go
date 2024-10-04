@@ -42,7 +42,7 @@ func (uc *CreateAccountUseCase) Execute(id string, walletAddress *common.Address
 	//
 
 	account := &domain.Account{
-		ID:            id,
+		ID:      id,
 		Address: walletAddress,
 	}
 

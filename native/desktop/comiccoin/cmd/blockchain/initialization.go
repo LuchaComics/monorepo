@@ -66,10 +66,6 @@ func doRunInitBlockchain() {
 		cfg,
 		logger,
 		db)
-	accountRepo := repo.NewAccountRepo(
-		cfg,
-		logger,
-		db)
 	latestBlockDataHashRepo := repo.NewBlockchainLastestHashRepo(
 		cfg,
 		logger,
@@ -85,10 +81,10 @@ func doRunInitBlockchain() {
 		cfg,
 		logger,
 		walletRepo)
-	getAccountUseCase := usecase.NewGetAccountUseCase(
+	getWalletUseCase := usecase.NewGetWalletUseCase(
 		cfg,
 		logger,
-		accountRepo)
+		walletRepo)
 	setBlockchainLastestHashUseCase := usecase.NewSetBlockchainLastestHashUseCase(
 		cfg,
 		logger,
@@ -104,7 +100,7 @@ func doRunInitBlockchain() {
 	getKeyService := service.NewGetKeyService(
 		cfg,
 		logger,
-		getAccountUseCase,
+		getWalletUseCase,
 		walletDecryptKeyUseCase)
 
 	//

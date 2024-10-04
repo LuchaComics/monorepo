@@ -179,7 +179,6 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				walletRepo)
-			_ = getWalletUseCase
 
 			// Account
 			createAccountUseCase := usecase.NewCreateAccountUseCase(
@@ -327,7 +326,7 @@ func DaemonCmd() *cobra.Command {
 			getKeyService := service.NewGetKeyService(
 				cfg,
 				logger,
-				getAccountUseCase,
+				getWalletUseCase,
 				walletDecryptKeyUseCase)
 			_ = getKeyService // TODO: USE IN FUTURE
 
@@ -336,6 +335,7 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				getAccountUseCase,
+				getWalletUseCase,
 				walletDecryptKeyUseCase,
 				broadcastMempoolTxDTOUseCase)
 

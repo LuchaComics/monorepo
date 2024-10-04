@@ -13,14 +13,14 @@ import (
 type GetKeyService struct {
 	config                  *config.Config
 	logger                  *slog.Logger
-	getAccountUseCase       *usecase.GetAccountUseCase
+	getWalletUseCase        *usecase.GetWalletUseCase
 	walletDecryptKeyUseCase *usecase.WalletDecryptKeyUseCase
 }
 
 func NewGetKeyService(
 	cfg *config.Config,
 	logger *slog.Logger,
-	uc1 *usecase.GetAccountUseCase,
+	uc1 *usecase.GetWalletUseCase,
 	uc2 *usecase.WalletDecryptKeyUseCase,
 ) *GetKeyService {
 	return &GetKeyService{cfg, logger, uc1, uc2}
@@ -35,6 +35,9 @@ func (s *GetKeyService) Execute(accountID string, walletPassword string) (*keyst
 	if accountID == "" {
 		e["account_id"] = "missing value"
 	}
+	if walletPassword == "" {
+		e["wallet_password"] = "missing value"
+	}
 	if len(e) != 0 {
 		s.logger.Warn("Failed creating new account",
 			slog.Any("error", e))
@@ -45,18 +48,18 @@ func (s *GetKeyService) Execute(accountID string, walletPassword string) (*keyst
 	// STEP 2: Return the account.
 	//
 
-	account, err := s.getAccountUseCase.Execute(accountID)
+	wallet, err := s.getWalletUseCase.Execute(accountID)
 	if err != nil {
 		s.logger.Error("failed getting from database",
 			slog.Any("account_id", accountID),
 			slog.Any("error", err))
 		return nil, fmt.Errorf("failed getting from database: %s", err)
 	}
-	if account == nil {
+	if wallet == nil {
 		return nil, fmt.Errorf("failed getting from database: %s", "d.n.e.")
 	}
 
-	key, err := s.walletDecryptKeyUseCase.Execute(account.WalletFilepath, walletPassword)
+	key, err := s.walletDecryptKeyUseCase.Execute(wallet.Filepath, walletPassword)
 	if err != nil {
 		s.logger.Error("failed getting key",
 			slog.Any("account_id", accountID),

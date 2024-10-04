@@ -18,6 +18,7 @@ type CreateTransactionService struct {
 	config                                *config.Config
 	logger                                *slog.Logger
 	getAccountUseCase                     *usecase.GetAccountUseCase
+	getWalletUseCase                      *usecase.GetWalletUseCase
 	walletDecryptKeyUseCase               *usecase.WalletDecryptKeyUseCase
 	broadcastMempoolTransactionDTOUseCase *usecase.BroadcastMempoolTransactionDTOUseCase
 }
@@ -26,10 +27,11 @@ func NewCreateTransactionService(
 	cfg *config.Config,
 	logger *slog.Logger,
 	uc1 *usecase.GetAccountUseCase,
-	uc2 *usecase.WalletDecryptKeyUseCase,
-	uc3 *usecase.BroadcastMempoolTransactionDTOUseCase,
+	uc2 *usecase.GetWalletUseCase,
+	uc3 *usecase.WalletDecryptKeyUseCase,
+	uc4 *usecase.BroadcastMempoolTransactionDTOUseCase,
 ) *CreateTransactionService {
-	return &CreateTransactionService{cfg, logger, uc1, uc2, uc3}
+	return &CreateTransactionService{cfg, logger, uc1, uc2, uc3, uc4}
 }
 
 func (s *CreateTransactionService) Execute(
@@ -67,18 +69,18 @@ func (s *CreateTransactionService) Execute(
 	// STEP 2: Get the account and extract the wallet private/public key.
 	//
 
-	account, err := s.getAccountUseCase.Execute(fromAccountID)
+	wallet, err := s.getWalletUseCase.Execute(fromAccountID)
 	if err != nil {
 		s.logger.Error("failed getting from database",
 			slog.Any("from_account_id", fromAccountID),
 			slog.Any("error", err))
 		return fmt.Errorf("failed getting from database: %s", err)
 	}
-	if account == nil {
+	if wallet == nil {
 		return fmt.Errorf("failed getting from database: %s", "d.n.e.")
 	}
 
-	key, err := s.walletDecryptKeyUseCase.Execute(account.WalletFilepath, accountWalletPassword)
+	key, err := s.walletDecryptKeyUseCase.Execute(wallet.Filepath, accountWalletPassword)
 	if err != nil {
 		s.logger.Error("failed getting key",
 			slog.Any("from_account_id", fromAccountID),
@@ -104,7 +106,7 @@ func (s *CreateTransactionService) Execute(
 	tx := &domain.Transaction{
 		ChainID: s.config.Blockchain.ChainID,
 		Nonce:   uint64(time.Now().Unix()),
-		From:    account.Address,
+		From:    wallet.Address,
 		To:      to,
 		Value:   value,
 		Data:    data,
