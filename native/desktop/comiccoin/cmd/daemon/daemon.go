@@ -16,7 +16,6 @@ import (
 	http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/http"
 	httphandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/http/handler"
 	httpmiddle "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/http/middleware"
-	rpc "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/rpc"
 	taskmng "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/task"
 	taskmnghandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/task/handler"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo"
@@ -408,12 +407,6 @@ func DaemonCmd() *cobra.Command {
 				createTransactionHTTPHandler,
 			)
 
-			// RPC
-			rpcServ := rpc.NewRPCServer(
-				cfg, logger,
-				getKeyService,
-			)
-
 			// TASK MANAGER
 			tm1 := taskmnghandler.NewMempoolReceiveTaskHandler(
 				cfg,
@@ -466,10 +459,8 @@ func DaemonCmd() *cobra.Command {
 			// blockchain with the network.
 			// go peerNode.Run()
 			go httpServ.Run()
-			go rpcServ.Run()
 			go taskManager.Run()
 			defer httpServ.Shutdown()
-			defer rpcServ.Shutdown()
 			defer taskManager.Shutdown()
 
 			<-done
@@ -478,7 +469,6 @@ func DaemonCmd() *cobra.Command {
 
 	cmd.Flags().StringVar(&flagDataDir, "datadir", "./data", "Absolute path to your node's data dir where the DB will be/is stored")
 	cmd.Flags().StringVar(&flagListenHTTPAddress, "listen-http-address", "127.0.0.1:8000", "The IP and port to attach for our HTTP JSON API server")
-	cmd.Flags().StringVar(&flagListenRPCAddress, "listen-rpc-address", "localhost:8001", "The ip and port to listen to for the TCP RPC server")
 	cmd.Flags().StringVar(&flagIdentityKeyID, "identitykey-id", "", "If you would like to use a custom identity then this is the identifier used to lookup a custom identity profile to assign for this blockchain node.")
 	cmd.Flags().IntVar(&flagListenPeerToPeerPort, "listen-p2p-port", 26642, "The port to listen to for other peers")
 	cmd.Flags().StringVar(&flagBootstrapPeers, "bootstrap-peers", "", "The list of peers used to synchronize our blockchain with")

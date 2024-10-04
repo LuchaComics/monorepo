@@ -8,7 +8,6 @@
 ARG COMICCOIN_DATADIR
 ARG COMICCOIN_IDENTITYKEY_ID
 ARG COMICCOIN_LISTEN_HTTP_ADDRESS
-ARG COMICCOIN_LISTEN_RPC_ADDRESS
 ARG COMICCOIN_LISTEN_P2P_PORT
 ARG COMICCOIN_BOOTSTRAP_PEERS
 
@@ -29,7 +28,7 @@ COPY *.go .
 RUN ["go", "get", "github.com/githubnemo/CompileDaemon"]
 RUN ["go", "install", "github.com/githubnemo/CompileDaemon"]
 
-ENTRYPOINT CompileDaemon -polling=true -log-prefix=false -build="go build ." -directory="./" -command="./comiccoin daemon --datadir=${COMICCOIN_DATADIR} --identitykey-id=${COMICCOIN_IDENTITYKEY_ID} --listen-http-address=${COMICCOIN_LISTEN_HTTP_ADDRESS} --listen-rpc-address=${COMICCOIN_LISTEN_RPC_ADDRESS} --listen-p2p-port=${COMICCOIN_LISTEN_P2P_PORT} --bootstrap-peers=${COMICCOIN_BOOTSTRAP_PEERS}"
+ENTRYPOINT CompileDaemon -polling=true -log-prefix=false -build="go build ." -directory="./" -command="./comiccoin daemon --datadir=${COMICCOIN_DATADIR} --identitykey-id=${COMICCOIN_IDENTITYKEY_ID} --listen-http-address=${COMICCOIN_LISTEN_HTTP_ADDRESS} --listen-p2p-port=${COMICCOIN_LISTEN_P2P_PORT} --bootstrap-peers=${COMICCOIN_BOOTSTRAP_PEERS}"
 
 # Developer Notes:
 #
