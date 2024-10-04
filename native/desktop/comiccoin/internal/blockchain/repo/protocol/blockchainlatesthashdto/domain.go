@@ -1,15 +1,13 @@
 package blockchainlatesthashdto
 
 import (
-	"bytes"
-	"encoding/gob"
 	"fmt"
 
+	"github.com/fxamacker/cbor/v2"
 	"github.com/libp2p/go-libp2p/core/peer"
 )
 
 type BlockchainLatestHashDTORequest struct {
-	ID      string `json:"id"`
 	Content []byte `json:"content"`
 
 	// Value set by the receiving node, not the sender in the payload!
@@ -17,7 +15,6 @@ type BlockchainLatestHashDTORequest struct {
 }
 
 type BlockchainLatestHashDTOResponse struct {
-	ID      string `json:"id"`
 	Content []byte `json:"content"`
 
 	// Value set by the receiving node, not the sender in the payload!
@@ -25,13 +22,11 @@ type BlockchainLatestHashDTOResponse struct {
 }
 
 func (b *BlockchainLatestHashDTORequest) Serialize() ([]byte, error) {
-	var result bytes.Buffer
-	encoder := gob.NewEncoder(&result)
-	err := encoder.Encode(b)
+	bytes, err := cbor.Marshal(b)
 	if err != nil {
 		return nil, fmt.Errorf("failed to serialize stream message dto: %v", err)
 	}
-	return result.Bytes(), nil
+	return bytes, nil
 }
 
 func NewBlockchainLatestHashDTORequestFromDeserialize(data []byte) (*BlockchainLatestHashDTORequest, error) {
@@ -43,9 +38,7 @@ func NewBlockchainLatestHashDTORequestFromDeserialize(data []byte) (*BlockchainL
 	if data == nil {
 		return nil, nil
 	}
-
-	decoder := gob.NewDecoder(bytes.NewReader(data))
-	err := decoder.Decode(&dto)
+	err := cbor.Unmarshal(data, &dto)
 	if err != nil {
 		return nil, fmt.Errorf("failed to deserialize stream message dto: %v", err)
 	}
@@ -53,13 +46,11 @@ func NewBlockchainLatestHashDTORequestFromDeserialize(data []byte) (*BlockchainL
 }
 
 func (b *BlockchainLatestHashDTOResponse) Serialize() ([]byte, error) {
-	var result bytes.Buffer
-	encoder := gob.NewEncoder(&result)
-	err := encoder.Encode(b)
+	bytes, err := cbor.Marshal(b)
 	if err != nil {
 		return nil, fmt.Errorf("failed to serialize stream message dto: %v", err)
 	}
-	return result.Bytes(), nil
+	return bytes, nil
 }
 
 func NewBlockchainLatestHashDTOResponseFromDeserialize(data []byte) (*BlockchainLatestHashDTOResponse, error) {
@@ -71,9 +62,7 @@ func NewBlockchainLatestHashDTOResponseFromDeserialize(data []byte) (*Blockchain
 	if data == nil {
 		return nil, nil
 	}
-
-	decoder := gob.NewDecoder(bytes.NewReader(data))
-	err := decoder.Decode(&dto)
+	err := cbor.Unmarshal(data, &dto)
 	if err != nil {
 		return nil, fmt.Errorf("failed to deserialize stream message dto: %v", err)
 	}

@@ -4,10 +4,8 @@ import (
 	"bufio"
 	"context"
 	"encoding/binary"
-	"fmt"
 	"io"
 	"log/slog"
-	"time"
 
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
@@ -78,18 +76,10 @@ func (impl *blockchainLatestHashDTOProtocolImpl) onRemoteRequest(s network.Strea
 	//
 
 	// Begin the deserialization
-	req, err := NewBlockchainLatestHashDTORequestFromDeserialize(payloadBytes)
-	if err != nil {
-		s.Reset()
-		impl.logger.Error("onRemoteRequest: failed to deserialize remote request",
-			slog.Any("payload", string(payloadBytes)),
-			slog.Any("peer_id", s.Conn().RemotePeer()),
-			slog.Any("error", err))
-		return
+	req := &BlockchainLatestHashDTORequest{
+		Content:    payloadBytes,
+		FromPeerID: s.Conn().RemotePeer(),
 	}
-
-	// Keep track of whom we received this message from.
-	req.FromPeerID = s.Conn().RemotePeer()
 
 	//
 	// STEP 5
@@ -145,19 +135,10 @@ func (impl *blockchainLatestHashDTOProtocolImpl) onRemoteResponse(s network.Stre
 	// STEP 4
 	//
 
-	// Begin the deserialization
-	resp, err := NewBlockchainLatestHashDTOResponseFromDeserialize(payloadBytes)
-	if err != nil {
-		s.Reset()
-		impl.logger.Error("onRemoteResponse: failed to deserialize remote request",
-			slog.Any("payload", string(payloadBytes)),
-			slog.Any("peer_id", s.Conn().RemotePeer()),
-			slog.Any("error", err))
-		return
+	resp := &BlockchainLatestHashDTOResponse{
+		Content:    payloadBytes,
+		FromPeerID: s.Conn().RemotePeer(), // Keep track of whom we received this message from.
 	}
-
-	// Keep track of whom we received this message from.
-	resp.FromPeerID = s.Conn().RemotePeer()
 
 	//
 	// STEP 5
@@ -167,7 +148,7 @@ func (impl *blockchainLatestHashDTOProtocolImpl) onRemoteResponse(s network.Stre
 }
 
 // local sends to remote
-func (impl *blockchainLatestHashDTOProtocolImpl) SendRequest(peerID peer.ID, content []byte) (string, error) {
+func (impl *blockchainLatestHashDTOProtocolImpl) SendRequest(peerID peer.ID, content []byte) error {
 	//
 	// STEP 1
 	//
@@ -176,7 +157,7 @@ func (impl *blockchainLatestHashDTOProtocolImpl) SendRequest(peerID peer.ID, con
 	if err != nil {
 		impl.logger.Error("SendRequest: newstream error",
 			slog.Any("error", err))
-		return "", err
+		return err
 	}
 	defer s.Close()
 
@@ -189,38 +170,17 @@ func (impl *blockchainLatestHashDTOProtocolImpl) SendRequest(peerID peer.ID, con
 	}
 
 	//
-	// STEP 2
-	//
-
-	// create message data
-	req := &BlockchainLatestHashDTORequest{
-		ID:      fmt.Sprintf("%v", time.Now().Unix()),
-		Content: content,
-	}
-
-	//
-	// STEP 3
-	//
-
-	payloadBytes, err := req.Serialize()
-	if err != nil {
-		impl.logger.Error("SendRequest: failed to Serialize",
-			slog.Any("error", err))
-		return "", err
-	}
-
-	//
 	// STEP 4
 	// First stream the length of the message to the peer
 	//
 
 	var lengthBuffer [4]byte
-	binary.LittleEndian.PutUint32(lengthBuffer[:], uint32(len(payloadBytes)))
+	binary.LittleEndian.PutUint32(lengthBuffer[:], uint32(len(content)))
 	_, err = s.Write(lengthBuffer[:])
 	if err != nil {
 		impl.logger.Error("SendRequest: failed to stream message header",
 			slog.Any("error", err))
-		return "", err
+		return err
 	}
 
 	//
@@ -228,18 +188,18 @@ func (impl *blockchainLatestHashDTOProtocolImpl) SendRequest(peerID peer.ID, con
 	// Lastely stream the payload of the message to the peer.
 	//
 
-	_, err = s.Write(payloadBytes)
+	_, err = s.Write(content)
 	if err != nil {
 		impl.logger.Error("SendRequest: failed to stream message payload",
 			slog.Any("error", err))
-		return "", err
+		return err
 	}
 
-	return req.ID, nil
+	return nil
 }
 
 // local sends to remote
-func (impl *blockchainLatestHashDTOProtocolImpl) SendResponse(peerID peer.ID, content []byte) (string, error) {
+func (impl *blockchainLatestHashDTOProtocolImpl) SendResponse(peerID peer.ID, content []byte) error {
 	// DEVELOPERS NOTE:
 	// It's OK if `content` is empty. Do not handle any defensive coding as
 	// there might be cases in which you want to send a request without any
@@ -252,62 +212,41 @@ func (impl *blockchainLatestHashDTOProtocolImpl) SendResponse(peerID peer.ID, co
 	// STEP 1
 	//
 
-	// create message data
-	resp := &BlockchainLatestHashDTOResponse{
-		ID:      fmt.Sprintf("%v", time.Now().Unix()),
-		Content: content,
-	}
-
-	//
-	// STEP 2
-	//
-
 	s, err := impl.host.NewStream(context.Background(), peerID, impl.protocolIDBlockchainLatestHashDTOResponse)
 	if err != nil {
 		impl.logger.Error("SendResponse: failed to open stream",
 			slog.Any("error", err))
-		return "", err
+		return err
 	}
 	defer s.Close()
 
 	//
-	// STEP 3
-	//
-
-	payloadBytes, err := resp.Serialize()
-	if err != nil {
-		impl.logger.Error("SendResponse: failed to serialize",
-			slog.Any("error", err))
-		return "", err
-	}
-
-	//
-	// STEP 4
+	// STEP 2
 	// First stream the length of the message to the peer
 	//
 
 	var lengthBuffer [4]byte
-	binary.LittleEndian.PutUint32(lengthBuffer[:], uint32(len(payloadBytes)))
+	binary.LittleEndian.PutUint32(lengthBuffer[:], uint32(len(content)))
 	_, err = s.Write(lengthBuffer[:])
 	if err != nil {
 		impl.logger.Error("SendRequest: failed to stream message header",
 			slog.Any("error", err))
-		return "", err
+		return err
 	}
 
 	//
-	// STEP 5
+	// STEP 3
 	// Lastely stream the payload of the message to the peer.
 	//
 
-	_, err = s.Write(payloadBytes)
+	_, err = s.Write(content)
 	if err != nil {
 		impl.logger.Error("SendResponse: failed to stream message payload",
 			slog.Any("error", err))
-		return "", err
+		return err
 	}
 
-	return resp.ID, err
+	return err
 }
 
 func (impl *blockchainLatestHashDTOProtocolImpl) WaitAndReceiveRequest(ctx context.Context) (*BlockchainLatestHashDTORequest, error) {

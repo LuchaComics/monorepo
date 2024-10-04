@@ -25,8 +25,8 @@ type blockchainLatestHashDTOProtocolImpl struct {
 }
 
 type BlockchainLatestHashDTOProtocol interface {
-	SendRequest(peerID peer.ID, content []byte) (string, error)
-	SendResponse(peerID peer.ID, content []byte) (string, error)
+	SendRequest(peerID peer.ID, content []byte) error
+	SendResponse(peerID peer.ID, content []byte) error
 
 	WaitAndReceiveRequest(ctx context.Context) (*BlockchainLatestHashDTORequest, error)
 	WaitAndReceiveResponse(ctx context.Context) (*BlockchainLatestHashDTOResponse, error)
