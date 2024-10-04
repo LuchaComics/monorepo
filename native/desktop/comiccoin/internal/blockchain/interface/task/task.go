@@ -7,6 +7,7 @@ import (
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	task "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/task/handler"
+	taskmnghandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/task/handler"
 )
 
 type TaskManager interface {
@@ -15,12 +16,15 @@ type TaskManager interface {
 }
 
 type taskManagerImpl struct {
-	cfg                         *config.Config
-	logger                      *slog.Logger
-	mempoolReceiveTaskHandler   *task.MempoolReceiveTaskHandler
-	mempoolBatchSendTaskHandler *task.MempoolBatchSendTaskHandler
-	miningTaskHandler           *task.MiningTaskHandler
-	validationTaskHandler       *task.ValidationTaskHandler
+	cfg                             *config.Config
+	logger                          *slog.Logger
+	mempoolReceiveTaskHandler       *task.MempoolReceiveTaskHandler
+	mempoolBatchSendTaskHandler     *task.MempoolBatchSendTaskHandler
+	miningTaskHandler               *task.MiningTaskHandler
+	validationTaskHandler           *task.ValidationTaskHandler
+	blockchainSyncServerTaskHandler *task.BlockchainSyncServerTaskHandler
+	blockchainSyncClientTaskHandler *task.BlockchainSyncClientTaskHandler
+	blockDataDTOServerTaskHandler   *task.BlockDataDTOServerTaskHandler
 }
 
 func NewTaskManager(
@@ -30,14 +34,20 @@ func NewTaskManager(
 	mempoolBatchSendTaskHandler *task.MempoolBatchSendTaskHandler,
 	miningTaskHandler *task.MiningTaskHandler,
 	validationTaskHandler *task.ValidationTaskHandler,
+	blockchainSyncServerTaskHandler *task.BlockchainSyncServerTaskHandler,
+	blockchainSyncClientTaskHandler *task.BlockchainSyncClientTaskHandler,
+	blockDataDTOServerTaskHandler *task.BlockDataDTOServerTaskHandler,
 ) TaskManager {
 	port := &taskManagerImpl{
-		cfg:                         cfg,
-		logger:                      logger,
-		mempoolReceiveTaskHandler:   mempoolReceiveTaskHandler,
-		mempoolBatchSendTaskHandler: mempoolBatchSendTaskHandler,
-		miningTaskHandler:           miningTaskHandler,
-		validationTaskHandler:       validationTaskHandler,
+		cfg:                             cfg,
+		logger:                          logger,
+		mempoolReceiveTaskHandler:       mempoolReceiveTaskHandler,
+		mempoolBatchSendTaskHandler:     mempoolBatchSendTaskHandler,
+		miningTaskHandler:               miningTaskHandler,
+		validationTaskHandler:           validationTaskHandler,
+		blockchainSyncServerTaskHandler: blockchainSyncServerTaskHandler,
+		blockchainSyncClientTaskHandler: blockchainSyncClientTaskHandler,
+		blockDataDTOServerTaskHandler:   blockDataDTOServerTaskHandler,
 	}
 	return port
 }
@@ -86,6 +96,40 @@ func (port *taskManagerImpl) Run() {
 		}
 	}()
 
+	go func(server *taskmnghandler.BlockchainSyncServerTaskHandler, loggerp *slog.Logger) {
+		ctx := context.Background()
+		for {
+			if err := server.Execute(ctx); err != nil {
+				loggerp.Error("blockchain sync server error", slog.Any("error", err))
+			}
+			time.Sleep(5 * time.Second)
+		}
+	}(port.blockchainSyncServerTaskHandler, port.logger)
+
+	go func(client *taskmnghandler.BlockchainSyncClientTaskHandler, loggerp *slog.Logger) {
+		ctx := context.Background()
+		for {
+			if err := client.Execute(ctx); err != nil {
+				loggerp.Error("blockchain sync client error", slog.Any("error", err))
+			}
+			time.Sleep(5 * time.Second)
+		}
+	}(port.blockchainSyncClientTaskHandler, port.logger)
+
+	go func(server *taskmnghandler.BlockDataDTOServerTaskHandler, loggerp *slog.Logger) {
+		ctx := context.Background()
+		for {
+			if err := server.Execute(ctx); err != nil {
+				loggerp.Error("blockdatabto upload server error",
+					slog.Any("error", err))
+				time.Sleep(10 * time.Second)
+				continue
+			}
+			time.Sleep(5 * time.Second)
+			loggerp.Debug("shared local blockchain with network")
+			break
+		}
+	}(port.blockDataDTOServerTaskHandler, port.logger)
 }
 
 func (port *taskManagerImpl) Shutdown() {

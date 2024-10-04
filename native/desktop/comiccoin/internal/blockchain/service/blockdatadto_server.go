@@ -56,11 +56,6 @@ func (s *BlockDataDTOServerService) Execute(ctx context.Context) error {
 		return err
 	}
 
-	s.logger.Debug("received download request",
-		slog.Any("peerID", peerID),
-		slog.Any("blockDataHash", blockDataHash),
-	)
-
 	//
 	// STEP 2:
 	// Lookup the hash we have locally.
@@ -88,23 +83,12 @@ func (s *BlockDataDTOServerService) Execute(ctx context.Context) error {
 		Trans:  blockData.Trans,
 	}
 
-	s.logger.Debug("sending download response...",
-		slog.Any("peerID", peerID),
-		slog.Any("blockDataDTO", blockDataDTO),
-		slog.Any("blockDataHash", blockDataHash),
-	)
-
 	if err := s.blockDataDTOSendP2PResponsetUseCase.Execute(ctx, peerID, blockDataDTO); err != nil {
 		s.logger.Error("failed sending response",
 			slog.Any("peer_id", peerID),
 			slog.Any("error", err))
 		return err
 	}
-
-	s.logger.Debug("sent download response successfully",
-		slog.Any("peerID", peerID),
-		slog.Any("blockDataHash", blockDataHash),
-	)
 
 	return nil
 }

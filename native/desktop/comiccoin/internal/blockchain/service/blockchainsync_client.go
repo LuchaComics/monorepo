@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"strings"
 
@@ -105,8 +106,6 @@ func (s *BlockchainSyncClientService) Execute(ctx context.Context) error {
 			return err
 		}
 
-		//TODO: Save latest hash here...
-
 		return nil
 	} else {
 		s.logger.Debug("local blockchain is up-to-date")
@@ -127,16 +126,43 @@ func (s *BlockchainSyncClientService) runDownloadAndSyncBlockchainFromBlockDataH
 	// 4d. If record d.n.e. locally then start again at step (4a)
 	// 4e. If record exists then finish
 	// 5. Else finish
+
+	//
+	// STEP 1:
+	// Check to see if we have the data already, and if we do then proceed to the next one.
+	//
+
+	blockData, err := s.getBlockDataUseCase.Execute(blockDataHash)
+	if err != nil {
+		s.logger.Error("blockchain sync client failed fetching previous block in local database",
+			slog.Any("error", err))
+		return err
+	}
+	if blockData != nil {
+		// CASE 1 OF 3: Genesis block reached.
+		if blockData.Header.PrevBlockHash == signature.ZeroHash {
+			s.logger.Debug("blockchain sync client reached genesis block data, sync completed")
+			return nil
+		}
+
+		// CASE 2 OF 3: Database error
+		if blockData.Header.PrevBlockHash == "" {
+			err := fmt.Errorf("blockchain sync client has database error with block that has empty prev block hash: %v", blockData.Header.PrevBlockHash)
+			return err
+		}
+
+		// CASE 3 OF 3: Non-genesis block reached.
+		// Recursively call this function again to perform the sync.
+		return s.runDownloadAndSyncBlockchainFromBlockDataHash(ctx, blockData.Header.PrevBlockHash)
+	}
+
+	//
 	//
 	// STEP 1:
 	// Send a request over the peer-to-peer network.
 	//
 
-	s.logger.Debug("blockchain sync client sending download request...",
-		slog.Any("blockDataHash", blockDataHash))
-
-	err := s.blockDataDTOSendP2PRequestUseCase.Execute(ctx, blockDataHash)
-	if err != nil {
+	if err := s.blockDataDTOSendP2PRequestUseCase.Execute(ctx, blockDataHash); err != nil {
 		if strings.Contains(err.Error(), "no peers connected") {
 			s.logger.Warn("blockchain sync client waiting for clients to connect...",
 				slog.Any("hash", blockDataHash))
@@ -148,16 +174,10 @@ func (s *BlockchainSyncClientService) runDownloadAndSyncBlockchainFromBlockDataH
 		return err
 	}
 
-	s.logger.Debug("blockchain sync client download request sent",
-		slog.Any("blockDataHash", blockDataHash))
-
 	//
 	// STEP 2:
 	// Wait to receive request from the peer-to-peer network.
 	//
-
-	s.logger.Debug("blockchain sync client waiting on download response...",
-		slog.Any("blockDataHash", blockDataHash))
 
 	receivedBlockData, err := s.blockDataDTOReceiveP2PResponsetUseCase.Execute(ctx)
 	if err != nil {
@@ -167,50 +187,46 @@ func (s *BlockchainSyncClientService) runDownloadAndSyncBlockchainFromBlockDataH
 		return err
 	}
 	if receivedBlockData == nil {
-		s.logger.Warn("returned empty data",
+		s.logger.Warn("blockchain sync client returned empty data from network",
 			slog.Any("hash", blockDataHash))
 		return nil
 	}
 
-	//TODO: FIX BUG AND CONTINUE DEVELOPMENT
+	//
+	// STEP 3:
+	// Save to our local database.
+	//
 
-	s.logger.Debug("blockchain sync client received from network",
-		slog.Any("hash", blockDataHash),
-		slog.Any("data", receivedBlockData))
+	//TODO: FUTURE IMPROVEMENT: Security / validation / etc.
 
+	if err := s.createBlockDataUseCase.Execute(receivedBlockData.Hash, receivedBlockData.Header, receivedBlockData.Trans); err != nil {
+		s.logger.Error("blockchain sync client failed saving to local database.",
+			slog.Any("error", err))
+		return err
+	}
+
+	s.logger.Debug("blockchain sync client downloaded block data from network",
+		slog.Any("hash", receivedBlockData.Hash))
+
+	//
+	// STEP 3:
+	// Lookup the `previous_hash` in our local database and if it does not
+	// exist then we repeat.
+	//
+
+	// CASE 1 OF 3: Genesis block reached.
 	if blockDataHash == signature.ZeroHash {
-		s.logger.Debug("lalalalalalala")
+		s.logger.Debug("blockchain sync client reached genesis block data, sync completed")
 		return nil
 	}
 
-	// //
-	// // STEP 3:
-	// // Lookup the `previous_hash` in our local database and if it does not
-	// // exist then we repeat.
-	// //
-	//
-	// previousBlockData, err := s.getBlockDataUseCase.Execute(receivedBlockData.Header.PrevBlockHash)
-	// if err != nil {
-	// 	s.logger.Error("blockchain sync client failed fetching previous block in local database",
-	// 		slog.Any("error", err))
-	// 	return err
-	// }
-	//
-	// s.logger.Debug("fetched",
-	// 	slog.Any("data", previousBlockData))
-	//
-	// // //
-	// // // STEP 3:
-	// // // Save to our local database.
-	// // //
-	// //
-	// // //TODO: FUTURE IMPROVEMENT: Security / validation / etc.
-	// //
-	// // if err := s.createBlockDataUseCase.Execute(receivedBlockData.Hash, receivedBlockData.Header, receivedBlockData.Trans); err != nil {
-	// // 	s.logger.Error("failed saving to local database.",
-	// // 		slog.Any("error", err))
-	// // 	return err
-	// // }
+	// CASE 2 OF 3: Database error
+	if receivedBlockData.Header.PrevBlockHash == "" {
+		err := fmt.Errorf("blockchain sync client has database error with block that has empty prev block hash: %v", receivedBlockData)
+		return err
+	}
 
-	return nil
+	// CASE 3 OF 3: Non-genesis block reached.
+	// Recursively call this function again to perform the sync.
+	return s.runDownloadAndSyncBlockchainFromBlockDataHash(ctx, receivedBlockData.Header.PrevBlockHash)
 }
