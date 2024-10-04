@@ -1,9 +1,9 @@
 package domain
 
 import (
-	"bytes"
-	"encoding/gob"
 	"fmt"
+
+	"github.com/fxamacker/cbor/v2"
 )
 
 // ProposedBlockData represents what can be serialized to disk and over the network.
@@ -14,18 +14,16 @@ type ProposedBlockData struct {
 }
 
 func (b *ProposedBlockData) Serialize() ([]byte, error) {
-	var result bytes.Buffer
-	encoder := gob.NewEncoder(&result)
-	err := encoder.Encode(b)
+	dataBytes, err := cbor.Marshal(b)
 	if err != nil {
 		return nil, fmt.Errorf("failed to serialize proposed block data: %v", err)
 	}
-	return result.Bytes(), nil
+	return dataBytes, nil
 }
 
 func NewProposedBlockDataFromDeserialize(data []byte) (*ProposedBlockData, error) {
 	// Variable we will use to return.
-	account := &ProposedBlockData{}
+	proposedBlockData := &ProposedBlockData{}
 
 	// Defensive code: If programmer entered empty bytes then we will
 	// return nil deserialization result.
@@ -33,10 +31,8 @@ func NewProposedBlockDataFromDeserialize(data []byte) (*ProposedBlockData, error
 		return nil, nil
 	}
 
-	decoder := gob.NewDecoder(bytes.NewReader(data))
-	err := decoder.Decode(&account)
-	if err != nil {
+	if err := cbor.Unmarshal(data, &proposedBlockData); err != nil {
 		return nil, fmt.Errorf("failed to deserialize proposed block data: %v", err)
 	}
-	return account, nil
+	return proposedBlockData, nil
 }

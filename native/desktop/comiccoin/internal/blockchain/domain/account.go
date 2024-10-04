@@ -1,11 +1,10 @@
 package domain
 
 import (
-	"bytes"
-	"encoding/gob"
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/fxamacker/cbor/v2"
 )
 
 // Account struct represents a users wallets that contain keys (private/public).
@@ -28,13 +27,11 @@ type AccountRepository interface {
 }
 
 func (b *Account) Serialize() ([]byte, error) {
-	var result bytes.Buffer
-	encoder := gob.NewEncoder(&result)
-	err := encoder.Encode(b)
+	dataBytes, err := cbor.Marshal(b)
 	if err != nil {
 		return nil, fmt.Errorf("failed to serialize account: %v", err)
 	}
-	return result.Bytes(), nil
+	return dataBytes, nil
 }
 
 func NewAccountFromDeserialize(data []byte) (*Account, error) {
@@ -47,9 +44,7 @@ func NewAccountFromDeserialize(data []byte) (*Account, error) {
 		return nil, nil
 	}
 
-	decoder := gob.NewDecoder(bytes.NewReader(data))
-	err := decoder.Decode(&account)
-	if err != nil {
+	if err := cbor.Unmarshal(data, &account); err != nil {
 		return nil, fmt.Errorf("failed to deserialize account: %v", err)
 	}
 	return account, nil

@@ -1,13 +1,12 @@
 package domain
 
 import (
-	"bytes"
-	"encoding/gob"
 	"errors"
 	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/fxamacker/cbor/v2"
 )
 
 // MempoolTransaction is a mempool version of the transaction. This is how
@@ -58,13 +57,11 @@ type MempoolTransactionRepository interface {
 }
 
 func (stx *MempoolTransaction) Serialize() ([]byte, error) {
-	var result bytes.Buffer
-	encoder := gob.NewEncoder(&result)
-	err := encoder.Encode(stx)
+	dataBytes, err := cbor.Marshal(stx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to serialize block data: %v", err)
+		return nil, fmt.Errorf("failed to serialize mempool transaction: %v", err)
 	}
-	return result.Bytes(), nil
+	return dataBytes, nil
 }
 
 func NewMempoolTransactionFromDeserialize(data []byte) (*MempoolTransaction, error) {
@@ -77,10 +74,8 @@ func NewMempoolTransactionFromDeserialize(data []byte) (*MempoolTransaction, err
 		return nil, nil
 	}
 
-	decoder := gob.NewDecoder(bytes.NewReader(data))
-	err := decoder.Decode(&stx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to deserialize block data: %v", err)
+	if err := cbor.Unmarshal(data, &stx); err != nil {
+		return nil, fmt.Errorf("failed to deserialize mempool transaction: %v", err)
 	}
 	return stx, nil
 }

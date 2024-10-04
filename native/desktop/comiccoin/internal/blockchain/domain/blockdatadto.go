@@ -1,12 +1,10 @@
 package domain
 
 import (
-	"bytes"
 	"context"
-	"encoding/gob"
 	"fmt"
-	"log"
 
+	"github.com/fxamacker/cbor/v2"
 	"github.com/libp2p/go-libp2p/core/peer"
 )
 
@@ -26,19 +24,16 @@ type BlockDataDTORepository interface {
 }
 
 func (b *BlockDataDTO) Serialize() ([]byte, error) {
-	var result bytes.Buffer
-	encoder := gob.NewEncoder(&result)
-	err := encoder.Encode(b)
+	dataBytes, err := cbor.Marshal(b)
 	if err != nil {
-		log.Printf("BlockDataDTO: Serialize: result: %v\n", result)
-		return nil, fmt.Errorf("failed to serialize block data: %v", err)
+		return nil, fmt.Errorf("failed to serialize block data dto: %v", err)
 	}
-	return result.Bytes(), nil
+	return dataBytes, nil
 }
 
 func NewBlockDataDTOFromDeserialize(data []byte) (*BlockDataDTO, error) {
 	// Variable we will use to return.
-	account := &BlockDataDTO{}
+	blockDataDTO := &BlockDataDTO{}
 
 	// Defensive code: If programmer entered empty bytes then we will
 	// return nil deserialization result.
@@ -46,11 +41,8 @@ func NewBlockDataDTOFromDeserialize(data []byte) (*BlockDataDTO, error) {
 		return nil, nil
 	}
 
-	decoder := gob.NewDecoder(bytes.NewReader(data))
-	err := decoder.Decode(&account)
-	if err != nil {
-		log.Printf("BlockDataDTO: NewBlockDataDTOFromDeserialize: data: %v\n", data)
-		return nil, fmt.Errorf("failed to deserialize block data: %v", err)
+	if err := cbor.Unmarshal(data, &blockDataDTO); err != nil {
+		return nil, fmt.Errorf("failed to deserialize account: %v", err)
 	}
-	return account, nil
+	return blockDataDTO, nil
 }

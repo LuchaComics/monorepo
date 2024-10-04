@@ -1,11 +1,11 @@
 package domain
 
 import (
-	"bytes"
-	"encoding/gob"
 	"errors"
 	"fmt"
 	"math/big"
+
+	"github.com/fxamacker/cbor/v2"
 )
 
 // SignedTransaction is a signed version of the transaction. This is how
@@ -56,13 +56,11 @@ type SignedTransactionRepository interface {
 }
 
 func (stx *SignedTransaction) Serialize() ([]byte, error) {
-	var result bytes.Buffer
-	encoder := gob.NewEncoder(&result)
-	err := encoder.Encode(stx)
+	dataBytes, err := cbor.Marshal(stx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to serialize block data: %v", err)
+		return nil, fmt.Errorf("failed to serialize signed transaction: %v", err)
 	}
-	return result.Bytes(), nil
+	return dataBytes, nil
 }
 
 func NewSignedTransactionFromDeserialize(data []byte) (*SignedTransaction, error) {
@@ -75,10 +73,8 @@ func NewSignedTransactionFromDeserialize(data []byte) (*SignedTransaction, error
 		return nil, nil
 	}
 
-	decoder := gob.NewDecoder(bytes.NewReader(data))
-	err := decoder.Decode(&stx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to deserialize block data: %v", err)
+	if err := cbor.Unmarshal(data, &stx); err != nil {
+		return nil, fmt.Errorf("failed to deserialize signed transaction: %v", err)
 	}
 	return stx, nil
 }

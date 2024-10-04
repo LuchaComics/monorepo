@@ -1,11 +1,11 @@
 package domain
 
 import (
-	"bytes"
 	"context"
-	"encoding/gob"
 	"fmt"
 	"math/big"
+
+	"github.com/fxamacker/cbor/v2"
 )
 
 // MempoolTransactionDTO is the data-transfer object used by nodes to take
@@ -24,13 +24,11 @@ type MempoolTransactionDTORepository interface {
 }
 
 func (dto *MempoolTransactionDTO) Serialize() ([]byte, error) {
-	var result bytes.Buffer
-	encoder := gob.NewEncoder(&result)
-	err := encoder.Encode(dto)
+	dataBytes, err := cbor.Marshal(dto)
 	if err != nil {
-		return nil, fmt.Errorf("failed to serialize block data: %v", err)
+		return nil, fmt.Errorf("failed to serialize mempool transaction dto: %v", err)
 	}
-	return result.Bytes(), nil
+	return dataBytes, nil
 }
 
 func NewMempoolTransactionDTOFromDeserialize(data []byte) (*MempoolTransactionDTO, error) {
@@ -43,10 +41,8 @@ func NewMempoolTransactionDTOFromDeserialize(data []byte) (*MempoolTransactionDT
 		return nil, nil
 	}
 
-	decoder := gob.NewDecoder(bytes.NewReader(data))
-	err := decoder.Decode(&dto)
-	if err != nil {
-		return nil, fmt.Errorf("failed to deserialize block data: %v", err)
+	if err := cbor.Unmarshal(data, &dto); err != nil {
+		return nil, fmt.Errorf("failed to deserialize mempool transaction dto: %v", err)
 	}
 	return dto, nil
 }

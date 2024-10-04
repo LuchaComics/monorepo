@@ -1,10 +1,10 @@
 package domain
 
 import (
-	"bytes"
 	"context"
-	"encoding/gob"
 	"fmt"
+
+	"github.com/fxamacker/cbor/v2"
 )
 
 // ProposedBlockDataDTO represents the newly minted BlockData which we want to
@@ -21,13 +21,11 @@ type ProposedBlockDataDTORepository interface {
 }
 
 func (dto *ProposedBlockDataDTO) Serialize() ([]byte, error) {
-	var result bytes.Buffer
-	encoder := gob.NewEncoder(&result)
-	err := encoder.Encode(dto)
+	dataBytes, err := cbor.Marshal(dto)
 	if err != nil {
-		return nil, fmt.Errorf("failed to serialize block data: %v", err)
+		return nil, fmt.Errorf("failed to serialize proposed block data dto: %v", err)
 	}
-	return result.Bytes(), nil
+	return dataBytes, nil
 }
 
 func NewProposedBlockDataDTOFromDeserialize(data []byte) (*ProposedBlockDataDTO, error) {
@@ -40,10 +38,8 @@ func NewProposedBlockDataDTOFromDeserialize(data []byte) (*ProposedBlockDataDTO,
 		return nil, nil
 	}
 
-	decoder := gob.NewDecoder(bytes.NewReader(data))
-	err := decoder.Decode(&dto)
-	if err != nil {
-		return nil, fmt.Errorf("failed to deserialize block data: %v", err)
+	if err := cbor.Unmarshal(data, &dto); err != nil {
+		return nil, fmt.Errorf("failed to deserialize proposed block data dto: %v", err)
 	}
 	return dto, nil
 }

@@ -1,11 +1,10 @@
 package domain
 
 import (
-	"bytes"
 	"crypto/rand"
-	"encoding/gob"
 	"fmt"
 
+	"github.com/fxamacker/cbor/v2"
 	"github.com/libp2p/go-libp2p/core/crypto"
 )
 
@@ -65,18 +64,16 @@ func (ik IdentityKey) GetPublicKey() (crypto.PubKey, error) {
 }
 
 func (b *IdentityKey) Serialize() ([]byte, error) {
-	var result bytes.Buffer
-	encoder := gob.NewEncoder(&result)
-	err := encoder.Encode(b)
+	dataBytes, err := cbor.Marshal(b)
 	if err != nil {
-		return nil, fmt.Errorf("failed to serialize: %v", err)
+		return nil, fmt.Errorf("failed to serialize identity key: %v", err)
 	}
-	return result.Bytes(), nil
+	return dataBytes, nil
 }
 
 func NewIdentityKeyFromDeserialize(data []byte) (*IdentityKey, error) {
 	// Variable we will use to return.
-	account := &IdentityKey{}
+	identityKey := &IdentityKey{}
 
 	// Defensive code: If programmer entered empty bytes then we will
 	// return nil deserialization result.
@@ -84,10 +81,8 @@ func NewIdentityKeyFromDeserialize(data []byte) (*IdentityKey, error) {
 		return nil, nil
 	}
 
-	decoder := gob.NewDecoder(bytes.NewReader(data))
-	err := decoder.Decode(&account)
-	if err != nil {
-		return nil, fmt.Errorf("failed to deserialize: %v", err)
+	if err := cbor.Unmarshal(data, &identityKey); err != nil {
+		return nil, fmt.Errorf("failed to deserialize identity key: %v", err)
 	}
-	return account, nil
+	return identityKey, nil
 }

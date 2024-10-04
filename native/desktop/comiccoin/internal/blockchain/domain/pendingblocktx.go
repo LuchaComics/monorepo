@@ -1,9 +1,9 @@
 package domain
 
 import (
-	"bytes"
-	"encoding/gob"
 	"fmt"
+
+	"github.com/fxamacker/cbor/v2"
 )
 
 // PendingBlockTransaction represents the transaction before it was recorded to
@@ -22,13 +22,11 @@ type PendingBlockTransactionRepository interface {
 }
 
 func (dto *PendingBlockTransaction) Serialize() ([]byte, error) {
-	var result bytes.Buffer
-	encoder := gob.NewEncoder(&result)
-	err := encoder.Encode(dto)
+	dataBytes, err := cbor.Marshal(dto)
 	if err != nil {
-		return nil, fmt.Errorf("failed to serialize block data: %v", err)
+		return nil, fmt.Errorf("failed to serialize pending block transaction: %v", err)
 	}
-	return result.Bytes(), nil
+	return dataBytes, nil
 }
 
 func NewPendingBlockTransactionFromDeserialize(data []byte) (*PendingBlockTransaction, error) {
@@ -41,10 +39,8 @@ func NewPendingBlockTransactionFromDeserialize(data []byte) (*PendingBlockTransa
 		return nil, nil
 	}
 
-	decoder := gob.NewDecoder(bytes.NewReader(data))
-	err := decoder.Decode(&dto)
-	if err != nil {
-		return nil, fmt.Errorf("failed to deserialize block data: %v", err)
+	if err := cbor.Unmarshal(data, &dto); err != nil {
+		return nil, fmt.Errorf("failed to deserialize pending block transaction: %v", err)
 	}
 	return dto, nil
 }

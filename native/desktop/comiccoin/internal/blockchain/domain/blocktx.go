@@ -2,11 +2,11 @@ package domain
 
 import (
 	"bytes"
-	"encoding/gob"
 	"encoding/hex"
 	"fmt"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/blockchain/signature"
+	"github.com/fxamacker/cbor/v2"
 )
 
 // BlockTransaction represents the transaction as it's recorded inside a block. This
@@ -19,13 +19,11 @@ type BlockTransaction struct {
 }
 
 func (dto *BlockTransaction) Serialize() ([]byte, error) {
-	var result bytes.Buffer
-	encoder := gob.NewEncoder(&result)
-	err := encoder.Encode(dto)
+	dataBytes, err := cbor.Marshal(dto)
 	if err != nil {
-		return nil, fmt.Errorf("failed to serialize block data: %v", err)
+		return nil, fmt.Errorf("failed to serialize block transaction: %v", err)
 	}
-	return result.Bytes(), nil
+	return dataBytes, nil
 }
 
 func NewBlockTransactionFromDeserialize(data []byte) (*BlockTransaction, error) {
@@ -38,10 +36,8 @@ func NewBlockTransactionFromDeserialize(data []byte) (*BlockTransaction, error) 
 		return nil, nil
 	}
 
-	decoder := gob.NewDecoder(bytes.NewReader(data))
-	err := decoder.Decode(&dto)
-	if err != nil {
-		return nil, fmt.Errorf("failed to deserialize block data: %v", err)
+	if err := cbor.Unmarshal(data, &dto); err != nil {
+		return nil, fmt.Errorf("failed to deserialize block transaction: %v", err)
 	}
 	return dto, nil
 }
