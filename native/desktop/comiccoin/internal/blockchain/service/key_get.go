@@ -11,29 +11,29 @@ import (
 )
 
 type GetKeyService struct {
-	config                   *config.Config
-	logger                   *slog.Logger
-	getAccountUseCase        *usecase.GetAccountUseCase
-	accountDecryptKeyUseCase *usecase.AccountDecryptKeyUseCase
+	config                  *config.Config
+	logger                  *slog.Logger
+	getAccountUseCase       *usecase.GetAccountUseCase
+	walletDecryptKeyUseCase *usecase.WalletDecryptKeyUseCase
 }
 
 func NewGetKeyService(
 	cfg *config.Config,
 	logger *slog.Logger,
 	uc1 *usecase.GetAccountUseCase,
-	uc2 *usecase.AccountDecryptKeyUseCase,
+	uc2 *usecase.WalletDecryptKeyUseCase,
 ) *GetKeyService {
 	return &GetKeyService{cfg, logger, uc1, uc2}
 }
 
-func (s *GetKeyService) Execute(id string, walletPassword string) (*keystore.Key, error) {
+func (s *GetKeyService) Execute(accountID string, walletPassword string) (*keystore.Key, error) {
 	//
 	// STEP 1: Validation.
 	//
 
 	e := make(map[string]string)
-	if id == "" {
-		e["id"] = "missing value"
+	if accountID == "" {
+		e["account_id"] = "missing value"
 	}
 	if len(e) != 0 {
 		s.logger.Warn("Failed creating new account",
@@ -45,10 +45,10 @@ func (s *GetKeyService) Execute(id string, walletPassword string) (*keystore.Key
 	// STEP 2: Return the account.
 	//
 
-	account, err := s.getAccountUseCase.Execute(id)
+	account, err := s.getAccountUseCase.Execute(accountID)
 	if err != nil {
 		s.logger.Error("failed getting from database",
-			slog.Any("id", id),
+			slog.Any("account_id", accountID),
 			slog.Any("error", err))
 		return nil, fmt.Errorf("failed getting from database: %s", err)
 	}
@@ -56,10 +56,10 @@ func (s *GetKeyService) Execute(id string, walletPassword string) (*keystore.Key
 		return nil, fmt.Errorf("failed getting from database: %s", "d.n.e.")
 	}
 
-	key, err := s.accountDecryptKeyUseCase.Execute(account.WalletFilepath, walletPassword)
+	key, err := s.walletDecryptKeyUseCase.Execute(account.WalletFilepath, walletPassword)
 	if err != nil {
 		s.logger.Error("failed getting key",
-			slog.Any("id", id),
+			slog.Any("account_id", accountID),
 			slog.Any("error", err))
 		return nil, fmt.Errorf("failed getting key: %s", err)
 	}

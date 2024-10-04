@@ -26,7 +26,6 @@ func NewCreateAccountHTTPHandler(
 }
 
 type AccountCreateRequestIDO struct {
-	ID             string `json:"id"`
 	WalletPassword string `json:"wallet_password"`
 }
 
@@ -44,7 +43,7 @@ func (h *CreateAccountHTTPHandler) Execute(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	account, serviceErr := h.createAccountService.Execute(h.config.App.DirPath, requestPayload.ID, requestPayload.WalletPassword)
+	account, serviceErr := h.createAccountService.Execute(h.config.App.DirPath, requestPayload.WalletPassword)
 	if serviceErr != nil {
 		httperror.ResponseError(w, serviceErr)
 		return
@@ -52,7 +51,6 @@ func (h *CreateAccountHTTPHandler) Execute(w http.ResponseWriter, r *http.Reques
 
 	// Conver to our HTTP response and send back to the user.
 	responsePayload := &AccountCreateResponseIDO{
-		ID:            account.ID,
 		WalletAddress: account.WalletAddress.String(),
 	}
 

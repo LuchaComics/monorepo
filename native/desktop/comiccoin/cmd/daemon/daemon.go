@@ -120,6 +120,10 @@ func DaemonCmd() *cobra.Command {
 			_ = ikGetService
 
 			// ------------ Repo ------------
+			walletRepo := repo.NewWalletRepo(
+				cfg,
+				logger,
+				db)
 			accountRepo := repo.NewAccountRepo(
 				cfg,
 				logger,
@@ -158,20 +162,31 @@ func DaemonCmd() *cobra.Command {
 				libP2PNetwork)
 
 			// ------------ Use-case ------------
+			// Wallet
+			createWalletUseCase := usecase.NewCreateWalletUseCase(
+				cfg,
+				logger,
+				walletRepo)
+			walletDecryptKeyUseCase := usecase.NewWalletDecryptKeyUseCase(
+				cfg,
+				logger,
+				walletRepo)
+			walletEncryptKeyUseCase := usecase.NewWalletEncryptKeyUseCase(
+				cfg,
+				logger,
+				walletRepo)
+			getWalletUseCase := usecase.NewGetWalletUseCase(
+				cfg,
+				logger,
+				walletRepo)
+			_ = getWalletUseCase
+
 			// Account
 			createAccountUseCase := usecase.NewCreateAccountUseCase(
 				cfg,
 				logger,
 				accountRepo)
 			getAccountUseCase := usecase.NewGetAccountUseCase(
-				cfg,
-				logger,
-				accountRepo)
-			accountDecryptKeyUseCase := usecase.NewAccountDecryptKeyUseCase(
-				cfg,
-				logger,
-				accountRepo)
-			accountEncryptKeyUseCase := usecase.NewAccountEncryptKeyUseCase(
 				cfg,
 				logger,
 				accountRepo)
@@ -292,20 +307,28 @@ func DaemonCmd() *cobra.Command {
 			createAccountService := service.NewCreateAccountService(
 				cfg,
 				logger,
+				walletEncryptKeyUseCase,
+				walletDecryptKeyUseCase,
+				createWalletUseCase,
 				createAccountUseCase,
-				getAccountUseCase,
-				accountEncryptKeyUseCase)
+				getAccountUseCase)
 			getAccountService := service.NewGetAccountService(
 				cfg,
 				logger,
 				getAccountUseCase)
+			getAccountBalanceService := service.NewGetAccountBalanceService(
+				cfg,
+				logger,
+				getBlockchainLastestHashUseCase,
+				getBlockDataUseCase)
+			_ = getAccountBalanceService // TODO
 
 			// Key
 			getKeyService := service.NewGetKeyService(
 				cfg,
 				logger,
 				getAccountUseCase,
-				accountDecryptKeyUseCase)
+				walletDecryptKeyUseCase)
 			_ = getKeyService // TODO: USE IN FUTURE
 
 			// Transaction
@@ -313,7 +336,7 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				getAccountUseCase,
-				accountDecryptKeyUseCase,
+				walletDecryptKeyUseCase,
 				broadcastMempoolTxDTOUseCase)
 
 			// Mempool

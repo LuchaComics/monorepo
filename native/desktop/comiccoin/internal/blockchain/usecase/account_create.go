@@ -19,7 +19,7 @@ func NewCreateAccountUseCase(config *config.Config, logger *slog.Logger, repo do
 	return &CreateAccountUseCase{config, logger, repo}
 }
 
-func (uc *CreateAccountUseCase) Execute(id string, walletAddress *common.Address, walletFilepath string) error {
+func (uc *CreateAccountUseCase) Execute(id string, walletAddress *common.Address) error {
 	//
 	// STEP 1: Validation.
 	//
@@ -30,9 +30,6 @@ func (uc *CreateAccountUseCase) Execute(id string, walletAddress *common.Address
 	}
 	if walletAddress == nil {
 		e["wallet_address"] = "missing value"
-	}
-	if walletFilepath == "" {
-		e["wallet_filepath"] = "missing value"
 	}
 	if len(e) != 0 {
 		uc.logger.Warn("Failed creating new account",
@@ -45,9 +42,8 @@ func (uc *CreateAccountUseCase) Execute(id string, walletAddress *common.Address
 	//
 
 	account := &domain.Account{
-		ID:             id,
-		WalletAddress:  walletAddress,
-		WalletFilepath: walletFilepath,
+		ID:            id,
+		WalletAddress: walletAddress,
 	}
 
 	//

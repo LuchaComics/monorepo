@@ -26,7 +26,6 @@ func httpJsonApiNewAccountCmd() *cobra.Command {
 			httpEndpoint := fmt.Sprintf("http://%s:%d%s", flagListenHTTPIP, flagListenHTTPPort, accountsURL)
 
 			req := &ah.AccountCreateRequestIDO{
-				ID:             flagAccountID,
 				WalletPassword: flagPassword,
 			}
 
@@ -107,8 +106,6 @@ func httpJsonApiNewAccountCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&flagAccountID, "account-id", "", "The ID to assign this account")
-	cmd.MarkFlagRequired("account-id")
 	cmd.Flags().StringVar(&flagPassword, "wallet-password", "", "The password to encrypt the new wallet with")
 	cmd.MarkFlagRequired("wallet-password")
 	cmd.Flags().IntVar(&flagListenHTTPPort, "listen-http-port", 8000, "The HTTP JSON API server's port")

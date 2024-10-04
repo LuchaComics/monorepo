@@ -18,7 +18,7 @@ type CreateTransactionService struct {
 	config                                *config.Config
 	logger                                *slog.Logger
 	getAccountUseCase                     *usecase.GetAccountUseCase
-	accountDecryptKeyUseCase              *usecase.AccountDecryptKeyUseCase
+	walletDecryptKeyUseCase               *usecase.WalletDecryptKeyUseCase
 	broadcastMempoolTransactionDTOUseCase *usecase.BroadcastMempoolTransactionDTOUseCase
 }
 
@@ -26,7 +26,7 @@ func NewCreateTransactionService(
 	cfg *config.Config,
 	logger *slog.Logger,
 	uc1 *usecase.GetAccountUseCase,
-	uc2 *usecase.AccountDecryptKeyUseCase,
+	uc2 *usecase.WalletDecryptKeyUseCase,
 	uc3 *usecase.BroadcastMempoolTransactionDTOUseCase,
 ) *CreateTransactionService {
 	return &CreateTransactionService{cfg, logger, uc1, uc2, uc3}
@@ -78,7 +78,7 @@ func (s *CreateTransactionService) Execute(
 		return fmt.Errorf("failed getting from database: %s", "d.n.e.")
 	}
 
-	key, err := s.accountDecryptKeyUseCase.Execute(account.WalletFilepath, accountWalletPassword)
+	key, err := s.walletDecryptKeyUseCase.Execute(account.WalletFilepath, accountWalletPassword)
 	if err != nil {
 		s.logger.Error("failed getting key",
 			slog.Any("from_account_id", fromAccountID),
