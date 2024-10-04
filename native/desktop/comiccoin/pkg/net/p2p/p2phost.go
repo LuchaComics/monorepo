@@ -12,53 +12,44 @@ import (
 	libp2ptls "github.com/libp2p/go-libp2p/p2p/security/tls"
 )
 
-// newHostWithPredictableIdentifier function will create a host with an
-// identifier that never changes - it remains the same due to the fact that
-// we are using custom private-public key pairs saved locally in the system.
+// newHostWithPredictableIdentifier creates a host with a predictable identifier.
+// This is achieved by reusing a custom private-public key pair saved locally in the system.
 func (node *peerProviderImpl) newHostWithPredictableIdentifier() (host.Host, error) {
-	// ctx := context.Background()
-
+	// Check if the listen port is configured.
 	if node.cfg.Peer.ListenPort == 0 {
-		return nil, fmt.Errorf("missing to p2p listen port: %v", node.cfg.Peer.ListenPort)
+		return nil, fmt.Errorf("missing p2p listen port: %v", node.cfg.Peer.ListenPort)
 	}
 
-	//
-	// STEP 1:
-	// We want to keep the same identifier every time the server restarts
-	// or restarts so we will reuse the key-pair we have saved locally.
-	//
-
+	// Load the private key from the node's identity.
 	priv := node.identityPrivateKey
 
-	//
-	// STEP 2:
-	// Loadup our p2p host server.
-	//
-
+	// Create a connection manager to limit the number of connections.
 	connmgr, err := connmgr.NewConnManager(
 		100, // Lowwater
 		400, // HighWater,
 		connmgr.WithGracePeriod(time.Minute),
 	)
 	if err != nil {
+		// Panic if the connection manager cannot be created.
 		panic(err)
 	}
 
+	// Create a new host with the specified configuration.
 	basicHost, err := libp2p.New(
+		// Listen on the configured port for TCP and UDP connections.
 		libp2p.ListenAddrStrings(
 			fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", node.cfg.Peer.ListenPort), // regular tcp connections
 			fmt.Sprintf("/ip4/127.0.0.1/udp/%d/quic-v1", node.cfg.Peer.ListenPort),
 		),
-		// Use the keypair we generated
+		// Use the loaded private key for the host's identity.
 		libp2p.Identity(priv),
-		// support TLS connections
+		// Support TLS connections.
 		libp2p.Security(libp2ptls.ID, libp2ptls.New),
-		// support noise connections
+		// Support noise connections.
 		libp2p.Security(noise.ID, noise.New),
-		// support any other default transports (TCP)
+		// Support any other default transports (TCP).
 		libp2p.DefaultTransports,
-		// Let's prevent our peer from having too many
-		// connections by attaching a connection manager.
+		// Attach the connection manager to the host.
 		libp2p.ConnectionManager(connmgr),
 
 		// Attempt to open ports using uPNP for NATed hosts.
@@ -77,6 +68,7 @@ func (node *peerProviderImpl) newHostWithPredictableIdentifier() (host.Host, err
 		// https://github.com/libp2p/go-libp2p/blob/master/examples/libp2p-host/host.go#L56
 	)
 	if err != nil {
+		// Log an error if the host cannot be created.
 		node.logger.Error("failed starting basic host",
 			slog.Any("error", err))
 		return nil, err

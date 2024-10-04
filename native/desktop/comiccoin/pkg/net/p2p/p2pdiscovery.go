@@ -2,6 +2,7 @@ package p2p
 
 import (
 	"context"
+	"log"
 	"log/slog"
 
 	"github.com/libp2p/go-libp2p/core/host"
@@ -9,65 +10,56 @@ import (
 	dutil "github.com/libp2p/go-libp2p/p2p/discovery/util"
 )
 
+// AdvertiseWithRendezvousString advertises the peer's presence using a rendezvous string.
+// This allows other peers to discover and connect to this peer.
 func (impl *peerProviderImpl) AdvertiseWithRendezvousString(ctx context.Context, h host.Host, rendezvousString string) {
+	// Use the libp2p discovery utility to advertise the peer's presence.
 	dutil.Advertise(ctx, impl.routingDiscovery, rendezvousString)
 }
 
+// DiscoverPeersAtRendezvousString discovers peers at a rendezvous string and connects to them.
+// The peerConnectedFunc callback function is called for each peer that is connected.
 func (impl *peerProviderImpl) DiscoverPeersAtRendezvousString(ctx context.Context, h host.Host, rendezvousString string, peerConnectedFunc func(peer.AddrInfo) error) {
-	// Initialize if necessary the map for the rendezvousString.
+	// Initialize the map for the rendezvous string if necessary.
 	_, ok := impl.peers[rendezvousString]
 	if !ok {
 		impl.peers[rendezvousString] = make(map[peer.ID]*peer.AddrInfo, 0)
 	}
 
+	// Find peers at the rendezvous string using the routing discovery.
 	peerChan, err := impl.routingDiscovery.FindPeers(ctx, rendezvousString)
 	if err != nil {
 		impl.logger.Error("Failed routing discovery finding peers",
 			slog.Any("rendezvous_string", rendezvousString),
 			slog.Any("error", err))
-		panic(err)
+		log.Fatalf("Failed routing discovery finding peers: %v", err)
 	}
 
+	// Iterate over the peers found at the rendezvous string.
 	for peer := range peerChan {
+		// Skip self connections.
 		if peer.ID == h.ID() {
-			continue // No self connection
+			continue
 		}
 
-		// We will check to see if we have made a record of this new peer
-		// and if never did then we will connect!
+		// Check if we have already connected to this peer.
 		_, ok := impl.peers[rendezvousString][peer.ID]
 		if !ok {
-			// impl.logger.Debug("Connecting peer...",
-			// 	slog.Any("peer_id", peer.ID))
-
+			// Connect to the peer.
 			err := h.Connect(ctx, peer)
 			if err != nil {
-
-				// DEVELOPERS NOTE:
-				// "ibp2p is designed to “loose” the peer information over time, gradually. It takes time for one peer to be “forgotten”." via https://discuss.libp2p.io/t/disconnecting-removing-peers-form-the-dht-and-peerstore/1932/4
-				// Therefore this error is "acceptable", so all we will do is
-				// hide it. DO NOT CHANGE THIS.
-
+				// Note: This error is "acceptable" because libp2p is designed to
+				// "loose" peer information over time. See:
+				// https://discuss.libp2p.io/t/disconnecting-removing-peers-form-the-dht-and-peerstore/1932/4
 				continue
 			} else {
-
-				// impl.logger.Debug("111New peer connected",
-				// 	slog.Any("is_host", impl.isHostMode),
-				// 	slog.Any("peer_id", peer.ID))
-
-				// impl.mu.Lock()
-				// defer impl.mu.Unlock()
-
-				// impl.logger.Debug("New peer connected",
-				// 	slog.Any("is_host", impl.isHostMode),
-				// 	slog.Any("peer_id", peer.ID))
-
-				// Make a callback function.
+				// Call the peerConnectedFunc callback function.
 				if err := peerConnectedFunc(peer); err != nil {
 					// impl.logger.Error("failed connecting peer", slog.Any("error", err))
 					break
 				}
 
+				// Store the peer in the map.
 				impl.peers[rendezvousString][peer.ID] = &peer
 			}
 		}
