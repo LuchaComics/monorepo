@@ -21,7 +21,7 @@ type BlockDataDTO struct {
 type BlockDataDTORepository interface {
 	SendRequestToRandomPeer(ctx context.Context, blockDataHash string) error
 	ReceiveRequestFromNetwork(ctx context.Context) (peer.ID, string, error)
-	SendResponseToPeer(ctx context.Context, peerID peer.ID, data BlockDataDTO) error
+	SendResponseToPeer(ctx context.Context, peerID peer.ID, data *BlockDataDTO) error
 	ReceiveResponseFromNetwork(ctx context.Context) (*BlockDataDTO, error)
 }
 

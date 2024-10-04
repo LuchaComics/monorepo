@@ -82,7 +82,7 @@ func (s *BlockDataDTOServerService) Execute(ctx context.Context) error {
 	// Send to the peer the local data we have.
 	//
 
-	blockDataDTO := domain.BlockDataDTO{
+	blockDataDTO := &domain.BlockDataDTO{
 		Hash:   blockData.Hash,
 		Header: blockData.Header,
 		Trans:  blockData.Trans,

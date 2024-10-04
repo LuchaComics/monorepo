@@ -19,7 +19,7 @@ func NewBlockDataDTOSendP2PResponsetUseCase(config *config.Config, logger *slog.
 	return &BlockDataDTOSendP2PResponsetUseCase{config, logger, repo}
 }
 
-func (uc *BlockDataDTOSendP2PResponsetUseCase) Execute(ctx context.Context, peerID peer.ID, data domain.BlockDataDTO) error {
+func (uc *BlockDataDTOSendP2PResponsetUseCase) Execute(ctx context.Context, peerID peer.ID, data *domain.BlockDataDTO) error {
 	// ctx, cancel := context.WithTimeout(ctx, 45*time.Second) // add a 45-second timeout
 	// defer cancel()
 	return uc.repo.SendResponseToPeer(ctx, peerID, data)

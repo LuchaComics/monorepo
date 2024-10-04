@@ -9,19 +9,19 @@ import (
 )
 
 type SimpleMessageRequest struct {
-	ID      string
-	Content []byte
+	ID      string `json:"id"`
+	Content []byte `json:"content"`
 
 	// Value set by the receiving node, not the sender in the payload!
-	FromPeerID peer.ID
+	FromPeerID peer.ID `json:"from_peer_id"`
 }
 
 type SimpleMessageResponse struct {
-	ID      string
-	Content []byte
+	ID      string `json:"id"`
+	Content []byte `json:"content"`
 
 	// Value set by the receiving node, not the sender in the payload!
-	FromPeerID peer.ID
+	FromPeerID peer.ID `json:"from_peer_id"`
 }
 
 func (b *SimpleMessageRequest) Serialize() ([]byte, error) {
