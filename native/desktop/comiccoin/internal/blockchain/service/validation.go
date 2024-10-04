@@ -137,7 +137,17 @@ func (s *ValidationService) Execute(ctx context.Context) error {
 		return err
 	}
 
-	s.logger.Debug("validator saved proposed block data to blockchain",
+	s.logger.Debug("validator saved proposed block data to local blockchain",
+		slog.Any("hash", proposedBlockData.Hash),
+	)
+
+	if err := s.setBlockchainLastestHashUseCase.Execute(blockData.Hash); err != nil {
+		s.logger.Error("validator failed saving latest hash",
+			slog.Any("error", err))
+		return err
+	}
+
+	s.logger.Debug("validator set latest hash in local blockchain to point to our saved purposed block data",
 		slog.Any("hash", proposedBlockData.Hash),
 	)
 
