@@ -24,6 +24,8 @@ type Account struct {
 	// The public address of the account.
 	Address *common.Address `json:"address"`
 
+	// The value of the `nonce` found in the last transaction this account made
+	// on the blockchain.
 	Nonce uint64 `json:"nonce"`
 
 	// The balance of the account in coins.

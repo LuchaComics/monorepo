@@ -161,7 +161,7 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	// Update the `coinbase` account.
 	//
 
-	if err := s.upsertAccountUseCase.Execute(&s.coinbaseAccountKey.Address, initialSupply, 0); err != nil {
+	if err := s.upsertAccountUseCase.Execute(&s.coinbaseAccountKey.Address, initialSupply, block.Header.Nonce); err != nil {
 		return fmt.Errorf("Failed to upsert account: %v", err)
 	}
 
