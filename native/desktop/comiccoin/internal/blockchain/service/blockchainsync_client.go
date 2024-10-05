@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/blockchain/signature"
 )
@@ -22,6 +23,8 @@ type BlockchainSyncClientService struct {
 	blockDataDTOReceiveP2PResponsetUseCase        *usecase.BlockDataDTOReceiveP2PResponsetUseCase
 	createBlockDataUseCase                        *usecase.CreateBlockDataUseCase
 	getBlockDataUseCase                           *usecase.GetBlockDataUseCase
+	getAccountUseCase                             *usecase.GetAccountUseCase
+	upsertAccountUseCase                          *usecase.UpsertAccountUseCase
 }
 
 func NewBlockchainSyncClientService(
@@ -35,8 +38,10 @@ func NewBlockchainSyncClientService(
 	uc6 *usecase.BlockDataDTOReceiveP2PResponsetUseCase,
 	uc7 *usecase.CreateBlockDataUseCase,
 	uc8 *usecase.GetBlockDataUseCase,
+	uc9 *usecase.GetAccountUseCase,
+	uc10 *usecase.UpsertAccountUseCase,
 ) *BlockchainSyncClientService {
-	return &BlockchainSyncClientService{cfg, logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8}
+	return &BlockchainSyncClientService{cfg, logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10}
 }
 
 func (s *BlockchainSyncClientService) Execute(ctx context.Context) error {
@@ -209,7 +214,20 @@ func (s *BlockchainSyncClientService) runDownloadAndSyncBlockchainFromBlockDataH
 		slog.Any("hash", receivedBlockData.Hash))
 
 	//
-	// STEP 3:
+	// STEP 4
+	// Update the account in our in-memory database.
+	//
+
+	for _, blockTx := range receivedBlockData.Trans {
+		if err := s.processAccountForBlockTransaction(blockData, &blockTx); err != nil {
+			s.logger.Error("Failed processing transaction",
+				slog.Any("error", err))
+			return err
+		}
+	}
+
+	//
+	// STEP 5:
 	// Lookup the `previous_hash` in our local database and if it does not
 	// exist then we repeat.
 	//
@@ -229,4 +247,76 @@ func (s *BlockchainSyncClientService) runDownloadAndSyncBlockchainFromBlockDataH
 	// CASE 3 OF 3: Non-genesis block reached.
 	// Recursively call this function again to perform the sync.
 	return s.runDownloadAndSyncBlockchainFromBlockDataHash(ctx, receivedBlockData.Header.PrevBlockHash)
+}
+
+// TODO: (1) Create somesort of `processAccountForBlockTransaction` service and (2) replace it with this.
+func (s *BlockchainSyncClientService) processAccountForBlockTransaction(blockData *domain.BlockData, blockTx *domain.BlockTransaction) error {
+	// DEVELOPERS NOTE:
+	// Please remember that when this function executes, there already is an
+	// in-memory database of accounts populated and maintained by this node.
+	// Therefore the code in this function is executed on a ready database.
+
+	//
+	// STEP 1
+	//
+
+	if blockTx.From != nil {
+		// DEVELOPERS NOTE:
+		// We already *should* have a `From` account in our database, so we can
+		acc, _ := s.getAccountUseCase.Execute(blockTx.From)
+		if acc == nil {
+			s.logger.Error("The `From` account does not exist in our database.",
+				slog.Any("hash", blockTx.From))
+			return fmt.Errorf("The `From` account does not exist in our database for hash: %v", blockTx.From.String())
+		}
+		acc.Balance -= blockTx.Value
+
+		// DEVELOPERS NOTE:
+		// Do not update this accounts `Nonce`, we need to only update the
+		// `Nonce` to the receiving account, i.e. the `To` account.
+
+		if err := s.upsertAccountUseCase.Execute(acc.Address, acc.Balance, acc.Nonce); err != nil {
+			s.logger.Error("Failed upserting account.",
+				slog.Any("error", err))
+			return err
+		}
+	}
+
+	//
+	// STEP 2
+	//
+
+	if blockTx.To != nil {
+		// DEVELOPERS NOTE:
+		// It is perfectly normal that our account would possibly not exist
+		// so we would need to create a new Account record in our local
+		// in-memory database.
+		acc, _ := s.getAccountUseCase.Execute(blockTx.To)
+		if acc == nil {
+			if err := s.upsertAccountUseCase.Execute(blockTx.To, 0, 0); err != nil {
+				s.logger.Error("Failed creating account.",
+					slog.Any("error", err))
+				return err
+			}
+			acc = &domain.Account{
+				Address: blockTx.To,
+
+				// Since we are iterating in reverse in the blockchain, we are
+				// starting at the latest block data and then iterating until
+				// we reach a genesis; therefore, if this account is created then
+				// this is their most recent transaction so therefore we want to
+				// save the nonce.
+				Nonce: blockData.Header.Nonce,
+			}
+		}
+		acc.Balance += blockTx.Value
+
+		if err := s.upsertAccountUseCase.Execute(acc.Address, acc.Balance, acc.Nonce); err != nil {
+			s.logger.Error("Failed upserting account.",
+				slog.Any("error", err))
+			return err
+		}
+	}
+
+	return nil
 }

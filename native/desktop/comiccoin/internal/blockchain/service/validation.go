@@ -172,5 +172,90 @@ func (s *ValidationService) Execute(ctx context.Context) error {
 		slog.Any("hash", proposedBlockData.Hash),
 	)
 
+	//
+	// STEP 4
+	// Update the account in our in-memory database.
+	//
+
+	for _, blockTx := range blockData.Trans {
+		if err := s.processAccountForBlockTransaction(blockData, &blockTx); err != nil {
+			s.logger.Error("Failed processing transaction",
+				slog.Any("error", err))
+			return err
+		}
+	}
+
+	return nil
+}
+
+// TODO: (1) Create somesort of `processAccountForBlockTransaction` service and (2) replace it with this.
+func (s *ValidationService) processAccountForBlockTransaction(blockData *domain.BlockData, blockTx *domain.BlockTransaction) error {
+	// DEVELOPERS NOTE:
+	// Please remember that when this function executes, there already is an
+	// in-memory database of accounts populated and maintained by this node.
+	// Therefore the code in this function is executed on a ready database.
+
+	//
+	// STEP 1
+	//
+
+	if blockTx.From != nil {
+		// DEVELOPERS NOTE:
+		// We already *should* have a `From` account in our database, so we can
+		acc, _ := s.getAccountUseCase.Execute(blockTx.From)
+		if acc == nil {
+			s.logger.Error("The `From` account does not exist in our database.",
+				slog.Any("hash", blockTx.From))
+			return fmt.Errorf("The `From` account does not exist in our database for hash: %v", blockTx.From.String())
+		}
+		acc.Balance -= blockTx.Value
+
+		// DEVELOPERS NOTE:
+		// Do not update this accounts `Nonce`, we need to only update the
+		// `Nonce` to the receiving account, i.e. the `To` account.
+
+		if err := s.upsertAccountUseCase.Execute(acc.Address, acc.Balance, acc.Nonce); err != nil {
+			s.logger.Error("Failed upserting account.",
+				slog.Any("error", err))
+			return err
+		}
+	}
+
+	//
+	// STEP 2
+	//
+
+	if blockTx.To != nil {
+		// DEVELOPERS NOTE:
+		// It is perfectly normal that our account would possibly not exist
+		// so we would need to create a new Account record in our local
+		// in-memory database.
+		acc, _ := s.getAccountUseCase.Execute(blockTx.To)
+		if acc == nil {
+			if err := s.upsertAccountUseCase.Execute(blockTx.To, 0, 0); err != nil {
+				s.logger.Error("Failed creating account.",
+					slog.Any("error", err))
+				return err
+			}
+			acc = &domain.Account{
+				Address: blockTx.To,
+
+				// Since we are iterating in reverse in the blockchain, we are
+				// starting at the latest block data and then iterating until
+				// we reach a genesis; therefore, if this account is created then
+				// this is their most recent transaction so therefore we want to
+				// save the nonce.
+				Nonce: blockData.Header.Nonce,
+			}
+		}
+		acc.Balance += blockTx.Value
+
+		if err := s.upsertAccountUseCase.Execute(acc.Address, acc.Balance, acc.Nonce); err != nil {
+			s.logger.Error("Failed upserting account.",
+				slog.Any("error", err))
+			return err
+		}
+	}
+
 	return nil
 }

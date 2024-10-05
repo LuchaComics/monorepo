@@ -381,7 +381,10 @@ func DaemonCmd() *cobra.Command {
 				createBlockDataUseCase,
 				proofOfWorkUseCase,
 				broadcastProposedBlockDataDTOUseCase,
-				deleteAllPendingBlockTxUseCase)
+				deleteAllPendingBlockTxUseCase,
+				getAccountUseCase,
+				upsertAccountUseCase,
+			)
 
 			// Validation
 			validationService := service.NewValidationService(
@@ -416,6 +419,8 @@ func DaemonCmd() *cobra.Command {
 				blockDataDTOReceiveP2PResponseUseCase,
 				createBlockDataUseCase,
 				getBlockDataUseCase,
+				getAccountUseCase,
+				upsertAccountUseCase,
 			)
 
 			uploadServerService := service.NewBlockDataDTOServerService(
