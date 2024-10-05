@@ -249,6 +249,8 @@ func doBlockchainSync() {
 		blockDataDTOReceiveP2PResponseUseCase,
 		createBlockDataUseCase,
 		getBlockDataUseCase,
+		getAccountUseCase,
+		upsertAccountUseCase,
 	)
 
 	uploadServerService := service.NewBlockDataDTOServerService(
