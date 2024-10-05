@@ -21,10 +21,11 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo"
 	service "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/service"
 	usecase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
-	dbase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/db/leveldb"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/kmutexutil"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/logger"
 	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p"
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/storage/disk/leveldb"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/storage/memory"
 )
 
 func DaemonCmd() *cobra.Command {
@@ -70,7 +71,8 @@ func DaemonCmd() *cobra.Command {
 				},
 			}
 			logger := logger.NewLogger()
-			db := dbase.NewDatabase(cfg.DB.DataDir, logger)
+			db := disk.NewDiskStorage(cfg.DB.DataDir, logger)
+			memdb := memory.NewInMemoryStorage(logger)
 			kmutex := kmutexutil.NewKMutexProvider()
 
 			// ------------ Peer-to-Peer (P2P) ------------
@@ -127,7 +129,7 @@ func DaemonCmd() *cobra.Command {
 			accountRepo := repo.NewAccountRepo(
 				cfg,
 				logger,
-				db)
+				memdb) // Do not store on disk, only in-memory.
 			mempoolTxRepo := repo.NewMempoolTransactionRepo(
 				cfg,
 				logger,
@@ -190,6 +192,10 @@ func DaemonCmd() *cobra.Command {
 				logger,
 				accountRepo)
 			getAccountsHashStateUseCase := usecase.NewGetAccountsHashStateUseCase(
+				cfg,
+				logger,
+				accountRepo)
+			upsertAccountUseCase := usecase.NewUpsertAccountUseCase(
 				cfg,
 				logger,
 				accountRepo)
@@ -303,6 +309,14 @@ func DaemonCmd() *cobra.Command {
 
 			// ------------ Service ------------
 			// Account
+			initAccountsFromBlockchainService := service.NewInitAccountsFromBlockchainService(
+				cfg,
+				logger,
+				getBlockchainLastestHashUseCase,
+				getBlockDataUseCase,
+				getAccountUseCase,
+				createAccountUseCase,
+				upsertAccountUseCase)
 			createAccountService := service.NewCreateAccountService(
 				cfg,
 				logger,
@@ -478,18 +492,36 @@ func DaemonCmd() *cobra.Command {
 			)
 
 			//
+			// STEP 2
+			// Load up the accounts into the in-memory storage before loading
+			// the application because our accounts are only stored in memory
+			// and not on disk.
+			//
+
+			logger.Info("Loading accounts into memory...")
+			if err := initAccountsFromBlockchainService.Execute(); err != nil {
+				log.Fatalf("failed executing accounts initialization: %v\n", err)
+			}
+			logger.Info("Accounts ready.")
+
+			//
 			// STEP 3
 			// Run the main loop blocking code while other input ports run in
 			// background.
 			//
 
+			logger.Info("Starting node...")
+
 			// Run in background the peer to peer node which will synchronize our
 			// blockchain with the network.
 			// go peerNode.Run()
+
 			go httpServ.Run()
 			go taskManager.Run()
 			defer httpServ.Shutdown()
 			defer taskManager.Shutdown()
+
+			logger.Info("Node running.")
 
 			<-done
 		},

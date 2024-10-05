@@ -19,7 +19,6 @@ type CreateGenesisBlockDataService struct {
 	config                          *config.Config
 	logger                          *slog.Logger
 	coinbaseAccountKey              *keystore.Key
-	getAccountUseCase               *usecase.GetAccountUseCase
 	getAccountsHashStateUseCase     *usecase.GetAccountsHashStateUseCase
 	setBlockchainLastestHashUseCase *usecase.SetBlockchainLastestHashUseCase
 	createBlockDataUseCase          *usecase.CreateBlockDataUseCase
@@ -31,32 +30,17 @@ func NewCreateGenesisBlockDataService(
 	config *config.Config,
 	logger *slog.Logger,
 	coinbaseAccKey *keystore.Key,
-	uc1 *usecase.GetAccountUseCase,
-	uc2 *usecase.GetAccountsHashStateUseCase,
-	uc3 *usecase.SetBlockchainLastestHashUseCase,
-	uc4 *usecase.CreateBlockDataUseCase,
-	uc5 *usecase.ProofOfWorkUseCase,
-	uc6 *usecase.UpsertAccountUseCase,
+	uc1 *usecase.GetAccountsHashStateUseCase,
+	uc2 *usecase.SetBlockchainLastestHashUseCase,
+	uc3 *usecase.CreateBlockDataUseCase,
+	uc4 *usecase.ProofOfWorkUseCase,
+	uc5 *usecase.UpsertAccountUseCase,
 ) *CreateGenesisBlockDataService {
-	return &CreateGenesisBlockDataService{config, logger, coinbaseAccKey, uc1, uc2, uc3, uc4, uc5, uc6}
+	return &CreateGenesisBlockDataService{config, logger, coinbaseAccKey, uc1, uc2, uc3, uc4, uc5}
 }
 
 func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	s.logger.Debug("starting genesis creation service...")
-	defer s.logger.Debug("finished  genesis creation service")
-
-	//
-	// STEP 0:
-	// Defensive code to make sure we have coinbase!
-	//
-
-	coinbaseAccount, err := s.getAccountUseCase.Execute(&s.coinbaseAccountKey.Address)
-	if err != nil {
-		return fmt.Errorf("Failed getting coinbase account: %v", err)
-	}
-	if coinbaseAccount == nil {
-		return fmt.Errorf("Failed getting coinbase account because it does not exist at address: %v", s.coinbaseAccountKey.Address)
-	}
 
 	//
 	// STEP 1:
@@ -165,5 +149,6 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 		return fmt.Errorf("Failed to upsert account: %v", err)
 	}
 
+	s.logger.Debug("finished  genesis creation service")
 	return nil
 }

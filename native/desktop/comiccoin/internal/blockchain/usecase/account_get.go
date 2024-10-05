@@ -19,14 +19,14 @@ func NewGetAccountUseCase(config *config.Config, logger *slog.Logger, repo domai
 	return &GetAccountUseCase{config, logger, repo}
 }
 
-func (uc *GetAccountUseCase) Execute(walletAddress *common.Address) (*domain.Account, error) {
+func (uc *GetAccountUseCase) Execute(address *common.Address) (*domain.Account, error) {
 	//
 	// STEP 1: Validation.
 	//
 
 	e := make(map[string]string)
-	if walletAddress == nil {
-		e["wallet_address"] = "missing value"
+	if address == nil {
+		e["address"] = "missing value"
 	}
 	if len(e) != 0 {
 		uc.logger.Warn("Failed getting account",
@@ -38,5 +38,5 @@ func (uc *GetAccountUseCase) Execute(walletAddress *common.Address) (*domain.Acc
 	// STEP 2: Insert into database.
 	//
 
-	return uc.repo.GetByAddress(walletAddress)
+	return uc.repo.GetByAddress(address)
 }

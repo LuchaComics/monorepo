@@ -2,8 +2,8 @@ package memory
 
 import (
 	"fmt"
-	"log"
 	"log/slog"
+	"strings"
 	"sync"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/storage"
@@ -88,7 +88,20 @@ func (impl *keyValueStorerImpl) Deletef(format string, a ...any) error {
 // View iterates over the key-value pairs in the database and calls the provided function for each pair.
 // It returns an error if the iteration fails.
 func (impl *keyValueStorerImpl) View(key string, processFunc func(key, value []byte) error) error {
-	log.Fatal("Function is not supported yet...")
+	impl.lock.Lock()
+	defer impl.lock.Unlock()
+
+	// Iterate over the key-value pairs in the database
+	for k, v := range impl.data {
+		// Check if the key matches the provided key
+		if strings.HasPrefix(k, key) {
+			// Call the provided function for each pair
+			if err := processFunc([]byte(k), v.value); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -96,7 +109,17 @@ func (impl *keyValueStorerImpl) View(key string, processFunc func(key, value []b
 // It calls the provided function for each pair.
 // It returns an error if the iteration fails.
 func (impl *keyValueStorerImpl) ViewFromFirst(processFunc func(key, value []byte) error) error {
-	log.Fatal("Function is not supported yet...")
+	impl.lock.Lock()
+	defer impl.lock.Unlock()
+
+	// Iterate over the key-value pairs in the database, starting from the first pair
+	for k, v := range impl.data {
+		// Call the provided function for each pair
+		if err := processFunc([]byte(k), v.value); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -104,13 +127,46 @@ func (impl *keyValueStorerImpl) ViewFromFirst(processFunc func(key, value []byte
 // It calls the provided function for each pair.
 // It returns an error if the iteration fails.
 func (impl *keyValueStorerImpl) Iterate(keyPrefix string, seekThenIterateKey string, processFunc func(key, value []byte) error) error {
-	log.Fatal("Function is not supported yet...")
+	impl.lock.Lock()
+	defer impl.lock.Unlock()
+
+	// Find the starting point for the iteration
+	var found bool
+	var startingKey string
+	for k := range impl.data {
+		if strings.HasPrefix(k, keyPrefix) && k >= seekThenIterateKey {
+			found = true
+			startingKey = k
+			break
+		}
+	}
+
+	// If the starting point is not found, return an error
+	if !found {
+		return fmt.Errorf("starting point not found for key prefix %s and seek key %s", keyPrefix, seekThenIterateKey)
+	}
+
+	// Iterate over the key-value pairs in the database, starting from the starting point
+	for k, v := range impl.data {
+		if strings.HasPrefix(k, keyPrefix) && k >= startingKey {
+			// Call the provided function for each pair
+			if err := processFunc([]byte(k), v.value); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 
 // Close closes the database.
 // It returns an error if the operation fails.
 func (impl *keyValueStorerImpl) Close() error {
-	log.Fatal("Function is not supported yet...")
+	impl.lock.Lock()
+	defer impl.lock.Unlock()
+
+	// Clear the data map
+	impl.data = make(map[string]cacheValue)
+
 	return nil
 }

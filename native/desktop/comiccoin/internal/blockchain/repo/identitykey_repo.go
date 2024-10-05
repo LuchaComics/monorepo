@@ -5,16 +5,16 @@ import (
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
-	dbase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/db"
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/storage"
 )
 
 type IdentityKeyRepo struct {
 	config   *config.Config
 	logger   *slog.Logger
-	dbClient dbase.Database
+	dbClient disk.Storage
 }
 
-func NewIdentityKeyRepo(cfg *config.Config, logger *slog.Logger, db dbase.Database) *IdentityKeyRepo {
+func NewIdentityKeyRepo(cfg *config.Config, logger *slog.Logger, db disk.Storage) *IdentityKeyRepo {
 	return &IdentityKeyRepo{cfg, logger, db}
 }
 

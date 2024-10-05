@@ -12,9 +12,9 @@ import (
 	ik_repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo"
 	ik_s "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/service"
 	ik_use "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
-	dbase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/db/leveldb"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/logger"
 	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p"
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/storage/disk/leveldb"
 	ma "github.com/multiformats/go-multiaddr"
 )
 
@@ -50,7 +50,7 @@ func InitCmd() *cobra.Command {
 				},
 			}
 			logger := logger.NewLogger()
-			db := dbase.NewDatabase(cfg.DB.DataDir, logger)
+			db := disk.NewDiskStorage(cfg.DB.DataDir, logger)
 			ikRepo := ik_repo.NewIdentityKeyRepo(cfg, logger, db)
 			ikCreateUseCase := ik_use.NewCreateIdentityKeyUseCase(cfg, logger, ikRepo)
 			ikGetUseCase := ik_use.NewGetIdentityKeyUseCase(cfg, logger, ikRepo)

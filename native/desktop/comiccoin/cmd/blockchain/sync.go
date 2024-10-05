@@ -19,9 +19,10 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/service"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
-	dbase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/db/leveldb"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/logger"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p"
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/storage/disk/leveldb"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/storage/memory"
 )
 
 func SyncCmd() *cobra.Command {
@@ -81,7 +82,8 @@ func doBlockchainSync() {
 	}
 
 	logger := logger.NewLogger()
-	db := dbase.NewDatabase(cfg.DB.DataDir, logger)
+	db := disk.NewDiskStorage(cfg.DB.DataDir, logger)
+	memdb := memory.NewInMemoryStorage(logger)
 
 	// ------------ Peer-to-Peer (P2P) ------------
 	ikRepo := repo.NewIdentityKeyRepo(cfg, logger, db)
@@ -141,8 +143,26 @@ func doBlockchainSync() {
 		cfg,
 		logger,
 		libP2PNetwork)
+	accountRepo := repo.NewAccountRepo(
+		cfg,
+		logger,
+		memdb) // Do not store on disk, only in-memory.
 
 	// ------------ Use-case ------------
+
+	// Account
+	createAccountUseCase := usecase.NewCreateAccountUseCase(
+		cfg,
+		logger,
+		accountRepo)
+	getAccountUseCase := usecase.NewGetAccountUseCase(
+		cfg,
+		logger,
+		accountRepo)
+	upsertAccountUseCase := usecase.NewUpsertAccountUseCase(
+		cfg,
+		logger,
+		accountRepo)
 
 	// Block Data
 	getBlockDataUseCase := usecase.NewGetBlockDataUseCase(
@@ -202,6 +222,15 @@ func doBlockchainSync() {
 
 	// ------------ Service ------------
 
+	initAccountsFromBlockchainService := service.NewInitAccountsFromBlockchainService(
+		cfg,
+		logger,
+		getBlockchainLastestHashUseCase,
+		getBlockDataUseCase,
+		getAccountUseCase,
+		createAccountUseCase,
+		upsertAccountUseCase,
+	)
 	syncServerService := service.NewBlockchainSyncServerService(
 		cfg,
 		logger,
@@ -246,7 +275,28 @@ func doBlockchainSync() {
 		logger,
 		uploadServerService)
 
+	//
+	// STEP 2
+	// Load up the accounts into the in-memory storage before loading
+	// the application because our accounts are only stored in memory
+	// and not on disk.
+	//
+
+	logger.Info("Loading accounts into memory...")
+	if err := initAccountsFromBlockchainService.Execute(); err != nil {
+		log.Fatalf("failed executing accounts initialization: %v\n", err)
+	}
+	logger.Info("Accounts ready.")
+
 	// ------------ Execution ------------
+
+	//
+	// STEP 3
+	// Run the main loop blocking code while other input ports run in
+	// background.
+	//
+
+	logger.Info("Starting network services only...")
 
 	go func(server *taskmnghandler.BlockchainSyncServerTaskHandler) {
 		ctx := context.Background()

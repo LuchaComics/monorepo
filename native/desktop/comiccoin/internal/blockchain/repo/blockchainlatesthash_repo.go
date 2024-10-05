@@ -5,16 +5,16 @@ import (
 	"log/slog"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
-	dbase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/db"
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/storage"
 )
 
 type BlockchainLastestHashRepo struct {
 	config   *config.Config
 	logger   *slog.Logger
-	dbClient dbase.Database
+	dbClient disk.Storage
 }
 
-func NewBlockchainLastestHashRepo(cfg *config.Config, logger *slog.Logger, db dbase.Database) *BlockchainLastestHashRepo {
+func NewBlockchainLastestHashRepo(cfg *config.Config, logger *slog.Logger, db disk.Storage) *BlockchainLastestHashRepo {
 	return &BlockchainLastestHashRepo{cfg, logger, db}
 }
 

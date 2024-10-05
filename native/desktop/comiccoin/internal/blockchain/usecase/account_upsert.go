@@ -19,13 +19,13 @@ func NewUpsertAccountUseCase(config *config.Config, logger *slog.Logger, repo do
 	return &UpsertAccountUseCase{config, logger, repo}
 }
 
-func (uc *UpsertAccountUseCase) Execute(walletAddress *common.Address, balance, nonce uint64) error {
+func (uc *UpsertAccountUseCase) Execute(address *common.Address, balance, nonce uint64) error {
 	//
 	// STEP 1: Validation.
 	//
 
 	e := make(map[string]string)
-	if walletAddress == nil {
+	if address == nil {
 		e["address"] = "missing value"
 	}
 	if len(e) != 0 {
@@ -39,7 +39,7 @@ func (uc *UpsertAccountUseCase) Execute(walletAddress *common.Address, balance, 
 	//
 
 	account := &domain.Account{
-		Address: walletAddress,
+		Address: address,
 		Nonce:   nonce,
 		Balance: balance,
 	}

@@ -4,20 +4,21 @@ import (
 	"log/slog"
 	"sort"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/blockchain/signature"
-	dbase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/db"
-	"github.com/ethereum/go-ethereum/common"
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/storage"
 )
 
 type AccountRepo struct {
 	config   *config.Config
 	logger   *slog.Logger
-	dbClient dbase.Database
+	dbClient disk.Storage
 }
 
-func NewAccountRepo(cfg *config.Config, logger *slog.Logger, db dbase.Database) *AccountRepo {
+func NewAccountRepo(cfg *config.Config, logger *slog.Logger, db disk.Storage) *AccountRepo {
 	return &AccountRepo{cfg, logger, db}
 }
 

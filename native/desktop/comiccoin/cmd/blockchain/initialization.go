@@ -12,8 +12,9 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/repo"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/service"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
-	dbase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/db/leveldb"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/logger"
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/storage/disk/leveldb"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/storage/memory"
 )
 
 func InitCmd() *cobra.Command {
@@ -61,7 +62,8 @@ func doRunInitBlockchain() {
 		},
 	}
 	logger := logger.NewLogger()
-	db := dbase.NewDatabase(cfg.DB.DataDir, logger)
+	db := disk.NewDiskStorage(cfg.DB.DataDir, logger)
+	memdb := memory.NewInMemoryStorage(logger)
 
 	// ------------ Repo ------------
 	walletRepo := repo.NewWalletRepo(
@@ -79,7 +81,7 @@ func doRunInitBlockchain() {
 	accountRepo := repo.NewAccountRepo(
 		cfg,
 		logger,
-		db)
+		memdb) // Do not store on disk, only in-memory.
 
 	// ------------ Use-case ------------
 
@@ -100,10 +102,6 @@ func doRunInitBlockchain() {
 		logger,
 		blockDataRepo)
 	proofOfWorkUseCase := usecase.NewProofOfWorkUseCase(cfg, logger)
-	getAccountUseCase := usecase.NewGetAccountUseCase(
-		cfg,
-		logger,
-		accountRepo)
 	getAccountsHashStateUseCase := usecase.NewGetAccountsHashStateUseCase(
 		cfg,
 		logger,
@@ -133,6 +131,15 @@ func doRunInitBlockchain() {
 		log.Fatalf("failed getting account wallet key: %v", err)
 	}
 
+	// DEVELOPERS NOTE:
+	// Since we are using in-memory database, we'll need to manually create
+	// the coinbase account before proceeding. This is not a mistake, remember
+	// in-memory data get's lost on app shutdown, so when the app starts up
+	// again you'll need to populate the accounts database again.
+	if err := upsertAccountUseCase.Execute(&accountAddress, 0, 0); err != nil {
+		log.Fatalf("failed upserting account: %v", err)
+	}
+
 	//
 	// STEP 3:
 	// Execute our genesis creation.
@@ -142,7 +149,6 @@ func doRunInitBlockchain() {
 		cfg,
 		logger,
 		coinbaseAccountKey,
-		getAccountUseCase,
 		getAccountsHashStateUseCase,
 		setBlockchainLastestHashUseCase,
 		createBlockDataUseCase,
