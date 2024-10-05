@@ -391,8 +391,11 @@ func DaemonCmd() *cobra.Command {
 				receiveProposedBlockDataDTOUseCase,
 				getBlockchainLastestHashUseCase,
 				getBlockDataUseCase,
+				getAccountsHashStateUseCase,
 				createBlockDataUseCase,
 				setBlockchainLastestHashUseCase,
+				getAccountUseCase,
+				upsertAccountUseCase,
 			)
 
 			syncServerService := service.NewBlockchainSyncServerService(

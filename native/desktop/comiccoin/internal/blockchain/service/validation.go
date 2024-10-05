@@ -12,7 +12,6 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/kmutexutil"
 )
 
-// ValidationService represents (TODO)
 type ValidationService struct {
 	config                             *config.Config
 	logger                             *slog.Logger
@@ -20,8 +19,11 @@ type ValidationService struct {
 	receiveProposedBlockDataDTOUseCase *usecase.ReceiveProposedBlockDataDTOUseCase
 	getBlockchainLastestHashUseCase    *usecase.GetBlockchainLastestHashUseCase
 	getBlockDataUseCase                *usecase.GetBlockDataUseCase
+	getAccountsHashStateUseCase        *usecase.GetAccountsHashStateUseCase
 	createBlockDataUseCase             *usecase.CreateBlockDataUseCase
 	setBlockchainLastestHashUseCase    *usecase.SetBlockchainLastestHashUseCase
+	getAccountUseCase                  *usecase.GetAccountUseCase
+	upsertAccountUseCase               *usecase.UpsertAccountUseCase
 }
 
 func NewValidationService(
@@ -31,10 +33,13 @@ func NewValidationService(
 	uc1 *usecase.ReceiveProposedBlockDataDTOUseCase,
 	uc2 *usecase.GetBlockchainLastestHashUseCase,
 	uc3 *usecase.GetBlockDataUseCase,
-	uc4 *usecase.CreateBlockDataUseCase,
-	uc5 *usecase.SetBlockchainLastestHashUseCase,
+	uc4 *usecase.GetAccountsHashStateUseCase,
+	uc5 *usecase.CreateBlockDataUseCase,
+	uc6 *usecase.SetBlockchainLastestHashUseCase,
+	uc7 *usecase.GetAccountUseCase,
+	uc8 *usecase.UpsertAccountUseCase,
 ) *ValidationService {
-	return &ValidationService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5}
+	return &ValidationService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8}
 }
 
 func (s *ValidationService) Execute(ctx context.Context) error {
@@ -119,7 +124,23 @@ func (s *ValidationService) Execute(ctx context.Context) error {
 			slog.Any("error", err))
 		return err
 	}
-	stateRoot := "" //TODO: Impl.
+
+	// DEVELOPERS NOTE:
+	// In essence every node on the network hash an in-memory database of all
+	// the accounts (including the account balances) before we add this purposed
+	// block to the blockchain; therefore, we can confirm the `StateRoot` is
+	// the same on the miners side to confirm that no modifications were made
+	// with any of the account balances.
+	//
+	// To learn more about the state root, read this in-depth articl:
+	// https://www.ardanlabs.com/blog/2022/05/blockchain-04-fraud-detection.html
+	//
+	stateRoot, err := s.getBlockchainLastestHashUseCase.Execute()
+	if err != nil {
+		s.logger.Error("validator failed getting state root",
+			slog.Any("error", err))
+		return err
+	}
 	if err := block.ValidateBlock(previousBlock, stateRoot); err != nil {
 		s.logger.Error("validator failed validating the proposed block with the previous block",
 			slog.Any("error", err))
