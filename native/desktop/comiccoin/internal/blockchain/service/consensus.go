@@ -69,6 +69,9 @@ func (s *ConsensusService) Execute(ctx context.Context) error {
 		return err
 	}
 
+	defer s.logger.Debug("consensus mechanism vote submitted to network",
+		slog.String("local_hash", localHash))
+
 	//
 	// STEP 3:
 	// Query our blockchain network to discover the latest hash agreed upon.
@@ -84,6 +87,10 @@ func (s *ConsensusService) Execute(ctx context.Context) error {
 			slog.Any("error", err))
 		return err
 	}
+
+	defer s.logger.Debug("consensus mechanism received from network",
+		slog.String("blockchain_hash", blockchainHash))
+
 	if blockchainHash == "" {
 		s.logger.Warn("returned hash is empty")
 		return nil

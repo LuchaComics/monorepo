@@ -18,6 +18,10 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p/protocol/simple"
 )
 
+const (
+	consensusMechanismRendezvousString = "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain/consensus"
+)
+
 // MajorityVoteConsensusRepoImpl represents the implementation of the
 // `ConsensusRepository` interface tailer for a `majority voting` consensum
 // algorithm.
@@ -52,7 +56,6 @@ type MajorityVoteConsensusRepoImpl struct {
 }
 
 func NewMajorityVoteConsensusRepoImpl(cfg *config.Config, logger *slog.Logger, libP2PNetwork p2p.LibP2PNetwork) domain.ConsensusRepository {
-	rendezvousString := "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain/consensus"
 
 	//
 	// STEP 1
@@ -76,7 +79,7 @@ func NewMajorityVoteConsensusRepoImpl(cfg *config.Config, logger *slog.Logger, l
 	//
 
 	// This is like your friend telling you the location to meet you.
-	impl.libP2PNetwork.AdvertiseWithRendezvousString(context.Background(), impl.libP2PNetwork.GetHost(), rendezvousString)
+	impl.libP2PNetwork.AdvertiseWithRendezvousString(context.Background(), impl.libP2PNetwork.GetHost(), consensusMechanismRendezvousString)
 
 	//
 	// STEP 3:
@@ -133,7 +136,7 @@ func NewMajorityVoteConsensusRepoImpl(cfg *config.Config, logger *slog.Logger, l
 	// Join the `topic` in the pub-sub.
 	//
 
-	topic, err := psObj.Join(rendezvousString)
+	topic, err := psObj.Join(consensusMechanismRendezvousString)
 	if err != nil {
 		log.Fatalf("failed joining pub-sub for topic: %v", err)
 	}
@@ -179,7 +182,7 @@ func NewMajorityVoteConsensusRepoImpl(cfg *config.Config, logger *slog.Logger, l
 			// Wait to connect with new peers.
 			//
 
-			impl.libP2PNetwork.DiscoverPeersAtRendezvousString(context.Background(), h, rendezvousString, func(p peer.AddrInfo) error {
+			impl.libP2PNetwork.DiscoverPeersAtRendezvousString(context.Background(), h, consensusMechanismRendezvousString, func(p peer.AddrInfo) error {
 
 				//
 				// STEP 11
@@ -207,7 +210,10 @@ func NewMajorityVoteConsensusRepoImpl(cfg *config.Config, logger *slog.Logger, l
 	// right away.
 	//
 	go func(ctx context.Context, impl *MajorityVoteConsensusRepoImpl) {
+
 		for {
+			impl.logger.Debug("waiting for consensus request from network")
+
 			// Developers Note:
 			// https://github.com/libp2p/go-libp2p/blob/master/examples/pubsub/basic-chat-with-rendezvous/main.go#L121
 
@@ -217,7 +223,11 @@ func NewMajorityVoteConsensusRepoImpl(cfg *config.Config, logger *slog.Logger, l
 					slog.Any("error", err))
 				continue
 			}
+
 			if msg != nil {
+				impl.logger.Debug("consensus request received by our node, our node submitted our vote",
+					slog.Any("peer_id", msg.ReceivedFrom))
+
 				peerID := msg.ReceivedFrom
 
 				impl.mu.Lock()
@@ -236,10 +246,34 @@ func NewMajorityVoteConsensusRepoImpl(cfg *config.Config, logger *slog.Logger, l
 	return impl
 }
 func (impl *MajorityVoteConsensusRepoImpl) QueryLatestHashByConsensus(ctx context.Context) (string, error) {
+	//
+	// STEP 1
 	// Attach a `1 minute` timeout so if we don't acheive consensus within that
 	// time limit then we will need to abandon this request.
+	//
+
 	ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
 	defer cancel()
+
+	//
+	// STEP 2:
+	// Submit a request to the peer-to-peer network.
+	//
+
+	// Special Thanks:
+	// https://github.com/libp2p/go-libp2p/blob/master/examples/pubsub/basic-chat-with-rendezvous/main.go#L115
+
+	if err := impl.topic.Publish(ctx, []byte{}); err != nil {
+		impl.logger.Error("Failed to publish",
+			slog.String("topic_name", consensusMechanismRendezvousString),
+			slog.Any("error", err))
+		return "", fmt.Errorf("failed to publish: %s", consensusMechanismRendezvousString)
+	}
+	impl.logger.Debug("Submitted consensus request to the peer-to-peer network.")
+
+	//
+	// STEP 3:
+	//
 
 	// Variable used to keep track of the networks response.
 	voteResults := make(map[peer.ID]string, len(impl.peers))
@@ -259,19 +293,17 @@ func (impl *MajorityVoteConsensusRepoImpl) QueryLatestHashByConsensus(ctx contex
 	// Create a channel to collect errors from goroutines.
 	errCh := make(chan error, numOfPeers)
 
-	for peerID := range impl.peers {
-		if err := impl.dtoProtocol.SendRequest(peerID, []byte("")); err != nil {
-			return "", err
-		}
-
+	for range impl.peers {
 		go func(mu *sync.Mutex) {
 			defer wg.Done() // We are done this background task.
 
 			resp, err := impl.dtoProtocol.WaitAndReceiveResponse(ctx)
 			if err != nil {
 				if ctx.Err() == context.DeadlineExceeded {
-					impl.logger.Warn("timeout occurred")
+					impl.logger.Warn("onsensus mechanism timeout occurred waiting to receive from p2p network")
 				} else {
+					impl.logger.Error("consensus mechanism failed to receive from p2p network",
+						slog.Any("error", err))
 					errCh <- err
 				}
 				return
@@ -295,6 +327,8 @@ func (impl *MajorityVoteConsensusRepoImpl) QueryLatestHashByConsensus(ctx contex
 	// Check if any errors occurred.
 	select {
 	case err := <-errCh:
+		impl.logger.Error("network connectivity issue",
+			slog.Any("error", err))
 		return "", err
 	case <-errCh:
 		// No errors occurred.
@@ -315,6 +349,9 @@ func (impl *MajorityVoteConsensusRepoImpl) QueryLatestHashByConsensus(ctx contex
 			mostCommonHash = hash
 		}
 	}
+
+	impl.logger.Error("consensus returned",
+		slog.String("most_common_hash", mostCommonHash))
 
 	return mostCommonHash, nil
 }
