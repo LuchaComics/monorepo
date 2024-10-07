@@ -236,7 +236,8 @@ func NewMajorityVoteConsensusRepoImpl(cfg *config.Config, logger *slog.Logger, l
 				dataBytes := []byte(impl.currentBlockchainHash)
 				if err := impl.dtoProtocol.SendResponse(peerID, dataBytes); err != nil {
 					impl.logger.Error("Failed to send response",
-						slog.Any("error", err))
+						slog.Any("error", err),
+						slog.Any("peer_id", msg.ReceivedFrom))
 					continue
 				}
 			}
