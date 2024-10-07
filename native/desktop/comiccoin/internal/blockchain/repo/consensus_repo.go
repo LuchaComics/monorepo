@@ -98,7 +98,7 @@ func NewMajorityVoteConsensusRepoImpl(cfg *config.Config, logger *slog.Logger, l
 			peerID := c.RemotePeer()
 			impl.logger.Warn("peer disconnected",
 				slog.Any("peer_id", peerID),
-				slog.String("dto", "lastblockdatahash"),
+				slog.String("dto", "consensus"),
 			)
 			delete(impl.peers, peerID)
 
@@ -133,7 +133,7 @@ func NewMajorityVoteConsensusRepoImpl(cfg *config.Config, logger *slog.Logger, l
 	// Join the `topic` in the pub-sub.
 	//
 
-	topic, err := psObj.Join(proposedBlockDataDTORendezvousString)
+	topic, err := psObj.Join(rendezvousString)
 	if err != nil {
 		log.Fatalf("failed joining pub-sub for topic: %v", err)
 	}
@@ -190,7 +190,7 @@ func NewMajorityVoteConsensusRepoImpl(cfg *config.Config, logger *slog.Logger, l
 				impl.peers[p.ID] = &p
 
 				impl.logger.Debug("peer connected",
-					slog.String("dto", "lastblockdatahash"),
+					slog.String("dto", "consensus"),
 					slog.Any("peer_id", p.ID))
 
 				// Return nil to indicate success (no errors occured).
@@ -323,8 +323,9 @@ func (impl *MajorityVoteConsensusRepoImpl) QueryLatestHashByConsensus(ctx contex
 // want to auto-submit to the peer-to-peer network from your peer when the
 // network requests a consensus on the state of the blockchain pertaining to
 // what is the hash of the latest block.
-func (impl *MajorityVoteConsensusRepoImpl) SetCurrentBlockchainHash(newHash string) {
+func (impl *MajorityVoteConsensusRepoImpl) CastVoteForLatestHashConsensus(newHash string) error {
 	impl.mu.Lock()
 	defer impl.mu.Unlock()
 	impl.currentBlockchainHash = newHash
+	return nil
 }

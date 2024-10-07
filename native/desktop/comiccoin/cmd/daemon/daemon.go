@@ -154,11 +154,11 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				libP2PNetwork)
-			lbdhDTORepo := repo.NewBlockchainLastestHashDTORepo(
+			blockDataDTORepo := repo.NewBlockDataDTORepo(
 				cfg,
 				logger,
 				libP2PNetwork)
-			blockDataDTORepo := repo.NewBlockDataDTORepo(
+			consensusRepo := repo.NewMajorityVoteConsensusRepoImpl(
 				cfg,
 				logger,
 				libP2PNetwork)
@@ -289,23 +289,15 @@ func DaemonCmd() *cobra.Command {
 				logger,
 				blockDataDTORepo)
 
-			// Blockchain Synchronization
-			uc1 := usecase.NewBlockchainLastestHashDTOSendP2PRequestUseCase(
+			// Consensus Mechanism
+			castVoteForLatestHashInMajorityVotingConsensusUseCase := usecase.NewCastVoteForLatestHashInMajorityVotingConsensusUseCase(
 				cfg,
 				logger,
-				lbdhDTORepo)
-			uc2 := usecase.NewBlockchainLastestHashDTOReceiveP2PRequestUseCase(
+				consensusRepo)
+			queryLatestHashByMajorityVotingConsensusUseCase := usecase.NewQueryLatestHashByMajorityVotingConsensusUseCase(
 				cfg,
 				logger,
-				lbdhDTORepo)
-			uc3 := usecase.NewBlockchainLastestHashDTOSendP2PResponseUseCase(
-				cfg,
-				logger,
-				lbdhDTORepo)
-			uc4 := usecase.NewBlockchainLastestHashDTOReceiveP2PResponseUseCase(
-				cfg,
-				logger,
-				lbdhDTORepo)
+				consensusRepo)
 
 			// ------------ Service ------------
 			// Account
@@ -401,18 +393,11 @@ func DaemonCmd() *cobra.Command {
 				upsertAccountUseCase,
 			)
 
-			syncServerService := service.NewBlockchainSyncServerService(
+			consensusService := service.NewConsensusService(
 				cfg,
 				logger,
-				uc2,
-				getBlockchainLastestHashUseCase,
-				uc3,
-			)
-			syncClientService := service.NewBlockchainSyncClientService(
-				cfg,
-				logger,
-				uc1,
-				uc4,
+				queryLatestHashByMajorityVotingConsensusUseCase,
+				castVoteForLatestHashInMajorityVotingConsensusUseCase,
 				getBlockchainLastestHashUseCase,
 				setBlockchainLastestHashUseCase,
 				blockDataDTOSendP2PRequestUseCase,
@@ -474,15 +459,11 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				validationService)
-			tm5 := taskmnghandler.NewBlockchainSyncServerTaskHandler(
+			tm5 := taskmnghandler.NewConsensusTaskHandler(
 				cfg,
 				logger,
-				syncServerService)
-			tm6 := taskmnghandler.NewBlockchainSyncClientTaskHandler(
-				cfg,
-				logger,
-				syncClientService)
-			tm7 := taskmnghandler.NewBlockDataDTOServerTaskHandler(
+				consensusService)
+			tm6 := taskmnghandler.NewBlockDataDTOServerTaskHandler(
 				cfg,
 				logger,
 				uploadServerService)
@@ -496,7 +477,6 @@ func DaemonCmd() *cobra.Command {
 				tm4,
 				tm5,
 				tm6,
-				tm7,
 			)
 
 			//

@@ -8,21 +8,22 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/service"
 )
 
-type BlockchainSyncClientTaskHandler struct {
+type ConsensusTaskHandler struct {
 	config  *config.Config
 	logger  *slog.Logger
-	service *service.BlockchainSyncClientService
+	service *service.ConsensusService
 }
 
-func NewBlockchainSyncClientTaskHandler(
+func NewConsensusTaskHandler(
 	cfg *config.Config,
 	logger *slog.Logger,
-	s *service.BlockchainSyncClientService,
-) *BlockchainSyncClientTaskHandler {
-	return &BlockchainSyncClientTaskHandler{cfg, logger, s}
+	s *service.ConsensusService,
+) *ConsensusTaskHandler {
+	return &ConsensusTaskHandler{cfg, logger, s}
 }
 
-func (h *BlockchainSyncClientTaskHandler) Execute(ctx context.Context) error {
+func (h *ConsensusTaskHandler) Execute(ctx context.Context) error {
+	h.logger.Info("Consensus mechanism is running...")
 	if serviceExecErr := h.service.Execute(ctx); serviceExecErr != nil {
 		return serviceExecErr
 	}

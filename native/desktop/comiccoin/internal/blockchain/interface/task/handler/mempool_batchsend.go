@@ -23,6 +23,7 @@ func NewMempoolBatchSendTaskHandler(
 }
 
 func (h *MempoolBatchSendTaskHandler) Execute(ctx context.Context) error {
+	h.logger.Info("Mempool (sender) is running...")
 	serviceExecErr := h.service.Execute(ctx)
 	if serviceExecErr != nil {
 		return serviceExecErr

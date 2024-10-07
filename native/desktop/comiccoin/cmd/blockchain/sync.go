@@ -131,10 +131,6 @@ func doBlockchainSync() {
 		cfg,
 		logger,
 		db)
-	lbdhDTORepo := repo.NewBlockchainLastestHashDTORepo(
-		cfg,
-		logger,
-		libP2PNetwork)
 	blockDataRepo := repo.NewBlockDataRepo(
 		cfg,
 		logger,
@@ -147,6 +143,10 @@ func doBlockchainSync() {
 		cfg,
 		logger,
 		memdb) // Do not store on disk, only in-memory.
+	consensusRepo := repo.NewMajorityVoteConsensusRepoImpl(
+		cfg,
+		logger,
+		libP2PNetwork)
 
 	// ------------ Use-case ------------
 
@@ -202,23 +202,15 @@ func doBlockchainSync() {
 		logger,
 		latestBlockDataHashRepo)
 
-	// Blockchain Synchronization
-	uc1 := usecase.NewBlockchainLastestHashDTOSendP2PRequestUseCase(
+	// Consensus Mechanism
+	castVoteForLatestHashInMajorityVotingConsensusUseCase := usecase.NewCastVoteForLatestHashInMajorityVotingConsensusUseCase(
 		cfg,
 		logger,
-		lbdhDTORepo)
-	uc2 := usecase.NewBlockchainLastestHashDTOReceiveP2PRequestUseCase(
+		consensusRepo)
+	queryLatestHashByMajorityVotingConsensusUseCase := usecase.NewQueryLatestHashByMajorityVotingConsensusUseCase(
 		cfg,
 		logger,
-		lbdhDTORepo)
-	uc3 := usecase.NewBlockchainLastestHashDTOSendP2PResponseUseCase(
-		cfg,
-		logger,
-		lbdhDTORepo)
-	uc4 := usecase.NewBlockchainLastestHashDTOReceiveP2PResponseUseCase(
-		cfg,
-		logger,
-		lbdhDTORepo)
+		consensusRepo)
 
 	// ------------ Service ------------
 
@@ -231,18 +223,11 @@ func doBlockchainSync() {
 		createAccountUseCase,
 		upsertAccountUseCase,
 	)
-	syncServerService := service.NewBlockchainSyncServerService(
+	consensusService := service.NewConsensusService(
 		cfg,
 		logger,
-		uc2,
-		getBlockchainLastestHashUseCase,
-		uc3,
-	)
-	syncClientService := service.NewBlockchainSyncClientService(
-		cfg,
-		logger,
-		uc1,
-		uc4,
+		queryLatestHashByMajorityVotingConsensusUseCase,
+		castVoteForLatestHashInMajorityVotingConsensusUseCase,
 		getBlockchainLastestHashUseCase,
 		setBlockchainLastestHashUseCase,
 		blockDataDTOSendP2PRequestUseCase,
@@ -264,14 +249,10 @@ func doBlockchainSync() {
 	// ------------ Interface ------------
 
 	// TASK MANAGER
-	tm5 := taskmnghandler.NewBlockchainSyncServerTaskHandler(
+	tm6 := taskmnghandler.NewConsensusTaskHandler(
 		cfg,
 		logger,
-		syncServerService)
-	tm6 := taskmnghandler.NewBlockchainSyncClientTaskHandler(
-		cfg,
-		logger,
-		syncClientService)
+		consensusService)
 	tm7 := taskmnghandler.NewBlockDataDTOServerTaskHandler(
 		cfg,
 		logger,
@@ -300,21 +281,11 @@ func doBlockchainSync() {
 
 	logger.Info("Starting network services only...")
 
-	go func(server *taskmnghandler.BlockchainSyncServerTaskHandler) {
-		ctx := context.Background()
-		for {
-			if err := server.Execute(ctx); err != nil {
-				logger.Error("blockchain sync server error", slog.Any("error", err))
-			}
-			time.Sleep(5 * time.Second)
-		}
-	}(tm5)
-
-	go func(client *taskmnghandler.BlockchainSyncClientTaskHandler) {
+	go func(client *taskmnghandler.ConsensusTaskHandler) {
 		ctx := context.Background()
 		for {
 			if err := client.Execute(ctx); err != nil {
-				logger.Error("blockchain sync client error", slog.Any("error", err))
+				logger.Error("consensus error", slog.Any("error", err))
 			}
 			time.Sleep(5 * time.Second)
 		}
@@ -324,7 +295,7 @@ func doBlockchainSync() {
 		ctx := context.Background()
 		for {
 			if err := server.Execute(ctx); err != nil {
-				logger.Error("blockdatabto upload server error",
+				logger.Error("blockdatabto sync server error",
 					slog.Any("error", err))
 				time.Sleep(10 * time.Second)
 				continue

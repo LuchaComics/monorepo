@@ -27,4 +27,6 @@ type ConsensusRepository interface {
 	//
 	// // Method used by nodes to submit their latest hash for `consensus`.
 	// SubmitQueryResponseToPeer(ctx context.Context, peerID peer.ID, latestHash string) error
+
+	CastVoteForLatestHashConsensus(latestHash string) error
 }

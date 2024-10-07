@@ -16,15 +16,14 @@ type TaskManager interface {
 }
 
 type taskManagerImpl struct {
-	cfg                             *config.Config
-	logger                          *slog.Logger
-	mempoolReceiveTaskHandler       *task.MempoolReceiveTaskHandler
-	mempoolBatchSendTaskHandler     *task.MempoolBatchSendTaskHandler
-	miningTaskHandler               *task.MiningTaskHandler
-	validationTaskHandler           *task.ValidationTaskHandler
-	blockchainSyncServerTaskHandler *task.BlockchainSyncServerTaskHandler
-	blockchainSyncClientTaskHandler *task.BlockchainSyncClientTaskHandler
-	blockDataDTOServerTaskHandler   *task.BlockDataDTOServerTaskHandler
+	cfg                           *config.Config
+	logger                        *slog.Logger
+	mempoolReceiveTaskHandler     *task.MempoolReceiveTaskHandler
+	mempoolBatchSendTaskHandler   *task.MempoolBatchSendTaskHandler
+	miningTaskHandler             *task.MiningTaskHandler
+	validationTaskHandler         *task.ValidationTaskHandler
+	consensusTaskHandler          *task.ConsensusTaskHandler
+	blockDataDTOServerTaskHandler *task.BlockDataDTOServerTaskHandler
 }
 
 func NewTaskManager(
@@ -34,20 +33,18 @@ func NewTaskManager(
 	mempoolBatchSendTaskHandler *task.MempoolBatchSendTaskHandler,
 	miningTaskHandler *task.MiningTaskHandler,
 	validationTaskHandler *task.ValidationTaskHandler,
-	blockchainSyncServerTaskHandler *task.BlockchainSyncServerTaskHandler,
-	blockchainSyncClientTaskHandler *task.BlockchainSyncClientTaskHandler,
+	consensusTaskHandler *task.ConsensusTaskHandler,
 	blockDataDTOServerTaskHandler *task.BlockDataDTOServerTaskHandler,
 ) TaskManager {
 	port := &taskManagerImpl{
-		cfg:                             cfg,
-		logger:                          logger,
-		mempoolReceiveTaskHandler:       mempoolReceiveTaskHandler,
-		mempoolBatchSendTaskHandler:     mempoolBatchSendTaskHandler,
-		miningTaskHandler:               miningTaskHandler,
-		validationTaskHandler:           validationTaskHandler,
-		blockchainSyncServerTaskHandler: blockchainSyncServerTaskHandler,
-		blockchainSyncClientTaskHandler: blockchainSyncClientTaskHandler,
-		blockDataDTOServerTaskHandler:   blockDataDTOServerTaskHandler,
+		cfg:                           cfg,
+		logger:                        logger,
+		mempoolReceiveTaskHandler:     mempoolReceiveTaskHandler,
+		mempoolBatchSendTaskHandler:   mempoolBatchSendTaskHandler,
+		miningTaskHandler:             miningTaskHandler,
+		validationTaskHandler:         validationTaskHandler,
+		consensusTaskHandler:          consensusTaskHandler,
+		blockDataDTOServerTaskHandler: blockDataDTOServerTaskHandler,
 	}
 	return port
 }
@@ -96,25 +93,15 @@ func (port *taskManagerImpl) Run() {
 		}
 	}()
 
-	go func(server *taskmnghandler.BlockchainSyncServerTaskHandler, loggerp *slog.Logger) {
-		ctx := context.Background()
-		for {
-			if err := server.Execute(ctx); err != nil {
-				loggerp.Error("blockchain sync server error", slog.Any("error", err))
-			}
-			time.Sleep(5 * time.Second)
-		}
-	}(port.blockchainSyncServerTaskHandler, port.logger)
-
-	go func(client *taskmnghandler.BlockchainSyncClientTaskHandler, loggerp *slog.Logger) {
+	go func(client *taskmnghandler.ConsensusTaskHandler, loggerp *slog.Logger) {
 		ctx := context.Background()
 		for {
 			if err := client.Execute(ctx); err != nil {
-				loggerp.Error("blockchain sync client error", slog.Any("error", err))
+				loggerp.Error("consensus error", slog.Any("error", err))
 			}
 			time.Sleep(5 * time.Second)
 		}
-	}(port.blockchainSyncClientTaskHandler, port.logger)
+	}(port.consensusTaskHandler, port.logger)
 
 	go func(server *taskmnghandler.BlockDataDTOServerTaskHandler, loggerp *slog.Logger) {
 		ctx := context.Background()
