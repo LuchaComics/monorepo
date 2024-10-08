@@ -271,6 +271,20 @@ func doBlockchainConsensusMechanism() {
 		getBlockDataUseCase,
 		blockDataDTOSendP2PResponsetUseCase,
 	)
+	initBlockDataService := service.NewInitBlockDataService(
+		cfg,
+		logger,
+		loadGenesisBlockDataAccountUseCase,
+		getBlockDataUseCase,
+		createBlockDataUseCase,
+		setBlockchainLastestHashUseCase,
+	)
+	blockchainStartupService := service.NewBlockchainStartupService(
+		cfg,
+		logger,
+		initAccountsFromBlockchainService,
+		initBlockDataService,
+	)
 
 	// ------------ Interface ------------
 
@@ -294,16 +308,13 @@ func doBlockchainConsensusMechanism() {
 
 	//
 	// STEP 2
-	// Load up the accounts into the in-memory storage before loading
-	// the application because our accounts are only stored in memory
-	// and not on disk.
+	// Perform whatever startup proceedures necessary to get our
+	// blockchain ready for execution in our app.
 	//
 
-	logger.Info("Loading accounts into memory...")
-	if err := initAccountsFromBlockchainService.Execute(); err != nil {
-		log.Fatalf("failed executing accounts initialization: %v\n", err)
+	if err := blockchainStartupService.Execute(); err != nil {
+		log.Fatalf("failed blockchain startup: %v\n", err)
 	}
-	logger.Info("Accounts ready.")
 
 	// ------------ Execution ------------
 

@@ -44,13 +44,26 @@ func NewCreateGenesisBlockDataService(
 func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	s.logger.Debug("starting genesis creation service...")
 
+	// DEVELOPERS NOTE:
+	// Here is where we initialize the total supply of coins for the entire
+	// blockchain, so adjust accordingly.
+	initialSupply := uint64(5000000000000000000)
+
 	//
-	// STEP 1:
+	// STEP 1
+	// Initialize our coinbase account in our in-memory database.
+	//
+
+	if err := s.upsertAccountUseCase.Execute(&s.coinbaseAccountKey.Address, initialSupply, 0); err != nil {
+		return fmt.Errorf("Failed to upsert account: %v", err)
+	}
+
+	//
+	// STEP 2:
 	// Setup our very first (signed) transaction: i.e. coinbase giving coins
 	// onto the blockchain ... from nothing.
 	//
 
-	initialSupply := uint64(5000000000000000000)
 	tx := &domain.Transaction{
 		ChainID: s.config.Blockchain.ChainID,
 		Nonce:   0, // Will be calculated later.
@@ -110,7 +123,7 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	}
 
 	//
-	// STEP 2:
+	// STEP 3:
 	// Execute the proof of work to find our nounce to meet the hash difficulty.
 	//
 
@@ -127,7 +140,7 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	genesisBlockData := domain.NewBlockData(block)
 
 	//
-	// STEP 3:
+	// STEP 4:
 	// Save to JSON file.
 	//
 
@@ -141,7 +154,7 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	}
 
 	//
-	// STEP 3
+	// STEP 5
 	// Save to database.
 	//
 
@@ -154,15 +167,6 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 
 	if err := s.setBlockchainLastestHashUseCase.Execute(genesisBlockData.Hash); err != nil {
 		return fmt.Errorf("Failed to save last hash of genesis block data: %v", err)
-	}
-
-	//
-	// STEP 4
-	// Update the `coinbase` account.
-	//
-
-	if err := s.upsertAccountUseCase.Execute(&s.coinbaseAccountKey.Address, initialSupply, block.Header.Nonce); err != nil {
-		return fmt.Errorf("Failed to upsert account: %v", err)
 	}
 
 	s.logger.Debug("finished  genesis creation service")
