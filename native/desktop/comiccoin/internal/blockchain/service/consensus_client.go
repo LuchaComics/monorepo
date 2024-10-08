@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"log/slog"
 	"strings"
 
@@ -266,6 +267,7 @@ func (s *MajorityVoteConsensusClientService) processAccountForBlockTransaction(b
 		if acc == nil {
 			s.logger.Error("The `From` account does not exist in our database.",
 				slog.Any("hash", blockTx.From))
+			log.Fatalf("The `From` account does not exist in our database for hash: %v", blockTx.From.String())
 			return fmt.Errorf("The `From` account does not exist in our database for hash: %v", blockTx.From.String())
 		}
 		acc.Balance -= blockTx.Value

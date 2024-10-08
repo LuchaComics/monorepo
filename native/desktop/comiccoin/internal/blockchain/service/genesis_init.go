@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
+	"os"
 	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
@@ -74,7 +76,7 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 		GasPrice:          gasPrice,
 		GasUnits:          unitsOfGas,
 	}
-	trans := make([]domain.BlockTransaction, 1)
+	trans := make([]domain.BlockTransaction, 0)
 	trans = append(trans, blockTx)
 
 	// Construct a merkle tree from the transaction for this block. The root
@@ -122,15 +124,29 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	s.logger.Debug("mining completed",
 		slog.Uint64("nonce", block.Header.Nonce))
 
+	genesisBlockData := domain.NewBlockData(block)
+
+	//
+	// STEP 3:
+	// Save to JSON file.
+	//
+
+	genesisBlockDataBytes, err := json.MarshalIndent(genesisBlockData, "", "    ")
+	if err != nil {
+		return fmt.Errorf("Failed to serialize genesis block: %v", err)
+	}
+
+	if err := os.WriteFile("static/genesis.json", genesisBlockDataBytes, 0644); err != nil {
+		return fmt.Errorf("Failed to write genesis block data to file: %v", err)
+	}
+
 	//
 	// STEP 3
 	// Save to database.
 	//
 
-	genesisBlockData := domain.NewBlockData(block)
-
 	if err := s.createBlockDataUseCase.Execute(genesisBlockData.Hash, genesisBlockData.Header, genesisBlockData.Trans); err != nil {
-		return fmt.Errorf("Failed to create genesis block data: %v", err)
+		return fmt.Errorf("Failed to write genesis block data to file: %v", err)
 	}
 
 	s.logger.Debug("genesis block created",

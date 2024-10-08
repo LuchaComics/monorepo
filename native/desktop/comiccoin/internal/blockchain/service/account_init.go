@@ -15,6 +15,7 @@ import (
 type InitAccountsFromBlockchainService struct {
 	config                          *config.Config
 	logger                          *slog.Logger
+	loadGenesisBlockDataUseCase     *usecase.LoadGenesisBlockDataUseCase
 	getBlockchainLastestHashUseCase *usecase.GetBlockchainLastestHashUseCase
 	getBlockDataUseCase             *usecase.GetBlockDataUseCase
 	getAccountUseCase               *usecase.GetAccountUseCase
@@ -25,18 +26,29 @@ type InitAccountsFromBlockchainService struct {
 func NewInitAccountsFromBlockchainService(
 	cfg *config.Config,
 	logger *slog.Logger,
-	uc1 *usecase.GetBlockchainLastestHashUseCase,
-	uc2 *usecase.GetBlockDataUseCase,
-	uc3 *usecase.GetAccountUseCase,
-	uc4 *usecase.CreateAccountUseCase,
-	uc5 *usecase.UpsertAccountUseCase,
+	uc1 *usecase.LoadGenesisBlockDataUseCase,
+	uc2 *usecase.GetBlockchainLastestHashUseCase,
+	uc3 *usecase.GetBlockDataUseCase,
+	uc4 *usecase.GetAccountUseCase,
+	uc5 *usecase.CreateAccountUseCase,
+	uc6 *usecase.UpsertAccountUseCase,
 ) *InitAccountsFromBlockchainService {
-	return &InitAccountsFromBlockchainService{cfg, logger, uc1, uc2, uc3, uc4, uc5}
+	return &InitAccountsFromBlockchainService{cfg, logger, uc1, uc2, uc3, uc4, uc5, uc6}
 }
 
 func (s *InitAccountsFromBlockchainService) Execute() error {
 	//
 	// STEP 1:
+	// Load up our Genesis block and the coinbase account.
+	//
+	if err := s.processGenesisBlockData(); err != nil {
+		s.logger.Error("Failed initialize genesis block data",
+			slog.Any("error", err))
+		return fmt.Errorf("Failed initialize genesis block data because of error: %v", err)
+	}
+
+	//
+	// STEP 2:
 	// Start by looking up the latest hash in the blockchain. If nothing is
 	// returned then no need to worry as this means this is a new node that was
 	// created and the blockchain will be downloaded from the distributed / peer
@@ -93,6 +105,44 @@ func (s *InitAccountsFromBlockchainService) Execute() error {
 			return nil
 		}
 	}
+}
+
+func (s *InitAccountsFromBlockchainService) processGenesisBlockData() error {
+	//
+	// STEP 1:
+	// Load up our genesis block from local file.
+	//
+
+	genesisBlockData, err := s.loadGenesisBlockDataUseCase.Execute()
+	if err != nil {
+		s.logger.Error("Failed loading up genesis block from file",
+			slog.Any("error", err))
+		return fmt.Errorf("Failed loading up genesis block from file: %v", err)
+	}
+	if genesisBlockData != nil {
+		//
+		// STEP 2:
+		// Initialize our coinbase account
+		//
+
+		genesisTx := genesisBlockData.Trans[0]
+
+		s.logger.Debug("processing genesis block tx.",
+			slog.Any("from", genesisTx.From),
+			slog.Any("to", genesisTx.To),
+			slog.Uint64("value", genesisTx.Value),
+			slog.Uint64("tip", genesisTx.Tip),
+			slog.Any("data", genesisTx.Data),
+		)
+
+		if err := s.createAccountUseCase.Execute(genesisTx.To); err != nil {
+			s.logger.Error("Failed creating account.",
+				slog.Any("error", err))
+			return err
+		}
+
+	}
+	return nil
 }
 
 func (s *InitAccountsFromBlockchainService) processBlockTransaction(blockData *domain.BlockData, blockTx *domain.BlockTransaction) error {

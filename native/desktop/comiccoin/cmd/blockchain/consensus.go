@@ -127,7 +127,10 @@ func doBlockchainConsensusMechanism() {
 	)
 
 	// ------------ Repo ------------
-
+	genesisBlockDataRepo := repo.NewGenesisBlockDataRepo(
+		cfg,
+		logger,
+		db)
 	latestBlockDataHashRepo := repo.NewBlockchainLastestHashRepo(
 		cfg,
 		logger,
@@ -150,6 +153,12 @@ func doBlockchainConsensusMechanism() {
 		libP2PNetwork)
 
 	// ------------ Use-case ------------
+
+	// Genesis Block Data
+	loadGenesisBlockDataAccountUseCase := usecase.NewLoadGenesisBlockDataUseCase(
+		cfg,
+		logger,
+		genesisBlockDataRepo)
 
 	// Account
 	createAccountUseCase := usecase.NewCreateAccountUseCase(
@@ -226,6 +235,7 @@ func doBlockchainConsensusMechanism() {
 	initAccountsFromBlockchainService := service.NewInitAccountsFromBlockchainService(
 		cfg,
 		logger,
+		loadGenesisBlockDataAccountUseCase,
 		getBlockchainLastestHashUseCase,
 		getBlockDataUseCase,
 		getAccountUseCase,

@@ -123,6 +123,10 @@ func DaemonCmd() *cobra.Command {
 			_ = ikGetService
 
 			// ------------ Repo ------------
+			genesisBlockDataRepo := repo.NewGenesisBlockDataRepo(
+				cfg,
+				logger,
+				db)
 			walletRepo := repo.NewWalletRepo(
 				cfg,
 				logger,
@@ -165,6 +169,12 @@ func DaemonCmd() *cobra.Command {
 				libP2PNetwork)
 
 			// ------------ Use-case ------------
+			// Genesis Block Data
+			loadGenesisBlockDataAccountUseCase := usecase.NewLoadGenesisBlockDataUseCase(
+				cfg,
+				logger,
+				genesisBlockDataRepo)
+
 			// Wallet
 			createWalletUseCase := usecase.NewCreateWalletUseCase(
 				cfg,
@@ -313,6 +323,7 @@ func DaemonCmd() *cobra.Command {
 			initAccountsFromBlockchainService := service.NewInitAccountsFromBlockchainService(
 				cfg,
 				logger,
+				loadGenesisBlockDataAccountUseCase,
 				getBlockchainLastestHashUseCase,
 				getBlockDataUseCase,
 				getAccountUseCase,

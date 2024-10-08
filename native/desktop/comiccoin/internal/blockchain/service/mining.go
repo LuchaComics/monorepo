@@ -115,7 +115,7 @@ func (s *MiningService) Execute(ctx context.Context) error {
 
 	gasPrice := uint64(s.config.Blockchain.GasPrice)
 	unitsOfGas := uint64(s.config.Blockchain.UnitsOfGas)
-	trans := make([]domain.BlockTransaction, 1)
+	trans := make([]domain.BlockTransaction, 0)
 	for _, pendingBlockTx := range pendingBlockTxs {
 		// Create our block.
 		blockTx := domain.BlockTransaction{
