@@ -247,11 +247,6 @@ func (impl *ConsensusRepoImpl) ReceiveMajorityVoteConsensusResponseFromNetwork(c
 				mu.Lock()
 				voteResults[resp.FromPeerID] = currentBlockchainHash
 				mu.Unlock()
-			} else {
-				impl.logger.Debug("consensus mechanism received empty response from peer",
-					slog.String("hash", currentBlockchainHash),
-					slog.Any("local_peer_id", impl.libP2PNetwork.GetHost().ID()),
-					slog.Any("remote_peer_id", resp.FromPeerID))
 			}
 
 		}(&reqmu)
@@ -267,9 +262,12 @@ func (impl *ConsensusRepoImpl) ReceiveMajorityVoteConsensusResponseFromNetwork(c
 	// Check if any errors occurred.
 	select {
 	case err := <-errCh:
-		impl.logger.Error("network connectivity issue",
-			slog.Any("error", err))
-		return "", err
+		if err != nil {
+			impl.logger.Error("network connectivity issue",
+				slog.Any("error", err),
+				slog.Any("local_peer_id", impl.libP2PNetwork.GetHost().ID()))
+			return "", err
+		}
 	case <-errCh:
 		// No errors occurred.
 	}
@@ -290,7 +288,8 @@ func (impl *ConsensusRepoImpl) ReceiveMajorityVoteConsensusResponseFromNetwork(c
 		}
 	}
 
-	impl.logger.Error("consensus returned",
+	impl.logger.Debug("consensus returned",
+		slog.Any("votes", votes),
 		slog.String("most_common_hash", mostCommonHash))
 
 	return mostCommonHash, nil

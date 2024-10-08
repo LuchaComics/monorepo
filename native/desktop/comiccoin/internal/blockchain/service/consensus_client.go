@@ -76,7 +76,8 @@ func (s *MajorityVoteConsensusClientService) Execute(ctx context.Context) error 
 		return err
 	}
 	if receivedHash == "" {
-		s.logger.Warn("returned hash is empty")
+		// For debugging purposes only.
+		// s.logger.Warn("returned hash is empty")
 		return nil
 	}
 
@@ -95,20 +96,20 @@ func (s *MajorityVoteConsensusClientService) Execute(ctx context.Context) error 
 		s.logger.Warn("local blockchain is outdated and needs updating from network",
 			slog.Any("network_hash", receivedHash),
 			slog.Any("local_hash", localHash))
-		//
-		// if err := s.runDownloadAndSyncBlockchainFromBlockDataHash(ctx, string(receivedHash)); err != nil {
-		// 	s.logger.Error("blockchain failed to download and sync",
-		// 		slog.Any("error", err))
-		// 	return err
-		// }
-		//
-		// // Once our sync has been completed, we can save our latest hash so
-		// // we won't have to sync again.
-		// if err := s.setBlockchainLastestHashUseCase.Execute(string(receivedHash)); err != nil {
-		// 	s.logger.Error("blockchain failed to save latest hash to database",
-		// 		slog.Any("error", err))
-		// 	return err
-		// }
+
+		if err := s.runDownloadAndSyncBlockchainFromBlockDataHash(ctx, string(receivedHash)); err != nil {
+			s.logger.Error("blockchain failed to download and sync",
+				slog.Any("error", err))
+			return err
+		}
+
+		// Once our sync has been completed, we can save our latest hash so
+		// we won't have to sync again.
+		if err := s.setBlockchainLastestHashUseCase.Execute(string(receivedHash)); err != nil {
+			s.logger.Error("blockchain failed to save latest hash to database",
+				slog.Any("error", err))
+			return err
+		}
 
 		// Reaching here is success!
 		return nil
@@ -201,8 +202,6 @@ func (s *MajorityVoteConsensusClientService) runDownloadAndSyncBlockchainFromBlo
 	// STEP 3:
 	// Save to our local database.
 	//
-
-	//TODO: FUTURE IMPROVEMENT: Security / validation / etc.
 
 	if err := s.createBlockDataUseCase.Execute(receivedBlockData.Hash, receivedBlockData.Header, receivedBlockData.Trans); err != nil {
 		s.logger.Error("consensus mechanism failed saving to local database.",

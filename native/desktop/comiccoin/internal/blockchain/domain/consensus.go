@@ -26,7 +26,5 @@ type ConsensusRepository interface {
 
 	SendResponseToPeer(ctx context.Context, peerID peer.ID, blockchainHash string) error
 
-	ReceiveIndividualResponseFromNetwork(ctx context.Context) (string, error)
-
 	ReceiveMajorityVoteConsensusResponseFromNetwork(ctx context.Context) (string, error)
 }
