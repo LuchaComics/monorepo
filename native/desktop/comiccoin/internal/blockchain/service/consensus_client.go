@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
-	"time"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
@@ -13,26 +12,26 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/blockchain/signature"
 )
 
-type ConsensusService struct {
-	config                                                *config.Config
-	logger                                                *slog.Logger
-	queryLatestHashByMajorityVotingConsensusUseCase       *usecase.QueryLatestHashByMajorityVotingConsensusUseCase
-	castVoteForLatestHashInMajorityVotingConsensusUseCase *usecase.CastVoteForLatestHashInMajorityVotingConsensusUseCase
-	getBlockchainLastestHashUseCase                       *usecase.GetBlockchainLastestHashUseCase
-	setBlockchainLastestHashUseCase                       *usecase.SetBlockchainLastestHashUseCase
-	blockDataDTOSendP2PRequestUseCase                     *usecase.BlockDataDTOSendP2PRequestUseCase
-	blockDataDTOReceiveP2PResponsetUseCase                *usecase.BlockDataDTOReceiveP2PResponsetUseCase
-	createBlockDataUseCase                                *usecase.CreateBlockDataUseCase
-	getBlockDataUseCase                                   *usecase.GetBlockDataUseCase
-	getAccountUseCase                                     *usecase.GetAccountUseCase
-	upsertAccountUseCase                                  *usecase.UpsertAccountUseCase
+type MajorityVoteConsensusClientService struct {
+	config                                              *config.Config
+	logger                                              *slog.Logger
+	consensusMechanismBroadcastRequestToNetworkUseCase  *usecase.ConsensusMechanismBroadcastRequestToNetworkUseCase
+	consensusMechanismReceiveResponseFromNetworkUseCase *usecase.ConsensusMechanismReceiveResponseFromNetworkUseCase
+	getBlockchainLastestHashUseCase                     *usecase.GetBlockchainLastestHashUseCase
+	setBlockchainLastestHashUseCase                     *usecase.SetBlockchainLastestHashUseCase
+	blockDataDTOSendP2PRequestUseCase                   *usecase.BlockDataDTOSendP2PRequestUseCase
+	blockDataDTOReceiveP2PResponsetUseCase              *usecase.BlockDataDTOReceiveP2PResponsetUseCase
+	createBlockDataUseCase                              *usecase.CreateBlockDataUseCase
+	getBlockDataUseCase                                 *usecase.GetBlockDataUseCase
+	getAccountUseCase                                   *usecase.GetAccountUseCase
+	upsertAccountUseCase                                *usecase.UpsertAccountUseCase
 }
 
-func NewConsensusService(
+func NewMajorityVoteConsensusClientService(
 	cfg *config.Config,
 	logger *slog.Logger,
-	uc1 *usecase.QueryLatestHashByMajorityVotingConsensusUseCase,
-	uc2 *usecase.CastVoteForLatestHashInMajorityVotingConsensusUseCase,
+	uc1 *usecase.ConsensusMechanismBroadcastRequestToNetworkUseCase,
+	uc2 *usecase.ConsensusMechanismReceiveResponseFromNetworkUseCase,
 	uc3 *usecase.GetBlockchainLastestHashUseCase,
 	uc4 *usecase.SetBlockchainLastestHashUseCase,
 	uc5 *usecase.BlockDataDTOSendP2PRequestUseCase,
@@ -41,41 +40,20 @@ func NewConsensusService(
 	uc8 *usecase.GetBlockDataUseCase,
 	uc9 *usecase.GetAccountUseCase,
 	uc10 *usecase.UpsertAccountUseCase,
-) *ConsensusService {
-	return &ConsensusService{cfg, logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10}
+) *MajorityVoteConsensusClientService {
+	return &MajorityVoteConsensusClientService{cfg, logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10}
 }
 
-func (s *ConsensusService) Execute(ctx context.Context) error {
+func (s *MajorityVoteConsensusClientService) Execute(ctx context.Context) error {
 	// s.logger.Debug("consensus mechanism running...")
 	// defer s.logger.Debug("consensus mechanism ran")
 
 	//
-	// STEP 1
-	// Get the latest blockchain hash we have in our local database.
+	// STEP 1:
+	// Send a request over the peer-to-peer network.
 	//
 
-	// Note: Do not handle any errors, if we have any errors then continue and
-	// fetch the latest hash from network anyway.
-	localHash, _ := s.getBlockchainLastestHashUseCase.Execute()
-
-	//
-	// STEP 2:
-	// Let the peer-to-peer network know what our node's latest blockchain hash.
-	//
-
-	if err := s.castVoteForLatestHashInMajorityVotingConsensusUseCase.Execute(localHash); err != nil {
-		s.logger.Error("consensus mechanism failed casting vote",
-			slog.String("local_hash", localHash),
-			slog.Any("error", err))
-		return err
-	}
-
-	//
-	// STEP 3:
-	// Query our blockchain network to discover the latest hash agreed upon.
-	//
-
-	blockchainHash, err := s.queryLatestHashByMajorityVotingConsensusUseCase.Execute(ctx)
+	err := s.consensusMechanismBroadcastRequestToNetworkUseCase.Execute(ctx)
 	if err != nil {
 		if strings.Contains(err.Error(), "no peers connected") {
 			s.logger.Warn("consensus mechanism waiting for clients to connect...")
@@ -86,54 +64,62 @@ func (s *ConsensusService) Execute(ctx context.Context) error {
 		return err
 	}
 
-	// Developers Note:
-	// If we get a blockchain hash as empty string, then that means we are not
-	// connected to the network so simply finish this function.
-	if blockchainHash == "" {
+	//
+	// STEP 2:
+	// Wait to receive request from the peer-to-peer network.
+	//
+
+	receivedHash, err := s.consensusMechanismReceiveResponseFromNetworkUseCase.Execute(ctx)
+	if err != nil {
+		s.logger.Error("consensus mechanism failed receiving response",
+			slog.Any("error", err))
+		return err
+	}
+	if receivedHash == "" {
+		s.logger.Warn("returned hash is empty")
 		return nil
 	}
 
-	defer s.logger.Debug("consensus mechanism received from network",
-		slog.String("blockchain_hash", blockchainHash))
-
 	//
-	// STEP 4:
-	// If our local blockchain is out of sync with the blockchain network then
-	// proceed to synchronize.
+	// STEP 3:
+	// Get the latest blockchain hash we have in our local database and compare
+	// with the received hash and if there are differences then we will need to
+	// download from the network the latest blockdata.
 	//
 
-	if localHash != string(blockchainHash) {
+	// Note: Do not handle any errors, if we have any errors then continue and
+	// fetch the latest hash from network anyway.
+	localHash, _ := s.getBlockchainLastestHashUseCase.Execute()
+
+	if localHash != string(receivedHash) {
 		s.logger.Warn("local blockchain is outdated and needs updating from network",
-			slog.Any("network_hash", blockchainHash),
+			slog.Any("network_hash", receivedHash),
 			slog.Any("local_hash", localHash))
-
-		if err := s.runDownloadAndSyncBlockchainFromBlockDataHash(ctx, string(blockchainHash)); err != nil {
-			s.logger.Error("blockchain failed to download and sync",
-				slog.Any("error", err))
-			return err
-		}
-
-		// Once our sync has been completed, we can save our latest hash so
-		// we won't have to sync again. Let the network know this is the
-		// current hash in the blockchain network that we believe to be the
-		// correct case in the consensus vote.
-		if err := s.castVoteForLatestHashInMajorityVotingConsensusUseCase.Execute(string(blockchainHash)); err != nil {
-			s.logger.Error("blockchain failed to save latest hash to database",
-				slog.Any("error", err))
-			return err
-		}
+		//
+		// if err := s.runDownloadAndSyncBlockchainFromBlockDataHash(ctx, string(receivedHash)); err != nil {
+		// 	s.logger.Error("blockchain failed to download and sync",
+		// 		slog.Any("error", err))
+		// 	return err
+		// }
+		//
+		// // Once our sync has been completed, we can save our latest hash so
+		// // we won't have to sync again.
+		// if err := s.setBlockchainLastestHashUseCase.Execute(string(receivedHash)); err != nil {
+		// 	s.logger.Error("blockchain failed to save latest hash to database",
+		// 		slog.Any("error", err))
+		// 	return err
+		// }
 
 		// Reaching here is success!
 		return nil
 	} else {
 		s.logger.Debug("local blockchain is up-to-date with peer-to-peer network")
 	}
-	time.Sleep(15 * time.Second)
 
 	return nil
 }
 
-func (s *ConsensusService) runDownloadAndSyncBlockchainFromBlockDataHash(ctx context.Context, blockDataHash string) error {
+func (s *MajorityVoteConsensusClientService) runDownloadAndSyncBlockchainFromBlockDataHash(ctx context.Context, blockDataHash string) error {
 	// Algorithm:
 	// 1. Fetch from network the blockdata for `network_hash`
 	// 2. Save blockdata to local database
@@ -264,7 +250,7 @@ func (s *ConsensusService) runDownloadAndSyncBlockchainFromBlockDataHash(ctx con
 }
 
 // TODO: (1) Create somesort of `processAccountForBlockTransaction` service and (2) replace it with this.
-func (s *ConsensusService) processAccountForBlockTransaction(blockData *domain.BlockData, blockTx *domain.BlockTransaction) error {
+func (s *MajorityVoteConsensusClientService) processAccountForBlockTransaction(blockData *domain.BlockData, blockTx *domain.BlockTransaction) error {
 	// DEVELOPERS NOTE:
 	// Please remember that when this function executes, there already is an
 	// in-memory database of accounts populated and maintained by this node.

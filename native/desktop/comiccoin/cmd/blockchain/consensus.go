@@ -143,7 +143,7 @@ func doBlockchainConsensusMechanism() {
 		cfg,
 		logger,
 		memdb) // Do not store on disk, only in-memory.
-	consensusRepo := repo.NewMajorityVoteConsensusRepoImpl(
+	consensusRepo := repo.NewConsensusRepoImpl(
 		cfg,
 		logger,
 		libP2PNetwork)
@@ -203,11 +203,19 @@ func doBlockchainConsensusMechanism() {
 		latestBlockDataHashRepo)
 
 	// Consensus Mechanism
-	castVoteForLatestHashInMajorityVotingConsensusUseCase := usecase.NewCastVoteForLatestHashInMajorityVotingConsensusUseCase(
+	consensusMechanismBroadcastRequestToNetworkUseCase := usecase.NewConsensusMechanismBroadcastRequestToNetworkUseCase(
 		cfg,
 		logger,
 		consensusRepo)
-	queryLatestHashByMajorityVotingConsensusUseCase := usecase.NewQueryLatestHashByMajorityVotingConsensusUseCase(
+	consensusMechanismReceiveRequestFromNetworkUseCase := usecase.NewConsensusMechanismReceiveRequestFromNetworkUseCase(
+		cfg,
+		logger,
+		consensusRepo)
+	consensusMechanismSendResponseToPeerUseCase := usecase.NewConsensusMechanismSendResponseToPeerUseCase(
+		cfg,
+		logger,
+		consensusRepo)
+	consensusMechanismReceiveResponseFromNetworkUseCase := usecase.NewConsensusMechanismReceiveResponseFromNetworkUseCase(
 		cfg,
 		logger,
 		consensusRepo)
@@ -223,11 +231,18 @@ func doBlockchainConsensusMechanism() {
 		createAccountUseCase,
 		upsertAccountUseCase,
 	)
-	consensusService := service.NewConsensusService(
+	majorityVoteConsensusServerService := service.NewMajorityVoteConsensusServerService(
 		cfg,
 		logger,
-		queryLatestHashByMajorityVotingConsensusUseCase,
-		castVoteForLatestHashInMajorityVotingConsensusUseCase,
+		consensusMechanismReceiveRequestFromNetworkUseCase,
+		getBlockchainLastestHashUseCase,
+		consensusMechanismSendResponseToPeerUseCase,
+	)
+	majorityVoteConsensusClientService := service.NewMajorityVoteConsensusClientService(
+		cfg,
+		logger,
+		consensusMechanismBroadcastRequestToNetworkUseCase,
+		consensusMechanismReceiveResponseFromNetworkUseCase,
 		getBlockchainLastestHashUseCase,
 		setBlockchainLastestHashUseCase,
 		blockDataDTOSendP2PRequestUseCase,
@@ -249,14 +264,22 @@ func doBlockchainConsensusMechanism() {
 	// ------------ Interface ------------
 
 	// TASK MANAGER
-	tm6 := taskmnghandler.NewConsensusTaskHandler(
-		cfg,
-		logger,
-		consensusService)
-	tm7 := taskmnghandler.NewBlockDataDTOServerTaskHandler(
+	// tm6 := taskmnghandler.NewConsensusTaskHandler(
+	// 	cfg,
+	// 	logger,
+	// 	consensusService)
+	tm5 := taskmnghandler.NewBlockDataDTOServerTaskHandler(
 		cfg,
 		logger,
 		uploadServerService)
+	tm6 := taskmnghandler.NewMajorityVoteConsensusServerTaskHandler(
+		cfg,
+		logger,
+		majorityVoteConsensusServerService)
+	tm7 := taskmnghandler.NewMajorityVoteConsensusClientTaskHandler(
+		cfg,
+		logger,
+		majorityVoteConsensusClientService)
 
 	//
 	// STEP 2
@@ -281,16 +304,6 @@ func doBlockchainConsensusMechanism() {
 
 	logger.Info("Starting network services only...")
 
-	go func(client *taskmnghandler.ConsensusTaskHandler) {
-		ctx := context.Background()
-		for {
-			if err := client.Execute(ctx); err != nil {
-				logger.Error("consensus error", slog.Any("error", err))
-			}
-			time.Sleep(5 * time.Second)
-		}
-	}(tm6)
-
 	go func(server *taskmnghandler.BlockDataDTOServerTaskHandler) {
 		ctx := context.Background()
 		for {
@@ -303,6 +316,28 @@ func doBlockchainConsensusMechanism() {
 			time.Sleep(5 * time.Second)
 			logger.Debug("shared local blockchain with network")
 			break
+		}
+	}(tm5)
+
+	go func(server *taskmnghandler.MajorityVoteConsensusServerTaskHandler) {
+		ctx := context.Background()
+		for {
+			if err := server.Execute(ctx); err != nil {
+				logger.Error("consensus server error", slog.Any("error", err))
+			}
+			time.Sleep(5 * time.Second)
+			logger.Debug("blockchain consensus serving done, restarting again ...")
+		}
+	}(tm6)
+
+	go func(client *taskmnghandler.MajorityVoteConsensusClientTaskHandler) {
+		ctx := context.Background()
+		for {
+			if err := client.Execute(ctx); err != nil {
+				logger.Error("consensus client error", slog.Any("error", err))
+			}
+			time.Sleep(5 * time.Second)
+			logger.Debug("blockchain consensus polling done, restarting again...")
 		}
 	}(tm7)
 

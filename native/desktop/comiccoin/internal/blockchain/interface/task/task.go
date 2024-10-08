@@ -16,14 +16,15 @@ type TaskManager interface {
 }
 
 type taskManagerImpl struct {
-	cfg                           *config.Config
-	logger                        *slog.Logger
-	mempoolReceiveTaskHandler     *task.MempoolReceiveTaskHandler
-	mempoolBatchSendTaskHandler   *task.MempoolBatchSendTaskHandler
-	miningTaskHandler             *task.MiningTaskHandler
-	validationTaskHandler         *task.ValidationTaskHandler
-	consensusTaskHandler          *task.ConsensusTaskHandler
-	blockDataDTOServerTaskHandler *task.BlockDataDTOServerTaskHandler
+	cfg                                    *config.Config
+	logger                                 *slog.Logger
+	mempoolReceiveTaskHandler              *task.MempoolReceiveTaskHandler
+	mempoolBatchSendTaskHandler            *task.MempoolBatchSendTaskHandler
+	miningTaskHandler                      *task.MiningTaskHandler
+	validationTaskHandler                  *task.ValidationTaskHandler
+	blockDataDTOServerTaskHandler          *task.BlockDataDTOServerTaskHandler
+	majorityVoteConsensusServerTaskHandler *task.MajorityVoteConsensusServerTaskHandler
+	majorityVoteConsensusClientTaskHandler *task.MajorityVoteConsensusClientTaskHandler
 }
 
 func NewTaskManager(
@@ -33,18 +34,20 @@ func NewTaskManager(
 	mempoolBatchSendTaskHandler *task.MempoolBatchSendTaskHandler,
 	miningTaskHandler *task.MiningTaskHandler,
 	validationTaskHandler *task.ValidationTaskHandler,
-	consensusTaskHandler *task.ConsensusTaskHandler,
 	blockDataDTOServerTaskHandler *task.BlockDataDTOServerTaskHandler,
+	majorityVoteConsensusServerTaskHandler *task.MajorityVoteConsensusServerTaskHandler,
+	majorityVoteConsensusClientTaskHandler *task.MajorityVoteConsensusClientTaskHandler,
 ) TaskManager {
 	port := &taskManagerImpl{
-		cfg:                           cfg,
-		logger:                        logger,
-		mempoolReceiveTaskHandler:     mempoolReceiveTaskHandler,
-		mempoolBatchSendTaskHandler:   mempoolBatchSendTaskHandler,
-		miningTaskHandler:             miningTaskHandler,
-		validationTaskHandler:         validationTaskHandler,
-		consensusTaskHandler:          consensusTaskHandler,
-		blockDataDTOServerTaskHandler: blockDataDTOServerTaskHandler,
+		cfg:                                    cfg,
+		logger:                                 logger,
+		mempoolReceiveTaskHandler:              mempoolReceiveTaskHandler,
+		mempoolBatchSendTaskHandler:            mempoolBatchSendTaskHandler,
+		miningTaskHandler:                      miningTaskHandler,
+		validationTaskHandler:                  validationTaskHandler,
+		blockDataDTOServerTaskHandler:          blockDataDTOServerTaskHandler,
+		majorityVoteConsensusServerTaskHandler: majorityVoteConsensusServerTaskHandler,
+		majorityVoteConsensusClientTaskHandler: majorityVoteConsensusClientTaskHandler,
 	}
 	return port
 }
@@ -93,16 +96,16 @@ func (port *taskManagerImpl) Run() {
 		}
 	}()
 
-	go func(consensus *taskmnghandler.ConsensusTaskHandler, loggerp *slog.Logger) {
-		ctx := context.Background()
-		for {
-			if err := consensus.Execute(ctx); err != nil {
-				loggerp.Error("consensus error", slog.Any("error", err))
-			}
-			time.Sleep(5 * time.Second)
-			loggerp.Error("executing consensus mechanism again")
-		}
-	}(port.consensusTaskHandler, port.logger)
+	// go func(consensus *taskmnghandler.ConsensusTaskHandler, loggerp *slog.Logger) {
+	// 	ctx := context.Background()
+	// 	for {
+	// 		if err := consensus.Execute(ctx); err != nil {
+	// 			loggerp.Error("consensus error", slog.Any("error", err))
+	// 		}
+	// 		time.Sleep(5 * time.Second)
+	// 		loggerp.Error("executing consensus mechanism again")
+	// 	}
+	// }(port.consensusTaskHandler, port.logger)
 
 	go func(server *taskmnghandler.BlockDataDTOServerTaskHandler, loggerp *slog.Logger) {
 		ctx := context.Background()

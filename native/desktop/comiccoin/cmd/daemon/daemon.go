@@ -158,7 +158,7 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				libP2PNetwork)
-			consensusRepo := repo.NewMajorityVoteConsensusRepoImpl(
+			consensusRepo := repo.NewConsensusRepoImpl(
 				cfg,
 				logger,
 				libP2PNetwork)
@@ -290,11 +290,19 @@ func DaemonCmd() *cobra.Command {
 				blockDataDTORepo)
 
 			// Consensus Mechanism
-			castVoteForLatestHashInMajorityVotingConsensusUseCase := usecase.NewCastVoteForLatestHashInMajorityVotingConsensusUseCase(
+			consensusMechanismBroadcastRequestToNetworkUseCase := usecase.NewConsensusMechanismBroadcastRequestToNetworkUseCase(
 				cfg,
 				logger,
 				consensusRepo)
-			queryLatestHashByMajorityVotingConsensusUseCase := usecase.NewQueryLatestHashByMajorityVotingConsensusUseCase(
+			consensusMechanismReceiveRequestFromNetworkUseCase := usecase.NewConsensusMechanismReceiveRequestFromNetworkUseCase(
+				cfg,
+				logger,
+				consensusRepo)
+			consensusMechanismSendResponseToPeerUseCase := usecase.NewConsensusMechanismSendResponseToPeerUseCase(
+				cfg,
+				logger,
+				consensusRepo)
+			consensusMechanismReceiveResponseFromNetworkUseCase := usecase.NewConsensusMechanismReceiveResponseFromNetworkUseCase(
 				cfg,
 				logger,
 				consensusRepo)
@@ -393,11 +401,18 @@ func DaemonCmd() *cobra.Command {
 				upsertAccountUseCase,
 			)
 
-			consensusService := service.NewConsensusService(
+			majorityVoteConsensusServerService := service.NewMajorityVoteConsensusServerService(
 				cfg,
 				logger,
-				queryLatestHashByMajorityVotingConsensusUseCase,
-				castVoteForLatestHashInMajorityVotingConsensusUseCase,
+				consensusMechanismReceiveRequestFromNetworkUseCase,
+				getBlockchainLastestHashUseCase,
+				consensusMechanismSendResponseToPeerUseCase,
+			)
+			majorityVoteConsensusClientService := service.NewMajorityVoteConsensusClientService(
+				cfg,
+				logger,
+				consensusMechanismBroadcastRequestToNetworkUseCase,
+				consensusMechanismReceiveResponseFromNetworkUseCase,
 				getBlockchainLastestHashUseCase,
 				setBlockchainLastestHashUseCase,
 				blockDataDTOSendP2PRequestUseCase,
@@ -459,14 +474,18 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				validationService)
-			tm5 := taskmnghandler.NewConsensusTaskHandler(
-				cfg,
-				logger,
-				consensusService)
-			tm6 := taskmnghandler.NewBlockDataDTOServerTaskHandler(
+			tm5 := taskmnghandler.NewBlockDataDTOServerTaskHandler(
 				cfg,
 				logger,
 				uploadServerService)
+			tm6 := taskmnghandler.NewMajorityVoteConsensusServerTaskHandler(
+				cfg,
+				logger,
+				majorityVoteConsensusServerService)
+			tm7 := taskmnghandler.NewMajorityVoteConsensusClientTaskHandler(
+				cfg,
+				logger,
+				majorityVoteConsensusClientService)
 
 			taskManager := taskmng.NewTaskManager(
 				cfg,
@@ -477,6 +496,7 @@ func DaemonCmd() *cobra.Command {
 				tm4,
 				tm5,
 				tm6,
+				tm7,
 			)
 
 			//

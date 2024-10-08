@@ -77,7 +77,8 @@ func NewBlockDataDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork 
 		DisconnectedF: func(_ network.Network, c network.Conn) {
 			peerID := c.RemotePeer()
 			impl.logger.Warn("peer disconnected",
-				slog.Any("peer_id", peerID),
+				slog.Any("remote_peer_id", peerID),
+				slog.Any("local_peer_id", h.ID()),
 				slog.String("dto", "blockdatadto"),
 			)
 			delete(impl.peers, peerID)
@@ -118,7 +119,8 @@ func NewBlockDataDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork 
 
 				impl.logger.Debug("peer connected",
 					slog.String("dto", "blockdatadto"),
-					slog.Any("peer_id", p.ID))
+					slog.Any("remote_peer_id", p.ID),
+					slog.Any("local_peer_id", h.ID()))
 
 				// Return nil to indicate success (no errors occured).
 				return nil
