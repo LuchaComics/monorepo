@@ -26,7 +26,6 @@ type BlockchainMempoolReceiveResponseIDO struct {
 }
 
 func (h *MempoolReceiveTaskHandler) Execute(ctx context.Context) error {
-	h.logger.Info("Mempool (receiver) is running...")
 	serviceExecErr := h.service.Execute(ctx)
 	if serviceExecErr != nil {
 		return serviceExecErr

@@ -43,9 +43,10 @@ func doRunInitBlockchain() {
 
 	cfg := &config.Config{
 		Blockchain: config.BlockchainConfig{
-			ChainID:       constants.ChainIDMainNet,
-			TransPerBlock: 1,
-			Difficulty:    2,
+			ChainID:                        constants.ChainIDMainNet,
+			TransPerBlock:                  1,
+			Difficulty:                     2,
+			ConsensusPollingDelayInMinutes: 1,
 		},
 		App: config.AppConfig{
 			DirPath:     flagDataDir,

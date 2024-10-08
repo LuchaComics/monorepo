@@ -56,7 +56,7 @@ func (s *MajorityVoteConsensusClientService) Execute(ctx context.Context) error 
 	err := s.consensusMechanismBroadcastRequestToNetworkUseCase.Execute(ctx)
 	if err != nil {
 		if strings.Contains(err.Error(), "no peers connected") {
-			s.logger.Warn("consensus mechanism waiting for clients to connect...")
+			// s.logger.Warn("consensus mechanism waiting for clients to connect...") // For debugging purposes only.
 			return nil
 		}
 		s.logger.Error("consensus mechanism failed sending request",
@@ -170,7 +170,7 @@ func (s *MajorityVoteConsensusClientService) runDownloadAndSyncBlockchainFromBlo
 
 	if err := s.blockDataDTOSendP2PRequestUseCase.Execute(ctx, blockDataHash); err != nil {
 		if strings.Contains(err.Error(), "no peers connected") {
-			s.logger.Warn("consensus mechanism waiting for clients to connect...",
+			s.logger.Warn("consensus mechanism aborted sending request because there are no peers connected yet",
 				slog.Any("hash", blockDataHash))
 			return nil
 		}

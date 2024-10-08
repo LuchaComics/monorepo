@@ -40,6 +40,10 @@ type BlockchainConfig struct {
 
 	// UnitsOfGas represents the units of gas for each transaction.
 	UnitsOfGas uint64 `json:"units_of_gas"`
+
+	// The delay time (in minutes) before this mode will poll the blockchain
+	// network to request a consensus as to what the latest block is.
+	ConsensusPollingDelayInMinutes int64 `json:"consensus_polling_delay_in_minutes"`
 }
 
 // AppConfig represents the configuration for the application.

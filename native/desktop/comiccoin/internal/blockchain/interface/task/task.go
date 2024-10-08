@@ -2,6 +2,7 @@ package task
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -57,6 +58,7 @@ func (port *taskManagerImpl) Run() {
 	port.logger.Info("Running Task Manager")
 
 	go func() {
+		port.logger.Info("Starting mempool (receive) service...")
 		for {
 			taskErr := port.mempoolReceiveTaskHandler.Execute(ctx)
 			if taskErr != nil {
@@ -66,6 +68,7 @@ func (port *taskManagerImpl) Run() {
 		}
 	}()
 	go func() {
+		port.logger.Info("Starting mempool (send) service...")
 		for {
 			taskErr := port.mempoolBatchSendTaskHandler.Execute(ctx)
 			if taskErr != nil {
@@ -76,6 +79,7 @@ func (port *taskManagerImpl) Run() {
 		}
 	}()
 	go func() {
+		port.logger.Info("Starting mining service...")
 		for {
 			taskErr := port.miningTaskHandler.Execute(ctx)
 			if taskErr != nil {
@@ -86,6 +90,7 @@ func (port *taskManagerImpl) Run() {
 		}
 	}()
 	go func() {
+		port.logger.Info("Starting validation service...")
 		for {
 			taskErr := port.validationTaskHandler.Execute(ctx)
 			if taskErr != nil {
@@ -96,18 +101,33 @@ func (port *taskManagerImpl) Run() {
 		}
 	}()
 
-	// go func(consensus *taskmnghandler.ConsensusTaskHandler, loggerp *slog.Logger) {
-	// 	ctx := context.Background()
-	// 	for {
-	// 		if err := consensus.Execute(ctx); err != nil {
-	// 			loggerp.Error("consensus error", slog.Any("error", err))
-	// 		}
-	// 		time.Sleep(5 * time.Second)
-	// 		loggerp.Error("executing consensus mechanism again")
-	// 	}
-	// }(port.consensusTaskHandler, port.logger)
+	go func(consensus *taskmnghandler.MajorityVoteConsensusServerTaskHandler, loggerp *slog.Logger) {
+		port.logger.Info("Starting consensus server...")
+		ctx := context.Background()
+		for {
+			if err := consensus.Execute(ctx); err != nil {
+				loggerp.Error("consensus error", slog.Any("error", err))
+			}
+			// DEVELOPERS NOTE:
+			// No need for delays, automatically start executing again.
+			loggerp.Debug("blockchain consensus serving done, excuting again ...")
+		}
+	}(port.majorityVoteConsensusServerTaskHandler, port.logger)
+
+	go func(consensus *taskmnghandler.MajorityVoteConsensusClientTaskHandler, loggerp *slog.Logger) {
+		loggerp.Info("Starting consensus client...")
+		ctx := context.Background()
+		for {
+			if err := consensus.Execute(ctx); err != nil {
+				loggerp.Error("consensus error", slog.Any("error", err))
+			}
+			time.Sleep(time.Duration(port.cfg.Blockchain.ConsensusPollingDelayInMinutes) * time.Minute)
+			loggerp.Debug(fmt.Sprintf("blockchain consensus client ran, will run again in %v minutes...", port.cfg.Blockchain.ConsensusPollingDelayInMinutes))
+		}
+	}(port.majorityVoteConsensusClientTaskHandler, port.logger)
 
 	go func(server *taskmnghandler.BlockDataDTOServerTaskHandler, loggerp *slog.Logger) {
+		loggerp.Info("Starting block data dto server...")
 		ctx := context.Background()
 		for {
 			if err := server.Execute(ctx); err != nil {
@@ -116,9 +136,9 @@ func (port *taskManagerImpl) Run() {
 				time.Sleep(10 * time.Second)
 				continue
 			}
-			time.Sleep(5 * time.Second)
-			loggerp.Debug("shared local blockchain with network")
-			break
+			// DEVELOPERS NOTE:
+			// No need for delays, automatically start executing again.
+			port.logger.Debug("block data dto server executing again ...")
 		}
 	}(port.blockDataDTOServerTaskHandler, port.logger)
 }

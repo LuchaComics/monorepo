@@ -23,7 +23,6 @@ func NewBlockDataDTOServerTaskHandler(
 }
 
 func (h *BlockDataDTOServerTaskHandler) Execute(ctx context.Context) error {
-	h.logger.Info("BlockData DTO (Streaming) Server is running...")
 	if serviceExecErr := h.service.Execute(ctx); serviceExecErr != nil {
 		return serviceExecErr
 	}

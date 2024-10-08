@@ -23,7 +23,6 @@ func NewValidationTaskHandler(
 }
 
 func (h *ValidationTaskHandler) Execute(ctx context.Context) error {
-	h.logger.Info("Validation is running...")
 	if serviceExecErr := h.service.Execute(ctx); serviceExecErr != nil {
 		return serviceExecErr
 	}

@@ -10,11 +10,11 @@ import (
 )
 
 type MajorityVoteConsensusServerService struct {
-	config                                       *config.Config
-	logger                                       *slog.Logger
-	lastBlockDataHashDTOReceiveP2PRequestUseCase *usecase.ConsensusMechanismReceiveRequestFromNetworkUseCase
-	getBlockchainLastestHashUseCase              *usecase.GetBlockchainLastestHashUseCase
-	lastBlockDataHashDTOSendP2PResponseUseCase   *usecase.ConsensusMechanismSendResponseToPeerUseCase
+	config                                             *config.Config
+	logger                                             *slog.Logger
+	consensusMechanismReceiveRequestFromNetworkUseCase *usecase.ConsensusMechanismReceiveRequestFromNetworkUseCase
+	getBlockchainLastestHashUseCase                    *usecase.GetBlockchainLastestHashUseCase
+	consensusMechanismSendResponseToPeerUseCase        *usecase.ConsensusMechanismSendResponseToPeerUseCase
 }
 
 func NewMajorityVoteConsensusServerService(
@@ -34,7 +34,7 @@ func (s *MajorityVoteConsensusServerService) Execute(ctx context.Context) error 
 	// Wait to receive any request from the peer-to-peer network.
 	//
 
-	peerID, err := s.lastBlockDataHashDTOReceiveP2PRequestUseCase.Execute(ctx)
+	peerID, err := s.consensusMechanismReceiveRequestFromNetworkUseCase.Execute(ctx)
 	if err != nil {
 		s.logger.Error("failed receiving request",
 			slog.Any("error", err))
@@ -64,7 +64,7 @@ func (s *MajorityVoteConsensusServerService) Execute(ctx context.Context) error 
 	// Send to the peer the hash we have locally.
 	//
 
-	if err := s.lastBlockDataHashDTOSendP2PResponseUseCase.Execute(ctx, peerID, localHash); err != nil {
+	if err := s.consensusMechanismSendResponseToPeerUseCase.Execute(ctx, peerID, localHash); err != nil {
 		s.logger.Error("failed sending response",
 			slog.Any("local_hash", localHash),
 			slog.Any("peer_id", peerID),

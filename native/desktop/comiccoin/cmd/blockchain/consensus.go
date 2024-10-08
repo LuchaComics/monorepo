@@ -61,9 +61,10 @@ func doBlockchainConsensusMechanism() {
 
 	cfg := &config.Config{
 		Blockchain: config.BlockchainConfig{
-			ChainID:       constants.ChainIDMainNet,
-			TransPerBlock: 1,
-			Difficulty:    2,
+			ChainID:                        constants.ChainIDMainNet,
+			TransPerBlock:                  1,
+			Difficulty:                     2,
+			ConsensusPollingDelayInMinutes: 1,
 		},
 		App: config.AppConfig{
 			DirPath:     flagDataDir,
@@ -302,42 +303,50 @@ func doBlockchainConsensusMechanism() {
 	// background.
 	//
 
-	logger.Info("Starting network services only...")
-
 	go func(server *taskmnghandler.BlockDataDTOServerTaskHandler) {
+		logger.Info("Starting block data dto server...")
 		ctx := context.Background()
 		for {
 			if err := server.Execute(ctx); err != nil {
-				logger.Error("blockdatabto consensus server error",
+				logger.Error("blockdatabto server error",
 					slog.Any("error", err))
 				time.Sleep(10 * time.Second)
 				continue
 			}
-			time.Sleep(5 * time.Second)
-			logger.Debug("shared local blockchain with network")
+
+			// DEVELOPERS NOTE:
+			// No need for delays, automatically start executing again.
+			logger.Debug("block data dto server executign again...")
 			break
 		}
 	}(tm5)
 
 	go func(server *taskmnghandler.MajorityVoteConsensusServerTaskHandler) {
+		logger.Info("Starting consensus server...")
 		ctx := context.Background()
 		for {
 			if err := server.Execute(ctx); err != nil {
 				logger.Error("consensus server error", slog.Any("error", err))
+				time.Sleep(10 * time.Second)
+				continue
 			}
-			time.Sleep(5 * time.Second)
-			logger.Debug("blockchain consensus serving done, restarting again ...")
+			// DEVELOPERS NOTE:
+			// No need for delays, automatically start executing again.
+			logger.Debug("blockchain consensus serving done, excuting again ...")
 		}
 	}(tm6)
 
 	go func(client *taskmnghandler.MajorityVoteConsensusClientTaskHandler) {
+		logger.Info("Starting consensus client...")
 		ctx := context.Background()
 		for {
 			if err := client.Execute(ctx); err != nil {
 				logger.Error("consensus client error", slog.Any("error", err))
+				time.Sleep(10 * time.Second)
+				continue
 			}
-			time.Sleep(5 * time.Second)
-			logger.Debug("blockchain consensus polling done, restarting again...")
+			time.Sleep(time.Duration(cfg.Blockchain.ConsensusPollingDelayInMinutes) * time.Minute)
+			logger.Debug(fmt.Sprintf("blockchain consensus client polling done, will execute again in %v minutes...", cfg.Blockchain.ConsensusPollingDelayInMinutes))
 		}
 	}(tm7)
 
