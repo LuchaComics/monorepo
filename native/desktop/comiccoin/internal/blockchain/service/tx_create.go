@@ -77,7 +77,10 @@ func (s *CreateTransactionService) Execute(
 		return fmt.Errorf("failed getting from database: %s", err)
 	}
 	if wallet == nil {
-		return fmt.Errorf("failed getting from database: %s", "d.n.e.")
+		s.logger.Error("failed getting from database",
+			slog.Any("from_account_address", fromAccountAddress),
+			slog.Any("error", "d.n.e."))
+		return fmt.Errorf("failed getting from database: %s", "wallet d.n.e.")
 	}
 
 	key, err := s.walletDecryptKeyUseCase.Execute(wallet.Filepath, accountWalletPassword)
@@ -107,6 +110,10 @@ func (s *CreateTransactionService) Execute(
 		return fmt.Errorf("failed getting account: %s", "d.n.e.")
 	}
 	if account.Balance <= value {
+		s.logger.Warn("insufficient balance in account",
+			slog.Any("account_addr", fromAccountAddress),
+			slog.Any("account_balance", account.Balance),
+			slog.Any("value", value))
 		return fmt.Errorf("insufficient balance: %d", account.Balance)
 	}
 

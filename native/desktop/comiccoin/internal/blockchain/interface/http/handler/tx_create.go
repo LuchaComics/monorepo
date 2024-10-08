@@ -56,7 +56,13 @@ func (h *CreateTransactionHTTPHandler) Execute(w http.ResponseWriter, r *http.Re
 	}
 
 	toAddr := common.HexToAddress(req.RecipientAddress)
-	senderAddr := common.HexToAddress(req.SenderAccountPassword)
+	senderAddr := common.HexToAddress(req.SenderAccountAddress)
+
+	h.logger.Debug("tx submit received",
+		slog.Any("sender", senderAddr),
+		slog.Any("receipient", toAddr),
+		slog.Any("value", req.Value),
+		slog.Any("data", req.Data))
 
 	serviceExecErr := h.service.Execute(
 		ctx,

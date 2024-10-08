@@ -24,8 +24,8 @@ func submitTxCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&flagAccountAddress, "sender-account-id", "", "The id of the account we will use in our coin transfer")
-	cmd.MarkFlagRequired("sender-account-id")
+	cmd.Flags().StringVar(&flagAccountAddress, "sender-account-address", "", "The address of the account we will use in our coin transfer")
+	cmd.MarkFlagRequired("sender-account-address")
 
 	cmd.Flags().StringVar(&flagPassword, "sender-account-password", "", "The password to unlock the account which will transfer the coin")
 	cmd.MarkFlagRequired("sender-account-password")

@@ -135,8 +135,8 @@ func (s *InitAccountsFromBlockchainService) processGenesisBlockData() error {
 			slog.Any("data", genesisTx.Data),
 		)
 
-		if err := s.createAccountUseCase.Execute(genesisTx.To); err != nil {
-			s.logger.Error("Failed creating account.",
+		if err := s.upsertAccountUseCase.Execute(genesisTx.From, genesisTx.Value, 0); err != nil {
+			s.logger.Error("Failed upserting account.",
 				slog.Any("error", err))
 			return err
 		}

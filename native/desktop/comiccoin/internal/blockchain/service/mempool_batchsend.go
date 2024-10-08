@@ -65,7 +65,10 @@ func (s *MempoolBatchSendService) Execute(ctx context.Context) error {
 	//    send the transactions to the miner.
 	if len(stxs) < int(s.config.Blockchain.TransPerBlock) {
 		// Do nothing, just return this function with nothing.
-		s.logger.Debug("mempool skipped submitted to minging service")
+		s.logger.Debug("mempool skipped submitted to minging service",
+			slog.Int("current_txs", len(stxs)),
+			slog.Uint64("trans_per_block", uint64(s.config.Blockchain.TransPerBlock)),
+		)
 		return nil
 	}
 
@@ -90,7 +93,7 @@ func (s *MempoolBatchSendService) Execute(ctx context.Context) error {
 				slog.Any("error", createErr))
 			return createErr
 		}
-		s.logger.Debug("mempool submitted to minging service",
+		s.logger.Debug("mempool submitted to mining service",
 			slog.Any("tx_nonce", stx.Nonce),
 		)
 	}
