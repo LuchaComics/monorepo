@@ -54,28 +54,8 @@ func (uc *CreateMempoolTransactionUseCase) Execute(stx *domain.MempoolTransactio
 		return httperror.NewForBadRequest(&e)
 	}
 
-	// //
-	// // STEP 2: Create our strucutre.
-	// //
 	//
-	// tx := domain.Transaction{
-	// 	ChainID: chainID,
-	// 	Nonce:   nonce,
-	// 	From:    from,
-	// 	To:      to,
-	// 	Value:   value,
-	// 	Tip:     tip,
-	// 	Data:    data,
-	// }
-	// stx := &domain.MempoolTransaction{
-	// 	Transaction: tx,
-	// 	V:           v,
-	// 	R:           r,
-	// 	S:           s,
-	// }
-
-	//
-	// STEP 3: Insert into database.
+	// STEP 2: Insert into database.
 	//
 
 	return uc.repo.Upsert(stx)

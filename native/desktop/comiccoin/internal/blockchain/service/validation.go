@@ -66,7 +66,7 @@ func (s *ValidationService) Execute(ctx context.Context) error {
 		return nil
 	}
 
-	s.logger.Debug("received dto from network",
+	s.logger.Info("received dto from network",
 		slog.Any("hash", proposedBlockData.Hash),
 	)
 
@@ -158,7 +158,7 @@ func (s *ValidationService) Execute(ctx context.Context) error {
 		return err
 	}
 
-	s.logger.Debug("validator saved proposed block data to local blockchain",
+	s.logger.Info("validator saved proposed block data to local blockchain",
 		slog.Any("hash", proposedBlockData.Hash),
 	)
 

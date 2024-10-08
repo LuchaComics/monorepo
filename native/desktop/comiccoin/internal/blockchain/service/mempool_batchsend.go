@@ -18,7 +18,7 @@ type MempoolBatchSendService struct {
 	config                                *config.Config
 	logger                                *slog.Logger
 	kmutex                                kmutexutil.KMutexProvider
-	listAllMempoolTransactionDTOUseCase   *usecase.ListAllMempoolTransactionUseCase
+	listAllMempoolTransactionUseCase      *usecase.ListAllMempoolTransactionUseCase
 	createPendingBlockTransactionUseCase  *usecase.CreatePendingBlockTransactionUseCase
 	deleteAllMempoolTransactionDTOUseCase *usecase.DeleteAllMempoolTransactionUseCase
 }
@@ -45,7 +45,7 @@ func (s *MempoolBatchSendService) Execute(ctx context.Context) error {
 	s.kmutex.Acquire("mempool-service")
 	defer s.kmutex.Release("mempool-service")
 
-	stxs, err := s.listAllMempoolTransactionDTOUseCase.Execute()
+	stxs, err := s.listAllMempoolTransactionUseCase.Execute()
 	if err != nil {
 		s.logger.Error("mempool failed listing mempool transaction",
 			slog.Any("error", err))
@@ -64,11 +64,11 @@ func (s *MempoolBatchSendService) Execute(ctx context.Context) error {
 	//    transaction requirement per block and if we meet it then we can
 	//    send the transactions to the miner.
 	if len(stxs) < int(s.config.Blockchain.TransPerBlock) {
-		// Do nothing, just return this function with nothing.
-		s.logger.Debug("mempool skipped submitted to minging service",
-			slog.Int("current_txs", len(stxs)),
-			slog.Uint64("trans_per_block", uint64(s.config.Blockchain.TransPerBlock)),
-		)
+		// // Do nothing, just return this function with nothing.
+		// s.logger.Debug("mempool skipped submitted to minging service",
+		// 	slog.Int("current_txs", len(stxs)),
+		// 	slog.Uint64("trans_per_block", uint64(s.config.Blockchain.TransPerBlock)),
+		// )
 		return nil
 	}
 
@@ -77,7 +77,7 @@ func (s *MempoolBatchSendService) Execute(ctx context.Context) error {
 	// Queue our signed transactions for the miner.
 	//
 
-	s.logger.Debug("mempool submitting to minging service",
+	s.logger.Info("mempool submitting to minging service",
 		slog.Any("txs_count", len(stxs)),
 	)
 

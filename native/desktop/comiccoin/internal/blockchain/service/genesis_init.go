@@ -169,6 +169,7 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 		return fmt.Errorf("Failed to save last hash of genesis block data: %v", err)
 	}
 
-	s.logger.Debug("finished  genesis creation service")
+	s.logger.Debug("finished genesis creation service",
+		slog.Any("hash", genesisBlockData.Hash))
 	return nil
 }

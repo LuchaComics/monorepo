@@ -53,7 +53,7 @@ func (s *MempoolReceiveService) Execute(ctx context.Context) error {
 		return nil
 	}
 
-	s.logger.Debug("received dto from network",
+	s.logger.Info("received dto from network",
 		slog.Any("tx_nonce", stx.Nonce),
 	)
 
@@ -73,7 +73,7 @@ func (s *MempoolReceiveService) Execute(ctx context.Context) error {
 		return err
 	}
 
-	s.logger.Debug("saved to mempool",
+	s.logger.Info("saved to mempool",
 		slog.Any("tx_nonce", stx.Nonce),
 	)
 

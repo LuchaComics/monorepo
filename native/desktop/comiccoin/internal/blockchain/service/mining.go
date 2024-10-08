@@ -73,11 +73,11 @@ func (s *MiningService) Execute(ctx context.Context) error {
 		return nil
 	}
 	if len(pendingBlockTxs) <= 0 {
-		s.logger.Debug("skipped mining: has no pending block transactions")
+		// s.logger.Debug("skipped mining: has no pending block transactions")
 		return nil
 	}
 
-	s.logger.Debug("executing mining for pending block transactions",
+	s.logger.Info("executing mining for pending block transactions",
 		slog.Int("count", len(pendingBlockTxs)),
 	)
 
@@ -198,7 +198,7 @@ func (s *MiningService) Execute(ctx context.Context) error {
 
 	block.Header.Nonce = nonce
 
-	s.logger.Debug("mining completed",
+	s.logger.Info("mining completed",
 		slog.Uint64("nonce", block.Header.Nonce))
 
 	//
@@ -217,10 +217,18 @@ func (s *MiningService) Execute(ctx context.Context) error {
 	// Convert into saving for our database and transmitting over network.
 	blockData := domain.NewBlockData(block)
 
+	// Save new block data.
 	if err := s.createBlockDataUseCase.Execute(blockData.Hash, blockData.Header, blockData.Trans); err != nil {
 		s.logger.Error("Failed to save block data to blockchain",
 			slog.Any("error", powErr))
 		return fmt.Errorf("Failed to save block data to blockchain: %v", powErr)
+	}
+
+	// Delete purposed block data as it has already been processed.
+	if err := s.deleteAllPendingBlockTransactionUseCase.Execute(); err != nil {
+		s.logger.Error("Failed to deleta all pending block data from blockchain",
+			slog.Any("error", powErr))
+		return fmt.Errorf("Failed to deleta all pending block data from blockchain: %v", powErr)
 	}
 
 	//
@@ -241,6 +249,9 @@ func (s *MiningService) Execute(ctx context.Context) error {
 			slog.Any("error", powErr))
 		return fmt.Errorf("Failed to broadcast proposed block data: %v", powErr)
 	}
+
+	s.logger.Info("mining service broadcasted new block data to propose to the network",
+		slog.Uint64("nonce", block.Header.Nonce))
 
 	//
 	// STEP 8:

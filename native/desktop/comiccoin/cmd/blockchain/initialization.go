@@ -3,8 +3,8 @@ package blockchain
 import (
 	"context"
 	"log"
+	"log/slog"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
@@ -20,16 +20,14 @@ import (
 func InitCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "init",
-		Short: "(Developer only) Initializes the blockchain by creating the first block on the chain, i.e. genesis block",
+		Short: "(Developer only) Initialize the ComicCoin blockchain for the very first time by creating the genesis block and the coinbase account.",
 		Run: func(cmd *cobra.Command, args []string) {
 			doRunInitBlockchain()
 		},
 	}
 
 	cmd.Flags().StringVar(&flagDataDir, "datadir", "./data", "Absolute path to your node's data dir where the DB will be/is stored")
-	cmd.Flags().StringVar(&flagAccountAddress, "coinbase-account-address", "", "The account address of the coinbase wallet")
-	cmd.MarkFlagRequired("coinbase-account-address")
-	cmd.Flags().StringVar(&flagPassword, "coinbase-password", "", "The password to decrypt the cointbase's account wallet")
+	cmd.Flags().StringVar(&flagPassword, "coinbase-password", "", "The password to encrypt the cointbase's account wallet")
 	cmd.MarkFlagRequired("coinbase-password")
 
 	return cmd
@@ -86,7 +84,26 @@ func doRunInitBlockchain() {
 
 	// ------------ Use-case ------------
 
+	// Account
+	createAccountUseCase := usecase.NewCreateAccountUseCase(
+		cfg,
+		logger,
+		accountRepo)
+	getAccountUseCase := usecase.NewGetAccountUseCase(
+		cfg,
+		logger,
+		accountRepo)
+
+	// Wallet
+	walletEncryptKeyUseCase := usecase.NewWalletEncryptKeyUseCase(
+		cfg,
+		logger,
+		walletRepo)
 	walletDecryptKeyUseCase := usecase.NewWalletDecryptKeyUseCase(
+		cfg,
+		logger,
+		walletRepo)
+	createWalletUseCase := usecase.NewCreateWalletUseCase(
 		cfg,
 		logger,
 		walletRepo)
@@ -94,6 +111,7 @@ func doRunInitBlockchain() {
 		cfg,
 		logger,
 		walletRepo)
+
 	setBlockchainLastestHashUseCase := usecase.NewSetBlockchainLastestHashUseCase(
 		cfg,
 		logger,
@@ -114,6 +132,15 @@ func doRunInitBlockchain() {
 
 	// ------------ Service ------------
 
+	createAccountService := service.NewCreateAccountService(
+		cfg,
+		logger,
+		walletEncryptKeyUseCase,
+		walletDecryptKeyUseCase,
+		createWalletUseCase,
+		createAccountUseCase,
+		getAccountUseCase)
+
 	getKeyService := service.NewGetKeyService(
 		cfg,
 		logger,
@@ -122,12 +149,15 @@ func doRunInitBlockchain() {
 
 	//
 	// STEP 2:
-	// Get our coinbase account.
+	// Create our coinbase account.
 	//
 
-	accountAddress := common.HexToAddress(flagAccountAddress)
+	account, err := createAccountService.Execute(flagDataDir, flagPassword)
+	if err != nil {
+		log.Fatalf("failed creating account: %v", err)
+	}
 
-	coinbaseAccountKey, err := getKeyService.Execute(&accountAddress, flagPassword)
+	coinbaseAccountKey, err := getKeyService.Execute(account.Address, flagPassword)
 	if err != nil {
 		log.Fatalf("failed getting account wallet key: %v", err)
 	}
@@ -137,7 +167,7 @@ func doRunInitBlockchain() {
 	// the coinbase account before proceeding. This is not a mistake, remember
 	// in-memory data get's lost on app shutdown, so when the app starts up
 	// again you'll need to populate the accounts database again.
-	if err := upsertAccountUseCase.Execute(&accountAddress, 0, 0); err != nil {
+	if err := upsertAccountUseCase.Execute(account.Address, 0, 0); err != nil {
 		log.Fatalf("failed upserting account: %v", err)
 	}
 
@@ -162,5 +192,7 @@ func doRunInitBlockchain() {
 		log.Fatalf("failed creating genesis blockdata: %v", err)
 	}
 
-	logger.Info("Blockchain successfully initialized")
+	logger.Info("Blockchain successfully initialized",
+		slog.Any("coinbase_address", account.Address),
+	)
 }

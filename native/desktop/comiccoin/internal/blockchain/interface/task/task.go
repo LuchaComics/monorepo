@@ -58,51 +58,51 @@ func (port *taskManagerImpl) Run() {
 	port.logger.Info("Running Task Manager")
 
 	go func() {
-		port.logger.Info("Starting mempool (receive) service...")
+		port.logger.Info("Runningmempool (receive) service...")
 		for {
 			taskErr := port.mempoolReceiveTaskHandler.Execute(ctx)
 			if taskErr != nil {
 				port.logger.Error("failed executing mempool receive task, restarting task in 1 minute...", slog.Any("error", taskErr))
-				time.Sleep(1 * time.Minute)
+				time.Sleep(1 * time.Second)
 			}
 		}
 	}()
 	go func() {
-		port.logger.Info("Starting mempool (send) service...")
+		port.logger.Info("Running mempool (send) service...")
 		for {
 			taskErr := port.mempoolBatchSendTaskHandler.Execute(ctx)
 			if taskErr != nil {
 				port.logger.Error("failed executing mempool batch send task, restarting task in 1 minute...", slog.Any("error", taskErr))
 				time.Sleep(1 * time.Minute)
 			}
-			time.Sleep(1 * time.Minute)
+			time.Sleep(1 * time.Second)
 		}
 	}()
 	go func() {
-		port.logger.Info("Starting mining service...")
+		port.logger.Info("Running mining service...")
 		for {
 			taskErr := port.miningTaskHandler.Execute(ctx)
 			if taskErr != nil {
 				port.logger.Error("failed executing mining task, restarting task in 1 minute...", slog.Any("error", taskErr))
 				time.Sleep(1 * time.Minute)
 			}
-			time.Sleep(1 * time.Minute)
+			time.Sleep(1 * time.Second)
 		}
 	}()
 	go func() {
-		port.logger.Info("Starting validation service...")
+		port.logger.Info("Running validation service...")
 		for {
 			taskErr := port.validationTaskHandler.Execute(ctx)
 			if taskErr != nil {
 				port.logger.Error("failed executing validation task, restarting task in 1 minute...", slog.Any("error", taskErr))
 				time.Sleep(1 * time.Minute)
 			}
-			time.Sleep(1 * time.Minute)
+			time.Sleep(1 * time.Second)
 		}
 	}()
 
 	go func(consensus *taskmnghandler.MajorityVoteConsensusServerTaskHandler, loggerp *slog.Logger) {
-		port.logger.Info("Starting consensus server...")
+		port.logger.Info("Running consensus server...")
 		ctx := context.Background()
 		for {
 			if err := consensus.Execute(ctx); err != nil {
@@ -115,7 +115,7 @@ func (port *taskManagerImpl) Run() {
 	}(port.majorityVoteConsensusServerTaskHandler, port.logger)
 
 	go func(consensus *taskmnghandler.MajorityVoteConsensusClientTaskHandler, loggerp *slog.Logger) {
-		loggerp.Info("Starting consensus client...")
+		loggerp.Info("Running consensus client...")
 		ctx := context.Background()
 		for {
 			if err := consensus.Execute(ctx); err != nil {
@@ -127,7 +127,7 @@ func (port *taskManagerImpl) Run() {
 	}(port.majorityVoteConsensusClientTaskHandler, port.logger)
 
 	go func(server *taskmnghandler.BlockDataDTOServerTaskHandler, loggerp *slog.Logger) {
-		loggerp.Info("Starting block data dto server...")
+		loggerp.Info("Running block data dto server...")
 		ctx := context.Background()
 		for {
 			if err := server.Execute(ctx); err != nil {
