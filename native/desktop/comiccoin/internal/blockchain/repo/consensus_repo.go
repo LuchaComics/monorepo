@@ -194,7 +194,8 @@ func NewMajorityVoteConsensusRepoImpl(cfg *config.Config, logger *slog.Logger, l
 
 				impl.logger.Debug("peer connected",
 					slog.String("dto", "consensus"),
-					slog.Any("peer_id", p.ID))
+					slog.Any("local_peer_id", h.ID()),
+					slog.Any("remote_peer_id", p.ID))
 
 				// Return nil to indicate success (no errors occured).
 				return nil
@@ -210,8 +211,15 @@ func NewMajorityVoteConsensusRepoImpl(cfg *config.Config, logger *slog.Logger, l
 	// right away.
 	//
 	go func(ctx context.Context, impl *MajorityVoteConsensusRepoImpl) {
+		// Wait until our code gets a hash.
+		for impl.currentBlockchainHash == "" {
+			time.Sleep(1 * time.Second)
+		}
 
 		for {
+			ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+			defer cancel()
+
 			impl.logger.Debug("waiting for consensus request from network")
 
 			// Developers Note:
@@ -224,20 +232,26 @@ func NewMajorityVoteConsensusRepoImpl(cfg *config.Config, logger *slog.Logger, l
 				continue
 			}
 
+			// Do not accept subscription messages if it was sent by us.
+			if msg.ReceivedFrom == impl.libP2PNetwork.GetHost().ID() {
+				continue
+			}
+
 			if msg != nil {
 				impl.logger.Debug("consensus request received by our node, our node submitted our vote",
-					slog.Any("peer_id", msg.ReceivedFrom))
-
-				peerID := msg.ReceivedFrom
+					slog.String("sending_hash", impl.currentBlockchainHash),
+					slog.Any("local_peer_id", h.ID()),
+					slog.Any("remote_peer_id", msg.ReceivedFrom))
 
 				impl.mu.Lock()
 				defer impl.mu.Unlock()
 
 				dataBytes := []byte(impl.currentBlockchainHash)
-				if err := impl.dtoProtocol.SendResponse(peerID, dataBytes); err != nil {
+				if err := impl.dtoProtocol.SendResponse(msg.ReceivedFrom, dataBytes); err != nil {
 					impl.logger.Error("Failed to send response",
 						slog.Any("error", err),
-						slog.Any("peer_id", msg.ReceivedFrom))
+						slog.Any("local_peer_id", h.ID()),
+						slog.Any("remote_peer_id", msg.ReceivedFrom))
 					continue
 				}
 			}
@@ -246,14 +260,20 @@ func NewMajorityVoteConsensusRepoImpl(cfg *config.Config, logger *slog.Logger, l
 
 	return impl
 }
+
 func (impl *MajorityVoteConsensusRepoImpl) QueryLatestHashByConsensus(ctx context.Context) (string, error) {
+	if len(impl.peers) == 0 {
+		impl.logger.Warn("No peers connected, abandoning query.")
+		return "", nil
+	}
 	//
 	// STEP 1
 	// Attach a `1 minute` timeout so if we don't acheive consensus within that
 	// time limit then we will need to abandon this request.
 	//
 
-	ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
+	// ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	//
@@ -301,7 +321,7 @@ func (impl *MajorityVoteConsensusRepoImpl) QueryLatestHashByConsensus(ctx contex
 			resp, err := impl.dtoProtocol.WaitAndReceiveResponse(ctx)
 			if err != nil {
 				if ctx.Err() == context.DeadlineExceeded {
-					impl.logger.Warn("onsensus mechanism timeout occurred waiting to receive from p2p network")
+					impl.logger.Warn("consensus mechanism timeout occurred waiting to receive from p2p network")
 				} else {
 					impl.logger.Error("consensus mechanism failed to receive from p2p network",
 						slog.Any("error", err))
@@ -312,6 +332,11 @@ func (impl *MajorityVoteConsensusRepoImpl) QueryLatestHashByConsensus(ctx contex
 			// Deserialize the result.
 			currentBlockchainHash := string(resp.Content)
 
+			impl.logger.Debug("received",
+				slog.String("received_hash", currentBlockchainHash),
+				slog.Any("local_peer_id", impl.libP2PNetwork.GetHost().ID()),
+				slog.Any("remote_peer_id", resp.FromPeerID))
+
 			// Lock our votes and add our new vote from a peer.
 			mu.Lock()
 			voteResults[resp.FromPeerID] = currentBlockchainHash
@@ -321,7 +346,9 @@ func (impl *MajorityVoteConsensusRepoImpl) QueryLatestHashByConsensus(ctx contex
 
 	// Block the current execution until all our goroutines finish.
 	go func() {
+		impl.logger.Debug("waiting...")
 		wg.Wait()
+		impl.logger.Debug("done")
 		close(errCh)
 	}()
 
@@ -329,9 +356,12 @@ func (impl *MajorityVoteConsensusRepoImpl) QueryLatestHashByConsensus(ctx contex
 	select {
 	case err := <-errCh:
 		impl.logger.Error("network connectivity issue",
+			slog.Any("voting_results", voteResults),
+			slog.Any("local_peer_id", impl.libP2PNetwork.GetHost().ID()),
 			slog.Any("error", err))
 		return "", err
 	case <-errCh:
+		impl.logger.Debug("all good")
 		// No errors occurred.
 	}
 
@@ -363,7 +393,7 @@ func (impl *MajorityVoteConsensusRepoImpl) QueryLatestHashByConsensus(ctx contex
 // what is the hash of the latest block.
 func (impl *MajorityVoteConsensusRepoImpl) CastVoteForLatestHashConsensus(newHash string) error {
 	impl.mu.Lock()
-	defer impl.mu.Unlock()
 	impl.currentBlockchainHash = newHash
+	impl.mu.Unlock()
 	return nil
 }

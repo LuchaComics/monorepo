@@ -93,13 +93,14 @@ func (port *taskManagerImpl) Run() {
 		}
 	}()
 
-	go func(client *taskmnghandler.ConsensusTaskHandler, loggerp *slog.Logger) {
+	go func(consensus *taskmnghandler.ConsensusTaskHandler, loggerp *slog.Logger) {
 		ctx := context.Background()
 		for {
-			if err := client.Execute(ctx); err != nil {
+			if err := consensus.Execute(ctx); err != nil {
 				loggerp.Error("consensus error", slog.Any("error", err))
 			}
 			time.Sleep(5 * time.Second)
+			loggerp.Error("executing consensus mechanism again")
 		}
 	}(port.consensusTaskHandler, port.logger)
 

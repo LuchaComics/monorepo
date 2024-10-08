@@ -23,7 +23,6 @@ func NewConsensusTaskHandler(
 }
 
 func (h *ConsensusTaskHandler) Execute(ctx context.Context) error {
-	h.logger.Info("Consensus mechanism is running...")
 	if serviceExecErr := h.service.Execute(ctx); serviceExecErr != nil {
 		return serviceExecErr
 	}

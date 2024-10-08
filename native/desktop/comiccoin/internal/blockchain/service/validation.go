@@ -43,8 +43,8 @@ func NewValidationService(
 }
 
 func (s *ValidationService) Execute(ctx context.Context) error {
-	s.logger.Debug("starting validation service...")
-	defer s.logger.Debug("finished validation service")
+	// s.logger.Debug("starting validation service...")
+	// defer s.logger.Debug("finished validation service")
 
 	//
 	// STEP 1

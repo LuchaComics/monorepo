@@ -50,8 +50,8 @@ func NewMiningService(
 }
 
 func (s *MiningService) Execute(ctx context.Context) error {
-	s.logger.Debug("starting mining service...")
-	defer s.logger.Debug("finished mining service")
+	// s.logger.Debug("starting mining service...")
+	// defer s.logger.Debug("finished mining service")
 
 	//
 	// STEP 1:

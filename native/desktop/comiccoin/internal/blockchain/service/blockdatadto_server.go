@@ -29,8 +29,8 @@ func NewBlockDataDTOServerService(
 }
 
 func (s *BlockDataDTOServerService) Execute(ctx context.Context) error {
-	s.logger.Debug("block data dto server running...")
-	defer s.logger.Debug("block data dto server ran")
+	// s.logger.Debug("block data dto server running...")
+	// defer s.logger.Debug("block data dto server ran")
 
 	//
 	// STEP 1:

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"time"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
@@ -45,8 +46,8 @@ func NewConsensusService(
 }
 
 func (s *ConsensusService) Execute(ctx context.Context) error {
-	s.logger.Debug("consensus mechanism running...")
-	defer s.logger.Debug("consensus mechanism ran")
+	// s.logger.Debug("consensus mechanism running...")
+	// defer s.logger.Debug("consensus mechanism ran")
 
 	//
 	// STEP 1
@@ -69,9 +70,6 @@ func (s *ConsensusService) Execute(ctx context.Context) error {
 		return err
 	}
 
-	defer s.logger.Debug("consensus mechanism vote submitted to network",
-		slog.String("local_hash", localHash))
-
 	//
 	// STEP 3:
 	// Query our blockchain network to discover the latest hash agreed upon.
@@ -88,13 +86,15 @@ func (s *ConsensusService) Execute(ctx context.Context) error {
 		return err
 	}
 
-	defer s.logger.Debug("consensus mechanism received from network",
-		slog.String("blockchain_hash", blockchainHash))
-
+	// Developers Note:
+	// If we get a blockchain hash as empty string, then that means we are not
+	// connected to the network so simply finish this function.
 	if blockchainHash == "" {
-		s.logger.Warn("returned hash is empty")
 		return nil
 	}
+
+	defer s.logger.Debug("consensus mechanism received from network",
+		slog.String("blockchain_hash", blockchainHash))
 
 	//
 	// STEP 4:
@@ -128,6 +128,7 @@ func (s *ConsensusService) Execute(ctx context.Context) error {
 	} else {
 		s.logger.Debug("local blockchain is up-to-date with peer-to-peer network")
 	}
+	time.Sleep(15 * time.Second)
 
 	return nil
 }
