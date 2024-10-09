@@ -126,5 +126,10 @@ func (tx MempoolTransaction) FromAddress() (string, error) {
 
 // ToSignedTransaction converts the mempool transaction to a signed transaction.
 func (tx MempoolTransaction) ToSignedTransaction() *SignedTransaction {
-	return &SignedTransaction{}
+	return &SignedTransaction{
+		Transaction: tx.Transaction,
+		V:           tx.V,
+		R:           tx.R,
+		S:           tx.S,
+	}
 }

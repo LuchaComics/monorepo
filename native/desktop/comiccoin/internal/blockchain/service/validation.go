@@ -158,8 +158,10 @@ func (s *ValidationService) Execute(ctx context.Context) error {
 		return err
 	}
 
-	s.logger.Info("validator saved proposed block data to local blockchain",
+	s.logger.Info("validator add new block to blockchain",
 		slog.Any("hash", proposedBlockData.Hash),
+		slog.Uint64("number", proposedBlockData.Header.Number),
+		slog.Any("previous_hash", proposedBlockData.Header.PrevBlockHash),
 	)
 
 	if err := s.setBlockchainLastestHashUseCase.Execute(blockData.Hash); err != nil {
@@ -168,7 +170,7 @@ func (s *ValidationService) Execute(ctx context.Context) error {
 		return err
 	}
 
-	s.logger.Debug("validator set latest hash in local blockchain to point to our saved purposed block data",
+	s.logger.Debug("validator set latest hash in blockchain",
 		slog.Any("hash", proposedBlockData.Hash),
 	)
 
@@ -219,6 +221,12 @@ func (s *ValidationService) processAccountForBlockTransaction(blockData *domain.
 				slog.Any("error", err))
 			return err
 		}
+
+		s.logger.Debug("New `From` account balance via validator",
+			slog.Any("account_address", acc.Address),
+			slog.Any("balance", acc.Balance),
+			slog.Any("tx_hash", blockTx.Hash),
+		)
 	}
 
 	//
@@ -255,6 +263,12 @@ func (s *ValidationService) processAccountForBlockTransaction(blockData *domain.
 				slog.Any("error", err))
 			return err
 		}
+
+		s.logger.Debug("New `To` account balance via validator",
+			slog.Any("account_address", acc.Address),
+			slog.Any("balance", acc.Balance),
+			slog.Any("tx_hash", blockTx.Hash),
+		)
 	}
 
 	return nil

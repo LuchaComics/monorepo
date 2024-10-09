@@ -281,6 +281,12 @@ func (s *MajorityVoteConsensusClientService) processAccountForBlockTransaction(b
 				slog.Any("error", err))
 			return err
 		}
+
+		s.logger.Debug("New `From` account balance via censensus",
+			slog.Any("account_address", acc.Address),
+			slog.Any("balance", acc.Balance),
+			slog.Any("tx_hash", blockTx.Hash),
+		)
 	}
 
 	//
@@ -317,6 +323,12 @@ func (s *MajorityVoteConsensusClientService) processAccountForBlockTransaction(b
 				slog.Any("error", err))
 			return err
 		}
+
+		s.logger.Debug("New `To` account balance via censensus",
+			slog.Any("account_address", acc.Address),
+			slog.Any("balance", acc.Balance),
+			slog.Any("tx_hash", blockTx.Hash),
+		)
 	}
 
 	return nil

@@ -310,6 +310,12 @@ func (s *MiningService) processAccountForBlockTransaction(blockData *domain.Bloc
 				slog.Any("error", err))
 			return err
 		}
+
+		s.logger.Debug("New `From` account balance via mining",
+			slog.Any("account_address", acc.Address),
+			slog.Any("balance", acc.Balance),
+			slog.Any("tx_hash", blockTx.Hash),
+		)
 	}
 
 	//
@@ -346,6 +352,12 @@ func (s *MiningService) processAccountForBlockTransaction(blockData *domain.Bloc
 				slog.Any("error", err))
 			return err
 		}
+
+		s.logger.Debug("New `To` account balance via mining",
+			slog.Any("account_address", acc.Address),
+			slog.Any("balance", acc.Balance),
+			slog.Any("tx_hash", blockTx.Hash),
+		)
 	}
 
 	return nil
