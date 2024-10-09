@@ -83,11 +83,13 @@ func doBlockchainConsensusMechanism() {
 	}
 
 	logger := logger.NewLogger()
-	db := disk.NewDiskStorage(cfg.DB.DataDir, logger)
+	blockDataDB := disk.NewDiskStorage(cfg.DB.DataDir+"/blockData", logger)
+	latestHashDB := disk.NewDiskStorage(cfg.DB.DataDir+"/latesthash", logger)
 	memdb := memory.NewInMemoryStorage(logger)
+	ikDB := disk.NewDiskStorage(cfg.DB.DataDir+"/identitykey", logger)
 
 	// ------------ Peer-to-Peer (P2P) ------------
-	ikRepo := repo.NewIdentityKeyRepo(cfg, logger, db)
+	ikRepo := repo.NewIdentityKeyRepo(cfg, logger, ikDB)
 	ikGetUseCase := usecase.NewGetIdentityKeyUseCase(cfg, logger, ikRepo)
 	ikGetService := service.NewGetIdentityKeyService(cfg, logger, ikGetUseCase)
 
@@ -130,15 +132,15 @@ func doBlockchainConsensusMechanism() {
 	genesisBlockDataRepo := repo.NewGenesisBlockDataRepo(
 		cfg,
 		logger,
-		db)
+		blockDataDB)
 	latestBlockDataHashRepo := repo.NewBlockchainLastestHashRepo(
 		cfg,
 		logger,
-		db)
+		latestHashDB)
 	blockDataRepo := repo.NewBlockDataRepo(
 		cfg,
 		logger,
-		db)
+		blockDataDB)
 	blockDataDTORepo := repo.NewBlockDataDTORepo(
 		cfg,
 		logger,

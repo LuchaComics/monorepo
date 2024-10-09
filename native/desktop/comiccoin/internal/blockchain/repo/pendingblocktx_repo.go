@@ -31,8 +31,7 @@ func (r *PendingBlockTransactionRepo) Upsert(stx *domain.PendingBlockTransaction
 
 func (r *PendingBlockTransactionRepo) ListAll() ([]*domain.PendingBlockTransaction, error) {
 	res := make([]*domain.PendingBlockTransaction, 0)
-	seekThenIterateKey := ""
-	err := r.dbClient.Iterate("pending-block-transaction-", seekThenIterateKey, func(key, value []byte) error {
+	err := r.dbClient.Iterate(func(key, value []byte) error {
 		stx, err := domain.NewPendingBlockTransactionFromDeserialize(value)
 		if err != nil {
 			r.logger.Error("failed to deserialize",
@@ -53,8 +52,7 @@ func (r *PendingBlockTransactionRepo) ListAll() ([]*domain.PendingBlockTransacti
 
 func (r *PendingBlockTransactionRepo) DeleteAll() error {
 	res := make([]*domain.PendingBlockTransaction, 0)
-	seekThenIterateKey := ""
-	err := r.dbClient.Iterate("pending-block-transaction-", seekThenIterateKey, func(key, value []byte) error {
+	err := r.dbClient.Iterate(func(key, value []byte) error {
 		stx, err := domain.NewPendingBlockTransactionFromDeserialize(value)
 		if err != nil {
 			r.logger.Error("failed to deserialize",

@@ -136,7 +136,7 @@ func (impl *ConsensusRepoImpl) BroadcastRequestToNetwork(ctx context.Context) er
 		return fmt.Errorf("error: %v", "no peers connected")
 	}
 
-	impl.logger.Debug("consensus mechanism sending request to all peers...")
+	// impl.logger.Debug("consensus mechanism sending request to all peers...")
 	for peerID := range impl.peers {
 		// Note: Send empty request because we don't want anything.
 		if err := impl.dtoProtocol.SendRequest(peerID, []byte("")); err != nil {
@@ -146,11 +146,11 @@ func (impl *ConsensusRepoImpl) BroadcastRequestToNetwork(ctx context.Context) er
 				slog.Any("error", err))
 			return err
 		}
-		impl.logger.Debug("consensus mechanism sent request to peer",
-			slog.Any("local_peer_id", impl.libP2PNetwork.GetHost().ID()),
-			slog.Any("remote_peer_id", peerID))
+		// impl.logger.Debug("consensus mechanism sent request to peer",
+		// 	slog.Any("local_peer_id", impl.libP2PNetwork.GetHost().ID()),
+		// 	slog.Any("remote_peer_id", peerID))
 	}
-	impl.logger.Debug("consensus mechanism finished sending request to all peers")
+	// impl.logger.Debug("consensus mechanism finished sending request to all peers")
 	return nil
 }
 
@@ -161,9 +161,9 @@ func (impl *ConsensusRepoImpl) ReceiveRequestFromNetwork(ctx context.Context) (p
 			slog.Any("error", err))
 		return "", err
 	}
-	impl.logger.Debug("consensus mechanism received request from network",
-		slog.Any("local_peer_id", impl.libP2PNetwork.GetHost().ID()),
-		slog.Any("remote_peer_id", req.FromPeerID))
+	// impl.logger.Debug("consensus mechanism received request from network",
+	// 	slog.Any("local_peer_id", impl.libP2PNetwork.GetHost().ID()),
+	// 	slog.Any("remote_peer_id", req.FromPeerID))
 	return req.FromPeerID, nil
 }
 
@@ -176,9 +176,9 @@ func (impl *ConsensusRepoImpl) SendResponseToPeer(ctx context.Context, peerID pe
 			slog.Any("error", err))
 		return err
 	}
-	impl.logger.Debug("consensus mechanism sent response to peer",
-		slog.Any("local_peer_id", impl.libP2PNetwork.GetHost().ID()),
-		slog.Any("remote_peer_id", peerID))
+	// impl.logger.Debug("consensus mechanism sent response to peer",
+	// 	slog.Any("local_peer_id", impl.libP2PNetwork.GetHost().ID()),
+	// 	slog.Any("remote_peer_id", peerID))
 	return nil
 
 }
@@ -192,10 +192,10 @@ func (impl *ConsensusRepoImpl) ReceiveIndividualResponseFromNetwork(ctx context.
 	}
 
 	hash := string(resp.Content)
-	impl.logger.Debug("consensus mechanism received response from network",
-		slog.String("hash", hash),
-		slog.Any("local_peer_id", impl.libP2PNetwork.GetHost().ID()),
-		slog.Any("remote_peer_id", resp.FromPeerID))
+	// impl.logger.Debug("consensus mechanism received response from network",
+	// 	slog.String("hash", hash),
+	// 	slog.Any("local_peer_id", impl.libP2PNetwork.GetHost().ID()),
+	// 	slog.Any("remote_peer_id", resp.FromPeerID))
 	return hash, nil
 }
 
@@ -288,9 +288,9 @@ func (impl *ConsensusRepoImpl) ReceiveMajorityVoteConsensusResponseFromNetwork(c
 		}
 	}
 
-	impl.logger.Debug("consensus returned",
-		slog.Any("votes", votes),
-		slog.String("most_common_hash", mostCommonHash))
+	// impl.logger.Debug("consensus returned",
+	// 	slog.Any("votes", votes),
+	// 	slog.String("most_common_hash", mostCommonHash))
 
 	return mostCommonHash, nil
 }

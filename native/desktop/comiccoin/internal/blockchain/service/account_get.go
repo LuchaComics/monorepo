@@ -34,7 +34,7 @@ func (s *GetAccountService) Execute(address *common.Address) (*domain.Account, e
 		e["address"] = "missing value"
 	}
 	if len(e) != 0 {
-		s.logger.Warn("Failed getting account",
+		s.logger.Warn("Validation failed for getting account",
 			slog.Any("error", e))
 		return nil, httperror.NewForBadRequest(&e)
 	}

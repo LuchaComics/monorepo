@@ -184,6 +184,11 @@ func (s *InitAccountsFromBlockchainService) processBlockTransaction(blockData *d
 				slog.Any("error", err))
 			return err
 		}
+
+		s.logger.Debug("viewed tx for `from` account",
+			slog.Any("tx", blockTx.Hash),
+			slog.Any("addr", acc.Address),
+			slog.Any("balance", acc.Balance))
 	}
 
 	//
@@ -216,6 +221,11 @@ func (s *InitAccountsFromBlockchainService) processBlockTransaction(blockData *d
 				slog.Any("error", err))
 			return err
 		}
+
+		s.logger.Debug("viewed tx for `to` account",
+			slog.Any("tx", blockTx.Hash),
+			slog.Any("addr", acc.Address),
+			slog.Any("balance", acc.Balance))
 	}
 
 	return nil

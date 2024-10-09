@@ -47,8 +47,7 @@ func (r *BlockDataRepo) GetByHash(hash string) (*domain.BlockData, error) {
 
 func (r *BlockDataRepo) ListAll() ([]*domain.BlockData, error) {
 	res := make([]*domain.BlockData, 0)
-	seekThenIterateKey := ""
-	err := r.dbClient.Iterate("blockdata-", seekThenIterateKey, func(key, value []byte) error {
+	err := r.dbClient.Iterate(func(key, value []byte) error {
 		blockdata, err := domain.NewBlockDataFromDeserialize(value)
 		if err != nil {
 			r.logger.Error("failed to deserialize",

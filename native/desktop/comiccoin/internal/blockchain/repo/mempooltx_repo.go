@@ -31,8 +31,7 @@ func (r *MempoolTransactionRepo) Upsert(stx *domain.MempoolTransaction) error {
 
 func (r *MempoolTransactionRepo) ListAll() ([]*domain.MempoolTransaction, error) {
 	res := make([]*domain.MempoolTransaction, 0)
-	seekThenIterateKey := ""
-	err := r.dbClient.Iterate("mempool-transaction-", seekThenIterateKey, func(key, value []byte) error {
+	err := r.dbClient.Iterate(func(key, value []byte) error {
 		stx, err := domain.NewMempoolTransactionFromDeserialize(value)
 		if err != nil {
 			r.logger.Error("failed to deserialize",
@@ -53,8 +52,7 @@ func (r *MempoolTransactionRepo) ListAll() ([]*domain.MempoolTransaction, error)
 
 func (r *MempoolTransactionRepo) DeleteAll() error {
 	res := make([]*domain.MempoolTransaction, 0)
-	seekThenIterateKey := ""
-	err := r.dbClient.Iterate("mempool-transaction-", seekThenIterateKey, func(key, value []byte) error {
+	err := r.dbClient.Iterate(func(key, value []byte) error {
 		stx, err := domain.NewMempoolTransactionFromDeserialize(value)
 		if err != nil {
 			r.logger.Error("failed to deserialize",

@@ -72,12 +72,17 @@ func DaemonCmd() *cobra.Command {
 				},
 			}
 			logger := logger.NewLogger()
-			db := disk.NewDiskStorage(cfg.DB.DataDir, logger)
+			walletDB := disk.NewDiskStorage(cfg.DB.DataDir+"/wallet", logger)
+			blockDataDB := disk.NewDiskStorage(cfg.DB.DataDir+"/block_data", logger)
+			latestHashDB := disk.NewDiskStorage(cfg.DB.DataDir+"/latest_hash", logger)
+			ikDB := disk.NewDiskStorage(cfg.DB.DataDir+"/identitykey", logger)
+			pendingBlockDataDB := disk.NewDiskStorage(cfg.DB.DataDir+"/pending_block_data", logger)
+			mempoolTx := disk.NewDiskStorage(cfg.DB.DataDir+"/mempooltx", logger)
 			memdb := memory.NewInMemoryStorage(logger)
 			kmutex := kmutexutil.NewKMutexProvider()
 
 			// ------------ Peer-to-Peer (P2P) ------------
-			ikRepo := repo.NewIdentityKeyRepo(cfg, logger, db)
+			ikRepo := repo.NewIdentityKeyRepo(cfg, logger, ikDB)
 			ikCreateUseCase := usecase.NewCreateIdentityKeyUseCase(cfg, logger, ikRepo)
 			ikGetUseCase := usecase.NewGetIdentityKeyUseCase(cfg, logger, ikRepo)
 			ikCreateService := service.NewCreateIdentityKeyService(cfg, logger, ikCreateUseCase, ikGetUseCase)
@@ -126,11 +131,11 @@ func DaemonCmd() *cobra.Command {
 			genesisBlockDataRepo := repo.NewGenesisBlockDataRepo(
 				cfg,
 				logger,
-				db)
+				blockDataDB)
 			walletRepo := repo.NewWalletRepo(
 				cfg,
 				logger,
-				db)
+				walletDB)
 			accountRepo := repo.NewAccountRepo(
 				cfg,
 				logger,
@@ -138,7 +143,7 @@ func DaemonCmd() *cobra.Command {
 			mempoolTxRepo := repo.NewMempoolTransactionRepo(
 				cfg,
 				logger,
-				db)
+				mempoolTx)
 			mempoolTransactionDTORepo := repo.NewMempoolTransactionDTORepo(
 				cfg,
 				logger,
@@ -146,15 +151,15 @@ func DaemonCmd() *cobra.Command {
 			pendingBlockTxRepo := repo.NewPendingBlockTransactionRepo(
 				cfg,
 				logger,
-				db)
+				pendingBlockDataDB)
 			latestBlockDataHashRepo := repo.NewBlockchainLastestHashRepo(
 				cfg,
 				logger,
-				db)
+				latestHashDB)
 			blockDataRepo := repo.NewBlockDataRepo(
 				cfg,
 				logger,
-				db)
+				blockDataDB)
 			proposedBlockDataDTORepo := repo.NewProposedBlockDataDTORepo(
 				cfg,
 				logger,

@@ -58,7 +58,7 @@ func (port *taskManagerImpl) Run() {
 	port.logger.Info("Running Task Manager")
 
 	go func() {
-		port.logger.Info("Runningmempool (receive) service...")
+		port.logger.Info("Running mempool (receive) service...")
 		for {
 			taskErr := port.mempoolReceiveTaskHandler.Execute(ctx)
 			if taskErr != nil {

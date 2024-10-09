@@ -40,6 +40,8 @@ func (s *MempoolBatchSendService) Execute(ctx context.Context) error {
 	// List all the signed transactions in the local database.
 	//
 
+	// s.logger.Debug("mempool (send) checking...")
+
 	// Lock the mempool's database so we coordinate when we delete the mempool
 	// and when we add mempool.
 	s.kmutex.Acquire("mempool-service")
@@ -47,7 +49,7 @@ func (s *MempoolBatchSendService) Execute(ctx context.Context) error {
 
 	stxs, err := s.listAllMempoolTransactionUseCase.Execute()
 	if err != nil {
-		s.logger.Error("mempool failed listing mempool transaction",
+		s.logger.Error("mempool (send) failed listing mempool transaction",
 			slog.Any("error", err))
 		return err
 	}
@@ -77,7 +79,7 @@ func (s *MempoolBatchSendService) Execute(ctx context.Context) error {
 	// Queue our signed transactions for the miner.
 	//
 
-	s.logger.Info("mempool submitting to minging service",
+	s.logger.Info("mempool (send) submitting to mining service...",
 		slog.Any("txs_count", len(stxs)),
 	)
 
@@ -89,11 +91,11 @@ func (s *MempoolBatchSendService) Execute(ctx context.Context) error {
 			GasUnits:           s.config.Blockchain.UnitsOfGas, // Ethereum: The number of units of gas used for this transaction.
 		}
 		if createErr := s.createPendingBlockTransactionUseCase.Execute(pendingBlockTx); err != nil {
-			s.logger.Error("mempool failed creating pending signed transaction",
+			s.logger.Error("mempool (send) failed creating pending block transaction",
 				slog.Any("error", createErr))
 			return createErr
 		}
-		s.logger.Debug("mempool submitted to mining service",
+		s.logger.Info("mempool (send) submitted to mining service",
 			slog.Any("tx_nonce", stx.Nonce),
 		)
 	}
@@ -104,10 +106,12 @@ func (s *MempoolBatchSendService) Execute(ctx context.Context) error {
 	//
 
 	if deleteAllErr := s.deleteAllMempoolTransactionDTOUseCase.Execute(); err != nil {
-		s.logger.Error("mempool failed deleting all mempool transaction",
+		s.logger.Error("mempool (send) failed deleting all mempool transaction",
 			slog.Any("error", deleteAllErr))
 		return nil
 	}
+
+	s.logger.Debug("mempool (send) deleted pending transactions")
 
 	return nil
 }

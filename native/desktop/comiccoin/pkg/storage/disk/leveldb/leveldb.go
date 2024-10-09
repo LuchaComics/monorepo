@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
-	"path/filepath"
 
 	"github.com/syndtr/goleveldb/leveldb"
 	dberr "github.com/syndtr/goleveldb/leveldb/errors"
-	"github.com/syndtr/goleveldb/leveldb/util"
+	"github.com/syndtr/goleveldb/leveldb/filter"
+	"github.com/syndtr/goleveldb/leveldb/opt"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/storage"
 )
@@ -20,21 +20,18 @@ type keyValueStorerImpl struct {
 	db *leveldb.DB
 }
 
-// dbDirName is the name of the directory where the database is stored.
-const dbDirName = "db"
-
-// GetDBDirPath returns the path to the database directory.
-func GetDBDirPath(dataDir string) string {
-	return filepath.Join(dataDir, dbDirName)
-}
-
 // NewDiskStorage creates a new instance of the keyValueStorerImpl.
 // It opens the database file at the specified path and returns an error if it fails.
 func NewDiskStorage(dataDir string, logger *slog.Logger) storage.Storage {
 	if dataDir == "" {
 		log.Fatal("cannot have empty dir")
 	}
-	db, err := leveldb.OpenFile(GetDBDirPath(dataDir), nil)
+
+	o := &opt.Options{
+		Filter: filter.NewBloomFilter(10),
+	}
+
+	db, err := leveldb.OpenFile(dataDir, o)
 	if err != nil {
 		log.Fatalf("failed loading up key value storer adapter at %v", dataDir)
 	}
@@ -95,62 +92,12 @@ func (impl *keyValueStorerImpl) Deletef(format string, a ...any) error {
 	return err
 }
 
-// View iterates over the key-value pairs in the database and calls the provided function for each pair.
-// It returns an error if the iteration fails.
-func (impl *keyValueStorerImpl) View(key string, processFunc func(key, value []byte) error) error {
-	iter := impl.db.NewIterator(nil, nil)
-	for ok := iter.Seek([]byte(key)); ok; ok = iter.Next() {
-		// Call the passed function for each key-value pair.
-		err := processFunc(iter.Key(), iter.Value())
-		if err == dberr.ErrNotFound {
-			return nil
-		}
-		if err != nil {
-			return err // Exit early if the processing function returns an error.
-		}
-	}
-	iter.Release()
-	return iter.Error()
-}
-
-// ViewFromFirst iterates over the key-value pairs in the database, starting from the first pair.
-// It calls the provided function for each pair.
-// It returns an error if the iteration fails.
-func (impl *keyValueStorerImpl) ViewFromFirst(processFunc func(key, value []byte) error) error {
-	iter := impl.db.NewIterator(nil, nil)
-	for ok := iter.First(); ok; ok = iter.Next() {
-		log.Println("ViewFromFirst: key:", iter.Key(), "val:", iter.Value())
-		// Call the passed function for each key-value pair.
-		err := processFunc(iter.Key(), iter.Value())
-		if err == dberr.ErrNotFound {
-			return nil
-		}
-		if err != nil {
-			return err // Exit early if the processing function returns an error.
-		}
-	}
-	iter.Release()
-	return iter.Error()
-}
-
 // Iterate iterates over the key-value pairs in the database, starting from the specified key prefix.
 // It calls the provided function for each pair.
 // It returns an error if the iteration fails.
-func (impl *keyValueStorerImpl) Iterate(keyPrefix string, seekThenIterateKey string, processFunc func(key, value []byte) error) error {
-	iter := impl.db.NewIterator(util.BytesPrefix([]byte(keyPrefix)), nil)
-
-	// Apply filter, else do not.
-	if seekThenIterateKey == "" {
-		if ok := iter.First(); !ok {
-			return nil
-		}
-	} else {
-		if ok := iter.Seek([]byte(seekThenIterateKey)); !ok {
-			return nil
-		}
-	}
-
-	for iter.Next() {
+func (impl *keyValueStorerImpl) Iterate(processFunc func(key, value []byte) error) error {
+	iter := impl.db.NewIterator(nil, nil)
+	for ok := iter.First(); ok; ok = iter.Next() {
 		// Call the passed function for each key-value pair.
 		err := processFunc(iter.Key(), iter.Value())
 		if err == dberr.ErrNotFound {

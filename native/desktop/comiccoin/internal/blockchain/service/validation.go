@@ -135,7 +135,7 @@ func (s *ValidationService) Execute(ctx context.Context) error {
 	// To learn more about the state root, read this in-depth articl:
 	// https://www.ardanlabs.com/blog/2022/05/blockchain-04-fraud-detection.html
 	//
-	stateRoot, err := s.getBlockchainLastestHashUseCase.Execute()
+	stateRoot, err := s.getAccountsHashStateUseCase.Execute()
 	if err != nil {
 		s.logger.Error("validator failed getting state root",
 			slog.Any("error", err))

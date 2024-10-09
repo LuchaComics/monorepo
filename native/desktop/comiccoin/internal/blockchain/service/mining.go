@@ -198,9 +198,6 @@ func (s *MiningService) Execute(ctx context.Context) error {
 
 	block.Header.Nonce = nonce
 
-	s.logger.Info("mining completed",
-		slog.Uint64("nonce", block.Header.Nonce))
-
 	//
 	// STEP 5:
 	// Handle case of another miner executing the mine before this
@@ -216,6 +213,19 @@ func (s *MiningService) Execute(ctx context.Context) error {
 
 	// Convert into saving for our database and transmitting over network.
 	blockData := domain.NewBlockData(block)
+
+	s.logger.Info("mining completed",
+		slog.String("hash", blockData.Hash),
+		slog.Uint64("block_number", blockData.Header.Number),
+		slog.String("prev_block_hash", blockData.Header.PrevBlockHash),
+		slog.Uint64("timestamp", blockData.Header.TimeStamp),
+		slog.String("beneficiary", blockData.Header.Beneficiary.String()),
+		slog.Uint64("difficulty", uint64(blockData.Header.Difficulty)),
+		slog.Uint64("mining_reward", blockData.Header.MiningReward),
+		slog.String("state_root", blockData.Header.StateRoot),
+		slog.String("trans_root", blockData.Header.TransRoot),
+		slog.Uint64("nonce", blockData.Header.Nonce),
+		slog.Any("trans", blockData.Trans))
 
 	// Save new block data.
 	if err := s.createBlockDataUseCase.Execute(blockData.Hash, blockData.Header, blockData.Trans); err != nil {

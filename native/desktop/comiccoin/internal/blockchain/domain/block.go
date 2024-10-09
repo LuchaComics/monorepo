@@ -158,7 +158,7 @@ func (b Block) ValidateBlock(previousBlock *Block, stateRoot string) error {
 	//
 
 	if b.Header.StateRoot != stateRoot {
-		return fmt.Errorf("state of the accounts are wrong, current %s, expected %s", stateRoot, b.Header.StateRoot)
+		return fmt.Errorf("state of the accounts are wrong, current stateRoot %s, expected stateRoot %s", stateRoot, b.Header.StateRoot)
 	}
 
 	//

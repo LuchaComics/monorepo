@@ -51,8 +51,7 @@ func (r *AccountRepo) GetByAddress(addr *common.Address) (*domain.Account, error
 
 func (r *AccountRepo) ListAll() ([]*domain.Account, error) {
 	res := make([]*domain.Account, 0)
-	seekThenIterateKey := ""
-	err := r.dbClient.Iterate("account-", seekThenIterateKey, func(key, value []byte) error {
+	err := r.dbClient.Iterate(func(key, value []byte) error {
 		account, err := domain.NewAccountFromDeserialize(value)
 		if err != nil {
 			r.logger.Error("failed to deserialize",
@@ -85,20 +84,9 @@ func (r *AccountRepo) HashState() (string, error) {
 		return "", err
 	}
 
-	// Variable used to only store the accounts which have a balance greater
-	// then the value of zero.
-	accountsWithBalance := make([]*domain.Account, 0)
-
-	// Iterate through all the accounts and only save the accounts with balance.
-	for _, account := range accounts {
-		if account.Balance > 0 {
-			accountsWithBalance = append(accountsWithBalance, account)
-		}
-	}
-
 	// Sort and hash our accounts.
-	sort.Sort(byAccount(accountsWithBalance))
-	return signature.Hash(accountsWithBalance), nil
+	sort.Sort(byAccount(accounts))
+	return signature.Hash(accounts), nil
 }
 
 // =============================================================================
