@@ -59,16 +59,14 @@ func DaemonCmd() *cobra.Command {
 				App: config.AppConfig{
 					DirPath:     flagDataDir,
 					HTTPAddress: flagListenHTTPAddress,
-					RPCAddress:  flagListenRPCAddress,
 				},
 				DB: config.DBConfig{
 					DataDir: flagDataDir,
 				},
 				Peer: config.PeerConfig{
-					ListenPort:       flagListenPeerToPeerPort,
-					KeyName:          flagKeypairName,
-					RendezvousString: flagRendezvousString,
-					BootstrapPeers:   bootstrapPeers,
+					ListenPort:     flagListenPeerToPeerPort,
+					KeyName:        flagKeypairName,
+					BootstrapPeers: bootstrapPeers,
 				},
 			}
 			logger := logger.NewLogger()

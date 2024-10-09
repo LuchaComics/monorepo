@@ -55,10 +55,6 @@ type AppConfig struct {
 	// HTTPAddress is the address and port that the HTTP JSON API server will listen on.
 	// Do not expose to the public!
 	HTTPAddress string
-
-	// RPCAddress is the address and port that the TCP RPC server will listen on.
-	// Do not expose to the public!
-	RPCAddress string
 }
 
 // DBConfig represents the configuration for the database.

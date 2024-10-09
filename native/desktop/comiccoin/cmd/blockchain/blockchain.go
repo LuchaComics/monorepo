@@ -16,14 +16,12 @@ var (
 	flagRendezvousString string
 	flagBootstrapPeers   string
 	flagListenAddresses  string
-	flagProtocolID       string
 
 	flagListenHTTPPort       int
 	flagListenHTTPIP         string
 	flagListenPeerToPeerPort int
 
 	flagListenHTTPAddress string
-	flagListenRPCAddress  string
 
 	flagIdentityKeyID string
 )

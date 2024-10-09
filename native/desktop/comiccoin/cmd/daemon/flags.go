@@ -21,17 +21,14 @@ var (
 	flagKeypairName      string
 	flagAccountAddress   string
 
-	flagRendezvousString string
-	flagBootstrapPeers   string
-	flagListenAddresses  string
-	flagProtocolID       string
+	flagBootstrapPeers  string
+	flagListenAddresses string
 
 	flagListenHTTPPort       int
 	flagListenHTTPIP         string
 	flagListenPeerToPeerPort int
 
 	flagListenHTTPAddress string
-	flagListenRPCAddress  string
 
 	flagIdentityKeyID string
 )

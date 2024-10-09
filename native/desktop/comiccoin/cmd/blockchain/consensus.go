@@ -69,7 +69,6 @@ func doBlockchainConsensusMechanism() {
 		App: config.AppConfig{
 			DirPath:     flagDataDir,
 			HTTPAddress: flagListenHTTPAddress,
-			RPCAddress:  flagListenRPCAddress,
 		},
 		DB: config.DBConfig{
 			DataDir: flagDataDir,
