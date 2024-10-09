@@ -4,7 +4,7 @@ package signature_test
 import (
 	"testing"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/utils/blockchain/signature"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/blockchain/signature"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 

@@ -1,6 +1,11 @@
 package domain
 
-import "github.com/ethereum/go-ethereum/common"
+import (
+	"fmt"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/fxamacker/cbor/v2"
+)
 
 // BlockHeader represents common information required for each block.
 type BlockHeader struct {
@@ -19,4 +24,15 @@ type BlockHeader struct {
 
 	TransRoot string `json:"trans_root"` // Both: Represents the merkle tree root hash for the transactions in this block.
 	Nonce     uint64 `json:"nonce"`      // Both: Value identified to solve the hash solution.
+}
+
+// Serialize serializes a block header into a byte array.
+// It returns the serialized byte array and an error if one occurs.
+func (b *BlockHeader) Serialize() ([]byte, error) {
+	// Marshal the block data into a byte array using CBOR.
+	dataBytes, err := cbor.Marshal(b)
+	if err != nil {
+		return nil, fmt.Errorf("failed to serialize block header: %v", err)
+	}
+	return dataBytes, nil
 }

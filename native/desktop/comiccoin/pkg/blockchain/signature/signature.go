@@ -189,3 +189,11 @@ func toSignatureValues(sig []byte) (v, r, s *big.Int) {
 
 	return v, r, s
 }
+
+func HashWithComicCoinStamp(data []byte) ([]byte, error) {
+	txHash := crypto.Keccak256Hash(data)
+	stamp := []byte("\x19ComicCoin Signed Message:\n32")
+	tran := crypto.Keccak256Hash(stamp, txHash.Bytes())
+
+	return tran.Bytes(), nil
+}

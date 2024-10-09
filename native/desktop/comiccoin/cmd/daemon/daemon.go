@@ -456,6 +456,19 @@ func DaemonCmd() *cobra.Command {
 				getAccountUseCase,
 				upsertAccountUseCase,
 			)
+			proofOfAuthorityValidationService := service.NewProofOfAuthorityValidationService(
+				cfg,
+				logger,
+				kmutex,
+				receiveProposedBlockDataDTOUseCase,
+				getBlockchainLastestHashUseCase,
+				getBlockDataUseCase,
+				getAccountsHashStateUseCase,
+				createBlockDataUseCase,
+				setBlockchainLastestHashUseCase,
+				getAccountUseCase,
+				upsertAccountUseCase,
+			)
 
 			majorityVoteConsensusServerService := service.NewMajorityVoteConsensusServerService(
 				cfg,
@@ -547,15 +560,19 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				proofOfWorkValidationService)
-			tm6 := taskmnghandler.NewBlockDataDTOServerTaskHandler(
+			tm6 := taskmnghandler.NewProofOfAuthorityValidationTaskHandler(
+				cfg,
+				logger,
+				proofOfAuthorityValidationService)
+			tm7 := taskmnghandler.NewBlockDataDTOServerTaskHandler(
 				cfg,
 				logger,
 				uploadServerService)
-			tm7 := taskmnghandler.NewMajorityVoteConsensusServerTaskHandler(
+			tm8 := taskmnghandler.NewMajorityVoteConsensusServerTaskHandler(
 				cfg,
 				logger,
 				majorityVoteConsensusServerService)
-			tm8 := taskmnghandler.NewMajorityVoteConsensusClientTaskHandler(
+			tm9 := taskmnghandler.NewMajorityVoteConsensusClientTaskHandler(
 				cfg,
 				logger,
 				majorityVoteConsensusClientService)
@@ -571,6 +588,7 @@ func DaemonCmd() *cobra.Command {
 				tm6,
 				tm7,
 				tm8,
+				tm9,
 			)
 
 			//

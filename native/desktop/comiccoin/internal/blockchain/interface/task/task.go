@@ -3,7 +3,6 @@ package task
 import (
 	"context"
 	"fmt"
-	"log"
 	"log/slog"
 	"time"
 
@@ -26,6 +25,7 @@ type taskManagerImpl struct {
 	proofOfWorkMiningTaskHandler           *task.ProofOfWorkMiningTaskHandler
 	proofOfAuthorityMiningTaskHandler      *task.ProofOfAuthorityMiningTaskHandler
 	proofOfWorkValidationTaskHandler       *task.ProofOfWorkValidationTaskHandler
+	proofOfAuthorityValidationTaskHandler  *task.ProofOfAuthorityValidationTaskHandler
 	blockDataDTOServerTaskHandler          *task.BlockDataDTOServerTaskHandler
 	majorityVoteConsensusServerTaskHandler *task.MajorityVoteConsensusServerTaskHandler
 	majorityVoteConsensusClientTaskHandler *task.MajorityVoteConsensusClientTaskHandler
@@ -39,6 +39,7 @@ func NewTaskManager(
 	proofOfWorkMiningTaskHandler *task.ProofOfWorkMiningTaskHandler,
 	proofOfAuthorityMiningTaskHandler *task.ProofOfAuthorityMiningTaskHandler,
 	proofOfWorkValidationTaskHandler *task.ProofOfWorkValidationTaskHandler,
+	proofOfAuthorityValidationTaskHandler *task.ProofOfAuthorityValidationTaskHandler,
 	blockDataDTOServerTaskHandler *task.BlockDataDTOServerTaskHandler,
 	majorityVoteConsensusServerTaskHandler *task.MajorityVoteConsensusServerTaskHandler,
 	majorityVoteConsensusClientTaskHandler *task.MajorityVoteConsensusClientTaskHandler,
@@ -51,6 +52,7 @@ func NewTaskManager(
 		proofOfWorkMiningTaskHandler:           proofOfWorkMiningTaskHandler,
 		proofOfAuthorityMiningTaskHandler:      proofOfAuthorityMiningTaskHandler,
 		proofOfWorkValidationTaskHandler:       proofOfWorkValidationTaskHandler,
+		proofOfAuthorityValidationTaskHandler:  proofOfAuthorityValidationTaskHandler,
 		blockDataDTOServerTaskHandler:          blockDataDTOServerTaskHandler,
 		majorityVoteConsensusServerTaskHandler: majorityVoteConsensusServerTaskHandler,
 		majorityVoteConsensusClientTaskHandler: majorityVoteConsensusClientTaskHandler,
@@ -128,7 +130,14 @@ func (port *taskManagerImpl) Run() {
 			}
 		} else if port.cfg.Blockchain.ConsensusProtocol == constants.ConsensusPoA {
 			port.logger.Info("Running PoA validation service...")
-			log.Fatal("TODO: IMPL POA...")
+			for {
+				taskErr := port.proofOfAuthorityValidationTaskHandler.Execute(ctx)
+				if taskErr != nil {
+					port.logger.Error("failed executing validation task, restarting task in 1 minute...", slog.Any("error", taskErr))
+					time.Sleep(1 * time.Minute)
+				}
+				time.Sleep(1 * time.Second)
+			}
 		} else {
 			port.logger.Info("Skipped running the mining service...")
 		}
