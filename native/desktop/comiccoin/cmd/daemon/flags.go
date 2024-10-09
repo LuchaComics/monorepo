@@ -14,8 +14,8 @@ import (
 var (
 	flagKeystoreFile                   string // Location of the wallet keystore
 	flagDataDir                        string // Location of the database directory
-	flagPassword                       string
-	flagCoinbaseAddress                string
+	flagProofOfAuthorityAccountAddress string
+	flagProofOfAuthorityWalletPassword string
 	flagRecipientAddress               string
 	flagAmount                         uint64
 	flagKeypairName                    string

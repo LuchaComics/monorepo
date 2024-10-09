@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"log/slog"
 	"time"
 
@@ -13,10 +14,11 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/kmutexutil"
 )
 
-type ProofOfWorkMiningService struct {
+type ProofOfAuthorityMiningService struct {
 	config                                  *config.Config
 	logger                                  *slog.Logger
 	kmutex                                  kmutexutil.KMutexProvider
+	getKeyService                           *GetKeyService
 	getAccountsHashStateUseCase             *usecase.GetAccountsHashStateUseCase
 	listAllPendingBlockTransactionUseCase   *usecase.ListAllPendingBlockTransactionUseCase
 	getBlockchainLastestHashUseCase         *usecase.GetBlockchainLastestHashUseCase
@@ -30,10 +32,11 @@ type ProofOfWorkMiningService struct {
 	upsertAccountUseCase                    *usecase.UpsertAccountUseCase
 }
 
-func NewProofOfWorkMiningService(
+func NewProofOfAuthorityMiningService(
 	config *config.Config,
 	logger *slog.Logger,
 	kmutex kmutexutil.KMutexProvider,
+	getKeyService *GetKeyService,
 	uc1 *usecase.GetAccountsHashStateUseCase,
 	uc2 *usecase.ListAllPendingBlockTransactionUseCase,
 	uc3 *usecase.GetBlockchainLastestHashUseCase,
@@ -45,11 +48,11 @@ func NewProofOfWorkMiningService(
 	uc9 *usecase.DeleteAllPendingBlockTransactionUseCase,
 	uc10 *usecase.GetAccountUseCase,
 	uc11 *usecase.UpsertAccountUseCase,
-) *ProofOfWorkMiningService {
-	return &ProofOfWorkMiningService{config, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11}
+) *ProofOfAuthorityMiningService {
+	return &ProofOfAuthorityMiningService{config, logger, kmutex, getKeyService, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11}
 }
 
-func (s *ProofOfWorkMiningService) Execute(ctx context.Context) error {
+func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	// s.logger.Debug("starting mining service...")
 	// defer s.logger.Debug("finished mining service")
 
@@ -107,6 +110,7 @@ func (s *ProofOfWorkMiningService) Execute(ctx context.Context) error {
 			slog.Any("hash", prevBlockDataHash))
 		return fmt.Errorf("Block data does not exist in database for hash: %v", prevBlockDataHash)
 	}
+	poaValidator := prevBlockData.Validator
 
 	//
 	// STEP 3:
@@ -198,23 +202,39 @@ func (s *ProofOfWorkMiningService) Execute(ctx context.Context) error {
 
 	block.Header.Nonce = nonce
 
-	//
-	// STEP 5:
-	// Handle case of another miner executing the mine before this
-	// current mine and hence our blockchain is out of sync and thus
-	// invalidating this current mining operation.
+	// Convert into saving for our database and transmitting over network.
+	blockData := domain.NewBlockData(block)
 
-	//TODO: IMPL.
+	//
+	// STEP 5
+	// Our proof-of-authority signs this block data's header.
+	//
+
+	coinbaseAccountKey, err := s.getKeyService.Execute(
+		s.config.Blockchain.ProofOfAuthorityAccountAddress,
+		s.config.Blockchain.ProofOfAuthorityWalletPassword)
+	if err != nil {
+		log.Fatalf("failed getting account wallet key: %v", err)
+		return fmt.Errorf("failed getting account wallet key: %v", err)
+	}
+	if coinbaseAccountKey == nil {
+		return fmt.Errorf("failed getting account wallet key: %v", "does not exist")
+	}
+
+	coinbasePrivateKey := coinbaseAccountKey.PrivateKey
+	blockData.Validator = poaValidator
+	blockDataHeaderSignature, err := poaValidator.SignBlockHeader(coinbasePrivateKey, blockData.Header)
+	if err != nil {
+		return fmt.Errorf("Failed to sign block header: %v", err)
+	}
+	blockData.HeaderSignature = blockDataHeaderSignature
 
 	//
 	// STEP 6:
 	// Save to database.
 	//
 
-	// Convert into saving for our database and transmitting over network.
-	blockData := domain.NewBlockData(block)
-
-	s.logger.Info("PoW mining completed",
+	s.logger.Info("PoA mining completed",
 		slog.String("hash", blockData.Hash),
 		slog.Uint64("block_number", blockData.Header.Number),
 		slog.String("prev_block_hash", blockData.Header.PrevBlockHash),
@@ -260,7 +280,7 @@ func (s *ProofOfWorkMiningService) Execute(ctx context.Context) error {
 		return fmt.Errorf("Failed to broadcast proposed block data: %v", powErr)
 	}
 
-	s.logger.Info("PoW mining service broadcasted new block data to propose to the network",
+	s.logger.Info("PoA mining service broadcasted new block data to propose to the network",
 		slog.Uint64("nonce", block.Header.Nonce))
 
 	//
@@ -280,7 +300,7 @@ func (s *ProofOfWorkMiningService) Execute(ctx context.Context) error {
 }
 
 // TODO: (1) Create somesort of `processAccountForBlockTransaction` service and (2) replace it with this.
-func (s *ProofOfWorkMiningService) processAccountForBlockTransaction(blockData *domain.BlockData, blockTx *domain.BlockTransaction) error {
+func (s *ProofOfAuthorityMiningService) processAccountForBlockTransaction(blockData *domain.BlockData, blockTx *domain.BlockTransaction) error {
 	// DEVELOPERS NOTE:
 	// Please remember that when this function executes, there already is an
 	// in-memory database of accounts populated and maintained by this node.

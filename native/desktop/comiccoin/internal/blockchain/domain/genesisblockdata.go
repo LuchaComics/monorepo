@@ -1,6 +1,6 @@
 package domain
 
-// GenesisBlockData represents the first block in our blockchain.
+// GenesisBlockData represents the first block (data) in our blockchain.
 type GenesisBlockData BlockData
 
 // GenesisBlockDataRepository is an interface that defines the methods for

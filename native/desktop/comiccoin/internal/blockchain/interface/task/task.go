@@ -24,6 +24,7 @@ type taskManagerImpl struct {
 	mempoolReceiveTaskHandler              *task.MempoolReceiveTaskHandler
 	mempoolBatchSendTaskHandler            *task.MempoolBatchSendTaskHandler
 	proofOfWorkMiningTaskHandler           *task.ProofOfWorkMiningTaskHandler
+	proofOfAuthorityMiningTaskHandler      *task.ProofOfAuthorityMiningTaskHandler
 	proofOfWorkValidationTaskHandler       *task.ProofOfWorkValidationTaskHandler
 	blockDataDTOServerTaskHandler          *task.BlockDataDTOServerTaskHandler
 	majorityVoteConsensusServerTaskHandler *task.MajorityVoteConsensusServerTaskHandler
@@ -36,6 +37,7 @@ func NewTaskManager(
 	mempoolReceiveTaskHandler *task.MempoolReceiveTaskHandler,
 	mempoolBatchSendTaskHandler *task.MempoolBatchSendTaskHandler,
 	proofOfWorkMiningTaskHandler *task.ProofOfWorkMiningTaskHandler,
+	proofOfAuthorityMiningTaskHandler *task.ProofOfAuthorityMiningTaskHandler,
 	proofOfWorkValidationTaskHandler *task.ProofOfWorkValidationTaskHandler,
 	blockDataDTOServerTaskHandler *task.BlockDataDTOServerTaskHandler,
 	majorityVoteConsensusServerTaskHandler *task.MajorityVoteConsensusServerTaskHandler,
@@ -47,6 +49,7 @@ func NewTaskManager(
 		mempoolReceiveTaskHandler:              mempoolReceiveTaskHandler,
 		mempoolBatchSendTaskHandler:            mempoolBatchSendTaskHandler,
 		proofOfWorkMiningTaskHandler:           proofOfWorkMiningTaskHandler,
+		proofOfAuthorityMiningTaskHandler:      proofOfAuthorityMiningTaskHandler,
 		proofOfWorkValidationTaskHandler:       proofOfWorkValidationTaskHandler,
 		blockDataDTOServerTaskHandler:          blockDataDTOServerTaskHandler,
 		majorityVoteConsensusServerTaskHandler: majorityVoteConsensusServerTaskHandler,
@@ -99,15 +102,14 @@ func (port *taskManagerImpl) Run() {
 
 		} else if port.cfg.Blockchain.ConsensusProtocol == constants.ConsensusPoA {
 			port.logger.Info("Running PoA mining service...")
-			log.Fatal("TODO: IMPL POA...")
-			// for {
-			// 	taskErr := port.miningTaskHandler.Execute(ctx)
-			// 	if taskErr != nil {
-			// 		port.logger.Error("failed executing mining task, restarting task in 1 minute...", slog.Any("error", taskErr))
-			// 		time.Sleep(1 * time.Minute)
-			// 	}
-			// 	time.Sleep(1 * time.Second)
-			// }
+			for {
+				taskErr := port.proofOfAuthorityMiningTaskHandler.Execute(ctx)
+				if taskErr != nil {
+					port.logger.Error("failed executing mining task, restarting task in 1 minute...", slog.Any("error", taskErr))
+					time.Sleep(1 * time.Minute)
+				}
+				time.Sleep(1 * time.Second)
+			}
 		} else {
 			port.logger.Info("Skipped running the mining service...")
 		}

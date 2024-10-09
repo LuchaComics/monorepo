@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/ethereum/go-ethereum/accounts/keystore"
+	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
-	"github.com/ethereum/go-ethereum/accounts/keystore"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 type GetKeyService struct {

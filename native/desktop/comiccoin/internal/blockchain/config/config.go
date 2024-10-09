@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/ethereum/go-ethereum/common"
 	maddr "github.com/multiformats/go-multiaddr"
 )
 
@@ -50,6 +51,12 @@ type BlockchainConfig struct {
 
 	// Used to set what protocol to for mining and coordinating latest blockchain.
 	ConsensusProtocol string `json:"consensus_protocol"`
+
+	// (Only set by PoA node)
+	ProofOfAuthorityAccountAddress *common.Address
+
+	// (Only set by PoA node)
+	ProofOfAuthorityWalletPassword string
 }
 
 // AppConfig represents the configuration for the application.

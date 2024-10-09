@@ -27,7 +27,7 @@ func InitCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&flagDataDir, "datadir", "./data", "Absolute path to your node's data dir where the DB will be/is stored")
-	cmd.Flags().StringVar(&flagPassword, "coinbase-password", "", "The password to encrypt the cointbase's account wallet")
+	cmd.Flags().StringVar(&flagPassword, "coinbase-password", "", "The password to encrypt the coinbase's account wallet")
 	cmd.MarkFlagRequired("coinbase-password")
 
 	return cmd

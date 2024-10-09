@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/ethereum/go-ethereum/common"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/spf13/cobra"
 
@@ -33,6 +34,20 @@ func DaemonCmd() *cobra.Command {
 		Use:   "daemon",
 		Short: "Run a blockchain node",
 		Run: func(cmd *cobra.Command, args []string) {
+			//
+			// STEP 1:
+			// Command line parameters validation.
+			//
+
+			if flagConsensusProtocol == constants.ConsensusPoA {
+				if flagProofOfAuthorityAccountAddress == "" {
+					log.Fatal("Error loading ComicCoin: You did not enter the authority's address when running `proof of authority` consensus protocol, please use `--poa-address` flag next time.")
+				}
+				if flagProofOfAuthorityWalletPassword == "" {
+					log.Fatal("Error loading ComicCoin: You did not enter the authority's password when running `proof of authority` consensus protocol, please use `--poa-password` flag next time.")
+				}
+			}
+
 			//
 			// STEP 1
 			// Load up our dependencies and configuration
@@ -71,6 +86,12 @@ func DaemonCmd() *cobra.Command {
 					BootstrapPeers: bootstrapPeers,
 				},
 			}
+			if flagConsensusProtocol == constants.ConsensusPoA {
+				coinbaseAddr := common.HexToAddress(flagProofOfAuthorityAccountAddress)
+				cfg.Blockchain.ProofOfAuthorityAccountAddress = &coinbaseAddr
+				cfg.Blockchain.ProofOfAuthorityWalletPassword = flagProofOfAuthorityWalletPassword
+			}
+
 			logger := logger.NewLogger()
 			walletDB := disk.NewDiskStorage(cfg.DB.DataDir, "wallet", logger)
 			blockDataDB := disk.NewDiskStorage(cfg.DB.DataDir, "block_data", logger)
@@ -128,14 +149,14 @@ func DaemonCmd() *cobra.Command {
 			_ = ikGetService
 
 			// ------------ Repo ------------
-			genesisBlockDataRepo := repo.NewGenesisBlockDataRepo(
-				cfg,
-				logger,
-				blockDataDB)
 			walletRepo := repo.NewWalletRepo(
 				cfg,
 				logger,
 				walletDB)
+			genesisBlockDataRepo := repo.NewGenesisBlockDataRepo(
+				cfg,
+				logger,
+				blockDataDB)
 			accountRepo := repo.NewAccountRepo(
 				cfg,
 				logger,
@@ -324,6 +345,14 @@ func DaemonCmd() *cobra.Command {
 				consensusRepo)
 
 			// ------------ Service ------------
+
+			// Wallet
+			getKeyService := service.NewGetKeyService(
+				cfg,
+				logger,
+				getWalletUseCase,
+				walletDecryptKeyUseCase)
+
 			// Account
 			initAccountsFromBlockchainService := service.NewInitAccountsFromBlockchainService(
 				cfg,
@@ -352,14 +381,6 @@ func DaemonCmd() *cobra.Command {
 				getBlockchainLastestHashUseCase,
 				getBlockDataUseCase)
 			_ = getAccountBalanceService // TODO
-
-			// Key
-			getKeyService := service.NewGetKeyService(
-				cfg,
-				logger,
-				getWalletUseCase,
-				walletDecryptKeyUseCase)
-			_ = getKeyService // TODO: USE IN FUTURE
 
 			// Transaction
 			createTxService := service.NewCreateTransactionService(
@@ -390,6 +411,24 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				kmutex,
+				getAccountsHashStateUseCase,
+				listAllPendingBlockTxUseCase,
+				getBlockchainLastestHashUseCase,
+				setBlockchainLastestHashUseCase,
+				getBlockDataUseCase,
+				createBlockDataUseCase,
+				proofOfWorkUseCase,
+				broadcastProposedBlockDataDTOUseCase,
+				deleteAllPendingBlockTxUseCase,
+				getAccountUseCase,
+				upsertAccountUseCase,
+			)
+
+			proofOfAuthorityMiningService := service.NewProofOfAuthorityMiningService(
+				cfg,
+				logger,
+				kmutex,
+				getKeyService,
 				getAccountsHashStateUseCase,
 				listAllPendingBlockTxUseCase,
 				getBlockchainLastestHashUseCase,
@@ -500,19 +539,23 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				proofOfWorkMiningService)
-			tm4 := taskmnghandler.NewProofOfWorkValidationTaskHandler(
+			tm4 := taskmnghandler.NewProofOfAuthorityMiningTaskHandler(
+				cfg,
+				logger,
+				proofOfAuthorityMiningService)
+			tm5 := taskmnghandler.NewProofOfWorkValidationTaskHandler(
 				cfg,
 				logger,
 				proofOfWorkValidationService)
-			tm5 := taskmnghandler.NewBlockDataDTOServerTaskHandler(
+			tm6 := taskmnghandler.NewBlockDataDTOServerTaskHandler(
 				cfg,
 				logger,
 				uploadServerService)
-			tm6 := taskmnghandler.NewMajorityVoteConsensusServerTaskHandler(
+			tm7 := taskmnghandler.NewMajorityVoteConsensusServerTaskHandler(
 				cfg,
 				logger,
 				majorityVoteConsensusServerService)
-			tm7 := taskmnghandler.NewMajorityVoteConsensusClientTaskHandler(
+			tm8 := taskmnghandler.NewMajorityVoteConsensusClientTaskHandler(
 				cfg,
 				logger,
 				majorityVoteConsensusClientService)
@@ -527,6 +570,7 @@ func DaemonCmd() *cobra.Command {
 				tm5,
 				tm6,
 				tm7,
+				tm8,
 			)
 
 			//
@@ -570,6 +614,8 @@ func DaemonCmd() *cobra.Command {
 	cmd.Flags().Int64Var(&flagConsensusPollingDelayInMinutes, "consensus-polling-delay-in-minutes", 1, "The delay interval between your node polling the network on the latest consensus")
 	cmd.Flags().BoolVar(&flagEnableMiner, "enable-miner", false, "Controls whether you want your node to have a miner running in the background")
 	cmd.Flags().StringVar(&flagConsensusProtocol, "consensus-protocol", "None", "Controls what consensus protocol to execute for the miner, choices are: PoW, PoA, or None.")
+	cmd.Flags().StringVar(&flagProofOfAuthorityAccountAddress, "poa-address", "", "(Required for `PoA` consensus protocol) The address of the authority's account")
+	cmd.Flags().StringVar(&flagProofOfAuthorityWalletPassword, "poa-password", "", "(Required for `PoA` consensus protocol) The password in the authority's wallet")
 
 	return cmd
 }

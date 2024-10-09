@@ -78,6 +78,11 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 		return fmt.Errorf("Failed to sign transaction: %v", err)
 	}
 
+	//
+	// STEP 3:
+	// Create our first block, i.e. also called "Genesis block".
+	//
+
 	// Note: Genesis block has no previous hash
 	prevBlockHash := signature.ZeroHash
 
@@ -123,7 +128,7 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	}
 
 	//
-	// STEP 3:
+	// STEP 4:
 	// Execute the proof of work to find our nounce to meet the hash difficulty.
 	//
 
@@ -138,6 +143,29 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 		slog.Uint64("nonce", block.Header.Nonce))
 
 	genesisBlockData := domain.NewBlockData(block)
+
+	// STEP 5:
+	// Create our single proof-of-authority validator via coinbase account.
+	//
+
+	coinbasePrivateKey := s.coinbaseAccountKey.PrivateKey
+	coinbasePublicKey := coinbasePrivateKey.Public()
+	poaValidator := &domain.Validator{
+		ID:        "ComicCoin Central Validation Authority",
+		PublicKey: &coinbasePublicKey,
+	}
+
+	//
+	// STEP 6:
+	// Sign our genesis block's header with our proof-of-authority validator.
+	//
+
+	genesisBlockData.Validator = poaValidator
+	genesisBlockHeaderSignature, err := poaValidator.SignBlockHeader(coinbasePrivateKey, genesisBlockData.Header)
+	if err != nil {
+		return fmt.Errorf("Failed to sign block header: %v", err)
+	}
+	genesisBlockData.HeaderSignature = genesisBlockHeaderSignature
 
 	//
 	// STEP 4:
