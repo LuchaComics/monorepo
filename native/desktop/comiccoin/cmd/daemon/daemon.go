@@ -436,14 +436,10 @@ func DaemonCmd() *cobra.Command {
 				getAccountsHashStateUseCase,
 				listAllPendingBlockTxUseCase,
 				getBlockchainLastestHashUseCase,
-				setBlockchainLastestHashUseCase,
 				getBlockDataUseCase,
-				createBlockDataUseCase,
 				proofOfWorkUseCase,
 				broadcastProposedBlockDataDTOUseCase,
 				deleteAllPendingBlockTxUseCase,
-				getAccountUseCase,
-				upsertAccountUseCase,
 			)
 
 			// Validation

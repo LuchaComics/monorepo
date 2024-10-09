@@ -22,14 +22,10 @@ type ProofOfAuthorityMiningService struct {
 	getAccountsHashStateUseCase             *usecase.GetAccountsHashStateUseCase
 	listAllPendingBlockTransactionUseCase   *usecase.ListAllPendingBlockTransactionUseCase
 	getBlockchainLastestHashUseCase         *usecase.GetBlockchainLastestHashUseCase
-	setBlockchainLastestHashUseCase         *usecase.SetBlockchainLastestHashUseCase
 	getBlockDataUseCase                     *usecase.GetBlockDataUseCase
-	createBlockDataUseCase                  *usecase.CreateBlockDataUseCase
 	proofOfWorkUseCase                      *usecase.ProofOfWorkUseCase
 	broadcastProposedBlockDataDTOUseCase    *usecase.BroadcastProposedBlockDataDTOUseCase
 	deleteAllPendingBlockTransactionUseCase *usecase.DeleteAllPendingBlockTransactionUseCase
-	getAccountUseCase                       *usecase.GetAccountUseCase
-	upsertAccountUseCase                    *usecase.UpsertAccountUseCase
 }
 
 func NewProofOfAuthorityMiningService(
@@ -40,16 +36,12 @@ func NewProofOfAuthorityMiningService(
 	uc1 *usecase.GetAccountsHashStateUseCase,
 	uc2 *usecase.ListAllPendingBlockTransactionUseCase,
 	uc3 *usecase.GetBlockchainLastestHashUseCase,
-	uc4 *usecase.SetBlockchainLastestHashUseCase,
-	uc5 *usecase.GetBlockDataUseCase,
-	uc6 *usecase.CreateBlockDataUseCase,
-	uc7 *usecase.ProofOfWorkUseCase,
-	uc8 *usecase.BroadcastProposedBlockDataDTOUseCase,
-	uc9 *usecase.DeleteAllPendingBlockTransactionUseCase,
-	uc10 *usecase.GetAccountUseCase,
-	uc11 *usecase.UpsertAccountUseCase,
+	uc4 *usecase.GetBlockDataUseCase,
+	uc5 *usecase.ProofOfWorkUseCase,
+	uc6 *usecase.BroadcastProposedBlockDataDTOUseCase,
+	uc7 *usecase.DeleteAllPendingBlockTransactionUseCase,
 ) *ProofOfAuthorityMiningService {
-	return &ProofOfAuthorityMiningService{config, logger, kmutex, getKeyService, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11}
+	return &ProofOfAuthorityMiningService{config, logger, kmutex, getKeyService, uc1, uc2, uc3, uc4, uc5, uc6, uc7}
 }
 
 func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
