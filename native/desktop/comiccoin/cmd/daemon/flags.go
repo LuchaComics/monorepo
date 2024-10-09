@@ -12,25 +12,23 @@ import (
 
 // Command line arguments for the `daemon` cmd.
 var (
-	flagKeystoreFile     string // Location of the wallet keystore
-	flagDataDir          string // Location of the database directory
-	flagPassword         string
-	flagCoinbaseAddress  string
-	flagRecipientAddress string
-	flagAmount           uint64
-	flagKeypairName      string
-	flagAccountAddress   string
-
-	flagBootstrapPeers  string
-	flagListenAddresses string
-
-	flagListenHTTPPort       int
-	flagListenHTTPIP         string
-	flagListenPeerToPeerPort int
-
-	flagListenHTTPAddress string
-
-	flagIdentityKeyID string
+	flagKeystoreFile                   string // Location of the wallet keystore
+	flagDataDir                        string // Location of the database directory
+	flagPassword                       string
+	flagCoinbaseAddress                string
+	flagRecipientAddress               string
+	flagAmount                         uint64
+	flagKeypairName                    string
+	flagAccountAddress                 string
+	flagBootstrapPeers                 string
+	flagListenAddresses                string
+	flagListenHTTPPort                 int
+	flagListenHTTPIP                   string
+	flagListenPeerToPeerPort           int
+	flagListenHTTPAddress              string
+	flagIdentityKeyID                  string
+	flagEnableMiner                    bool
+	flagConsensusPollingDelayInMinutes int64
 )
 
 // A new type we need for writing a custom flag parser

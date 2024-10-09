@@ -67,6 +67,7 @@ func (port *taskManagerImpl) Run() {
 			}
 		}
 	}()
+
 	go func() {
 		port.logger.Info("Running mempool (send) service...")
 		for {
@@ -78,17 +79,23 @@ func (port *taskManagerImpl) Run() {
 			time.Sleep(1 * time.Second)
 		}
 	}()
-	go func() {
-		port.logger.Info("Running mining service...")
-		for {
-			taskErr := port.miningTaskHandler.Execute(ctx)
-			if taskErr != nil {
-				port.logger.Error("failed executing mining task, restarting task in 1 minute...", slog.Any("error", taskErr))
-				time.Sleep(1 * time.Minute)
+
+	if port.cfg.Blockchain.EnableMiner {
+		go func() {
+			port.logger.Info("Running mining service...")
+			for {
+				taskErr := port.miningTaskHandler.Execute(ctx)
+				if taskErr != nil {
+					port.logger.Error("failed executing mining task, restarting task in 1 minute...", slog.Any("error", taskErr))
+					time.Sleep(1 * time.Minute)
+				}
+				time.Sleep(1 * time.Second)
 			}
-			time.Sleep(1 * time.Second)
-		}
-	}()
+		}()
+	} else {
+		port.logger.Info("Skipped running the mining service...")
+	}
+
 	go func() {
 		port.logger.Info("Running validation service...")
 		for {

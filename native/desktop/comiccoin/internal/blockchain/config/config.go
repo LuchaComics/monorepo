@@ -44,6 +44,9 @@ type BlockchainConfig struct {
 	// The delay time (in minutes) before this mode will poll the blockchain
 	// network to request a consensus as to what the latest block is.
 	ConsensusPollingDelayInMinutes int64 `json:"consensus_polling_delay_in_minutes"`
+
+	// Variable controls whether this node has a miner executing or not.
+	EnableMiner bool `json:"enable_miner"`
 }
 
 // AppConfig represents the configuration for the application.
