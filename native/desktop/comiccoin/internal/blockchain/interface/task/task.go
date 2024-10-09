@@ -3,10 +3,12 @@ package task
 import (
 	"context"
 	"fmt"
+	"log"
 	"log/slog"
 	"time"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config/constants"
 	task "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/task/handler"
 	taskmnghandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/task/handler"
 )
@@ -80,9 +82,9 @@ func (port *taskManagerImpl) Run() {
 		}
 	}()
 
-	if port.cfg.Blockchain.EnableMiner {
+	if port.cfg.Blockchain.ConsensusProtocol == constants.ConsensusPoW {
 		go func() {
-			port.logger.Info("Running mining service...")
+			port.logger.Info("Running PoW mining service...")
 			for {
 				taskErr := port.miningTaskHandler.Execute(ctx)
 				if taskErr != nil {
@@ -91,6 +93,19 @@ func (port *taskManagerImpl) Run() {
 				}
 				time.Sleep(1 * time.Second)
 			}
+		}()
+	} else if port.cfg.Blockchain.ConsensusProtocol == constants.ConsensusPoA {
+		go func() {
+			port.logger.Info("Running PoA mining service...")
+			log.Fatal("TODO: IMPL PoA...")
+			// for {
+			// 	taskErr := port.miningTaskHandler.Execute(ctx)
+			// 	if taskErr != nil {
+			// 		port.logger.Error("failed executing mining task, restarting task in 1 minute...", slog.Any("error", taskErr))
+			// 		time.Sleep(1 * time.Minute)
+			// 	}
+			// 	time.Sleep(1 * time.Second)
+			// }
 		}()
 	} else {
 		port.logger.Info("Skipped running the mining service...")

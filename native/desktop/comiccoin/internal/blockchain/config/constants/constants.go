@@ -12,3 +12,7 @@ const (
 const (
 	ChainIDMainNet = 1
 )
+const (
+	ConsensusPoW = "PoW"
+	ConsensusPoA = "PoA"
+)

@@ -55,7 +55,7 @@ func DaemonCmd() *cobra.Command {
 					TransPerBlock:                  1,
 					Difficulty:                     2,
 					ConsensusPollingDelayInMinutes: flagConsensusPollingDelayInMinutes,
-					EnableMiner:                    flagEnableMiner,
+					ConsensusProtocol:              flagConsensusProtocol,
 				},
 				App: config.AppConfig{
 					DirPath:     flagDataDir,
@@ -566,8 +566,8 @@ func DaemonCmd() *cobra.Command {
 	cmd.Flags().StringVar(&flagIdentityKeyID, "identitykey-id", "", "If you would like to use a custom identity then this is the identifier used to lookup a custom identity profile to assign for this blockchain node")
 	cmd.Flags().IntVar(&flagListenPeerToPeerPort, "listen-p2p-port", 26642, "The port to listen to for other peers")
 	cmd.Flags().StringVar(&flagBootstrapPeers, "bootstrap-peers", "", "The list of peers used to synchronize our blockchain with")
-	cmd.Flags().BoolVar(&flagEnableMiner, "enable-miner", false, "Controls whether you want your node to have a miner running or not")
 	cmd.Flags().Int64Var(&flagConsensusPollingDelayInMinutes, "consensus-polling-delay-in-minutes", 1, "The delay interval between your node polling the network on the latest consensus")
+	cmd.Flags().StringVar(&flagConsensusProtocol, "consensus-protocol", "None", "Controls whether you want your node to have a miner running in the background and what algorithm to execute, choices are: PoW, PoA, or None.")
 
 	return cmd
 }

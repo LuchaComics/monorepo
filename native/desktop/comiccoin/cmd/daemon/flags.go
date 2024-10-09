@@ -27,8 +27,8 @@ var (
 	flagListenPeerToPeerPort           int
 	flagListenHTTPAddress              string
 	flagIdentityKeyID                  string
-	flagEnableMiner                    bool
 	flagConsensusPollingDelayInMinutes int64
+	flagConsensusProtocol              string
 )
 
 // A new type we need for writing a custom flag parser
