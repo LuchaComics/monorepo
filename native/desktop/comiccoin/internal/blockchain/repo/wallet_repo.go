@@ -24,14 +24,14 @@ func (r *WalletRepo) Upsert(wallet *domain.Wallet) error {
 	if err != nil {
 		return err
 	}
-	if err := r.dbClient.Setf(bBytes, "wallet-%v", wallet.Address.String()); err != nil {
+	if err := r.dbClient.Set(wallet.Address.String(), bBytes); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (r *WalletRepo) GetByAddress(address *common.Address) (*domain.Wallet, error) {
-	bBytes, err := r.dbClient.Getf("wallet-%v", address.String())
+	bBytes, err := r.dbClient.Get(address.String())
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (r *WalletRepo) GetByAddress(address *common.Address) (*domain.Wallet, erro
 }
 
 func (r *WalletRepo) DeleteByAddress(address *common.Address) error {
-	err := r.dbClient.Deletef("wallet-%v", address.String())
+	err := r.dbClient.Delete(address.String())
 	if err != nil {
 		return err
 	}

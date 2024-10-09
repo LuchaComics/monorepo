@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"fmt"
 	"log/slog"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
@@ -23,7 +24,7 @@ func (r *PendingBlockTransactionRepo) Upsert(stx *domain.PendingBlockTransaction
 	if err != nil {
 		return err
 	}
-	if err := r.dbClient.Setf(bBytes, "pending-block-transaction-%v", stx.Nonce); err != nil {
+	if err := r.dbClient.Set(fmt.Sprintf("%v", stx.Nonce), bBytes); err != nil {
 		return err
 	}
 	return nil
@@ -69,7 +70,7 @@ func (r *PendingBlockTransactionRepo) DeleteAll() error {
 	})
 
 	for _, item := range res {
-		err := r.dbClient.Deletef("pending-block-transaction-%v", item.Nonce)
+		err := r.dbClient.Delete(fmt.Sprintf("%v", item.Nonce))
 		if err != nil {
 			return err
 		}

@@ -27,14 +27,14 @@ func (r *AccountRepo) Upsert(account *domain.Account) error {
 	if err != nil {
 		return err
 	}
-	if err := r.dbClient.Setf(bBytes, "account-%v", account.Address.String()); err != nil {
+	if err := r.dbClient.Set(account.Address.String(), bBytes); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (r *AccountRepo) GetByAddress(addr *common.Address) (*domain.Account, error) {
-	bBytes, err := r.dbClient.Getf("account-%v", addr.String())
+	bBytes, err := r.dbClient.Get(addr.String())
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func (r *AccountRepo) ListAll() ([]*domain.Account, error) {
 }
 
 func (r *AccountRepo) DeleteByAddress(addr *common.Address) error {
-	err := r.dbClient.Deletef("account-%v", addr.String())
+	err := r.dbClient.Delete(addr.String())
 	if err != nil {
 		return err
 	}

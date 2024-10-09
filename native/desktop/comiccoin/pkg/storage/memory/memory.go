@@ -28,59 +28,38 @@ func NewInMemoryStorage(logger *slog.Logger) storage.Storage {
 
 // Get retrieves a value from the database by its key.
 // It returns an error if the key is not found.
-func (impl *keyValueStorerImpl) Get(prefix, key string) ([]byte, error) {
-	return impl.Getf("%s-%s", prefix, key)
-}
-
-// Set sets a value in the database by its key.
-// It returns an error if the operation fails.
-func (impl *keyValueStorerImpl) Set(prefix, key string, val []byte) error {
-	return impl.Setf(val, "%s-%s", prefix, key)
-}
-
-// Delete deletes a value from the database by its key.
-// It returns an error if the operation fails.
-func (impl *keyValueStorerImpl) Delete(prefix, key string) error {
-	return impl.Deletef("%s-%s", prefix, key)
-}
-
-// Getf retrieves a value from the database by its key.
-// It returns an error if the key is not found.
-func (impl *keyValueStorerImpl) Getf(format string, a ...any) ([]byte, error) {
+func (impl *keyValueStorerImpl) Get(k string) ([]byte, error) {
 	impl.lock.Lock()
 	defer impl.lock.Unlock()
-	key := fmt.Sprintf(format, a...)
 
-	cachedValue, ok := impl.data[key]
+	cachedValue, ok := impl.data[k]
 	if !ok {
-		delete(impl.data, key)
-		return nil, fmt.Errorf("does not exist for: %v", key)
+		delete(impl.data, k)
+		return nil, fmt.Errorf("does not exist for: %v", k)
 	}
 
 	return cachedValue.value, nil
 }
 
-// Setf sets a value in the database by its key.
+// Set sets a value in the database by its key.
 // It returns an error if the operation fails.
-func (impl *keyValueStorerImpl) Setf(val []byte, format string, a ...any) error {
+func (impl *keyValueStorerImpl) Set(k string, val []byte) error {
 	impl.lock.Lock()
 	defer impl.lock.Unlock()
-	key := fmt.Sprintf(format, a...)
 
-	impl.data[key] = cacheValue{
+	impl.data[k] = cacheValue{
 		value: val,
 	}
 	return nil
 }
 
-// Deletef deletes a value from the database by its key.
+// Delete deletes a value from the database by its key.
 // It returns an error if the operation fails.
-func (impl *keyValueStorerImpl) Deletef(format string, a ...any) error {
+func (impl *keyValueStorerImpl) Delete(k string) error {
 	impl.lock.Lock()
 	defer impl.lock.Unlock()
-	key := fmt.Sprintf(format, a...)
 
-	delete(impl.data, key)
+	delete(impl.data, k)
 	return nil
 }
 

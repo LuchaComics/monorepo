@@ -23,14 +23,14 @@ func (r *BlockDataRepo) Upsert(blockdata *domain.BlockData) error {
 	if err != nil {
 		return err
 	}
-	if err := r.dbClient.Setf(bBytes, "blockdata-%v", blockdata.Hash); err != nil {
+	if err := r.dbClient.Set(blockdata.Hash, bBytes); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (r *BlockDataRepo) GetByHash(hash string) (*domain.BlockData, error) {
-	bBytes, err := r.dbClient.Getf("blockdata-%v", hash)
+	bBytes, err := r.dbClient.Get(hash)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (r *BlockDataRepo) ListAll() ([]*domain.BlockData, error) {
 }
 
 func (r *BlockDataRepo) DeleteByHash(hash string) error {
-	err := r.dbClient.Deletef("blockdata-%v", hash)
+	err := r.dbClient.Delete(hash)
 	if err != nil {
 		return err
 	}

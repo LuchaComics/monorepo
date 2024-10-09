@@ -23,14 +23,14 @@ func (r *IdentityKeyRepo) Upsert(identityKey *domain.IdentityKey) error {
 	if err != nil {
 		return err
 	}
-	if err := r.dbClient.Setf(bBytes, "identity-key-%v", identityKey.ID); err != nil {
+	if err := r.dbClient.Set(identityKey.ID, bBytes); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (r *IdentityKeyRepo) GetByID(id string) (*domain.IdentityKey, error) {
-	bBytes, err := r.dbClient.Getf("identity-key-%v", id)
+	bBytes, err := r.dbClient.Get(id)
 	if err != nil {
 		return nil, err
 	}

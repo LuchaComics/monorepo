@@ -1,7 +1,6 @@
 package db
 
 import (
-	"fmt"
 	"log"
 	"log/slog"
 
@@ -42,26 +41,7 @@ func NewDiskStorage(dataDir string, logger *slog.Logger) storage.Storage {
 
 // Get retrieves a value from the database by its key.
 // It returns an error if the key is not found.
-func (impl *keyValueStorerImpl) Get(prefix, key string) ([]byte, error) {
-	return impl.Getf("%s-%s", prefix, key)
-}
-
-// Set sets a value in the database by its key.
-// It returns an error if the operation fails.
-func (impl *keyValueStorerImpl) Set(prefix, key string, val []byte) error {
-	return impl.Setf(val, "%s-%s", prefix, key)
-}
-
-// Delete deletes a value from the database by its key.
-// It returns an error if the operation fails.
-func (impl *keyValueStorerImpl) Delete(prefix, key string) error {
-	return impl.Deletef("%s-%s", prefix, key)
-}
-
-// Getf retrieves a value from the database by its key.
-// It returns an error if the key is not found.
-func (impl *keyValueStorerImpl) Getf(format string, a ...any) ([]byte, error) {
-	k := fmt.Sprintf(format, a...)
+func (impl *keyValueStorerImpl) Get(k string) ([]byte, error) {
 	bin, err := impl.db.Get([]byte(k), nil)
 	if err == dberr.ErrNotFound {
 		return nil, nil
@@ -69,10 +49,9 @@ func (impl *keyValueStorerImpl) Getf(format string, a ...any) ([]byte, error) {
 	return bin, nil
 }
 
-// Setf sets a value in the database by its key.
+// Set sets a value in the database by its key.
 // It returns an error if the operation fails.
-func (impl *keyValueStorerImpl) Setf(val []byte, format string, a ...any) error {
-	k := fmt.Sprintf(format, a...)
+func (impl *keyValueStorerImpl) Set(k string, val []byte) error {
 	impl.db.Delete([]byte(k), nil)
 	err := impl.db.Put([]byte(k), val, nil)
 	if err == dberr.ErrNotFound {
@@ -81,10 +60,9 @@ func (impl *keyValueStorerImpl) Setf(val []byte, format string, a ...any) error 
 	return err
 }
 
-// Deletef deletes a value from the database by its key.
+// Delete deletes a value from the database by its key.
 // It returns an error if the operation fails.
-func (impl *keyValueStorerImpl) Deletef(format string, a ...any) error {
-	k := fmt.Sprintf(format, a...)
+func (impl *keyValueStorerImpl) Delete(k string) error {
 	err := impl.db.Delete([]byte(k), nil)
 	if err == dberr.ErrNotFound {
 		return nil

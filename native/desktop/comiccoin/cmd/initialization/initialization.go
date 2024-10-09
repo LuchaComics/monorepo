@@ -50,7 +50,7 @@ func InitCmd() *cobra.Command {
 				},
 			}
 			logger := logger.NewLogger()
-			db := disk.NewDiskStorage(cfg.DB.DataDir+"/identitykey", logger)
+			db := disk.NewDiskStorage(cfg.DB.DataDir+"/identity_key", logger)
 			ikRepo := ik_repo.NewIdentityKeyRepo(cfg, logger, db)
 			ikCreateUseCase := ik_use.NewCreateIdentityKeyUseCase(cfg, logger, ikRepo)
 			ikGetUseCase := ik_use.NewGetIdentityKeyUseCase(cfg, logger, ikRepo)
