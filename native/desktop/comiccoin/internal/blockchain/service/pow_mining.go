@@ -13,7 +13,7 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/kmutexutil"
 )
 
-type MiningService struct {
+type ProofOfWorkMiningService struct {
 	config                                  *config.Config
 	logger                                  *slog.Logger
 	kmutex                                  kmutexutil.KMutexProvider
@@ -30,7 +30,7 @@ type MiningService struct {
 	upsertAccountUseCase                    *usecase.UpsertAccountUseCase
 }
 
-func NewMiningService(
+func NewProofOfWorkMiningService(
 	config *config.Config,
 	logger *slog.Logger,
 	kmutex kmutexutil.KMutexProvider,
@@ -45,11 +45,11 @@ func NewMiningService(
 	uc9 *usecase.DeleteAllPendingBlockTransactionUseCase,
 	uc10 *usecase.GetAccountUseCase,
 	uc11 *usecase.UpsertAccountUseCase,
-) *MiningService {
-	return &MiningService{config, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11}
+) *ProofOfWorkMiningService {
+	return &ProofOfWorkMiningService{config, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11}
 }
 
-func (s *MiningService) Execute(ctx context.Context) error {
+func (s *ProofOfWorkMiningService) Execute(ctx context.Context) error {
 	// s.logger.Debug("starting mining service...")
 	// defer s.logger.Debug("finished mining service")
 
@@ -280,7 +280,7 @@ func (s *MiningService) Execute(ctx context.Context) error {
 }
 
 // TODO: (1) Create somesort of `processAccountForBlockTransaction` service and (2) replace it with this.
-func (s *MiningService) processAccountForBlockTransaction(blockData *domain.BlockData, blockTx *domain.BlockTransaction) error {
+func (s *ProofOfWorkMiningService) processAccountForBlockTransaction(blockData *domain.BlockData, blockTx *domain.BlockTransaction) error {
 	// DEVELOPERS NOTE:
 	// Please remember that when this function executes, there already is an
 	// in-memory database of accounts populated and maintained by this node.

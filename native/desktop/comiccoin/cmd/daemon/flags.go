@@ -28,6 +28,7 @@ var (
 	flagListenHTTPAddress              string
 	flagIdentityKeyID                  string
 	flagConsensusPollingDelayInMinutes int64
+	flagEnableMiner                    bool
 	flagConsensusProtocol              string
 )
 

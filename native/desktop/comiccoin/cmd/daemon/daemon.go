@@ -55,6 +55,7 @@ func DaemonCmd() *cobra.Command {
 					TransPerBlock:                  1,
 					Difficulty:                     2,
 					ConsensusPollingDelayInMinutes: flagConsensusPollingDelayInMinutes,
+					EnableMiner:                    flagEnableMiner,
 					ConsensusProtocol:              flagConsensusProtocol,
 				},
 				App: config.AppConfig{
@@ -385,7 +386,7 @@ func DaemonCmd() *cobra.Command {
 				deleteAllMempoolTransactionUseCase)
 
 			// Miner
-			miningService := service.NewMiningService(
+			proofOfWorkMiningService := service.NewProofOfWorkMiningService(
 				cfg,
 				logger,
 				kmutex,
@@ -403,7 +404,7 @@ func DaemonCmd() *cobra.Command {
 			)
 
 			// Validation
-			validationService := service.NewValidationService(
+			proofOfWorkValidationService := service.NewProofOfWorkValidationService(
 				cfg,
 				logger,
 				kmutex,
@@ -495,14 +496,14 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				mempoolBatchSendService)
-			tm3 := taskmnghandler.NewMiningTaskHandler(
+			tm3 := taskmnghandler.NewProofOfWorkMiningTaskHandler(
 				cfg,
 				logger,
-				miningService)
-			tm4 := taskmnghandler.NewValidationTaskHandler(
+				proofOfWorkMiningService)
+			tm4 := taskmnghandler.NewProofOfWorkValidationTaskHandler(
 				cfg,
 				logger,
-				validationService)
+				proofOfWorkValidationService)
 			tm5 := taskmnghandler.NewBlockDataDTOServerTaskHandler(
 				cfg,
 				logger,
@@ -567,7 +568,8 @@ func DaemonCmd() *cobra.Command {
 	cmd.Flags().IntVar(&flagListenPeerToPeerPort, "listen-p2p-port", 26642, "The port to listen to for other peers")
 	cmd.Flags().StringVar(&flagBootstrapPeers, "bootstrap-peers", "", "The list of peers used to synchronize our blockchain with")
 	cmd.Flags().Int64Var(&flagConsensusPollingDelayInMinutes, "consensus-polling-delay-in-minutes", 1, "The delay interval between your node polling the network on the latest consensus")
-	cmd.Flags().StringVar(&flagConsensusProtocol, "consensus-protocol", "None", "Controls whether you want your node to have a miner running in the background and what algorithm to execute, choices are: PoW, PoA, or None.")
+	cmd.Flags().BoolVar(&flagEnableMiner, "enable-miner", false, "Controls whether you want your node to have a miner running in the background")
+	cmd.Flags().StringVar(&flagConsensusProtocol, "consensus-protocol", "None", "Controls what consensus protocol to execute for the miner, choices are: PoW, PoA, or None.")
 
 	return cmd
 }

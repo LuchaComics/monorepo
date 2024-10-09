@@ -12,7 +12,7 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/kmutexutil"
 )
 
-type ValidationService struct {
+type ProofOfWorkValidationService struct {
 	config                             *config.Config
 	logger                             *slog.Logger
 	kmutex                             kmutexutil.KMutexProvider
@@ -26,7 +26,7 @@ type ValidationService struct {
 	upsertAccountUseCase               *usecase.UpsertAccountUseCase
 }
 
-func NewValidationService(
+func NewProofOfWorkValidationService(
 	cfg *config.Config,
 	logger *slog.Logger,
 	kmutex kmutexutil.KMutexProvider,
@@ -38,11 +38,11 @@ func NewValidationService(
 	uc6 *usecase.SetBlockchainLastestHashUseCase,
 	uc7 *usecase.GetAccountUseCase,
 	uc8 *usecase.UpsertAccountUseCase,
-) *ValidationService {
-	return &ValidationService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8}
+) *ProofOfWorkValidationService {
+	return &ProofOfWorkValidationService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8}
 }
 
-func (s *ValidationService) Execute(ctx context.Context) error {
+func (s *ProofOfWorkValidationService) Execute(ctx context.Context) error {
 	// s.logger.Debug("starting validation service...")
 	// defer s.logger.Debug("finished validation service")
 
@@ -191,7 +191,7 @@ func (s *ValidationService) Execute(ctx context.Context) error {
 }
 
 // TODO: (1) Create somesort of `processAccountForBlockTransaction` service and (2) replace it with this.
-func (s *ValidationService) processAccountForBlockTransaction(blockData *domain.BlockData, blockTx *domain.BlockTransaction) error {
+func (s *ProofOfWorkValidationService) processAccountForBlockTransaction(blockData *domain.BlockData, blockTx *domain.BlockTransaction) error {
 	// DEVELOPERS NOTE:
 	// Please remember that when this function executes, there already is an
 	// in-memory database of accounts populated and maintained by this node.

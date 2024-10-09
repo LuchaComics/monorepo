@@ -8,21 +8,21 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/service"
 )
 
-type MiningTaskHandler struct {
+type ProofOfWorkValidationTaskHandler struct {
 	config  *config.Config
 	logger  *slog.Logger
-	service *service.MiningService
+	service *service.ProofOfWorkValidationService
 }
 
-func NewMiningTaskHandler(
+func NewProofOfWorkValidationTaskHandler(
 	cfg *config.Config,
 	logger *slog.Logger,
-	s *service.MiningService,
-) *MiningTaskHandler {
-	return &MiningTaskHandler{cfg, logger, s}
+	s *service.ProofOfWorkValidationService,
+) *ProofOfWorkValidationTaskHandler {
+	return &ProofOfWorkValidationTaskHandler{cfg, logger, s}
 }
 
-func (h *MiningTaskHandler) Execute(ctx context.Context) error {
+func (h *ProofOfWorkValidationTaskHandler) Execute(ctx context.Context) error {
 	if serviceExecErr := h.service.Execute(ctx); serviceExecErr != nil {
 		return serviceExecErr
 	}

@@ -23,8 +23,8 @@ type taskManagerImpl struct {
 	logger                                 *slog.Logger
 	mempoolReceiveTaskHandler              *task.MempoolReceiveTaskHandler
 	mempoolBatchSendTaskHandler            *task.MempoolBatchSendTaskHandler
-	miningTaskHandler                      *task.MiningTaskHandler
-	validationTaskHandler                  *task.ValidationTaskHandler
+	proofOfWorkMiningTaskHandler           *task.ProofOfWorkMiningTaskHandler
+	proofOfWorkValidationTaskHandler       *task.ProofOfWorkValidationTaskHandler
 	blockDataDTOServerTaskHandler          *task.BlockDataDTOServerTaskHandler
 	majorityVoteConsensusServerTaskHandler *task.MajorityVoteConsensusServerTaskHandler
 	majorityVoteConsensusClientTaskHandler *task.MajorityVoteConsensusClientTaskHandler
@@ -35,8 +35,8 @@ func NewTaskManager(
 	logger *slog.Logger,
 	mempoolReceiveTaskHandler *task.MempoolReceiveTaskHandler,
 	mempoolBatchSendTaskHandler *task.MempoolBatchSendTaskHandler,
-	miningTaskHandler *task.MiningTaskHandler,
-	validationTaskHandler *task.ValidationTaskHandler,
+	proofOfWorkMiningTaskHandler *task.ProofOfWorkMiningTaskHandler,
+	proofOfWorkValidationTaskHandler *task.ProofOfWorkValidationTaskHandler,
 	blockDataDTOServerTaskHandler *task.BlockDataDTOServerTaskHandler,
 	majorityVoteConsensusServerTaskHandler *task.MajorityVoteConsensusServerTaskHandler,
 	majorityVoteConsensusClientTaskHandler *task.MajorityVoteConsensusClientTaskHandler,
@@ -46,8 +46,8 @@ func NewTaskManager(
 		logger:                                 logger,
 		mempoolReceiveTaskHandler:              mempoolReceiveTaskHandler,
 		mempoolBatchSendTaskHandler:            mempoolBatchSendTaskHandler,
-		miningTaskHandler:                      miningTaskHandler,
-		validationTaskHandler:                  validationTaskHandler,
+		proofOfWorkMiningTaskHandler:           proofOfWorkMiningTaskHandler,
+		proofOfWorkValidationTaskHandler:       proofOfWorkValidationTaskHandler,
 		blockDataDTOServerTaskHandler:          blockDataDTOServerTaskHandler,
 		majorityVoteConsensusServerTaskHandler: majorityVoteConsensusServerTaskHandler,
 		majorityVoteConsensusClientTaskHandler: majorityVoteConsensusClientTaskHandler,
@@ -81,23 +81,25 @@ func (port *taskManagerImpl) Run() {
 			time.Sleep(1 * time.Second)
 		}
 	}()
-
-	if port.cfg.Blockchain.ConsensusProtocol == constants.ConsensusPoW {
-		go func() {
-			port.logger.Info("Running PoW mining service...")
-			for {
-				taskErr := port.miningTaskHandler.Execute(ctx)
-				if taskErr != nil {
-					port.logger.Error("failed executing mining task, restarting task in 1 minute...", slog.Any("error", taskErr))
-					time.Sleep(1 * time.Minute)
+	go func() {
+		if port.cfg.Blockchain.ConsensusProtocol == constants.ConsensusPoW {
+			if port.cfg.Blockchain.EnableMiner {
+				port.logger.Info("Running PoW mining service...")
+				for {
+					taskErr := port.proofOfWorkMiningTaskHandler.Execute(ctx)
+					if taskErr != nil {
+						port.logger.Error("failed executing mining task, restarting task in 1 minute...", slog.Any("error", taskErr))
+						time.Sleep(1 * time.Minute)
+					}
+					time.Sleep(1 * time.Second)
 				}
-				time.Sleep(1 * time.Second)
+			} else {
+				port.logger.Info("Skipped running the PoW mining service..")
 			}
-		}()
-	} else if port.cfg.Blockchain.ConsensusProtocol == constants.ConsensusPoA {
-		go func() {
+
+		} else if port.cfg.Blockchain.ConsensusProtocol == constants.ConsensusPoA {
 			port.logger.Info("Running PoA mining service...")
-			log.Fatal("TODO: IMPL PoA...")
+			log.Fatal("TODO: IMPL POA...")
 			// for {
 			// 	taskErr := port.miningTaskHandler.Execute(ctx)
 			// 	if taskErr != nil {
@@ -106,20 +108,27 @@ func (port *taskManagerImpl) Run() {
 			// 	}
 			// 	time.Sleep(1 * time.Second)
 			// }
-		}()
-	} else {
-		port.logger.Info("Skipped running the mining service...")
-	}
+		} else {
+			port.logger.Info("Skipped running the mining service...")
+		}
+	}()
 
 	go func() {
-		port.logger.Info("Running validation service...")
-		for {
-			taskErr := port.validationTaskHandler.Execute(ctx)
-			if taskErr != nil {
-				port.logger.Error("failed executing validation task, restarting task in 1 minute...", slog.Any("error", taskErr))
-				time.Sleep(1 * time.Minute)
+		if port.cfg.Blockchain.ConsensusProtocol == constants.ConsensusPoW {
+			port.logger.Info("Running PoW validation service...")
+			for {
+				taskErr := port.proofOfWorkValidationTaskHandler.Execute(ctx)
+				if taskErr != nil {
+					port.logger.Error("failed executing validation task, restarting task in 1 minute...", slog.Any("error", taskErr))
+					time.Sleep(1 * time.Minute)
+				}
+				time.Sleep(1 * time.Second)
 			}
-			time.Sleep(1 * time.Second)
+		} else if port.cfg.Blockchain.ConsensusProtocol == constants.ConsensusPoA {
+			port.logger.Info("Running PoA validation service...")
+			log.Fatal("TODO: IMPL POA...")
+		} else {
+			port.logger.Info("Skipped running the mining service...")
 		}
 	}()
 

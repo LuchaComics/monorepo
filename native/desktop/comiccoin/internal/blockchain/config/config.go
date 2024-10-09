@@ -45,6 +45,9 @@ type BlockchainConfig struct {
 	// network to request a consensus as to what the latest block is.
 	ConsensusPollingDelayInMinutes int64 `json:"consensus_polling_delay_in_minutes"`
 
+	// Control whether to have the miner running in the background for this node.
+	EnableMiner bool `json:"enable_miner"`
+
 	// Used to set what protocol to for mining and coordinating latest blockchain.
 	ConsensusProtocol string `json:"consensus_protocol"`
 }
