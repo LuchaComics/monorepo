@@ -19,6 +19,7 @@ type InitAccountsFromBlockchainService struct {
 	getBlockchainLastestHashUseCase *usecase.GetBlockchainLastestHashUseCase
 	getBlockDataUseCase             *usecase.GetBlockDataUseCase
 	getAccountUseCase               *usecase.GetAccountUseCase
+	getAccountsHashStateUseCase     *usecase.GetAccountsHashStateUseCase
 	createAccountUseCase            *usecase.CreateAccountUseCase
 	upsertAccountUseCase            *usecase.UpsertAccountUseCase
 }
@@ -30,10 +31,11 @@ func NewInitAccountsFromBlockchainService(
 	uc2 *usecase.GetBlockchainLastestHashUseCase,
 	uc3 *usecase.GetBlockDataUseCase,
 	uc4 *usecase.GetAccountUseCase,
-	uc5 *usecase.CreateAccountUseCase,
-	uc6 *usecase.UpsertAccountUseCase,
+	uc5 *usecase.GetAccountsHashStateUseCase,
+	uc6 *usecase.CreateAccountUseCase,
+	uc7 *usecase.UpsertAccountUseCase,
 ) *InitAccountsFromBlockchainService {
-	return &InitAccountsFromBlockchainService{cfg, logger, uc1, uc2, uc3, uc4, uc5, uc6}
+	return &InitAccountsFromBlockchainService{cfg, logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7}
 }
 
 func (s *InitAccountsFromBlockchainService) Execute() error {
@@ -102,6 +104,16 @@ func (s *InitAccountsFromBlockchainService) Execute() error {
 		// Check if the genesis block has been reached and if so then exit.
 		if blockDataHash == signature.ZeroHash && blockData.Hash == signature.ZeroHash {
 			s.logger.Debug("Initialized accounts successfully")
+
+			// Print the hashstate.
+			hashState, err := s.getAccountsHashStateUseCase.Execute()
+			if err != nil {
+				s.logger.Error("Failed getting hash state of all accounts",
+					slog.Any("error", err))
+				return err
+			}
+			s.logger.Debug(fmt.Sprintf("Current blockchain accounts stateroot: %v", hashState))
+
 			return nil
 		}
 	}

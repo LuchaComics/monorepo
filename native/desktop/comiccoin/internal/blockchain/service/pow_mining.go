@@ -243,6 +243,19 @@ func (s *ProofOfWorkMiningService) Execute(ctx context.Context) error {
 
 	//
 	// STEP 7:
+	// Update the account in our in-memory database.
+	//
+
+	for _, blockTx := range blockData.Trans {
+		if err := s.processAccountForBlockTransaction(blockData, &blockTx); err != nil {
+			s.logger.Error("Failed processing transaction",
+				slog.Any("error", err))
+			return err
+		}
+	}
+
+	//
+	// STEP 8:
 	// Broadcast to the distributed / P2P blockchain network our new proposed
 	// block data.
 	//
@@ -262,19 +275,6 @@ func (s *ProofOfWorkMiningService) Execute(ctx context.Context) error {
 
 	s.logger.Info("PoW mining service broadcasted new block data to propose to the network",
 		slog.Uint64("nonce", block.Header.Nonce))
-
-	//
-	// STEP 8:
-	// Update the account in our in-memory database.
-	//
-
-	for _, blockTx := range blockData.Trans {
-		if err := s.processAccountForBlockTransaction(blockData, &blockTx); err != nil {
-			s.logger.Error("Failed processing transaction",
-				slog.Any("error", err))
-			return err
-		}
-	}
 
 	return nil
 }

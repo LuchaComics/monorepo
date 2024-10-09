@@ -39,12 +39,12 @@ func DaemonCmd() *cobra.Command {
 			// Command line parameters validation.
 			//
 
-			if flagConsensusProtocol == constants.ConsensusPoA {
+			if flagConsensusProtocol == constants.ConsensusPoA && flagEnableMiner {
 				if flagProofOfAuthorityAccountAddress == "" {
-					log.Fatal("Error loading ComicCoin: You did not enter the authority's address when running `proof of authority` consensus protocol, please use `--poa-address` flag next time.")
+					log.Fatal("Error loading ComicCoin: You did not enter the authority's address when running `proof of authority` consensus protocol miner, please use `--poa-address` flag next time.")
 				}
 				if flagProofOfAuthorityWalletPassword == "" {
-					log.Fatal("Error loading ComicCoin: You did not enter the authority's password when running `proof of authority` consensus protocol, please use `--poa-password` flag next time.")
+					log.Fatal("Error loading ComicCoin: You did not enter the authority's password when running `proof of authority` consensus protocol miner, please use `--poa-password` flag next time.")
 				}
 			}
 
@@ -86,7 +86,7 @@ func DaemonCmd() *cobra.Command {
 					BootstrapPeers: bootstrapPeers,
 				},
 			}
-			if flagConsensusProtocol == constants.ConsensusPoA {
+			if flagConsensusProtocol == constants.ConsensusPoA && flagEnableMiner {
 				coinbaseAddr := common.HexToAddress(flagProofOfAuthorityAccountAddress)
 				cfg.Blockchain.ProofOfAuthorityAccountAddress = &coinbaseAddr
 				cfg.Blockchain.ProofOfAuthorityWalletPassword = flagProofOfAuthorityWalletPassword
@@ -361,6 +361,7 @@ func DaemonCmd() *cobra.Command {
 				getBlockchainLastestHashUseCase,
 				getBlockDataUseCase,
 				getAccountUseCase,
+				getAccountsHashStateUseCase,
 				createAccountUseCase,
 				upsertAccountUseCase)
 			createAccountService := service.NewCreateAccountService(
@@ -374,7 +375,10 @@ func DaemonCmd() *cobra.Command {
 			getAccountService := service.NewGetAccountService(
 				cfg,
 				logger,
-				getAccountUseCase)
+				getAccountUseCase,
+				getWalletUseCase,
+				createAccountUseCase,
+			)
 			getAccountBalanceService := service.NewGetAccountBalanceService(
 				cfg,
 				logger,

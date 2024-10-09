@@ -174,6 +174,10 @@ func doBlockchainConsensusMechanism() {
 		cfg,
 		logger,
 		accountRepo)
+	getAccountsHashStateUseCase := usecase.NewGetAccountsHashStateUseCase(
+		cfg,
+		logger,
+		accountRepo)
 
 	// Block Data
 	getBlockDataUseCase := usecase.NewGetBlockDataUseCase(
@@ -240,6 +244,7 @@ func doBlockchainConsensusMechanism() {
 		getBlockchainLastestHashUseCase,
 		getBlockDataUseCase,
 		getAccountUseCase,
+		getAccountsHashStateUseCase,
 		createAccountUseCase,
 		upsertAccountUseCase,
 	)

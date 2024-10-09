@@ -108,11 +108,7 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 		return err
 	}
 
-	//
-	// STEP 3
-	// Validate our proposed block data to our blockchain.
-	//
-
+	// Load up into our datastructure.
 	blockData := &domain.BlockData{
 		Hash:   proposedBlockData.Hash,
 		Header: proposedBlockData.Header,
@@ -124,6 +120,23 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 			slog.Any("error", err))
 		return err
 	}
+
+	//
+	// STEP 3:
+	// Begin by validating the proof of authority first.
+	//
+
+	poaValidator := prevBlockData.Validator
+	blockHeaderSignature := blockData.HeaderSignature
+	if poaValidator.ValidateBlockHeader(blockHeaderSignature) {
+		s.logger.Error("validator failed validating: authority signature is invalid")
+		return fmt.Errorf("validator failed validating: %v", "authority signature is invalid")
+	}
+
+	//
+	// STEP 4
+	// Afterwards validate our proposed block data to our blockchain.
+	//
 
 	// DEVELOPERS NOTE:
 	// In essence every node on the network hash an in-memory database of all
@@ -141,26 +154,28 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 			slog.Any("error", err))
 		return err
 	}
+
+	s.logger.Info("beginning validation...",
+		slog.Any("prev_hash", previousBlock.Hash),
+		slog.Uint64("prev_header_number", previousBlock.Header.Number),
+		slog.Any("prev_header_prev_hash", previousBlock.Header.PrevBlockHash),
+		slog.Any("prev_header_stateroot", previousBlock.Header.StateRoot),
+		slog.Any("current_hash", blockData.Hash),
+		slog.Uint64("current_header_number", blockData.Header.Number),
+		slog.Any("current_header_prev_hash", blockData.Header.PrevBlockHash),
+		slog.Any("current_header_stateroot", blockData.Header.StateRoot),
+	)
+
 	if err := block.ValidateBlock(previousBlock, stateRoot); err != nil {
-		s.logger.Error("validator failed validating the proposed block with the previous block",
+		// DEVELOPERS NOTE:
+		// Not an error but simply a friendly warning message.
+		s.logger.Warn("validator failed validating the proposed block with the previous block",
 			slog.Any("error", err))
 		return err
 	}
 
 	//
-	// STEP 3:
-	// Final validation requirement: execute proof of authority.
-	//
-
-	poaValidator := prevBlockData.Validator
-	blockHeaderSignature := blockData.HeaderSignature
-	if poaValidator.ValidateBlockHeader(blockHeaderSignature) {
-		s.logger.Error("validator failed validating: authority signature is invalid")
-		return fmt.Errorf("validator failed validating: %v", "authority signature is invalid")
-	}
-
-	//
-	// STEP 4:
+	// STEP 5:
 	// Save to the blockchain database.
 	//
 
@@ -187,7 +202,7 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 	)
 
 	//
-	// STEP 5
+	// STEP 6
 	// Update the account in our in-memory database.
 	//
 

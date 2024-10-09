@@ -87,8 +87,8 @@ func (port *taskManagerImpl) Run() {
 		}
 	}()
 	go func() {
-		if port.cfg.Blockchain.ConsensusProtocol == constants.ConsensusPoW {
-			if port.cfg.Blockchain.EnableMiner {
+		if port.cfg.Blockchain.EnableMiner {
+			if port.cfg.Blockchain.ConsensusProtocol == constants.ConsensusPoW {
 				port.logger.Info("Running PoW mining service...")
 				for {
 					taskErr := port.proofOfWorkMiningTaskHandler.Execute(ctx)
@@ -98,22 +98,19 @@ func (port *taskManagerImpl) Run() {
 					}
 					time.Sleep(1 * time.Second)
 				}
-			} else {
-				port.logger.Info("Skipped running the PoW mining service..")
-			}
-
-		} else if port.cfg.Blockchain.ConsensusProtocol == constants.ConsensusPoA {
-			port.logger.Info("Running PoA mining service...")
-			for {
-				taskErr := port.proofOfAuthorityMiningTaskHandler.Execute(ctx)
-				if taskErr != nil {
-					port.logger.Error("failed executing mining task, restarting task in 1 minute...", slog.Any("error", taskErr))
-					time.Sleep(1 * time.Minute)
+			} else if port.cfg.Blockchain.ConsensusProtocol == constants.ConsensusPoA {
+				port.logger.Info("Running PoA mining service...")
+				for {
+					taskErr := port.proofOfAuthorityMiningTaskHandler.Execute(ctx)
+					if taskErr != nil {
+						port.logger.Error("failed executing mining task, restarting task in 1 minute...", slog.Any("error", taskErr))
+						time.Sleep(1 * time.Minute)
+					}
+					time.Sleep(1 * time.Second)
 				}
-				time.Sleep(1 * time.Second)
+			} else {
+				port.logger.Info("Skipped running the mining service...")
 			}
-		} else {
-			port.logger.Info("Skipped running the mining service...")
 		}
 	}()
 

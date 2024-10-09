@@ -84,9 +84,20 @@ func (r *AccountRepo) HashState() (string, error) {
 		return "", err
 	}
 
+	// Variable used to only store the accounts which have a balance greater
+	// then the value of zero.
+	accountsWithBalance := make([]*domain.Account, 0)
+
+	// Iterate through all the accounts and only save the accounts with balance.
+	for _, account := range accounts {
+		if account.Balance > 0 {
+			accountsWithBalance = append(accountsWithBalance, account)
+		}
+	}
+
 	// Sort and hash our accounts.
-	sort.Sort(byAccount(accounts))
-	return signature.Hash(accounts), nil
+	sort.Sort(byAccount(accountsWithBalance))
+	return signature.Hash(accountsWithBalance), nil
 }
 
 // =============================================================================

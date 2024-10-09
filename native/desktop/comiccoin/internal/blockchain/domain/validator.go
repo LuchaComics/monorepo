@@ -23,6 +23,11 @@ func (validator *Validator) SignBlockHeader(privateKey *ecdsa.PrivateKey, blockH
 }
 
 func (validator *Validator) ValidateBlockHeader(blockHeaderSignature string) bool {
+	// Defensive Code.
+	if blockHeaderSignature == "" {
+		return false
+	}
+
 	v, r, s, err := signature.ToVRSFromHexSignature(blockHeaderSignature)
 	if err != nil {
 		return false
