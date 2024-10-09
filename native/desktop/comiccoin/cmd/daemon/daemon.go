@@ -72,12 +72,12 @@ func DaemonCmd() *cobra.Command {
 				},
 			}
 			logger := logger.NewLogger()
-			walletDB := disk.NewDiskStorage(cfg.DB.DataDir+"/wallet", logger)
-			blockDataDB := disk.NewDiskStorage(cfg.DB.DataDir+"/block_data", logger)
-			latestHashDB := disk.NewDiskStorage(cfg.DB.DataDir+"/latest_hash", logger)
-			ikDB := disk.NewDiskStorage(cfg.DB.DataDir+"/identity_key", logger)
-			pendingBlockDataDB := disk.NewDiskStorage(cfg.DB.DataDir+"/pending_block_data", logger)
-			mempoolTx := disk.NewDiskStorage(cfg.DB.DataDir+"/mempool_tx", logger)
+			walletDB := disk.NewDiskStorage(cfg.DB.DataDir, "wallet", logger)
+			blockDataDB := disk.NewDiskStorage(cfg.DB.DataDir, "block_data", logger)
+			latestHashDB := disk.NewDiskStorage(cfg.DB.DataDir, "latest_hash", logger)
+			ikDB := disk.NewDiskStorage(cfg.DB.DataDir, "identity_key", logger)
+			pendingBlockDataDB := disk.NewDiskStorage(cfg.DB.DataDir, "pending_block_data", logger)
+			mempoolTx := disk.NewDiskStorage(cfg.DB.DataDir, "mempool_tx", logger)
 			memdb := memory.NewInMemoryStorage(logger)
 			kmutex := kmutexutil.NewKMutexProvider()
 

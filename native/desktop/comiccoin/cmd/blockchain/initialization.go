@@ -60,10 +60,9 @@ func doRunInitBlockchain() {
 		},
 	}
 	logger := logger.NewLogger()
-	walletDB := disk.NewDiskStorage(cfg.DB.DataDir+"/wallet", logger)
-	blockDataDB := disk.NewDiskStorage(cfg.DB.DataDir+"/block_data", logger)
-	latestHashDB := disk.NewDiskStorage(cfg.DB.DataDir+"/latest_hash", logger)
-	// db := disk.NewDiskStorage(cfg.DB.DataDir, logger)
+	walletDB := disk.NewDiskStorage(cfg.DB.DataDir, "wallet", logger)
+	blockDataDB := disk.NewDiskStorage(cfg.DB.DataDir, "block_data", logger)
+	latestHashDB := disk.NewDiskStorage(cfg.DB.DataDir, "latest_hash", logger)
 	memdb := memory.NewInMemoryStorage(logger)
 
 	// ------------ Repo ------------
