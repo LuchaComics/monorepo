@@ -171,7 +171,7 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	//
 
 	genesisBlockData.Validator = poaValidator
-	genesisBlockHeaderSignature, err := poaValidator.SignBlockHeader(coinbasePrivateKey, genesisBlockData.Header)
+	genesisBlockHeaderSignature, err := poaValidator.Sign(coinbasePrivateKey, genesisBlockData.Header)
 	if err != nil {
 		return fmt.Errorf("Failed to sign block header: %v", err)
 	}

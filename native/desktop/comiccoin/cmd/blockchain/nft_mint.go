@@ -19,14 +19,7 @@ import (
 var (
 	flagProofOfAuthorityAccountAddress string
 	flagProofOfAuthorityWalletPassword string
-	flagMintToAddress                  string
-	flagMintImage                      string
-	flagMintExternalURL                string
-	flagMintDescription                string
-	flagMintName                       string
-	flagMintBackgroundColor            string
-	flagMintAnimationURL               string
-	flagMintYoutubeURL                 string
+	flagMintRecipientAddress           string
 	flagMintMetadataURI                string
 
 // TODO: IMPL.
@@ -52,23 +45,10 @@ func httpJsonApiMintNFTCmd() *cobra.Command {
 	cmd.MarkFlagRequired("poa-address")
 	cmd.Flags().StringVar(&flagProofOfAuthorityWalletPassword, "poa-password", "", "(Required for `PoA` consensus protocol) The password in the authority's wallet")
 	cmd.MarkFlagRequired("poa-password")
-	cmd.Flags().StringVar(&flagMintToAddress, "recipient-address", "", "The address of the account whom will receive this NFT")
+	cmd.Flags().StringVar(&flagMintRecipientAddress, "recipient-address", "", "The address of the account whom will receive this NFT")
 	cmd.MarkFlagRequired("recipient-address")
 
 	// Fields for inputting the NFT
-	cmd.Flags().StringVar(&flagMintImage, "image", "", "This is the URL to the image of the item. Can be just about any type of image (including SVGs, which will be cached into PNGs by OpenSea), IPFS or Arweave URLs or paths. We recommend using a minimum 3000 x 3000 image.")
-	cmd.MarkFlagRequired("image")
-	cmd.Flags().StringVar(&flagMintExternalURL, "external-url", "", "This is the URL that will appear below the asset's image on OpenSea and will allow users to leave OpenSea and view the item on your site.")
-	cmd.MarkFlagRequired("external-url")
-	cmd.Flags().StringVar(&flagMintDescription, "description", "", "A human-readable description of the item. Markdown is supported.")
-	cmd.MarkFlagRequired("description")
-	cmd.Flags().StringVar(&flagMintName, "name", "", "Name of the item.")
-	cmd.MarkFlagRequired("name")
-	cmd.Flags().StringVar(&flagMintBackgroundColor, "background-color", "", "Background color of the item on OpenSea. Must be a six-character hexadecimal without a pre-pended #.")
-	cmd.MarkFlagRequired("background-color")
-	cmd.Flags().StringVar(&flagMintAnimationURL, "animation-url", "", "Animation_url also supports HTML pages, allowing you to build rich experiences and interactive NFTs using JavaScript canvas, WebGL, and more. Scripts and relative paths within the HTML page are now supported. However, access to browser extensions is not supported.")
-	cmd.MarkFlagRequired("animation-url")
-	cmd.Flags().StringVar(&flagMintYoutubeURL, "youtube-url", "", "(Optional) A URL to a YouTube video (only used if animation_url is not provided).")
 	cmd.Flags().StringVar(&flagMintMetadataURI, "metadata-uri", "", "The location of this tokens metadata file.")
 	cmd.MarkFlagRequired("metadata-uri")
 
@@ -95,32 +75,11 @@ func doMintNFT() {
 	metadata := handler.MintNFTRequestIDO{
 		ProofOfAuthorityAccountAddress: flagProofOfAuthorityAccountAddress,
 		ProofOfAuthorityWalletPassword: flagProofOfAuthorityWalletPassword,
-		To:                             flagMintToAddress,
-		Image:                          flagMintImage,
-		ExternalURL:                    flagMintExternalURL,
-		Description:                    flagMintDescription,
-		Name:                           flagMintName,
-		Attributes: []*handler.NFTMetadataAttributeRequestIDO{
-			&handler.NFTMetadataAttributeRequestIDO{ //TODO: IMPL.
-				DisplayType: "string",
-				TraitType:   "color",
-				Value:       "red",
-			},
-		},
-		BackgroundColor: flagMintBackgroundColor,
-		AnimationURL:    flagMintAnimationURL,
-		YoutubeURL:      flagMintYoutubeURL,
-		MetadataURI:     flagMintMetadataURI,
+		To:                             flagMintRecipientAddress,
+		MetadataURI:                    flagMintMetadataURI,
 	}
 	logger.Debug("Creating new NFT in blockchain",
 		slog.Any("node-url", httpEndpoint),
-		slog.Any("image", flagMintImage),
-		slog.Any("external_url", flagMintExternalURL),
-		slog.Any("description", flagMintDescription),
-		slog.Any("name", flagMintName),
-		slog.Any("background_color", flagMintBackgroundColor),
-		slog.Any("animation_url", flagMintAnimationURL),
-		slog.Any("youtube_url", flagMintYoutubeURL),
 		slog.Any("metadata_uri", flagMintMetadataURI),
 	)
 

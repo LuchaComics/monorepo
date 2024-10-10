@@ -27,7 +27,7 @@ type BlockData struct {
 
 	// The signature of this block's "Header" field which was applied by the
 	// proof-of-authority validator.
-	HeaderSignature string `json:"header_signature"`
+	HeaderSignature []byte `json:"header_signature"`
 }
 
 // BlockDataRepository is an interface that defines the methods for interacting with block data.

@@ -128,7 +128,7 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 
 	poaValidator := prevBlockData.Validator
 	blockHeaderSignature := blockData.HeaderSignature
-	if poaValidator.ValidateBlockHeader(blockHeaderSignature) {
+	if poaValidator.Verify(blockHeaderSignature, blockData.Header) {
 		s.logger.Error("validator failed validating: authority signature is invalid")
 		return fmt.Errorf("validator failed validating: %v", "authority signature is invalid")
 	}

@@ -215,7 +215,7 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 
 	coinbasePrivateKey := coinbaseAccountKey.PrivateKey
 	blockData.Validator = poaValidator
-	blockDataHeaderSignature, err := poaValidator.SignBlockHeader(coinbasePrivateKey, blockData.Header)
+	blockDataHeaderSignature, err := poaValidator.Sign(coinbasePrivateKey, blockData.Header)
 	if err != nil {
 		return fmt.Errorf("Failed to sign block header: %v", err)
 	}
