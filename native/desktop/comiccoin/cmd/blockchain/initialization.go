@@ -63,6 +63,7 @@ func doRunInitBlockchain() {
 	walletDB := disk.NewDiskStorage(cfg.DB.DataDir, "wallet", logger)
 	blockDataDB := disk.NewDiskStorage(cfg.DB.DataDir, "block_data", logger)
 	latestHashDB := disk.NewDiskStorage(cfg.DB.DataDir, "latest_hash", logger)
+	latestTokenIDDB := disk.NewDiskStorage(cfg.DB.DataDir, "latest_token_id", logger)
 	memdb := memory.NewInMemoryStorage(logger)
 
 	// ------------ Repo ------------
@@ -82,6 +83,10 @@ func doRunInitBlockchain() {
 		cfg,
 		logger,
 		memdb) // Do not store on disk, only in-memory.
+	latestBlockDataTokenIDRepo := repo.NewBlockchainLastestTokenIDRepo(
+		cfg,
+		logger,
+		latestTokenIDDB)
 
 	// ------------ Use-case ------------
 
@@ -130,6 +135,11 @@ func doRunInitBlockchain() {
 		cfg,
 		logger,
 		accountRepo)
+
+	setBlockchainLastestTokenIDUseCase := usecase.NewSetBlockchainLastestTokenIDUseCase(
+		cfg,
+		logger,
+		latestBlockDataTokenIDRepo)
 
 	// ------------ Service ------------
 
@@ -183,6 +193,7 @@ func doRunInitBlockchain() {
 		coinbaseAccountKey,
 		getAccountsHashStateUseCase,
 		setBlockchainLastestHashUseCase,
+		setBlockchainLastestTokenIDUseCase,
 		createBlockDataUseCase,
 		proofOfWorkUseCase,
 		upsertAccountUseCase,

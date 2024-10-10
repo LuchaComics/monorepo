@@ -21,14 +21,15 @@ import (
 )
 
 type CreateGenesisBlockDataService struct {
-	config                          *config.Config
-	logger                          *slog.Logger
-	coinbaseAccountKey              *keystore.Key
-	getAccountsHashStateUseCase     *usecase.GetAccountsHashStateUseCase
-	setBlockchainLastestHashUseCase *usecase.SetBlockchainLastestHashUseCase
-	createBlockDataUseCase          *usecase.CreateBlockDataUseCase
-	proofOfWorkUseCase              *usecase.ProofOfWorkUseCase
-	upsertAccountUseCase            *usecase.UpsertAccountUseCase
+	config                             *config.Config
+	logger                             *slog.Logger
+	coinbaseAccountKey                 *keystore.Key
+	getAccountsHashStateUseCase        *usecase.GetAccountsHashStateUseCase
+	setBlockchainLastestHashUseCase    *usecase.SetBlockchainLastestHashUseCase
+	setBlockchainLastestTokenIDUseCase *usecase.SetBlockchainLastestTokenIDUseCase
+	createBlockDataUseCase             *usecase.CreateBlockDataUseCase
+	proofOfWorkUseCase                 *usecase.ProofOfWorkUseCase
+	upsertAccountUseCase               *usecase.UpsertAccountUseCase
 }
 
 func NewCreateGenesisBlockDataService(
@@ -37,11 +38,12 @@ func NewCreateGenesisBlockDataService(
 	coinbaseAccKey *keystore.Key,
 	uc1 *usecase.GetAccountsHashStateUseCase,
 	uc2 *usecase.SetBlockchainLastestHashUseCase,
-	uc3 *usecase.CreateBlockDataUseCase,
-	uc4 *usecase.ProofOfWorkUseCase,
-	uc5 *usecase.UpsertAccountUseCase,
+	uc3 *usecase.SetBlockchainLastestTokenIDUseCase,
+	uc4 *usecase.CreateBlockDataUseCase,
+	uc5 *usecase.ProofOfWorkUseCase,
+	uc6 *usecase.UpsertAccountUseCase,
 ) *CreateGenesisBlockDataService {
-	return &CreateGenesisBlockDataService{config, logger, coinbaseAccKey, uc1, uc2, uc3, uc4, uc5}
+	return &CreateGenesisBlockDataService{config, logger, coinbaseAccKey, uc1, uc2, uc3, uc4, uc5, uc6}
 }
 
 func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
@@ -75,6 +77,7 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 		Value:   initialSupply,
 		Tip:     0,
 		Data:    make([]byte, 0),
+		Type:    domain.TransactionTypeCoin,
 	}
 	signedTx, err := tx.Sign(s.coinbaseAccountKey.PrivateKey)
 	if err != nil {
@@ -126,6 +129,7 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 			StateRoot:     stateRoot,
 			TransRoot:     tree.RootHex(), //
 			Nonce:         0,              // Will be identified by the POW algorithm.
+			LatestTokenID: 0,              // ComicCoin: Token ID values start at zero.
 		},
 		MerkleTree: tree,
 	}
@@ -205,6 +209,11 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 
 	if err := s.setBlockchainLastestHashUseCase.Execute(genesisBlockData.Hash); err != nil {
 		return fmt.Errorf("Failed to save last hash of genesis block data: %v", err)
+	}
+
+	// The very first `token_id` will be set to zero.
+	if err := s.setBlockchainLastestTokenIDUseCase.Execute(0); err != nil {
+		return fmt.Errorf("Failed to save last token ID of genesis block data: %v", err)
 	}
 
 	s.logger.Debug("finished genesis creation service",

@@ -129,6 +129,7 @@ func (s *CreateTransactionService) Execute(
 		To:      to,
 		Value:   value,
 		Data:    data,
+		Type:    domain.TransactionTypeCoin,
 	}
 
 	stx, signingErr := tx.Sign(key.PrivateKey)

@@ -109,10 +109,26 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	// Setup our new block.
 	//
 
+	// Variable used to keep track the most recent `token_id` value.
+	latestTokenID := prevBlockData.Header.LatestTokenID
+
 	gasPrice := uint64(s.config.Blockchain.GasPrice)
 	unitsOfGas := uint64(s.config.Blockchain.UnitsOfGas)
 	trans := make([]domain.BlockTransaction, 0)
 	for _, pendingBlockTx := range pendingBlockTxs {
+		//
+		// Developers Note:
+		// The `PoA` miner supports minting non-fungible tokens, hence the
+		// following code...
+		//
+		if pendingBlockTx.Type == domain.TransactionTypeNFT {
+			// If our token ID is greater then the blockchain's state
+			// then let's update our blockchain state with our latest token id.
+			if pendingBlockTx.TokenID > latestTokenID {
+				latestTokenID = pendingBlockTx.TokenID
+			}
+		}
+
 		// Create our block.
 		blockTx := domain.BlockTransaction{
 			SignedTransaction: *pendingBlockTx.MempoolTransaction.ToSignedTransaction(),
@@ -176,6 +192,7 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 			StateRoot:     stateRoot,
 			TransRoot:     tree.RootHex(), //
 			Nonce:         0,              // Will be identified by the POW algorithm.
+			LatestTokenID: latestTokenID,  // Ensure our blockchain state has the latest token ID recorded.
 		},
 		MerkleTree: tree,
 	}

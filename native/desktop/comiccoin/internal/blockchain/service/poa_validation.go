@@ -22,6 +22,7 @@ type ProofOfAuthorityValidationService struct {
 	getAccountsHashStateUseCase        *usecase.GetAccountsHashStateUseCase
 	createBlockDataUseCase             *usecase.CreateBlockDataUseCase
 	setBlockchainLastestHashUseCase    *usecase.SetBlockchainLastestHashUseCase
+	setBlockchainLastestTokenIDUseCase *usecase.SetBlockchainLastestTokenIDUseCase
 	getAccountUseCase                  *usecase.GetAccountUseCase
 	upsertAccountUseCase               *usecase.UpsertAccountUseCase
 }
@@ -36,10 +37,11 @@ func NewProofOfAuthorityValidationService(
 	uc4 *usecase.GetAccountsHashStateUseCase,
 	uc5 *usecase.CreateBlockDataUseCase,
 	uc6 *usecase.SetBlockchainLastestHashUseCase,
-	uc7 *usecase.GetAccountUseCase,
-	uc8 *usecase.UpsertAccountUseCase,
+	uc7 *usecase.SetBlockchainLastestTokenIDUseCase,
+	uc8 *usecase.GetAccountUseCase,
+	uc9 *usecase.UpsertAccountUseCase,
 ) *ProofOfAuthorityValidationService {
-	return &ProofOfAuthorityValidationService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8}
+	return &ProofOfAuthorityValidationService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9}
 }
 
 func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
@@ -192,6 +194,12 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 	)
 
 	if err := s.setBlockchainLastestHashUseCase.Execute(blockData.Hash); err != nil {
+		s.logger.Error("validator failed saving latest hash",
+			slog.Any("error", err))
+		return err
+	}
+
+	if err := s.setBlockchainLastestTokenIDUseCase.Execute(blockData.Header.LatestTokenID); err != nil {
 		s.logger.Error("validator failed saving latest hash",
 			slog.Any("error", err))
 		return err

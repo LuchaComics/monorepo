@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
@@ -64,7 +65,30 @@ func (uc *ReceiveMempoolTransactionDTOUseCase) Execute(ctx context.Context) (*do
 		e["to"] = "missing value"
 	}
 	if ido.Value <= 0 {
-		e["value"] = "missing value"
+		// DEVELOPERS NOTE:
+		// Only `coin` type transactions need their value verified while the
+		// `nft` type transactions can have zero value.
+		if ido.Type == domain.TransactionTypeCoin {
+			e["value"] = "missing value"
+		}
+	}
+	if ido.Type == "" {
+		e["type"] = "missing value"
+	} else {
+		var validType bool = false
+		if ido.Type == domain.TransactionTypeCoin {
+			validType = true
+		}
+		if ido.Type == domain.TransactionTypeNFT {
+			validType = true
+
+			if ido.TokenMetadataURI == "" {
+				e["token_metadata_uri"] = "missing value"
+			}
+		}
+		if validType == false {
+			e["type"] = fmt.Sprintf("incorrect value: %v", ido.Type)
+		}
 	}
 	// Tip - skip validating.
 	// Data - skip validating.

@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"fmt"
 	"log/slog"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
@@ -35,7 +36,30 @@ func (uc *CreatePendingBlockTransactionUseCase) Execute(stx *domain.PendingBlock
 		e["to"] = "missing value"
 	}
 	if stx.Value <= 0 {
-		e["value"] = "missing value"
+		// DEVELOPERS NOTE:
+		// Only `coin` type transactions need their value verified while the
+		// `nft` type transactions can have zero value.
+		if stx.Type == domain.TransactionTypeCoin {
+			e["value"] = "missing value"
+		}
+	}
+	if stx.Type == "" {
+		e["type"] = "missing value"
+	} else {
+		var validType bool = false
+		if stx.Type == domain.TransactionTypeCoin {
+			validType = true
+		}
+		if stx.Type == domain.TransactionTypeNFT {
+			validType = true
+
+			if stx.TokenMetadataURI == "" {
+				e["token_metadata_uri"] = "missing value"
+			}
+		}
+		if validType == false {
+			e["type"] = fmt.Sprintf("incorrect value: %v", stx.Type)
+		}
 	}
 	// Tip - skip validating.
 	// Data - skip validating.

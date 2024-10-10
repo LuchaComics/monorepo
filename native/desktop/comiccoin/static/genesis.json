@@ -3,35 +3,37 @@
     "header": {
         "number": 0,
         "prev_block_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-        "timestamp": 1728575135252,
-        "beneficiary": "0x89e7defdc94cae70dda89cd7ab8e5244ceb96ab1",
+        "timestamp": 1728586086394,
+        "beneficiary": "0x47402e4cbf1eb7a7e6dbf0e211217ced29325f88",
         "difficulty": 2,
         "mining_reward": 0,
-        "state_root": "0xd5fde6b3fc02576f0404361e60595d1a7c6712d3888c836fa4f0e552d4cca23e",
-        "trans_root": "0xc0f556a3cb97335f0b5b2947eed219634b20cac4eb8b27e219c362ede1f94211",
+        "state_root": "0x0ad42834a49f34018768770fef57cc7f7e868054b127df1a10bc525ecde769eb",
+        "trans_root": "0x80a016a0668cbda3df5afb62f86beca509c75c09736908362bf6227fb3cdb978",
         "nonce": 0
     },
     "trans": [
         {
             "chain_id": 1,
             "nonce": 0,
-            "from": "0x89e7defdc94cae70dda89cd7ab8e5244ceb96ab1",
-            "to": "0x89e7defdc94cae70dda89cd7ab8e5244ceb96ab1",
+            "from": "0x47402e4cbf1eb7a7e6dbf0e211217ced29325f88",
+            "to": "0x47402e4cbf1eb7a7e6dbf0e211217ced29325f88",
             "value": 5000000000000000000,
             "tip": 0,
             "data": "",
-            "v": 105582213453910447266361171362569357090926130243755420346187771905722762729677,
-            "r": 43802653475999852733908898074544785109258193606427843887000748655553982254582,
+            "type": "coin",
+            "token_id": 0,
+            "token_metadata_uri": "",
+            "v": 20714460646169314090339960981472423668277008463898292168774841532200775019978,
+            "r": 32828960497429791429921612518831554594990859719089480379426298079686390200810,
             "s": 29,
-            "timestamp": 1728575135252,
+            "timestamp": 1728586086394,
             "gas_price": 0,
             "gas_units": 0
         }
     ],
-    "nft_trans": null,
     "validator": {
         "ID": "ComicCoin Blockchain Authority",
-        "PublicKeyBytes": "BAZ4RnNL6nV4AKz9FW9/PjD1H0gUmUlmc5Z3ccxvUCg3y4i0cc2Z8n0q4IMOoSmOteZyRRO+drxHTDglNNxHy08="
+        "PublicKeyBytes": "BDUvOJDyNxd4v7rhF2Wy7YFlF7OzX4LBCsz6frCYtUUsUJRZOLhCZLSvzAVIZT9Bj7WnpoVmpMEEGKy09bsF1wg="
     },
-    "header_signature": "GXx9Qn+u9eGFIt+0E+7lUWZoxT0PTnwrOR4gF5MCMgFRPkRhctJWrsTZRu1szjwX0zpRslkTSM9H564qLmoQvgA="
+    "header_signature": "JmcYkeCKfGQi6P48AygYegVxF3RBmp3/0hdhOXorBXE6/GAMOGJ5q0L/WsUrzt0pTRe46TeKrMtGCocwdrK1TQA="
 }

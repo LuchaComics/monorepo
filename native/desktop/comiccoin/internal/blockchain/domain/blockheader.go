@@ -24,6 +24,8 @@ type BlockHeader struct {
 
 	TransRoot string `json:"trans_root"` // Both: Represents the merkle tree root hash for the transactions in this block.
 	Nonce     uint64 `json:"nonce"`      // Both: Value identified to solve the hash solution.
+
+	LatestTokenID uint64 `json:"latest_token_id"` // ComicCoin: The latest token ID we have on the blockchain.
 }
 
 // Serialize serializes a block header into a byte array.

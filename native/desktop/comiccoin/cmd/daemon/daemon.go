@@ -96,6 +96,7 @@ func DaemonCmd() *cobra.Command {
 			walletDB := disk.NewDiskStorage(cfg.DB.DataDir, "wallet", logger)
 			blockDataDB := disk.NewDiskStorage(cfg.DB.DataDir, "block_data", logger)
 			latestHashDB := disk.NewDiskStorage(cfg.DB.DataDir, "latest_hash", logger)
+			latestTokenIDDB := disk.NewDiskStorage(cfg.DB.DataDir, "latest_token_id", logger)
 			ikDB := disk.NewDiskStorage(cfg.DB.DataDir, "identity_key", logger)
 			pendingBlockDataDB := disk.NewDiskStorage(cfg.DB.DataDir, "pending_block_data", logger)
 			mempoolTx := disk.NewDiskStorage(cfg.DB.DataDir, "mempool_tx", logger)
@@ -177,6 +178,10 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				latestHashDB)
+			latestBlockDataTokenIDRepo := repo.NewBlockchainLastestTokenIDRepo(
+				cfg,
+				logger,
+				latestTokenIDDB)
 			blockDataRepo := repo.NewBlockDataRepo(
 				cfg,
 				logger,
@@ -284,6 +289,16 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				latestBlockDataHashRepo)
+
+			// Latest BlockData Token ID
+			getBlockchainLastestTokenIDUseCase := usecase.NewGetBlockchainLastestTokenIDUseCase(
+				cfg,
+				logger,
+				latestBlockDataTokenIDRepo)
+			setBlockchainLastestTokenIDUseCase := usecase.NewSetBlockchainLastestTokenIDUseCase(
+				cfg,
+				logger,
+				latestBlockDataTokenIDRepo)
 
 			// Block Data
 			getBlockDataUseCase := usecase.NewGetBlockDataUseCase(
@@ -399,10 +414,12 @@ func DaemonCmd() *cobra.Command {
 			mintNFTService := service.NewMintNFTService(
 				cfg,
 				logger,
+				kmutex,
 				loadGenesisBlockDataAccountUseCase,
-				getAccountUseCase,
 				getWalletUseCase,
 				walletDecryptKeyUseCase,
+				getBlockchainLastestTokenIDUseCase,
+				setBlockchainLastestTokenIDUseCase,
 				broadcastMempoolTxDTOUseCase)
 
 			// Mempool
@@ -472,6 +489,7 @@ func DaemonCmd() *cobra.Command {
 				getAccountsHashStateUseCase,
 				createBlockDataUseCase,
 				setBlockchainLastestHashUseCase,
+				setBlockchainLastestTokenIDUseCase,
 				getAccountUseCase,
 				upsertAccountUseCase,
 			)

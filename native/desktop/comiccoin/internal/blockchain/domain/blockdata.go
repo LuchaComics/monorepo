@@ -18,9 +18,6 @@ type BlockData struct {
 	// Trans is the list of (coin) transactions in the block.
 	Trans []BlockTransaction `json:"trans"`
 
-	// Trans is the list of (nft) transactions in the block.
-	NFTTrans []NFTTransaction `json:"nft_trans"` // List of NFT transactions.
-
 	// The proof-of-authority validator whom executed the validation of
 	// this block data in our blockchain.
 	Validator *Validator `json:"validator"`

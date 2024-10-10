@@ -12,28 +12,33 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/kmutexutil"
 )
 
 type MintNFTService struct {
 	config                                *config.Config
 	logger                                *slog.Logger
+	kmutex                                kmutexutil.KMutexProvider
 	loadGenesisBlockDataUseCase           *usecase.LoadGenesisBlockDataUseCase
-	getAccountUseCase                     *usecase.GetAccountUseCase
 	getWalletUseCase                      *usecase.GetWalletUseCase
 	walletDecryptKeyUseCase               *usecase.WalletDecryptKeyUseCase
+	getBlockchainLastestTokenIDUseCase    *usecase.GetBlockchainLastestTokenIDUseCase
+	setBlockchainLastestTokenIDUseCase    *usecase.SetBlockchainLastestTokenIDUseCase
 	broadcastMempoolTransactionDTOUseCase *usecase.BroadcastMempoolTransactionDTOUseCase
 }
 
 func NewMintNFTService(
 	cfg *config.Config,
 	logger *slog.Logger,
+	kmutex kmutexutil.KMutexProvider,
 	uc1 *usecase.LoadGenesisBlockDataUseCase,
-	uc2 *usecase.GetAccountUseCase,
-	uc3 *usecase.GetWalletUseCase,
-	uc4 *usecase.WalletDecryptKeyUseCase,
-	uc5 *usecase.BroadcastMempoolTransactionDTOUseCase,
+	uc2 *usecase.GetWalletUseCase,
+	uc3 *usecase.WalletDecryptKeyUseCase,
+	uc4 *usecase.GetBlockchainLastestTokenIDUseCase,
+	uc5 *usecase.SetBlockchainLastestTokenIDUseCase,
+	uc6 *usecase.BroadcastMempoolTransactionDTOUseCase,
 ) *MintNFTService {
-	return &MintNFTService{cfg, logger, uc1, uc2, uc3, uc4, uc5}
+	return &MintNFTService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6}
 }
 
 func (s *MintNFTService) Execute(
@@ -43,6 +48,10 @@ func (s *MintNFTService) Execute(
 	toAddr *common.Address,
 	metadataURI string,
 ) error {
+	// Lock the mining service until it has completed executing (or errored).
+	s.kmutex.Acquire("nft-minting")
+	defer s.kmutex.Release("nft-minting")
+
 	//
 	// STEP 1: Validation.
 	//
@@ -126,16 +135,33 @@ func (s *MintNFTService) Execute(
 
 	//
 	// STEP 4
+	// Get our `token_id`.
+	//
+
+	latestTokenID, err := s.getBlockchainLastestTokenIDUseCase.Execute()
+	if err != nil {
+		s.logger.Error("failed getting latest token ID",
+			slog.Any("from_account_address", poaAddr),
+			slog.Any("error", err))
+		return err
+	}
+
+	//
+	// STEP 5
 	// Create our pending transaction and sign it with the accounts private key.
 	//
 
-	tx := &domain.NFTTransaction{
-		ChainID:   s.config.Blockchain.ChainID,
-		TokenID:   0, //TODO
-		From:      poaAddr,
-		To:        toAddr,
-		Metadata:  metadataURI,
-		TimeStamp: uint64(time.Now().UTC().UnixMilli()),
+	tx := &domain.Transaction{
+		ChainID:          s.config.Blockchain.ChainID,
+		Nonce:            uint64(time.Now().Unix()),
+		From:             poaAddr,
+		To:               toAddr,
+		Value:            0, // NFT have no value!
+		Tip:              0,
+		Data:             make([]byte, 0),
+		Type:             domain.TransactionTypeNFT,
+		TokenID:          latestTokenID,
+		TokenMetadataURI: metadataURI,
 	}
 
 	stx, signingErr := tx.Sign(key.PrivateKey)
@@ -148,9 +174,40 @@ func (s *MintNFTService) Execute(
 	s.logger.Debug("Pending nft mint transaction signed successfully",
 		slog.Uint64("tx_token_id", stx.TokenID))
 
-	// DEVELOPERS NOTE:
-	// SKIP THE SUBMISSION TO THE MEMPOOL, SUBMIT DIRECTLY TO THE MINER SINCE
-	// THIS IS CREATED BY THE PROOF OF AUTHORITY.
+	//
+	// STEP 6
+	// Send our pending signed transaction to our distributed mempool nodes
+	// in the blochcian network.
+	//
+
+	mempoolTx := &domain.MempoolTransaction{
+		Transaction: stx.Transaction,
+		V:           stx.V,
+		R:           stx.R,
+		S:           stx.S,
+	}
+
+	if err := s.broadcastMempoolTransactionDTOUseCase.Execute(ctx, mempoolTx); err != nil {
+		s.logger.Error("Failed to broadcast to the blockchain network",
+			slog.Any("error", err))
+		return err
+	}
+
+	s.logger.Info("Pending signed nft transaction submitted to blockchain",
+		slog.Uint64("tx_token_id", stx.TokenID))
+
+	//
+	// STEP 7
+	// Set the next available token ID value. The authority node will keep a
+	// record of the next available token ID value we have.
+	//
+
+	if err := s.setBlockchainLastestTokenIDUseCase.Execute(latestTokenID + 1); err != nil {
+		s.logger.Error("failed getting latest token ID",
+			slog.Any("from_account_address", poaAddr),
+			slog.Any("error", err))
+		return err
+	}
 
 	return nil
 }
