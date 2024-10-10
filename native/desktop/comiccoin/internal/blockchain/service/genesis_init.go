@@ -2,13 +2,16 @@ package service
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
 	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
+	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
@@ -149,10 +152,17 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	//
 
 	coinbasePrivateKey := s.coinbaseAccountKey.PrivateKey
+	// Extract the bytes for the original public key.
 	coinbasePublicKey := coinbasePrivateKey.Public()
+	publicKeyECDSA, ok := coinbasePublicKey.(*ecdsa.PublicKey)
+	if !ok {
+		return errors.New("error casting public key to ECDSA")
+	}
+	publicKeyBytes := crypto.FromECDSAPub(publicKeyECDSA)
+
 	poaValidator := &domain.Validator{
-		ID:        "ComicCoin Central Validation Authority",
-		PublicKey: &coinbasePublicKey,
+		ID:             "ComicCoin Blockchain Authority",
+		PublicKeyBytes: publicKeyBytes,
 	}
 
 	//

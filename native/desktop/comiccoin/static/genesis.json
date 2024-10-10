@@ -3,46 +3,35 @@
     "header": {
         "number": 0,
         "prev_block_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-        "timestamp": 1728536421014,
-        "beneficiary": "0xde1fc043aeff5505c0e0fd519eb1e6e2cef05b19",
+        "timestamp": 1728573122512,
+        "beneficiary": "0x8e025126243bfed6648ec5b8d5db26bf27c2b39b",
         "difficulty": 2,
         "mining_reward": 0,
-        "state_root": "0xeeb06fe452ec38dd6adaae78c56611e5994e86e99036e7c3e803249272c5d96b",
-        "trans_root": "0x6f421dee3bba1b9b589d598111651c93dec26f1ef4dd2188ce4762ed61deaabd",
+        "state_root": "0x1f3386dadde77650b7e20e0323c5a2414530a0d533ef0f999da66c714eb1ca1c",
+        "trans_root": "0x6090f89b029555714f7f0e9d4dfcfda0629728ba1f3da2a6a6e783b194b3e06f",
         "nonce": 0
     },
     "trans": [
         {
             "chain_id": 1,
             "nonce": 0,
-            "from": "0xde1fc043aeff5505c0e0fd519eb1e6e2cef05b19",
-            "to": "0xde1fc043aeff5505c0e0fd519eb1e6e2cef05b19",
+            "from": "0x8e025126243bfed6648ec5b8d5db26bf27c2b39b",
+            "to": "0x8e025126243bfed6648ec5b8d5db26bf27c2b39b",
             "value": 5000000000000000000,
             "tip": 0,
             "data": "",
-            "v": 82466663119683505995879573115470871202485523154289557659635108777749388025781,
-            "r": 16970940082242982113859546160768875056122402133761580904842973656117936101770,
-            "s": 29,
-            "timestamp": 1728536421014,
+            "v": 52665828398504611031798985696967530693966122883876258039556046188636471600425,
+            "r": 28350416475989754529622469839716901260548891290678131450536641047497435840821,
+            "s": 30,
+            "timestamp": 1728573122512,
             "gas_price": 0,
             "gas_units": 0
         }
     ],
     "nft_trans": null,
     "validator": {
-        "ID": "ComicCoin Central Validation Authority",
-        "PublicKey": {
-            "Curve": {
-                "P": 115792089237316195423570985008687907853269984665640564039457584007908834671663,
-                "N": 115792089237316195423570985008687907852837564279074904382605163141518161494337,
-                "B": 7,
-                "Gx": 55066263022277343669578718895168534326250603453777594175500187360389116729240,
-                "Gy": 32670510020758816978083085130507043184471273380659243275938904335757337482424,
-                "BitSize": 256
-            },
-            "X": 59049000011280429217696871987524089471435912988841569495567040510706062510,
-            "Y": 39718012090536126831013047616352731038769752342668497876625851455551849477179
-        }
+        "ID": "ComicCoin Blockchain Authority",
+        "PublicKeyBytes": "BOqN94MyJ87uHR5o3Vzd2CKZHVHqLaxovmmSdwgwBhM8n17Fwl2jYrKBKAJlC9O4o7m9s9jwSXUIO7HLmj8Dh4c="
     },
-    "header_signature": "0x5b2cf015f5466f764a2573e1ab3ba5c166adc9bcbeacc2be72cbcdd95d83f6214d5dc170fd2343f95ea70b67ac581945d33b849fee99f3e24c1e2e23bb21ae771d"
+    "header_signature": "0x92d9d0a3ad6d93c53ffb1bffe9d94f3a894213f5c92b84398d6f078d2289cf2b00dd08c851c1317204585ce38115ff6e148df1631d3045435994f23f88a5f2581d"
 }

@@ -6,11 +6,12 @@ import (
 	"log"
 	"log/slog"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/usecase"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 type MintNFTService struct {
@@ -138,10 +139,20 @@ func (s *MintNFTService) Execute(
 	if genesisBlockData == nil {
 		return fmt.Errorf("failed getting genesis block data: %s", "d.n.e.")
 	}
-	validator := genesisBlockData.Validator // TODO: Figure out from here...
-	log.Println("--->", validator.PublicKey)
+	validator := genesisBlockData.Validator
+
+	publicKeyECDSA, err := validator.GetPublicKeyECDSA()
+	if err != nil {
+		s.logger.Error("failed unmarshalling validator public key",
+			slog.Any("from_account_address", poaAddr),
+			slog.Any("error", err))
+		return fmt.Errorf("failed unmarshalling validator public key: %s", err)
+	}
+	log.Println("--->", validator.PublicKeyBytes)
 	log.Println("--->", key.PrivateKey.Public())
 	log.Println("--->", key.PrivateKey.PublicKey)
+	log.Println("--->", publicKeyECDSA)
+
 	// if account.Balance <= value {
 	// 	s.logger.Warn("insufficient balance in account",
 	// 		slog.Any("account_addr", poaAddr),
