@@ -41,8 +41,8 @@ type httpServerImpl struct {
 	// createTransactionHTTPHandler is the handler for creating transactions.
 	createTransactionHTTPHandler *handler.CreateTransactionHTTPHandler
 
-	// mintNFTHTTPHandler is the handler for minting new NFT.
-	mintNFTHTTPHandler *handler.MintNFTHTTPHandler
+	// mintTokenHTTPHandler is the handler for minting new Token.
+	mintTokenHTTPHandler *handler.MintTokenHTTPHandler
 }
 
 // NewHTTPServer creates a new HTTP server instance.
@@ -65,8 +65,8 @@ func NewHTTPServer(
 	// createTransactionHTTPHandler is the handler for creating transactions.
 	createTransactionHTTPHandler *handler.CreateTransactionHTTPHandler,
 
-	// mintNFTHTTPHandler is the handler for minting new NFT.
-	mintNFTHTTPHandler *handler.MintNFTHTTPHandler,
+	// mintTokenHTTPHandler is the handler for minting new Token.
+	mintTokenHTTPHandler *handler.MintTokenHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.HTTPAddress == "" {
@@ -93,7 +93,7 @@ func NewHTTPServer(
 		createAccountHTTPHandler:     createAccountHTTPHandler,
 		getAccountHTTPHandler:        getAccountHTTPHandler,
 		createTransactionHTTPHandler: createTransactionHTTPHandler,
-		mintNFTHTTPHandler:           mintNFTHTTPHandler,
+		mintTokenHTTPHandler:           mintTokenHTTPHandler,
 	}
 
 	// Attach the HTTP server controller to the ServeMux.
@@ -161,10 +161,10 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		// Handle the request to create a transaction.
 		port.createTransactionHTTPHandler.Execute(w, r)
 
-	// --- NFTS --- //
-	case n == 3 && p[0] == "v1" && p[1] == "api" && p[2] == "nfts" && r.Method == http.MethodPost:
+	// --- TokenS --- //
+	case n == 3 && p[0] == "v1" && p[1] == "api" && p[2] == "tokens" && r.Method == http.MethodPost:
 		// Handle the request to create a transaction.
-		port.mintNFTHTTPHandler.Execute(w, r)
+		port.mintTokenHTTPHandler.Execute(w, r)
 
 		// --- CATCH ALL: D.N.E. ---
 	default:

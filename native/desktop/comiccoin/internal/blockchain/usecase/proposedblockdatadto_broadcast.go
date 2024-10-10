@@ -39,9 +39,11 @@ func (uc *BroadcastProposedBlockDataDTOUseCase) Execute(ctx context.Context, stx
 	//
 
 	dto := &domain.ProposedBlockDataDTO{
-		Hash:   stx.Hash,
-		Header: stx.Header,
-		Trans:  stx.Trans,
+		Hash:            stx.Hash,
+		Header:          stx.Header,
+		HeaderSignature: stx.HeaderSignature,
+		Trans:           stx.Trans,
+		Validator:       stx.Validator,
 	}
 
 	//

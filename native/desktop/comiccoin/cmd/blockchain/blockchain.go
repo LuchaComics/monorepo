@@ -40,7 +40,7 @@ func BlockchainCmd() *cobra.Command {
 	cmd.AddCommand(txCmd())
 	cmd.AddCommand(InitCmd())
 	cmd.AddCommand(ConsensusMechanismCmd())
-	cmd.AddCommand(NFTCmd())
+	cmd.AddCommand(TokenCmd())
 
 	return cmd
 }

@@ -67,7 +67,7 @@ func (uc *ReceiveMempoolTransactionDTOUseCase) Execute(ctx context.Context) (*do
 	if ido.Value <= 0 {
 		// DEVELOPERS NOTE:
 		// Only `coin` type transactions need their value verified while the
-		// `nft` type transactions can have zero value.
+		// `token` type transactions can have zero value.
 		if ido.Type == domain.TransactionTypeCoin {
 			e["value"] = "missing value"
 		}
@@ -79,7 +79,7 @@ func (uc *ReceiveMempoolTransactionDTOUseCase) Execute(ctx context.Context) (*do
 		if ido.Type == domain.TransactionTypeCoin {
 			validType = true
 		}
-		if ido.Type == domain.TransactionTypeNFT {
+		if ido.Type == domain.TransactionTypeToken {
 			validType = true
 
 			if ido.TokenMetadataURI == "" {

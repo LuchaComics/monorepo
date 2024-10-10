@@ -15,11 +15,19 @@ type BlockDataDTO struct {
 	// Hash is the unique hash of the block.
 	Hash string `json:"hash"`
 
+	// The signature of this block's "Header" field which was applied by the
+	// proof-of-authority validator.
+	HeaderSignature []byte `json:"header_signature"`
+
 	// Header is the block header, which contains metadata about the block.
 	Header *BlockHeader `json:"block_header"`
 
 	// Trans is the list of transactions in the block.
 	Trans []BlockTransaction `json:"trans"`
+
+	// The proof-of-authority validator whom executed the validation of
+	// this block data in our blockchain.
+	Validator *Validator `json:"validator"`
 }
 
 // BlockDataDTORepository is an interface that defines the methods for interacting with block data DTOs.

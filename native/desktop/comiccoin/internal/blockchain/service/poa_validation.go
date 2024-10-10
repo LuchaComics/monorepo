@@ -67,15 +67,15 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 		time.Sleep(1 * time.Second)
 		return nil
 	}
-
-	s.logger.Info("received dto from network",
-		slog.Any("hash", proposedBlockData.Hash),
-	)
-
 	// Lock the validator's database so we coordinate when we receive, validate
 	// and/or save to the database.
 	s.kmutex.Acquire("validator-service")
 	defer s.kmutex.Release("validator-service")
+
+	s.logger.Info("received dto from network",
+		slog.Any("hash", proposedBlockData.Hash),
+		slog.Any("header_signature", proposedBlockData.HeaderSignature),
+	)
 
 	//
 	// STEP 2:
@@ -112,9 +112,11 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 
 	// Load up into our datastructure.
 	blockData := &domain.BlockData{
-		Hash:   proposedBlockData.Hash,
-		Header: proposedBlockData.Header,
-		Trans:  proposedBlockData.Trans,
+		Hash:            proposedBlockData.Hash,
+		Header:          proposedBlockData.Header,
+		HeaderSignature: proposedBlockData.HeaderSignature,
+		Trans:           proposedBlockData.Trans,
+		Validator:       proposedBlockData.Validator,
 	}
 	block, err := domain.ToBlock(blockData)
 	if err != nil {
@@ -125,12 +127,11 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 
 	//
 	// STEP 3:
-	// Begin by validating the proof of authority first.
+	// Begin by validating the proof of authority before anything else.
 	//
 
 	poaValidator := prevBlockData.Validator
-	blockHeaderSignature := blockData.HeaderSignature
-	if poaValidator.Verify(blockHeaderSignature, blockData.Header) {
+	if poaValidator.Verify(blockData.HeaderSignature, blockData.Header) == false {
 		s.logger.Error("validator failed validating: authority signature is invalid")
 		return fmt.Errorf("validator failed validating: %v", "authority signature is invalid")
 	}
@@ -181,7 +182,7 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 	// Save to the blockchain database.
 	//
 
-	if err := s.createBlockDataUseCase.Execute(blockData.Hash, blockData.Header, blockData.Trans); err != nil {
+	if err := s.createBlockDataUseCase.Execute(blockData.Hash, blockData.Header, blockData.HeaderSignature, blockData.Trans, blockData.Validator); err != nil {
 		s.logger.Error("validator failed saving block data",
 			slog.Any("error", err))
 		return err

@@ -18,10 +18,11 @@ func NewCreateBlockDataUseCase(config *config.Config, logger *slog.Logger, repo 
 	return &CreateBlockDataUseCase{config, logger, repo}
 }
 
-func (uc *CreateBlockDataUseCase) Execute(hash string, header *domain.BlockHeader, trans []domain.BlockTransaction) error {
+func (uc *CreateBlockDataUseCase) Execute(hash string, header *domain.BlockHeader, headerSignature []byte, trans []domain.BlockTransaction, validator *domain.Validator) error {
 	//
 	// STEP 1: Validation.
-	//
+	// Note: `headerSignature` is optional since PoW algorithm does not require it
+	// the PoA algorithm requires it.
 
 	e := make(map[string]string)
 	if hash == "" {
@@ -47,15 +48,17 @@ func (uc *CreateBlockDataUseCase) Execute(hash string, header *domain.BlockHeade
 	// STEP 2: Create our strucutre.
 	//
 
-	account := &domain.BlockData{
-		Hash:   hash,
-		Header: header,
-		Trans:  trans,
+	blockData := &domain.BlockData{
+		Hash:            hash,
+		Header:          header,
+		HeaderSignature: headerSignature,
+		Trans:           trans,
+		Validator:       validator,
 	}
 
 	//
 	// STEP 3: Insert into database.
 	//
 
-	return uc.repo.Upsert(account)
+	return uc.repo.Upsert(blockData)
 }

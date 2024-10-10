@@ -38,7 +38,7 @@ func (uc *CreatePendingBlockTransactionUseCase) Execute(stx *domain.PendingBlock
 	if stx.Value <= 0 {
 		// DEVELOPERS NOTE:
 		// Only `coin` type transactions need their value verified while the
-		// `nft` type transactions can have zero value.
+		// `token` type transactions can have zero value.
 		if stx.Type == domain.TransactionTypeCoin {
 			e["value"] = "missing value"
 		}
@@ -50,7 +50,7 @@ func (uc *CreatePendingBlockTransactionUseCase) Execute(stx *domain.PendingBlock
 		if stx.Type == domain.TransactionTypeCoin {
 			validType = true
 		}
-		if stx.Type == domain.TransactionTypeNFT {
+		if stx.Type == domain.TransactionTypeToken {
 			validType = true
 
 			if stx.TokenMetadataURI == "" {

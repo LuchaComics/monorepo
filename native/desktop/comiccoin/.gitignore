@@ -212,9 +212,9 @@ static/Pedigree.pdf
 
 # Executable
 bin/
-nftstore-backend
+tokenstore-backend
 cps-backend
-cps-nftstore-backend
+cps-tokenstore-backend
 comiccoin
 
 # Blacklist - Don't share items we banned from the server.

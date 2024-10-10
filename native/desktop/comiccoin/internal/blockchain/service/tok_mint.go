@@ -15,7 +15,7 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/kmutexutil"
 )
 
-type MintNFTService struct {
+type MintTokenService struct {
 	config                                *config.Config
 	logger                                *slog.Logger
 	kmutex                                kmutexutil.KMutexProvider
@@ -27,7 +27,7 @@ type MintNFTService struct {
 	broadcastMempoolTransactionDTOUseCase *usecase.BroadcastMempoolTransactionDTOUseCase
 }
 
-func NewMintNFTService(
+func NewMintTokenService(
 	cfg *config.Config,
 	logger *slog.Logger,
 	kmutex kmutexutil.KMutexProvider,
@@ -37,11 +37,11 @@ func NewMintNFTService(
 	uc4 *usecase.GetBlockchainLastestTokenIDUseCase,
 	uc5 *usecase.SetBlockchainLastestTokenIDUseCase,
 	uc6 *usecase.BroadcastMempoolTransactionDTOUseCase,
-) *MintNFTService {
-	return &MintNFTService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6}
+) *MintTokenService {
+	return &MintTokenService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6}
 }
 
-func (s *MintNFTService) Execute(
+func (s *MintTokenService) Execute(
 	ctx context.Context,
 	poaAddr *common.Address,
 	poaPassword string,
@@ -49,8 +49,8 @@ func (s *MintNFTService) Execute(
 	metadataURI string,
 ) error {
 	// Lock the mining service until it has completed executing (or errored).
-	s.kmutex.Acquire("nft-minting")
-	defer s.kmutex.Release("nft-minting")
+	s.kmutex.Acquire("token-minting")
+	defer s.kmutex.Release("token-minting")
 
 	//
 	// STEP 1: Validation.
@@ -129,13 +129,19 @@ func (s *MintNFTService) Execute(
 		return fmt.Errorf("failed unmarshalling validator public key: %s", err)
 	}
 
+	// Developers Note:
+	// This is a super important step to enforce the authority being used by
+	// the correct party. This code verifies that the the public key of the
+	// authority matches the public key set on the genesis block because the
+	// user has opend up the actual authorities wallet.
 	if key.PrivateKey.PublicKey.Equal(publicKeyECDSA) == false {
 		return fmt.Errorf("failed comparing public keys: %s", "they do not match")
 	}
 
 	//
 	// STEP 4
-	// Get our `token_id`.
+	// Authority generates the latest token ID value by taking the previous
+	// token ID value and incrementing it by one.
 	//
 
 	latestTokenID, err := s.getBlockchainLastestTokenIDUseCase.Execute()
@@ -145,6 +151,12 @@ func (s *MintNFTService) Execute(
 			slog.Any("error", err))
 		return err
 	}
+
+	newTokenID := latestTokenID + 1
+
+	//TODO: Add security feature of looking up the latest blockchain state and
+	// compare the latest token id set there and the one here and error if
+	// inconsistencies.
 
 	//
 	// STEP 5
@@ -156,22 +168,22 @@ func (s *MintNFTService) Execute(
 		Nonce:            uint64(time.Now().Unix()),
 		From:             poaAddr,
 		To:               toAddr,
-		Value:            0, // NFT have no value!
+		Value:            0, // Token have no value!
 		Tip:              0,
 		Data:             make([]byte, 0),
-		Type:             domain.TransactionTypeNFT,
-		TokenID:          latestTokenID,
+		Type:             domain.TransactionTypeToken,
+		TokenID:          newTokenID,
 		TokenMetadataURI: metadataURI,
 	}
 
 	stx, signingErr := tx.Sign(key.PrivateKey)
 	if signingErr != nil {
-		s.logger.Debug("Failed to sign the nft mint transaction",
+		s.logger.Debug("Failed to sign the token mint transaction",
 			slog.Any("error", signingErr))
 		return signingErr
 	}
 
-	s.logger.Debug("Pending nft mint transaction signed successfully",
+	s.logger.Debug("Pending token mint transaction signed successfully",
 		slog.Uint64("tx_token_id", stx.TokenID))
 
 	//
@@ -193,21 +205,17 @@ func (s *MintNFTService) Execute(
 		return err
 	}
 
-	s.logger.Info("Pending signed nft transaction submitted to blockchain",
+	s.logger.Info("Pending signed token transaction submitted to blockchain",
 		slog.Uint64("tx_token_id", stx.TokenID))
 
 	//
 	// STEP 7
-	// Set the next available token ID value. The authority node will keep a
-	// record of the next available token ID value we have.
+	// Finish, however do not save the `token_id`, let our PoA validator
+	// handle updating the database if the submission was correct. The reason
+	// for this is because if we update the local database to early and the PoA
+	// validator fails, then our local database will have incorrect latest
+	// `token_id` values saved.
 	//
-
-	if err := s.setBlockchainLastestTokenIDUseCase.Execute(latestTokenID + 1); err != nil {
-		s.logger.Error("failed getting latest token ID",
-			slog.Any("from_account_address", poaAddr),
-			slog.Any("error", err))
-		return err
-	}
 
 	return nil
 }

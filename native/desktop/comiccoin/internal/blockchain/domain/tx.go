@@ -12,7 +12,7 @@ import (
 
 const (
 	TransactionTypeCoin = "coin"
-	TransactionTypeNFT  = "nft"
+	TransactionTypeToken  = "token"
 )
 
 // Transaction structure represents a transfer of coins between accounts
@@ -28,9 +28,9 @@ type Transaction struct {
 	Value            uint64          `json:"value"`              // Ethereum: Monetary value received from this transaction.
 	Tip              uint64          `json:"tip"`                // Ethereum: Tip offered by the sender as an incentive to mine this transaction.
 	Data             []byte          `json:"data"`               // Ethereum: Extra data related to the transaction.
-	Type             string          `json:"type"`               // ComicCoin: The type of transaction this is, either `coin` or `nft`.
-	TokenID          uint64          `json:"token_id"`           // ComicCoin: Unique identifier for the NFT (if this transaciton is an NFT).
-	TokenMetadataURI string          `json:"token_metadata_uri"` // ComicCoin: URI pointing to NFT metadata file (if this transaciton is an NFT).
+	Type             string          `json:"type"`               // ComicCoin: The type of transaction this is, either `coin` or `token`.
+	TokenID          uint64          `json:"token_id"`           // ComicCoin: Unique identifier for the Token (if this transaciton is an Token).
+	TokenMetadataURI string          `json:"token_metadata_uri"` // ComicCoin: URI pointing to Token metadata file (if this transaciton is an Token).
 }
 
 // Sign function signs the  transaction using the user's private key

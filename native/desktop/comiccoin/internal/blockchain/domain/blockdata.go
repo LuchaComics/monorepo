@@ -15,16 +15,16 @@ type BlockData struct {
 	// Header is the block header, which contains metadata about the block.
 	Header *BlockHeader `json:"header"`
 
+	// The signature of this block's "Header" field which was applied by the
+	// proof-of-authority validator.
+	HeaderSignature []byte `json:"header_signature"`
+
 	// Trans is the list of (coin) transactions in the block.
 	Trans []BlockTransaction `json:"trans"`
 
 	// The proof-of-authority validator whom executed the validation of
 	// this block data in our blockchain.
 	Validator *Validator `json:"validator"`
-
-	// The signature of this block's "Header" field which was applied by the
-	// proof-of-authority validator.
-	HeaderSignature []byte `json:"header_signature"`
 }
 
 // BlockDataRepository is an interface that defines the methods for interacting with block data.

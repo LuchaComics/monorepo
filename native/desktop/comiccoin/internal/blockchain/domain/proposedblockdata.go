@@ -8,9 +8,11 @@ import (
 
 // ProposedBlockData represents what can be serialized to disk and over the network.
 type ProposedBlockData struct {
-	Hash   string             `json:"hash"`
-	Header *BlockHeader       `json:"block_header"`
-	Trans  []BlockTransaction `json:"trans"`
+	Hash            string             `json:"hash"`
+	Header          *BlockHeader       `json:"block_header"`
+	HeaderSignature []byte             `json:"header_signature"`
+	Trans           []BlockTransaction `json:"trans"`
+	Validator       *Validator         `json:"validator"`
 }
 
 func (b *ProposedBlockData) Serialize() ([]byte, error) {

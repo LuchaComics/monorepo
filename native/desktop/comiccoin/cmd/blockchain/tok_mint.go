@@ -21,23 +21,14 @@ var (
 	flagProofOfAuthorityWalletPassword string
 	flagMintRecipientAddress           string
 	flagMintMetadataURI                string
-
-// TODO: IMPL.
-// Attributes []*NFTMetadataAttribute `bson:"attributes" json:"attributes"`
-//
-//	type NFTMetadataAttribute struct {
-//		DisplayType string `bson:"display_type" json:"display_type"`
-//		TraitType   string `bson:"trait_type" json:"trait_type"`
-//		Value       string `bson:"value" json:"value"`
-//	}
 )
 
-func httpJsonApiMintNFTCmd() *cobra.Command {
+func httpJsonApiMintTokenCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "mint",
 		Short: "(PoA & Authority only) Creates a new non-fungible token in our blockchain",
 		Run: func(cmd *cobra.Command, args []string) {
-			doMintNFT()
+			doMintToken()
 		},
 	}
 
@@ -45,10 +36,10 @@ func httpJsonApiMintNFTCmd() *cobra.Command {
 	cmd.MarkFlagRequired("poa-address")
 	cmd.Flags().StringVar(&flagProofOfAuthorityWalletPassword, "poa-password", "", "(Required for `PoA` consensus protocol) The password in the authority's wallet")
 	cmd.MarkFlagRequired("poa-password")
-	cmd.Flags().StringVar(&flagMintRecipientAddress, "recipient-address", "", "The address of the account whom will receive this NFT")
+	cmd.Flags().StringVar(&flagMintRecipientAddress, "recipient-address", "", "The address of the account whom will receive this Token")
 	cmd.MarkFlagRequired("recipient-address")
 
-	// Fields for inputting the NFT
+	// Fields for inputting the Token
 	cmd.Flags().StringVar(&flagMintMetadataURI, "metadata-uri", "", "The location of this tokens metadata file.")
 	cmd.MarkFlagRequired("metadata-uri")
 
@@ -58,7 +49,7 @@ func httpJsonApiMintNFTCmd() *cobra.Command {
 	return cmd
 }
 
-func doMintNFT() {
+func doMintToken() {
 	//
 	// STEP 1:
 	// Get our project dependencies in order.
@@ -70,15 +61,15 @@ func doMintNFT() {
 	// Create our request payload.
 	//
 
-	httpEndpoint := fmt.Sprintf("http://%s:%d%s", flagListenHTTPIP, flagListenHTTPPort, nftsURL)
+	httpEndpoint := fmt.Sprintf("http://%s:%d%s", flagListenHTTPIP, flagListenHTTPPort, tokensURL)
 
-	metadata := handler.MintNFTRequestIDO{
+	metadata := handler.MintTokenRequestIDO{
 		ProofOfAuthorityAccountAddress: flagProofOfAuthorityAccountAddress,
 		ProofOfAuthorityWalletPassword: flagProofOfAuthorityWalletPassword,
 		To:                             flagMintRecipientAddress,
 		MetadataURI:                    flagMintMetadataURI,
 	}
-	logger.Debug("Creating new NFT in blockchain",
+	logger.Debug("Creating new Token in blockchain",
 		slog.Any("node-url", httpEndpoint),
 		slog.Any("metadata_uri", flagMintMetadataURI),
 	)
@@ -161,5 +152,5 @@ func doMintNFT() {
 		)
 		return
 	}
-	logger.Debug("NFT mint request submitted successful")
+	logger.Debug("Token mint request submitted successful")
 }

@@ -78,9 +78,11 @@ func (s *BlockDataDTOServerService) Execute(ctx context.Context) error {
 	//
 
 	blockDataDTO := &domain.BlockDataDTO{
-		Hash:   blockData.Hash,
-		Header: blockData.Header,
-		Trans:  blockData.Trans,
+		Hash:            blockData.Hash,
+		Header:          blockData.Header,
+		HeaderSignature: blockData.HeaderSignature,
+		Trans:           blockData.Trans,
+		Validator:       blockData.Validator,
 	}
 
 	if err := s.blockDataDTOSendP2PResponsetUseCase.Execute(ctx, peerID, blockDataDTO); err != nil {

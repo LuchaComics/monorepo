@@ -112,16 +112,23 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	// Variable used to keep track the most recent `token_id` value.
 	latestTokenID := prevBlockData.Header.LatestTokenID
 
+	// Apply whatever fees we request by the authority...
 	gasPrice := uint64(s.config.Blockchain.GasPrice)
 	unitsOfGas := uint64(s.config.Blockchain.UnitsOfGas)
+
+	// Variable used to create the transactions to store on the blockchain.
 	trans := make([]domain.BlockTransaction, 0)
+
+	// Iterate through all the pending transactions and include them in our
+	// blockchain.
 	for _, pendingBlockTx := range pendingBlockTxs {
 		//
 		// Developers Note:
 		// The `PoA` miner supports minting non-fungible tokens, hence the
 		// following code...
 		//
-		if pendingBlockTx.Type == domain.TransactionTypeNFT {
+		if pendingBlockTx.Type == domain.TransactionTypeToken {
+			// CASE 1 of 1:
 			// If our token ID is greater then the blockchain's state
 			// then let's update our blockchain state with our latest token id.
 			if pendingBlockTx.TokenID > latestTokenID {
@@ -191,10 +198,11 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 			MiningReward:  s.config.Blockchain.MiningReward,
 			StateRoot:     stateRoot,
 			TransRoot:     tree.RootHex(), //
-			Nonce:         0,              // Will be identified by the POW algorithm.
+			Nonce:         0,              // Will be identified by the PoW algorithm.
 			LatestTokenID: latestTokenID,  // Ensure our blockchain state has the latest token ID recorded.
 		},
-		MerkleTree: tree,
+		HeaderSignature: []byte{}, // Will be identified by the PoA algorithm in this function!
+		MerkleTree:      tree,
 	}
 
 	//
@@ -231,12 +239,12 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	}
 
 	coinbasePrivateKey := coinbaseAccountKey.PrivateKey
-	blockData.Validator = poaValidator
 	blockDataHeaderSignature, err := poaValidator.Sign(coinbasePrivateKey, blockData.Header)
 	if err != nil {
 		return fmt.Errorf("Failed to sign block header: %v", err)
 	}
 	blockData.HeaderSignature = blockDataHeaderSignature
+	blockData.Validator = poaValidator
 
 	s.logger.Info("PoA mining completed",
 		slog.String("hash", blockData.Hash),
@@ -249,7 +257,9 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 		slog.String("state_root", blockData.Header.StateRoot),
 		slog.String("trans_root", blockData.Header.TransRoot),
 		slog.Uint64("nonce", blockData.Header.Nonce),
-		slog.Any("trans", blockData.Trans))
+		slog.Uint64("latest_token_id", blockData.Header.LatestTokenID),
+		slog.Any("trans", blockData.Trans),
+		slog.Any("header_signature", blockData.HeaderSignature))
 
 	//
 	// STEP 6
@@ -276,9 +286,11 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 
 	// Convert to our new datastructure.
 	purposeBlockData := &domain.ProposedBlockData{
-		Hash:   blockData.Hash,
-		Header: blockData.Header,
-		Trans:  blockData.Trans,
+		Hash:            blockData.Hash,
+		Header:          blockData.Header,
+		HeaderSignature: blockData.HeaderSignature,
+		Trans:           blockData.Trans,
+		Validator:       blockData.Validator,
 	}
 
 	if err := s.broadcastProposedBlockDataDTOUseCase.Execute(ctx, purposeBlockData); err != nil {

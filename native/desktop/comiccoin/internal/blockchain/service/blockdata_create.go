@@ -53,12 +53,14 @@ func (s *CreateBlockDataService) Execute(dataDir, hash, walletPassword string) (
 
 	header := &domain.BlockHeader{}
 	trans := make([]domain.BlockTransaction, 0)
+	headerSignature := []byte{}
+	validator := &domain.Validator{}
 
 	//
 	// STEP 3: Save to our database.
 	//
 
-	if err := s.createBlockDataUseCase.Execute(hash, header, trans); err != nil {
+	if err := s.createBlockDataUseCase.Execute(hash, header, headerSignature, trans, validator); err != nil {
 		s.logger.Error("failed saving to database",
 			slog.Any("hash", hash),
 			slog.Any("error", err))

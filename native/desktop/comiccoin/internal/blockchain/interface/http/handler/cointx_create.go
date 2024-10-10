@@ -39,7 +39,7 @@ type CreateTransactionRequestIDO struct {
 	// Recipient’s public key
 	RecipientAddress string `json:"recipient_address"`
 
-	// Data is any NFT related data attached
+	// Data is any Token related data attached
 	Data []byte `json:"data"`
 }
 

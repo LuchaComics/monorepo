@@ -3,37 +3,56 @@
     "header": {
         "number": 0,
         "prev_block_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-        "timestamp": 1728586086394,
-        "beneficiary": "0x47402e4cbf1eb7a7e6dbf0e211217ced29325f88",
+        "timestamp": 1728596917351,
+        "beneficiary": "0x9eaacb8475c22ae26852761f82501d67c6f0210b",
         "difficulty": 2,
         "mining_reward": 0,
-        "state_root": "0x0ad42834a49f34018768770fef57cc7f7e868054b127df1a10bc525ecde769eb",
-        "trans_root": "0x80a016a0668cbda3df5afb62f86beca509c75c09736908362bf6227fb3cdb978",
-        "nonce": 0
+        "state_root": "0x61d12356ad8748dea1b7768030abdef537559e6ddeb103f1681d72d334e4e292",
+        "trans_root": "0x940c2df1583aace22fbfb640603218b7e876eb211ccf8ba0f8f8f402ab7a51bb",
+        "nonce": 0,
+        "latest_token_id": 0
     },
+    "header_signature": "91b/gEeNCvQzn/8dCMmDnLrlIFSeAxizD80JPEhEz3QPeYN7/x1upCHbjbp4noTTxE9Tx115ghho1yGI1Z1VoAA=",
     "trans": [
         {
             "chain_id": 1,
             "nonce": 0,
-            "from": "0x47402e4cbf1eb7a7e6dbf0e211217ced29325f88",
-            "to": "0x47402e4cbf1eb7a7e6dbf0e211217ced29325f88",
+            "from": "0x9eaacb8475c22ae26852761f82501d67c6f0210b",
+            "to": "0x9eaacb8475c22ae26852761f82501d67c6f0210b",
             "value": 5000000000000000000,
             "tip": 0,
             "data": "",
             "type": "coin",
             "token_id": 0,
             "token_metadata_uri": "",
-            "v": 20714460646169314090339960981472423668277008463898292168774841532200775019978,
-            "r": 32828960497429791429921612518831554594990859719089480379426298079686390200810,
+            "v": 54377241740261975892150775237551116596755557425114920560897912297331199977663,
+            "r": 9764600567240833329666689089093263725200200746891997483407678426556419000727,
+            "s": 30,
+            "timestamp": 1728596917350,
+            "gas_price": 0,
+            "gas_units": 0
+        },
+        {
+            "chain_id": 1,
+            "nonce": 0,
+            "from": "0x9eaacb8475c22ae26852761f82501d67c6f0210b",
+            "to": "0x9eaacb8475c22ae26852761f82501d67c6f0210b",
+            "value": 5000000000000000000,
+            "tip": 0,
+            "data": "",
+            "type": "token",
+            "token_id": 0,
+            "token_metadata_uri": "https://cpscapsule.com/comiccoin/tokens/0/metadata.json",
+            "v": 95274958651722660280035566725403558983767342615474462881864680343637019259146,
+            "r": 57625553959228697702369518390066620096501949716325548817242517522401335416251,
             "s": 29,
-            "timestamp": 1728586086394,
+            "timestamp": 1728596917350,
             "gas_price": 0,
             "gas_units": 0
         }
     ],
     "validator": {
-        "ID": "ComicCoin Blockchain Authority",
-        "PublicKeyBytes": "BDUvOJDyNxd4v7rhF2Wy7YFlF7OzX4LBCsz6frCYtUUsUJRZOLhCZLSvzAVIZT9Bj7WnpoVmpMEEGKy09bsF1wg="
-    },
-    "header_signature": "JmcYkeCKfGQi6P48AygYegVxF3RBmp3/0hdhOXorBXE6/GAMOGJ5q0L/WsUrzt0pTRe46TeKrMtGCocwdrK1TQA="
+        "id": "ComicCoin Blockchain Authority",
+        "public_key_bytes": "BBRMXnBtek0RcZOa6RYtUnj5p5pcA9sAzvnvS2KpJXqYjilUM45HQoIGfoE+Wf1AMTJrKMv8g7XdpsEaa4apGp0="
+    }
 }

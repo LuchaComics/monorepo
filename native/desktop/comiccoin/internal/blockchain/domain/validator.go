@@ -12,8 +12,8 @@ import (
 
 // Validator represents a trusted validator in the network.
 type Validator struct {
-	ID             string
-	PublicKeyBytes []byte
+	ID             string `json:"id"`
+	PublicKeyBytes []byte `json:"public_key_bytes"`
 }
 
 func (validator *Validator) Sign(privateKey *ecdsa.PrivateKey, data any) ([]byte, error) {
@@ -37,6 +37,8 @@ func (validator *Validator) Verify(sig []byte, data any) bool {
 	// Defensive Code.
 	if sig == nil || data == nil {
 		log.Printf("VALIDATOR: VERIFY FAILED: %v\n", "sig == nil || data == nil")
+		log.Printf("VALIDATOR: VERIFY FAILED: sig %v\n", sig)
+		log.Printf("VALIDATOR: VERIFY FAILED: data %v\n", data)
 		return false
 	}
 
@@ -62,7 +64,7 @@ func (validator *Validator) Verify(sig []byte, data any) bool {
 	}
 
 	// Verify signature public key and validator public key match.
-	if validatorPubKey != sigPubKey { //TODO: CONFIRM THIS WORKS
+	if validatorPubKey != sigPubKey { //TODO: CONFIRM THIS WORKS (NOTE: SEE NFT MINTER)
 		log.Printf("VALIDATOR: VERIFY FAILED: %v\n", "validatorPubKey != sigPubKey")
 		return false
 	}
@@ -77,6 +79,10 @@ func (validator *Validator) Verify(sig []byte, data any) bool {
 }
 
 func (validator *Validator) GetPublicKeyECDSA() (*ecdsa.PublicKey, error) {
+	if validator == nil {
+		return nil, fmt.Errorf("validator error: %v", "d.n.e.")
+	}
+
 	publicKeyECDSA, err := crypto.UnmarshalPubkey(validator.PublicKeyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed unmarshalling validator public key: %s", err)

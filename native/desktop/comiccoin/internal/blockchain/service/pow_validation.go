@@ -114,9 +114,11 @@ func (s *ProofOfWorkValidationService) Execute(ctx context.Context) error {
 	//
 
 	blockData := &domain.BlockData{
-		Hash:   proposedBlockData.Hash,
-		Header: proposedBlockData.Header,
-		Trans:  proposedBlockData.Trans,
+		Hash:            proposedBlockData.Hash,
+		Header:          proposedBlockData.Header,
+		HeaderSignature: proposedBlockData.HeaderSignature,
+		Trans:           proposedBlockData.Trans,
+		Validator:       proposedBlockData.Validator,
 	}
 	block, err := domain.ToBlock(blockData)
 	if err != nil {
@@ -152,7 +154,7 @@ func (s *ProofOfWorkValidationService) Execute(ctx context.Context) error {
 	// Save to the blockchain database.
 	//
 
-	if err := s.createBlockDataUseCase.Execute(blockData.Hash, blockData.Header, blockData.Trans); err != nil {
+	if err := s.createBlockDataUseCase.Execute(blockData.Hash, blockData.Header, blockData.HeaderSignature, blockData.Trans, blockData.Validator); err != nil {
 		s.logger.Error("validator failed saving block data",
 			slog.Any("error", err))
 		return err

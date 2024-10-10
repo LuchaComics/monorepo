@@ -12,44 +12,43 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-type MintNFTHTTPHandler struct {
+type MintTokenHTTPHandler struct {
 	config  *config.Config
 	logger  *slog.Logger
-	service *service.MintNFTService
+	service *service.MintTokenService
 }
 
-func NewMintNFTHTTPHandler(
+func NewMintTokenHTTPHandler(
 	cfg *config.Config,
 	logger *slog.Logger,
-	mintNFTService *service.MintNFTService,
-) *MintNFTHTTPHandler {
-	return &MintNFTHTTPHandler{cfg, logger, mintNFTService}
+	mintTokenService *service.MintTokenService,
+) *MintTokenHTTPHandler {
+	return &MintTokenHTTPHandler{cfg, logger, mintTokenService}
 }
 
-type MintNFTRequestIDO struct {
+type MintTokenRequestIDO struct {
 	ProofOfAuthorityAccountAddress string `bson:"poa_address" json:"poa_address"`
 	ProofOfAuthorityWalletPassword string `bson:"poa_password" json:"poa_password"`
-	To                             string `json:"to"`           // Account receiving the NFT.
-	MetadataURI                    string `json:"metadata_uri"` // URI pointing to NFT metadata file.
+	To                             string `json:"to"`           // Account receiving the Token.
+	MetadataURI                    string `json:"metadata_uri"` // URI pointing to Token metadata file.
 }
 
-type BlockchainMintNFTResponseIDO struct {
+type BlockchainMintTokenResponseIDO struct {
 }
 
-func (h *MintNFTHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
+func (h *MintTokenHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	req, err := unmarshalMintNFTRequest(ctx, r)
+	req, err := unmarshalMintTokenRequest(ctx, r)
 	if err != nil {
 		httperror.ResponseError(w, err)
 		return
 	}
-	_ = req
 
 	pofAddr := common.HexToAddress(req.ProofOfAuthorityAccountAddress)
 	toAddr := common.HexToAddress(req.To)
 
-	h.logger.Debug("Received NFT mint request",
+	h.logger.Debug("Received Token mint request",
 		slog.Any("metadata_uri", req.MetadataURI),
 	)
 
@@ -68,9 +67,9 @@ func (h *MintNFTHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func unmarshalMintNFTRequest(ctx context.Context, r *http.Request) (*MintNFTRequestIDO, error) {
+func unmarshalMintTokenRequest(ctx context.Context, r *http.Request) (*MintTokenRequestIDO, error) {
 	// Initialize our array which will store all the results from the remote server.
-	var requestData *MintNFTRequestIDO
+	var requestData *MintTokenRequestIDO
 
 	defer r.Body.Close()
 

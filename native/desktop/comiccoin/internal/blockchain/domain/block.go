@@ -15,8 +15,16 @@ type Block struct {
 	// Header is the block header, which contains metadata about the block.
 	Header *BlockHeader
 
+	// The signature of this block's "Header" field which was applied by the
+	// proof-of-authority validator.
+	HeaderSignature []byte `json:"header_signature"`
+
 	// MerkleTree is the Merkle tree of transactions, which allows for efficient verification of transaction inclusion.
 	MerkleTree *merkle.Tree[BlockTransaction]
+
+	// The proof-of-authority validator whom executed the validation of
+	// this block data in our blockchain.
+	Validator *Validator `json:"validator"`
 }
 
 // NewBlockData constructs block data from a block.
@@ -29,8 +37,13 @@ func NewBlockData(block Block) *BlockData {
 		// Header is the block header, which contains metadata about the block.
 		Header: block.Header,
 
+		// Proof of Authority signature of the block header.
+		HeaderSignature: block.HeaderSignature,
+
 		// Trans is the list of transactions in the block.
 		Trans: block.MerkleTree.Values(),
+
+		Validator: block.Validator,
 	}
 
 	return &blockData
@@ -183,8 +196,10 @@ func ToBlock(blockData *BlockData) (*Block, error) {
 
 	// Create a new block from the block data and Merkle tree.
 	block := &Block{
-		Header:     blockData.Header,
-		MerkleTree: tree,
+		Header:          blockData.Header,
+		HeaderSignature: blockData.HeaderSignature,
+		MerkleTree:      tree,
+		Validator:       blockData.Validator,
 	}
 
 	return block, nil

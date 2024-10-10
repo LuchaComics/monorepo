@@ -68,8 +68,9 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	// Setup our very first (signed) transaction: i.e. coinbase giving coins
 	// onto the blockchain ... from nothing.
 	//
+	//
 
-	tx := &domain.Transaction{
+	coinTx := &domain.Transaction{
 		ChainID: s.config.Blockchain.ChainID,
 		Nonce:   0, // Will be calculated later.
 		From:    &s.coinbaseAccountKey.Address,
@@ -79,9 +80,31 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 		Data:    make([]byte, 0),
 		Type:    domain.TransactionTypeCoin,
 	}
-	signedTx, err := tx.Sign(s.coinbaseAccountKey.PrivateKey)
+	signedCoinTx, err := coinTx.Sign(s.coinbaseAccountKey.PrivateKey)
 	if err != nil {
-		return fmt.Errorf("Failed to sign transaction: %v", err)
+		return fmt.Errorf("Failed to sign coin transaction: %v", err)
+	}
+
+	//
+	// STEP 3:
+	// Setup our very first (signed) token transaction.
+	//
+
+	tokenTx := &domain.Transaction{
+		ChainID:          s.config.Blockchain.ChainID,
+		Nonce:            0, // Will be calculated later.
+		From:             &s.coinbaseAccountKey.Address,
+		To:               &s.coinbaseAccountKey.Address,
+		Value:            initialSupply,
+		Tip:              0,
+		Data:             make([]byte, 0),
+		Type:             domain.TransactionTypeToken,
+		TokenID:          0,
+		TokenMetadataURI: "https://cpscapsule.com/comiccoin/tokens/0/metadata.json",
+	}
+	signedNftTx, err := tokenTx.Sign(s.coinbaseAccountKey.PrivateKey)
+	if err != nil {
+		return fmt.Errorf("Failed to sign token transaction: %v", err)
 	}
 
 	//
@@ -94,14 +117,21 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 
 	gasPrice := uint64(s.config.Blockchain.GasPrice)
 	unitsOfGas := uint64(s.config.Blockchain.UnitsOfGas)
-	blockTx := domain.BlockTransaction{
-		SignedTransaction: signedTx,
+	coinBlockTx := domain.BlockTransaction{
+		SignedTransaction: signedCoinTx,
+		TimeStamp:         uint64(time.Now().UTC().UnixMilli()),
+		GasPrice:          gasPrice,
+		GasUnits:          unitsOfGas,
+	}
+	tokenBlockTx := domain.BlockTransaction{
+		SignedTransaction: signedNftTx,
 		TimeStamp:         uint64(time.Now().UTC().UnixMilli()),
 		GasPrice:          gasPrice,
 		GasUnits:          unitsOfGas,
 	}
 	trans := make([]domain.BlockTransaction, 0)
-	trans = append(trans, blockTx)
+	trans = append(trans, coinBlockTx)
+	trans = append(trans, tokenBlockTx)
 
 	// Construct a merkle tree from the transaction for this block. The root
 	// of this tree will be part of the block to be mined.
@@ -200,7 +230,7 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	// Save to database.
 	//
 
-	if err := s.createBlockDataUseCase.Execute(genesisBlockData.Hash, genesisBlockData.Header, genesisBlockData.Trans); err != nil {
+	if err := s.createBlockDataUseCase.Execute(genesisBlockData.Hash, genesisBlockData.Header, genesisBlockData.HeaderSignature, genesisBlockData.Trans, genesisBlockData.Validator); err != nil {
 		return fmt.Errorf("Failed to write genesis block data to file: %v", err)
 	}
 
