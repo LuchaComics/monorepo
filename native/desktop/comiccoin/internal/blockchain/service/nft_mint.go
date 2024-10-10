@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 	"fmt"
-	"log"
 	"log/slog"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 
@@ -41,7 +41,6 @@ func (s *MintNFTService) Execute(
 	poaAddr *common.Address,
 	poaPassword string,
 	toAddr *common.Address,
-	nftMetadata *domain.NFTMetadata,
 	metadataURI string,
 ) error {
 	//
@@ -57,34 +56,6 @@ func (s *MintNFTService) Execute(
 	}
 	if toAddr == nil {
 		e["to"] = "missing value"
-	}
-	if nftMetadata == nil {
-		e["nft_metadata"] = "missing value"
-	} else {
-		if nftMetadata.Image == "" {
-			e["iamge"] = "missing value"
-		}
-		if nftMetadata.ExternalURL == "" {
-			e["external_url"] = "missing value"
-		}
-		if nftMetadata.Description == "" {
-			e["description"] = "missing value"
-		}
-		if nftMetadata.Name == "" {
-			e["name"] = "missing value"
-		}
-		if len(nftMetadata.Attributes) > 0 {
-			// TODO: Impl.
-		}
-		if nftMetadata.BackgroundColor == "" {
-			e["background_color"] = "missing value"
-		}
-		if nftMetadata.AnimationURL == "" {
-			e["animation_url"] = "missing value"
-		}
-		if nftMetadata.YoutubeURL == "" {
-			e["youtube_url"] = "missing value"
-		}
 	}
 	if metadataURI == "" {
 		e["metadata_uri"] = "missing value"
@@ -148,64 +119,38 @@ func (s *MintNFTService) Execute(
 			slog.Any("error", err))
 		return fmt.Errorf("failed unmarshalling validator public key: %s", err)
 	}
-	log.Println("--->", validator.PublicKeyBytes)
-	log.Println("--->", key.PrivateKey.Public())
-	log.Println("--->", key.PrivateKey.PublicKey)
-	log.Println("--->", publicKeyECDSA)
 
-	// if account.Balance <= value {
-	// 	s.logger.Warn("insufficient balance in account",
-	// 		slog.Any("account_addr", poaAddr),
-	// 		slog.Any("account_balance", account.Balance),
-	// 		slog.Any("value", value))
-	// 	return fmt.Errorf("insufficient balance: %d", account.Balance)
-	// }
+	if key.PrivateKey.PublicKey.Equal(publicKeyECDSA) == false {
+		return fmt.Errorf("failed comparing public keys: %s", "they do not match")
+	}
 
-	// //
-	// // STEP 4
-	// // Create our pending transaction and sign it with the accounts private key.
-	// //
 	//
-	// tx := &domain.Transaction{
-	// 	ChainID: s.config.Blockchain.ChainID,
-	// 	Nonce:   uint64(time.Now().Unix()),
-	// 	From:    wallet.Address,
-	// 	To:      to,
-	// 	Value:   value,
-	// 	Data:    data,
-	// }
+	// STEP 4
+	// Create our pending transaction and sign it with the accounts private key.
 	//
-	// stx, signingErr := tx.Sign(key.PrivateKey)
-	// if signingErr != nil {
-	// 	s.logger.Debug("Failed to sign the transaction",
-	// 		slog.Any("error", signingErr))
-	// 	return signingErr
-	// }
-	//
-	// s.logger.Debug("Pending transaction signed successfully",
-	// 	slog.Uint64("tx_nonce", stx.Nonce))
-	//
-	// mempoolTx := &domain.MempoolTransaction{
-	// 	Transaction: stx.Transaction,
-	// 	V:           stx.V,
-	// 	R:           stx.R,
-	// 	S:           stx.S,
-	// }
-	//
-	// //
-	// // STEP 3
-	// // Send our pending signed transaction to our distributed mempool nodes
-	// // in the blochcian network.
-	// //
-	//
-	// if err := s.broadcastMempoolTransactionDTOUseCase.Execute(ctx, mempoolTx); err != nil {
-	// 	s.logger.Error("Failed to broadcast to the blockchain network",
-	// 		slog.Any("error", err))
-	// 	return err
-	// }
-	//
-	// s.logger.Info("Pending signed transaction submitted to blockchain",
-	// 	slog.Uint64("tx_nonce", stx.Nonce))
+
+	tx := &domain.NFTTransaction{
+		ChainID:   s.config.Blockchain.ChainID,
+		TokenID:   0, //TODO
+		From:      poaAddr,
+		To:        toAddr,
+		Metadata:  metadataURI,
+		TimeStamp: uint64(time.Now().UTC().UnixMilli()),
+	}
+
+	stx, signingErr := tx.Sign(key.PrivateKey)
+	if signingErr != nil {
+		s.logger.Debug("Failed to sign the nft mint transaction",
+			slog.Any("error", signingErr))
+		return signingErr
+	}
+
+	s.logger.Debug("Pending nft mint transaction signed successfully",
+		slog.Uint64("tx_token_id", stx.TokenID))
+
+	// DEVELOPERS NOTE:
+	// SKIP THE SUBMISSION TO THE MEMPOOL, SUBMIT DIRECTLY TO THE MINER SINCE
+	// THIS IS CREATED BY THE PROOF OF AUTHORITY.
 
 	return nil
 }
