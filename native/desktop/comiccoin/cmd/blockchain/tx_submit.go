@@ -33,7 +33,7 @@ func submitTxCmd() *cobra.Command {
 	cmd.Flags().Uint64Var(&flagAmount, "value", 0, "The amount of coins to send")
 	cmd.MarkFlagRequired("value")
 
-	cmd.Flags().StringVar(&flagRecipientAddress, "recipient-address", "", "The name of the account we will use in our coin transfer")
+	cmd.Flags().StringVar(&flagRecipientAddress, "recipient-address", "", "The address of the account whom will receive this coin")
 	cmd.MarkFlagRequired("recipient-address")
 
 	cmd.Flags().IntVar(&flagListenHTTPPort, "listen-http-port", 8000, "The HTTP JSON API server's port")

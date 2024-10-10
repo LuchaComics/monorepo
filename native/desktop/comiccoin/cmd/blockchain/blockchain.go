@@ -26,12 +26,6 @@ var (
 	flagIdentityKeyID string
 )
 
-// // HTTP endpoints
-// const (
-// 	accountsURL      = "/v1/api/accounts"
-// 	accountDetailURL = "/v1/api/account/${ACCOUNT_ID}"
-// )
-
 func BlockchainCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "blockchain",
@@ -46,6 +40,7 @@ func BlockchainCmd() *cobra.Command {
 	cmd.AddCommand(txCmd())
 	cmd.AddCommand(InitCmd())
 	cmd.AddCommand(ConsensusMechanismCmd())
+	cmd.AddCommand(NFTCmd())
 
 	return cmd
 }

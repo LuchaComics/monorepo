@@ -395,6 +395,16 @@ func DaemonCmd() *cobra.Command {
 				walletDecryptKeyUseCase,
 				broadcastMempoolTxDTOUseCase)
 
+			// NFTs
+			mintNFTService := service.NewMintNFTService(
+				cfg,
+				logger,
+				loadGenesisBlockDataAccountUseCase,
+				getAccountUseCase,
+				getWalletUseCase,
+				walletDecryptKeyUseCase,
+				broadcastMempoolTxDTOUseCase)
+
 			// Mempool
 			mempoolReceiveService := service.NewMempoolReceiveService(
 				cfg,
@@ -523,6 +533,10 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				createTxService)
+			mintNFTHTTPHandler := httphandler.NewMintNFTHTTPHandler(
+				cfg,
+				logger,
+				mintNFTService)
 			httpMiddleware := httpmiddle.NewMiddleware(
 				cfg,
 				logger)
@@ -533,6 +547,7 @@ func DaemonCmd() *cobra.Command {
 				createAccountHTTPHandler,
 				getAccountHTTPHandler,
 				createTransactionHTTPHandler,
+				mintNFTHTTPHandler,
 			)
 
 			// TASK MANAGER
