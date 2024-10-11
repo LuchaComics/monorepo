@@ -43,30 +43,21 @@ type httpServerImpl struct {
 
 	// mintTokenHTTPHandler is the handler for minting new Token.
 	mintTokenHTTPHandler *handler.MintTokenHTTPHandler
+
+	// transferTokenHTTPHandler is the handler for transfering Tokens between accounts.
+	transferTokenHTTPHandler *handler.TransferTokenHTTPHandler
 }
 
 // NewHTTPServer creates a new HTTP server instance.
 func NewHTTPServer(
-	// cfg is the configuration for the HTTP server.
 	cfg *config.Config,
-
-	// logger is the logger for the HTTP server.
 	logger *slog.Logger,
-
-	// mid is the middleware for the HTTP server.
 	mid mid.Middleware,
-
-	// createAccountHTTPHandler is the handler for creating accounts.
 	createAccountHTTPHandler *handler.CreateAccountHTTPHandler,
-
-	// getAccountHTTPHandler is the handler for getting accounts.
 	getAccountHTTPHandler *handler.GetAccountHTTPHandler,
-
-	// createTransactionHTTPHandler is the handler for creating transactions.
 	createTransactionHTTPHandler *handler.CreateTransactionHTTPHandler,
-
-	// mintTokenHTTPHandler is the handler for minting new Token.
 	mintTokenHTTPHandler *handler.MintTokenHTTPHandler,
+	transferTokenHTTPHandler *handler.TransferTokenHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.HTTPAddress == "" {
@@ -93,7 +84,8 @@ func NewHTTPServer(
 		createAccountHTTPHandler:     createAccountHTTPHandler,
 		getAccountHTTPHandler:        getAccountHTTPHandler,
 		createTransactionHTTPHandler: createTransactionHTTPHandler,
-		mintTokenHTTPHandler:           mintTokenHTTPHandler,
+		mintTokenHTTPHandler:         mintTokenHTTPHandler,
+		transferTokenHTTPHandler:     transferTokenHTTPHandler,
 	}
 
 	// Attach the HTTP server controller to the ServeMux.
@@ -161,10 +153,13 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		// Handle the request to create a transaction.
 		port.createTransactionHTTPHandler.Execute(w, r)
 
-	// --- TokenS --- //
-	case n == 3 && p[0] == "v1" && p[1] == "api" && p[2] == "tokens" && r.Method == http.MethodPost:
+	// --- TOKENS --- //
+	case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "tokens" && p[3] == "mint" && r.Method == http.MethodPost:
 		// Handle the request to create a transaction.
 		port.mintTokenHTTPHandler.Execute(w, r)
+	case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "tokens" && p[3] == "transfer" && r.Method == http.MethodPost:
+		// Handle the request to create a transaction.
+		port.transferTokenHTTPHandler.Execute(w, r)
 
 		// --- CATCH ALL: D.N.E. ---
 	default:

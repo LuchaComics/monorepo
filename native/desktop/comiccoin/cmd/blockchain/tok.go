@@ -4,8 +4,9 @@ import "github.com/spf13/cobra"
 
 // HTTP endpoints
 const (
-	tokensURL      = "/v1/api/tokens"
-	tokenDetailURL = "/v1/api/token/${ACCOUNT_ADDRESS}"
+	mintTokensURL     = "/v1/api/tokens/mint"
+	transferTokensURL = "/v1/api/tokens/transfer"
+	tokenDetailURL    = "/v1/api/token/${ACCOUNT_ADDRESS}"
 )
 
 func TokenCmd() *cobra.Command {
@@ -19,7 +20,7 @@ func TokenCmd() *cobra.Command {
 
 	// // Attach our sub-commands for `token`
 	cmd.AddCommand(httpJsonApiMintTokenCmd())
-	// cmd.AddCommand(httpJsonApiGetTokenCmd())
+	cmd.AddCommand(httpJsonApiTransferTokenCmd())
 
 	return cmd
 }

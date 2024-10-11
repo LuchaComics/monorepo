@@ -253,6 +253,10 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				tokenRepo)
+			getTokenUseCase := usecase.NewGetTokenUseCase(
+				cfg,
+				logger,
+				tokenRepo)
 
 			// Mempool Transaction DTO
 			broadcastMempoolTxDTOUseCase := usecase.NewBroadcastMempoolTransactionDTOUseCase(
@@ -433,6 +437,15 @@ func DaemonCmd() *cobra.Command {
 				getBlockchainLastestTokenIDUseCase,
 				broadcastMempoolTxDTOUseCase)
 
+			transferTokenService := service.NewTransferTokenService(
+				cfg,
+				logger,
+				kmutex,
+				getWalletUseCase,
+				walletDecryptKeyUseCase,
+				getTokenUseCase,
+				broadcastMempoolTxDTOUseCase)
+
 			// Mempool
 			mempoolReceiveService := service.NewMempoolReceiveService(
 				cfg,
@@ -579,6 +592,10 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				mintTokenService)
+			transferTokenHTTPHandler := httphandler.NewTransferTokenHTTPHandler(
+				cfg,
+				logger,
+				transferTokenService)
 			httpMiddleware := httpmiddle.NewMiddleware(
 				cfg,
 				logger)
@@ -590,6 +607,7 @@ func DaemonCmd() *cobra.Command {
 				getAccountHTTPHandler,
 				createTransactionHTTPHandler,
 				mintTokenHTTPHandler,
+				transferTokenHTTPHandler,
 			)
 
 			// TASK MANAGER

@@ -21,11 +21,9 @@ type TransferTokenService struct {
 	config                                *config.Config
 	logger                                *slog.Logger
 	kmutex                                kmutexutil.KMutexProvider
-	loadGenesisBlockDataUseCase           *usecase.LoadGenesisBlockDataUseCase
 	getWalletUseCase                      *usecase.GetWalletUseCase
 	walletDecryptKeyUseCase               *usecase.WalletDecryptKeyUseCase
 	getTokenUseCase                       *usecase.GetTokenUseCase
-	getBlockchainLastestTokenIDUseCase    *usecase.GetBlockchainLastestTokenIDUseCase
 	broadcastMempoolTransactionDTOUseCase *usecase.BroadcastMempoolTransactionDTOUseCase
 }
 
@@ -33,21 +31,19 @@ func NewTransferTokenService(
 	cfg *config.Config,
 	logger *slog.Logger,
 	kmutex kmutexutil.KMutexProvider,
-	uc1 *usecase.LoadGenesisBlockDataUseCase,
-	uc2 *usecase.GetWalletUseCase,
-	uc3 *usecase.WalletDecryptKeyUseCase,
-	uc4 *usecase.GetTokenUseCase,
-	uc5 *usecase.GetBlockchainLastestTokenIDUseCase,
-	uc6 *usecase.BroadcastMempoolTransactionDTOUseCase,
+	uc1 *usecase.GetWalletUseCase,
+	uc2 *usecase.WalletDecryptKeyUseCase,
+	uc3 *usecase.GetTokenUseCase,
+	uc4 *usecase.BroadcastMempoolTransactionDTOUseCase,
 ) *TransferTokenService {
-	return &TransferTokenService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6}
+	return &TransferTokenService{cfg, logger, kmutex, uc1, uc2, uc3, uc4}
 }
 
 func (s *TransferTokenService) Execute(
 	ctx context.Context,
 	tokenOwnerAddr *common.Address,
 	tokenOwnerPassword string,
-	toAddr *common.Address,
+	recipientAddr *common.Address,
 	tokenID uint64,
 ) error {
 	// Lock the mining service until it has completed executing (or errored).
@@ -66,8 +62,8 @@ func (s *TransferTokenService) Execute(
 	if tokenOwnerPassword == "" {
 		e["token_owner_password"] = "missing value"
 	}
-	if toAddr == nil {
-		e["to"] = "missing value"
+	if recipientAddr == nil {
+		e["recipient_address"] = "missing value"
 	}
 	if len(e) != 0 {
 		s.logger.Warn("Failed validating token transfer parameters",
@@ -152,7 +148,7 @@ func (s *TransferTokenService) Execute(
 		ChainID:          s.config.Blockchain.ChainID,
 		Nonce:            uint64(time.Now().Unix()),
 		From:             tokenOwnerAddr,
-		To:               toAddr,
+		To:               recipientAddr,
 		Value:            0, // Token have no value!
 		Tip:              0,
 		Data:             make([]byte, 0),

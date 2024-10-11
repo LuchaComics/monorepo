@@ -17,31 +17,29 @@ import (
 
 // Command line argument flags
 var (
-	flagProofOfAuthorityAccountAddress string
-	flagProofOfAuthorityWalletPassword string
-	flagMintRecipientAddress           string
-	flagMintMetadataURI                string
+	flagTransferTokenOwnerAddress  string
+	flagTransferTokenOwnerPassword string
+	flagTransferRecipientAddress   string
+	flagTransferTokenID            uint64
 )
 
-func httpJsonApiMintTokenCmd() *cobra.Command {
+func httpJsonApiTransferTokenCmd() *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "mint",
-		Short: "(PoA & Authority only) Creates a new non-fungible token in our blockchain",
+		Use:   "transfer",
+		Short: "(PoA only) Transfer your non-fungible token from your account to another account",
 		Run: func(cmd *cobra.Command, args []string) {
-			doMintToken()
+			doTransferToken()
 		},
 	}
 
-	cmd.Flags().StringVar(&flagProofOfAuthorityAccountAddress, "poa-address", "", "(Required for `PoA` consensus protocol) The address of the authority's account")
-	cmd.MarkFlagRequired("poa-address")
-	cmd.Flags().StringVar(&flagProofOfAuthorityWalletPassword, "poa-password", "", "(Required for `PoA` consensus protocol) The password in the authority's wallet")
-	cmd.MarkFlagRequired("poa-password")
-	cmd.Flags().StringVar(&flagMintRecipientAddress, "recipient-address", "", "The address of the account whom will receive this Token")
+	cmd.Flags().StringVar(&flagTransferTokenOwnerAddress, "token-owner-address", "", "(Required for `PoA` consensus protocol) The address of the token owner's account")
+	cmd.MarkFlagRequired("token-owner-address")
+	cmd.Flags().StringVar(&flagTransferTokenOwnerPassword, "token-owner-password", "", "(Required for `PoA` consensus protocol) The password in the token owner's wallet")
+	cmd.MarkFlagRequired("token-owner-password")
+	cmd.Flags().StringVar(&flagTransferRecipientAddress, "recipient-address", "", "The address of the account whom will receive this Token")
 	cmd.MarkFlagRequired("recipient-address")
-
-	// Fields for inputting the Token
-	cmd.Flags().StringVar(&flagMintMetadataURI, "metadata-uri", "", "The location of this tokens metadata file.")
-	cmd.MarkFlagRequired("metadata-uri")
+	cmd.Flags().Uint64Var(&flagTransferTokenID, "token-id", 0, "The ID of the token that you own")
+	cmd.MarkFlagRequired("token-id")
 
 	cmd.Flags().IntVar(&flagListenHTTPPort, "listen-http-port", 8000, "(Optional) The HTTP JSON API server's port")
 	cmd.Flags().StringVar(&flagListenHTTPIP, "listen-http-ip", "127.0.0.1", "(Optional) The HTTP JSON API server's ip-address")
@@ -49,7 +47,7 @@ func httpJsonApiMintTokenCmd() *cobra.Command {
 	return cmd
 }
 
-func doMintToken() {
+func doTransferToken() {
 	//
 	// STEP 1:
 	// Get our project dependencies in order.
@@ -61,17 +59,17 @@ func doMintToken() {
 	// Create our request payload.
 	//
 
-	httpEndpoint := fmt.Sprintf("http://%s:%d%s", flagListenHTTPIP, flagListenHTTPPort, mintTokensURL)
+	httpEndpoint := fmt.Sprintf("http://%s:%d%s", flagListenHTTPIP, flagListenHTTPPort, transferTokensURL)
 
-	metadata := handler.MintTokenRequestIDO{
-		ProofOfAuthorityAccountAddress: flagProofOfAuthorityAccountAddress,
-		ProofOfAuthorityWalletPassword: flagProofOfAuthorityWalletPassword,
-		To:                             flagMintRecipientAddress,
-		MetadataURI:                    flagMintMetadataURI,
+	metadata := handler.TransferTokenRequestIDO{
+		TokenOwnerAddress:  flagTransferTokenOwnerAddress,
+		TokenOwnerPassword: flagTransferTokenOwnerPassword,
+		RecipientAddress:   flagTransferRecipientAddress,
+		TokenID:            flagTransferTokenID,
 	}
-	logger.Debug("Creating new Token in blockchain",
+	logger.Debug("Transfering token between accounts in blockchain",
 		slog.Any("node-url", httpEndpoint),
-		slog.Any("metadata_uri", flagMintMetadataURI),
+		slog.Any("token-id", flagTransferTokenID),
 	)
 
 	//
@@ -152,5 +150,5 @@ func doMintToken() {
 		)
 		return
 	}
-	logger.Debug("Token mint request submitted successful")
+	logger.Debug("Token transfer request submitted successful")
 }
