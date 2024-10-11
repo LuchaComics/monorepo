@@ -12,34 +12,34 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-type MintTokenHTTPHandler struct {
+type ProofOfAuthorityTokenMintHTTPHandler struct {
 	config  *config.Config
 	logger  *slog.Logger
-	service *service.MintTokenService
+	service *service.ProofOfAuthorityTokenMintService
 }
 
-func NewMintTokenHTTPHandler(
+func NewProofOfAuthorityTokenMintHTTPHandler(
 	cfg *config.Config,
 	logger *slog.Logger,
-	mintTokenService *service.MintTokenService,
-) *MintTokenHTTPHandler {
-	return &MintTokenHTTPHandler{cfg, logger, mintTokenService}
+	mintTokenService *service.ProofOfAuthorityTokenMintService,
+) *ProofOfAuthorityTokenMintHTTPHandler {
+	return &ProofOfAuthorityTokenMintHTTPHandler{cfg, logger, mintTokenService}
 }
 
-type MintTokenRequestIDO struct {
+type ProofOfAuthorityTokenMintRequestIDO struct {
 	ProofOfAuthorityAccountAddress string `bson:"poa_address" json:"poa_address"`
 	ProofOfAuthorityWalletPassword string `bson:"poa_password" json:"poa_password"`
 	To                             string `json:"to"`           // Account receiving the Token.
 	MetadataURI                    string `json:"metadata_uri"` // URI pointing to Token metadata file.
 }
 
-type BlockchainMintTokenResponseIDO struct {
+type BlockchainProofOfAuthorityTokenMintResponseIDO struct {
 }
 
-func (h *MintTokenHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
+func (h *ProofOfAuthorityTokenMintHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	req, err := unmarshalMintTokenRequest(ctx, r)
+	req, err := unmarshalProofOfAuthorityTokenMintRequest(ctx, r)
 	if err != nil {
 		httperror.ResponseError(w, err)
 		return
@@ -67,9 +67,9 @@ func (h *MintTokenHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func unmarshalMintTokenRequest(ctx context.Context, r *http.Request) (*MintTokenRequestIDO, error) {
+func unmarshalProofOfAuthorityTokenMintRequest(ctx context.Context, r *http.Request) (*ProofOfAuthorityTokenMintRequestIDO, error) {
 	// Initialize our array which will store all the results from the remote server.
-	var requestData *MintTokenRequestIDO
+	var requestData *ProofOfAuthorityTokenMintRequestIDO
 
 	defer r.Body.Close()
 

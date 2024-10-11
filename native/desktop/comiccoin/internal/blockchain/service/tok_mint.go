@@ -15,7 +15,7 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/kmutexutil"
 )
 
-type MintTokenService struct {
+type ProofOfAuthorityTokenMintService struct {
 	config                                *config.Config
 	logger                                *slog.Logger
 	kmutex                                kmutexutil.KMutexProvider
@@ -26,7 +26,7 @@ type MintTokenService struct {
 	broadcastMempoolTransactionDTOUseCase *usecase.BroadcastMempoolTransactionDTOUseCase
 }
 
-func NewMintTokenService(
+func NewProofOfAuthorityTokenMintService(
 	cfg *config.Config,
 	logger *slog.Logger,
 	kmutex kmutexutil.KMutexProvider,
@@ -35,11 +35,11 @@ func NewMintTokenService(
 	uc3 *usecase.WalletDecryptKeyUseCase,
 	uc4 *usecase.GetBlockchainLastestTokenIDUseCase,
 	uc5 *usecase.BroadcastMempoolTransactionDTOUseCase,
-) *MintTokenService {
-	return &MintTokenService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5}
+) *ProofOfAuthorityTokenMintService {
+	return &ProofOfAuthorityTokenMintService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5}
 }
 
-func (s *MintTokenService) Execute(
+func (s *ProofOfAuthorityTokenMintService) Execute(
 	ctx context.Context,
 	poaAddr *common.Address,
 	poaPassword string,

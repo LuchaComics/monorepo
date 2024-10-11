@@ -427,7 +427,7 @@ func DaemonCmd() *cobra.Command {
 				broadcastMempoolTxDTOUseCase)
 
 			// Tokens
-			mintTokenService := service.NewMintTokenService(
+			poaTokenMintService := service.NewProofOfAuthorityTokenMintService(
 				cfg,
 				logger,
 				kmutex,
@@ -592,10 +592,10 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				createTxService)
-			mintTokenHTTPHandler := httphandler.NewMintTokenHTTPHandler(
+			poaTokenMintHTTPHandler := httphandler.NewProofOfAuthorityTokenMintHTTPHandler(
 				cfg,
 				logger,
-				mintTokenService)
+				poaTokenMintService)
 			transferTokenHTTPHandler := httphandler.NewTransferTokenHTTPHandler(
 				cfg,
 				logger,
@@ -614,7 +614,7 @@ func DaemonCmd() *cobra.Command {
 				createAccountHTTPHandler,
 				getAccountHTTPHandler,
 				createTransactionHTTPHandler,
-				mintTokenHTTPHandler,
+				poaTokenMintHTTPHandler,
 				transferTokenHTTPHandler,
 				getTokenHTTPHandler,
 			)

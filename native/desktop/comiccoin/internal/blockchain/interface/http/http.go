@@ -42,7 +42,7 @@ type httpServerImpl struct {
 	createTransactionHTTPHandler *handler.CreateTransactionHTTPHandler
 
 	// mintTokenHTTPHandler is the handler for minting new Token.
-	mintTokenHTTPHandler *handler.MintTokenHTTPHandler
+	mintTokenHTTPHandler *handler.ProofOfAuthorityTokenMintHTTPHandler
 
 	// transferTokenHTTPHandler is the handler for transfering Tokens between accounts.
 	transferTokenHTTPHandler *handler.TransferTokenHTTPHandler
@@ -59,7 +59,7 @@ func NewHTTPServer(
 	createAccountHTTPHandler *handler.CreateAccountHTTPHandler,
 	getAccountHTTPHandler *handler.GetAccountHTTPHandler,
 	createTransactionHTTPHandler *handler.CreateTransactionHTTPHandler,
-	mintTokenHTTPHandler *handler.MintTokenHTTPHandler,
+	mintTokenHTTPHandler *handler.ProofOfAuthorityTokenMintHTTPHandler,
 	transferTokenHTTPHandler *handler.TransferTokenHTTPHandler,
 	getTokenHTTPHandler *handler.GetTokenHTTPHandler,
 ) HTTPServer {
