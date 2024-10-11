@@ -445,6 +445,10 @@ func DaemonCmd() *cobra.Command {
 				walletDecryptKeyUseCase,
 				getTokenUseCase,
 				broadcastMempoolTxDTOUseCase)
+			getTokenService := service.NewGetTokenService(
+				cfg,
+				logger,
+				getTokenUseCase)
 
 			// Mempool
 			mempoolReceiveService := service.NewMempoolReceiveService(
@@ -596,6 +600,10 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				transferTokenService)
+			getTokenHTTPHandler := httphandler.NewGetTokenHTTPHandler(
+				cfg,
+				logger,
+				getTokenService)
 			httpMiddleware := httpmiddle.NewMiddleware(
 				cfg,
 				logger)
@@ -608,6 +616,7 @@ func DaemonCmd() *cobra.Command {
 				createTransactionHTTPHandler,
 				mintTokenHTTPHandler,
 				transferTokenHTTPHandler,
+				getTokenHTTPHandler,
 			)
 
 			// TASK MANAGER

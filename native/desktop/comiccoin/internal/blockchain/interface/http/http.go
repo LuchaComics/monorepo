@@ -46,6 +46,9 @@ type httpServerImpl struct {
 
 	// transferTokenHTTPHandler is the handler for transfering Tokens between accounts.
 	transferTokenHTTPHandler *handler.TransferTokenHTTPHandler
+
+	// getTokenHTTPHandler is the handler for getting Token detail.
+	getTokenHTTPHandler *handler.GetTokenHTTPHandler
 }
 
 // NewHTTPServer creates a new HTTP server instance.
@@ -58,6 +61,7 @@ func NewHTTPServer(
 	createTransactionHTTPHandler *handler.CreateTransactionHTTPHandler,
 	mintTokenHTTPHandler *handler.MintTokenHTTPHandler,
 	transferTokenHTTPHandler *handler.TransferTokenHTTPHandler,
+	getTokenHTTPHandler *handler.GetTokenHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.HTTPAddress == "" {
@@ -86,6 +90,7 @@ func NewHTTPServer(
 		createTransactionHTTPHandler: createTransactionHTTPHandler,
 		mintTokenHTTPHandler:         mintTokenHTTPHandler,
 		transferTokenHTTPHandler:     transferTokenHTTPHandler,
+		getTokenHTTPHandler:          getTokenHTTPHandler,
 	}
 
 	// Attach the HTTP server controller to the ServeMux.
@@ -153,7 +158,10 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		// Handle the request to create a transaction.
 		port.createTransactionHTTPHandler.Execute(w, r)
 
-	// --- TOKENS --- //
+		// --- TOKENS --- //
+	case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "token" && r.Method == http.MethodGet:
+		// Handle the request to getting a transaction.
+		port.getTokenHTTPHandler.Execute(w, r, p[3])
 	case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "tokens" && p[3] == "mint" && r.Method == http.MethodPost:
 		// Handle the request to create a transaction.
 		port.mintTokenHTTPHandler.Execute(w, r)
