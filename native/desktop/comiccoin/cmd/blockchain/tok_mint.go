@@ -63,7 +63,7 @@ func doMintToken() {
 
 	httpEndpoint := fmt.Sprintf("http://%s:%d%s", flagListenHTTPIP, flagListenHTTPPort, mintTokensURL)
 
-	metadata := handler.MintTokenRequestIDO{
+	metadata := handler.ProofOfAuthorityTokenMintRequestIDO{
 		ProofOfAuthorityAccountAddress: flagProofOfAuthorityAccountAddress,
 		ProofOfAuthorityWalletPassword: flagProofOfAuthorityWalletPassword,
 		To:                             flagMintRecipientAddress,
