@@ -60,7 +60,7 @@ func (s *CreateTransactionService) Execute(
 		e["value"] = "missing value"
 	}
 	if len(e) != 0 {
-		s.logger.Warn("Failed creating new account",
+		s.logger.Warn("Failed validating create transaction parameters",
 			slog.Any("error", e))
 		return httperror.NewForBadRequest(&e)
 	}

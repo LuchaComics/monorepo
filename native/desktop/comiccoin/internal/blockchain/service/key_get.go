@@ -41,7 +41,7 @@ func (s *GetKeyService) Execute(walletAddress *common.Address, walletPassword st
 		e["wallet_password"] = "missing value"
 	}
 	if len(e) != 0 {
-		s.logger.Warn("Failed creating new account",
+		s.logger.Warn("Failed validating get key parameters",
 			slog.Any("error", e))
 		return nil, httperror.NewForBadRequest(&e)
 	}

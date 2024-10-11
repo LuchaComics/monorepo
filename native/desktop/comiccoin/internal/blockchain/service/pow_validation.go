@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"log/slog"
 	"time"
 
@@ -13,17 +14,20 @@ import (
 )
 
 type ProofOfWorkValidationService struct {
-	config                             *config.Config
-	logger                             *slog.Logger
-	kmutex                             kmutexutil.KMutexProvider
-	receiveProposedBlockDataDTOUseCase *usecase.ReceiveProposedBlockDataDTOUseCase
-	getBlockchainLastestHashUseCase    *usecase.GetBlockchainLastestHashUseCase
-	getBlockDataUseCase                *usecase.GetBlockDataUseCase
-	getAccountsHashStateUseCase        *usecase.GetAccountsHashStateUseCase
-	createBlockDataUseCase             *usecase.CreateBlockDataUseCase
-	setBlockchainLastestHashUseCase    *usecase.SetBlockchainLastestHashUseCase
-	getAccountUseCase                  *usecase.GetAccountUseCase
-	upsertAccountUseCase               *usecase.UpsertAccountUseCase
+	config                                       *config.Config
+	logger                                       *slog.Logger
+	kmutex                                       kmutexutil.KMutexProvider
+	receiveProposedBlockDataDTOUseCase           *usecase.ReceiveProposedBlockDataDTOUseCase
+	getBlockchainLastestHashUseCase              *usecase.GetBlockchainLastestHashUseCase
+	getBlockDataUseCase                          *usecase.GetBlockDataUseCase
+	getAccountsHashStateUseCase                  *usecase.GetAccountsHashStateUseCase
+	createBlockDataUseCase                       *usecase.CreateBlockDataUseCase
+	setBlockchainLastestHashUseCase              *usecase.SetBlockchainLastestHashUseCase
+	getAccountUseCase                            *usecase.GetAccountUseCase
+	upsertAccountUseCase                         *usecase.UpsertAccountUseCase
+	upsertTokenIfPreviousTokenNonceGTEUseCase    *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase
+	getBlockchainLastestTokenIDUseCase           *usecase.GetBlockchainLastestTokenIDUseCase
+	setBlockchainLastestTokenIDIfGreatestUseCase *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase
 }
 
 func NewProofOfWorkValidationService(
@@ -38,8 +42,11 @@ func NewProofOfWorkValidationService(
 	uc6 *usecase.SetBlockchainLastestHashUseCase,
 	uc7 *usecase.GetAccountUseCase,
 	uc8 *usecase.UpsertAccountUseCase,
+	uc9 *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase,
+	uc10 *usecase.GetBlockchainLastestTokenIDUseCase,
+	uc11 *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase,
 ) *ProofOfWorkValidationService {
-	return &ProofOfWorkValidationService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8}
+	return &ProofOfWorkValidationService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11}
 }
 
 func (s *ProofOfWorkValidationService) Execute(ctx context.Context) error {
@@ -113,14 +120,14 @@ func (s *ProofOfWorkValidationService) Execute(ctx context.Context) error {
 	// Validate our proposed block data to our blockchain.
 	//
 
-	blockData := &domain.BlockData{
+	newBlockData := &domain.BlockData{
 		Hash:            proposedBlockData.Hash,
 		Header:          proposedBlockData.Header,
 		HeaderSignature: proposedBlockData.HeaderSignature,
 		Trans:           proposedBlockData.Trans,
 		Validator:       proposedBlockData.Validator,
 	}
-	block, err := domain.ToBlock(blockData)
+	newBlock, err := domain.ToBlock(newBlockData)
 	if err != nil {
 		s.logger.Error("validator failed converting block data into a block",
 			slog.Any("error", err))
@@ -143,57 +150,78 @@ func (s *ProofOfWorkValidationService) Execute(ctx context.Context) error {
 			slog.Any("error", err))
 		return err
 	}
-	if err := block.ValidateBlock(previousBlock, stateRoot); err != nil {
+	if err := newBlock.ValidateBlock(previousBlock, stateRoot); err != nil {
 		s.logger.Error("validator failed validating the proposed block with the previous block",
 			slog.Any("error", err))
 		return err
 	}
 
 	//
-	// STEP 3:
+	// STEP 4
+	// Validate each transaction in our proposed block data to our blockchain.
+	//
+	//TODO: IMPL: VALIDATE THE BLOCK TRANSACTIONS
+
+	//
+	// STEP 5:
 	// Save to the blockchain database.
 	//
 
-	if err := s.createBlockDataUseCase.Execute(blockData.Hash, blockData.Header, blockData.HeaderSignature, blockData.Trans, blockData.Validator); err != nil {
+	createNewBlockErr := s.createBlockDataUseCase.Execute(
+		newBlockData.Hash,
+		newBlockData.Header,
+		newBlockData.HeaderSignature,
+		newBlockData.Trans,
+		newBlockData.Validator)
+	if createNewBlockErr != nil {
 		s.logger.Error("validator failed saving block data",
-			slog.Any("error", err))
-		return err
+			slog.Any("error", createNewBlockErr))
+		return createNewBlockErr
 	}
 
 	s.logger.Info("validator add new block to blockchain",
-		slog.Any("hash", proposedBlockData.Hash),
-		slog.Uint64("number", proposedBlockData.Header.Number),
-		slog.Any("previous_hash", proposedBlockData.Header.PrevBlockHash),
+		slog.Any("hash", newBlockData.Hash),
+		slog.Uint64("number", newBlockData.Header.Number),
+		slog.Any("previous_hash", newBlockData.Header.PrevBlockHash),
 	)
 
-	if err := s.setBlockchainLastestHashUseCase.Execute(blockData.Hash); err != nil {
+	if err := s.setBlockchainLastestHashUseCase.Execute(newBlockData.Hash); err != nil {
 		s.logger.Error("validator failed saving latest hash",
 			slog.Any("error", err))
 		return err
 	}
 
 	s.logger.Debug("validator set latest hash in blockchain",
-		slog.Any("hash", proposedBlockData.Hash),
+		slog.Any("hash", newBlockData.Hash),
 	)
 
 	//
-	// STEP 4
+	// STEP 6
 	// Update the account in our in-memory database.
 	//
 
-	for _, blockTx := range blockData.Trans {
-		if err := s.processAccountForBlockTransaction(blockData, &blockTx); err != nil {
-			s.logger.Error("Failed processing transaction",
-				slog.Any("error", err))
-			return err
+	for _, blockTx := range newBlockData.Trans {
+		if blockTx.Type == domain.TransactionTypeCoin {
+			if err := s.processAccountForBlockTransaction(&blockTx); err != nil {
+				s.logger.Error("Failed processing coin transaction",
+					slog.Any("error", err))
+				return err
+			}
+		}
+
+		if blockTx.Type == domain.TransactionTypeToken {
+			if err := s.processTokenForBlockTransaction(&blockTx); err != nil {
+				s.logger.Error("Failed processing token transaction",
+					slog.Any("error", err))
+				return err
+			}
 		}
 	}
 
 	return nil
 }
 
-// TODO: (1) Create somesort of `processAccountForBlockTransaction` service and (2) replace it with this.
-func (s *ProofOfWorkValidationService) processAccountForBlockTransaction(blockData *domain.BlockData, blockTx *domain.BlockTransaction) error {
+func (s *ProofOfWorkValidationService) processAccountForBlockTransaction(blockTx *domain.BlockTransaction) error {
 	// DEVELOPERS NOTE:
 	// Please remember that when this function executes, there already is an
 	// in-memory database of accounts populated and maintained by this node.
@@ -213,10 +241,7 @@ func (s *ProofOfWorkValidationService) processAccountForBlockTransaction(blockDa
 			return fmt.Errorf("The `From` account does not exist in our database for hash: %v", blockTx.From.String())
 		}
 		acc.Balance -= blockTx.Value
-
-		// DEVELOPERS NOTE:
-		// Do not update this accounts `Nonce`, we need to only update the
-		// `Nonce` to the receiving account, i.e. the `To` account.
+		acc.Nonce += 1 // Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
 
 		if err := s.upsertAccountUseCase.Execute(acc.Address, acc.Balance, acc.Nonce); err != nil {
 			s.logger.Error("Failed upserting account.",
@@ -227,7 +252,6 @@ func (s *ProofOfWorkValidationService) processAccountForBlockTransaction(blockDa
 		s.logger.Debug("New `From` account balance via validator",
 			slog.Any("account_address", acc.Address),
 			slog.Any("balance", acc.Balance),
-			slog.Any("tx_hash", blockTx.Hash),
 		)
 	}
 
@@ -250,15 +274,15 @@ func (s *ProofOfWorkValidationService) processAccountForBlockTransaction(blockDa
 			acc = &domain.Account{
 				Address: blockTx.To,
 
-				// Since we are iterating in reverse in the blockchain, we are
-				// starting at the latest block data and then iterating until
-				// we reach a genesis; therefore, if this account is created then
-				// this is their most recent transaction so therefore we want to
-				// save the nonce.
-				Nonce: blockData.Header.Nonce,
+				// Always start by zero, increment by 1 after mining successful.
+				Nonce: 0,
+
+				Balance: blockTx.Value,
 			}
+		} else {
+			acc.Balance += blockTx.Value
+			acc.Nonce += 1 // Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
 		}
-		acc.Balance += blockTx.Value
 
 		if err := s.upsertAccountUseCase.Execute(acc.Address, acc.Balance, acc.Nonce); err != nil {
 			s.logger.Error("Failed upserting account.",
@@ -269,8 +293,35 @@ func (s *ProofOfWorkValidationService) processAccountForBlockTransaction(blockDa
 		s.logger.Debug("New `To` account balance via validator",
 			slog.Any("account_address", acc.Address),
 			slog.Any("balance", acc.Balance),
-			slog.Any("tx_hash", blockTx.Hash),
 		)
+	}
+
+	return nil
+}
+
+func (s *ProofOfWorkValidationService) processTokenForBlockTransaction(blockTx *domain.BlockTransaction) error {
+	// Save our token to the local database ONLY if this transaction
+	// is the most recent one. We track "most recent" transaction by
+	// the nonce value in the token.
+	err := s.upsertTokenIfPreviousTokenNonceGTEUseCase.Execute(
+		blockTx.TokenID,
+		blockTx.To,
+		blockTx.TokenMetadataURI,
+		blockTx.TokenNonce)
+	if err != nil {
+		s.logger.Error("Failed upserting (if previous token nonce GTE then current)",
+			slog.Any("error", err))
+		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+	}
+
+	// DEVELOPERS NOTE:
+	// This code will execute when we mint new tokens, it will not execute if
+	// we are `transfering` or `burning` a token since no new token IDs are
+	// created.
+	if err := s.setBlockchainLastestTokenIDIfGreatestUseCase.Execute(blockTx.TokenID); err != nil {
+		s.logger.Error("validator failed saving latest hash",
+			slog.Any("error", err))
+		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
 
 	return nil

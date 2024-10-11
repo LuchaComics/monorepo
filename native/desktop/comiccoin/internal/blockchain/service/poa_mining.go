@@ -32,6 +32,7 @@ type ProofOfAuthorityMiningService struct {
 	upsertTokenIfPreviousTokenNonceGTEUseCase    *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase
 	upsertAccountUseCase                         *usecase.UpsertAccountUseCase
 	setBlockchainLastestHashUseCase              *usecase.SetBlockchainLastestHashUseCase
+	getBlockchainLastestTokenIDUseCase           *usecase.GetBlockchainLastestTokenIDUseCase
 	setBlockchainLastestTokenIDIfGreatestUseCase *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase
 }
 
@@ -53,9 +54,10 @@ func NewProofOfAuthorityMiningService(
 	uc11 *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase,
 	uc12 *usecase.UpsertAccountUseCase,
 	uc13 *usecase.SetBlockchainLastestHashUseCase,
-	uc14 *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase,
+	uc14 *usecase.GetBlockchainLastestTokenIDUseCase,
+	uc15 *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase,
 ) *ProofOfAuthorityMiningService {
-	return &ProofOfAuthorityMiningService{config, logger, kmutex, getKeyService, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12, uc13, uc14}
+	return &ProofOfAuthorityMiningService{config, logger, kmutex, getKeyService, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12, uc13, uc14, uc15}
 }
 
 func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
@@ -119,9 +121,6 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	}
 	poaValidator := prevBlockData.Validator
 
-	// Variable used to keep track the most recent `token_id` value.
-	latestTokenID := prevBlockData.Header.LatestTokenID
-
 	// Apply whatever fees we request by the authority...
 	gasPrice := uint64(s.config.Blockchain.GasPrice)
 	unitsOfGas := uint64(s.config.Blockchain.UnitsOfGas)
@@ -131,57 +130,40 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 
 	//
 	// STEP 3:
-	// Setup our new block.
+	// Iterate through all the pending transactions and update our node's local
+	// database. Afterwords create the block transaction which we will include
+	// in our blockchain `block` and then perform our mining.
 	//
 
-	// Iterate through all the pending transactions and perform various
-	// computations...
 	for _, pendingBlockTx := range pendingBlockTxs {
-
 		//
 		// STEP 3 (A):
+		// VALIDATION
+		//
+
+		// TODO: IMPL.... FOR NOW ASSUME TRANSACTION IS NOT FRAUD
+
+		//
+		// STEP 3 (B):
 		// Process tokens.
 		//
 
 		if pendingBlockTx.Type == domain.TransactionTypeToken {
-			// STEP 3 (A) (i):
-			// If our token ID is greater then the blockchain's state
-			// then let's update our blockchain state with our latest token id.
-			if pendingBlockTx.TokenID > latestTokenID {
-				latestTokenID = pendingBlockTx.TokenID
-			}
-
-			// STEP 3 (A) (ii):
-			// Save our token to the local database ONLY if this transaction
-			// is the most recent one. We track "most recent" transaction by
-			// the nonce value in the token.
-			err := s.upsertTokenIfPreviousTokenNonceGTEUseCase.Execute(
-				pendingBlockTx.TokenID,
-				pendingBlockTx.To,
-				pendingBlockTx.TokenMetadataURI,
-				pendingBlockTx.TokenNonce)
-			if err != nil {
-				s.logger.Error("Failed upserting (if previous token nonce GTE then current)",
-					slog.Any("error", err))
-				log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
-			}
-
-			// STEP 3 (A) (iii):
-			if err := s.setBlockchainLastestTokenIDIfGreatestUseCase.Execute(pendingBlockTx.TokenID); err != nil {
-				s.logger.Error("validator failed saving latest hash",
+			if err := s.processTokenForPendingBlockTransaction(pendingBlockTx); err != nil {
+				s.logger.Error("Failed processing token in pending block transaction",
 					slog.Any("error", err))
 				log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 			}
 		}
 
 		//
-		// STEP 3 (B):
+		// STEP 3 (C):
 		// Process coins.
 		//
 
 		if pendingBlockTx.Type == domain.TransactionTypeCoin {
-			if err := s.processAccountForBlockTransaction(pendingBlockTx); err != nil {
-				s.logger.Error("Failed processing accounts",
+			if err := s.processAccountForPendingBlockTransaction(pendingBlockTx); err != nil {
+				s.logger.Error("Failed processing account in pending block transaction",
 					slog.Any("error", err))
 				log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 			}
@@ -202,6 +184,14 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	tree, err := merkle.NewTree(trans)
 	if err != nil {
 		s.logger.Error("Failed creating merkle tree",
+			slog.Any("error", err))
+		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+	}
+
+	// Query the local database and get the most recent token ID.
+	latestTokenID, err := s.getBlockchainLastestTokenIDUseCase.Execute()
+	if err != nil {
+		s.logger.Error("Failed getting blockchains latest token id",
 			slog.Any("error", err))
 		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
@@ -258,7 +248,7 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 			StateRoot:     stateRoot,
 			TransRoot:     tree.RootHex(), //
 			Nonce:         0,              // Will be identified by the PoW algorithm.
-			LatestTokenID: latestTokenID,  // Ensure our blockchain state has the latest token ID recorded.
+			LatestTokenID: latestTokenID,  // Ensure our blockchain state has always the latest token ID recorded.
 			TokensRoot:    tokensRoot,
 		},
 		HeaderSignature: []byte{}, // Will be identified by the PoA algorithm in this function!
@@ -267,7 +257,7 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 
 	//
 	// STEP 4:
-	// Execute the proof of work to find our nounce to meet the hash difficulty.
+	// Execute the proof of work to find our nonce to meet the hash difficulty.
 	//
 
 	nonce, powErr := s.proofOfWorkUseCase.Execute(ctx, &block, s.config.Blockchain.Difficulty)
@@ -397,7 +387,7 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	return nil
 }
 
-func (s *ProofOfAuthorityMiningService) processAccountForBlockTransaction(blockTx *domain.PendingBlockTransaction) error {
+func (s *ProofOfAuthorityMiningService) processAccountForPendingBlockTransaction(blockTx *domain.PendingBlockTransaction) error {
 	// DEVELOPERS NOTE:
 	// Please remember that when this function executes, there already is an
 	// in-memory database of accounts populated and maintained by this node.
@@ -470,6 +460,34 @@ func (s *ProofOfAuthorityMiningService) processAccountForBlockTransaction(blockT
 			slog.Any("account_address", acc.Address),
 			slog.Any("balance", acc.Balance),
 		)
+	}
+
+	return nil
+}
+
+func (s *ProofOfAuthorityMiningService) processTokenForPendingBlockTransaction(pendingBlockTx *domain.PendingBlockTransaction) error {
+	// Save our token to the local database ONLY if this transaction
+	// is the most recent one. We track "most recent" transaction by
+	// the nonce value in the token.
+	err := s.upsertTokenIfPreviousTokenNonceGTEUseCase.Execute(
+		pendingBlockTx.TokenID,
+		pendingBlockTx.To,
+		pendingBlockTx.TokenMetadataURI,
+		pendingBlockTx.TokenNonce)
+	if err != nil {
+		s.logger.Error("Failed upserting (if previous token nonce GTE then current)",
+			slog.Any("error", err))
+		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+	}
+
+	// DEVELOPERS NOTE:
+	// This code will execute when we mint new tokens, it will not execute if
+	// we are `transfering` or `burning` a token since no new token IDs are
+	// created.
+	if err := s.setBlockchainLastestTokenIDIfGreatestUseCase.Execute(pendingBlockTx.TokenID); err != nil {
+		s.logger.Error("validator failed saving latest hash",
+			slog.Any("error", err))
+		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
 
 	return nil

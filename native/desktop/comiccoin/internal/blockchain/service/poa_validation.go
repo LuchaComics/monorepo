@@ -27,7 +27,7 @@ type ProofOfAuthorityValidationService struct {
 	setBlockchainLastestTokenIDIfGreatestUseCase *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase
 	getAccountUseCase                            *usecase.GetAccountUseCase
 	upsertAccountUseCase                         *usecase.UpsertAccountUseCase
-	upsertTokenUseCase                           *usecase.UpsertTokenUseCase
+	upsertTokenIfPreviousTokenNonceGTEUseCase    *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase
 }
 
 func NewProofOfAuthorityValidationService(
@@ -44,7 +44,7 @@ func NewProofOfAuthorityValidationService(
 	uc8 *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase,
 	uc9 *usecase.GetAccountUseCase,
 	uc10 *usecase.UpsertAccountUseCase,
-	uc11 *usecase.UpsertTokenUseCase,
+	uc11 *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase,
 ) *ProofOfAuthorityValidationService {
 	return &ProofOfAuthorityValidationService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11}
 }
@@ -140,14 +140,14 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 	}
 
 	// Load up into our datastructure.
-	blockData := &domain.BlockData{
+	newBlockData := &domain.BlockData{
 		Hash:            proposedBlockData.Hash,
 		Header:          proposedBlockData.Header,
 		HeaderSignature: proposedBlockData.HeaderSignature,
 		Trans:           proposedBlockData.Trans,
 		Validator:       proposedBlockData.Validator,
 	}
-	block, err := domain.ToBlock(blockData)
+	newBlock, err := domain.ToBlock(newBlockData)
 	if err != nil {
 		s.logger.Error("validator failed converting block data into a block",
 			slog.Any("error", err))
@@ -163,7 +163,7 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 	//
 
 	poaValidator := prevBlockData.Validator
-	if poaValidator.Verify(blockData.HeaderSignature, blockData.Header) == false {
+	if poaValidator.Verify(newBlockData.HeaderSignature, newBlockData.Header) == false {
 		s.logger.Error("validator failed validating: authority signature is invalid")
 		return fmt.Errorf("validator failed validating: %v", "authority signature is invalid")
 	}
@@ -174,7 +174,7 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 	// computations...
 	//
 
-	for _, blockTx := range blockData.Trans {
+	for _, blockTx := range newBlockData.Trans {
 
 		//
 		// STEP 5 (A):
@@ -195,19 +195,10 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 		//
 
 		if blockTx.Type == domain.TransactionTypeToken {
-			// STEP 5 (A) (i):
-			// Save our token to the local database.
-			if err := s.upsertTokenUseCase.Execute(blockTx.TokenID, blockTx.To, blockTx.TokenMetadataURI); err != nil {
-				s.logger.Error("Failed upserting token",
+			if err := s.processTokenForBlockTransaction(&blockTx); err != nil {
+				s.logger.Error("Failed processing token transaction",
 					slog.Any("error", err))
-				log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
-			}
-
-			// STEP 5 (A) (ii):
-			if err := s.setBlockchainLastestTokenIDIfGreatestUseCase.Execute(blockTx.TokenID); err != nil {
-				s.logger.Error("validator failed saving latest hash",
-					slog.Any("error", err))
-				log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+				return err
 			}
 		}
 	}
@@ -248,13 +239,13 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 		slog.Uint64("prev_header_number", previousBlock.Header.Number),
 		slog.Any("prev_header_prev_hash", previousBlock.Header.PrevBlockHash),
 		slog.Any("prev_header_stateroot", previousBlock.Header.StateRoot),
-		slog.Any("current_hash", blockData.Hash),
-		slog.Uint64("current_header_number", blockData.Header.Number),
-		slog.Any("current_header_prev_hash", blockData.Header.PrevBlockHash),
-		slog.Any("current_header_stateroot", blockData.Header.StateRoot),
+		slog.Any("current_hash", newBlockData.Hash),
+		slog.Uint64("current_header_number", newBlockData.Header.Number),
+		slog.Any("current_header_prev_hash", newBlockData.Header.PrevBlockHash),
+		slog.Any("current_header_stateroot", newBlockData.Header.StateRoot),
 	)
 
-	if err := block.ValidateBlock(block, currentStateRootInThisNode); err != nil {
+	if err := newBlock.ValidateBlock(previousBlock, currentStateRootInThisNode); err != nil {
 		// DEVELOPERS NOTE:
 		// Not an error but simply a friendly warning message.
 		s.logger.Warn("validator failed validating the proposed block with the previous block",
@@ -267,7 +258,7 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 	// Save to the (local) blockchain database.
 	//
 
-	if err := s.createBlockDataUseCase.Execute(blockData.Hash, blockData.Header, blockData.HeaderSignature, blockData.Trans, blockData.Validator); err != nil {
+	if err := s.createBlockDataUseCase.Execute(newBlockData.Hash, newBlockData.Header, newBlockData.HeaderSignature, newBlockData.Trans, newBlockData.Validator); err != nil {
 		s.logger.Error("validator failed saving block data",
 			slog.Any("error", err))
 		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
@@ -279,7 +270,7 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 		slog.Any("previous_hash", proposedBlockData.Header.PrevBlockHash),
 	)
 
-	if err := s.setBlockchainLastestHashUseCase.Execute(blockData.Hash); err != nil {
+	if err := s.setBlockchainLastestHashUseCase.Execute(newBlockData.Hash); err != nil {
 		s.logger.Error("validator failed saving latest hash",
 			slog.Any("error", err))
 		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
@@ -365,6 +356,34 @@ func (s *ProofOfAuthorityValidationService) processAccountForBlockTransaction(bl
 			slog.Any("account_address", acc.Address),
 			slog.Any("balance", acc.Balance),
 		)
+	}
+
+	return nil
+}
+
+func (s *ProofOfAuthorityValidationService) processTokenForBlockTransaction(blockTx *domain.BlockTransaction) error {
+	// Save our token to the local database ONLY if this transaction
+	// is the most recent one. We track "most recent" transaction by
+	// the nonce value in the token.
+	err := s.upsertTokenIfPreviousTokenNonceGTEUseCase.Execute(
+		blockTx.TokenID,
+		blockTx.To,
+		blockTx.TokenMetadataURI,
+		blockTx.TokenNonce)
+	if err != nil {
+		s.logger.Error("Failed upserting (if previous token nonce GTE then current)",
+			slog.Any("error", err))
+		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+	}
+
+	// DEVELOPERS NOTE:
+	// This code will execute when we mint new tokens, it will not execute if
+	// we are `transfering` or `burning` a token since no new token IDs are
+	// created.
+	if err := s.setBlockchainLastestTokenIDIfGreatestUseCase.Execute(blockTx.TokenID); err != nil {
+		s.logger.Error("validator failed saving latest hash",
+			slog.Any("error", err))
+		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
 
 	return nil

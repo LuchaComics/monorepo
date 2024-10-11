@@ -245,10 +245,6 @@ func DaemonCmd() *cobra.Command {
 				accountRepo)
 
 			// Token
-			upsertTokenUseCase := usecase.NewUpsertTokenUseCase( // DEPRECATED
-				cfg,
-				logger,
-				tokenRepo)
 			upsertTokenIfPreviousTokenNonceGTEUseCase := usecase.NewUpsertTokenIfPreviousTokenNonceGTEUseCase(
 				cfg,
 				logger,
@@ -484,6 +480,7 @@ func DaemonCmd() *cobra.Command {
 				upsertTokenIfPreviousTokenNonceGTEUseCase,
 				upsertAccountUseCase,
 				setBlockchainLastestHashUseCase,
+				getBlockchainLastestTokenIDUseCase,
 				setBlockchainLastestTokenIDIfGreatestUseCase,
 			)
 
@@ -500,6 +497,9 @@ func DaemonCmd() *cobra.Command {
 				setBlockchainLastestHashUseCase,
 				getAccountUseCase,
 				upsertAccountUseCase,
+				upsertTokenIfPreviousTokenNonceGTEUseCase,
+				getBlockchainLastestTokenIDUseCase,
+				setBlockchainLastestTokenIDIfGreatestUseCase,
 			)
 			proofOfAuthorityValidationService := service.NewProofOfAuthorityValidationService(
 				cfg,
@@ -515,7 +515,7 @@ func DaemonCmd() *cobra.Command {
 				setBlockchainLastestTokenIDIfGreatestUseCase,
 				getAccountUseCase,
 				upsertAccountUseCase,
-				upsertTokenUseCase,
+				upsertTokenIfPreviousTokenNonceGTEUseCase,
 			)
 
 			majorityVoteConsensusServerService := service.NewMajorityVoteConsensusServerService(

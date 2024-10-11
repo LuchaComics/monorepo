@@ -42,7 +42,7 @@ func (s *CreateBlockDataService) Execute(dataDir, hash, walletPassword string) (
 		e["wallet_password"] = "missing value"
 	}
 	if len(e) != 0 {
-		s.logger.Warn("Failed creating new account",
+		s.logger.Warn("Failed validating block create parameters",
 			slog.Any("error", e))
 		return nil, httperror.NewForBadRequest(&e)
 	}

@@ -33,7 +33,7 @@ func (s *GetBlockDataService) Execute(hash string) (*domain.BlockData, error) {
 		e["hash"] = "missing value"
 	}
 	if len(e) != 0 {
-		s.logger.Warn("Failed creating new account",
+		s.logger.Warn("Failed  validating get block parameters",
 			slog.Any("error", e))
 		return nil, httperror.NewForBadRequest(&e)
 	}

@@ -15,86 +15,86 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/kmutexutil"
 )
 
-type MintTokenService struct {
+// Service represents token owners transfering the token they own to another
+// account in our blockchain.
+type TransferTokenService struct {
 	config                                *config.Config
 	logger                                *slog.Logger
 	kmutex                                kmutexutil.KMutexProvider
 	loadGenesisBlockDataUseCase           *usecase.LoadGenesisBlockDataUseCase
 	getWalletUseCase                      *usecase.GetWalletUseCase
 	walletDecryptKeyUseCase               *usecase.WalletDecryptKeyUseCase
+	getTokenUseCase                       *usecase.GetTokenUseCase
 	getBlockchainLastestTokenIDUseCase    *usecase.GetBlockchainLastestTokenIDUseCase
 	broadcastMempoolTransactionDTOUseCase *usecase.BroadcastMempoolTransactionDTOUseCase
 }
 
-func NewMintTokenService(
+func NewTransferTokenService(
 	cfg *config.Config,
 	logger *slog.Logger,
 	kmutex kmutexutil.KMutexProvider,
 	uc1 *usecase.LoadGenesisBlockDataUseCase,
 	uc2 *usecase.GetWalletUseCase,
 	uc3 *usecase.WalletDecryptKeyUseCase,
-	uc4 *usecase.GetBlockchainLastestTokenIDUseCase,
-	uc5 *usecase.BroadcastMempoolTransactionDTOUseCase,
-) *MintTokenService {
-	return &MintTokenService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5}
+	uc4 *usecase.GetTokenUseCase,
+	uc5 *usecase.GetBlockchainLastestTokenIDUseCase,
+	uc6 *usecase.BroadcastMempoolTransactionDTOUseCase,
+) *TransferTokenService {
+	return &TransferTokenService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6}
 }
 
-func (s *MintTokenService) Execute(
+func (s *TransferTokenService) Execute(
 	ctx context.Context,
-	poaAddr *common.Address,
-	poaPassword string,
+	tokenOwnerAddr *common.Address,
+	tokenOwnerPassword string,
 	toAddr *common.Address,
-	metadataURI string,
+	tokenID uint64,
 ) error {
 	// Lock the mining service until it has completed executing (or errored).
-	s.kmutex.Acquire("token-minting")
-	defer s.kmutex.Release("token-minting")
+	s.kmutex.Acquire("token-transfering")
+	defer s.kmutex.Release("token-transfering")
 
 	//
-	// STEP 1: Validation.
+	// STEP 1:
+	// Validation.
 	//
 
 	e := make(map[string]string)
-	if poaAddr == nil {
-		e["poa_address"] = "missing value"
+	if tokenOwnerAddr == nil {
+		e["token_owner_address"] = "missing value"
 	}
-	if poaPassword == "" {
-		e["poa_password"] = "missing value"
+	if tokenOwnerPassword == "" {
+		e["token_owner_password"] = "missing value"
 	}
 	if toAddr == nil {
 		e["to"] = "missing value"
 	}
-	if metadataURI == "" {
-		e["metadata_uri"] = "missing value"
-	}
 	if len(e) != 0 {
-		s.logger.Warn("Failed validating token mint parameters",
+		s.logger.Warn("Failed validating token transfer parameters",
 			slog.Any("error", e))
 		return httperror.NewForBadRequest(&e)
 	}
 
 	//
-	// STEP 2: Get the account and extract the wallet private/public key.
+	// STEP 2:
+	// Get the account and extract the wallet private/public key.
 	//
 
-	wallet, err := s.getWalletUseCase.Execute(poaAddr)
+	wallet, err := s.getWalletUseCase.Execute(tokenOwnerAddr)
 	if err != nil {
 		s.logger.Error("failed getting from database",
-			slog.Any("from_account_address", poaAddr),
 			slog.Any("error", err))
 		return fmt.Errorf("failed getting from database: %s", err)
 	}
 	if wallet == nil {
 		s.logger.Error("failed getting from database",
-			slog.Any("from_account_address", poaAddr),
 			slog.Any("error", "d.n.e."))
 		return fmt.Errorf("failed getting from database: %s", "wallet d.n.e.")
 	}
 
-	key, err := s.walletDecryptKeyUseCase.Execute(wallet.Filepath, poaPassword)
+	key, err := s.walletDecryptKeyUseCase.Execute(wallet.Filepath, tokenOwnerPassword)
 	if err != nil {
 		s.logger.Error("failed getting key",
-			slog.Any("from_account_address", poaAddr),
 			slog.Any("error", err))
 		return fmt.Errorf("failed getting key: %s", err)
 	}
@@ -104,57 +104,44 @@ func (s *MintTokenService) Execute(
 
 	//
 	// STEP 3:
-	// Verify the account is validator.
+	// Get the token for the particular token ID.
 	//
 
-	genesisBlockData, err := s.loadGenesisBlockDataUseCase.Execute()
+	token, err := s.getTokenUseCase.Execute(tokenID)
 	if err != nil {
-		s.logger.Error("failed getting account",
-			slog.Any("from_account_address", poaAddr),
+		s.logger.Error("failed getting token",
 			slog.Any("error", err))
-		return fmt.Errorf("failed getting account: %s", err)
-	}
-	if genesisBlockData == nil {
-		return fmt.Errorf("failed getting genesis block data: %s", "d.n.e.")
-	}
-	validator := genesisBlockData.Validator
-
-	publicKeyECDSA, err := validator.GetPublicKeyECDSA()
-	if err != nil {
-		s.logger.Error("failed unmarshalling validator public key",
-			slog.Any("from_account_address", poaAddr),
-			slog.Any("error", err))
-		return fmt.Errorf("failed unmarshalling validator public key: %s", err)
+		return fmt.Errorf("failed getting token: %s", err)
 	}
 
-	// Developers Note:
-	// This is a super important step to enforce the authority being used by
-	// the correct party. This code verifies that the the public key of the
-	// authority matches the public key set on the genesis block because the
-	// user has opend up the actual authorities wallet.
-	if key.PrivateKey.PublicKey.Equal(publicKeyECDSA) == false {
-		return fmt.Errorf("failed comparing public keys: %s", "they do not match")
+	// Defensive code.
+	if token == nil {
+		s.logger.Warn("failed getting token",
+			slog.Any("token_id", tokenID),
+			slog.Any("error", "token does not exist"))
+		return fmt.Errorf("failed getting token: does not exist for ID: %v", tokenID)
 	}
 
 	//
-	// STEP 4
-	// Authority generates the latest token ID value by taking the previous
-	// token ID value and incrementing it by one.
+	// STEP 3:
+	// Verify the account owns the token
 	//
 
-	latestTokenID, err := s.getBlockchainLastestTokenIDUseCase.Execute()
-	if err != nil {
-		s.logger.Error("failed getting latest token ID",
-			slog.Any("from_account_address", poaAddr),
-			slog.Any("error", err))
-		return err
+	if tokenOwnerAddr.Hex() != token.Owner.Hex() {
+		s.logger.Warn("permission failed",
+			slog.Any("token_id", tokenID))
+		return fmt.Errorf("permission denied: token address is %v but your address is %v", token.Owner.Hex(), tokenOwnerAddr.Hex())
 	}
 
-	newTokenID := latestTokenID + 1
+	//
+	// STEP 4:
+	// Increment token `nonce` - this is very important as it tells the
+	// blockchain that we are commiting a transaction and hence the miner will
+	// execute the transfer. If we do not increment the nonce then no
+	// transaction happens!
+	//
 
-	//TODO: Add security feature of looking up the latest blockchain state and
-	// compare the latest token id set there and the one here and error if
-	// inconsistencies.
+	token.Nonce += 1
 
 	//
 	// STEP 5
@@ -164,25 +151,25 @@ func (s *MintTokenService) Execute(
 	tx := &domain.Transaction{
 		ChainID:          s.config.Blockchain.ChainID,
 		Nonce:            uint64(time.Now().Unix()),
-		From:             poaAddr,
+		From:             tokenOwnerAddr,
 		To:               toAddr,
 		Value:            0, // Token have no value!
 		Tip:              0,
 		Data:             make([]byte, 0),
 		Type:             domain.TransactionTypeToken,
-		TokenID:          newTokenID,
-		TokenMetadataURI: metadataURI,
-		TokenNonce:       0, // Newly minted tokens always have their nonce start at value of zero.
+		TokenID:          token.ID,
+		TokenMetadataURI: token.MetadataURI,
+		TokenNonce:       token.Nonce,
 	}
 
 	stx, signingErr := tx.Sign(key.PrivateKey)
 	if signingErr != nil {
-		s.logger.Debug("Failed to sign the token mint transaction",
+		s.logger.Debug("Failed to sign the token transfer transaction",
 			slog.Any("error", signingErr))
 		return signingErr
 	}
 
-	s.logger.Debug("Pending token mint transaction signed successfully",
+	s.logger.Debug("Pending token transfer transaction signed successfully",
 		slog.Uint64("tx_token_id", stx.TokenID))
 
 	//
@@ -206,15 +193,6 @@ func (s *MintTokenService) Execute(
 
 	s.logger.Info("Pending signed token transaction submitted to blockchain",
 		slog.Uint64("tx_token_id", stx.TokenID))
-
-	//
-	// STEP 7
-	// Finish, however do not save the `token_id`, let our PoA validator
-	// handle updating the database if the submission was correct. The reason
-	// for this is because if we update the local database to early and the PoA
-	// validator fails, then our local database will have incorrect latest
-	// `token_id` values saved.
-	//
 
 	return nil
 }
