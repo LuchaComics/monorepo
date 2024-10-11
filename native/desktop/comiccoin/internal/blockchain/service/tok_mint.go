@@ -23,7 +23,6 @@ type MintTokenService struct {
 	getWalletUseCase                      *usecase.GetWalletUseCase
 	walletDecryptKeyUseCase               *usecase.WalletDecryptKeyUseCase
 	getBlockchainLastestTokenIDUseCase    *usecase.GetBlockchainLastestTokenIDUseCase
-	setBlockchainLastestTokenIDUseCase    *usecase.SetBlockchainLastestTokenIDUseCase
 	broadcastMempoolTransactionDTOUseCase *usecase.BroadcastMempoolTransactionDTOUseCase
 }
 
@@ -35,10 +34,9 @@ func NewMintTokenService(
 	uc2 *usecase.GetWalletUseCase,
 	uc3 *usecase.WalletDecryptKeyUseCase,
 	uc4 *usecase.GetBlockchainLastestTokenIDUseCase,
-	uc5 *usecase.SetBlockchainLastestTokenIDUseCase,
-	uc6 *usecase.BroadcastMempoolTransactionDTOUseCase,
+	uc5 *usecase.BroadcastMempoolTransactionDTOUseCase,
 ) *MintTokenService {
-	return &MintTokenService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6}
+	return &MintTokenService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5}
 }
 
 func (s *MintTokenService) Execute(
@@ -174,6 +172,7 @@ func (s *MintTokenService) Execute(
 		Type:             domain.TransactionTypeToken,
 		TokenID:          newTokenID,
 		TokenMetadataURI: metadataURI,
+		TokenNonce:       0, // Newly minted tokens always have their nonce start at value of zero.
 	}
 
 	stx, signingErr := tx.Sign(key.PrivateKey)

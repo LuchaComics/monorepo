@@ -106,7 +106,7 @@ func doRunInitBlockchain() {
 		accountRepo)
 
 	// Token
-	upsertTokenUseCase := usecase.NewUpsertTokenUseCase(
+	upsertTokenIfPreviousTokenNonceGTEUseCase := usecase.NewUpsertTokenIfPreviousTokenNonceGTEUseCase(
 		cfg,
 		logger,
 		tokenRepo)
@@ -150,8 +150,7 @@ func doRunInitBlockchain() {
 		cfg,
 		logger,
 		accountRepo)
-
-	setBlockchainLastestTokenIDUseCase := usecase.NewSetBlockchainLastestTokenIDUseCase(
+	setBlockchainLastestTokenIDIfGreatestUseCase := usecase.NewSetBlockchainLastestTokenIDIfGreatestUseCase(
 		cfg,
 		logger,
 		latestBlockDataTokenIDRepo)
@@ -209,11 +208,11 @@ func doRunInitBlockchain() {
 		getAccountsHashStateUseCase,
 		getTokensHashStateUseCase,
 		setBlockchainLastestHashUseCase,
-		setBlockchainLastestTokenIDUseCase,
+		setBlockchainLastestTokenIDIfGreatestUseCase,
 		createBlockDataUseCase,
 		proofOfWorkUseCase,
 		upsertAccountUseCase,
-		upsertTokenUseCase,
+		upsertTokenIfPreviousTokenNonceGTEUseCase,
 	)
 
 	ctx := context.Background()

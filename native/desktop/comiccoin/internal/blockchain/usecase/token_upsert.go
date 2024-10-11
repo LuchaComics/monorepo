@@ -9,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+// DEPRECATED
 type UpsertTokenUseCase struct {
 	config *config.Config
 	logger *slog.Logger

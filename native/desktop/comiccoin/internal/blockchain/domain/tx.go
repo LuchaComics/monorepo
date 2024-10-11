@@ -31,7 +31,7 @@ type Transaction struct {
 	Type             string          `json:"type"`               // ComicCoin: The type of transaction this is, either `coin` or `token`.
 	TokenID          uint64          `json:"token_id"`           // ComicCoin: Unique identifier for the Token (if this transaciton is an Token).
 	TokenMetadataURI string          `json:"token_metadata_uri"` // ComicCoin: URI pointing to Token metadata file (if this transaciton is an Token).
-	// TokenNonce       uint64          `json:"token_nonce"`        // ComicCoin: For every transaction action (mint, transfer, burn, etc), increment token nonce by value of 1.
+	TokenNonce       uint64          `json:"token_nonce"`        // ComicCoin: For every transaction action (mint, transfer, burn, etc), increment token nonce by value of 1.
 }
 
 // Sign function signs the  transaction using the user's private key

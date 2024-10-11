@@ -21,17 +21,17 @@ import (
 )
 
 type CreateGenesisBlockDataService struct {
-	config                             *config.Config
-	logger                             *slog.Logger
-	coinbaseAccountKey                 *keystore.Key
-	getAccountsHashStateUseCase        *usecase.GetAccountsHashStateUseCase
-	getTokensHashStateUseCase          *usecase.GetTokensHashStateUseCase
-	setBlockchainLastestHashUseCase    *usecase.SetBlockchainLastestHashUseCase
-	setBlockchainLastestTokenIDUseCase *usecase.SetBlockchainLastestTokenIDUseCase
-	createBlockDataUseCase             *usecase.CreateBlockDataUseCase
-	proofOfWorkUseCase                 *usecase.ProofOfWorkUseCase
-	upsertAccountUseCase               *usecase.UpsertAccountUseCase
-	upsertTokenUseCase                 *usecase.UpsertTokenUseCase
+	config                                       *config.Config
+	logger                                       *slog.Logger
+	coinbaseAccountKey                           *keystore.Key
+	getAccountsHashStateUseCase                  *usecase.GetAccountsHashStateUseCase
+	getTokensHashStateUseCase                    *usecase.GetTokensHashStateUseCase
+	setBlockchainLastestHashUseCase              *usecase.SetBlockchainLastestHashUseCase
+	setBlockchainLastestTokenIDIfGreatestUseCase *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase
+	createBlockDataUseCase                       *usecase.CreateBlockDataUseCase
+	proofOfWorkUseCase                           *usecase.ProofOfWorkUseCase
+	upsertAccountUseCase                         *usecase.UpsertAccountUseCase
+	upsertTokenIfPreviousTokenNonceGTEUseCase    *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase
 }
 
 func NewCreateGenesisBlockDataService(
@@ -41,11 +41,11 @@ func NewCreateGenesisBlockDataService(
 	uc1 *usecase.GetAccountsHashStateUseCase,
 	uc2 *usecase.GetTokensHashStateUseCase,
 	uc3 *usecase.SetBlockchainLastestHashUseCase,
-	uc4 *usecase.SetBlockchainLastestTokenIDUseCase,
+	uc4 *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase,
 	uc5 *usecase.CreateBlockDataUseCase,
 	uc6 *usecase.ProofOfWorkUseCase,
 	uc7 *usecase.UpsertAccountUseCase,
-	uc8 *usecase.UpsertTokenUseCase,
+	uc8 *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase,
 ) *CreateGenesisBlockDataService {
 	return &CreateGenesisBlockDataService{config, logger, coinbaseAccKey, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8}
 }
@@ -126,9 +126,9 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 		Tip:              0,
 		Data:             make([]byte, 0),
 		Type:             domain.TransactionTypeToken,
-		TokenID:          0,
+		TokenID:          0, // The very first token in our entire blockchain starts at the value of zero.
 		TokenMetadataURI: "https://cpscapsule.com/comiccoin/tokens/0/metadata.json",
-		// TokenNonce:       0, // Newly minted tokens have their nonce always start at zero.
+		TokenNonce:       0, // Newly minted tokens always have their nonce start at value of zero.
 	}
 	signedNftTx, err := tokenTx.Sign(s.coinbaseAccountKey.PrivateKey)
 	if err != nil {
@@ -140,10 +140,10 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	// Save our token to our database.
 	//
 
-	if err := s.upsertTokenUseCase.Execute(tokenTx.TokenID, tokenTx.To, tokenTx.TokenMetadataURI); err != nil {
+	if err := s.upsertTokenIfPreviousTokenNonceGTEUseCase.Execute(tokenTx.TokenID, tokenTx.To, tokenTx.TokenMetadataURI, tokenTx.TokenNonce); err != nil {
 		return err
 	}
-	if err := s.setBlockchainLastestTokenIDUseCase.Execute(tokenTx.TokenID); err != nil {
+	if err := s.setBlockchainLastestTokenIDIfGreatestUseCase.Execute(tokenTx.TokenID); err != nil {
 		return fmt.Errorf("Failed to save last token ID of genesis block data: %v", err)
 	}
 

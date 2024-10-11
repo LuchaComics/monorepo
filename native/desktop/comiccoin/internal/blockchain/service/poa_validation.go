@@ -14,20 +14,20 @@ import (
 )
 
 type ProofOfAuthorityValidationService struct {
-	config                             *config.Config
-	logger                             *slog.Logger
-	kmutex                             kmutexutil.KMutexProvider
-	receiveProposedBlockDataDTOUseCase *usecase.ReceiveProposedBlockDataDTOUseCase
-	getBlockchainLastestHashUseCase    *usecase.GetBlockchainLastestHashUseCase
-	getBlockDataUseCase                *usecase.GetBlockDataUseCase
-	getAccountsHashStateUseCase        *usecase.GetAccountsHashStateUseCase
-	getTokensHashStateUseCase          *usecase.GetTokensHashStateUseCase
-	createBlockDataUseCase             *usecase.CreateBlockDataUseCase
-	setBlockchainLastestHashUseCase    *usecase.SetBlockchainLastestHashUseCase
-	setBlockchainLastestTokenIDUseCase *usecase.SetBlockchainLastestTokenIDUseCase
-	getAccountUseCase                  *usecase.GetAccountUseCase
-	upsertAccountUseCase               *usecase.UpsertAccountUseCase
-	upsertTokenUseCase                 *usecase.UpsertTokenUseCase
+	config                                       *config.Config
+	logger                                       *slog.Logger
+	kmutex                                       kmutexutil.KMutexProvider
+	receiveProposedBlockDataDTOUseCase           *usecase.ReceiveProposedBlockDataDTOUseCase
+	getBlockchainLastestHashUseCase              *usecase.GetBlockchainLastestHashUseCase
+	getBlockDataUseCase                          *usecase.GetBlockDataUseCase
+	getAccountsHashStateUseCase                  *usecase.GetAccountsHashStateUseCase
+	getTokensHashStateUseCase                    *usecase.GetTokensHashStateUseCase
+	createBlockDataUseCase                       *usecase.CreateBlockDataUseCase
+	setBlockchainLastestHashUseCase              *usecase.SetBlockchainLastestHashUseCase
+	setBlockchainLastestTokenIDIfGreatestUseCase *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase
+	getAccountUseCase                            *usecase.GetAccountUseCase
+	upsertAccountUseCase                         *usecase.UpsertAccountUseCase
+	upsertTokenUseCase                           *usecase.UpsertTokenUseCase
 }
 
 func NewProofOfAuthorityValidationService(
@@ -41,7 +41,7 @@ func NewProofOfAuthorityValidationService(
 	uc5 *usecase.GetTokensHashStateUseCase,
 	uc6 *usecase.CreateBlockDataUseCase,
 	uc7 *usecase.SetBlockchainLastestHashUseCase,
-	uc8 *usecase.SetBlockchainLastestTokenIDUseCase,
+	uc8 *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase,
 	uc9 *usecase.GetAccountUseCase,
 	uc10 *usecase.UpsertAccountUseCase,
 	uc11 *usecase.UpsertTokenUseCase,
@@ -204,7 +204,7 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 			}
 
 			// STEP 5 (A) (ii):
-			if err := s.setBlockchainLastestTokenIDUseCase.Execute(blockTx.TokenID); err != nil {
+			if err := s.setBlockchainLastestTokenIDIfGreatestUseCase.Execute(blockTx.TokenID); err != nil {
 				s.logger.Error("validator failed saving latest hash",
 					slog.Any("error", err))
 				log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")

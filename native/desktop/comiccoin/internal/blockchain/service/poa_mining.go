@@ -15,24 +15,24 @@ import (
 )
 
 type ProofOfAuthorityMiningService struct {
-	config                                  *config.Config
-	logger                                  *slog.Logger
-	kmutex                                  kmutexutil.KMutexProvider
-	getKeyService                           *GetKeyService
-	getAccountUseCase                       *usecase.GetAccountUseCase
-	getAccountsHashStateUseCase             *usecase.GetAccountsHashStateUseCase
-	getTokensHashStateUseCase               *usecase.GetTokensHashStateUseCase
-	listAllPendingBlockTransactionUseCase   *usecase.ListAllPendingBlockTransactionUseCase
-	getBlockchainLastestHashUseCase         *usecase.GetBlockchainLastestHashUseCase
-	getBlockDataUseCase                     *usecase.GetBlockDataUseCase
-	proofOfWorkUseCase                      *usecase.ProofOfWorkUseCase
-	createBlockDataUseCase                  *usecase.CreateBlockDataUseCase
-	broadcastProposedBlockDataDTOUseCase    *usecase.BroadcastProposedBlockDataDTOUseCase
-	deleteAllPendingBlockTransactionUseCase *usecase.DeleteAllPendingBlockTransactionUseCase
-	upsertTokenUseCase                      *usecase.UpsertTokenUseCase
-	upsertAccountUseCase                    *usecase.UpsertAccountUseCase
-	setBlockchainLastestHashUseCase         *usecase.SetBlockchainLastestHashUseCase
-	setBlockchainLastestTokenIDUseCase      *usecase.SetBlockchainLastestTokenIDUseCase
+	config                                       *config.Config
+	logger                                       *slog.Logger
+	kmutex                                       kmutexutil.KMutexProvider
+	getKeyService                                *GetKeyService
+	getAccountUseCase                            *usecase.GetAccountUseCase
+	getAccountsHashStateUseCase                  *usecase.GetAccountsHashStateUseCase
+	getTokensHashStateUseCase                    *usecase.GetTokensHashStateUseCase
+	listAllPendingBlockTransactionUseCase        *usecase.ListAllPendingBlockTransactionUseCase
+	getBlockchainLastestHashUseCase              *usecase.GetBlockchainLastestHashUseCase
+	getBlockDataUseCase                          *usecase.GetBlockDataUseCase
+	proofOfWorkUseCase                           *usecase.ProofOfWorkUseCase
+	createBlockDataUseCase                       *usecase.CreateBlockDataUseCase
+	broadcastProposedBlockDataDTOUseCase         *usecase.BroadcastProposedBlockDataDTOUseCase
+	deleteAllPendingBlockTransactionUseCase      *usecase.DeleteAllPendingBlockTransactionUseCase
+	upsertTokenIfPreviousTokenNonceGTEUseCase    *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase
+	upsertAccountUseCase                         *usecase.UpsertAccountUseCase
+	setBlockchainLastestHashUseCase              *usecase.SetBlockchainLastestHashUseCase
+	setBlockchainLastestTokenIDIfGreatestUseCase *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase
 }
 
 func NewProofOfAuthorityMiningService(
@@ -50,10 +50,10 @@ func NewProofOfAuthorityMiningService(
 	uc8 *usecase.CreateBlockDataUseCase,
 	uc9 *usecase.BroadcastProposedBlockDataDTOUseCase,
 	uc10 *usecase.DeleteAllPendingBlockTransactionUseCase,
-	uc11 *usecase.UpsertTokenUseCase,
+	uc11 *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase,
 	uc12 *usecase.UpsertAccountUseCase,
 	uc13 *usecase.SetBlockchainLastestHashUseCase,
-	uc14 *usecase.SetBlockchainLastestTokenIDUseCase,
+	uc14 *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase,
 ) *ProofOfAuthorityMiningService {
 	return &ProofOfAuthorityMiningService{config, logger, kmutex, getKeyService, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12, uc13, uc14}
 }
@@ -152,15 +152,22 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 			}
 
 			// STEP 3 (A) (ii):
-			// Save our token to the local database.
-			if err := s.upsertTokenUseCase.Execute(pendingBlockTx.TokenID, pendingBlockTx.To, pendingBlockTx.TokenMetadataURI); err != nil {
-				s.logger.Error("Failed upserting token",
+			// Save our token to the local database ONLY if this transaction
+			// is the most recent one. We track "most recent" transaction by
+			// the nonce value in the token.
+			err := s.upsertTokenIfPreviousTokenNonceGTEUseCase.Execute(
+				pendingBlockTx.TokenID,
+				pendingBlockTx.To,
+				pendingBlockTx.TokenMetadataURI,
+				pendingBlockTx.TokenNonce)
+			if err != nil {
+				s.logger.Error("Failed upserting (if previous token nonce GTE then current)",
 					slog.Any("error", err))
 				log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 			}
 
 			// STEP 3 (A) (iii):
-			if err := s.setBlockchainLastestTokenIDUseCase.Execute(pendingBlockTx.TokenID); err != nil {
+			if err := s.setBlockchainLastestTokenIDIfGreatestUseCase.Execute(pendingBlockTx.TokenID); err != nil {
 				s.logger.Error("validator failed saving latest hash",
 					slog.Any("error", err))
 				log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")

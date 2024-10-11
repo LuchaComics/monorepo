@@ -148,10 +148,6 @@ func DaemonCmd() *cobra.Command {
 			)
 
 			// ------------ Repo ------------
-			tokenRepo := repo.NewTokenRepo(
-				cfg,
-				logger,
-				tokenDB)
 			walletRepo := repo.NewWalletRepo(
 				cfg,
 				logger,
@@ -164,6 +160,10 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				memdb) // Do not store on disk, only in-memory.
+			tokenRepo := repo.NewTokenRepo(
+				cfg,
+				logger,
+				tokenDB)
 			mempoolTxRepo := repo.NewMempoolTransactionRepo(
 				cfg,
 				logger,
@@ -208,16 +208,6 @@ func DaemonCmd() *cobra.Command {
 				logger,
 				genesisBlockDataRepo)
 
-			// Token
-			upsertTokenUseCase := usecase.NewUpsertTokenUseCase(
-				cfg,
-				logger,
-				tokenRepo)
-			getTokensHashStateUseCase := usecase.NewGetTokensHashStateUseCase(
-				cfg,
-				logger,
-				tokenRepo)
-
 			// Wallet
 			createWalletUseCase := usecase.NewCreateWalletUseCase(
 				cfg,
@@ -253,6 +243,20 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				accountRepo)
+
+			// Token
+			upsertTokenUseCase := usecase.NewUpsertTokenUseCase( // DEPRECATED
+				cfg,
+				logger,
+				tokenRepo)
+			upsertTokenIfPreviousTokenNonceGTEUseCase := usecase.NewUpsertTokenIfPreviousTokenNonceGTEUseCase(
+				cfg,
+				logger,
+				tokenRepo)
+			getTokensHashStateUseCase := usecase.NewGetTokensHashStateUseCase(
+				cfg,
+				logger,
+				tokenRepo)
 
 			// Mempool Transaction DTO
 			broadcastMempoolTxDTOUseCase := usecase.NewBroadcastMempoolTransactionDTOUseCase(
@@ -307,7 +311,7 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				latestBlockDataTokenIDRepo)
-			setBlockchainLastestTokenIDUseCase := usecase.NewSetBlockchainLastestTokenIDUseCase(
+			setBlockchainLastestTokenIDIfGreatestUseCase := usecase.NewSetBlockchainLastestTokenIDIfGreatestUseCase(
 				cfg,
 				logger,
 				latestBlockDataTokenIDRepo)
@@ -431,7 +435,6 @@ func DaemonCmd() *cobra.Command {
 				getWalletUseCase,
 				walletDecryptKeyUseCase,
 				getBlockchainLastestTokenIDUseCase,
-				setBlockchainLastestTokenIDUseCase,
 				broadcastMempoolTxDTOUseCase)
 
 			// Mempool
@@ -478,10 +481,10 @@ func DaemonCmd() *cobra.Command {
 				createBlockDataUseCase,
 				broadcastProposedBlockDataDTOUseCase,
 				deleteAllPendingBlockTxUseCase,
-				upsertTokenUseCase,
+				upsertTokenIfPreviousTokenNonceGTEUseCase,
 				upsertAccountUseCase,
 				setBlockchainLastestHashUseCase,
-				setBlockchainLastestTokenIDUseCase,
+				setBlockchainLastestTokenIDIfGreatestUseCase,
 			)
 
 			// Validation
@@ -509,7 +512,7 @@ func DaemonCmd() *cobra.Command {
 				getTokensHashStateUseCase,
 				createBlockDataUseCase,
 				setBlockchainLastestHashUseCase,
-				setBlockchainLastestTokenIDUseCase,
+				setBlockchainLastestTokenIDIfGreatestUseCase,
 				getAccountUseCase,
 				upsertAccountUseCase,
 				upsertTokenUseCase,
