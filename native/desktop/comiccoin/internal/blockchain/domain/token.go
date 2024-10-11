@@ -11,6 +11,7 @@ type Token struct {
 	ID          uint64          `json:"id"`
 	Owner       *common.Address `json:"owner"`
 	MetadataURI string          `json:"metadata_uri"` // ComicCoin: URI pointing to Token metadata file (if this transaciton is an Token).
+	// Nonce       uint64          `json:"nonce"`
 }
 
 // TokenRepository interface defines the methods for interacting with the token repository.

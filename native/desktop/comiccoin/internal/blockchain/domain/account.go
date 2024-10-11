@@ -55,7 +55,19 @@ type Account struct {
 
 	// The balance of the account in coins.
 	Balance uint64 `json:"balance"`
+	//
+	// // The map of tokens under ownership by this account. The map structure is
+	// // `token_id` mapping to `token_metadata_uri`.
+	// OwnedTokens []*AccountToken
 }
+
+//
+// // AccountToken represents the token that is owned by this account.
+// type AccountToken struct {
+// 	ID          uint64 `json:"id"`
+// 	MetadataURI string `json:"metadata_uri"` // ComicCoin: URI pointing to Token metadata file (if this transaciton is an Token).
+// 	Nonce       uint64 `json:"nonce"`
+// }
 
 // AccountRepository interface defines the methods for interacting with the account repository.
 // This interface provides a way to manage accounts, including upserting, getting, listing, and deleting.

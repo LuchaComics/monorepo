@@ -19,7 +19,12 @@ func NewUpsertTokenUseCase(config *config.Config, logger *slog.Logger, repo doma
 	return &UpsertTokenUseCase{config, logger, repo}
 }
 
-func (uc *UpsertTokenUseCase) Execute(id uint64, owner *common.Address, metadataURI string) error {
+func (uc *UpsertTokenUseCase) Execute(
+	id uint64,
+	owner *common.Address,
+	metadataURI string,
+	// nonce uint64,
+) error {
 	//
 	// STEP 1: Validation.
 	//
@@ -45,6 +50,7 @@ func (uc *UpsertTokenUseCase) Execute(id uint64, owner *common.Address, metadata
 		ID:          id,
 		Owner:       owner,
 		MetadataURI: metadataURI,
+		// Nonce:       nonce,
 	}
 
 	//

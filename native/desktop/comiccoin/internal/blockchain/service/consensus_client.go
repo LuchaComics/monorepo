@@ -219,7 +219,7 @@ func (s *MajorityVoteConsensusClientService) runDownloadAndSyncBlockchainFromBlo
 	//
 
 	for _, blockTx := range receivedBlockData.Trans {
-		if err := s.processAccountForBlockTransaction(blockData, &blockTx); err != nil {
+		if err := s.processAccountForBlockTransaction(&blockTx); err != nil {
 			s.logger.Error("Failed processing transaction",
 				slog.Any("error", err))
 			return err
@@ -250,7 +250,7 @@ func (s *MajorityVoteConsensusClientService) runDownloadAndSyncBlockchainFromBlo
 }
 
 // TODO: (1) Create somesort of `processAccountForBlockTransaction` service and (2) replace it with this.
-func (s *MajorityVoteConsensusClientService) processAccountForBlockTransaction(blockData *domain.BlockData, blockTx *domain.BlockTransaction) error {
+func (s *MajorityVoteConsensusClientService) processAccountForBlockTransaction(blockTx *domain.BlockTransaction) error {
 	// DEVELOPERS NOTE:
 	// Please remember that when this function executes, there already is an
 	// in-memory database of accounts populated and maintained by this node.
@@ -271,6 +271,7 @@ func (s *MajorityVoteConsensusClientService) processAccountForBlockTransaction(b
 			return fmt.Errorf("The `From` account does not exist in our database for hash: %v", blockTx.From.String())
 		}
 		acc.Balance -= blockTx.Value
+		acc.Nonce += 1 // Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
 
 		// DEVELOPERS NOTE:
 		// Do not update this accounts `Nonce`, we need to only update the
@@ -285,7 +286,6 @@ func (s *MajorityVoteConsensusClientService) processAccountForBlockTransaction(b
 		s.logger.Debug("New `From` account balance via censensus",
 			slog.Any("account_address", acc.Address),
 			slog.Any("balance", acc.Balance),
-			slog.Any("tx_hash", blockTx.Hash),
 		)
 	}
 
@@ -308,15 +308,15 @@ func (s *MajorityVoteConsensusClientService) processAccountForBlockTransaction(b
 			acc = &domain.Account{
 				Address: blockTx.To,
 
-				// Since we are iterating in reverse in the blockchain, we are
-				// starting at the latest block data and then iterating until
-				// we reach a genesis; therefore, if this account is created then
-				// this is their most recent transaction so therefore we want to
-				// save the nonce.
-				Nonce: blockData.Header.Nonce,
+				// Always start by zero, increment by 1 after mining successful.
+				Nonce: 0,
+
+				Balance: blockTx.Value,
 			}
+		} else {
+			acc.Balance += blockTx.Value
+			acc.Nonce += 1 // Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
 		}
-		acc.Balance += blockTx.Value
 
 		if err := s.upsertAccountUseCase.Execute(acc.Address, acc.Balance, acc.Nonce); err != nil {
 			s.logger.Error("Failed upserting account.",
@@ -327,8 +327,15 @@ func (s *MajorityVoteConsensusClientService) processAccountForBlockTransaction(b
 		s.logger.Debug("New `To` account balance via censensus",
 			slog.Any("account_address", acc.Address),
 			slog.Any("balance", acc.Balance),
-			slog.Any("tx_hash", blockTx.Hash),
 		)
+	}
+
+	//
+	// STEP 3
+	//
+
+	if blockTx.Type == domain.TransactionTypeToken {
+		//TODO: Impl.
 	}
 
 	return nil

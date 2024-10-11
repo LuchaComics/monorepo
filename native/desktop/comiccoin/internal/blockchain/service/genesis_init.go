@@ -128,6 +128,7 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 		Type:             domain.TransactionTypeToken,
 		TokenID:          0,
 		TokenMetadataURI: "https://cpscapsule.com/comiccoin/tokens/0/metadata.json",
+		// TokenNonce:       0, // Newly minted tokens have their nonce always start at zero.
 	}
 	signedNftTx, err := tokenTx.Sign(s.coinbaseAccountKey.PrivateKey)
 	if err != nil {

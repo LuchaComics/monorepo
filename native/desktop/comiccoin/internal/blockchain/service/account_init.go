@@ -86,7 +86,7 @@ func (s *InitAccountsFromBlockchainService) Execute() error {
 		//
 
 		for _, blockTx := range blockData.Trans {
-			if err := s.processBlockTransaction(blockData, &blockTx); err != nil {
+			if err := s.processBlockTransaction(&blockTx); err != nil {
 				s.logger.Error("Failed processing transaction",
 					slog.Any("error", err))
 				return err
@@ -157,7 +157,7 @@ func (s *InitAccountsFromBlockchainService) processGenesisBlockData() error {
 	return nil
 }
 
-func (s *InitAccountsFromBlockchainService) processBlockTransaction(blockData *domain.BlockData, blockTx *domain.BlockTransaction) error {
+func (s *InitAccountsFromBlockchainService) processBlockTransaction(blockTx *domain.BlockTransaction) error {
 	s.logger.Debug("processing block tx.",
 		slog.Any("from", blockTx.From),
 		slog.Any("to", blockTx.To),
@@ -171,25 +171,16 @@ func (s *InitAccountsFromBlockchainService) processBlockTransaction(blockData *d
 	//
 
 	if blockTx.From != nil {
+		// DEVELOPERS NOTE:
+		// We already *should* have a `From` account in our database, so we can
 		acc, _ := s.getAccountUseCase.Execute(blockTx.From)
 		if acc == nil {
-			if err := s.createAccountUseCase.Execute(blockTx.From); err != nil {
-				s.logger.Error("Failed creating account.",
-					slog.Any("error", err))
-				return err
-			}
-			acc = &domain.Account{
-				Address: blockTx.From,
-
-				// Since we are iterating in reverse in the blockchain, we are
-				// starting at the latest block data and then iterating until
-				// we reach a genesis; therefore, if this account is created then
-				// this is their most recent transaction so therefore we want to
-				// save the nonce.
-				Nonce: blockData.Header.Nonce,
-			}
+			s.logger.Error("The `From` account does not exist in our database.",
+				slog.Any("hash", blockTx.From))
+			return fmt.Errorf("The `From` account does not exist in our database for hash: %v", blockTx.From.String())
 		}
 		acc.Balance -= blockTx.Value
+		acc.Nonce += 1 // Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
 
 		if err := s.upsertAccountUseCase.Execute(acc.Address, acc.Balance, acc.Nonce); err != nil {
 			s.logger.Error("Failed upserting account.",
@@ -197,10 +188,10 @@ func (s *InitAccountsFromBlockchainService) processBlockTransaction(blockData *d
 			return err
 		}
 
-		s.logger.Debug("viewed tx for `from` account",
-			slog.Any("tx", blockTx.Hash),
-			slog.Any("addr", acc.Address),
-			slog.Any("balance", acc.Balance))
+		s.logger.Debug("New `From` account balance via validator",
+			slog.Any("account_address", acc.Address),
+			slog.Any("balance", acc.Balance),
+		)
 	}
 
 	//
@@ -208,9 +199,13 @@ func (s *InitAccountsFromBlockchainService) processBlockTransaction(blockData *d
 	//
 
 	if blockTx.To != nil {
+		// DEVELOPERS NOTE:
+		// It is perfectly normal that our account would possibly not exist
+		// so we would need to create a new Account record in our local
+		// in-memory database.
 		acc, _ := s.getAccountUseCase.Execute(blockTx.To)
 		if acc == nil {
-			if err := s.createAccountUseCase.Execute(blockTx.To); err != nil {
+			if err := s.upsertAccountUseCase.Execute(blockTx.To, 0, 0); err != nil {
 				s.logger.Error("Failed creating account.",
 					slog.Any("error", err))
 				return err
@@ -218,15 +213,15 @@ func (s *InitAccountsFromBlockchainService) processBlockTransaction(blockData *d
 			acc = &domain.Account{
 				Address: blockTx.To,
 
-				// Since we are iterating in reverse in the blockchain, we are
-				// starting at the latest block data and then iterating until
-				// we reach a genesis; therefore, if this account is created then
-				// this is their most recent transaction so therefore we want to
-				// save the nonce.
-				Nonce: blockData.Header.Nonce,
+				// Always start by zero, increment by 1 after mining successful.
+				Nonce: 0,
+
+				Balance: blockTx.Value,
 			}
+		} else {
+			acc.Balance += blockTx.Value
+			acc.Nonce += 1 // Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
 		}
-		acc.Balance += blockTx.Value
 
 		if err := s.upsertAccountUseCase.Execute(acc.Address, acc.Balance, acc.Nonce); err != nil {
 			s.logger.Error("Failed upserting account.",
@@ -234,10 +229,10 @@ func (s *InitAccountsFromBlockchainService) processBlockTransaction(blockData *d
 			return err
 		}
 
-		s.logger.Debug("viewed tx for `to` account",
-			slog.Any("tx", blockTx.Hash),
-			slog.Any("addr", acc.Address),
-			slog.Any("balance", acc.Balance))
+		s.logger.Debug("New `To` account balance via validator",
+			slog.Any("account_address", acc.Address),
+			slog.Any("balance", acc.Balance),
+		)
 	}
 
 	return nil

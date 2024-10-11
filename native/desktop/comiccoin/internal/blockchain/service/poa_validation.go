@@ -154,8 +154,8 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 		return err
 	}
 
-	// Variable used to keep track the most recent `token_id` value.
-	latestTokenID := prevBlockData.Header.LatestTokenID
+	// // Variable used to keep track the most recent `token_id` value.
+	// latestTokenID := prevBlockData.Header.LatestTokenID
 
 	//
 	// STEP 4:
@@ -196,13 +196,6 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 
 		if blockTx.Type == domain.TransactionTypeToken {
 			// STEP 5 (A) (i):
-			// If our token ID is greater then the blockchain's state
-			// then let's update our blockchain state with our latest token id.
-			if blockTx.TokenID > latestTokenID {
-				latestTokenID = blockTx.TokenID
-			}
-
-			// STEP 5 (A) (ii):
 			// Save our token to the local database.
 			if err := s.upsertTokenUseCase.Execute(blockTx.TokenID, blockTx.To, blockTx.TokenMetadataURI); err != nil {
 				s.logger.Error("Failed upserting token",
@@ -210,7 +203,7 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 				log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 			}
 
-			// STEP 5 (A) (iii):
+			// STEP 5 (A) (ii):
 			if err := s.setBlockchainLastestTokenIDUseCase.Execute(blockTx.TokenID); err != nil {
 				s.logger.Error("validator failed saving latest hash",
 					slog.Any("error", err))
