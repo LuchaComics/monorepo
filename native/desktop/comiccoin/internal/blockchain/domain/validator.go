@@ -2,12 +2,13 @@ package domain
 
 import (
 	"crypto/ecdsa"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"log"
 
 	"github.com/ethereum/go-ethereum/crypto"
-
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/blockchain/signature"
 )
 
 // Validator represents a trusted validator in the network.
@@ -16,15 +17,17 @@ type Validator struct {
 	PublicKeyBytes []byte `json:"public_key_bytes"`
 }
 
-func (validator *Validator) Sign(privateKey *ecdsa.PrivateKey, data any) ([]byte, error) {
-	// Prepare the data for signing.
-	hash, err := signature.HashWithComicCoinStamp(data)
+func (validator *Validator) Sign(privateKey *ecdsa.PrivateKey, value any) ([]byte, error) {
+	data, err := json.Marshal(value)
 	if err != nil {
 		return nil, err
 	}
 
-	// Sign the hash with the private key to produce a signature.
-	hashSignature, err := crypto.Sign(hash, privateKey)
+	// Prepare the data for signing.
+	hash := sha256.Sum256(data)
+
+	// Sign the data
+	hashSignature, err := ecdsa.SignASN1(rand.Reader, privateKey, hash[:])
 	if err != nil {
 		return nil, err
 	}
@@ -43,11 +46,14 @@ func (validator *Validator) Verify(sig []byte, data any) bool {
 	}
 
 	// Prepare the data for signing.
-	hash, err := signature.HashWithComicCoinStamp(data)
+	dataBytes, err := json.Marshal(data)
 	if err != nil {
-		log.Printf("VALIDATOR: VERIFY FAILED: HashWithComicCoinStamp err %v\n", err)
+		log.Printf("VALIDATOR: VERIFY FAILED: json.Marshal(value) err %v\n", err)
 		return false
 	}
+
+	// Prepare the data for signing.
+	hash := sha256.Sum256(dataBytes)
 
 	// Get our validators public key.
 	validatorPubKey, err := validator.GetPublicKeyECDSA()
@@ -56,26 +62,8 @@ func (validator *Validator) Verify(sig []byte, data any) bool {
 		return false
 	}
 
-	// Get the public key from the signature.
-	sigPubKey, err := crypto.SigToPub(hash, sig)
-	if err != nil {
-		log.Printf("VALIDATOR: VERIFY FAILED: crypto.SigToPub err %v\n", err)
-		return false
-	}
-
-	// Verify signature public key and validator public key match.
-	if validatorPubKey != sigPubKey { //TODO: CONFIRM THIS WORKS (NOTE: SEE NFT MINTER)
-		log.Printf("VALIDATOR: VERIFY FAILED: %v\n", "validatorPubKey != sigPubKey")
-		return false
-	}
-
-	// Perform our verification.
-	sigPubKeyBytes, err := crypto.Ecrecover(hash, sig)
-	if err != nil {
-		log.Printf("VALIDATOR: VERIFY FAILED: crypto.Ecrecover err %v\n", err)
-		return false
-	}
-	return crypto.VerifySignature(sigPubKeyBytes, hash, sig)
+	// Verify the signature
+	return ecdsa.VerifyASN1(validatorPubKey, hash[:], sig)
 }
 
 func (validator *Validator) GetPublicKeyECDSA() (*ecdsa.PublicKey, error) {

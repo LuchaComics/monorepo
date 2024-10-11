@@ -95,7 +95,7 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 		Nonce:            0, // Will be calculated later.
 		From:             &s.coinbaseAccountKey.Address,
 		To:               &s.coinbaseAccountKey.Address,
-		Value:            initialSupply,
+		Value:            0, //Note: Tokens don't have coin value.
 		Tip:              0,
 		Data:             make([]byte, 0),
 		Type:             domain.TransactionTypeToken,
