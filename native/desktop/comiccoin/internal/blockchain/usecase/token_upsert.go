@@ -25,9 +25,6 @@ func (uc *UpsertTokenUseCase) Execute(id uint64, owner *common.Address, metadata
 	//
 
 	e := make(map[string]string)
-	if id == 0 {
-		e["id"] = "missing value"
-	}
 	if owner == nil {
 		e["owner"] = "missing value"
 	}
