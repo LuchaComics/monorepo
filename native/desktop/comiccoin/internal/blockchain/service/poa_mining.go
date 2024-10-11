@@ -20,6 +20,7 @@ type ProofOfAuthorityMiningService struct {
 	kmutex                                  kmutexutil.KMutexProvider
 	getKeyService                           *GetKeyService
 	getAccountsHashStateUseCase             *usecase.GetAccountsHashStateUseCase
+	getTokensHashStateUseCase               *usecase.GetTokensHashStateUseCase
 	listAllPendingBlockTransactionUseCase   *usecase.ListAllPendingBlockTransactionUseCase
 	getBlockchainLastestHashUseCase         *usecase.GetBlockchainLastestHashUseCase
 	getBlockDataUseCase                     *usecase.GetBlockDataUseCase
@@ -34,14 +35,15 @@ func NewProofOfAuthorityMiningService(
 	kmutex kmutexutil.KMutexProvider,
 	getKeyService *GetKeyService,
 	uc1 *usecase.GetAccountsHashStateUseCase,
-	uc2 *usecase.ListAllPendingBlockTransactionUseCase,
-	uc3 *usecase.GetBlockchainLastestHashUseCase,
-	uc4 *usecase.GetBlockDataUseCase,
-	uc5 *usecase.ProofOfWorkUseCase,
-	uc6 *usecase.BroadcastProposedBlockDataDTOUseCase,
-	uc7 *usecase.DeleteAllPendingBlockTransactionUseCase,
+	uc2 *usecase.GetTokensHashStateUseCase,
+	uc3 *usecase.ListAllPendingBlockTransactionUseCase,
+	uc4 *usecase.GetBlockchainLastestHashUseCase,
+	uc5 *usecase.GetBlockDataUseCase,
+	uc6 *usecase.ProofOfWorkUseCase,
+	uc7 *usecase.BroadcastProposedBlockDataDTOUseCase,
+	uc8 *usecase.DeleteAllPendingBlockTransactionUseCase,
 ) *ProofOfAuthorityMiningService {
-	return &ProofOfAuthorityMiningService{config, logger, kmutex, getKeyService, uc1, uc2, uc3, uc4, uc5, uc6, uc7}
+	return &ProofOfAuthorityMiningService{config, logger, kmutex, getKeyService, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8}
 }
 
 func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
@@ -182,10 +184,18 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	//
 	stateRoot, err := s.getAccountsHashStateUseCase.Execute()
 	if err != nil {
-		s.logger.Error("Failed to create merkle tree",
+		s.logger.Error("Failed getting accounts hash state",
 			slog.Any("error", err))
-		return fmt.Errorf("Failed to create merkle tree: %v", err)
+		return fmt.Errorf("Failed getting accounts hash state: %v", err)
 	}
+
+	// // Ensure tokens are not tampered with.
+	// tokensRoot, err := s.getTokensHashStateUseCase.Execute()
+	// if err != nil {
+	// 	s.logger.Error("Failed getting tokens hash state",
+	// 		slog.Any("error", err))
+	// 	return fmt.Errorf("Failed getting tokens hash state: %v", err)
+	// }
 
 	// Construct the genesis block.
 	block := domain.Block{
@@ -200,6 +210,7 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 			TransRoot:     tree.RootHex(), //
 			Nonce:         0,              // Will be identified by the PoW algorithm.
 			LatestTokenID: latestTokenID,  // Ensure our blockchain state has the latest token ID recorded.
+			// TokensRoot:    tokensRoot,
 		},
 		HeaderSignature: []byte{}, // Will be identified by the PoA algorithm in this function!
 		MerkleTree:      tree,

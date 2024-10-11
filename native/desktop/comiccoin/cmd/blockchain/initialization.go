@@ -64,6 +64,7 @@ func doRunInitBlockchain() {
 	blockDataDB := disk.NewDiskStorage(cfg.DB.DataDir, "block_data", logger)
 	latestHashDB := disk.NewDiskStorage(cfg.DB.DataDir, "latest_hash", logger)
 	latestTokenIDDB := disk.NewDiskStorage(cfg.DB.DataDir, "latest_token_id", logger)
+	tokenDB := disk.NewDiskStorage(cfg.DB.DataDir, "token", logger)
 	memdb := memory.NewInMemoryStorage(logger)
 
 	// ------------ Repo ------------
@@ -87,6 +88,10 @@ func doRunInitBlockchain() {
 		cfg,
 		logger,
 		latestTokenIDDB)
+	tokenRepo := repo.NewTokenRepo(
+		cfg,
+		logger,
+		tokenDB)
 
 	// ------------ Use-case ------------
 
@@ -99,6 +104,16 @@ func doRunInitBlockchain() {
 		cfg,
 		logger,
 		accountRepo)
+
+	// Token
+	upsertTokenUseCase := usecase.NewUpsertTokenUseCase(
+		cfg,
+		logger,
+		tokenRepo)
+	getTokensHashStateUseCase := usecase.NewGetTokensHashStateUseCase(
+		cfg,
+		logger,
+		tokenRepo)
 
 	// Wallet
 	walletEncryptKeyUseCase := usecase.NewWalletEncryptKeyUseCase(
@@ -192,11 +207,13 @@ func doRunInitBlockchain() {
 		logger,
 		coinbaseAccountKey,
 		getAccountsHashStateUseCase,
+		getTokensHashStateUseCase,
 		setBlockchainLastestHashUseCase,
 		setBlockchainLastestTokenIDUseCase,
 		createBlockDataUseCase,
 		proofOfWorkUseCase,
 		upsertAccountUseCase,
+		upsertTokenUseCase,
 	)
 
 	ctx := context.Background()

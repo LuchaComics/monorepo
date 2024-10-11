@@ -25,11 +25,13 @@ type CreateGenesisBlockDataService struct {
 	logger                             *slog.Logger
 	coinbaseAccountKey                 *keystore.Key
 	getAccountsHashStateUseCase        *usecase.GetAccountsHashStateUseCase
+	getTokensHashStateUseCase          *usecase.GetTokensHashStateUseCase
 	setBlockchainLastestHashUseCase    *usecase.SetBlockchainLastestHashUseCase
 	setBlockchainLastestTokenIDUseCase *usecase.SetBlockchainLastestTokenIDUseCase
 	createBlockDataUseCase             *usecase.CreateBlockDataUseCase
 	proofOfWorkUseCase                 *usecase.ProofOfWorkUseCase
 	upsertAccountUseCase               *usecase.UpsertAccountUseCase
+	upsertTokenUseCase                 *usecase.UpsertTokenUseCase
 }
 
 func NewCreateGenesisBlockDataService(
@@ -37,13 +39,15 @@ func NewCreateGenesisBlockDataService(
 	logger *slog.Logger,
 	coinbaseAccKey *keystore.Key,
 	uc1 *usecase.GetAccountsHashStateUseCase,
-	uc2 *usecase.SetBlockchainLastestHashUseCase,
-	uc3 *usecase.SetBlockchainLastestTokenIDUseCase,
-	uc4 *usecase.CreateBlockDataUseCase,
-	uc5 *usecase.ProofOfWorkUseCase,
-	uc6 *usecase.UpsertAccountUseCase,
+	uc2 *usecase.GetTokensHashStateUseCase,
+	uc3 *usecase.SetBlockchainLastestHashUseCase,
+	uc4 *usecase.SetBlockchainLastestTokenIDUseCase,
+	uc5 *usecase.CreateBlockDataUseCase,
+	uc6 *usecase.ProofOfWorkUseCase,
+	uc7 *usecase.UpsertAccountUseCase,
+	uc8 *usecase.UpsertTokenUseCase,
 ) *CreateGenesisBlockDataService {
-	return &CreateGenesisBlockDataService{config, logger, coinbaseAccKey, uc1, uc2, uc3, uc4, uc5, uc6}
+	return &CreateGenesisBlockDataService{config, logger, coinbaseAccKey, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8}
 }
 
 func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {

@@ -20,11 +20,13 @@ type ProofOfAuthorityValidationService struct {
 	getBlockchainLastestHashUseCase    *usecase.GetBlockchainLastestHashUseCase
 	getBlockDataUseCase                *usecase.GetBlockDataUseCase
 	getAccountsHashStateUseCase        *usecase.GetAccountsHashStateUseCase
+	getTokensHashStateUseCase          *usecase.GetTokensHashStateUseCase
 	createBlockDataUseCase             *usecase.CreateBlockDataUseCase
 	setBlockchainLastestHashUseCase    *usecase.SetBlockchainLastestHashUseCase
 	setBlockchainLastestTokenIDUseCase *usecase.SetBlockchainLastestTokenIDUseCase
 	getAccountUseCase                  *usecase.GetAccountUseCase
 	upsertAccountUseCase               *usecase.UpsertAccountUseCase
+	upsertTokenUseCase                 *usecase.UpsertTokenUseCase
 }
 
 func NewProofOfAuthorityValidationService(
@@ -35,13 +37,15 @@ func NewProofOfAuthorityValidationService(
 	uc2 *usecase.GetBlockchainLastestHashUseCase,
 	uc3 *usecase.GetBlockDataUseCase,
 	uc4 *usecase.GetAccountsHashStateUseCase,
-	uc5 *usecase.CreateBlockDataUseCase,
-	uc6 *usecase.SetBlockchainLastestHashUseCase,
-	uc7 *usecase.SetBlockchainLastestTokenIDUseCase,
-	uc8 *usecase.GetAccountUseCase,
-	uc9 *usecase.UpsertAccountUseCase,
+	uc5 *usecase.GetTokensHashStateUseCase,
+	uc6 *usecase.CreateBlockDataUseCase,
+	uc7 *usecase.SetBlockchainLastestHashUseCase,
+	uc8 *usecase.SetBlockchainLastestTokenIDUseCase,
+	uc9 *usecase.GetAccountUseCase,
+	uc10 *usecase.UpsertAccountUseCase,
+	uc11 *usecase.UpsertTokenUseCase,
 ) *ProofOfAuthorityValidationService {
-	return &ProofOfAuthorityValidationService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9}
+	return &ProofOfAuthorityValidationService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11}
 }
 
 func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
@@ -216,10 +220,27 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 	//
 
 	for _, blockTx := range blockData.Trans {
-		if err := s.processAccountForBlockTransaction(blockData, &blockTx); err != nil {
-			s.logger.Error("Failed processing transaction",
-				slog.Any("error", err))
-			return err
+		if blockTx.Type == domain.TransactionTypeCoin {
+			if err := s.processAccountForBlockTransaction(blockData, &blockTx); err != nil {
+				s.logger.Error("Failed processing transaction",
+					slog.Any("error", err))
+				return err
+			}
+		}
+	}
+
+	//
+	// STEP 7
+	// Update the tokens database.
+	//
+
+	for _, tx := range blockData.Trans {
+		if tx.Type == domain.TransactionTypeToken {
+			if err := s.upsertTokenUseCase.Execute(tx.TokenID, tx.TokenMetadataURI); err != nil {
+				s.logger.Error("Failed upserting token transaction",
+					slog.Any("error", err))
+				return err
+			}
 		}
 	}
 

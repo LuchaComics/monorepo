@@ -99,7 +99,8 @@ func DaemonCmd() *cobra.Command {
 			latestTokenIDDB := disk.NewDiskStorage(cfg.DB.DataDir, "latest_token_id", logger)
 			ikDB := disk.NewDiskStorage(cfg.DB.DataDir, "identity_key", logger)
 			pendingBlockDataDB := disk.NewDiskStorage(cfg.DB.DataDir, "pending_block_data", logger)
-			mempoolTx := disk.NewDiskStorage(cfg.DB.DataDir, "mempool_tx", logger)
+			mempoolTxDB := disk.NewDiskStorage(cfg.DB.DataDir, "mempool_tx", logger)
+			tokenDB := disk.NewDiskStorage(cfg.DB.DataDir, "token", logger)
 			memdb := memory.NewInMemoryStorage(logger)
 			kmutex := kmutexutil.NewKMutexProvider()
 
@@ -108,6 +109,7 @@ func DaemonCmd() *cobra.Command {
 			ikCreateUseCase := usecase.NewCreateIdentityKeyUseCase(cfg, logger, ikRepo)
 			ikGetUseCase := usecase.NewGetIdentityKeyUseCase(cfg, logger, ikRepo)
 			ikCreateService := service.NewCreateIdentityKeyService(cfg, logger, ikCreateUseCase, ikGetUseCase)
+			_ = ikCreateService // FUTURE USE?
 			ikGetService := service.NewGetIdentityKeyService(cfg, logger, ikGetUseCase)
 
 			// If nothing was set then we use a default value. We do this to
@@ -145,11 +147,11 @@ func DaemonCmd() *cobra.Command {
 				slog.Any("full address", fullAddr),
 			)
 
-			//TODO
-			_ = ikCreateService
-			_ = ikGetService
-
 			// ------------ Repo ------------
+			tokenRepo := repo.NewTokenRepo(
+				cfg,
+				logger,
+				tokenDB)
 			walletRepo := repo.NewWalletRepo(
 				cfg,
 				logger,
@@ -165,7 +167,7 @@ func DaemonCmd() *cobra.Command {
 			mempoolTxRepo := repo.NewMempoolTransactionRepo(
 				cfg,
 				logger,
-				mempoolTx)
+				mempoolTxDB)
 			mempoolTransactionDTORepo := repo.NewMempoolTransactionDTORepo(
 				cfg,
 				logger,
@@ -205,6 +207,16 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				genesisBlockDataRepo)
+
+			// Token
+			upsertTokenUseCase := usecase.NewUpsertTokenUseCase(
+				cfg,
+				logger,
+				tokenRepo)
+			getTokensHashStateUseCase := usecase.NewGetTokensHashStateUseCase(
+				cfg,
+				logger,
+				tokenRepo)
 
 			// Wallet
 			createWalletUseCase := usecase.NewCreateWalletUseCase(
@@ -457,6 +469,7 @@ func DaemonCmd() *cobra.Command {
 				kmutex,
 				getKeyService,
 				getAccountsHashStateUseCase,
+				getTokensHashStateUseCase,
 				listAllPendingBlockTxUseCase,
 				getBlockchainLastestHashUseCase,
 				getBlockDataUseCase,
@@ -487,11 +500,13 @@ func DaemonCmd() *cobra.Command {
 				getBlockchainLastestHashUseCase,
 				getBlockDataUseCase,
 				getAccountsHashStateUseCase,
+				getTokensHashStateUseCase,
 				createBlockDataUseCase,
 				setBlockchainLastestHashUseCase,
 				setBlockchainLastestTokenIDUseCase,
 				getAccountUseCase,
 				upsertAccountUseCase,
+				upsertTokenUseCase,
 			)
 
 			majorityVoteConsensusServerService := service.NewMajorityVoteConsensusServerService(

@@ -26,6 +26,7 @@ type BlockHeader struct {
 	Nonce     uint64 `json:"nonce"`      // Both: Value identified to solve the hash solution.
 
 	LatestTokenID uint64 `json:"latest_token_id"` // ComicCoin: The latest token that the blockchain points to.
+	TokensRoot    string `json:"tokens_root"`     // ComicCoin: Represents the hash of all the tokens and their owners.
 }
 
 // Serialize serializes a block header into a byte array.
