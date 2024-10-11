@@ -445,6 +445,14 @@ func DaemonCmd() *cobra.Command {
 				walletDecryptKeyUseCase,
 				getTokenUseCase,
 				broadcastMempoolTxDTOUseCase)
+			burnTokenService := service.NewBurnTokenService(
+				cfg,
+				logger,
+				kmutex,
+				getWalletUseCase,
+				walletDecryptKeyUseCase,
+				getTokenUseCase,
+				broadcastMempoolTxDTOUseCase)
 			getTokenService := service.NewGetTokenService(
 				cfg,
 				logger,
@@ -465,7 +473,7 @@ func DaemonCmd() *cobra.Command {
 				createPendingBlockTxUseCase,
 				deleteAllMempoolTransactionUseCase)
 
-			// Miner
+			// Mining
 			proofOfWorkMiningService := service.NewProofOfWorkMiningService(
 				cfg,
 				logger,
@@ -600,6 +608,10 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				transferTokenService)
+			burnTokenHTTPHandler := httphandler.NewBurnTokenHTTPHandler(
+				cfg,
+				logger,
+				burnTokenService)
 			getTokenHTTPHandler := httphandler.NewGetTokenHTTPHandler(
 				cfg,
 				logger,
@@ -616,6 +628,7 @@ func DaemonCmd() *cobra.Command {
 				createTransactionHTTPHandler,
 				poaTokenMintHTTPHandler,
 				transferTokenHTTPHandler,
+				burnTokenHTTPHandler,
 				getTokenHTTPHandler,
 			)
 

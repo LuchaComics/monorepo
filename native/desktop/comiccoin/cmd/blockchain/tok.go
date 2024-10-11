@@ -6,6 +6,7 @@ import "github.com/spf13/cobra"
 const (
 	mintTokensURL     = "/v1/api/tokens/mint"
 	transferTokensURL = "/v1/api/tokens/transfer"
+	burnTokensURL     = "/v1/api/tokens/burn"
 	tokenDetailURL    = "/v1/api/token/${TOKEN_ID}"
 )
 
@@ -22,6 +23,7 @@ func TokenCmd() *cobra.Command {
 	cmd.AddCommand(httpJsonApiMintTokenCmd())
 	cmd.AddCommand(httpJsonApiTransferTokenCmd())
 	cmd.AddCommand(httpJsonApiGetTokenCmd())
+	cmd.AddCommand(httpJsonApiBurnTokenCmd())
 
 	return cmd
 }

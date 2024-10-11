@@ -47,6 +47,9 @@ type httpServerImpl struct {
 	// transferTokenHTTPHandler is the handler for transfering Tokens between accounts.
 	transferTokenHTTPHandler *handler.TransferTokenHTTPHandler
 
+	// burnTokenHTTPHandler is the handler for burning Tokens.
+	burnTokenHTTPHandler *handler.BurnTokenHTTPHandler
+
 	// getTokenHTTPHandler is the handler for getting Token detail.
 	getTokenHTTPHandler *handler.GetTokenHTTPHandler
 }
@@ -61,6 +64,7 @@ func NewHTTPServer(
 	createTransactionHTTPHandler *handler.CreateTransactionHTTPHandler,
 	mintTokenHTTPHandler *handler.ProofOfAuthorityTokenMintHTTPHandler,
 	transferTokenHTTPHandler *handler.TransferTokenHTTPHandler,
+	burnTokenHTTPHandler *handler.BurnTokenHTTPHandler,
 	getTokenHTTPHandler *handler.GetTokenHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
@@ -90,6 +94,7 @@ func NewHTTPServer(
 		createTransactionHTTPHandler: createTransactionHTTPHandler,
 		mintTokenHTTPHandler:         mintTokenHTTPHandler,
 		transferTokenHTTPHandler:     transferTokenHTTPHandler,
+		burnTokenHTTPHandler:         burnTokenHTTPHandler,
 		getTokenHTTPHandler:          getTokenHTTPHandler,
 	}
 
@@ -168,6 +173,9 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 	case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "tokens" && p[3] == "transfer" && r.Method == http.MethodPost:
 		// Handle the request to create a transaction.
 		port.transferTokenHTTPHandler.Execute(w, r)
+	case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "tokens" && p[3] == "burn" && r.Method == http.MethodPost:
+		// Handle the request to create a transaction.
+		port.burnTokenHTTPHandler.Execute(w, r)
 
 		// --- CATCH ALL: D.N.E. ---
 	default:
