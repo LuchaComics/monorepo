@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"log/slog"
 	"time"
 
@@ -83,7 +84,31 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 
 	//
 	// STEP 2:
-	// Fetch the previous block we have.
+	// Defensive code: Check to see if we already have this block in our
+	// blockchain and if we do then skip this validation.
+	//
+
+	existingPropposedBlockData, err := s.getBlockDataUseCase.Execute(proposedBlockData.Hash)
+	if err != nil {
+		s.logger.Error("Failed to lookup existing block data",
+			slog.Any("error", err))
+		return err
+	}
+	if existingPropposedBlockData != nil {
+		// Data already exists! Therefore we can abandon this request from
+		// the peer-to-peer network to validate this block.
+		s.logger.Warn("purposed block already exists locally, skipping validation...",
+			slog.Any("hash", proposedBlockData.Hash),
+			slog.Any("header_signature", proposedBlockData.HeaderSignature),
+		)
+		return nil
+
+	}
+
+	//
+	// STEP 3:
+	// Fetch the previous block we have and setup whatever
+	// variables we will need to assist in our PoA valdiation service.
 	//
 
 	prevBlockDataHash, err := s.getBlockchainLastestHashUseCase.Execute()
@@ -129,9 +154,12 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 		return err
 	}
 
+	// Variable used to keep track the most recent `token_id` value.
+	latestTokenID := prevBlockData.Header.LatestTokenID
+
 	//
-	// STEP 3:
-	// Begin by validating the proof of authority before anything else.
+	// STEP 4:
+	// Begin by validating the proof of authority before doing anything else.
 	//
 
 	poaValidator := prevBlockData.Validator
@@ -141,7 +169,58 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 	}
 
 	//
-	// STEP 4
+	// STEP 5:
+	// Iterate through all the pending transactions and perform various
+	// computations...
+	//
+
+	for _, blockTx := range blockData.Trans {
+
+		//
+		// STEP 5 (A):
+		// Process coins.
+		//
+
+		if blockTx.Type == domain.TransactionTypeCoin {
+			if err := s.processAccountForBlockTransaction(&blockTx); err != nil {
+				s.logger.Error("Failed processing transaction",
+					slog.Any("error", err))
+				log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+			}
+		}
+
+		//
+		// STEP 5 (B):
+		// Process tokens.
+		//
+
+		if blockTx.Type == domain.TransactionTypeToken {
+			// STEP 5 (A) (i):
+			// If our token ID is greater then the blockchain's state
+			// then let's update our blockchain state with our latest token id.
+			if blockTx.TokenID > latestTokenID {
+				latestTokenID = blockTx.TokenID
+			}
+
+			// STEP 5 (A) (ii):
+			// Save our token to the local database.
+			if err := s.upsertTokenUseCase.Execute(blockTx.TokenID, blockTx.To, blockTx.TokenMetadataURI); err != nil {
+				s.logger.Error("Failed upserting token",
+					slog.Any("error", err))
+				log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+			}
+
+			// STEP 5 (A) (iii):
+			if err := s.setBlockchainLastestTokenIDUseCase.Execute(blockTx.TokenID); err != nil {
+				s.logger.Error("validator failed saving latest hash",
+					slog.Any("error", err))
+				log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+			}
+		}
+	}
+
+	//
+	// STEP 6
 	// Afterwards validate our proposed block data to our blockchain.
 	//
 
@@ -155,12 +234,21 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 	// To learn more about the state root, read this in-depth articl:
 	// https://www.ardanlabs.com/blog/2022/05/blockchain-04-fraud-detection.html
 	//
-	stateRoot, err := s.getAccountsHashStateUseCase.Execute()
+	currentStateRootInThisNode, err := s.getAccountsHashStateUseCase.Execute()
 	if err != nil {
 		s.logger.Error("validator failed getting state root",
 			slog.Any("error", err))
-		return err
+		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
+
+	// Ensure tokens are not tampered with.
+	currentTokensRootInThisNode, err := s.getTokensHashStateUseCase.Execute()
+	if err != nil {
+		s.logger.Error("Failed getting tokens hash state",
+			slog.Any("error", err))
+		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+	}
+	_ = currentTokensRootInThisNode //TODO: Add this feature when we are ready.
 
 	s.logger.Info("beginning validation...",
 		slog.Any("prev_hash", previousBlock.Hash),
@@ -173,23 +261,23 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 		slog.Any("current_header_stateroot", blockData.Header.StateRoot),
 	)
 
-	if err := block.ValidateBlock(previousBlock, stateRoot); err != nil {
+	if err := block.ValidateBlock(block, currentStateRootInThisNode); err != nil {
 		// DEVELOPERS NOTE:
 		// Not an error but simply a friendly warning message.
 		s.logger.Warn("validator failed validating the proposed block with the previous block",
 			slog.Any("error", err))
-		return err
+		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
 
 	//
-	// STEP 5:
-	// Save to the blockchain database.
+	// STEP 7:
+	// Save to the (local) blockchain database.
 	//
 
 	if err := s.createBlockDataUseCase.Execute(blockData.Hash, blockData.Header, blockData.HeaderSignature, blockData.Trans, blockData.Validator); err != nil {
 		s.logger.Error("validator failed saving block data",
 			slog.Any("error", err))
-		return err
+		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
 
 	s.logger.Info("validator add new block to blockchain",
@@ -201,54 +289,17 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 	if err := s.setBlockchainLastestHashUseCase.Execute(blockData.Hash); err != nil {
 		s.logger.Error("validator failed saving latest hash",
 			slog.Any("error", err))
-		return err
-	}
-
-	if err := s.setBlockchainLastestTokenIDUseCase.Execute(blockData.Header.LatestTokenID); err != nil {
-		s.logger.Error("validator failed saving latest hash",
-			slog.Any("error", err))
-		return err
+		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
 
 	s.logger.Debug("validator set latest hash in blockchain",
 		slog.Any("hash", proposedBlockData.Hash),
 	)
 
-	//
-	// STEP 6
-	// Update the account in our in-memory database.
-	//
-
-	for _, blockTx := range blockData.Trans {
-		if blockTx.Type == domain.TransactionTypeCoin {
-			if err := s.processAccountForBlockTransaction(blockData, &blockTx); err != nil {
-				s.logger.Error("Failed processing transaction",
-					slog.Any("error", err))
-				return err
-			}
-		}
-	}
-
-	//
-	// STEP 7
-	// Update the tokens database.
-	//
-
-	for _, tx := range blockData.Trans {
-		if tx.Type == domain.TransactionTypeToken {
-			if err := s.upsertTokenUseCase.Execute(tx.TokenID, tx.TokenMetadataURI); err != nil {
-				s.logger.Error("Failed upserting token transaction",
-					slog.Any("error", err))
-				return err
-			}
-		}
-	}
-
 	return nil
 }
 
-// TODO: (1) Create somesort of `processAccountForBlockTransaction` service and (2) replace it with this.
-func (s *ProofOfAuthorityValidationService) processAccountForBlockTransaction(blockData *domain.BlockData, blockTx *domain.BlockTransaction) error {
+func (s *ProofOfAuthorityValidationService) processAccountForBlockTransaction(blockTx *domain.BlockTransaction) error {
 	// DEVELOPERS NOTE:
 	// Please remember that when this function executes, there already is an
 	// in-memory database of accounts populated and maintained by this node.
@@ -268,10 +319,7 @@ func (s *ProofOfAuthorityValidationService) processAccountForBlockTransaction(bl
 			return fmt.Errorf("The `From` account does not exist in our database for hash: %v", blockTx.From.String())
 		}
 		acc.Balance -= blockTx.Value
-
-		// DEVELOPERS NOTE:
-		// Do not update this accounts `Nonce`, we need to only update the
-		// `Nonce` to the receiving account, i.e. the `To` account.
+		acc.Nonce += 1 // Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
 
 		if err := s.upsertAccountUseCase.Execute(acc.Address, acc.Balance, acc.Nonce); err != nil {
 			s.logger.Error("Failed upserting account.",
@@ -282,7 +330,6 @@ func (s *ProofOfAuthorityValidationService) processAccountForBlockTransaction(bl
 		s.logger.Debug("New `From` account balance via validator",
 			slog.Any("account_address", acc.Address),
 			slog.Any("balance", acc.Balance),
-			slog.Any("tx_hash", blockTx.Hash),
 		)
 	}
 
@@ -305,15 +352,15 @@ func (s *ProofOfAuthorityValidationService) processAccountForBlockTransaction(bl
 			acc = &domain.Account{
 				Address: blockTx.To,
 
-				// Since we are iterating in reverse in the blockchain, we are
-				// starting at the latest block data and then iterating until
-				// we reach a genesis; therefore, if this account is created then
-				// this is their most recent transaction so therefore we want to
-				// save the nonce.
-				Nonce: blockData.Header.Nonce,
+				// Always start by zero, increment by 1 after mining successful.
+				Nonce: 0,
+
+				Balance: blockTx.Value,
 			}
+		} else {
+			acc.Balance += blockTx.Value
+			acc.Nonce += 1 // Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
 		}
-		acc.Balance += blockTx.Value
 
 		if err := s.upsertAccountUseCase.Execute(acc.Address, acc.Balance, acc.Nonce); err != nil {
 			s.logger.Error("Failed upserting account.",
@@ -324,7 +371,6 @@ func (s *ProofOfAuthorityValidationService) processAccountForBlockTransaction(bl
 		s.logger.Debug("New `To` account balance via validator",
 			slog.Any("account_address", acc.Address),
 			slog.Any("balance", acc.Balance),
-			slog.Any("tx_hash", blockTx.Hash),
 		)
 	}
 

@@ -24,8 +24,33 @@ type Account struct {
 	// The public address of the account.
 	Address *common.Address `json:"address"`
 
-	// The value of the `nonce` found in the last transaction this account made
-	// on the blockchain.
+	// The Nonce field in the Account struct is not directly related to the
+	// Nonce field in the BlockHeader struct. Instead, it's used to prevent
+	// replay attacks on transactions.
+	//
+	// In Ethereum and other blockchain systems, a nonce is a counter that is
+	// used to prevent a transaction from being replayed on the network. When a
+	// user wants to send a transaction, they need to specify the nonce value
+	// for their account. The nonce value is incremented each time a transaction
+	// is sent from the account.
+	//
+	// In this context, the Nonce field in the Account struct represents the
+	// nonce value of the last transaction sent from the account. This value is
+	// used to prevent replay attacks by ensuring that each transaction has a
+	// unique nonce value.
+	//
+	// Here's how it works:
+	// 1. When a user wants to send a transaction, they retrieve the current nonce value for their account from the blockchain.
+	// 2. They increment the nonce value by 1 and include it in the transaction.
+	// 3. The transaction is sent to the network and verified by the nodes.
+	// 4. If the transaction is valid, the nonce value is incremented again and stored in the account's state.
+	//
+	// By including the Nonce field in the Account struct, the blockchain can
+	// keep track of the nonce value for each account and prevent replay attacks.
+	//
+	// It's worth noting that the Nonce field in the BlockHeader struct has a
+	// different purpose. It's used to solve the proof-of-work puzzle required
+	// to mine a new block.
 	Nonce uint64 `json:"nonce"`
 
 	// The balance of the account in coins.

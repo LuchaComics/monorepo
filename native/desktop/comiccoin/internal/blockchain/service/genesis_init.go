@@ -63,6 +63,30 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	// Initialize our coinbase account in our in-memory database.
 	//
 
+	// DEVELOPERS NOTE:
+	// During genesis block creation, the account's nonce value is indeed 0.
+	//
+	// After the genesis block is mined, the account's nonce value is
+	// incremented to 1.
+	//
+	// This makes sense because the genesis block is the first block in the
+	// blockchain, and the account's nonce value is used to track the number of
+	// transactions sent from that account.
+	//
+	// Since the genesis block is the first transaction sent from the account,
+	// the nonce value is incremented from 0 to 1 after the block is mined.
+	//
+	// Here's a step-by-step breakdown:
+	//
+	// 1. Genesis block creation:
+	// --> Account's nonce value is 0.
+	// 2. Genesis block mining:
+	// --> Account's nonce value is still 0.
+	// 3. Genesis block is added to the blockchain:
+	// --> Account's nonce value is now 1.
+	//
+	// From this point on, every time a transaction is sent from the account, the nonce value is incremented by 1.
+
 	if err := s.upsertAccountUseCase.Execute(&s.coinbaseAccountKey.Address, initialSupply, 0); err != nil {
 		return fmt.Errorf("Failed to upsert account: %v", err)
 	}
@@ -71,7 +95,6 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	// STEP 2:
 	// Setup our very first (signed) transaction: i.e. coinbase giving coins
 	// onto the blockchain ... from nothing.
-	//
 	//
 
 	coinTx := &domain.Transaction{
@@ -112,7 +135,19 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	}
 
 	//
-	// STEP 3:
+	// STEP 4:
+	// Save our token to our database.
+	//
+
+	if err := s.upsertTokenUseCase.Execute(tokenTx.TokenID, tokenTx.To, tokenTx.TokenMetadataURI); err != nil {
+		return err
+	}
+	if err := s.setBlockchainLastestTokenIDUseCase.Execute(tokenTx.TokenID); err != nil {
+		return fmt.Errorf("Failed to save last token ID of genesis block data: %v", err)
+	}
+
+	//
+	// STEP 5:
 	// Create our first block, i.e. also called "Genesis block".
 	//
 
@@ -146,9 +181,18 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 
 	stateRoot, err := s.getAccountsHashStateUseCase.Execute()
 	if err != nil {
-		s.logger.Error("Failed to create merkle tree",
+		s.logger.Error("Failed to get hash of all accounts",
 			slog.Any("error", err))
-		return fmt.Errorf("Failed to create merkle tree: %v", err)
+		return fmt.Errorf("Failed to get hash of all accounts: %v", err)
+	}
+
+	// Running this code get's a hash of all the tokens, thus making the
+	// tokens tamper proof.
+	tokensRoot, err := s.getTokensHashStateUseCase.Execute()
+	if err != nil {
+		s.logger.Error("Failed to get hash of all tokens",
+			slog.Any("error", err))
+		return fmt.Errorf("Failed to get hash of all tokens: %v", err)
 	}
 
 	// Construct the genesis block.
@@ -164,12 +208,15 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 			TransRoot:     tree.RootHex(), //
 			Nonce:         0,              // Will be identified by the POW algorithm.
 			LatestTokenID: 0,              // ComicCoin: Token ID values start at zero.
+			TokensRoot:    tokensRoot,
 		},
 		MerkleTree: tree,
 	}
 
+	genesisBlockData := domain.NewBlockData(block)
+
 	//
-	// STEP 4:
+	// STEP 6:
 	// Execute the proof of work to find our nounce to meet the hash difficulty.
 	//
 
@@ -180,12 +227,10 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 
 	block.Header.Nonce = nonce
 
-	s.logger.Debug("mining completed",
+	s.logger.Debug("genesis mining completed",
 		slog.Uint64("nonce", block.Header.Nonce))
 
-	genesisBlockData := domain.NewBlockData(block)
-
-	// STEP 5:
+	// STEP 7:
 	// Create our single proof-of-authority validator via coinbase account.
 	//
 
@@ -204,8 +249,10 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	}
 
 	//
-	// STEP 6:
+	// STEP 8:
 	// Sign our genesis block's header with our proof-of-authority validator.
+	// Note: Signing always happens after the miner has found the `nonce` in
+	// the block header.
 	//
 
 	genesisBlockData.Validator = poaValidator
@@ -216,8 +263,8 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	genesisBlockData.HeaderSignature = genesisBlockHeaderSignature
 
 	//
-	// STEP 4:
-	// Save to JSON file.
+	// STEP 9:
+	// Save genesis block to a JSON file.
 	//
 
 	genesisBlockDataBytes, err := json.MarshalIndent(genesisBlockData, "", "    ")
@@ -230,27 +277,19 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	}
 
 	//
-	// STEP 5
-	// Save to database.
+	// STEP 10
+	// Save genesis block to a database.
 	//
 
 	if err := s.createBlockDataUseCase.Execute(genesisBlockData.Hash, genesisBlockData.Header, genesisBlockData.HeaderSignature, genesisBlockData.Trans, genesisBlockData.Validator); err != nil {
 		return fmt.Errorf("Failed to write genesis block data to file: %v", err)
 	}
-
-	s.logger.Debug("genesis block created",
-		slog.String("hash", genesisBlockData.Hash))
-
 	if err := s.setBlockchainLastestHashUseCase.Execute(genesisBlockData.Hash); err != nil {
 		return fmt.Errorf("Failed to save last hash of genesis block data: %v", err)
 	}
 
-	// The very first `token_id` will be set to zero.
-	if err := s.setBlockchainLastestTokenIDUseCase.Execute(0); err != nil {
-		return fmt.Errorf("Failed to save last token ID of genesis block data: %v", err)
-	}
+	s.logger.Debug("genesis block created, finished running service",
+		slog.String("hash", genesisBlockData.Hash))
 
-	s.logger.Debug("finished genesis creation service",
-		slog.Any("hash", genesisBlockData.Hash))
 	return nil
 }

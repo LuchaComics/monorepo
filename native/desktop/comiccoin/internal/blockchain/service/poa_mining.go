@@ -19,14 +19,20 @@ type ProofOfAuthorityMiningService struct {
 	logger                                  *slog.Logger
 	kmutex                                  kmutexutil.KMutexProvider
 	getKeyService                           *GetKeyService
+	getAccountUseCase                       *usecase.GetAccountUseCase
 	getAccountsHashStateUseCase             *usecase.GetAccountsHashStateUseCase
 	getTokensHashStateUseCase               *usecase.GetTokensHashStateUseCase
 	listAllPendingBlockTransactionUseCase   *usecase.ListAllPendingBlockTransactionUseCase
 	getBlockchainLastestHashUseCase         *usecase.GetBlockchainLastestHashUseCase
 	getBlockDataUseCase                     *usecase.GetBlockDataUseCase
 	proofOfWorkUseCase                      *usecase.ProofOfWorkUseCase
+	createBlockDataUseCase                  *usecase.CreateBlockDataUseCase
 	broadcastProposedBlockDataDTOUseCase    *usecase.BroadcastProposedBlockDataDTOUseCase
 	deleteAllPendingBlockTransactionUseCase *usecase.DeleteAllPendingBlockTransactionUseCase
+	upsertTokenUseCase                      *usecase.UpsertTokenUseCase
+	upsertAccountUseCase                    *usecase.UpsertAccountUseCase
+	setBlockchainLastestHashUseCase         *usecase.SetBlockchainLastestHashUseCase
+	setBlockchainLastestTokenIDUseCase      *usecase.SetBlockchainLastestTokenIDUseCase
 }
 
 func NewProofOfAuthorityMiningService(
@@ -34,16 +40,22 @@ func NewProofOfAuthorityMiningService(
 	logger *slog.Logger,
 	kmutex kmutexutil.KMutexProvider,
 	getKeyService *GetKeyService,
-	uc1 *usecase.GetAccountsHashStateUseCase,
-	uc2 *usecase.GetTokensHashStateUseCase,
-	uc3 *usecase.ListAllPendingBlockTransactionUseCase,
-	uc4 *usecase.GetBlockchainLastestHashUseCase,
-	uc5 *usecase.GetBlockDataUseCase,
-	uc6 *usecase.ProofOfWorkUseCase,
-	uc7 *usecase.BroadcastProposedBlockDataDTOUseCase,
-	uc8 *usecase.DeleteAllPendingBlockTransactionUseCase,
+	uc1 *usecase.GetAccountUseCase,
+	uc2 *usecase.GetAccountsHashStateUseCase,
+	uc3 *usecase.GetTokensHashStateUseCase,
+	uc4 *usecase.ListAllPendingBlockTransactionUseCase,
+	uc5 *usecase.GetBlockchainLastestHashUseCase,
+	uc6 *usecase.GetBlockDataUseCase,
+	uc7 *usecase.ProofOfWorkUseCase,
+	uc8 *usecase.CreateBlockDataUseCase,
+	uc9 *usecase.BroadcastProposedBlockDataDTOUseCase,
+	uc10 *usecase.DeleteAllPendingBlockTransactionUseCase,
+	uc11 *usecase.UpsertTokenUseCase,
+	uc12 *usecase.UpsertAccountUseCase,
+	uc13 *usecase.SetBlockchainLastestHashUseCase,
+	uc14 *usecase.SetBlockchainLastestTokenIDUseCase,
 ) *ProofOfAuthorityMiningService {
-	return &ProofOfAuthorityMiningService{config, logger, kmutex, getKeyService, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8}
+	return &ProofOfAuthorityMiningService{config, logger, kmutex, getKeyService, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12, uc13, uc14}
 }
 
 func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
@@ -80,7 +92,8 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 
 	//
 	// STEP 2:
-	// Lookup the most recent block (data) in our blockchain
+	// Lookup the most recent block (data) in our blockchain and setup whatever
+	// variables we will need to assist in our PoA mining service.
 	//
 
 	prevBlockDataHash, err := s.getBlockchainLastestHashUseCase.Execute()
@@ -106,11 +119,6 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	}
 	poaValidator := prevBlockData.Validator
 
-	//
-	// STEP 3:
-	// Setup our new block.
-	//
-
 	// Variable used to keep track the most recent `token_id` value.
 	latestTokenID := prevBlockData.Header.LatestTokenID
 
@@ -121,20 +129,54 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	// Variable used to create the transactions to store on the blockchain.
 	trans := make([]domain.BlockTransaction, 0)
 
-	// Iterate through all the pending transactions and include them in our
-	// blockchain.
+	//
+	// STEP 3:
+	// Setup our new block.
+	//
+
+	// Iterate through all the pending transactions and perform various
+	// computations...
 	for _, pendingBlockTx := range pendingBlockTxs {
+
 		//
-		// Developers Note:
-		// The `PoA` miner supports minting non-fungible tokens, hence the
-		// following code...
+		// STEP 3 (A):
+		// Process tokens.
 		//
+
 		if pendingBlockTx.Type == domain.TransactionTypeToken {
-			// CASE 1 of 1:
+			// STEP 3 (A) (i):
 			// If our token ID is greater then the blockchain's state
 			// then let's update our blockchain state with our latest token id.
 			if pendingBlockTx.TokenID > latestTokenID {
 				latestTokenID = pendingBlockTx.TokenID
+			}
+
+			// STEP 3 (A) (ii):
+			// Save our token to the local database.
+			if err := s.upsertTokenUseCase.Execute(pendingBlockTx.TokenID, pendingBlockTx.To, pendingBlockTx.TokenMetadataURI); err != nil {
+				s.logger.Error("Failed upserting token",
+					slog.Any("error", err))
+				log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+			}
+
+			// STEP 3 (A) (iii):
+			if err := s.setBlockchainLastestTokenIDUseCase.Execute(pendingBlockTx.TokenID); err != nil {
+				s.logger.Error("validator failed saving latest hash",
+					slog.Any("error", err))
+				log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+			}
+		}
+
+		//
+		// STEP 3 (B):
+		// Process coins.
+		//
+
+		if pendingBlockTx.Type == domain.TransactionTypeCoin {
+			if err := s.processAccountForBlockTransaction(pendingBlockTx); err != nil {
+				s.logger.Error("Failed processing accounts",
+					slog.Any("error", err))
+				log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 			}
 		}
 
@@ -152,15 +194,15 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	// of this tree will be part of the block to be mined.
 	tree, err := merkle.NewTree(trans)
 	if err != nil {
-		s.logger.Error("Failed to create merkle tree",
+		s.logger.Error("Failed creating merkle tree",
 			slog.Any("error", err))
-		return fmt.Errorf("Failed to create merkle tree: %v", err)
+		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
 
 	// Iterate through all the accounts from this local machine, sort them and
 	// then hash all of them - this hash represents our `stateRoot` which is
-	// in essence a snapshot of the current accounts and their balances. Why is this
-	// important?
+	// in essence a snapshot of the current accounts and their balances. Why is
+	// this important?
 	//
 	// At the start of creating a new block to be mined, a hash of this map is
 	// created and stored in the block under the StateRoot field. This allows
@@ -186,16 +228,16 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	if err != nil {
 		s.logger.Error("Failed getting accounts hash state",
 			slog.Any("error", err))
-		return fmt.Errorf("Failed getting accounts hash state: %v", err)
+		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
 
-	// // Ensure tokens are not tampered with.
-	// tokensRoot, err := s.getTokensHashStateUseCase.Execute()
-	// if err != nil {
-	// 	s.logger.Error("Failed getting tokens hash state",
-	// 		slog.Any("error", err))
-	// 	return fmt.Errorf("Failed getting tokens hash state: %v", err)
-	// }
+	// Ensure tokens are not tampered with.
+	tokensRoot, err := s.getTokensHashStateUseCase.Execute()
+	if err != nil {
+		s.logger.Error("Failed getting tokens hash state",
+			slog.Any("error", err))
+		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+	}
 
 	// Construct the genesis block.
 	block := domain.Block{
@@ -210,7 +252,7 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 			TransRoot:     tree.RootHex(), //
 			Nonce:         0,              // Will be identified by the PoW algorithm.
 			LatestTokenID: latestTokenID,  // Ensure our blockchain state has the latest token ID recorded.
-			// TokensRoot:    tokensRoot,
+			TokensRoot:    tokensRoot,
 		},
 		HeaderSignature: []byte{}, // Will be identified by the PoA algorithm in this function!
 		MerkleTree:      tree,
@@ -223,9 +265,9 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 
 	nonce, powErr := s.proofOfWorkUseCase.Execute(ctx, &block, s.config.Blockchain.Difficulty)
 	if powErr != nil {
-		s.logger.Error("Failed to mine block",
-			slog.Any("error", powErr))
-		return fmt.Errorf("Failed to mine block: %v", powErr)
+		s.logger.Error("Failed to mine block header",
+			slog.Any("error", err))
+		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
 
 	block.Header.Nonce = nonce
@@ -242,8 +284,9 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 		s.config.Blockchain.ProofOfAuthorityAccountAddress,
 		s.config.Blockchain.ProofOfAuthorityWalletPassword)
 	if err != nil {
-		log.Fatalf("failed getting account wallet key: %v", err)
-		return fmt.Errorf("failed getting account wallet key: %v", err)
+		s.logger.Error("Failed getting account wallet key",
+			slog.Any("error", err))
+		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
 	if coinbaseAccountKey == nil {
 		return fmt.Errorf("failed getting account wallet key: %v", "does not exist")
@@ -252,7 +295,9 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	coinbasePrivateKey := coinbaseAccountKey.PrivateKey
 	blockDataHeaderSignature, err := poaValidator.Sign(coinbasePrivateKey, blockData.Header)
 	if err != nil {
-		return fmt.Errorf("Failed to sign block header: %v", err)
+		s.logger.Error("Failed to sign block header",
+			slog.Any("error", err))
+		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
 	blockData.HeaderSignature = blockDataHeaderSignature
 	blockData.Validator = poaValidator
@@ -278,13 +323,42 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	//
 
 	if err := s.deleteAllPendingBlockTransactionUseCase.Execute(); err != nil {
-		s.logger.Error("Failed to deleta all pending block data from blockchain",
-			slog.Any("error", powErr))
-		return fmt.Errorf("Failed to deleta all pending block data from blockchain: %v", powErr)
+		s.logger.Error("Failed deleting all pending block transactions",
+			slog.Any("error", err))
+		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
 
 	//
 	// STEP 7:
+	// Save to (local) blockchain database
+	//
+
+	if err := s.createBlockDataUseCase.Execute(blockData.Hash, blockData.Header, blockData.HeaderSignature, blockData.Trans, blockData.Validator); err != nil {
+		s.logger.Error("PoA mining service failed saving block data",
+			slog.Any("error", err))
+		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+	}
+
+	s.logger.Info("PoA mining service added new block to blockchain",
+		slog.Any("hash", blockData.Hash),
+		slog.Uint64("number", blockData.Header.Number),
+		slog.Any("previous_hash", blockData.Header.PrevBlockHash),
+	)
+
+	if err := s.setBlockchainLastestHashUseCase.Execute(blockData.Hash); err != nil {
+		s.logger.Error("PoA mining service failed saving latest hash",
+			slog.Any("error", err))
+		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+	}
+
+	s.logger.Debug("PoA mining service set latest hash in blockchain",
+		slog.Any("hash", blockData.Hash),
+	)
+
+	//
+	// STEP 8:
+	// Save to (distributed / peer-to-peer) blockchain database.
+	//
 	// Broadcast to the distributed / P2P blockchain network our new proposed
 	// block data. In addition we will send this to ourselves as well.
 	//
@@ -305,13 +379,91 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	}
 
 	if err := s.broadcastProposedBlockDataDTOUseCase.Execute(ctx, purposeBlockData); err != nil {
-		s.logger.Error("Failed to broadcast proposed block data",
-			slog.Any("error", powErr))
-		return fmt.Errorf("Failed to broadcast proposed block data: %v", powErr)
+		s.logger.Error("Failed to broadcast to peer-to-peer network the new block",
+			slog.Any("error", err))
+		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
 
 	s.logger.Info("PoA mining service broadcasted new block data to propose to the network",
 		slog.Uint64("nonce", block.Header.Nonce))
+
+	return nil
+}
+
+func (s *ProofOfAuthorityMiningService) processAccountForBlockTransaction(blockTx *domain.PendingBlockTransaction) error {
+	// DEVELOPERS NOTE:
+	// Please remember that when this function executes, there already is an
+	// in-memory database of accounts populated and maintained by this node.
+	// Therefore the code in this function is executed on a ready database.
+
+	//
+	// STEP 1
+	//
+
+	if blockTx.From != nil {
+		// DEVELOPERS NOTE:
+		// We already *should* have a `From` account in our database, so we can
+		acc, _ := s.getAccountUseCase.Execute(blockTx.From)
+		if acc == nil {
+			s.logger.Error("The `From` account does not exist in our database.",
+				slog.Any("hash", blockTx.From))
+			return fmt.Errorf("The `From` account does not exist in our database for hash: %v", blockTx.From.String())
+		}
+		acc.Balance -= blockTx.Value
+		acc.Nonce += 1 // Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
+
+		if err := s.upsertAccountUseCase.Execute(acc.Address, acc.Balance, acc.Nonce); err != nil {
+			s.logger.Error("Failed upserting account.",
+				slog.Any("error", err))
+			return err
+		}
+
+		s.logger.Debug("New `From` account balance via validator",
+			slog.Any("account_address", acc.Address),
+			slog.Any("balance", acc.Balance),
+		)
+	}
+
+	//
+	// STEP 2
+	//
+
+	if blockTx.To != nil {
+		// DEVELOPERS NOTE:
+		// It is perfectly normal that our account would possibly not exist
+		// so we would need to create a new Account record in our local
+		// in-memory database.
+		acc, _ := s.getAccountUseCase.Execute(blockTx.To)
+		if acc == nil {
+			if err := s.upsertAccountUseCase.Execute(blockTx.To, 0, 0); err != nil {
+				s.logger.Error("Failed creating account.",
+					slog.Any("error", err))
+				return err
+			}
+			acc = &domain.Account{
+				Address: blockTx.To,
+
+				// Always start by zero, increment by 1 after mining successful.
+				Nonce: 0,
+
+				Balance: blockTx.Value,
+			}
+		} else {
+			acc.Balance += blockTx.Value
+			acc.Nonce += 1 // Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
+		}
+
+		if err := s.upsertAccountUseCase.Execute(acc.Address, acc.Balance, acc.Nonce); err != nil {
+			s.logger.Error("Failed upserting account.",
+				slog.Any("error", err))
+			return err
+		}
+
+		s.logger.Debug("New `To` account balance via validator",
+			slog.Any("account_address", acc.Address),
+			slog.Any("balance", acc.Balance),
+		)
+	}
 
 	return nil
 }

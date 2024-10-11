@@ -6,6 +6,7 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 type UpsertTokenUseCase struct {
@@ -18,7 +19,7 @@ func NewUpsertTokenUseCase(config *config.Config, logger *slog.Logger, repo doma
 	return &UpsertTokenUseCase{config, logger, repo}
 }
 
-func (uc *UpsertTokenUseCase) Execute(id uint64, metadataURI string) error {
+func (uc *UpsertTokenUseCase) Execute(id uint64, owner *common.Address, metadataURI string) error {
 	//
 	// STEP 1: Validation.
 	//
@@ -26,6 +27,9 @@ func (uc *UpsertTokenUseCase) Execute(id uint64, metadataURI string) error {
 	e := make(map[string]string)
 	if id == 0 {
 		e["id"] = "missing value"
+	}
+	if owner == nil {
+		e["owner"] = "missing value"
 	}
 	if metadataURI == "" {
 		e["metadata_uri"] = "missing value"
@@ -42,6 +46,7 @@ func (uc *UpsertTokenUseCase) Execute(id uint64, metadataURI string) error {
 
 	token := &domain.Token{
 		ID:          id,
+		Owner:       owner,
 		MetadataURI: metadataURI,
 	}
 

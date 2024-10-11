@@ -468,14 +468,20 @@ func DaemonCmd() *cobra.Command {
 				logger,
 				kmutex,
 				getKeyService,
+				getAccountUseCase,
 				getAccountsHashStateUseCase,
 				getTokensHashStateUseCase,
 				listAllPendingBlockTxUseCase,
 				getBlockchainLastestHashUseCase,
 				getBlockDataUseCase,
 				proofOfWorkUseCase,
+				createBlockDataUseCase,
 				broadcastProposedBlockDataDTOUseCase,
 				deleteAllPendingBlockTxUseCase,
+				upsertTokenUseCase,
+				upsertAccountUseCase,
+				setBlockchainLastestHashUseCase,
+				setBlockchainLastestTokenIDUseCase,
 			)
 
 			// Validation
