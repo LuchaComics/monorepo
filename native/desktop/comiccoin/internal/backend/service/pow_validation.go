@@ -123,7 +123,7 @@ func (s *ProofOfWorkValidationService) Execute(ctx context.Context) error {
 	newBlockData := &domain.BlockData{
 		Hash:            proposedBlockData.Hash,
 		Header:          proposedBlockData.Header,
-		HeaderSignature: proposedBlockData.HeaderSignature,
+		HeaderSignatureBytes: proposedBlockData.HeaderSignatureBytes,
 		Trans:           proposedBlockData.Trans,
 		Validator:       proposedBlockData.Validator,
 	}
@@ -170,7 +170,7 @@ func (s *ProofOfWorkValidationService) Execute(ctx context.Context) error {
 	createNewBlockErr := s.createBlockDataUseCase.Execute(
 		newBlockData.Hash,
 		newBlockData.Header,
-		newBlockData.HeaderSignature,
+		newBlockData.HeaderSignatureBytes,
 		newBlockData.Trans,
 		newBlockData.Validator)
 	if createNewBlockErr != nil {

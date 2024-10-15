@@ -17,7 +17,7 @@ type Block struct {
 
 	// The signature of this block's "Header" field which was applied by the
 	// proof-of-authority validator.
-	HeaderSignature []byte `json:"header_signature"`
+	HeaderSignatureBytes []byte `json:"header_signature_bytes"`
 
 	// MerkleTree is the Merkle tree of transactions, which allows for efficient verification of transaction inclusion.
 	MerkleTree *merkle.Tree[BlockTransaction]
@@ -38,7 +38,7 @@ func NewBlockData(block Block) *BlockData {
 		Header: block.Header,
 
 		// Proof of Authority signature of the block header.
-		HeaderSignature: block.HeaderSignature,
+		HeaderSignatureBytes: block.HeaderSignatureBytes,
 
 		// Trans is the list of transactions in the block.
 		Trans: block.MerkleTree.Values(),
@@ -196,10 +196,10 @@ func ToBlock(blockData *BlockData) (*Block, error) {
 
 	// Create a new block from the block data and Merkle tree.
 	block := &Block{
-		Header:          blockData.Header,
-		HeaderSignature: blockData.HeaderSignature,
-		MerkleTree:      tree,
-		Validator:       blockData.Validator,
+		Header:               blockData.Header,
+		HeaderSignatureBytes: blockData.HeaderSignatureBytes,
+		MerkleTree:           tree,
+		Validator:            blockData.Validator,
 	}
 
 	return block, nil

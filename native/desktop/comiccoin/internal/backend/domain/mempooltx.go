@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/blockchain/signature"
 	"github.com/fxamacker/cbor/v2"
 )
 
@@ -28,7 +28,7 @@ type MempoolTransaction struct {
 // Validate checks if the transaction is valid.
 // It verifies the signature, makes sure the account addresses are correct,
 // and checks if the 'from' and 'to' accounts are not the same.
-func (tx MempoolTransaction) Validate(chainID uint16) error {
+func (tx MempoolTransaction) Validate(chainID uint16, isPoA bool) error {
 	// Check if the transaction's chain ID matches the expected one.
 	if tx.ChainID != chainID {
 		return fmt.Errorf("invalid chain id, got[%d] exp[%d]", tx.ChainID, chainID)
@@ -36,7 +36,10 @@ func (tx MempoolTransaction) Validate(chainID uint16) error {
 
 	// Ensure the 'from' and 'to' accounts are not the same.
 	if tx.From == tx.To {
-		return fmt.Errorf("transaction invalid, sending money to yourself, from %s, to %s", tx.From, tx.To)
+		// ... unless you are the proof of authority.
+		if !isPoA {
+			return fmt.Errorf("transaction invalid, sending money to yourself, from %s, to %s", tx.From, tx.To)
+		}
 	}
 
 	// Validate the signature parts (R, S, and V).
@@ -105,23 +108,7 @@ func NewMempoolTransactionFromDeserialize(data []byte) (*MempoolTransaction, err
 // FromAddress extracts the account address from the signed transaction by
 // recovering the public key from the signature.
 func (tx MempoolTransaction) FromAddress() (string, error) {
-	// Create the hash of the transaction to prepare it for extracting the public key.
-	tran, err := tx.HashWithComicCoinStamp()
-	if err != nil {
-		return "", err
-	}
-
-	// Combine R, S, and V into the original signature format.
-	sig := toSignatureBytes(tx.V, tx.R, tx.S)
-
-	// Use the signature to get the public key of the account that signed it.
-	publicKey, err := crypto.SigToPub(tran, sig)
-	if err != nil {
-		return "", err
-	}
-
-	// Convert the public key to an account address.
-	return crypto.PubkeyToAddress(*publicKey).String(), nil
+	return signature.FromAddress(tx.Transaction, tx.V, tx.R, tx.S)
 }
 
 // ToSignedTransaction converts the mempool transaction to a signed transaction.

@@ -17,7 +17,7 @@ type BlockDataDTO struct {
 
 	// The signature of this block's "Header" field which was applied by the
 	// proof-of-authority validator.
-	HeaderSignature []byte `json:"header_signature"`
+	HeaderSignatureBytes []byte `json:"header_signature_bytes"`
 
 	// Header is the block header, which contains metadata about the block.
 	Header *BlockHeader `json:"block_header"`

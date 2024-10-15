@@ -55,7 +55,7 @@ func (s *InitBlockDataService) Execute() error {
 		s.logger.Error("Failed getting genesis block", slog.Any("error", err))
 		return err
 	}
-	if err := s.createBlockDataUseCase.Execute(gbd.Hash, gbd.Header, gbd.HeaderSignature, gbd.Trans, gbd.Validator); err != nil {
+	if err := s.createBlockDataUseCase.Execute(gbd.Hash, gbd.Header, gbd.HeaderSignatureBytes, gbd.Trans, gbd.Validator); err != nil {
 		s.logger.Error("Failed creating genesis block", slog.Any("error", err))
 		return err
 	}

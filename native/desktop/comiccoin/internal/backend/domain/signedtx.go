@@ -3,6 +3,7 @@ package domain
 import (
 	"errors"
 	"fmt"
+	"log"
 	"math/big"
 
 	"github.com/fxamacker/cbor/v2"
@@ -19,30 +20,34 @@ type SignedTransaction struct {
 
 // Validate checks if the transaction is valid. It verifies the signature,
 // makes sure the account addresses are correct, and checks if the 'from'
-// and 'to' accounts are not the same.
-func (tx SignedTransaction) Validate(chainID uint16) error {
+// and 'to' accounts are not the same (unless you are the proof of authority!)
+func (stx SignedTransaction) Validate(chainID uint16, isPoA bool) error {
 	// Check if the transaction's chain ID matches the expected one.
-	if tx.ChainID != chainID {
-		return fmt.Errorf("invalid chain id, got[%d] exp[%d]", tx.ChainID, chainID)
+	if stx.ChainID != chainID {
+		return fmt.Errorf("invalid chain id, got[%d] exp[%d]", stx.ChainID, chainID)
 	}
 
 	// Ensure the 'from' and 'to' accounts are not the same.
-	if tx.From == tx.To {
-		return fmt.Errorf("transaction invalid, sending money to yourself, from %s, to %s", tx.From, tx.To)
+	if stx.From == stx.To {
+		// ... unless you are the proof of authority.
+		if !isPoA {
+			return fmt.Errorf("transaction invalid, sending money to yourself, from %s, to %s", stx.From, stx.To)
+		}
 	}
 
 	// Validate the signature parts (R, S, and V).
-	if err := VerifySignature(tx.V, tx.R, tx.S); err != nil {
+	if err := VerifySignature(stx.V, stx.R, stx.S); err != nil {
 		return err
 	}
 
 	// Verify that the 'from' address matches the one from the signature.
-	address, err := tx.FromAddress()
+	address, err := stx.FromAddress()
 	if err != nil {
 		return err
 	}
 
-	if address != string(tx.From.Hex()) {
+	if address != string(stx.From.Hex()) {
+		log.Printf("SignedTransaction: Validate: signature address %v doesn't match from address %v\n", address, stx.From.Hex())
 		return errors.New("signature address doesn't match from address")
 	}
 

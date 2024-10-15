@@ -17,7 +17,7 @@ type BlockData struct {
 
 	// The signature of this block's "Header" field which was applied by the
 	// proof-of-authority validator.
-	HeaderSignature []byte `json:"header_signature"`
+	HeaderSignatureBytes []byte `json:"header_signature_bytes"`
 
 	// Trans is the list of (coin) transactions in the block.
 	Trans []BlockTransaction `json:"trans"`

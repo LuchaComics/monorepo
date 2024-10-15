@@ -130,9 +130,34 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 		TokenMetadataURI: "https://cpscapsule.com/comiccoin/tokens/0/metadata.json",
 		TokenNonce:       0, // Newly minted tokens always have their nonce start at value of zero.
 	}
-	signedNftTx, err := tokenTx.Sign(s.coinbaseAccountKey.PrivateKey)
+	signedTokenTx, err := tokenTx.Sign(s.coinbaseAccountKey.PrivateKey)
 	if err != nil {
 		return fmt.Errorf("Failed to sign token transaction: %v", err)
+	}
+
+	nftFromAddr, err := signedTokenTx.FromAddress()
+	if err != nil {
+		s.logger.Error("Failed getting from address",
+			slog.Any("chain_id", s.config.Blockchain.ChainID),
+			slog.Any("error", err))
+		return err
+	}
+
+	s.logger.Info("Created first token",
+		slog.Any("from", signedTokenTx.From),
+		slog.Any("from_via_sig", nftFromAddr),
+		slog.Any("to", signedTokenTx.To),
+		slog.Any("tx_sig_v", signedTokenTx.V),
+		slog.Any("tx_sig_r", signedTokenTx.R),
+		slog.Any("tx_sig_s", signedTokenTx.S),
+		slog.Uint64("tx_token_id", signedTokenTx.TokenID))
+
+	// Defensive code: Run this code to ensure this transaction is
+	// properly structured for our blockchain.
+	if err := signedTokenTx.Validate(s.config.Blockchain.ChainID, true); err != nil {
+		s.logger.Error("Failed token transaction.",
+			slog.Any("error", err))
+		return err
 	}
 
 	//
@@ -164,7 +189,7 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 		GasUnits:          unitsOfGas,
 	}
 	tokenBlockTx := domain.BlockTransaction{
-		SignedTransaction: signedNftTx,
+		SignedTransaction: signedTokenTx,
 		TimeStamp:         uint64(time.Now().UTC().UnixMilli()),
 		GasPrice:          gasPrice,
 		GasUnits:          unitsOfGas,
@@ -257,11 +282,11 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	//
 
 	genesisBlockData.Validator = poaValidator
-	genesisBlockHeaderSignature, err := poaValidator.Sign(coinbasePrivateKey, genesisBlockData.Header)
+	genesisBlockHeaderSignatureBytes, err := poaValidator.Sign(coinbasePrivateKey, genesisBlockData.Header)
 	if err != nil {
 		return fmt.Errorf("Failed to sign block header: %v", err)
 	}
-	genesisBlockData.HeaderSignature = genesisBlockHeaderSignature
+	genesisBlockData.HeaderSignatureBytes = genesisBlockHeaderSignatureBytes
 
 	//
 	// STEP 9:
@@ -282,7 +307,7 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	// Save genesis block to a database.
 	//
 
-	if err := s.createBlockDataUseCase.Execute(genesisBlockData.Hash, genesisBlockData.Header, genesisBlockData.HeaderSignature, genesisBlockData.Trans, genesisBlockData.Validator); err != nil {
+	if err := s.createBlockDataUseCase.Execute(genesisBlockData.Hash, genesisBlockData.Header, genesisBlockData.HeaderSignatureBytes, genesisBlockData.Trans, genesisBlockData.Validator); err != nil {
 		return fmt.Errorf("Failed to write genesis block data to file: %v", err)
 	}
 	if err := s.setBlockchainLastestHashUseCase.Execute(genesisBlockData.Hash); err != nil {

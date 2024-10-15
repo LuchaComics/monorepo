@@ -290,8 +290,8 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 			LatestTokenID: latestTokenID,  // Ensure our blockchain state has always the latest token ID recorded.
 			TokensRoot:    tokensRoot,
 		},
-		HeaderSignature: []byte{}, // Will be identified by the PoA algorithm in this function!
-		MerkleTree:      tree,
+		HeaderSignatureBytes: []byte{}, // Will be identified by the PoA algorithm in this function!
+		MerkleTree:           tree,
 	}
 
 	//
@@ -339,7 +339,7 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	}
 
 	coinbasePrivateKey := coinbaseAccountKey.PrivateKey
-	blockDataHeaderSignature, err := poaValidator.Sign(coinbasePrivateKey, blockData.Header)
+	blockDataHeaderSignatureBytes, err := poaValidator.Sign(coinbasePrivateKey, blockData.Header)
 	if err != nil {
 		s.logger.Error("Failed to sign block header",
 			slog.Any("error", err))
@@ -350,7 +350,7 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 		// - processTokenForPendingBlockTransaction
 		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
-	blockData.HeaderSignature = blockDataHeaderSignature
+	blockData.HeaderSignatureBytes = blockDataHeaderSignatureBytes
 	blockData.Validator = poaValidator
 
 	s.logger.Info("PoA mining completed",
@@ -366,7 +366,7 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 		slog.Uint64("nonce", blockData.Header.Nonce),
 		slog.Uint64("latest_token_id", blockData.Header.LatestTokenID),
 		slog.Any("trans", blockData.Trans),
-		slog.Any("header_signature", blockData.HeaderSignature))
+		slog.Any("header_signature_bytes", blockData.HeaderSignatureBytes))
 
 	//
 	// STEP 6
@@ -390,7 +390,7 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	// Save to (local) blockchain database
 	//
 
-	if err := s.createBlockDataUseCase.Execute(blockData.Hash, blockData.Header, blockData.HeaderSignature, blockData.Trans, blockData.Validator); err != nil {
+	if err := s.createBlockDataUseCase.Execute(blockData.Hash, blockData.Header, blockData.HeaderSignatureBytes, blockData.Trans, blockData.Validator); err != nil {
 		s.logger.Error("PoA mining service failed saving block data",
 			slog.Any("error", err))
 
@@ -443,11 +443,11 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 
 	// Convert to our new datastructure.
 	purposeBlockData := &domain.ProposedBlockData{
-		Hash:            blockData.Hash,
-		Header:          blockData.Header,
-		HeaderSignature: blockData.HeaderSignature,
-		Trans:           blockData.Trans,
-		Validator:       blockData.Validator,
+		Hash:                 blockData.Hash,
+		Header:               blockData.Header,
+		HeaderSignatureBytes: blockData.HeaderSignatureBytes,
+		Trans:                blockData.Trans,
+		Validator:            blockData.Validator,
 	}
 
 	if err := s.broadcastProposedBlockDataDTOUseCase.Execute(ctx, purposeBlockData); err != nil {
@@ -550,10 +550,31 @@ func (s *ProofOfAuthorityMiningService) processAccountForPendingBlockTransaction
 }
 
 func (s *ProofOfAuthorityMiningService) verifyPendingBlockTransaction(pendingBlockTx *domain.PendingBlockTransaction) error {
-	// STEP 1: Verify that the signature is correct.
-	if err := pendingBlockTx.Validate(s.config.Blockchain.ChainID); err != nil {
-		s.logger.Error("Failed validating pending block transaction.",
+	fromAddr, err := pendingBlockTx.FromAddress()
+	if err != nil {
+		s.logger.Error("Failed getting from address",
 			slog.Any("chain_id", s.config.Blockchain.ChainID),
+			slog.Any("error", err))
+		return err
+	}
+
+	// STEP 1: Verify that the signature is correct.
+	if err := pendingBlockTx.Validate(s.config.Blockchain.ChainID, true); err != nil {
+		s.logger.Error("Failed validating pending block transaction.",
+			slog.Any("from_via_sig", fromAddr),
+			slog.Any("chain_id", pendingBlockTx.ChainID),
+			slog.Any("nonce", pendingBlockTx.Nonce),
+			slog.Any("from", pendingBlockTx.From),
+			slog.Any("to", pendingBlockTx.To),
+			slog.Any("value", pendingBlockTx.Value),
+			slog.Any("data", pendingBlockTx.Data),
+			slog.Any("type", pendingBlockTx.Type),
+			slog.Any("token_id", pendingBlockTx.TokenID),
+			slog.Any("token_metadata_uri", pendingBlockTx.TokenMetadataURI),
+			slog.Any("token_nonce", pendingBlockTx.TokenNonce),
+			slog.Any("tx_sig_v", pendingBlockTx.V),
+			slog.Any("tx_sig_r", pendingBlockTx.R),
+			slog.Any("tx_sig_s", pendingBlockTx.S),
 			slog.Any("error", err))
 		return err
 	}
@@ -599,10 +620,14 @@ func (s *ProofOfAuthorityMiningService) verifyPendingBlockTransaction(pendingBlo
 
 		// Defensive code.
 		if token == nil {
-			s.logger.Warn("failed getting token",
-				slog.Any("token_id", pendingBlockTx.TokenID),
-				slog.Any("error", "token does not exist"))
-			return fmt.Errorf("failed getting token: does not exist for ID: %v", pendingBlockTx.TokenID)
+			// Do nothing! This means it hasn't been created yet, meaning
+			// it was just minted! So in that case all we have to do is skip
+			// this function and this token will be created later on.
+			return nil
+			// s.logger.Warn("failed getting token",
+			// 	slog.Any("token_id", pendingBlockTx.TokenID),
+			// 	slog.Any("error", "token does not exist"))
+			// return fmt.Errorf("failed getting token: does not exist for ID: %v", pendingBlockTx.TokenID)
 		}
 
 		// Verify the account owns the token

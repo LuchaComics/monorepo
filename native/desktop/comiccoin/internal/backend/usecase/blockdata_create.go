@@ -51,7 +51,7 @@ func (uc *CreateBlockDataUseCase) Execute(hash string, header *domain.BlockHeade
 	blockData := &domain.BlockData{
 		Hash:            hash,
 		Header:          header,
-		HeaderSignature: headerSignature,
+		HeaderSignatureBytes: headerSignature,
 		Trans:           trans,
 		Validator:       validator,
 	}

@@ -204,7 +204,7 @@ func (s *MajorityVoteConsensusClientService) runDownloadAndSyncBlockchainFromBlo
 	// Save to our local database.
 	//
 
-	if err := s.createBlockDataUseCase.Execute(receivedBlockData.Hash, receivedBlockData.Header, receivedBlockData.HeaderSignature, receivedBlockData.Trans, receivedBlockData.Validator); err != nil {
+	if err := s.createBlockDataUseCase.Execute(receivedBlockData.Hash, receivedBlockData.Header, receivedBlockData.HeaderSignatureBytes, receivedBlockData.Trans, receivedBlockData.Validator); err != nil {
 		s.logger.Error("consensus mechanism failed saving to local database.",
 			slog.Any("error", err))
 		return err

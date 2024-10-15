@@ -80,7 +80,7 @@ func (s *BlockDataDTOServerService) Execute(ctx context.Context) error {
 	blockDataDTO := &domain.BlockDataDTO{
 		Hash:            blockData.Hash,
 		Header:          blockData.Header,
-		HeaderSignature: blockData.HeaderSignature,
+		HeaderSignatureBytes: blockData.HeaderSignatureBytes,
 		Trans:           blockData.Trans,
 		Validator:       blockData.Validator,
 	}

@@ -205,6 +205,11 @@ func (s *ProofOfAuthorityTokenMintService) Execute(
 	}
 
 	s.logger.Info("Pending signed token transaction submitted to blockchain",
+		slog.Any("from", stx.From),
+		slog.Any("to", stx.To),
+		slog.Any("tx_sig_v", stx.V),
+		slog.Any("tx_sig_r", stx.R),
+		slog.Any("tx_sig_s", stx.S),
 		slog.Uint64("tx_token_id", stx.TokenID))
 
 	//

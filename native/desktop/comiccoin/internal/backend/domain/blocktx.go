@@ -5,8 +5,9 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/blockchain/signature"
 	"github.com/fxamacker/cbor/v2"
+
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/blockchain/signature"
 )
 
 // BlockTransaction represents the transaction as it's recorded inside a block. This

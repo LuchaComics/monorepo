@@ -12,7 +12,7 @@ import (
 type ProposedBlockDataDTO struct {
 	Hash            string             `json:"hash"`
 	Header          *BlockHeader       `json:"block_header"`
-	HeaderSignature []byte             `json:"header_signature"`
+	HeaderSignatureBytes []byte             `json:"header_signature_bytes"`
 	Trans           []BlockTransaction `json:"trans"`
 	Validator       *Validator         `json:"validator"`
 }

@@ -140,6 +140,19 @@ func (s *CreateTransactionService) Execute(
 	}
 
 	s.logger.Debug("Pending transaction signed successfully",
+		slog.Any("chain_id", stx.ChainID),
+		slog.Any("nonce", stx.Nonce),
+		slog.Any("from", stx.From),
+		slog.Any("to", stx.To),
+		slog.Any("value", stx.Value),
+		slog.Any("data", stx.Data),
+		slog.Any("type", stx.Type),
+		slog.Any("token_id", stx.TokenID),
+		slog.Any("token_metadata_uri", stx.TokenMetadataURI),
+		slog.Any("token_nonce", stx.TokenNonce),
+		slog.Any("tx_sig_v", stx.V),
+		slog.Any("tx_sig_r", stx.R),
+		slog.Any("tx_sig_s", stx.S),
 		slog.Uint64("tx_nonce", stx.Nonce))
 
 	mempoolTx := &domain.MempoolTransaction{

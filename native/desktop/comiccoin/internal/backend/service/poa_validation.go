@@ -79,7 +79,7 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 
 	s.logger.Info("received dto from network",
 		slog.Any("hash", proposedBlockData.Hash),
-		slog.Any("header_signature", proposedBlockData.HeaderSignature),
+		slog.Any("header_signature_bytes", proposedBlockData.HeaderSignatureBytes),
 	)
 
 	//
@@ -99,7 +99,7 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 		// the peer-to-peer network to validate this block.
 		s.logger.Warn("purposed block already exists locally, skipping validation...",
 			slog.Any("hash", proposedBlockData.Hash),
-			slog.Any("header_signature", proposedBlockData.HeaderSignature),
+			slog.Any("header_signature_bytes", proposedBlockData.HeaderSignatureBytes),
 		)
 		return nil
 
@@ -143,7 +143,7 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 	newBlockData := &domain.BlockData{
 		Hash:            proposedBlockData.Hash,
 		Header:          proposedBlockData.Header,
-		HeaderSignature: proposedBlockData.HeaderSignature,
+		HeaderSignatureBytes: proposedBlockData.HeaderSignatureBytes,
 		Trans:           proposedBlockData.Trans,
 		Validator:       proposedBlockData.Validator,
 	}
@@ -163,7 +163,7 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 	//
 
 	poaValidator := prevBlockData.Validator
-	if poaValidator.Verify(newBlockData.HeaderSignature, newBlockData.Header) == false {
+	if poaValidator.Verify(newBlockData.HeaderSignatureBytes, newBlockData.Header) == false {
 		s.logger.Error("validator failed validating: authority signature is invalid")
 		return fmt.Errorf("validator failed validating: %v", "authority signature is invalid")
 	}
@@ -258,7 +258,7 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 	// Save to the (local) blockchain database.
 	//
 
-	if err := s.createBlockDataUseCase.Execute(newBlockData.Hash, newBlockData.Header, newBlockData.HeaderSignature, newBlockData.Trans, newBlockData.Validator); err != nil {
+	if err := s.createBlockDataUseCase.Execute(newBlockData.Hash, newBlockData.Header, newBlockData.HeaderSignatureBytes, newBlockData.Trans, newBlockData.Validator); err != nil {
 		s.logger.Error("validator failed saving block data",
 			slog.Any("error", err))
 		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")

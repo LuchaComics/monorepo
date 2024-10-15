@@ -7,6 +7,7 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/backend/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/backend/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/backend/usecase"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/blockchain/signature"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
 )
 
@@ -68,13 +69,35 @@ func (s *CreateAccountService) Execute(dataDir, walletPassword string) (*domain.
 	// Decrypt the wallet so we can extract data from it.
 	//
 
-	// walletKey, err := s.walletDecryptKeyUseCase.Execute(walletFilepath, walletPassword)
-	// if err != nil {
-	// 	s.logger.Error("failed getting wallet key",
-	// 		slog.Any("data_dir", dataDir),
-	// 		slog.Any("error", err))
-	// 	return nil, fmt.Errorf("failed getting wallet key: %s", err)
-	// }
+	walletKey, err := s.walletDecryptKeyUseCase.Execute(walletFilepath, walletPassword)
+	if err != nil {
+		s.logger.Error("failed getting wallet key",
+			slog.Any("data_dir", dataDir),
+			slog.Any("error", err))
+		return nil, fmt.Errorf("failed getting wallet key: %s", err)
+	}
+
+	val := "ComicCoin Blockchain"
+
+	// Break the signature into the 3 parts: R, S, and V.
+	v1, r1, s1, err := signature.Sign(val, walletKey.PrivateKey)
+	if err != nil {
+		return nil, err
+	}
+	// Recombine and get our address from the signature.
+	addressFromSig, err := signature.FromAddress(val, v1, r1, s1)
+	if err != nil {
+		return nil, err
+	}
+
+	// Defensive Code: Do a check to ensure our signer to be working correctly.
+	if walletAddress.Hex() != addressFromSig {
+		s.logger.Error("address from signature does not match the wallet address",
+			slog.Any("addressFromSig", addressFromSig),
+			slog.Any("walletAddress", walletAddress.Hex()),
+			slog.Any("data_dir", dataDir))
+		return nil, fmt.Errorf("address from signature at %v does not match the wallet address of %v", addressFromSig, walletAddress.Hex())
+	}
 
 	//
 	// STEP 4:

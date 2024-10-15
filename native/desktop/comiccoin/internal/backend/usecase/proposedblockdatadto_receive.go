@@ -48,7 +48,7 @@ func (uc *ReceiveProposedBlockDataDTOUseCase) Execute(ctx context.Context) (*dom
 	ido := &domain.ProposedBlockData{
 		Hash:            dto.Hash,
 		Header:          dto.Header,
-		HeaderSignature: dto.HeaderSignature,
+		HeaderSignatureBytes: dto.HeaderSignatureBytes,
 		Trans:           dto.Trans,
 		Validator:       dto.Validator,
 	}
