@@ -220,3 +220,6 @@ comiccoin
 # Blacklist - Don't share items we banned from the server.
 static/blacklist/ips.json
 static/blacklist/urls.json
+
+# Temporarily do not save our genesis until we are ready deploy `mainnet`.
+static/genesis.json

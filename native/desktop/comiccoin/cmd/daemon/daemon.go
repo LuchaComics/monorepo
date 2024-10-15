@@ -494,6 +494,7 @@ func DaemonCmd() *cobra.Command {
 				getKeyService,
 				getAccountUseCase,
 				getAccountsHashStateUseCase,
+				getTokenUseCase,
 				getTokensHashStateUseCase,
 				listAllPendingBlockTxUseCase,
 				getBlockchainLastestHashUseCase,

@@ -21,6 +21,7 @@ type ProofOfAuthorityMiningService struct {
 	getKeyService                                *GetKeyService
 	getAccountUseCase                            *usecase.GetAccountUseCase
 	getAccountsHashStateUseCase                  *usecase.GetAccountsHashStateUseCase
+	getTokenUseCase                              *usecase.GetTokenUseCase
 	getTokensHashStateUseCase                    *usecase.GetTokensHashStateUseCase
 	listAllPendingBlockTransactionUseCase        *usecase.ListAllPendingBlockTransactionUseCase
 	getBlockchainLastestHashUseCase              *usecase.GetBlockchainLastestHashUseCase
@@ -43,21 +44,22 @@ func NewProofOfAuthorityMiningService(
 	getKeyService *GetKeyService,
 	uc1 *usecase.GetAccountUseCase,
 	uc2 *usecase.GetAccountsHashStateUseCase,
-	uc3 *usecase.GetTokensHashStateUseCase,
-	uc4 *usecase.ListAllPendingBlockTransactionUseCase,
-	uc5 *usecase.GetBlockchainLastestHashUseCase,
-	uc6 *usecase.GetBlockDataUseCase,
-	uc7 *usecase.ProofOfWorkUseCase,
-	uc8 *usecase.CreateBlockDataUseCase,
-	uc9 *usecase.BroadcastProposedBlockDataDTOUseCase,
-	uc10 *usecase.DeleteAllPendingBlockTransactionUseCase,
-	uc11 *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase,
-	uc12 *usecase.UpsertAccountUseCase,
-	uc13 *usecase.SetBlockchainLastestHashUseCase,
-	uc14 *usecase.GetBlockchainLastestTokenIDUseCase,
-	uc15 *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase,
+	uc3 *usecase.GetTokenUseCase,
+	uc4 *usecase.GetTokensHashStateUseCase,
+	uc5 *usecase.ListAllPendingBlockTransactionUseCase,
+	uc6 *usecase.GetBlockchainLastestHashUseCase,
+	uc7 *usecase.GetBlockDataUseCase,
+	uc8 *usecase.ProofOfWorkUseCase,
+	uc9 *usecase.CreateBlockDataUseCase,
+	uc10 *usecase.BroadcastProposedBlockDataDTOUseCase,
+	uc11 *usecase.DeleteAllPendingBlockTransactionUseCase,
+	uc12 *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase,
+	uc13 *usecase.UpsertAccountUseCase,
+	uc14 *usecase.SetBlockchainLastestHashUseCase,
+	uc15 *usecase.GetBlockchainLastestTokenIDUseCase,
+	uc16 *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase,
 ) *ProofOfAuthorityMiningService {
-	return &ProofOfAuthorityMiningService{config, logger, kmutex, getKeyService, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12, uc13, uc14, uc15}
+	return &ProofOfAuthorityMiningService{config, logger, kmutex, getKeyService, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12, uc13, uc14, uc15, uc16}
 }
 
 func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
@@ -141,7 +143,16 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 		// VALIDATION
 		//
 
-		// TODO: IMPL.... FOR NOW ASSUME TRANSACTION IS NOT FRAUD
+		if err := s.verifyPendingBlockTransaction(pendingBlockTx); err != nil {
+			s.logger.Error("Failed verifying the pending block transaction",
+				slog.Any("error", err))
+
+			// DEVELOPERS NOTE: To remove this `log.Fatalf` we would need to
+			// write code in the future which will undue anything that happend
+			// in the `processTokenForPendingBlockTransaction` function in
+			// this loop.
+			log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+		}
 
 		//
 		// STEP 3 (B):
@@ -152,6 +163,10 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 			if err := s.processTokenForPendingBlockTransaction(pendingBlockTx); err != nil {
 				s.logger.Error("Failed processing token in pending block transaction",
 					slog.Any("error", err))
+
+				// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
+				// write code to undue any processing of tokens that have
+				// ocurred in this loop.
 				log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 			}
 		}
@@ -165,6 +180,10 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 			if err := s.processAccountForPendingBlockTransaction(pendingBlockTx); err != nil {
 				s.logger.Error("Failed processing account in pending block transaction",
 					slog.Any("error", err))
+
+				// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
+				// write code to undue any processing of tokens that have
+				// ocurred in this loop.
 				log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 			}
 		}
@@ -185,6 +204,11 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	if err != nil {
 		s.logger.Error("Failed creating merkle tree",
 			slog.Any("error", err))
+
+		// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
+		// write code to undue actions from:
+		// - processAccountForPendingBlockTransaction
+		// - processTokenForPendingBlockTransaction
 		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
 
@@ -193,6 +217,11 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	if err != nil {
 		s.logger.Error("Failed getting blockchains latest token id",
 			slog.Any("error", err))
+
+		// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
+		// write code to undue actions from:
+		// - processAccountForPendingBlockTransaction
+		// - processTokenForPendingBlockTransaction
 		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
 
@@ -225,6 +254,11 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	if err != nil {
 		s.logger.Error("Failed getting accounts hash state",
 			slog.Any("error", err))
+
+		// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
+		// write code to undue actions from:
+		// - processAccountForPendingBlockTransaction
+		// - processTokenForPendingBlockTransaction
 		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
 
@@ -233,6 +267,11 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	if err != nil {
 		s.logger.Error("Failed getting tokens hash state",
 			slog.Any("error", err))
+
+		// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
+		// write code to undue actions from:
+		// - processAccountForPendingBlockTransaction
+		// - processTokenForPendingBlockTransaction
 		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
 
@@ -264,6 +303,11 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	if powErr != nil {
 		s.logger.Error("Failed to mine block header",
 			slog.Any("error", err))
+
+		// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
+		// write code to undue actions from:
+		// - processAccountForPendingBlockTransaction
+		// - processTokenForPendingBlockTransaction
 		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
 
@@ -283,6 +327,11 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	if err != nil {
 		s.logger.Error("Failed getting account wallet key",
 			slog.Any("error", err))
+
+		// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
+		// write code to undue actions from:
+		// - processAccountForPendingBlockTransaction
+		// - processTokenForPendingBlockTransaction
 		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
 	if coinbaseAccountKey == nil {
@@ -294,6 +343,11 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	if err != nil {
 		s.logger.Error("Failed to sign block header",
 			slog.Any("error", err))
+
+		// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
+		// write code to undue actions from:
+		// - processAccountForPendingBlockTransaction
+		// - processTokenForPendingBlockTransaction
 		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
 	blockData.HeaderSignature = blockDataHeaderSignature
@@ -322,6 +376,12 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	if err := s.deleteAllPendingBlockTransactionUseCase.Execute(); err != nil {
 		s.logger.Error("Failed deleting all pending block transactions",
 			slog.Any("error", err))
+
+		// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
+		// write code to undue actions from:
+		// - processAccountForPendingBlockTransaction
+		// - processTokenForPendingBlockTransaction
+		// - deleteAllPendingBlockTransactionUseCase
 		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
 
@@ -333,6 +393,13 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	if err := s.createBlockDataUseCase.Execute(blockData.Hash, blockData.Header, blockData.HeaderSignature, blockData.Trans, blockData.Validator); err != nil {
 		s.logger.Error("PoA mining service failed saving block data",
 			slog.Any("error", err))
+
+		// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
+		// write code to undue actions from:
+		// - processAccountForPendingBlockTransaction
+		// - processTokenForPendingBlockTransaction
+		// - deleteAllPendingBlockTransactionUseCase
+		// - createBlockDataUseCase
 		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
 
@@ -345,6 +412,14 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	if err := s.setBlockchainLastestHashUseCase.Execute(blockData.Hash); err != nil {
 		s.logger.Error("PoA mining service failed saving latest hash",
 			slog.Any("error", err))
+
+		// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
+		// write code to undue actions from:
+		// - processAccountForPendingBlockTransaction
+		// - processTokenForPendingBlockTransaction
+		// - deleteAllPendingBlockTransactionUseCase
+		// - createBlockDataUseCase
+		// - setBlockchainLastestHashUseCase
 		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
 
@@ -378,6 +453,15 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	if err := s.broadcastProposedBlockDataDTOUseCase.Execute(ctx, purposeBlockData); err != nil {
 		s.logger.Error("Failed to broadcast to peer-to-peer network the new block",
 			slog.Any("error", err))
+
+		// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
+		// write code to undue actions from:
+		// - processAccountForPendingBlockTransaction
+		// - processTokenForPendingBlockTransaction
+		// - deleteAllPendingBlockTransactionUseCase
+		// - createBlockDataUseCase
+		// - setBlockchainLastestHashUseCase
+		// - broadcastProposedBlockDataDTOUseCase
 		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
 	}
 
@@ -460,6 +544,72 @@ func (s *ProofOfAuthorityMiningService) processAccountForPendingBlockTransaction
 			slog.Any("account_address", acc.Address),
 			slog.Any("balance", acc.Balance),
 		)
+	}
+
+	return nil
+}
+
+func (s *ProofOfAuthorityMiningService) verifyPendingBlockTransaction(pendingBlockTx *domain.PendingBlockTransaction) error {
+	// STEP 1: Verify that the signature is correct.
+	if err := pendingBlockTx.Validate(s.config.Blockchain.ChainID); err != nil {
+		s.logger.Error("Failed validating pending block transaction.",
+			slog.Any("chain_id", s.config.Blockchain.ChainID),
+			slog.Any("error", err))
+		return err
+	}
+
+	// STEP 2: Verify account exists in our database.
+	account, err := s.getAccountUseCase.Execute(pendingBlockTx.From)
+	if err != nil {
+		s.logger.Error("Failed getting account.",
+			slog.Any("chain_id", s.config.Blockchain.ChainID),
+			slog.Any("error", err))
+		return err
+	}
+	if account == nil {
+		err := fmt.Errorf("Failed validating account: d.n.e. for: %v", pendingBlockTx.From)
+		s.logger.Error("Failed validating account",
+			slog.Any("chain_id", s.config.Blockchain.ChainID),
+			slog.Any("error", err))
+		return err
+	}
+
+	// STEP 3: Verify account has enough coins (if tx is coin-based)
+	if pendingBlockTx.Type == domain.TransactionTypeCoin {
+		// If the account is sending, then we need to verify the user has
+		// enough coins in the balance.
+		if pendingBlockTx.Value > account.Balance {
+			err := fmt.Errorf("Insufficient balance in account: Have currently %v in account but transaction is requesting %v", account.Balance, pendingBlockTx.Value)
+			s.logger.Error("Failed validating account",
+				slog.Any("chain_id", s.config.Blockchain.ChainID),
+				slog.Any("error", err))
+			return err
+		}
+	}
+
+	// STEP 4: Verify account belongs to token (if tx is token-based)
+	if pendingBlockTx.Type == domain.TransactionTypeToken {
+		// Get the token for the particular token ID.
+		token, err := s.getTokenUseCase.Execute(pendingBlockTx.TokenID)
+		if err != nil {
+			s.logger.Error("failed getting token",
+				slog.Any("error", err))
+			return fmt.Errorf("failed getting token: %s", err)
+		}
+
+		// Defensive code.
+		if token == nil {
+			s.logger.Warn("failed getting token",
+				slog.Any("token_id", pendingBlockTx.TokenID),
+				slog.Any("error", "token does not exist"))
+			return fmt.Errorf("failed getting token: does not exist for ID: %v", pendingBlockTx.TokenID)
+		}
+
+		// Verify the account owns the token
+		if account.Address.Hex() != token.Owner.Hex() {
+			s.logger.Warn("permission failed")
+			return fmt.Errorf("permission denied: token address is %v but your address is %v", token.Owner.Hex(), account.Address.Hex())
+		}
 	}
 
 	return nil
