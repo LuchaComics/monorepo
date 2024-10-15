@@ -706,9 +706,11 @@ func DaemonCmd() *cobra.Command {
 			// blockchain with the network.
 			// go peerNode.Run()
 
-			go httpServ.Run()
+			if flagEnableHTTPJSONAPIServer {
+				go httpServ.Run()
+				defer httpServ.Shutdown()
+			}
 			go taskManager.Run()
-			defer httpServ.Shutdown()
 			defer taskManager.Shutdown()
 
 			logger.Info("Node running.")
@@ -727,6 +729,7 @@ func DaemonCmd() *cobra.Command {
 	cmd.Flags().StringVar(&flagConsensusProtocol, "consensus-protocol", "None", "Controls what consensus protocol to execute for the miner, choices are: PoW, PoA, or None.")
 	cmd.Flags().StringVar(&flagProofOfAuthorityAccountAddress, "poa-address", "", "(Required for `PoA` consensus protocol) The address of the authority's account")
 	cmd.Flags().StringVar(&flagProofOfAuthorityWalletPassword, "poa-password", "", "(Required for `PoA` consensus protocol) The password in the authority's wallet")
+	cmd.Flags().BoolVar(&flagEnableHTTPJSONAPIServer, "enable-http-api", true, "Controls whether you want your node to have a HTTP JSON API server acessible by a GUI, or you are rnning only a node then this must be set to `false`")
 
 	return cmd
 }

@@ -14,6 +14,7 @@ import (
 var (
 	flagKeystoreFile                   string // Location of the wallet keystore
 	flagDataDir                        string // Location of the database directory
+	flagEnableHTTPJSONAPIServer        bool   // Enable / disable public HTTP API for admin to interact with our node
 	flagProofOfAuthorityAccountAddress string
 	flagProofOfAuthorityWalletPassword string
 	flagRecipientAddress               string
