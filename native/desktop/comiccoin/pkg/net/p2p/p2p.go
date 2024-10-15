@@ -15,7 +15,7 @@ import (
 	"github.com/libp2p/go-libp2p/p2p/discovery/routing"
 	drouting "github.com/libp2p/go-libp2p/p2p/discovery/routing"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/backend/config"
 )
 
 // Provider provides interface for abstracting P2P networking.

@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/cloud/cps-backend/provider/logger"
-	httphandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/http/handler"
+	httphandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/backend/interface/http/handler"
 )
 
 func submitTxCmd() *cobra.Command {

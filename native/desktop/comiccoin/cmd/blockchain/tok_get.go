@@ -12,7 +12,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	ah "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/blockchain/interface/http/handler"
+	ah "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/backend/interface/http/handler"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/logger"
 )
 
