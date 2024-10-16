@@ -6,4 +6,5 @@ use (
 	./cloud/cps-nftstore-backend
 	./cloud/cps-nftstore-cli
 	./native/desktop/comiccoin
+	./native/desktop/comiccoin-core
 )
