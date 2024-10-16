@@ -11,8 +11,8 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/kmutexutil"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/kmutexutil"
 )
 
 // Service represents token owners burning the token

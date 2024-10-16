@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/cobra"
 
 	ah "github.com/LuchaComics/monorepo/native/desktop/comiccoin/interface/http/handler"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/logger"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
 )
 
 // Command line argument flags

@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
-	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/storage"
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage"
 )
 
 type BlockchainLastestTokenIDRepo struct {

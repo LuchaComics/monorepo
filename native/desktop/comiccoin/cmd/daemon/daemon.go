@@ -12,6 +12,11 @@ import (
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/spf13/cobra"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/kmutexutil"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
+	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/net/p2p"
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/disk/leveldb"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/memory"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config/constants"
 	http "github.com/LuchaComics/monorepo/native/desktop/comiccoin/interface/http"
@@ -22,11 +27,6 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
 	service "github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
 	usecase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/kmutexutil"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/logger"
-	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p"
-	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/storage/disk/leveldb"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/storage/memory"
 )
 
 func DaemonCmd() *cobra.Command {

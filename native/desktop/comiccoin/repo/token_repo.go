@@ -7,8 +7,8 @@ import (
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/blockchain/signature"
-	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/storage"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/signature"
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage"
 )
 
 type TokenRepo struct {

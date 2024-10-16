@@ -12,9 +12,9 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/logger"
-	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/storage/disk/leveldb"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/storage/memory"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/disk/leveldb"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/memory"
 )
 
 func InitCmd() *cobra.Command {

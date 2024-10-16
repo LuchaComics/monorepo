@@ -5,7 +5,7 @@ import (
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
-	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/storage"
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage"
 	"github.com/ethereum/go-ethereum/common"
 )
 

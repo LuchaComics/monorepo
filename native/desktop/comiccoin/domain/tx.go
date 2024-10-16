@@ -6,7 +6,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/blockchain/signature"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/signature"
 )
 
 const (

@@ -7,7 +7,7 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/blockchain/signature"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/signature"
 )
 
 // Service will iterate through every single block in the blockchain and

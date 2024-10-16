@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"sync"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/storage"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage"
 )
 
 type cacheValue struct {

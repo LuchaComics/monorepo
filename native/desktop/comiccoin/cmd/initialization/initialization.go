@@ -12,9 +12,9 @@ import (
 	ik_repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
 	ik_s "github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
 	ik_use "github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/logger"
-	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p"
-	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/storage/disk/leveldb"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
+	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/net/p2p"
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/disk/leveldb"
 	ma "github.com/multiformats/go-multiaddr"
 )
 

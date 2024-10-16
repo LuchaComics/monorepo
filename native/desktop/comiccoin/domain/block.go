@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/blockchain/merkle"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/blockchain/signature"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/merkle"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/signature"
 )
 
 // Block represents a group of transactions batched together.

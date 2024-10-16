@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/blockchain/signature"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/signature"
 	"github.com/fxamacker/cbor/v2"
 )
 

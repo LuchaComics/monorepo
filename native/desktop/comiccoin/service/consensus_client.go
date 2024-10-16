@@ -10,7 +10,7 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/blockchain/signature"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/signature"
 )
 
 type MajorityVoteConsensusClientService struct {

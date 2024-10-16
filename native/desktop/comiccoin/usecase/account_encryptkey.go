@@ -6,8 +6,8 @@ import (
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
-	pkgkeystore "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/blockchain/keystore"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
+	pkgkeystore "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/keystore"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 	"github.com/ethereum/go-ethereum/common"
 )
 

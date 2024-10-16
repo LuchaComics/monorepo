@@ -11,7 +11,7 @@ import (
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
-	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p"
+	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/net/p2p"
 )
 
 const (

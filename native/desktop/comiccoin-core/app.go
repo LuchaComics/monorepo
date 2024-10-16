@@ -3,16 +3,23 @@ package main
 import (
 	"context"
 	"fmt"
+
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 )
 
 // App struct
 type App struct {
-	ctx context.Context
+	ctx    context.Context
+	config *config.Config
 }
 
 // NewApp creates a new App application struct
 func NewApp() *App {
-	return &App{}
+	cfg := &config.Config{}
+
+	return &App{
+		config: cfg,
+	}
 }
 
 // startup is called when the app starts. The context is saved

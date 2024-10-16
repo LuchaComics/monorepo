@@ -8,7 +8,7 @@ import (
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/httperror"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 )
 
 type CreateAccountHTTPHandler struct {

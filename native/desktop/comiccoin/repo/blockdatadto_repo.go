@@ -14,8 +14,8 @@ import (
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
-	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p/protocol/simple"
+	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/net/p2p"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/net/p2p/protocol/simple"
 )
 
 type BlockDataDTORepo struct {
