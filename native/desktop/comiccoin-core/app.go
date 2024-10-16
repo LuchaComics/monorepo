@@ -10,6 +10,7 @@ import (
 // App struct
 type App struct {
 	ctx    context.Context
+	pageID string
 	config *config.Config
 }
 
@@ -19,6 +20,7 @@ func NewApp() *App {
 
 	return &App{
 		config: cfg,
+		pageID: "welcome",
 	}
 }
 
@@ -29,6 +31,12 @@ func (a *App) startup(ctx context.Context) {
 }
 
 // Greet returns a greeting for the given name
+func (a *App) GetPageID() string {
+	return a.pageID
+}
+
+// Greet returns a greeting for the given name
 func (a *App) Greet(name string) string {
+	a.pageID = "home"
 	return fmt.Sprintf("Hello %s, It's show time!", name)
 }
