@@ -10,7 +10,7 @@ import (
 	"hash"
 	"testing"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/utils/blockchain/merkle"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/utils/blockchain/merkle"
 )
 
 // Data uses the sha256 hashing algorithm for the merkle tree.
