@@ -7,11 +7,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/backend/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/backend/config/constants"
-	ik_repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/backend/repo"
-	ik_s "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/backend/service"
-	ik_use "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/backend/usecase"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/config/constants"
+	ik_repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/repo"
+	ik_s "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/service"
+	ik_use "github.com/LuchaComics/monorepo/native/desktop/comiccoin/internal/usecase"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/logger"
 	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/net/p2p"
 	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/pkg/storage/disk/leveldb"
