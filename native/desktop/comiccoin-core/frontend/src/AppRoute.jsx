@@ -7,7 +7,13 @@ import {GetPageID} from "../wailsjs/go/main/App";
 
 import Welcome from './Welcome';
 import App from './App';
-import NotFoundError from "./NotFoundError";
+import StartupView from "./Components/Startup/View";
+import PickStorageLocationOnStartupView from "./Components/Startup/PickStorageLocationOnStartup/View";
+import DashboardView from "./Components/Dashboard/View";
+import SendView from "./Components/Send/View";
+import ReceiveView from "./Components/Receive/View";
+import TransactionsView from "./Components/Transactions/View";
+import NotFoundError from "./Components/Other/NotFoundError";
 
 
 function AppRoute() {
@@ -37,8 +43,12 @@ function AppRoute() {
     return (
         <HashRouter basename={"/"}>
             <Routes>
-                <Route path="/" element={<App />} exact />
-                <Route path="/welcome" element={<Welcome />} exact />
+                <Route path="/" element={<StartupView />} exact />
+                <Route path="/pick-storage-location-on-startup" element={<PickStorageLocationOnStartupView />} exact />
+                <Route path="/dashboard" element={<DashboardView />} exact />
+                <Route path="/send" element={<SendView />} exact />
+                <Route path="/receive" element={<ReceiveView />} exact />
+                <Route path="/transactions" element={<TransactionsView />} exact />
                 <Route path="*" element={<NotFoundError />} />
             </Routes>
         </HashRouter>
