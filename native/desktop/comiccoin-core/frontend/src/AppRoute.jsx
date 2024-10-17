@@ -1,12 +1,16 @@
 import {useState, useEffect} from 'react';
 import { HashRouter, Routes, Route } from "react-router-dom";
+import 'bulma/css/bulma.min.css';
+import { RecoilRoot } from "recoil";
 
-import logo from './assets/images/logo-universal.png';
+// CSS App Styling Override and extra.
 import './App.css';
-import {GetPageID} from "../wailsjs/go/main/App";
 
-import Welcome from './Welcome';
-import App from './App';
+// MENU
+import Topbar from "./Components/Menu/Top";
+import Sidebar from "./Components/Menu/Sidebar";
+
+// CORE VIEWS
 import StartupView from "./Components/Startup/View";
 import PickStorageLocationOnStartupView from "./Components/Startup/PickStorageLocationOnStartup/View";
 import DashboardView from "./Components/Dashboard/View";
@@ -42,18 +46,54 @@ function AppRoute() {
 
 
     return (
-        <HashRouter basename={"/"}>
-            <Routes>
-                <Route path="/" element={<StartupView />} exact />
-                <Route path="/pick-storage-location-on-startup" element={<PickStorageLocationOnStartupView />} exact />
-                <Route path="/dashboard" element={<DashboardView />} exact />
-                <Route path="/send" element={<SendView />} exact />
-                <Route path="/receive" element={<ReceiveView />} exact />
-                <Route path="/transactions" element={<TransactionsView />} exact />
-                <Route path="/settings" element={<SettingsView />} exact />
-                <Route path="*" element={<NotFoundError />} />
-            </Routes>
-        </HashRouter>
+        <div class="is-widescreen is-size-5-widescreen is-size-6-tablet is-size-7-mobile">
+            {/*
+                NOTES FOR ABOVE
+                USE THE FOLLOWING TEXT SIZES BASED ON DEVICE TYPE
+                - is-size-5-widescreen
+                - is-size-6-tablet
+                - is-size-7-mobile
+
+                FURTHERMORE, WE ARE FORCING LIGHT MODE.
+            */}
+            <RecoilRoot>
+                <HashRouter basename={"/"}>
+                    {/*
+                        <AnonymousCurrentUserRedirector />
+                        <TwoFactorAuthenticationRedirector />
+                        <TopAlertBanner />
+                    */}
+                    <Topbar />
+                    <div class="columns">
+                        <Sidebar />
+                        <div class="column">
+                            <section class="main-content columns is-fullheight">
+                                <Routes>
+                                    <Route path="/" element={<StartupView />} exact />
+                                    <Route path="/pick-storage-location-on-startup" element={<PickStorageLocationOnStartupView />} exact />
+                                    <Route path="/dashboard" element={<DashboardView />} exact />
+                                    <Route path="/send" element={<SendView />} exact />
+                                    <Route path="/receive" element={<ReceiveView />} exact />
+                                    <Route path="/transactions" element={<TransactionsView />} exact />
+                                    <Route path="/settings" element={<SettingsView />} exact />
+                                    <Route path="*" element={<NotFoundError />} />
+                                </Routes>
+                            </section>
+                            <div>
+                              {/* DEVELOPERS NOTE: Mobile tab-bar menu can go here */}
+                            </div>
+                            <footer class="footer is-hidden">
+                              <div class="container">
+                                <div class="content has-text-centered">
+                                  <p>Hello</p>
+                                </div>
+                              </div>
+                            </footer>
+                        </div>
+                    </div>
+                </HashRouter>
+            </RecoilRoot>
+        </div>
     )
 }
 
