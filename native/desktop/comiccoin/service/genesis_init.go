@@ -7,17 +7,18 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"math"
 	"os"
 	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/crypto"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/merkle"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/signature"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/merkle"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/signature"
 )
 
 type CreateGenesisBlockDataService struct {
@@ -55,8 +56,9 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 
 	// DEVELOPERS NOTE:
 	// Here is where we initialize the total supply of coins for the entire
-	// blockchain, so adjust accordingly.
-	initialSupply := uint64(5000000000000000000)
+	// blockchain, so adjust accordingly. We will set the maximum value possible
+	// for the unsigned 64-bit integer in a computer. That's a big number!
+	initialSupply := uint64(math.MaxUint64) // Note: 18446744073709551615
 
 	//
 	// STEP 1

@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/signature"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/signature"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 // Service will iterate through every single block in the blockchain and
@@ -38,12 +39,24 @@ func NewInitAccountsFromBlockchainService(
 	return &InitAccountsFromBlockchainService{cfg, logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7}
 }
 
+// AccountInfo structure used to keep track all the transaction
+// enumerations for the particular account.
+type AccountInfo struct {
+	Address             *common.Address
+	Nonce               uint64
+	TotalAmountSent     uint64
+	TotalAmountReceived uint64
+	AmountsSent         []uint64
+	AmountsReceived     []uint64
+}
+
 func (s *InitAccountsFromBlockchainService) Execute() error {
 	//
 	// STEP 1:
 	// Load up our Genesis block and the coinbase account.
 	//
-	if err := s.processGenesisBlockData(); err != nil {
+	coinbaseAccount, err := s.processGenesisBlockData()
+	if err != nil {
 		s.logger.Error("Failed initialize genesis block data",
 			slog.Any("error", err))
 		return fmt.Errorf("Failed initialize genesis block data because of error: %v", err)
@@ -68,6 +81,8 @@ func (s *InitAccountsFromBlockchainService) Execute() error {
 		return nil
 	}
 
+	accountInfos := make(map[common.Address]*AccountInfo, 0)
+
 	for {
 		blockData, err := s.getBlockDataUseCase.Execute(blockDataHash)
 		if err != nil {
@@ -82,14 +97,19 @@ func (s *InitAccountsFromBlockchainService) Execute() error {
 		//
 		// STEP 3:
 		// Process the account for this particular block data (and all the
-		// transactions within this block).
+		// transactions within this block). Skip this step if we are the
+		// genesis block as that is handled elsewhere.
 		//
 
-		for _, blockTx := range blockData.Trans {
-			if err := s.processBlockTransaction(&blockTx); err != nil {
-				s.logger.Error("Failed processing transaction",
-					slog.Any("error", err))
-				return err
+		if blockDataHash != signature.ZeroHash && blockData.Hash != signature.ZeroHash {
+			for _, blockTx := range blockData.Trans {
+				if blockTx.Type == domain.TransactionTypeCoin {
+					if err := s.processCoinBlockTransaction(&blockTx, accountInfos); err != nil {
+						s.logger.Error("Failed processing coin block transaction",
+							slog.Any("error", err))
+						return err
+					}
+				}
 			}
 		}
 
@@ -103,7 +123,47 @@ func (s *InitAccountsFromBlockchainService) Execute() error {
 
 		// Check if the genesis block has been reached and if so then exit.
 		if blockDataHash == signature.ZeroHash && blockData.Hash == signature.ZeroHash {
-			s.logger.Debug("Initialized accounts successfully")
+			s.logger.Debug("Initialized accounts successfully",
+				slog.Any("account_infos", accountInfos))
+
+			// Iterate through all the transactions.
+			for accountAddress, accountSummary := range accountInfos {
+				// The total amount when received is subtracted from sent for
+				// regular accounts, coinbase account is an exception in which
+				// the received value will always be the initial coin supply.
+				var balance uint64 = 0
+
+				//
+				// CASE 1 OF 2: Coinbase account.
+				//
+
+				if accountAddress == *coinbaseAccount.Address {
+					balance = coinbaseAccount.Balance - accountSummary.TotalAmountSent
+				}
+
+				//
+				// CASE 2 OF 2: Regular account.
+				//
+
+				if accountAddress != *coinbaseAccount.Address {
+					balance = accountSummary.TotalAmountReceived - accountSummary.TotalAmountSent
+				}
+
+				// Save our account in our in-memory database.
+				if err := s.upsertAccountUseCase.Execute(&accountAddress, balance, accountSummary.Nonce); err != nil {
+					s.logger.Error("Failed upserting account",
+						slog.Any("error", err))
+					return err
+				}
+
+				// For debugging purposes only.
+				s.logger.Debug("account ready in-memory",
+					slog.Any("address", accountAddress),
+					slog.Any("balance", balance),
+					slog.Any("total_received", accountSummary.TotalAmountReceived),
+					slog.Any("total_sent", accountSummary.TotalAmountSent),
+					slog.Any("nonce", accountSummary.Nonce))
+			}
 
 			// Print the hashstate.
 			hashState, err := s.getAccountsHashStateUseCase.Execute()
@@ -119,17 +179,19 @@ func (s *InitAccountsFromBlockchainService) Execute() error {
 	}
 }
 
-func (s *InitAccountsFromBlockchainService) processGenesisBlockData() error {
+func (s *InitAccountsFromBlockchainService) processGenesisBlockData() (*domain.Account, error) {
 	//
 	// STEP 1:
 	// Load up our genesis block from local file.
 	//
 
+	var coinbaseAccount *domain.Account
+
 	genesisBlockData, err := s.loadGenesisBlockDataUseCase.Execute()
 	if err != nil {
 		s.logger.Error("Failed loading up genesis block from file",
 			slog.Any("error", err))
-		return fmt.Errorf("Failed loading up genesis block from file: %v", err)
+		return nil, fmt.Errorf("Failed loading up genesis block from file: %v", err)
 	}
 	if genesisBlockData != nil {
 		//
@@ -150,14 +212,20 @@ func (s *InitAccountsFromBlockchainService) processGenesisBlockData() error {
 		if err := s.upsertAccountUseCase.Execute(genesisTx.From, genesisTx.Value, 0); err != nil {
 			s.logger.Error("Failed upserting account.",
 				slog.Any("error", err))
-			return err
+			return nil, err
 		}
 
+		coinbaseAccount = &domain.Account{
+			Address: genesisTx.From,
+			Balance: genesisTx.Value,
+			Nonce:   0,
+		}
 	}
-	return nil
+
+	return coinbaseAccount, nil
 }
 
-func (s *InitAccountsFromBlockchainService) processBlockTransaction(blockTx *domain.BlockTransaction) error {
+func (s *InitAccountsFromBlockchainService) processCoinBlockTransaction(blockTx *domain.BlockTransaction, accountInfos map[common.Address]*AccountInfo) error {
 	s.logger.Debug("processing block tx.",
 		slog.Any("from", blockTx.From),
 		slog.Any("to", blockTx.To),
@@ -171,27 +239,23 @@ func (s *InitAccountsFromBlockchainService) processBlockTransaction(blockTx *dom
 	//
 
 	if blockTx.From != nil {
-		// DEVELOPERS NOTE:
-		// We already *should* have a `From` account in our database, so we can
-		acc, _ := s.getAccountUseCase.Execute(blockTx.From)
-		if acc == nil {
-			s.logger.Error("The `From` account does not exist in our database.",
-				slog.Any("hash", blockTx.From))
-			return fmt.Errorf("The `From` account does not exist in our database for hash: %v", blockTx.From.String())
-		}
-		acc.Balance -= blockTx.Value
-		acc.Nonce += 1 // Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
-
-		if err := s.upsertAccountUseCase.Execute(acc.Address, acc.Balance, acc.Nonce); err != nil {
-			s.logger.Error("Failed upserting account.",
-				slog.Any("error", err))
-			return err
+		accountInfo, ok := accountInfos[*blockTx.From]
+		if !ok || accountInfo == nil {
+			accountInfo = &AccountInfo{
+				Address:             blockTx.From,
+				Nonce:               0,
+				TotalAmountSent:     0,
+				TotalAmountReceived: 0,
+				AmountsSent:         []uint64{},
+				AmountsReceived:     []uint64{},
+			}
 		}
 
-		s.logger.Debug("New `From` account balance via validator",
-			slog.Any("account_address", acc.Address),
-			slog.Any("balance", acc.Balance),
-		)
+		accountInfo.Nonce += 1 // Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
+		accountInfo.TotalAmountSent += blockTx.Value
+		accountInfo.AmountsSent = append(accountInfo.AmountsSent, blockTx.Value)
+
+		accountInfos[*blockTx.From] = accountInfo
 	}
 
 	//
@@ -199,40 +263,22 @@ func (s *InitAccountsFromBlockchainService) processBlockTransaction(blockTx *dom
 	//
 
 	if blockTx.To != nil {
-		// DEVELOPERS NOTE:
-		// It is perfectly normal that our account would possibly not exist
-		// so we would need to create a new Account record in our local
-		// in-memory database.
-		acc, _ := s.getAccountUseCase.Execute(blockTx.To)
-		if acc == nil {
-			if err := s.upsertAccountUseCase.Execute(blockTx.To, 0, 0); err != nil {
-				s.logger.Error("Failed creating account.",
-					slog.Any("error", err))
-				return err
+		accountInfo, ok := accountInfos[*blockTx.To]
+		if !ok || accountInfo == nil {
+			accountInfo = &AccountInfo{
+				Address:             blockTx.To,
+				Nonce:               0,
+				TotalAmountSent:     0,
+				TotalAmountReceived: 0,
+				AmountsSent:         []uint64{},
+				AmountsReceived:     []uint64{},
 			}
-			acc = &domain.Account{
-				Address: blockTx.To,
-
-				// Always start by zero, increment by 1 after mining successful.
-				Nonce: 0,
-
-				Balance: blockTx.Value,
-			}
-		} else {
-			acc.Balance += blockTx.Value
-			acc.Nonce += 1 // Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
 		}
 
-		if err := s.upsertAccountUseCase.Execute(acc.Address, acc.Balance, acc.Nonce); err != nil {
-			s.logger.Error("Failed upserting account.",
-				slog.Any("error", err))
-			return err
-		}
+		accountInfo.TotalAmountReceived += blockTx.Value
+		accountInfo.AmountsReceived = append(accountInfo.AmountsReceived, blockTx.Value)
 
-		s.logger.Debug("New `To` account balance via validator",
-			slog.Any("account_address", acc.Address),
-			slog.Any("balance", acc.Balance),
-		)
+		accountInfos[*blockTx.To] = accountInfo
 	}
 
 	return nil
