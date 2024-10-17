@@ -2,7 +2,7 @@ import {useState, useEffect} from 'react';
 import { Link } from "react-router-dom";
 
 
-function TransactionsView() {
+function SettingsView() {
 
 
     useEffect(() => {
@@ -23,11 +23,11 @@ function TransactionsView() {
     return (
         <div id="App">
 
-            <div id="result" className="result">Transactions Page ... <Link to="/settings">Go to Settings</Link>
+            <div id="result" className="result">Settings Page ... <Link to="/">Go to Startup</Link>
             </div>
 
         </div>
     )
 }
 
-export default TransactionsView
+export default SettingsView

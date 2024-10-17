@@ -13,6 +13,7 @@ import DashboardView from "./Components/Dashboard/View";
 import SendView from "./Components/Send/View";
 import ReceiveView from "./Components/Receive/View";
 import TransactionsView from "./Components/Transactions/View";
+import SettingsView from "./Components/Settings/View";
 import NotFoundError from "./Components/Other/NotFoundError";
 
 
@@ -49,6 +50,7 @@ function AppRoute() {
                 <Route path="/send" element={<SendView />} exact />
                 <Route path="/receive" element={<ReceiveView />} exact />
                 <Route path="/transactions" element={<TransactionsView />} exact />
+                <Route path="/settings" element={<SettingsView />} exact />
                 <Route path="*" element={<NotFoundError />} />
             </Routes>
         </HashRouter>
