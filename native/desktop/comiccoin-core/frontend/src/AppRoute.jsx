@@ -46,7 +46,7 @@ function AppRoute() {
 
 
     return (
-        <div class="is-widescreen is-size-5-widescreen is-size-6-tablet is-size-7-mobile">
+        <div class="is-widescreen is-size-5-widescreen is-size-6-tablet is-size-7-mobile theme-light">
             {/*
                 NOTES FOR ABOVE
                 USE THE FOLLOWING TEXT SIZES BASED ON DEVICE TYPE
