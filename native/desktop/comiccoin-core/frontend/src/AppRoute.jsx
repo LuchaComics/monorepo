@@ -9,6 +9,7 @@ import './App.css';
 // MENU
 import Topbar from "./Components/Menu/Top";
 import Sidebar from "./Components/Menu/Sidebar";
+import BottomTabBar  from "./Components/Menu/BottomBar";
 
 // CORE VIEWS
 import StartupView from "./Components/Startup/View";
@@ -16,10 +17,10 @@ import PickStorageLocationOnStartupView from "./Components/Startup/PickStorageLo
 import DashboardView from "./Components/Dashboard/View";
 import SendView from "./Components/Send/View";
 import ReceiveView from "./Components/Receive/View";
+import MoreView from "./Components/More/View";
 import TransactionsView from "./Components/Transactions/View";
 import SettingsView from "./Components/Settings/View";
 import NotFoundError from "./Components/Other/NotFoundError";
-
 
 function AppRoute() {
     // const [pageID, setPageID] = useState("PageID");
@@ -74,6 +75,7 @@ function AppRoute() {
                                     <Route path="/dashboard" element={<DashboardView />} exact />
                                     <Route path="/send" element={<SendView />} exact />
                                     <Route path="/receive" element={<ReceiveView />} exact />
+                                    <Route path="/more" element={<MoreView />} exact />
                                     <Route path="/transactions" element={<TransactionsView />} exact />
                                     <Route path="/settings" element={<SettingsView />} exact />
                                     <Route path="*" element={<NotFoundError />} />
@@ -91,6 +93,7 @@ function AppRoute() {
                             </footer>
                         </div>
                     </div>
+                    <BottomTabBar />
                 </HashRouter>
             </RecoilRoot>
         </div>

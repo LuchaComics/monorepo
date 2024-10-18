@@ -10,7 +10,60 @@ import {
   faCubes
 } from "@fortawesome/free-solid-svg-icons";
 
+
+import logo from '../../assets/images/CPS-logo-2023-square.webp';
+
+
 function DashboardView() {
+
+    const totalCoins = 1000;
+  const recentTransactions = [
+    {
+      id: 1,
+      date: '2023-02-20',
+      type: 'Received',
+      amount: 100,
+      sender: '0x1234567890',
+      receiver: '0x9876543210',
+    },
+    {
+      id: 2,
+      date: '2023-02-19',
+      type: 'Sent',
+      amount: 200,
+      sender: '0x9876543210',
+      receiver: '0x1234567890',
+    },
+    {
+      id: 3,
+      date: '2023-02-18',
+      type: 'Received',
+      amount: 50,
+      sender: '0x1234567890',
+      receiver: '0x9876543210',
+    },
+  ];
+
+  const nonFungibleTokens = [
+    {
+      id: 1,
+      name: 'Token 1',
+      description: 'This is a rare token',
+      image: logo,
+    },
+    {
+      id: 2,
+      name: 'Token 2',
+      description: 'This is a common token',
+      image:logo,
+    },
+    {
+      id: 3,
+      name: 'Token 3',
+      description: 'This is a unique token',
+      image: logo,
+    },
+  ];
 
 
     useEffect(() => {
@@ -19,142 +72,99 @@ function DashboardView() {
       if (mounted) {
             window.scrollTo(0, 0); // Start the page at the top of the page.
       }
-
-
       return () => {
         mounted = false;
       };
     }, []);
 
-
-
     return (
         <>
           <div class="container">
             <section class="section">
+
               <nav class="breadcrumb" aria-label="breadcrumbs">
                 <ul>
                   <li class="is-active">
                     <Link to="/dashboard" aria-current="page">
                       <FontAwesomeIcon className="fas" icon={faGauge} />
-                      &nbsp;Admin Dashboard
+                      &nbsp;Overview
                     </Link>
                   </li>
                 </ul>
               </nav>
+
               <nav class="box">
                 <div class="columns">
                   <div class="column">
                     <h1 class="title is-4">
                       <FontAwesomeIcon className="fas" icon={faGauge} />
-                      &nbsp;Admin Dashboard
+                      &nbsp;Overview
                     </h1>
                   </div>
                 </div>
 
-                  {/*
-                <section class="hero is-medium is-link">
-                  <div class="hero-body">
-                    <p class="title">
-                      <FontAwesomeIcon className="fas" icon={faTasks} />
-                      &nbsp;Online Submissions
-                    </p>
-                    <p class="subtitle">
-                      Submit a request to encapsulate your collectible by clicking
-                      below:
-                      <br />
-                      <br />
-                      <Link to={"/admin/submissions/comics"}>
-                        View Online Comic Submissions&nbsp;
-                        <FontAwesomeIcon className="fas" icon={faArrowRight} />
-                      </Link>
-                      <br />
-                      <br />
-                      <Link to={"/admin/submissions/pick-type-for-add"}>
-                        Add&nbsp;
-                        <FontAwesomeIcon className="fas" icon={faArrowRight} />
-                      </Link>
-                    </p>
+                <div className="columns">
+          <div className="column is-8">
+            <div className="box">
+              <h1 className="title">Summary</h1>
+              <div className="columns">
+                <div className="column">
+                  <h2 className="subtitle">Total Coins</h2>
+                  <p className="is-size-1">{totalCoins}</p>
+                </div>
+              </div>
+              <h2 className="subtitle">Recent Transactions</h2>
+              <table className="table is-fullwidth">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Sender</th>
+                    <th>Receiver</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentTransactions.map((transaction) => (
+                    <tr key={transaction.id}>
+                      <td>{transaction.date}</td>
+                      <td>{transaction.type}</td>
+                      <td>{transaction.amount}</td>
+                      <td>{transaction.sender}</td>
+                      <td>{transaction.receiver}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+      <div className="column is-4">
+        <div className="box">
+          <h1 className="title">Non-Fungible Tokens</h1>
+          <ul>
+            {nonFungibleTokens.map((token) => (
+              <li key={token.id}>
+                <div className="media">
+                  <div className="media-left">
+                    <img src={token.image} alt={token.name} class="image is-64x64" />
                   </div>
-                </section>
+                  <div className="media-content">
+                    <h2>{token.name}</h2>
+                    <p>{token.description}</p>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
 
-                <section class="hero is-medium is-primary">
-                  <div class="hero-body">
-                    <p class="title">
-                      <FontAwesomeIcon className="fas" icon={faBarcode} />
-                      &nbsp;Registry
-                    </p>
-                    <p class="subtitle">
-                      Have a CPS registry number? Use the following to lookup
-                      existing records:
-                      <br />
-                      <br />
-                      <Link to={"/admin/registry"}>
-                        View&nbsp;
-                        <FontAwesomeIcon className="fas" icon={faArrowRight} />
-                      </Link>
-                    </p>
-                  </div>
-                </section>
-                */}
-                <section class="hero is-medium is-success">
-                  <div class="hero-body">
-                    <p class="title">
-                      <FontAwesomeIcon className="fas" icon={faTasks} />
-                      &nbsp;Tenants
-                    </p>
-                    <p class="subtitle">
-                      Manage the tenants that belong to your system.
-                      <br />
-                      <br />
-                      <Link to={"/admin/tenants"}>
-                        View&nbsp;
-                        <FontAwesomeIcon className="fas" icon={faArrowRight} />
-                      </Link>
-                    </p>
-                  </div>
-                </section>
-                <section class="hero is-medium is-link">
-                  <div class="hero-body">
-                    <p class="title">
-                      <FontAwesomeIcon className="fas" icon={faCubes} />
-                      &nbsp;NFT Collections
-                    </p>
-                    <p class="subtitle">
-                      Submit a request to encapsulate your collectible by clicking
-                      below:
-                      <br />
-                      <br />
-                      <Link to={"/admin/collections"}>
-                        View&nbsp;
-                        <FontAwesomeIcon className="fas" icon={faArrowRight} />
-                      </Link>
-                      <br />
-                      <br />
-                      <Link to={"/admin/collections/add/step-1"}>
-                        Add&nbsp;
-                        <FontAwesomeIcon className="fas" icon={faArrowRight} />
-                      </Link>
-                    </p>
-                  </div>
-                </section>
-                <section class="hero is-medium is-info">
-                  <div class="hero-body">
-                    <p class="title">
-                      <FontAwesomeIcon className="fas" icon={faUsers} />
-                      &nbsp;All Users
-                    </p>
-                    <p class="subtitle">
-                      Manage all the users that belong to your system.
-                      <br />
-                      <br />
-                      <Link to={"/admin/users"}>
-                        View&nbsp;
-                        <FontAwesomeIcon className="fas" icon={faArrowRight} />
-                      </Link>
-                    </p>
-                  </div>
-                </section>
+    </div>
+
+
+
+
+
               </nav>
             </section>
           </div>

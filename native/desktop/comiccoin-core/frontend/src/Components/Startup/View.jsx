@@ -1,10 +1,10 @@
 import {useState, useEffect} from 'react';
 import { Link } from "react-router-dom";
 
+import PageLoadingContent from "../Reusable/PageLoadingContent";
+
 
 function StartupView() {
-
-
     useEffect(() => {
       let mounted = true;
 
@@ -18,22 +18,30 @@ function StartupView() {
     }, []);
 
     return (
-        <div class="column is-12 container">
-          <div class="section">
-            <section class="hero is-fullheight">
-              <div class="hero-body">
-                <div class="container">
-                  <div class="columns is-centered">
-                    <div class="column is-half-tablet">
-                      <h1 className="is-size-1">Loading ...</h1>
-                      <Link to="/pick-storage-location-on-startup">Go to next page</Link>
-                    </div>
-                  </div>
+        <div className="column is-12">
+      <div className="section">
+        <section className="hero is-fullheight">
+          <div className="hero-body">
+            <div className="container">
+              <div className="columns is-centered">
+                <div className="column is-4 has-text-centered">
+                  Loading...
                 </div>
               </div>
-            </section>
+
+              <div className="columns is-centered" style={{ paddingTop: "20px" }}>
+                <div className="column is-4 has-text-centered">
+                  <Link to="/pick-storage-location-on-startup" className="button is-primary is-large">
+                    Go to next page
+                  </Link>
+                </div>
+              </div>
+
+            </div>
           </div>
-        </div>
+        </section>
+      </div>
+    </div>
     )
 }
 

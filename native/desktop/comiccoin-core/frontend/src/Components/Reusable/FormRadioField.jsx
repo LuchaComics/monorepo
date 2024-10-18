@@ -112,7 +112,7 @@ function FormRadioField({
 }) {
   return (
     <div className="field pb-4">
-      <label className="label">{label}</label>
+      <label className="label has-text-black">{label}</label>
       <div className="control">
         {opt1Label && (
           <label className="radio">

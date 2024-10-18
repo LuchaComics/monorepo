@@ -151,7 +151,7 @@ export default (props) => {
                 <Link
                   onClick={onLinkClickCloseHamburgerMenuIfMobile}
                   to="/dashboard"
-                  class={`has-text-grey-light ${location.pathname.includes("overview") && "is-active"}`}
+                  class={`has-text-grey-light ${location.pathname.includes("dashboard") && "is-active"}`}
                 >
                   <FontAwesomeIcon className="fas" icon={faTachometer} />
                   &nbsp;Overview
@@ -161,7 +161,7 @@ export default (props) => {
                 <Link
                   onClick={onLinkClickCloseHamburgerMenuIfMobile}
                   to="/send"
-                  class={`has-text-grey-light ${location.pathname.includes("tenant") && "is-active"}`}
+                  class={`has-text-grey-light ${location.pathname.includes("send") && "is-active"}`}
                 >
                   <FontAwesomeIcon className="fas" icon={faPaperPlane} />
                   &nbsp;Send
@@ -171,7 +171,7 @@ export default (props) => {
                 <Link
                   onClick={onLinkClickCloseHamburgerMenuIfMobile}
                   to="/receive"
-                  class={`has-text-grey-light ${location.pathname.includes("user") && "is-active"}`}
+                  class={`has-text-grey-light ${location.pathname.includes("receive") && "is-active"}`}
                 >
                   <FontAwesomeIcon className="fas" icon={faInbox} />
                   &nbsp;Receive
@@ -192,7 +192,7 @@ export default (props) => {
                 <Link
                   onClick={onLinkClickCloseHamburgerMenuIfMobile}
                   to="/transactions"
-                  class={`has-text-grey-light ${location.pathname.includes("ipfs") && "is-active"}`}
+                  class={`has-text-grey-light ${location.pathname.includes("transactions") && "is-active"}`}
                 >
                   <FontAwesomeIcon className="fas" icon={faFileInvoiceDollar} />
                   &nbsp;Transactions
