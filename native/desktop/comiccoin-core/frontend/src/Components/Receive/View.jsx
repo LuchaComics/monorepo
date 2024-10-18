@@ -11,8 +11,9 @@ import {
   faInbox
 } from "@fortawesome/free-solid-svg-icons";
 
-
 import logo from '../../assets/images/CPS-logo-2023-square.webp';
+import {QRCodeSVG} from 'qrcode.react';
+
 
 function ReceiveView() {
 
@@ -61,6 +62,17 @@ function ReceiveView() {
                       &nbsp;Receive ComicCoins
                     </h1>
                   </div>
+                </div>
+                <p class="has-text-grey">
+                    Senders can scan this QRcode and quickly get a copy of your address.
+                </p>
+                  <p>&nbsp;</p>
+                <div className="columns is-centered">
+                  <div class="column is-half">
+                <figure class="image">
+                    <QRCodeSVG value="https://reactjs.org/" size={375} />
+                </figure>
+                </div>
                 </div>
 
 
