@@ -32,16 +32,6 @@ function BottomTabBar() {
   //// Local State
   ////
 
-  const [coins, setCoins] = useState(1000);
-    const [sent, setSent] = useState(500);
-    const [recentTransactions, setRecentTransactions] = useState([
-      { id: 1, date: '2023-02-20', amount: 100 },
-      { id: 2, date: '2023-02-19', amount: 200 },
-      { id: 3, date: '2023-02-18', amount: 50 },
-    ]);
-
-    const total = coins + sent;
-
   ////
   //// Events
   ////
@@ -111,7 +101,7 @@ function BottomTabBar() {
                 <span>Receive</span>
               </Link>
             </li>
-            <li className={`has-text-grey-light ${location.pathname.includes("more") && "is-active"}`}>
+            <li className={`has-text-grey-light ${!location.pathname.includes("dashboard") && !location.pathname.includes("send") && !location.pathname.includes("receive") && "is-active"}`}>
               <Link to="/more">
                 <span className="icon is-small">
                   <FontAwesomeIcon icon={faEllipsis} />
