@@ -180,7 +180,7 @@ export default (props) => {
               <li>
                 <Link
                   onClick={onLinkClickCloseHamburgerMenuIfMobile}
-                  to="/admin/tokens"
+                  to="/tokens"
                   class={`has-text-grey-light ${location.pathname.includes("tokens") && "is-active"}`}
                 >
                   <FontAwesomeIcon className="fas" icon={faCubes} />
