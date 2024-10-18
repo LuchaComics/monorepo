@@ -9,13 +9,12 @@ import {
   faBarcode,
   faCubes,
   faPaperPlane,
-  faEllipsis,
-  faFileInvoiceDollar
+  faEllipsis
 } from "@fortawesome/free-solid-svg-icons";
 
 
 
-function TransactionsView() {
+function TokensView() {
 
 
     useEffect(() => {
@@ -53,8 +52,8 @@ function TransactionsView() {
                   </li>
                   <li class="is-active">
                     <Link to="/transactions" aria-current="page">
-                      <FontAwesomeIcon className="fas" icon={faFileInvoiceDollar} />
-                      &nbsp;Transactions
+                      <FontAwesomeIcon className="fas" icon={faCubes} />
+                      &nbsp;Tokens
                     </Link>
                   </li>
                 </ul>
@@ -64,8 +63,8 @@ function TransactionsView() {
                 <div class="columns">
                   <div class="column">
                     <h1 class="title is-4">
-                      <FontAwesomeIcon className="fas" icon={faFileInvoiceDollar} />
-                      &nbsp;Transactions
+                      <FontAwesomeIcon className="fas" icon={faCubes} />
+                      &nbsp;Tokens
                     </h1>
                   </div>
                 </div>
@@ -79,7 +78,7 @@ function TransactionsView() {
 
                     </div>
                     </div>
-    </div>
+                </div>
 
 
               </nav>
@@ -89,4 +88,4 @@ function TransactionsView() {
     )
 }
 
-export default TransactionsView
+export default TokensView

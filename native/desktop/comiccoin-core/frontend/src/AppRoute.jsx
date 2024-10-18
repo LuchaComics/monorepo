@@ -19,6 +19,7 @@ import SendView from "./Components/Send/View";
 import ReceiveView from "./Components/Receive/View";
 import MoreView from "./Components/More/View";
 import TransactionsView from "./Components/Transactions/View";
+import TokensView from "./Components/Tokens/View";
 import SettingsView from "./Components/Settings/View";
 import NotFoundError from "./Components/Other/NotFoundError";
 
@@ -77,6 +78,7 @@ function AppRoute() {
                                     <Route path="/receive" element={<ReceiveView />} exact />
                                     <Route path="/more" element={<MoreView />} exact />
                                     <Route path="/transactions" element={<TransactionsView />} exact />
+                                    <Route path="/tokens" element={<TokensView />} exact />
                                     <Route path="/settings" element={<SettingsView />} exact />
                                     <Route path="*" element={<NotFoundError />} />
                                 </Routes>
