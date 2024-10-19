@@ -1,38 +1,21 @@
 package main
 
 import (
-	"embed"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/app"
 
-	"github.com/wailsapp/wails/v2"
-	"github.com/wailsapp/wails/v2/pkg/options"
-	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
+	//"fyne.io/fyne/v2/layout"
+
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-core/mvc"
 )
 
-//go:embed all:frontend/dist
-var assets embed.FS
-
 func main() {
-	// Create an instance of the app structure
-	app := NewApp()
+	a := app.New()
+	w := a.NewWindow("ComicCoin core")
+	w.Resize(fyne.NewSize(680, 480))
 
-	// Create application with options
-	err := wails.Run(&options.App{
-		Title:  "ComicCoin Core",
-		Width:  1024,
-		Height: 768,
-		AssetServer: &assetserver.Options{
-			Assets: assets,
-		},
-		// BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1}, //FUTURE: Adjustable feature. Currently the default is white background. (https://wails.io/docs/reference/options/#backgroundcolour)
-		OnStartup:  app.startup,
-		OnShutdown: app.shutdown,
-		Bind: []interface{}{
-			app,
-		},
-		// DisableResize: true,
-	})
+	v1 := mvc.NewPickBlockchainStorageLocationViewController(w)
 
-	if err != nil {
-		println("Error:", err.Error())
-	}
+	w.SetContent(v1)
+	w.ShowAndRun()
 }
