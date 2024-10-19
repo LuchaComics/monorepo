@@ -16,8 +16,6 @@ import {QRCodeSVG} from 'qrcode.react';
 
 
 function ReceiveView() {
-
-
     useEffect(() => {
       let mounted = true;
 
@@ -25,13 +23,10 @@ function ReceiveView() {
             window.scrollTo(0, 0); // Start the page at the top of the page.
       }
 
-
       return () => {
         mounted = false;
       };
     }, []);
-
-
 
     return (
         <>
@@ -70,6 +65,7 @@ function ReceiveView() {
                 <div className="columns is-centered">
                   <div class="column is-half">
                 <figure class="image">
+                    {/* https://www.npmjs.com/package/qrcode.react */}
                     <QRCodeSVG value="https://reactjs.org/" size={375} />
                 </figure>
                 </div>
