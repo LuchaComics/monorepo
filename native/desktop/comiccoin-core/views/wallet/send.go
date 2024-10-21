@@ -1,4 +1,4 @@
-package wallettabs
+package wallet
 
 import (
 	"fyne.io/fyne/v2"
@@ -7,15 +7,15 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-type WalletViewReceiveTab struct {
+type WalletViewSendTab struct {
 	window      fyne.Window
 	preferences fyne.Preferences
 }
 
-func NewWalletViewReceiveTab(
+func NewWalletViewSendTab(
 	w fyne.Window,
-	pref fyne.Preferences) *WalletViewReceiveTab {
-	v := &WalletViewReceiveTab{
+	pref fyne.Preferences) *WalletViewSendTab {
+	v := &WalletViewSendTab{
 		window:      w,
 		preferences: pref,
 	}
@@ -23,9 +23,9 @@ func NewWalletViewReceiveTab(
 	return v
 }
 
-func (view *WalletViewReceiveTab) Render() *fyne.Container {
+func (view *WalletViewSendTab) Render() *fyne.Container {
 
-	loadingLabel := widget.NewLabel("Receive")
+	loadingLabel := widget.NewLabel("Send")
 	loadingLabel.Alignment = fyne.TextAlignCenter
 	loadingLabel.TextStyle = fyne.TextStyle{Bold: true}
 

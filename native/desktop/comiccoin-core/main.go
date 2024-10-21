@@ -7,7 +7,7 @@ import (
 	"fyne.io/fyne/v2/app"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-core/navigator"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-core/views"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-core/views/wallettabs"
+	view.wallet_view "github.com/LuchaComics/monorepo/native/desktop/comiccoin-core/views/wallet"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-core/constants"
 )
@@ -43,12 +43,12 @@ func main() {
 	startupView := views.NewStartupView(w, a.Preferences())
 
 	// --- Wallet page ---
-	walletOverviewTab := wallettabs.NewWalletViewOverviewTab(w, a.Preferences())
-	walletSendTab := wallettabs.NewWalletViewSendTab(w, a.Preferences())
-	walletReceiveTab := wallettabs.NewWalletViewReceiveTab(w, a.Preferences())
-	walletTransactionsTab := wallettabs.NewWalletViewTransactionsTab(w, a.Preferences())
-	walletMoreTab := wallettabs.NewWalletViewMoreTab(w, a.Preferences())
-	walletView := views.NewWalletView(
+	walletOverviewTab := view.wallet_view.NewWalletViewOverviewTab(w, a.Preferences())
+	walletSendTab := view.wallet_view.NewWalletViewSendTab(w, a.Preferences())
+	walletReceiveTab := view.wallet_view.NewWalletViewReceiveTab(w, a.Preferences())
+	walletTransactionsTab := view.wallet_view.NewWalletViewTransactionsTab(w, a.Preferences())
+	walletMoreTab := view.wallet_view.NewWalletViewMoreTab(w, a.Preferences())
+	walletView := view.wallet_view.NewWalletView(
 		w,
 		a.Preferences(),
 		walletOverviewTab,

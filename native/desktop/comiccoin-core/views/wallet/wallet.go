@@ -1,4 +1,4 @@
-package views
+package wallet
 
 import (
 	"fyne.io/fyne/v2"
@@ -7,17 +7,18 @@ import (
 	"fyne.io/fyne/v2/theme"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-core/constants"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-core/views"
 )
 
 type WalletView struct {
 	window      fyne.Window
 	preferences fyne.Preferences
 
-	overviewTab TabViewer
-	sendTab     TabViewer
-	receiveTab  TabViewer
-	txsTab      TabViewer
-	moreTab     TabViewer
+	overviewTab views.TabViewer
+	sendTab     views.TabViewer
+	receiveTab  views.TabViewer
+	txsTab      views.TabViewer
+	moreTab     views.TabViewer
 
 	// nextPageID represents a recieve operation channel used by this view set the
 	nextPageID chan int
@@ -26,12 +27,12 @@ type WalletView struct {
 func NewWalletView(
 	w fyne.Window,
 	pref fyne.Preferences,
-	overviewTab TabViewer,
-	sendTab TabViewer,
-	receiveTab TabViewer,
-	txsTab TabViewer,
-	moreTab TabViewer,
-) Viewer {
+	overviewTab views.TabViewer,
+	sendTab views.TabViewer,
+	receiveTab views.TabViewer,
+	txsTab views.TabViewer,
+	moreTab views.TabViewer,
+) views.Viewer {
 	v := &WalletView{
 		window:      w,
 		preferences: pref,
