@@ -1,21 +1,91 @@
 package main
 
 import (
+	"log"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-core/navigator"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-core/views"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-core/views/wallettabs"
 
-	//"fyne.io/fyne/v2/layout"
-
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-core/mvc"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-core/constants"
 )
 
 func main() {
-	a := app.New()
-	w := a.NewWindow("ComicCoin core")
-	w.Resize(fyne.NewSize(680, 480))
+	//
+	// STEP 1:
+	// Initialize the application and set configuration.
+	//
 
-	v1 := mvc.NewPickBlockchainStorageLocationViewController(w)
+	a := app.NewWithID("com.cpscapsule.comiccoin")
+	w := a.NewWindow("ComicCoin Core")
+	w.Resize(fyne.NewSize(constants.DefaultScreenWidth, constants.DefaultScreenHeight))
 
-	w.SetContent(v1)
+	// // DEVELOPERS NOTE:
+	// // Uncomment this if you want to clear the preferences on startup.
+	// a.Preferences().RemoveValue(constants.PreferenceKeyHasSetDataDirectory)
+	// a.Preferences().RemoveValue(constants.PreferenceKeyDataDirectory)
+
+	// Set first-time preferences.
+	a.Preferences().BoolWithFallback(constants.PreferenceKeyHasSetDataDirectory, false)
+	a.Preferences().StringWithFallback(constants.PreferenceKeyDataDirectory, constants.DefaultDataDirectoryPath)
+
+	//
+	// STEP 2:
+	// Load up our dependencies.
+	//
+
+	// -- Pick data directory page. ---
+	pickDataDirView := views.NewPickDataDirectoryView(w, a.Preferences())
+
+	// --- Startup page ---
+	startupView := views.NewStartupView(w, a.Preferences())
+
+	// --- Wallet page ---
+	walletOverviewTab := wallettabs.NewWalletViewOverviewTab(w, a.Preferences())
+	walletSendTab := wallettabs.NewWalletViewSendTab(w, a.Preferences())
+	walletReceiveTab := wallettabs.NewWalletViewReceiveTab(w, a.Preferences())
+	walletTransactionsTab := wallettabs.NewWalletViewTransactionsTab(w, a.Preferences())
+	walletMoreTab := wallettabs.NewWalletViewMoreTab(w, a.Preferences())
+	walletView := views.NewWalletView(
+		w,
+		a.Preferences(),
+		walletOverviewTab,
+		walletSendTab,
+		walletReceiveTab,
+		walletTransactionsTab,
+		walletMoreTab,
+	)
+
+	navigator := navigator.NewNavigator(
+		w,
+		a.Preferences(),
+		a,
+		pickDataDirView,
+		startupView,
+		walletView,
+	)
+
+	//
+	// STEP 3:
+	// Load up the graceful shutdown code.
+	//
+
+	defer func() {
+		log.Println("tidy up...")
+	}()
+
+	//
+	// STEP 4:
+	// Execute our application.
+	//
+	go navigator.RunMainRuntimeLoop()
+
+	//
+	// STEP 5:
+	// Render the GUI elements based on our application state and interactions.
+	//
+
 	w.ShowAndRun()
 }
