@@ -78,23 +78,6 @@ function SendView() {
         <>
           <div class="container">
             <section class="section">
-              <nav class="breadcrumb" aria-label="breadcrumbs">
-                <ul>
-                  <li>
-                    <Link to="/dashboard" aria-current="page">
-                      <FontAwesomeIcon className="fas" icon={faGauge} />
-                      &nbsp;Overview
-                    </Link>
-                  </li>
-                  <li class="is-active">
-                    <Link to="/dashboard" aria-current="page">
-                      <FontAwesomeIcon className="fas" icon={faPaperPlane} />
-                      &nbsp;Send
-                    </Link>
-                  </li>
-                </ul>
-              </nav>
-
               <nav class="box">
                 <div class="columns">
                   <div class="column">
@@ -146,7 +129,7 @@ function SendView() {
                 <div class="columns pt-5" style={{alignSelf: "flex-start"}}>
                   <div class="column is-half">
                     <button
-                      class="button is-medium is-fullwidth-mobile"
+                      class="button is-fullwidth-mobile"
                       onClick={(e) => setShowCancelWarning(true)}
                     >
                       <FontAwesomeIcon className="fas" icon={faTimesCircle} />
@@ -155,7 +138,7 @@ function SendView() {
                   </div>
                   <div class="column is-half has-text-right">
                     <button
-                      class="button is-medium is-primary is-fullwidth-mobile"
+                      class="button is-primary is-fullwidth-mobile"
                       onClick={onSubmitClick}
                     >
                       <FontAwesomeIcon className="fas" icon={faCheckCircle} />

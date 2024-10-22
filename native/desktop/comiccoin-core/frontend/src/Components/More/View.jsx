@@ -37,23 +37,6 @@ function MoreView() {
         <>
           <div class="container">
             <section class="section">
-              <nav class="breadcrumb" aria-label="breadcrumbs">
-                <ul>
-                  <li>
-                    <Link to="/dashboard" aria-current="page">
-                      <FontAwesomeIcon className="fas" icon={faGauge} />
-                      &nbsp;Overview
-                    </Link>
-                  </li>
-                  <li class="is-active">
-                    <Link to="/more" aria-current="page">
-                      <FontAwesomeIcon className="fas" icon={faEllipsis} />
-                      &nbsp;More
-                    </Link>
-                  </li>
-                </ul>
-              </nav>
-
               <nav class="box">
                 <div class="columns">
                   <div class="column">

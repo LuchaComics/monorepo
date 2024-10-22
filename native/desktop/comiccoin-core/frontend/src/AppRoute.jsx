@@ -8,7 +8,6 @@ import './App.css';
 
 // MENU
 import Topbar from "./Components/Menu/Top";
-import Sidebar from "./Components/Menu/Sidebar";
 import BottomTabBar  from "./Components/Menu/BottomBar";
 
 // CORE VIEWS
@@ -67,7 +66,7 @@ function AppRoute() {
                     */}
                     <Topbar />
                     <div class="columns">
-                        <Sidebar />
+                        {/* <Sidebar /> */}
                         <div class="column">
                             <section class="main-content columns is-fullheight">
                                 <Routes>

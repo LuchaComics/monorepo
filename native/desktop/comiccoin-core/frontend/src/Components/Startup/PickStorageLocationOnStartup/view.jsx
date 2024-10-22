@@ -37,7 +37,7 @@ function PickStorageLocationOnStartupView() {
     const [errors, setErrors] = useState({});
     const [useDefaultLocation, setUseDefaultLocation] = useState(1);
     const [forceURL, setForceURL] = useState("");
-    const [dataDirectory, setDataDirectory] = useState("./data");
+    const [dataDirectory, setDataDirectory] = useState("./ComicCoin");
     const [showCancelWarning, setShowCancelWarning] = useState(false);
 
     ////
@@ -159,7 +159,7 @@ function PickStorageLocationOnStartupView() {
                   helpText=""
                   onChange={(e) => setDataDirectory(e.target.value)}
                   isRequired={true}
-                  maxWidth="300px"
+                  maxWidth="500px"
                   disabled={useDefaultLocation == 1}
                   buttonLabel={<><FontAwesomeIcon className="fas" icon={faEllipsis} /></>}
                   onButtonClick={(e) =>
@@ -174,7 +174,7 @@ function PickStorageLocationOnStartupView() {
                 <div class="columns pt-5" style={{alignSelf: "flex-start"}}>
                   <div class="column is-half ">
                     <button
-                      class="button is-medium is-fullwidth-mobile"
+                      class="button is-fullwidth-mobile"
                       onClick={(e) => setShowCancelWarning(true)}
                     >
                       <FontAwesomeIcon className="fas" icon={faTimesCircle} />
@@ -183,7 +183,7 @@ function PickStorageLocationOnStartupView() {
                   </div>
                   <div class="column is-half has-text-right">
                     <button
-                      class="button is-medium is-primary is-fullwidth-mobile"
+                      class="button is-primary is-fullwidth-mobile"
                       onClick={onSubmitClick}
                     >
                       <FontAwesomeIcon className="fas" icon={faCheckCircle} />

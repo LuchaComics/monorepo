@@ -97,57 +97,10 @@ function Topbar() {
               &nbsp;ComicCoin
           </Link>
 
-          <a
-            role="button"
-            class="navbar-burger has-text-white"
-            aria-label="menu"
-            aria-expanded="false"
-            data-target="navbarBasicExample"
-            onClick={(e) => setOnHamburgerClicked(!onHamburgerClicked)}
-          >
-            <span aria-hidden="true"></span>
-            <span aria-hidden="true"></span>
-            <span aria-hidden="true"></span>
-          </a>
         </div>
-        <div id="navbarBasicExample" class="navbar-menu has-text-white">
-          <div class="navbar-left">
-            <div class="navbar-item">
-              <div
-                class="buttons p-3"
-                onClick={(e) => setOnHamburgerClicked(!onHamburgerClicked)}
-              >
-                <FontAwesomeIcon className="fas has-text-white" icon={faBars} />
-              </div>
-            </div>
-          </div>
-        </div>
+
       </nav>
-      <div class={`modal ${showLogoutWarning ? "is-active" : ""}`}>
-        <div class="modal-background"></div>
-        <div class="modal-card">
-          <header class="modal-card-head">
-            <p class="modal-card-title">Are you sure?</p>
-            <button
-              class="delete"
-              aria-label="close"
-              onClick={(e) => setShowLogoutWarning(false)}
-            ></button>
-          </header>
-          <section class="modal-card-body">
-            You are about to log out of the system and you'll need to log in
-            again next time. Are you sure you want to continue?
-          </section>
-          <footer class="modal-card-foot">
-            <Link class="button is-success" to={`/logout`}>
-              Yes
-            </Link>
-            <button class="button" onClick={(e) => setShowLogoutWarning(false)}>
-              No
-            </button>
-          </footer>
-        </div>
-      </div>
+    
     </div>
   );
 }

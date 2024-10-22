@@ -82,16 +82,7 @@ function DashboardView() {
           <div class="container">
             <section class="section">
 
-              <nav class="breadcrumb" aria-label="breadcrumbs">
-                <ul>
-                  <li class="is-active">
-                    <Link to="/dashboard" aria-current="page">
-                      <FontAwesomeIcon className="fas" icon={faGauge} />
-                      &nbsp;Overview
-                    </Link>
-                  </li>
-                </ul>
-              </nav>
+
 
               <nav class="box">
                 <div class="columns">
@@ -103,68 +94,48 @@ function DashboardView() {
                   </div>
                 </div>
 
-                <div className="columns">
-          <div className="column is-8">
-            <div className="box">
-              <h1 className="title">Summary</h1>
-              <div className="columns">
-                <div className="column">
-                  <h2 className="subtitle">Total Coins</h2>
-                  <p className="is-size-1">{totalCoins}</p>
+                <nav class="level">
+              <div class="level-item has-text-centered">
+                <div>
+                  <p class="heading">Coins</p>
+                  <p class="title">3,456</p>
                 </div>
               </div>
-              <h2 className="subtitle">Recent Transactions</h2>
-              <table className="table is-fullwidth">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Type</th>
-                    <th>Amount</th>
-                    <th>Sender</th>
-                    <th>Receiver</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentTransactions.map((transaction) => (
-                    <tr key={transaction.id}>
-                      <td>{transaction.date}</td>
-                      <td>{transaction.type}</td>
-                      <td>{transaction.amount}</td>
-                      <td>{transaction.sender}</td>
-                      <td>{transaction.receiver}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-      <div className="column is-4">
-        <div className="box">
-          <h1 className="title">Non-Fungible Tokens</h1>
-          <ul>
-            {nonFungibleTokens.map((token) => (
-              <li key={token.id}>
-                <div className="media">
-                  <div className="media-left">
-                    <img src={token.image} alt={token.name} class="image is-64x64" />
-                  </div>
-                  <div className="media-content">
-                    <h2>{token.name}</h2>
-                    <p>{token.description}</p>
-                  </div>
+              <div class="level-item has-text-centered">
+                <div>
+                  <p class="heading">Tokens Count</p>
+                  <p class="title">123</p>
                 </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+              </div>
 
-    </div>
+            </nav>
 
-
-
-
-
+            <h1 className="subtitle is-4 pt-5">Recent Transactions</h1>
+            <table className="table is-fullwidth">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Amount</th>
+                  <th>Sender</th>
+                  <th>Receiver</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentTransactions.map((transaction) => (
+                  <tr key={transaction.id}>
+                    <td>{transaction.date}</td>
+                    <td>{transaction.type}</td>
+                    <td>{transaction.amount}</td>
+                    <td>{transaction.sender}</td>
+                    <td>{transaction.receiver}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+                <div className="has-text-right">
+                <Link to={`/transactions`}>See More&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} /></Link>
+                </div>
               </nav>
             </section>
           </div>
