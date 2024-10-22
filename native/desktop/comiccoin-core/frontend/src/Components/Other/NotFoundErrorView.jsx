@@ -1,6 +1,6 @@
 import React from "react";
 
-function NotFoundError() {
+function NotFoundErrorView() {
   return (
     <>
       <div class="container">
@@ -12,4 +12,4 @@ function NotFoundError() {
   );
 }
 
-export default NotFoundError;
+export default NotFoundErrorView;

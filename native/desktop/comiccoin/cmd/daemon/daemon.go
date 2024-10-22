@@ -109,7 +109,6 @@ func DaemonCmd() *cobra.Command {
 			ikCreateUseCase := usecase.NewCreateIdentityKeyUseCase(cfg, logger, ikRepo)
 			ikGetUseCase := usecase.NewGetIdentityKeyUseCase(cfg, logger, ikRepo)
 			ikCreateService := service.NewCreateIdentityKeyService(cfg, logger, ikCreateUseCase, ikGetUseCase)
-			_ = ikCreateService // FUTURE USE?
 			ikGetService := service.NewGetIdentityKeyService(cfg, logger, ikGetUseCase)
 
 			// If nothing was set then we use a default value. We do this to
@@ -124,7 +123,20 @@ func DaemonCmd() *cobra.Command {
 				log.Fatalf("Failed getting identity key: %v", err)
 			}
 			if ik == nil {
-				log.Fatal("Failed getting identity key: d.n.e.")
+				// CASE 1 OF 2: If custom identity key D.N.E.
+				if flagIdentityKeyID != constants.DefaultIdentityKeyID {
+					log.Fatal("Failed getting identity key: d.n.e.")
+				}
+				// CASE 2 OF 2: Create `DefaultIdentityKeyID`
+				identityKey, err := ikCreateService.Execute(flagIdentityKeyID)
+				if err != nil {
+					log.Fatalf("Failed creating default identity key: %v", err)
+				}
+
+				// This is anomously behaviour so crash if this happens.
+				if identityKey == nil {
+					log.Fatal("Failed creating default identity key: d.n.e.")
+				}
 			}
 			logger.Debug("Identity key found")
 

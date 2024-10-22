@@ -51,7 +51,8 @@ function Topbar() {
   // will not render this component.
   const ignorePathsArr = [
     "/",
-    "/pick-storage-location-on-startup",
+    "/pick-data-directory",
+    "/startup",
   ];
   const location = useLocation();
   var arrayLength = ignorePathsArr.length;
@@ -100,7 +101,7 @@ function Topbar() {
         </div>
 
       </nav>
-    
+
     </div>
   );
 }

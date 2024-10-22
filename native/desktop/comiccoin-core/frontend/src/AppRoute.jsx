@@ -11,8 +11,10 @@ import Topbar from "./Components/Menu/Top";
 import BottomTabBar  from "./Components/Menu/BottomBar";
 
 // CORE VIEWS
-import StartupView from "./Components/Startup/View";
-import PickStorageLocationOnStartupView from "./Components/Startup/PickStorageLocationOnStartup/View";
+import InitializeView from "./Components/Other/InitializeView";
+import NotFoundErrorView from "./Components/Other/NotFoundErrorView";
+import PickDataDirectoryView from "./Components/Other/PickDataDirectoryView";
+import StartupView from "./Components/Other/StartupView";
 import DashboardView from "./Components/Dashboard/View";
 import SendView from "./Components/Send/View";
 import ReceiveView from "./Components/Receive/View";
@@ -20,7 +22,6 @@ import MoreView from "./Components/More/View";
 import TransactionsView from "./Components/Transactions/View";
 import TokensView from "./Components/Tokens/View";
 import SettingsView from "./Components/Settings/View";
-import NotFoundError from "./Components/Other/NotFoundError";
 
 function AppRoute() {
     // const [pageID, setPageID] = useState("PageID");
@@ -70,8 +71,9 @@ function AppRoute() {
                         <div class="column">
                             <section class="main-content columns is-fullheight">
                                 <Routes>
-                                    <Route path="/" element={<StartupView />} exact />
-                                    <Route path="/pick-storage-location-on-startup" element={<PickStorageLocationOnStartupView />} exact />
+                                    <Route path="/" element={<InitializeView />} exact />
+                                    <Route path="/pick-data-directory" element={<PickDataDirectoryView />} exact />
+                                    <Route path="/startup" element={<StartupView />} exact />
                                     <Route path="/dashboard" element={<DashboardView />} exact />
                                     <Route path="/send" element={<SendView />} exact />
                                     <Route path="/receive" element={<ReceiveView />} exact />
@@ -79,7 +81,7 @@ function AppRoute() {
                                     <Route path="/transactions" element={<TransactionsView />} exact />
                                     <Route path="/tokens" element={<TokensView />} exact />
                                     <Route path="/settings" element={<SettingsView />} exact />
-                                    <Route path="*" element={<NotFoundError />} />
+                                    <Route path="*" element={<NotFoundErrorView />} />
                                 </Routes>
                             </section>
                             <div>

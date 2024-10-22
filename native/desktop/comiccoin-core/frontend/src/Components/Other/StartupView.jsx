@@ -31,7 +31,7 @@ function StartupView() {
 
               <div className="columns is-centered" style={{ paddingTop: "20px" }}>
                 <div className="column is-4 has-text-centered">
-                  <Link to="/pick-storage-location-on-startup" className="button is-primary is-large">
+                  <Link to="/dashboard" className="button is-primary is-large">
                     Go to next page
                   </Link>
                 </div>

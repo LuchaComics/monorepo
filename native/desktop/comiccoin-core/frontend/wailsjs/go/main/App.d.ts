@@ -3,8 +3,10 @@
 
 export function GetDataDirectoryFromDialog():Promise<string>;
 
-export function GetPageID():Promise<string>;
+export function GetDataDirectoryFromPreferences():Promise<string>;
 
-export function Greet(arg1:string):Promise<string>;
+export function GetDefaultDataDirectory():Promise<string>;
 
 export function SaveDataDirectory(arg1:string):Promise<void>;
+
+export function ShutdownApp():Promise<void>;

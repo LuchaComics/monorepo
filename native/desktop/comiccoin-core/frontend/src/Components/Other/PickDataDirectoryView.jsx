@@ -21,14 +21,14 @@ import {
   faEllipsis
 } from "@fortawesome/free-solid-svg-icons";
 
-import FormErrorBox from "../../Reusable/FormErrorBox";
-import FormRadioField from "../../Reusable/FormRadioField";
-import FormInputField from "../../Reusable/FormInputField";
-import FormInputFieldWithButton from "../../Reusable/FormInputFieldWithButton";
-import {GetDataDirectoryFromDialog, SaveDataDirectory} from "../../../../wailsjs/go/main/App";
+import FormErrorBox from "../Reusable/FormErrorBox";
+import FormRadioField from "../Reusable/FormRadioField";
+import FormInputField from "../Reusable/FormInputField";
+import FormInputFieldWithButton from "../Reusable/FormInputFieldWithButton";
+import {GetDefaultDataDirectory, GetDataDirectoryFromDialog, SaveDataDirectory, ShutdownApp} from "../../../wailsjs/go/main/App";
 
 
-function PickStorageLocationOnStartupView() {
+function PickDataDirectoryView() {
 
     ////
     //// Component states.
@@ -55,7 +55,8 @@ function PickStorageLocationOnStartupView() {
 
         // Submit the `dataDirectory` value to our backend.
         SaveDataDirectory(dataDirectory).then( (result) => {
-            setForceURL("/dashboard")
+            console.log("result:", result);
+            setForceURL("/startup")
         })
     }
 
@@ -68,6 +69,9 @@ function PickStorageLocationOnStartupView() {
 
       if (mounted) {
             window.scrollTo(0, 0); // Start the page at the top of the page.
+            GetDefaultDataDirectory().then( (defaultDataDirResponse)=>{
+                setDataDirectory(defaultDataDirResponse);
+            })
       }
 
 
@@ -107,7 +111,9 @@ function PickStorageLocationOnStartupView() {
                 cannot be undone. Do you want to continue?
               </section>
               <footer class="modal-card-foot">
-                <Link class="button is-medium is-success" to={`/admin/tenants`}>
+                <Link class="button is-medium is-success" onClick={(e)=>{
+                    ShutdownApp()
+                }}>
                   Yes
                 </Link>&nbsp;&nbsp;
                 <button
@@ -163,7 +169,11 @@ function PickStorageLocationOnStartupView() {
                   disabled={useDefaultLocation == 1}
                   buttonLabel={<><FontAwesomeIcon className="fas" icon={faEllipsis} /></>}
                   onButtonClick={(e) =>
-                    GetDataDirectoryFromDialog().then(setDataDirectoryCallback)
+                    GetDataDirectoryFromDialog().then((dataDirectoryResult) => {
+                        if (dataDirectoryResult !== "") {
+                            setDataDirectory(dataDirectoryResult);
+                        }
+                    })
                   }
                 />
 
@@ -199,4 +209,4 @@ function PickStorageLocationOnStartupView() {
     )
 }
 
-export default PickStorageLocationOnStartupView
+export default PickDataDirectoryView

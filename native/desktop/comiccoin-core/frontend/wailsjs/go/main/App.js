@@ -6,14 +6,18 @@ export function GetDataDirectoryFromDialog() {
   return window['go']['main']['App']['GetDataDirectoryFromDialog']();
 }
 
-export function GetPageID() {
-  return window['go']['main']['App']['GetPageID']();
+export function GetDataDirectoryFromPreferences() {
+  return window['go']['main']['App']['GetDataDirectoryFromPreferences']();
 }
 
-export function Greet(arg1) {
-  return window['go']['main']['App']['Greet'](arg1);
+export function GetDefaultDataDirectory() {
+  return window['go']['main']['App']['GetDefaultDataDirectory']();
 }
 
 export function SaveDataDirectory(arg1) {
   return window['go']['main']['App']['SaveDataDirectory'](arg1);
+}
+
+export function ShutdownApp() {
+  return window['go']['main']['App']['ShutdownApp']();
 }
