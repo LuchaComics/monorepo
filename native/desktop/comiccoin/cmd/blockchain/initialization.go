@@ -7,14 +7,14 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/disk/leveldb"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/memory"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config/constants"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
-	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/disk/leveldb"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/memory"
 )
 
 func InitCmd() *cobra.Command {
@@ -26,7 +26,7 @@ func InitCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&flagDataDir, "datadir", "./data", "Absolute path to your node's data dir where the DB will be/is stored")
+	cmd.Flags().StringVar(&flagDataDir, "datadir", config.GetDefaultDataDirectory(), "Absolute path to your node's data dir where the DB will be/is stored")
 	cmd.Flags().StringVar(&flagPassword, "coinbase-password", "", "The password to encrypt the coinbase's account wallet")
 	cmd.MarkFlagRequired("coinbase-password")
 
@@ -38,6 +38,13 @@ func doRunInitBlockchain() {
 	// STEP 1
 	// Load up our dependencies and configuration
 	//
+
+	logger := logger.NewLogger()
+	logger.Debug("Excuting...",
+		slog.String("data_dir", flagDataDir))
+	if flagDataDir == "./data" {
+		log.Fatal("cannot be `./data`")
+	}
 
 	cfg := &config.Config{
 		Blockchain: config.BlockchainConfig{
@@ -59,7 +66,6 @@ func doRunInitBlockchain() {
 			RendezvousString: flagRendezvousString,
 		},
 	}
-	logger := logger.NewLogger()
 	walletDB := disk.NewDiskStorage(cfg.DB.DataDir, "wallet", logger)
 	blockDataDB := disk.NewDiskStorage(cfg.DB.DataDir, "block_data", logger)
 	latestHashDB := disk.NewDiskStorage(cfg.DB.DataDir, "latest_hash", logger)

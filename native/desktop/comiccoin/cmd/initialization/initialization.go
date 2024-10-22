@@ -7,14 +7,14 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
+	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/net/p2p"
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/disk/leveldb"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config/constants"
 	ik_repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
 	ik_s "github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
 	ik_use "github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
-	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/net/p2p"
-	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/disk/leveldb"
 	ma "github.com/multiformats/go-multiaddr"
 )
 
@@ -33,6 +33,9 @@ func InitCmd() *cobra.Command {
 			// Load up our dependencies and configuration
 			//
 
+			logger := logger.NewLogger()
+			logger.Debug("Excuting...", slog.String("data_dir", flagDataDir))
+
 			// We can setup minimal settings as the systems affect don't have
 			// much configuration to deal with.
 			cfg := &config.Config{
@@ -49,7 +52,7 @@ func InitCmd() *cobra.Command {
 					BootstrapPeers:   nil,
 				},
 			}
-			logger := logger.NewLogger()
+
 			db := disk.NewDiskStorage(cfg.DB.DataDir, "identity_key", logger)
 			ikRepo := ik_repo.NewIdentityKeyRepo(cfg, logger, db)
 			ikCreateUseCase := ik_use.NewCreateIdentityKeyUseCase(cfg, logger, ikRepo)
@@ -92,8 +95,7 @@ func InitCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&flagDataDir, "datadir", "./data", "Absolute path to your node's data dir where the DB will be/is stored")
-	cmd.MarkFlagRequired("datadir")
+	cmd.Flags().StringVar(&flagDataDir, "datadir", config.GetDefaultDataDirectory(), "Absolute path to your node's data dir where the DB will be/is stored")
 	cmd.Flags().StringVar(&flagIdentityKeyID, "id", "", "You can override the blockchain node's identity by setting a custom profile id on startup, you will need to reference it later when you run the daemon.")
 
 	return cmd

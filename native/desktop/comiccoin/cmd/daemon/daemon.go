@@ -732,10 +732,10 @@ func DaemonCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&flagDataDir, "datadir", "./data", "Absolute path to your node's data dir where the DB will be/is stored")
+	cmd.Flags().StringVar(&flagDataDir, "datadir", config.GetDefaultDataDirectory(), "Absolute path to your node's data dir where the DB will be/is stored")
 	cmd.Flags().StringVar(&flagListenHTTPAddress, "listen-http-address", "127.0.0.1:8000", "The IP and port to attach for our HTTP JSON API server")
 	cmd.Flags().StringVar(&flagIdentityKeyID, "identitykey-id", "", "If you would like to use a custom identity then this is the identifier used to lookup a custom identity profile to assign for this blockchain node")
-	cmd.Flags().IntVar(&flagListenPeerToPeerPort, "listen-p2p-port", 26642, "The port to listen to for other peers")
+	cmd.Flags().IntVar(&flagListenPeerToPeerPort, "listen-p2p-port", config.GetDefaultPeerToPeerListenPort(), "The port to listen to for other peers")
 	cmd.Flags().StringVar(&flagBootstrapPeers, "bootstrap-peers", "", "The list of peers used to synchronize our blockchain with")
 	cmd.Flags().Int64Var(&flagConsensusPollingDelayInMinutes, "consensus-polling-delay-in-minutes", 1, "The delay interval between your node polling the network on the latest consensus")
 	cmd.Flags().BoolVar(&flagEnableMiner, "enable-miner", false, "Controls whether you want your node to have a miner running in the background")

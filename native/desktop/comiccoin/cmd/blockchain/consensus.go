@@ -13,16 +13,16 @@ import (
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/spf13/cobra"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/net/p2p"
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/disk/leveldb"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/memory"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config/constants"
 	taskmnghandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin/interface/task/handler"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/net/p2p"
-	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/disk/leveldb"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/memory"
 )
 
 func ConsensusMechanismCmd() *cobra.Command {
@@ -34,9 +34,9 @@ func ConsensusMechanismCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&flagDataDir, "datadir", "./data", "Absolute path to your node's data dir where the DB will be/is stored")
+	cmd.Flags().StringVar(&flagDataDir, "datadir", config.GetDefaultDataDirectory(), "Absolute path to your node's data dir where the DB will be/is stored")
 	cmd.Flags().StringVar(&flagIdentityKeyID, "identitykey-id", "", "If you would like to use a custom identity then this is the identifier used to lookup a custom identity profile to assign for this blockchain node.")
-	cmd.Flags().IntVar(&flagListenPeerToPeerPort, "listen-p2p-port", 26642, "The port to listen to for other peers")
+	cmd.Flags().IntVar(&flagListenPeerToPeerPort, "listen-p2p-port", config.GetDefaultPeerToPeerListenPort(), "The port to listen to for other peers")
 	cmd.Flags().StringVar(&flagBootstrapPeers, "bootstrap-peers", "", "The list of peers used to synchronize our blockchain with")
 
 	return cmd
