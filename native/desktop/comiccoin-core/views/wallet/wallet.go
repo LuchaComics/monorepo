@@ -22,6 +22,7 @@ type WalletView struct {
 
 	// nextPageID represents a recieve operation channel used by this view set the
 	nextPageID chan int
+	closeChan  chan struct{}
 }
 
 func NewWalletView(
@@ -32,11 +33,16 @@ func NewWalletView(
 	receiveTab views.TabViewer,
 	txsTab views.TabViewer,
 	moreTab views.TabViewer,
-) views.Viewer {
+) *WalletView {
+	if w == nil || pref == nil || overviewTab == nil || sendTab == nil || receiveTab == nil || txsTab == nil || moreTab == nil {
+		return nil
+	}
+
 	v := &WalletView{
 		window:      w,
 		preferences: pref,
-		nextPageID:  make(chan int),
+		nextPageID:  make(chan int, 1),
+		closeChan:   make(chan struct{}),
 		overviewTab: overviewTab,
 		sendTab:     sendTab,
 		receiveTab:  receiveTab,
@@ -63,5 +69,14 @@ func (view *WalletView) Render() *fyne.Container {
 }
 
 func (view *WalletView) WaitUntilReadyToTransition() int {
-	return <-view.nextPageID
+	select {
+	case nextPageID := <-view.nextPageID:
+		return nextPageID
+	case <-view.closeChan:
+		return -1 // or some other value to indicate that the view is closed
+	}
+}
+
+func (view *WalletView) Close() {
+	close(view.closeChan)
 }
