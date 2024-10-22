@@ -7,6 +7,8 @@ export function GetDataDirectoryFromPreferences():Promise<string>;
 
 export function GetDefaultDataDirectory():Promise<string>;
 
+export function GetIsBlockhainNodeRunning():Promise<boolean>;
+
 export function SaveDataDirectory(arg1:string):Promise<void>;
 
 export function ShutdownApp():Promise<void>;

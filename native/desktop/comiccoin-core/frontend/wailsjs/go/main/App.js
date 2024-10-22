@@ -14,6 +14,10 @@ export function GetDefaultDataDirectory() {
   return window['go']['main']['App']['GetDefaultDataDirectory']();
 }
 
+export function GetIsBlockhainNodeRunning() {
+  return window['go']['main']['App']['GetIsBlockhainNodeRunning']();
+}
+
 export function SaveDataDirectory(arg1) {
   return window['go']['main']['App']['SaveDataDirectory'](arg1);
 }
