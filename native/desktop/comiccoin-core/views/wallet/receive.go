@@ -23,7 +23,7 @@ func NewWalletViewReceiveTab(
 	return v
 }
 
-func (view *WalletViewReceiveTab) Render() *fyne.Container {
+func (view *WalletViewReceiveTab) Render() fyne.CanvasObject {
 
 	loadingLabel := widget.NewLabel("Receive")
 	loadingLabel.Alignment = fyne.TextAlignCenter

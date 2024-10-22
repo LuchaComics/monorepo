@@ -23,7 +23,7 @@ func NewWalletViewSendTab(
 	return v
 }
 
-func (view *WalletViewSendTab) Render() *fyne.Container {
+func (view *WalletViewSendTab) Render() fyne.CanvasObject {
 
 	loadingLabel := widget.NewLabel("Send")
 	loadingLabel.Alignment = fyne.TextAlignCenter

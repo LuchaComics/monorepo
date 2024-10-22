@@ -22,7 +22,7 @@ func NewWalletViewTransactionsTab(
 	return v
 }
 
-func (view *WalletViewTransactionsTab) Render() *fyne.Container {
+func (view *WalletViewTransactionsTab) Render() fyne.CanvasObject {
 
 	type item struct {
 		Name  string
@@ -90,7 +90,7 @@ func (view *WalletViewTransactionsTab) Render() *fyne.Container {
 	container := container.NewBorder(header, nil, nil, nil, xxx)
 
 	view.window.SetContent(container)
-	view.window.Resize(fyne.NewSize(400, 600))
+	// view.window.Resize(fyne.NewSize(400, 600))
 
 	// border.Resize(fyne.NewSize(300, 400))
 	return container

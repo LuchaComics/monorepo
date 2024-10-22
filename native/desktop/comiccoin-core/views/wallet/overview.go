@@ -3,10 +3,7 @@ package wallet
 import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
-
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-core/constants"
 )
 
 type WalletViewOverviewTab struct {
@@ -25,9 +22,7 @@ func NewWalletViewOverviewTab(
 	return v
 }
 
-func (view *WalletViewOverviewTab) Render() *fyne.Container {
-	view.window.Resize(fyne.NewSize(constants.DefaultScreenWidth, constants.DefaultScreenHeight))
-
+func (view *WalletViewOverviewTab) Render() fyne.CanvasObject {
 	balanceLabel := widget.NewLabel("Total Balance: 100.00 CC")
 	tokensLabel := widget.NewLabel("Total Tokens: 500")
 
@@ -67,6 +62,7 @@ func (view *WalletViewOverviewTab) Render() *fyne.Container {
 		{"Bob Smith", "bob@example.com"},
 		{"Bob Smith", "bob@example.com"},
 		{"Bob Smith", "bob@example.com"},
+		// ...
 	}
 
 	// Create a new list
@@ -92,17 +88,11 @@ func (view *WalletViewOverviewTab) Render() *fyne.Container {
 	header := widget.NewLabel("Recent Transactions")
 
 	v := container.NewVBox(
-		layout.NewSpacer(),
 		balanceLabel,
 		tokensLabel,
-		layout.NewSpacer(),
 		header,
+		container.NewScroll(list),
 	)
 
-	scrollableList := container.NewScroll(list)
-
-	// Create a new container with the label and stretch it vertically
-	container := container.NewBorder(v, nil, nil, nil, scrollableList)
-
-	return container
+	return v
 }

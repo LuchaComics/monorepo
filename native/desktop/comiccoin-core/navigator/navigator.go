@@ -64,9 +64,6 @@ func (nav *Navigator) RunMainRuntimeLoop() {
 	//
 
 	for {
-		// Enforce application window size.
-		nav.window.Resize(fyne.NewSize(constants.DefaultScreenWidth, constants.DefaultScreenHeight))
-
 		switch nextPageID {
 		case constants.PageIDExit:
 			{

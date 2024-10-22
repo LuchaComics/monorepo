@@ -5,7 +5,6 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/theme"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-core/constants"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-core/views"
 )
 
@@ -52,8 +51,7 @@ func NewWalletView(
 	return v
 }
 
-func (view *WalletView) Render() *fyne.Container {
-	view.window.Resize(fyne.NewSize(constants.DefaultScreenWidth, constants.DefaultScreenHeight))
+func (view *WalletView) Render() fyne.CanvasObject {
 
 	tabs := container.NewAppTabs()
 	tabs.Append(container.NewTabItemWithIcon("Overview", theme.HomeIcon(), view.overviewTab.Render()))
@@ -64,7 +62,7 @@ func (view *WalletView) Render() *fyne.Container {
 
 	tabs.SetTabLocation(container.TabLocationTop)
 
-	return container.NewBorder(nil, nil, nil, nil, tabs)
+	return container.NewVBox(tabs)
 }
 
 func (view *WalletView) WaitUntilReadyToTransition() int {

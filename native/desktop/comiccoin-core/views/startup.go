@@ -31,7 +31,7 @@ func NewStartupView(
 	return v
 }
 
-func (view *StartupView) Render() *fyne.Container {
+func (view *StartupView) Render() fyne.CanvasObject {
 	view.window.Resize(fyne.NewSize(400, 400)) // Set the window size
 
 	loadingLabel := widget.NewLabel("Loading ComicCoin v1...")

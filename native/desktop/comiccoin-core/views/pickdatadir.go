@@ -35,7 +35,7 @@ func NewPickDataDirectoryView(
 	return v
 }
 
-func (view *PickDataDirectoryView) Render() *fyne.Container {
+func (view *PickDataDirectoryView) Render() fyne.CanvasObject {
 	view.window.Resize(fyne.NewSize(constants.DefaultScreenWidth, constants.DefaultScreenHeight))
 
 	lb1 := widget.NewLabel("Welcome to ComicCoin Core.")
