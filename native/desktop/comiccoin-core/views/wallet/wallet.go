@@ -3,7 +3,6 @@ package wallet
 import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-core/constants"
@@ -65,7 +64,7 @@ func (view *WalletView) Render() *fyne.Container {
 
 	tabs.SetTabLocation(container.TabLocationTop)
 
-	return container.New(layout.NewVBoxLayout(), tabs)
+	return container.NewBorder(nil, nil, nil, nil, tabs)
 }
 
 func (view *WalletView) WaitUntilReadyToTransition() int {

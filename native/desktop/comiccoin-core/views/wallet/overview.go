@@ -3,7 +3,10 @@ package wallet
 import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
+
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-core/constants"
 )
 
 type WalletViewOverviewTab struct {
@@ -22,20 +25,47 @@ func NewWalletViewOverviewTab(
 	return v
 }
 
-type item struct {
-	Name  string
-	Email string
-}
-
 func (view *WalletViewOverviewTab) Render() *fyne.Container {
+	view.window.Resize(fyne.NewSize(constants.DefaultScreenWidth, constants.DefaultScreenHeight))
 
-	// balanceLabel := widget.NewLabel("Total Balance: 100.00 CC")
-	// tokensLabel := widget.NewLabel("Total Tokens: 500")
+	balanceLabel := widget.NewLabel("Total Balance: 100.00 CC")
+	tokensLabel := widget.NewLabel("Total Tokens: 500")
+
+	type item struct {
+		Name  string
+		Email string
+	}
 
 	// Create a list of items
 	items := []item{
 		{"John Doe", "john@example.com"},
 		{"Jane Doe", "jane@example.com"},
+		{"Bob Smith", "bob@example.com"},
+		{"Bob Smith", "bob@example.com"},
+		{"John Doe", "john@example.com"},
+		{"Bob Smith", "bob@example.com"},
+		{"Bob Smith", "bob@example.com"},
+		{"Bob Smith", "bob@example.com"},
+		{"Bob Smith", "bob@example.com"},
+		{"Bob Smith", "bob@example.com"},
+		{"John Doe", "john@example.com"},
+		{"Bob Smith", "bob@example.com"},
+		{"Bob Smith", "bob@example.com"},
+		{"Bob Smith", "bob@example.com"},
+		{"Bob Smith", "bob@example.com"},
+		{"Bob Smith", "bob@example.com"},
+		{"John Doe", "john@example.com"},
+		{"Bob Smith", "bob@example.com"},
+		{"Bob Smith", "bob@example.com"},
+		{"Bob Smith", "bob@example.com"},
+		{"Bob Smith", "bob@example.com"},
+		{"Bob Smith", "bob@example.com"},
+		{"John Doe", "john@example.com"},
+		{"Bob Smith", "bob@example.com"},
+		{"Bob Smith", "bob@example.com"},
+		{"Bob Smith", "bob@example.com"},
+		{"Bob Smith", "bob@example.com"},
+		{"Bob Smith", "bob@example.com"},
 		{"Bob Smith", "bob@example.com"},
 	}
 
@@ -55,16 +85,24 @@ func (view *WalletViewOverviewTab) Render() *fyne.Container {
 			hbox := obj.(*fyne.Container)
 			hbox.Objects[0].(*widget.Label).SetText(item.Name)
 			hbox.Objects[1].(*widget.Label).SetText(item.Email)
-			// hbox.Resize(fyne.NewSize(300, 400))
 		},
 	)
 
 	// Create a header
-	header := widget.NewLabel("List of Items")
+	header := widget.NewLabel("Recent Transactions")
 
-	// Create a border layout with the header at the top and the list below
-	border := container.NewBorder(header, nil, nil, nil, list)
+	v := container.NewVBox(
+		layout.NewSpacer(),
+		balanceLabel,
+		tokensLabel,
+		layout.NewSpacer(),
+		header,
+	)
 
-	// border.Resize(fyne.NewSize(300, 400))
-	return border
+	scrollableList := container.NewScroll(list)
+
+	// Create a new container with the label and stretch it vertically
+	container := container.NewBorder(v, nil, nil, nil, scrollableList)
+
+	return container
 }
