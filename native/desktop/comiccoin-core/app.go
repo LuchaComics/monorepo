@@ -35,6 +35,10 @@ type App struct {
 	// Variable controls the configuration of the blockchain node.
 	config *config.Config
 
+	// Variable holds access to our peer-to-peer network handler. We want to
+	// have access so we can close our connection upon exit of this application.
+	libP2PNetwork p2p.LibP2PNetwork
+
 	getKeyService                      *service.GetKeyService
 	initAccountsFromBlockchainService  *service.InitAccountsFromBlockchainService
 	createAccountService               *service.CreateAccountService
@@ -178,8 +182,10 @@ func (a *App) startup(ctx context.Context) {
 	privateKey, _ := ik.GetPrivateKey()
 	publicKey, _ := ik.GetPublicKey()
 	libP2PNetwork := p2p.NewLibP2PNetwork(cfg, logger, privateKey, publicKey)
-	defer libP2PNetwork.Close()
 	h := libP2PNetwork.GetHost()
+
+	// Save to our app.
+	a.libP2PNetwork = libP2PNetwork
 
 	// Build host multiaddress
 	hostAddr, _ := ma.NewMultiaddr(fmt.Sprintf("/ipfs/%s", h.ID()))
@@ -758,4 +764,7 @@ func (a *App) shutdown(ctx context.Context) {
 
 	a.isBlockchainNodeRunning = false
 	go a.stopBackgroundTasks()
+
+	a.logger.Debug("Peer-to-peer network shutting down...")
+	a.libP2PNetwork.Close()
 }
