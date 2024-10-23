@@ -490,7 +490,6 @@ func (a *App) startup(ctx context.Context) {
 		logger,
 		getBlockchainLastestHashUseCase,
 		getBlockDataUseCase)
-	_ = getAccountBalanceService // TODO
 
 	// Transaction
 	createTxService := service.NewCreateTransactionService(

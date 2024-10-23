@@ -60,6 +60,22 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context) error {
 	// for the unsigned 64-bit integer in a computer. That's a big number!
 	initialSupply := uint64(math.MaxUint64) // Note: 18446744073709551615
 
+	// DEVELOPERS NOTE:
+	// The value of `18446744073709551615` using scientific notation is
+	// 1.8446744 × 10^19 which can be read as approximately `1.8 quintillion`.
+	//
+	// Also here are some additional notes on the order of magnitude for powers
+	// of 10:
+	// 10^0 = 1
+	// 10^3 = thousand
+	// 10^6 = million
+	// 10^9 = billion
+	// 10^12 = trillion
+	// 10^15 = quadrillion
+	// 10^18 = quintillion
+	// 10^21 = sextillion
+	// 10^24 = septillion
+
 	//
 	// STEP 1
 	// Initialize our coinbase account in our in-memory database.

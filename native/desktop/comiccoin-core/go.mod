@@ -4,6 +4,7 @@ go 1.23.0
 
 require (
 	github.com/LuchaComics/monorepo/native/desktop/comiccoin v0.0.0-00010101000000-000000000000
+	github.com/ethereum/go-ethereum v1.14.10
 	github.com/multiformats/go-multiaddr v0.13.0
 	github.com/wailsapp/wails/v2 v2.9.2
 )
@@ -28,7 +29,6 @@ require (
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/elastic/gosigar v0.14.3 // indirect
 	github.com/ethereum/c-kzg-4844 v1.0.0 // indirect
-	github.com/ethereum/go-ethereum v1.14.10 // indirect
 	github.com/ethereum/go-verkle v0.1.1-0.20240829091221-dffa7562dbe9 // indirect
 	github.com/flynn/noise v1.1.0 // indirect
 	github.com/francoispqt/gojay v1.2.13 // indirect
