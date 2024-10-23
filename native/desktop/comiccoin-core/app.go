@@ -39,29 +39,29 @@ type App struct {
 	// have access so we can close our connection upon exit of this application.
 	libP2PNetwork p2p.LibP2PNetwork
 
-	getKeyService                      *service.GetKeyService
-	walletListService                  *service.WalletListService
-	initAccountsFromBlockchainService  *service.InitAccountsFromBlockchainService
-	createAccountService               *service.CreateAccountService
-	getAccountService                  *service.GetAccountService
-	getAccountBalanceService           *service.GetAccountBalanceService
-	createTxService                    *service.CreateTransactionService
-	poaTokenMintService                *service.ProofOfAuthorityTokenMintService
-	transferTokenService               *service.TransferTokenService
-	burnTokenService                   *service.BurnTokenService
-	getTokenService                    *service.GetTokenService
-	mempoolReceiveService              *service.MempoolReceiveService
-	mempoolBatchSendService            *service.MempoolBatchSendService
-	proofOfWorkMiningService           *service.ProofOfWorkMiningService
-	proofOfAuthorityMiningService      *service.ProofOfAuthorityMiningService
-	proofOfWorkValidationService       *service.ProofOfWorkValidationService
-	proofOfAuthorityValidationService  *service.ProofOfAuthorityValidationService
-	majorityVoteConsensusServerService *service.MajorityVoteConsensusServerService
-	majorityVoteConsensusClientService *service.MajorityVoteConsensusClientService
-	uploadServerService                *service.BlockDataDTOServerService
-	initBlockDataService               *service.InitBlockDataService
-	blockchainStartupService           *service.BlockchainStartupService
-
+	getKeyService                          *service.GetKeyService
+	walletListService                      *service.WalletListService
+	initAccountsFromBlockchainService      *service.InitAccountsFromBlockchainService
+	createAccountService                   *service.CreateAccountService
+	getAccountService                      *service.GetAccountService
+	getAccountBalanceService               *service.GetAccountBalanceService
+	createTxService                        *service.CreateTransactionService
+	poaTokenMintService                    *service.ProofOfAuthorityTokenMintService
+	transferTokenService                   *service.TransferTokenService
+	burnTokenService                       *service.BurnTokenService
+	getTokenService                        *service.GetTokenService
+	mempoolReceiveService                  *service.MempoolReceiveService
+	mempoolBatchSendService                *service.MempoolBatchSendService
+	proofOfWorkMiningService               *service.ProofOfWorkMiningService
+	proofOfAuthorityMiningService          *service.ProofOfAuthorityMiningService
+	proofOfWorkValidationService           *service.ProofOfWorkValidationService
+	proofOfAuthorityValidationService      *service.ProofOfAuthorityValidationService
+	majorityVoteConsensusServerService     *service.MajorityVoteConsensusServerService
+	majorityVoteConsensusClientService     *service.MajorityVoteConsensusClientService
+	uploadServerService                    *service.BlockDataDTOServerService
+	initBlockDataService                   *service.InitBlockDataService
+	blockchainStartupService               *service.BlockchainStartupService
+	listRecentBlockTransactionService      *service.ListRecentBlockTransactionService
 	mempoolReceiveTaskHandler              *task.MempoolReceiveTaskHandler
 	mempoolBatchSendTaskHandler            *task.MempoolBatchSendTaskHandler
 	proofOfWorkMiningTaskHandler           *task.ProofOfWorkMiningTaskHandler
@@ -500,6 +500,14 @@ func (a *App) startup(ctx context.Context) {
 		walletDecryptKeyUseCase,
 		broadcastMempoolTxDTOUseCase)
 
+	// Block Transaction
+	listRecentBlockTransactionService := service.NewListRecentBlockTransactionService(
+		cfg,
+		logger,
+		getBlockchainLastestHashUseCase,
+		getBlockDataUseCase,
+	)
+
 	// Tokens
 	poaTokenMintService := service.NewProofOfAuthorityTokenMintService(
 		cfg,
@@ -669,6 +677,7 @@ func (a *App) startup(ctx context.Context) {
 	a.getAccountService = getAccountService
 	a.getAccountBalanceService = getAccountBalanceService
 	a.createTxService = createTxService
+	a.listRecentBlockTransactionService = listRecentBlockTransactionService
 	a.poaTokenMintService = poaTokenMintService
 	a.transferTokenService = transferTokenService
 	a.burnTokenService = burnTokenService

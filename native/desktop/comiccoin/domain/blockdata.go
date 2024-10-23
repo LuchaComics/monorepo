@@ -3,6 +3,7 @@ package domain
 import (
 	"fmt"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/fxamacker/cbor/v2"
 )
 
@@ -45,6 +46,9 @@ type BlockDataRepository interface {
 	// DeleteByHash deletes a block data by its hash.
 	// It takes a hash and returns an error if one occurs.
 	DeleteByHash(hash string) error
+
+	// ListBlockTransactionsByAddress lists all the transactions for a particular address.
+	ListAllBlockTransactionsByAddress(address *common.Address) ([]*BlockTransaction, error)
 }
 
 // Serialize serializes a block data into a byte array.

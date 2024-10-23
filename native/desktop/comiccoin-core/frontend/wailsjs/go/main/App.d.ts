@@ -14,7 +14,7 @@ export function GetDefaultDataDirectory():Promise<string>;
 
 export function GetIsBlockhainNodeRunning():Promise<boolean>;
 
-export function GetRecentTransactions(arg1:string):Promise<Array<domain.Transaction>>;
+export function GetRecentTransactions(arg1:string):Promise<Array<domain.BlockTransaction>>;
 
 export function GetTotalCoins(arg1:string):Promise<number>;
 

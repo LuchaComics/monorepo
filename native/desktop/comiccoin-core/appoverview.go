@@ -44,13 +44,19 @@ func (a *App) GetTotalTokens(address string) (uint64, error) {
 	return 0, nil
 }
 
-func (a *App) GetRecentTransactions(address string) ([]*domain.Transaction, error) {
+func (a *App) GetRecentTransactions(address string) ([]*domain.BlockTransaction, error) {
+	addr := common.HexToAddress(address)
+
 	// Defensive code
 	if address == "" {
-		return make([]*domain.Transaction, 0), fmt.Errorf("failed because: address is null: %v", address)
+		return make([]*domain.BlockTransaction, 0), fmt.Errorf("failed because: address is null: %v", address)
 	}
 
-	//TODO: Impl.
+	txs, err := a.listRecentBlockTransactionService.Execute(&addr, 5)
+	if err != nil {
+		a.logger.Error("Failed getting account balance", slog.Any("error", err))
+		return nil, err
+	}
 
-	return make([]*domain.Transaction, 0), nil
+	return txs, nil
 }

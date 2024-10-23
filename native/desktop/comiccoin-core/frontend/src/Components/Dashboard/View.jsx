@@ -7,7 +7,9 @@ import {
   faArrowRight,
   faUsers,
   faBarcode,
-  faCubes
+  faCubes,
+  faFileInvoiceDollar,
+  faCoins
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
@@ -31,33 +33,6 @@ function DashboardView() {
     const [totalCoins, setTotalCoins] = useState(0);
     const [totalTokens, setTotalTokens] = useState(0);
     const [transactions, setTransactions] = useState([]);
-
-      const recentTransactions = [
-        {
-          id: 1,
-          date: '2023-02-20',
-          type: 'Received',
-          amount: 100,
-          sender: '0x1234567890',
-          receiver: '0x9876543210',
-        },
-        {
-          id: 2,
-          date: '2023-02-19',
-          type: 'Sent',
-          amount: 200,
-          sender: '0x9876543210',
-          receiver: '0x1234567890',
-        },
-        {
-          id: 3,
-          date: '2023-02-18',
-          type: 'Received',
-          amount: 50,
-          sender: '0x1234567890',
-          receiver: '0x9876543210',
-        },
-      ];
 
     ////
     //// Event handling.
@@ -112,9 +87,6 @@ function DashboardView() {
         <>
           <div class="container">
             <section class="section">
-
-
-
               <nav class="box">
                 <div class="columns">
                   <div class="column">
@@ -141,33 +113,35 @@ function DashboardView() {
 
             </nav>
 
-            <h1 className="subtitle is-4 pt-5">Recent Transactions</h1>
+            <h1 className="subtitle is-4 pt-5"><FontAwesomeIcon className="fas" icon={faFileInvoiceDollar} />&nbsp;Recent Transactions</h1>
             {transactions.length === 0 ? <>
                 <section class="hero is-warning is-medium">
                   <div class="hero-body">
-                    <p class="title">No recent transactions</p>
+                    <p class="title"><FontAwesomeIcon className="fas" icon={faFileInvoiceDollar} />&nbsp;No recent transactions</p>
                     <p class="subtitle">This wallet currently does not have any transactions.</p>
                   </div>
                 </section>
             </> : <>
-                <table className="table is-fullwidth">
+                <table className="table is-fullwidth is-size-6">
                   <thead>
                     <tr>
+                      <th></th>
                       <th>Date</th>
                       <th>Type</th>
-                      <th>Amount</th>
+                      <th>Coin(s)</th>
                       <th>Sender</th>
                       <th>Receiver</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {recentTransactions.map((transaction) => (
-                      <tr key={transaction.id}>
-                        <td>{transaction.date}</td>
-                        <td>{transaction.type}</td>
-                        <td>{transaction.amount}</td>
-                        <td>{transaction.sender}</td>
-                        <td>{transaction.receiver}</td>
+                    {transactions.map((transaction) => (
+                      <tr key={transaction.hash}>
+                        <td>{transaction.type === "coin" ? <><FontAwesomeIcon className="fas" icon={faCoins} /></> : <><FontAwesomeIcon className="fas" icon={faCubes} /></>}</td>
+                        <td>{transaction.timestamp}</td>
+                        <td>{transaction.from === currentOpenWalletAtAddress ? "Sent" : "Received"}</td>
+                        <td>{transaction.value}</td>
+                        <td>{transaction.from}</td>
+                        <td>{transaction.to}</td>
                       </tr>
                     ))}
                   </tbody>

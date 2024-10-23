@@ -3,6 +3,8 @@ package repo
 import (
 	"log/slog"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
@@ -72,4 +74,29 @@ func (r *BlockDataRepo) DeleteByHash(hash string) error {
 		return err
 	}
 	return nil
+}
+
+func (r *BlockDataRepo) ListAllBlockTransactionsByAddress(address *common.Address) ([]*domain.BlockTransaction, error) {
+	res := make([]*domain.BlockTransaction, 0)
+	err := r.dbClient.Iterate(func(key, value []byte) error {
+		blockdata, err := domain.NewBlockDataFromDeserialize(value)
+		if err != nil {
+			r.logger.Error("failed to deserialize",
+				slog.String("key", string(key)),
+				slog.String("value", string(value)),
+				slog.Any("error", err))
+			return err
+		}
+
+		for _, tx := range blockdata.Trans {
+			if tx.To == address || tx.From == address {
+				res = append(res, &tx)
+			}
+		}
+
+		// Return nil to indicate success because non-nil's indicate error.
+		return nil
+	})
+
+	return res, err
 }

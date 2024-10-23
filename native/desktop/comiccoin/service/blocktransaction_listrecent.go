@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/signature"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
@@ -11,35 +13,35 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
 )
 
-type GetAccountBalanceService struct {
+type ListRecentBlockTransactionService struct {
 	config                          *config.Config
 	logger                          *slog.Logger
 	getBlockchainLastestHashUseCase *usecase.GetBlockchainLastestHashUseCase
 	getBlockDataUseCase             *usecase.GetBlockDataUseCase
 }
 
-func NewGetAccountBalanceService(
+func NewListRecentBlockTransactionService(
 	cfg *config.Config,
 	logger *slog.Logger,
 	uc1 *usecase.GetBlockchainLastestHashUseCase,
 	uc2 *usecase.GetBlockDataUseCase,
-) *GetAccountBalanceService {
-	return &GetAccountBalanceService{cfg, logger, uc1, uc2}
+) *ListRecentBlockTransactionService {
+	return &ListRecentBlockTransactionService{cfg, logger, uc1, uc2}
 }
 
-func (s *GetAccountBalanceService) Execute(account *domain.Account) (uint64, error) {
+func (s *ListRecentBlockTransactionService) Execute(address *common.Address, limit int) ([]*domain.BlockTransaction, error) {
 	//
 	// STEP 1: Validation.
 	//
 
 	e := make(map[string]string)
-	if account == nil {
-		e["account"] = "missing value"
+	if address == nil {
+		e["address"] = "missing value"
 	}
 	if len(e) != 0 {
-		s.logger.Warn("Failed getting account balance",
+		s.logger.Warn("Failed validating list recent block transaction",
 			slog.Any("error", e))
-		return 0, httperror.NewForBadRequest(&e)
+		return nil, httperror.NewForBadRequest(&e)
 	}
 
 	//
@@ -50,7 +52,7 @@ func (s *GetAccountBalanceService) Execute(account *domain.Account) (uint64, err
 	if err != nil {
 		s.logger.Error("failed to get last hash",
 			slog.Any("error", err))
-		return 0, fmt.Errorf("failed to get last hash: %v", err)
+		return nil, fmt.Errorf("failed to get last hash: %v", err)
 	}
 
 	//
@@ -58,14 +60,14 @@ func (s *GetAccountBalanceService) Execute(account *domain.Account) (uint64, err
 	// Iterate through the blockchain and compute the balance.
 	//
 
-	var balanceTotal uint64 = 0
+	txs := make([]*domain.BlockTransaction, 0)
 
 	for {
 		blockData, err := s.getBlockDataUseCase.Execute(currentHash)
 		if err != nil {
 			s.logger.Error("failed to get block datah",
 				slog.String("hash", currentHash))
-			return 0, fmt.Errorf("failed to get block data: %v", err)
+			return nil, fmt.Errorf("failed to get block data: %v", err)
 		}
 
 		// DEVELOPERS NOTE:
@@ -79,11 +81,34 @@ func (s *GetAccountBalanceService) Execute(account *domain.Account) (uint64, err
 		// Every block can have one or many transactions, therefore we will
 		// need to iterate through all of them for our computation.
 		for _, tx := range blockData.Trans {
-			if *tx.From == *account.Address {
-				balanceTotal -= tx.Value
+			// // For debugging purposes only.
+			// s.logger.Debug("Transaction Comporator",
+			// 	slog.Any("tx.From", *tx.From),
+			// 	slog.Any("address", *address),
+			// 	slog.Any("tx.From == address", *tx.From == *address))
+
+			if *tx.From == *address {
+				txs = append(txs, &tx)
+
+				// Reached limit.
+				if len(txs) > limit {
+					break
+				}
 			}
-			if *tx.To == *account.Address {
-				balanceTotal += tx.Value
+
+			// // For debugging purposes only.
+			// s.logger.Debug("Transaction Comporator",
+			// 	slog.Any("tx.To", *tx.To),
+			// 	slog.Any("address", *address),
+			// 	slog.Any("tx.To == address", *tx.To == *address))
+
+			if *tx.To == *address {
+				txs = append(txs, &tx)
+
+				// Reached limit.
+				if len(txs) > limit {
+					break
+				}
 			}
 		}
 
@@ -99,5 +124,8 @@ func (s *GetAccountBalanceService) Execute(account *domain.Account) (uint64, err
 		currentHash = blockData.Header.PrevBlockHash
 	}
 
-	return balanceTotal, nil
+	s.logger.Debug("Fetched",
+		slog.Any("txs", txs))
+
+	return txs, nil
 }
