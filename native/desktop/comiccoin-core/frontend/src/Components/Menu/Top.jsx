@@ -47,20 +47,20 @@ function Topbar() {
   // CASE 1 OF 3 //
   //-------------//
 
-  // // Get the current location and if we are at specific URL paths then we
-  // // will not render this component.
-  // const ignorePathsArr = [
-  //   "/",
-  //   "/wallets",
-  // ];
-  // const location = useLocation();
-  // var arrayLength = ignorePathsArr.length;
-  // for (var i = 0; i < arrayLength; i++) {
-  //   // console.log(location.pathname, "===", ignorePathsArr[i], " EQUALS ", location.pathname === ignorePathsArr[i]);
-  //   if (location.pathname === ignorePathsArr[i]) {
-  //     return null;
-  //   }
-  // }
+  // Get the current location and if we are at specific URL paths then we
+  // will not render this component.
+  const ignorePathsArr = [
+    "/",
+    "/startup",
+  ];
+  const location = useLocation();
+  var arrayLength = ignorePathsArr.length;
+  for (var i = 0; i < arrayLength; i++) {
+    // console.log(location.pathname, "===", ignorePathsArr[i], " EQUALS ", location.pathname === ignorePathsArr[i]);
+    if (location.pathname === ignorePathsArr[i]) {
+      return null;
+    }
+  }
 
   // //-------------//
   // // CASE 2 OF 3 //

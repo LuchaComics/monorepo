@@ -29,6 +29,8 @@ func InitCmd() *cobra.Command {
 	cmd.Flags().StringVar(&flagDataDir, "datadir", config.GetDefaultDataDirectory(), "Absolute path to your node's data dir where the DB will be/is stored")
 	cmd.Flags().StringVar(&flagPassword, "coinbase-password", "", "The password to encrypt the coinbase's account wallet")
 	cmd.MarkFlagRequired("coinbase-password")
+	cmd.Flags().StringVar(&flagPasswordRepeated, "coinbase-password-repeated", "", "The password (again) to verify you are entering the correct password")
+	cmd.MarkFlagRequired("coinbase-password-repeated")
 
 	return cmd
 }
@@ -183,7 +185,7 @@ func doRunInitBlockchain() {
 	// Create our coinbase account.
 	//
 
-	account, err := createAccountService.Execute(flagDataDir, flagPassword)
+	account, err := createAccountService.Execute(flagDataDir, flagPassword, flagPasswordRepeated, flagLabel)
 	if err != nil {
 		log.Fatalf("failed creating account: %v", err)
 	}

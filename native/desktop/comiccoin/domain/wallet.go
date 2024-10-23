@@ -8,6 +8,9 @@ import (
 )
 
 type Wallet struct {
+	// The (Optional) description for this wallet.
+	Label string `json:"label"`
+
 	// The public address of the wallet.
 	Address *common.Address `json:"address"`
 

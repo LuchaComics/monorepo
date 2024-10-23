@@ -2,7 +2,7 @@ import {useState, useEffect} from 'react';
 import { Link, Navigate } from "react-router-dom";
 
 import PageLoadingContent from "../Reusable/PageLoadingContent";
-import {GetIsBlockhainNodeRunning} from "../../../wailsjs/go/main/App";
+import { GetIsBlockhainNodeRunning, DefaultWalletAddress } from "../../../wailsjs/go/main/App";
 
 
 function StartupView() {
@@ -24,8 +24,20 @@ function StartupView() {
         GetIsBlockhainNodeRunning().then( (isNodeRunningResponse)=>{
             console.log("tick", new Date().getTime(), isNodeRunningResponse);
             if (isNodeRunningResponse) {
+
+                console.log("tick: done");
                 clearInterval(intervalId);
-                setForceURL("/wallets");
+
+                // Check to see if we already have an address set, else
+                // the user needs to log in again.
+                DefaultWalletAddress().then((addressResponse)=>{
+                    console.log("address:", addressResponse);
+                    if (addressResponse !== "") {
+                        setForceURL("/dashboard");
+                    } else {
+                        setForceURL("/wallets");
+                    }
+                })
             }
         })
     }

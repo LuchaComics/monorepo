@@ -1,8 +1,10 @@
 import {useState, useEffect} from 'react';
 import { Link, Navigate } from "react-router-dom";
+import { useRecoilState } from "recoil";
 
 import PageLoadingContent from "../Reusable/PageLoadingContent";
-import {ListWallets} from "../../../wailsjs/go/main/App";
+import { currentOpenWalletAtAddressState } from "../../AppState";
+import { DefaultWalletAddress, ListWallets } from "../../../wailsjs/go/main/App";
 
 
 function ListWalletsView() {
@@ -35,6 +37,12 @@ function ListWalletsView() {
                 setWallets(walletsResponse);
             })
 
+            DefaultWalletAddress().then((addressResponse)=>{
+                console.log("address:", addressResponse);
+                if (addressResponse !== "") {
+                    setForceURL("/dashboard");
+                }
+            })
       }
 
       return () => {

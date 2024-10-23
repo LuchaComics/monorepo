@@ -5,9 +5,9 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 )
 
 type CreateWalletUseCase struct {
@@ -20,7 +20,7 @@ func NewCreateWalletUseCase(config *config.Config, logger *slog.Logger, repo dom
 	return &CreateWalletUseCase{config, logger, repo}
 }
 
-func (uc *CreateWalletUseCase) Execute(address *common.Address, filepath string) error {
+func (uc *CreateWalletUseCase) Execute(address *common.Address, filepath string, label string) error {
 	//
 	// STEP 1: Validation.
 	//
@@ -45,6 +45,7 @@ func (uc *CreateWalletUseCase) Execute(address *common.Address, filepath string)
 	wallet := &domain.Wallet{
 		Address:  address,
 		Filepath: filepath,
+		Label:    label,
 	}
 
 	//

@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/signature"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/signature"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 )
 
 type CreateAccountService struct {
@@ -33,7 +33,7 @@ func NewCreateAccountService(
 	return &CreateAccountService{cfg, logger, uc1, uc2, uc3, uc4, uc5}
 }
 
-func (s *CreateAccountService) Execute(dataDir, walletPassword string) (*domain.Account, error) {
+func (s *CreateAccountService) Execute(dataDir, walletPassword string, walletPasswordRepeated string, walletLabel string) (*domain.Account, error) {
 	//
 	// STEP 1: Validation.
 	//
@@ -44,6 +44,13 @@ func (s *CreateAccountService) Execute(dataDir, walletPassword string) (*domain.
 	}
 	if walletPassword == "" {
 		e["wallet_password"] = "missing value"
+	}
+	if walletPasswordRepeated == "" {
+		e["wallet_password_repeated"] = "missing value"
+	}
+	if walletPassword != walletPasswordRepeated {
+		e["wallet_password"] = "do not match"
+		e["wallet_password_repeated"] = "do not match"
 	}
 	if len(e) != 0 {
 		s.logger.Warn("Failed creating new account",
@@ -117,7 +124,7 @@ func (s *CreateAccountService) Execute(dataDir, walletPassword string) (*domain.
 	// Save wallet to our database.
 	//
 
-	if err := s.createWalletUseCase.Execute(walletAddress, walletFilepath); err != nil {
+	if err := s.createWalletUseCase.Execute(walletAddress, walletFilepath, walletLabel); err != nil {
 		s.logger.Error("failed saving to database",
 			slog.Any("data_dir", dataDir),
 			slog.Any("error", err))

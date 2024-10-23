@@ -6,9 +6,9 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 )
 
 type CreateAccountHTTPHandler struct {
@@ -26,7 +26,9 @@ func NewCreateAccountHTTPHandler(
 }
 
 type AccountCreateRequestIDO struct {
-	WalletPassword string `json:"wallet_password"`
+	WalletPassword         string `json:"wallet_password"`
+	WalletPasswordRepeated string `json:"wallet_password_repeated"`
+	WalletLabel            string `json:"wallet_label"`
 }
 
 type AccountCreateResponseIDO struct {
@@ -44,7 +46,12 @@ func (h *CreateAccountHTTPHandler) Execute(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	account, serviceErr := h.createAccountService.Execute(h.config.App.DirPath, requestPayload.WalletPassword)
+	account, serviceErr := h.createAccountService.Execute(
+		h.config.App.DirPath,
+		requestPayload.WalletPassword,
+		requestPayload.WalletPasswordRepeated,
+		requestPayload.WalletLabel,
+	)
 	if serviceErr != nil {
 		httperror.ResponseError(w, serviceErr)
 		return

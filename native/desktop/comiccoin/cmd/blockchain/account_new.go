@@ -11,8 +11,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	ah "github.com/LuchaComics/monorepo/native/desktop/comiccoin/interface/http/handler"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
+	ah "github.com/LuchaComics/monorepo/native/desktop/comiccoin/interface/http/handler"
 )
 
 func httpJsonApiNewAccountCmd() *cobra.Command {
@@ -109,6 +109,7 @@ func httpJsonApiNewAccountCmd() *cobra.Command {
 
 	cmd.Flags().StringVar(&flagPassword, "wallet-password", "", "The password to encrypt the new wallet with")
 	cmd.MarkFlagRequired("wallet-password")
+	cmd.Flags().StringVar(&flagLabel, "wallet-label", "", "The (optional) label to describe the new wallet with")
 	cmd.Flags().IntVar(&flagListenHTTPPort, "listen-http-port", 8000, "The HTTP JSON API server's port")
 	cmd.Flags().StringVar(&flagListenHTTPIP, "listen-http-ip", "127.0.0.1", "The HTTP JSON API server's ip-address")
 

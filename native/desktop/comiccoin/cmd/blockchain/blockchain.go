@@ -6,7 +6,9 @@ import "github.com/spf13/cobra"
 var (
 	flagKeystoreFile     string // Location of the wallet keystore
 	flagDataDir          string // Location of the database directory
+	flagLabel            string
 	flagPassword         string
+	flagPasswordRepeated string
 	flagCoinbaseAddress  string
 	flagRecipientAddress string
 	flagAmount           uint64

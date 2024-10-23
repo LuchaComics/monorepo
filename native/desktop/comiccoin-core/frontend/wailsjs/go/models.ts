@@ -1,6 +1,7 @@
 export namespace domain {
 	
 	export class Wallet {
+	    label: string;
 	    address?: number[];
 	    filepath: string;
 	
@@ -10,6 +11,7 @@ export namespace domain {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.label = source["label"];
 	        this.address = source["address"];
 	        this.filepath = source["filepath"];
 	    }

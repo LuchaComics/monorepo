@@ -19,7 +19,14 @@ func init() {
 }
 
 type Preferences struct {
+	// DataDirectory variable holds the location of were the entire application
+	// will be saved on the user's computer.
 	DataDirectory string `json:"data_directory"`
+
+	// DefaultWalletAddress holds the address of the wallet that will be
+	// automatically opend every time the application loads up. This is selected
+	// by the user.
+	DefaultWalletAddress string `json:"default_wallet_address"`
 }
 
 var (
@@ -58,6 +65,15 @@ func (pref *Preferences) GetDefaultDataDirectory() string {
 
 func (pref *Preferences) SetDataDirectory(dataDir string) error {
 	pref.DataDirectory = dataDir
+	data, err := json.MarshalIndent(pref, "", "\t")
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(FilePathPreferences, data, 0666)
+}
+
+func (pref *Preferences) SetDefaultWalletAddress(newAdrs string) error {
+	pref.DefaultWalletAddress = newAdrs
 	data, err := json.MarshalIndent(pref, "", "\t")
 	if err != nil {
 		return err
