@@ -26,6 +26,18 @@ export function GetIsBlockhainNodeRunning() {
   return window['go']['main']['App']['GetIsBlockhainNodeRunning']();
 }
 
+export function GetRecentTransactions(arg1) {
+  return window['go']['main']['App']['GetRecentTransactions'](arg1);
+}
+
+export function GetTotalCoins(arg1) {
+  return window['go']['main']['App']['GetTotalCoins'](arg1);
+}
+
+export function GetTotalTokens(arg1) {
+  return window['go']['main']['App']['GetTotalTokens'](arg1);
+}
+
 export function ListWallets() {
   return window['go']['main']['App']['ListWallets']();
 }

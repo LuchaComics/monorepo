@@ -14,6 +14,12 @@ export function GetDefaultDataDirectory():Promise<string>;
 
 export function GetIsBlockhainNodeRunning():Promise<boolean>;
 
+export function GetRecentTransactions(arg1:string):Promise<Array<domain.Transaction>>;
+
+export function GetTotalCoins(arg1:string):Promise<number>;
+
+export function GetTotalTokens(arg1:string):Promise<number>;
+
 export function ListWallets():Promise<Array<domain.Wallet>>;
 
 export function SaveDataDirectory(arg1:string):Promise<void>;

@@ -1,5 +1,5 @@
 import {useState, useEffect} from 'react';
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTasks,
@@ -9,73 +9,104 @@ import {
   faBarcode,
   faCubes
 } from "@fortawesome/free-solid-svg-icons";
-
+import { useRecoilState } from "recoil";
 
 import logo from '../../assets/images/CPS-logo-2023-square.webp';
+import { GetTotalCoins, GetTotalTokens, GetRecentTransactions } from "../../../wailsjs/go/main/App";
+import { currentOpenWalletAtAddressState } from "../../AppState";
 
 
 function DashboardView() {
+    ////
+    //// Global State
+    ////
 
-    const totalCoins = 1000;
-  const recentTransactions = [
-    {
-      id: 1,
-      date: '2023-02-20',
-      type: 'Received',
-      amount: 100,
-      sender: '0x1234567890',
-      receiver: '0x9876543210',
-    },
-    {
-      id: 2,
-      date: '2023-02-19',
-      type: 'Sent',
-      amount: 200,
-      sender: '0x9876543210',
-      receiver: '0x1234567890',
-    },
-    {
-      id: 3,
-      date: '2023-02-18',
-      type: 'Received',
-      amount: 50,
-      sender: '0x1234567890',
-      receiver: '0x9876543210',
-    },
-  ];
+    const [currentOpenWalletAtAddress] = useRecoilState(currentOpenWalletAtAddressState);
 
-  const nonFungibleTokens = [
-    {
-      id: 1,
-      name: 'Token 1',
-      description: 'This is a rare token',
-      image: logo,
-    },
-    {
-      id: 2,
-      name: 'Token 2',
-      description: 'This is a common token',
-      image:logo,
-    },
-    {
-      id: 3,
-      name: 'Token 3',
-      description: 'This is a unique token',
-      image: logo,
-    },
-  ];
+    ////
+    //// Component states.
+    ////
 
+    const [forceURL, setForceURL] = useState("");
+    const [totalCoins, setTotalCoins] = useState(0);
+    const [totalTokens, setTotalTokens] = useState(0);
+    const [transactions, setTransactions] = useState([]);
+
+      const recentTransactions = [
+        {
+          id: 1,
+          date: '2023-02-20',
+          type: 'Received',
+          amount: 100,
+          sender: '0x1234567890',
+          receiver: '0x9876543210',
+        },
+        {
+          id: 2,
+          date: '2023-02-19',
+          type: 'Sent',
+          amount: 200,
+          sender: '0x9876543210',
+          receiver: '0x1234567890',
+        },
+        {
+          id: 3,
+          date: '2023-02-18',
+          type: 'Received',
+          amount: 50,
+          sender: '0x1234567890',
+          receiver: '0x9876543210',
+        },
+      ];
+
+    ////
+    //// Event handling.
+    ////
+
+    ////
+    //// Misc.
+    ////
 
     useEffect(() => {
       let mounted = true;
 
       if (mounted) {
             window.scrollTo(0, 0); // Start the page at the top of the page.
+            console.log("currentOpenWalletAtAddress:", currentOpenWalletAtAddress);
+
+            GetTotalCoins(currentOpenWalletAtAddress).then((totalCoinsResult)=>{
+                console.log("GetTotalCoins: results:", totalCoinsResult);
+                setTotalCoins(totalCoinsResult);
+            }).catch((errorRes)=>{
+                console.log("GetTotalCoins: errors:", errorRes);
+            });
+
+            GetTotalTokens(currentOpenWalletAtAddress).then((totalTokensResult)=>{
+                console.log("GetTotalTokens: results:", totalTokensResult);
+                setTotalTokens(totalTokensResult);
+            }).catch((errorRes)=>{
+                console.log("GetTotalTokens: errors:", errorRes);
+            });
+
+            GetRecentTransactions(currentOpenWalletAtAddress).then((txsResponse)=>{
+                console.log("GetRecentTransactions: results:", txsResponse);
+                setTransactions(txsResponse);
+            }).catch((errorRes)=>{
+                console.log("GetRecentTransactions: errors:", errorRes);
+            });
       }
       return () => {
         mounted = false;
       };
-    }, []);
+    }, [currentOpenWalletAtAddress]);
+
+    ////
+    //// Component rendering.
+    ////
+
+    if (forceURL !== "") {
+        return <Navigate to={forceURL} />;
+    }
 
     return (
         <>
@@ -98,45 +129,54 @@ function DashboardView() {
               <div class="level-item has-text-centered">
                 <div>
                   <p class="heading">Coins</p>
-                  <p class="title">3,456</p>
+                  <p class="title">{totalCoins}</p>
                 </div>
               </div>
               <div class="level-item has-text-centered">
                 <div>
                   <p class="heading">Tokens Count</p>
-                  <p class="title">123</p>
+                  <p class="title">{totalTokens}</p>
                 </div>
               </div>
 
             </nav>
 
             <h1 className="subtitle is-4 pt-5">Recent Transactions</h1>
-            <table className="table is-fullwidth">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Type</th>
-                  <th>Amount</th>
-                  <th>Sender</th>
-                  <th>Receiver</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentTransactions.map((transaction) => (
-                  <tr key={transaction.id}>
-                    <td>{transaction.date}</td>
-                    <td>{transaction.type}</td>
-                    <td>{transaction.amount}</td>
-                    <td>{transaction.sender}</td>
-                    <td>{transaction.receiver}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {transactions.length === 0 ? <>
+                <section class="hero is-warning is-medium">
+                  <div class="hero-body">
+                    <p class="title">No recent transactions</p>
+                    <p class="subtitle">This wallet currently does not have any transactions.</p>
+                  </div>
+                </section>
+            </> : <>
+                <table className="table is-fullwidth">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Type</th>
+                      <th>Amount</th>
+                      <th>Sender</th>
+                      <th>Receiver</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentTransactions.map((transaction) => (
+                      <tr key={transaction.id}>
+                        <td>{transaction.date}</td>
+                        <td>{transaction.type}</td>
+                        <td>{transaction.amount}</td>
+                        <td>{transaction.sender}</td>
+                        <td>{transaction.receiver}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
                 <div className="has-text-right">
-                <Link to={`/transactions`}>See More&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} /></Link>
+                    <Link to={`/transactions`}>See More&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} /></Link>
                 </div>
-              </nav>
+            </>}
+            </nav>
             </section>
           </div>
         </>
