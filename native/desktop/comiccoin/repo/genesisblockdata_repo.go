@@ -1,13 +1,13 @@
 package repo
 
 import (
-	"encoding/json"
+	_ "embed"
 	"log/slog"
-	"os"
 
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
-	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/static"
 )
 
 type genesisBlockDataRepoImpl struct {
@@ -21,23 +21,9 @@ func NewGenesisBlockDataRepo(cfg *config.Config, logger *slog.Logger, db disk.St
 }
 
 func (r *genesisBlockDataRepoImpl) LoadGenesisData() (*domain.GenesisBlockData, error) {
-	path := "static/genesis.json"
-	content, err := os.ReadFile(path)
-	if err != nil {
-		r.logger.Error("failed reading file",
-			slog.String("path", path),
-			slog.Any("error", err))
-		return &domain.GenesisBlockData{}, err
-	}
-
-	var genesis domain.GenesisBlockData
-	err = json.Unmarshal(content, &genesis)
-	if err != nil {
-		r.logger.Error("failed unmarshalling file",
-			slog.String("path", path),
-			slog.Any("error", err))
-		return &domain.GenesisBlockData{}, err
-	}
-
-	return &genesis, nil
+	// DEVELOPERS NOTE:
+	// We don't want to be reading local files because if we are using this
+	// code from an external package, the file reader code will error. Therefore
+	// we will utilize a static embed reader.
+	return static.GetGenesisBlockData()
 }

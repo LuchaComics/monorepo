@@ -49,6 +49,8 @@ func (a *App) SaveDataDirectory(newDataDirectory string) error {
 	}
 
 	// Re-attempt the startup now that we have the data directory set.
+	a.logger.Debug("Data directory was set by user",
+		slog.Any("data_directory", newDataDirectory))
 	a.startup(a.ctx)
 	return nil
 }

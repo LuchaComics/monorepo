@@ -128,13 +128,13 @@ func DaemonCmd() *cobra.Command {
 					log.Fatal("Failed getting identity key: d.n.e.")
 				}
 				// CASE 2 OF 2: Create `DefaultIdentityKeyID`
-				identityKey, err := ikCreateService.Execute(flagIdentityKeyID)
+				ik, err = ikCreateService.Execute(flagIdentityKeyID)
 				if err != nil {
 					log.Fatalf("Failed creating default identity key: %v", err)
 				}
 
 				// This is anomously behaviour so crash if this happens.
-				if identityKey == nil {
+				if ik == nil {
 					log.Fatal("Failed creating default identity key: d.n.e.")
 				}
 			}

@@ -12,7 +12,6 @@ import (
 	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/disk/leveldb"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/memory"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
-
 	task "github.com/LuchaComics/monorepo/native/desktop/comiccoin/interface/task/handler"
 	taskmnghandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin/interface/task/handler"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
@@ -166,13 +165,13 @@ func (a *App) startup(ctx context.Context) {
 		log.Fatalf("Failed getting identity key: %v", err)
 	}
 	if ik == nil {
-		identityKey, err := ikCreateService.Execute(ComicCoinIdentityKeyID)
+		ik, err = ikCreateService.Execute(ComicCoinIdentityKeyID)
 		if err != nil {
 			log.Fatalf("Failed creating ComicCoin identity key: %v", err)
 		}
 
 		// This is anomously behaviour so crash if this happens.
-		if identityKey == nil {
+		if ik == nil {
 			log.Fatal("Failed creating ComicCoin identity key: d.n.e.")
 		}
 	}
