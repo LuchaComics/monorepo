@@ -31,7 +31,7 @@ function StartupView() {
                 // Check to see if we already have an address set, else
                 // the user needs to log in again.
                 DefaultWalletAddress().then((addressResponse)=>{
-                    console.log("address:", addressResponse);
+                    console.log("default wallet address:", addressResponse);
                     if (addressResponse !== "") {
                         setForceURL("/dashboard");
                     } else {
