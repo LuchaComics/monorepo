@@ -22,6 +22,9 @@ type WalletRepository interface {
 	// GetByID retrieves an wallet by its Address.
 	GetByAddress(address *common.Address) (*Wallet, error)
 
+	// ListAll retrieves all wallets in the repository.
+	ListAll() ([]*Wallet, error)
+
 	// DeleteByID deletes an wallet by its Address.
 	DeleteByAddress(address *common.Address) error
 }

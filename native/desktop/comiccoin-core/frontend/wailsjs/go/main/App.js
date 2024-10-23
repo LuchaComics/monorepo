@@ -18,6 +18,10 @@ export function GetIsBlockhainNodeRunning() {
   return window['go']['main']['App']['GetIsBlockhainNodeRunning']();
 }
 
+export function ListWallets() {
+  return window['go']['main']['App']['ListWallets']();
+}
+
 export function SaveDataDirectory(arg1) {
   return window['go']['main']['App']['SaveDataDirectory'](arg1);
 }

@@ -3,9 +3,9 @@ package repo
 import (
 	"log/slog"
 
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
-	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -38,12 +38,33 @@ func (r *WalletRepo) GetByAddress(address *common.Address) (*domain.Wallet, erro
 	b, err := domain.NewWalletFromDeserialize(bBytes)
 	if err != nil {
 		r.logger.Error("failed to deserialize",
-			slog.Any("account_id", address),
+			slog.Any("address", address),
 			slog.String("bin", string(bBytes)),
 			slog.Any("error", err))
 		return nil, err
 	}
 	return b, nil
+}
+
+func (r *WalletRepo) ListAll() ([]*domain.Wallet, error) {
+	res := make([]*domain.Wallet, 0)
+	err := r.dbClient.Iterate(func(key, value []byte) error {
+		wallet, err := domain.NewWalletFromDeserialize(value)
+		if err != nil {
+			r.logger.Error("failed to deserialize",
+				slog.String("key", string(key)),
+				slog.String("value", string(value)),
+				slog.Any("error", err))
+			return err
+		}
+
+		res = append(res, wallet)
+
+		// Return nil to indicate success
+		return nil
+	})
+
+	return res, err
 }
 
 func (r *WalletRepo) DeleteByAddress(address *common.Address) error {

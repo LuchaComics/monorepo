@@ -25,7 +25,7 @@ function StartupView() {
             console.log("tick", new Date().getTime(), isNodeRunningResponse);
             if (isNodeRunningResponse) {
                 clearInterval(intervalId);
-                setForceURL("/dashboard");
+                setForceURL("/wallets");
             }
         })
     }
@@ -64,15 +64,7 @@ function StartupView() {
             <div className="container">
               <div className="columns is-centered">
                 <div className="column is-4 has-text-centered">
-                  Loading...
-                </div>
-              </div>
-
-              <div className="columns is-centered" style={{ paddingTop: "20px" }}>
-                <div className="column is-4 has-text-centered">
-                  <Link to="/dashboard" className="button is-primary is-large">
-                    Go to next page
-                  </Link>
+                  Starting up...
                 </div>
               </div>
 

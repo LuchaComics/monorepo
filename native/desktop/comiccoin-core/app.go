@@ -40,6 +40,7 @@ type App struct {
 	libP2PNetwork p2p.LibP2PNetwork
 
 	getKeyService                      *service.GetKeyService
+	walletListService                  *service.WalletListService
 	initAccountsFromBlockchainService  *service.InitAccountsFromBlockchainService
 	createAccountService               *service.CreateAccountService
 	getAccountService                  *service.GetAccountService
@@ -287,6 +288,10 @@ func (a *App) startup(ctx context.Context) {
 		cfg,
 		logger,
 		walletRepo)
+	listAllWalletUseCase := usecase.NewListAllWalletUseCase(
+		cfg,
+		logger,
+		walletRepo)
 
 	// Account
 	createAccountUseCase := usecase.NewCreateAccountUseCase(
@@ -443,12 +448,16 @@ func (a *App) startup(ctx context.Context) {
 
 	a.logger.Debug("Startup loading services...")
 
-	// Wallet
+	// Wallet + Key service
 	getKeyService := service.NewGetKeyService(
 		cfg,
 		logger,
 		getWalletUseCase,
 		walletDecryptKeyUseCase)
+	walletListService := service.NewWalletListService(
+		cfg,
+		logger,
+		listAllWalletUseCase)
 
 	// Account
 	initAccountsFromBlockchainService := service.NewInitAccountsFromBlockchainService(
@@ -655,6 +664,7 @@ func (a *App) startup(ctx context.Context) {
 
 	// Save the services to our application.
 	a.getKeyService = getKeyService
+	a.walletListService = walletListService
 	a.initAccountsFromBlockchainService = initAccountsFromBlockchainService
 	a.createAccountService = createAccountService
 	a.getAccountService = getAccountService

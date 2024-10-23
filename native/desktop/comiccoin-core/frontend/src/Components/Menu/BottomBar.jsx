@@ -52,6 +52,8 @@ function BottomTabBar() {
     "/",
     "/pick-data-directory",
     "/startup",
+    "/wallets",
+    "/wallet/add",
   ];
   const location = useLocation();
   var arrayLength = ignorePathsArr.length;

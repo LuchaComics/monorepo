@@ -237,6 +237,10 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				walletRepo)
+			listAllWalletUseCase := usecase.NewListAllWalletUseCase(
+				cfg,
+				logger,
+				walletRepo)
 
 			// Account
 			createAccountUseCase := usecase.NewCreateAccountUseCase(
@@ -389,12 +393,17 @@ func DaemonCmd() *cobra.Command {
 
 			// ------------ Service ------------
 
-			// Wallet
+			// Wallet + Key service
 			getKeyService := service.NewGetKeyService(
 				cfg,
 				logger,
 				getWalletUseCase,
 				walletDecryptKeyUseCase)
+			walletListService := service.NewWalletListService(
+				cfg,
+				logger,
+				listAllWalletUseCase)
+			_ = walletListService // We can use this elsewere...
 
 			// Account
 			initAccountsFromBlockchainService := service.NewInitAccountsFromBlockchainService(
