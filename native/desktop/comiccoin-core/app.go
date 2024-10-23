@@ -62,6 +62,7 @@ type App struct {
 	initBlockDataService                   *service.InitBlockDataService
 	blockchainStartupService               *service.BlockchainStartupService
 	listRecentBlockTransactionService      *service.ListRecentBlockTransactionService
+	listAllBlockTransactionService         *service.ListAllBlockTransactionService
 	mempoolReceiveTaskHandler              *task.MempoolReceiveTaskHandler
 	mempoolBatchSendTaskHandler            *task.MempoolBatchSendTaskHandler
 	proofOfWorkMiningTaskHandler           *task.ProofOfWorkMiningTaskHandler
@@ -393,6 +394,12 @@ func (a *App) startup(ctx context.Context) {
 		logger,
 		blockDataRepo)
 
+	// Block Transactions (via Block Data).
+	listAllBlockTransactionByAddressUseCase := usecase.NewListAllBlockTransactionByAddressUseCase(
+		cfg,
+		logger,
+		blockDataRepo)
+
 	// Mining
 	proofOfWorkUseCase := usecase.NewProofOfWorkUseCase(cfg, logger)
 
@@ -506,6 +513,11 @@ func (a *App) startup(ctx context.Context) {
 		logger,
 		getBlockchainLastestHashUseCase,
 		getBlockDataUseCase,
+	)
+	listAllBlockTransactionService := service.NewListAllBlockTransactionService(
+		cfg,
+		logger,
+		listAllBlockTransactionByAddressUseCase,
 	)
 
 	// Tokens
@@ -678,6 +690,7 @@ func (a *App) startup(ctx context.Context) {
 	a.getAccountBalanceService = getAccountBalanceService
 	a.createTxService = createTxService
 	a.listRecentBlockTransactionService = listRecentBlockTransactionService
+	a.listAllBlockTransactionService = listAllBlockTransactionService
 	a.poaTokenMintService = poaTokenMintService
 	a.transferTokenService = transferTokenService
 	a.burnTokenService = burnTokenService

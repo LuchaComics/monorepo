@@ -38,6 +38,10 @@ export function GetTotalTokens(arg1) {
   return window['go']['main']['App']['GetTotalTokens'](arg1);
 }
 
+export function GetTransactions(arg1) {
+  return window['go']['main']['App']['GetTransactions'](arg1);
+}
+
 export function ListWallets() {
   return window['go']['main']['App']['ListWallets']();
 }

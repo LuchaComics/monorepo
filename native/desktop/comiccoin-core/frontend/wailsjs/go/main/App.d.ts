@@ -20,6 +20,8 @@ export function GetTotalCoins(arg1:string):Promise<number>;
 
 export function GetTotalTokens(arg1:string):Promise<number>;
 
+export function GetTransactions(arg1:string):Promise<Array<domain.BlockTransaction>>;
+
 export function ListWallets():Promise<Array<domain.Wallet>>;
 
 export function SaveDataDirectory(arg1:string):Promise<void>;

@@ -122,7 +122,7 @@ function DashboardView() {
                   </div>
                 </section>
             </> : <>
-                <table className="table is-fullwidth is-size-6">
+                <table className="table is-fullwidth is-size-7">
                   <thead>
                     <tr>
                       <th></th>
