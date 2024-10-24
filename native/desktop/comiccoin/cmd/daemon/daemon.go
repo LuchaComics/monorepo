@@ -635,6 +635,8 @@ func DaemonCmd() *cobra.Command {
 				getBlockDataUseCase,
 				getAccountUseCase,
 				upsertAccountUseCase,
+				getAccountsHashStateUseCase,
+				getTokensHashStateUseCase,
 			)
 			uploadServerService := service.NewBlockDataDTOServerService(
 				cfg,

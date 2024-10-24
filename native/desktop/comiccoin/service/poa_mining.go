@@ -95,7 +95,7 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 		return nil
 	}
 
-	s.logger.Info("executing mining for pending block transactions",
+	s.logger.Info("PoA mining service executing mining for pending block transactions",
 		slog.Int("count", len(pendingBlockTxs)),
 	)
 
@@ -142,11 +142,13 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	// the storage transaction.
 	//
 
+	s.logger.Debug("PoA mining service starting storage transaction...")
 	if err := s.storageTransactionOpenUseCase.Execute(); err != nil {
 		s.logger.Error("failed opening storage transaction",
 			slog.Any("error", err))
 		return nil
 	}
+	s.logger.Debug("PoA mining service started storage transaction")
 
 	//
 	// STEP 3:
@@ -165,6 +167,7 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 			s.logger.Error("Failed verifying the pending block transaction",
 				slog.Any("error", err))
 			s.storageTransactionDiscardUseCase.Execute()
+			s.logger.Debug("PoA mining service discarded storage transaction")
 			return err
 		}
 
@@ -178,6 +181,7 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 				s.logger.Error("Failed processing token in pending block transaction",
 					slog.Any("error", err))
 				s.storageTransactionDiscardUseCase.Execute()
+				s.logger.Debug("PoA mining service discarded storage transaction")
 				return err
 			}
 		}
@@ -192,6 +196,7 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 				s.logger.Error("Failed processing account in pending block transaction",
 					slog.Any("error", err))
 				s.storageTransactionDiscardUseCase.Execute()
+				s.logger.Debug("PoA mining service discarded storage transaction")
 				return err
 			}
 		}
@@ -213,6 +218,7 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 		s.logger.Error("Failed creating merkle tree",
 			slog.Any("error", err))
 		s.storageTransactionDiscardUseCase.Execute()
+		s.logger.Debug("PoA mining service discarded storage transaction")
 		return err
 	}
 
@@ -222,6 +228,7 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 		s.logger.Error("Failed getting blockchains latest token id",
 			slog.Any("error", err))
 		s.storageTransactionDiscardUseCase.Execute()
+		s.logger.Debug("PoA mining service discarded storage transaction")
 		return err
 	}
 
@@ -255,6 +262,7 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 		s.logger.Error("Failed getting accounts hash state",
 			slog.Any("error", err))
 		s.storageTransactionDiscardUseCase.Execute()
+		s.logger.Debug("PoA mining service discarded storage transaction")
 		return err
 	}
 
@@ -264,6 +272,7 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 		s.logger.Error("Failed getting tokens hash state",
 			slog.Any("error", err))
 		s.storageTransactionDiscardUseCase.Execute()
+		s.logger.Debug("PoA mining service discarded storage transaction")
 		return err
 	}
 
@@ -296,6 +305,7 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 		s.logger.Error("Failed to mine block header",
 			slog.Any("error", err))
 		s.storageTransactionDiscardUseCase.Execute()
+		s.logger.Debug("PoA mining service discarded storage transaction")
 		return err
 	}
 
@@ -316,6 +326,7 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 		s.logger.Error("Failed getting account wallet key",
 			slog.Any("error", err))
 		s.storageTransactionDiscardUseCase.Execute()
+		s.logger.Debug("PoA mining service discarded storage transaction")
 		return err
 	}
 	if coinbaseAccountKey == nil {
@@ -337,16 +348,17 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 		slog.String("hash", blockData.Hash),
 		slog.Uint64("block_number", blockData.Header.Number),
 		slog.String("prev_block_hash", blockData.Header.PrevBlockHash),
-		slog.Uint64("timestamp", blockData.Header.TimeStamp),
-		slog.String("beneficiary", blockData.Header.Beneficiary.String()),
-		slog.Uint64("difficulty", uint64(blockData.Header.Difficulty)),
-		slog.Uint64("mining_reward", blockData.Header.MiningReward),
+		// slog.Uint64("timestamp", blockData.Header.TimeStamp),
+		// slog.String("beneficiary", blockData.Header.Beneficiary.String()),
+		// slog.Uint64("difficulty", uint64(blockData.Header.Difficulty)),
+		// slog.Uint64("mining_reward", blockData.Header.MiningReward),
 		slog.String("state_root", blockData.Header.StateRoot),
 		slog.String("trans_root", blockData.Header.TransRoot),
-		slog.Uint64("nonce", blockData.Header.Nonce),
-		slog.Uint64("latest_token_id", blockData.Header.LatestTokenID),
-		slog.Any("trans", blockData.Trans),
-		slog.Any("header_signature_bytes", blockData.HeaderSignatureBytes))
+		// slog.Uint64("nonce", blockData.Header.Nonce),
+		// slog.Uint64("latest_token_id", blockData.Header.LatestTokenID),
+		// slog.Any("trans", blockData.Trans),
+		// slog.Any("header_signature_bytes", blockData.HeaderSignatureBytes))
+	)
 
 	//
 	// STEP 6
@@ -357,6 +369,7 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 		s.logger.Error("Failed deleting all pending block transactions",
 			slog.Any("error", err))
 		s.storageTransactionDiscardUseCase.Execute()
+		s.logger.Debug("PoA mining service discarded storage transaction")
 		return err
 	}
 
@@ -369,25 +382,39 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 		s.logger.Error("PoA mining service failed saving block data",
 			slog.Any("error", err))
 		s.storageTransactionDiscardUseCase.Execute()
+		s.logger.Debug("PoA mining service discarded storage transaction")
 		return err
 	}
 
 	s.logger.Info("PoA mining service added new block to blockchain",
 		slog.Any("hash", blockData.Hash),
-		slog.Uint64("number", blockData.Header.Number),
+		slog.Uint64("block_number", blockData.Header.Number),
+		slog.String("state_root", blockData.Header.StateRoot),
 		slog.Any("previous_hash", blockData.Header.PrevBlockHash),
+		slog.Uint64("previous_block_number", prevBlockData.Header.Number),
+		slog.String("previous_state_root", prevBlockData.Header.StateRoot),
 	)
 
 	if err := s.setBlockchainLastestHashUseCase.Execute(blockData.Hash); err != nil {
 		s.logger.Error("PoA mining service failed saving latest hash",
 			slog.Any("error", err))
 		s.storageTransactionDiscardUseCase.Execute()
+		s.logger.Debug("PoA mining service discarded storage transaction")
 		return err
 	}
 
 	s.logger.Debug("PoA mining service set latest hash in blockchain",
 		slog.Any("hash", blockData.Hash),
 	)
+
+	// Commit our latest changes to the database.
+	s.logger.Debug("PoA mining service committing storage transaction...")
+	if err := s.storageTransactionCommitUseCase.Execute(); err != nil {
+		s.logger.Error("failed to commit storage transaction",
+			slog.Any("error", err))
+		return nil
+	}
+	s.logger.Debug("PoA mining service committed storage transaction")
 
 	//
 	// STEP 8:
@@ -415,18 +442,11 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	if err := s.broadcastProposedBlockDataDTOUseCase.Execute(ctx, purposeBlockData); err != nil {
 		s.logger.Error("Failed to broadcast to peer-to-peer network the new block",
 			slog.Any("error", err))
-		s.storageTransactionDiscardUseCase.Execute()
 		return err
 	}
 
 	s.logger.Info("PoA mining service broadcasted new block data to propose to the network",
 		slog.Uint64("nonce", block.Header.Nonce))
-
-	if err := s.storageTransactionCommitUseCase.Execute(); err != nil {
-		s.logger.Error("failed to commit storage transaction",
-			slog.Any("error", err))
-		return nil
-	}
 
 	return nil
 }

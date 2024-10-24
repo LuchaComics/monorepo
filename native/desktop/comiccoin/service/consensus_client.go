@@ -28,6 +28,8 @@ type MajorityVoteConsensusClientService struct {
 	getBlockDataUseCase                                 *usecase.GetBlockDataUseCase
 	getAccountUseCase                                   *usecase.GetAccountUseCase
 	upsertAccountUseCase                                *usecase.UpsertAccountUseCase
+	getAccountsHashStateUseCase                         *usecase.GetAccountsHashStateUseCase
+	getTokensHashStateUseCase                           *usecase.GetTokensHashStateUseCase
 }
 
 func NewMajorityVoteConsensusClientService(
@@ -46,8 +48,10 @@ func NewMajorityVoteConsensusClientService(
 	uc11 *usecase.GetBlockDataUseCase,
 	uc12 *usecase.GetAccountUseCase,
 	uc13 *usecase.UpsertAccountUseCase,
+	uc14 *usecase.GetAccountsHashStateUseCase,
+	uc15 *usecase.GetTokensHashStateUseCase,
 ) *MajorityVoteConsensusClientService {
-	return &MajorityVoteConsensusClientService{cfg, logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12, uc13}
+	return &MajorityVoteConsensusClientService{cfg, logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12, uc13, uc14, uc15}
 }
 
 func (s *MajorityVoteConsensusClientService) Execute(ctx context.Context) error {
@@ -88,19 +92,6 @@ func (s *MajorityVoteConsensusClientService) Execute(ctx context.Context) error 
 	}
 
 	//
-	// STEP (PRE) 3
-	// Start a transaction in the database and if any errors occur then
-	// we will need to discard the transaction. On success then we commit
-	// the storage transaction.
-	//
-
-	if err := s.storageTransactionOpenUseCase.Execute(); err != nil {
-		s.logger.Error("failed opening storage transaction",
-			slog.Any("error", err))
-		return nil
-	}
-
-	//
 	// STEP 3:
 	// Get the latest blockchain hash we have in our local database and compare
 	// with the received hash and if there are differences then we will need to
@@ -112,6 +103,22 @@ func (s *MajorityVoteConsensusClientService) Execute(ctx context.Context) error 
 	localHash, _ := s.getBlockchainLastestHashUseCase.Execute()
 
 	if localHash != string(receivedHash) {
+
+		//
+		// STEP (PRE) 3
+		// Start a transaction in the database and if any errors occur then
+		// we will need to discard the transaction. On success then we commit
+		// the storage transaction.
+		//
+
+		s.logger.Debug("consensus mechanism starting storage transaction...")
+		if err := s.storageTransactionOpenUseCase.Execute(); err != nil {
+			s.logger.Error("failed opening storage transaction",
+				slog.Any("error", err))
+			return nil
+		}
+		s.logger.Debug("Consensus mechanism started storage transaction")
+
 		s.logger.Warn("local blockchain is outdated and needs updating from network",
 			slog.Any("network_hash", receivedHash),
 			slog.Any("local_hash", localHash))
@@ -129,24 +136,55 @@ func (s *MajorityVoteConsensusClientService) Execute(ctx context.Context) error 
 			s.logger.Error("blockchain failed to save latest hash to database",
 				slog.Any("error", err))
 			s.storageTransactionDiscardUseCase.Execute()
+			s.logger.Debug("Consensus mechanism discarded storage transaction")
 			return err
 		}
 		s.logger.Debug("local blockchain was updated successfully from the peer-to-peer network")
+
+		// Reaching here is success!
+		s.logger.Debug("Consensus mechanism committing storage transaction...")
+		if err := s.storageTransactionCommitUseCase.Execute(); err != nil {
+			s.logger.Error("failed to commit storage transaction",
+				slog.Any("error", err))
+			return nil
+		}
+		s.logger.Debug("Consensus mechanism committed storage transaction")
 	} else {
 		s.logger.Debug("local blockchain is up-to-date with peer-to-peer network")
 	}
 
-	// Reaching here is success!
-	if err := s.storageTransactionCommitUseCase.Execute(); err != nil {
-		s.logger.Error("failed to commit storage transaction",
+	localHash, _ = s.getBlockchainLastestHashUseCase.Execute()
+	accountStateRoot, err := s.getAccountsHashStateUseCase.Execute()
+	if err != nil {
+		s.logger.Error("failed to get account state root",
 			slog.Any("error", err))
 		return nil
 	}
+	tokenStateRoot, err := s.getTokensHashStateUseCase.Execute()
+	if err != nil {
+		s.logger.Error("failed to get token state root",
+			slog.Any("error", err))
+		return nil
+	}
+
+	s.logger.Debug("consensus reached",
+		slog.String("hash", localHash),
+		slog.String("account_state_root", accountStateRoot),
+		slog.String("token_state_root", tokenStateRoot),
+	)
 
 	return nil
 }
 
 func (s *MajorityVoteConsensusClientService) runDownloadAndSyncBlockchainFromBlockDataHash(ctx context.Context, blockDataHash string) error {
+	// Make sure that if we receive signature for the genesis block that
+	// this function aborts because there's no need to sync genesis block
+	// because all the peers in the network already have it.
+	if blockDataHash == signature.ZeroHash {
+		s.logger.Debug("consensus mechanism detected genesis block data so sync aborted")
+		return nil
+	}
+
 	// Algorithm:
 	// 1. Fetch from network the blockdata for `network_hash`
 	// 2. Save blockdata to local database

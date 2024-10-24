@@ -180,11 +180,13 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 	// the storage transaction.
 	//
 
+	s.logger.Debug("PoA validation service starting storage transaction...")
 	if err := s.storageTransactionOpenUseCase.Execute(); err != nil {
 		s.logger.Error("failed opening storage transaction",
 			slog.Any("error", err))
 		return nil
 	}
+	s.logger.Debug("PoA validation service started storage transaction")
 
 	//
 	// STEP 5:
@@ -204,6 +206,7 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 				s.logger.Error("Failed processing transaction",
 					slog.Any("error", err))
 				s.storageTransactionDiscardUseCase.Execute()
+				s.logger.Debug("PoA validation service discarded storage transaction")
 				return err
 			}
 		}
@@ -218,6 +221,7 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 				s.logger.Error("Failed processing token transaction",
 					slog.Any("error", err))
 				s.storageTransactionDiscardUseCase.Execute()
+				s.logger.Debug("PoA validation service discarded storage transaction")
 				return err
 			}
 		}
@@ -243,6 +247,7 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 		s.logger.Error("validator failed getting state root",
 			slog.Any("error", err))
 		s.storageTransactionDiscardUseCase.Execute()
+		s.logger.Debug("PoA validation service discarded storage transaction")
 		return err
 	}
 
@@ -252,19 +257,20 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 		s.logger.Error("Failed getting tokens hash state",
 			slog.Any("error", err))
 		s.storageTransactionDiscardUseCase.Execute()
+		s.logger.Debug("PoA validation service discarded storage transaction")
 		return err
 	}
 	_ = currentTokensRootInThisNode //TODO: Add this feature when we are ready.
 
 	s.logger.Info("beginning validation...",
 		slog.Any("prev_hash", previousBlock.Hash),
-		slog.Uint64("prev_header_number", previousBlock.Header.Number),
-		slog.Any("prev_header_prev_hash", previousBlock.Header.PrevBlockHash),
-		slog.Any("prev_header_stateroot", previousBlock.Header.StateRoot),
-		slog.Any("current_hash", newBlockData.Hash),
-		slog.Uint64("current_header_number", newBlockData.Header.Number),
-		slog.Any("current_header_prev_hash", newBlockData.Header.PrevBlockHash),
-		slog.Any("current_header_stateroot", newBlockData.Header.StateRoot),
+		slog.Uint64("prev_block_number", previousBlock.Header.Number),
+		slog.Any("prev_prev_hash", previousBlock.Header.PrevBlockHash),
+		slog.Any("prev_state_root", previousBlock.Header.StateRoot),
+		slog.Any("new_hash", newBlockData.Hash),
+		slog.Uint64("new_block_number", newBlockData.Header.Number),
+		slog.Any("new_prev_hash", newBlockData.Header.PrevBlockHash),
+		slog.Any("new_state_root", newBlockData.Header.StateRoot),
 	)
 
 	if err := newBlock.ValidateBlock(previousBlock, currentStateRootInThisNode); err != nil {
@@ -273,6 +279,7 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 		s.logger.Warn("validator failed validating the proposed block with the previous block",
 			slog.Any("error", err))
 		s.storageTransactionDiscardUseCase.Execute()
+		s.logger.Debug("PoA validation service discarded storage transaction")
 		return err
 	}
 
@@ -285,6 +292,7 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 		s.logger.Error("validator failed saving block data",
 			slog.Any("error", err))
 		s.storageTransactionDiscardUseCase.Execute()
+		s.logger.Debug("PoA validation service discarded storage transaction")
 		return err
 	}
 
@@ -298,12 +306,32 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 		s.logger.Error("validator failed saving latest hash",
 			slog.Any("error", err))
 		s.storageTransactionDiscardUseCase.Execute()
+		s.logger.Debug("PoA validation service discarded storage transaction")
 		return err
 	}
 
-	s.logger.Debug("validator set latest hash in blockchain",
+	updatedStateRootInThisNode, err := s.getAccountsHashStateUseCase.Execute()
+	if err != nil {
+		s.logger.Error("validator failed getting state root",
+			slog.Any("error", err))
+		s.storageTransactionDiscardUseCase.Execute()
+		s.logger.Debug("PoA validation service discarded storage transaction")
+		return err
+	}
+
+	s.logger.Debug("PoA validator set latest hash in blockchain",
 		slog.Any("hash", proposedBlockData.Hash),
+		slog.Any("state_root", updatedStateRootInThisNode),
 	)
+
+	// Commit our latest changes to the database.
+	s.logger.Debug("PoA validation service committing storage transaction...")
+	if err := s.storageTransactionCommitUseCase.Execute(); err != nil {
+		s.logger.Error("failed to commit storage transaction",
+			slog.Any("error", err))
+		return nil
+	}
+	s.logger.Debug("PoA validation service committed storage transaction")
 
 	return nil
 }

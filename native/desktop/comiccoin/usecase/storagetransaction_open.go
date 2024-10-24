@@ -41,30 +41,48 @@ func NewStorageTransactionOpenUseCase(
 
 func (uc *StorageTransactionOpenUseCase) Execute() error {
 	if err := uc.accountRepo.OpenTransaction(); err != nil {
+		uc.logger.Error("Failed opening transaction for accounts",
+			slog.Any("error", err))
 		return err
 	}
 	if err := uc.tokenRepo.OpenTransaction(); err != nil {
+		uc.logger.Error("Failed opening transaction for tokens",
+			slog.Any("error", err))
 		return err
 	}
 	if err := uc.latestHashRepo.OpenTransaction(); err != nil {
+		uc.logger.Error("Failed opening transaction for latest hash",
+			slog.Any("error", err))
 		return err
 	}
 	if err := uc.latestTokenIDRepo.OpenTransaction(); err != nil {
+		uc.logger.Error("Failed opening transaction for token id",
+			slog.Any("error", err))
 		return err
 	}
 	if err := uc.blockDataRepo.OpenTransaction(); err != nil {
+		uc.logger.Error("Failed opening transaction for block data",
+			slog.Any("error", err))
 		return err
 	}
 	if err := uc.identityKeyRepo.OpenTransaction(); err != nil {
+		uc.logger.Error("Failed opening transaction for identity key",
+			slog.Any("error", err))
 		return err
 	}
 	if err := uc.mempoolTransactionRepo.OpenTransaction(); err != nil {
+		uc.logger.Error("Failed opening transaction for mempool transaction",
+			slog.Any("error", err))
 		return err
 	}
 	if err := uc.pendingBlockTransactionRepo.OpenTransaction(); err != nil {
+		uc.logger.Error("Failed opening transaction for pending block transaction",
+			slog.Any("error", err))
 		return err
 	}
 	if err := uc.walletRepo.OpenTransaction(); err != nil {
+		uc.logger.Error("Failed opening transaction for wallet",
+			slog.Any("error", err))
 		return err
 	}
 	// if err := uc.signedTransactionRepo.OpenTransaction(); err != nil {

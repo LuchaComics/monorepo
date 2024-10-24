@@ -89,11 +89,21 @@ func (impl *keyValueStorerImpl) Iterate(processFunc func(key, value []byte) erro
 	impl.lock.Lock()
 	defer impl.lock.Unlock()
 
-	// Iterate over the key-value pairs in the database, starting from the starting point
-	for k, v := range impl.data {
-		// Call the provided function for each pair
-		if err := processFunc([]byte(k), v.value); err != nil {
-			return err
+	if impl.txData != nil {
+		// Iterate over the key-value pairs in the database, starting from the starting point
+		for k, v := range impl.txData {
+			// Call the provided function for each pair
+			if err := processFunc([]byte(k), v.value); err != nil {
+				return err
+			}
+		}
+	} else {
+		// Iterate over the key-value pairs in the database, starting from the starting point
+		for k, v := range impl.data {
+			// Call the provided function for each pair
+			if err := processFunc([]byte(k), v.value); err != nil {
+				return err
+			}
 		}
 	}
 

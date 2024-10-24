@@ -41,30 +41,48 @@ func NewStorageTransactionCommitUseCase(
 
 func (uc *StorageTransactionCommitUseCase) Execute() error {
 	if err := uc.accountRepo.CommitTransaction(); err != nil {
+		uc.logger.Error("Failed committing transaction for accounts",
+			slog.Any("error", err))
 		return err
 	}
 	if err := uc.tokenRepo.CommitTransaction(); err != nil {
+		uc.logger.Error("Failed committing transaction for tokens",
+			slog.Any("error", err))
 		return err
 	}
 	if err := uc.latestHashRepo.CommitTransaction(); err != nil {
+		uc.logger.Error("Failed committing transaction for latest hash",
+			slog.Any("error", err))
 		return err
 	}
 	if err := uc.latestTokenIDRepo.CommitTransaction(); err != nil {
+		uc.logger.Error("Failed committing transaction for latest token id",
+			slog.Any("error", err))
 		return err
 	}
 	if err := uc.blockDataRepo.CommitTransaction(); err != nil {
+		uc.logger.Error("Failed committing transaction for block data",
+			slog.Any("error", err))
 		return err
 	}
 	if err := uc.identityKeyRepo.CommitTransaction(); err != nil {
+		uc.logger.Error("Failed committing transaction for identity key",
+			slog.Any("error", err))
 		return err
 	}
 	if err := uc.mempoolTransactionRepo.CommitTransaction(); err != nil {
+		uc.logger.Error("Failed committing transaction for mempool transaction",
+			slog.Any("error", err))
 		return err
 	}
 	if err := uc.pendingBlockTransactionRepo.CommitTransaction(); err != nil {
+		uc.logger.Error("Failed committing transaction for pending block transaction",
+			slog.Any("error", err))
 		return err
 	}
 	if err := uc.walletRepo.CommitTransaction(); err != nil {
+		uc.logger.Error("Failed committing transaction for wallet",
+			slog.Any("error", err))
 		return err
 	}
 	return nil

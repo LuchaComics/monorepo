@@ -708,6 +708,8 @@ func (a *App) startup(ctx context.Context) {
 		getBlockDataUseCase,
 		getAccountUseCase,
 		upsertAccountUseCase,
+		getAccountsHashStateUseCase,
+		getTokensHashStateUseCase,
 	)
 	uploadServerService := service.NewBlockDataDTOServerService(
 		cfg,

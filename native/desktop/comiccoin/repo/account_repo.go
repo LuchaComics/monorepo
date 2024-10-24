@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"fmt"
 	"log/slog"
 	"sort"
 
@@ -92,12 +93,19 @@ func (r *AccountRepo) HashState() (string, error) {
 	for _, account := range accounts {
 		if account.Balance > 0 {
 			accountsWithBalance = append(accountsWithBalance, account)
+			fmt.Printf("func HashState() --> Addr: %v, Balance: %v\n", account.Address, account.Balance)
 		}
 	}
 
 	// Sort and hash our accounts.
 	sort.Sort(byAccount(accountsWithBalance))
-	return signature.Hash(accountsWithBalance), nil
+	res, err := signature.Hash(accountsWithBalance), nil
+	if err != nil {
+		fmt.Printf("func HashState() --> err: %v\n", err)
+		return "", err
+	}
+	fmt.Printf("func HashState() --> res: %v\n", res)
+	return res, nil
 }
 
 func (r *AccountRepo) OpenTransaction() error {
