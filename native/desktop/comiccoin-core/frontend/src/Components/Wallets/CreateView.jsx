@@ -43,6 +43,7 @@ function CreateWalletView() {
     //// Component states.
     ////
 
+    const [isLoading, setIsLoading] = useState(false);
     const [label, setLabel] = useState("");
     const [password, setPassword] = useState("");
     const [passwordRepeated, setPasswordRepeated] = useState("");
@@ -54,6 +55,9 @@ function CreateWalletView() {
     ////
 
     const onSubmitClick = (e) => {
+        // Update the GUI to let user know that the operation is under way.
+        setIsLoading(true);
+
         CreateWallet(password, passwordRepeated, label).then((addressRes)=>{
             console.log("address:", addressRes);
             console.log("currentOpenWalletAtAddress:", currentOpenWalletAtAddress);
@@ -73,6 +77,9 @@ function CreateWalletView() {
         }).finally(() => {
             // this will be executed after then or catch has been executed
             console.log("CreateWallet promise has been resolved or rejected");
+
+            // Update the GUI to let user know that the operation is completed.
+            setIsLoading(false);
         });
     }
 
@@ -102,81 +109,97 @@ function CreateWalletView() {
 
     return (
         <>
-        <div class="container">
-          <section class="section">
-            {/* Page */}
-            <nav class="box">
-              <p class="title is-2">
-                <FontAwesomeIcon className="fas" icon={faPlus} />
-                &nbsp;Add Wallet
-              </p>
-
-              <FormErrorBox errors={errors} />
-
-              <p class="pb-4">Please pick a secure password:</p>
-
-              <FormInputField
-                type="text"
-                label="Label (Optional)"
-                name="label"
-                placeholder=""
-                value={label}
-                errorText={errors && errors.label}
-                helpText="Give this wallet a label to help you describe your accounts better."
-                onChange={(e) => setLabel(e.target.value)}
-                isRequired={true}
-                maxWidth="500px"
-              />
-
-              <FormInputField
-                type="password"
-                label="Password"
-                name="password"
-                placeholder=""
-                value={password}
-                errorText={errors && errors.password}
-                helpText=""
-                onChange={(e) => setPassword(e.target.value)}
-                isRequired={true}
-                maxWidth="500px"
-              />
-
-              <FormInputField
-                type="password"
-                label="Password Repeated"
-                name="passwordRepeated"
-                placeholder=""
-                value={passwordRepeated}
-                errorText={errors && errors.passwordRepeated}
-                helpText=""
-                onChange={(e) => setPasswordRepeated(e.target.value)}
-                isRequired={true}
-                maxWidth="500px"
-              />
-
-              <div class="columns pt-5" style={{alignSelf: "flex-start"}}>
-                <div class="column is-half ">
-                  <Link
-                    class="button is-fullwidth-mobile"
-                    to={`/wallets`}
-                  >
-                    <FontAwesomeIcon className="fas" icon={faTimesCircle} />
-                    &nbsp;Cancel & Go Back
-                  </Link>
+            {isLoading
+            ? <>
+                <div class="container">
+                    <section class="section">
+                        {/* Page */}
+                        <nav class="box" style={{ padding: "20px", marginBottom: "20px" }}>
+                        <p class="title is-2">
+                          <FontAwesomeIcon className="fas" icon={faPlus} />
+                          &nbsp;Add Wallet
+                        </p>
+                            <PageLoadingContent displayMessage="Submitting..." style={{ marginBottom: "100px" }} />
+                        </nav>
+                    </section>
                 </div>
-                <div class="column is-half has-text-right">
-                  <button
-                    class="button is-primary is-fullwidth-mobile"
-                    onClick={onSubmitClick}
-                  >
-                    <FontAwesomeIcon className="fas" icon={faCheckCircle} />
-                    &nbsp;Submit
-                  </button>
-                </div>
+            </> :<>
+            <div class="container">
+              <section class="section">
+                {/* Page */}
+                <nav class="box">
+                  <p class="title is-2">
+                    <FontAwesomeIcon className="fas" icon={faPlus} />
+                    &nbsp;Add Wallet
+                  </p>
+
+                  <FormErrorBox errors={errors} />
+
+                  <p class="pb-4">Please pick a secure password:</p>
+
+                  <FormInputField
+                    type="text"
+                    label="Label (Optional)"
+                    name="label"
+                    placeholder=""
+                    value={label}
+                    errorText={errors && errors.label}
+                    helpText="Give this wallet a label to help you describe your accounts better."
+                    onChange={(e) => setLabel(e.target.value)}
+                    isRequired={true}
+                    maxWidth="500px"
+                  />
+
+                  <FormInputField
+                    type="password"
+                    label="Password"
+                    name="password"
+                    placeholder=""
+                    value={password}
+                    errorText={errors && errors.password}
+                    helpText=""
+                    onChange={(e) => setPassword(e.target.value)}
+                    isRequired={true}
+                    maxWidth="500px"
+                  />
+
+                  <FormInputField
+                    type="password"
+                    label="Password Repeated"
+                    name="passwordRepeated"
+                    placeholder=""
+                    value={passwordRepeated}
+                    errorText={errors && errors.passwordRepeated}
+                    helpText=""
+                    onChange={(e) => setPasswordRepeated(e.target.value)}
+                    isRequired={true}
+                    maxWidth="500px"
+                  />
+
+                  <div class="columns pt-5" style={{alignSelf: "flex-start"}}>
+                    <div class="column is-half ">
+                      <Link
+                        class="button is-fullwidth-mobile"
+                        to={`/wallets`}
+                      >
+                        <FontAwesomeIcon className="fas" icon={faTimesCircle} />
+                        &nbsp;Cancel & Go Back
+                      </Link>
+                    </div>
+                    <div class="column is-half has-text-right">
+                      <button
+                        class="button is-primary is-fullwidth-mobile"
+                        onClick={onSubmitClick}
+                      >
+                        <FontAwesomeIcon className="fas" icon={faCheckCircle} />
+                        &nbsp;Submit
+                      </button>
+                    </div>
+                  </div>
+                </nav>
+              </section>
               </div>
-            </nav>
-          </section>
-          </div>
+            </>}
         </>
     )
 }

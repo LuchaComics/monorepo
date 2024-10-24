@@ -16,6 +16,7 @@ import { useRecoilState } from "recoil";
 import logo from '../../assets/images/CPS-logo-2023-square.webp';
 import { GetTotalCoins, GetTotalTokens, GetRecentTransactions } from "../../../wailsjs/go/main/App";
 import { currentOpenWalletAtAddressState } from "../../AppState";
+import PageLoadingContent from "../Reusable/PageLoadingContent";
 
 
 function DashboardView() {
@@ -29,6 +30,7 @@ function DashboardView() {
     //// Component states.
     ////
 
+    const [isLoading, setIsLoading] = useState(false);
     const [forceURL, setForceURL] = useState("");
     const [totalCoins, setTotalCoins] = useState(0);
     const [totalTokens, setTotalTokens] = useState(0);
@@ -49,25 +51,33 @@ function DashboardView() {
             window.scrollTo(0, 0); // Start the page at the top of the page.
             console.log("currentOpenWalletAtAddress:", currentOpenWalletAtAddress);
 
-            GetTotalCoins(currentOpenWalletAtAddress).then((totalCoinsResult)=>{
-                console.log("GetTotalCoins: results:", totalCoinsResult);
-                setTotalCoins(totalCoinsResult);
-            }).catch((errorRes)=>{
-                console.log("GetTotalCoins: errors:", errorRes);
-            });
+            // Update the GUI to let user know that the operation is under way.
+            setIsLoading(true);
 
-            GetTotalTokens(currentOpenWalletAtAddress).then((totalTokensResult)=>{
-                console.log("GetTotalTokens: results:", totalTokensResult);
-                setTotalTokens(totalTokensResult);
-            }).catch((errorRes)=>{
-                console.log("GetTotalTokens: errors:", errorRes);
-            });
-
-            GetRecentTransactions(currentOpenWalletAtAddress).then((txsResponse)=>{
-                console.log("GetRecentTransactions: results:", txsResponse);
-                setTransactions(txsResponse);
-            }).catch((errorRes)=>{
-                console.log("GetRecentTransactions: errors:", errorRes);
+            Promise.all([
+                GetTotalCoins(currentOpenWalletAtAddress).then((totalCoinsResult)=>{
+                    console.log("GetTotalCoins: results:", totalCoinsResult);
+                    setTotalCoins(totalCoinsResult);
+                }).catch((errorRes)=>{
+                    console.log("GetTotalCoins: errors:", errorRes);
+                }),
+                GetTotalTokens(currentOpenWalletAtAddress).then((totalTokensResult)=>{
+                    console.log("GetTotalTokens: results:", totalTokensResult);
+                    setTotalTokens(totalTokensResult);
+                }).catch((errorRes)=>{
+                    console.log("GetTotalTokens: errors:", errorRes);
+                }),
+                GetRecentTransactions(currentOpenWalletAtAddress).then((txsResponse)=>{
+                    console.log("GetRecentTransactions: results:", txsResponse);
+                    setTransactions(txsResponse);
+                }).catch((errorRes)=>{
+                    console.log("GetRecentTransactions: errors:", errorRes);
+                })
+            ]).then(() => {
+                // Update the GUI to let user know that the operation is completed.
+                setIsLoading(false);
+            }).catch((error) => {
+                console.log("Error:", error);
             });
       }
       return () => {
@@ -97,59 +107,67 @@ function DashboardView() {
                   </div>
                 </div>
 
-                <nav class="level">
-              <div class="level-item has-text-centered">
-                <div>
-                  <p class="heading">Coins</p>
-                  <p class="title">{totalCoins}</p>
-                </div>
-              </div>
-              <div class="level-item has-text-centered">
-                <div>
-                  <p class="heading">Tokens Count</p>
-                  <p class="title">{totalTokens}</p>
-                </div>
-              </div>
+                {isLoading
+                ? <>
+                    <PageLoadingContent displayMessage="Fetching..." />
 
-            </nav>
-
-            <h1 className="subtitle is-4 pt-5"><FontAwesomeIcon className="fas" icon={faFileInvoiceDollar} />&nbsp;Recent Transactions</h1>
-            {transactions.length === 0 ? <>
-                <section class="hero is-warning is-medium">
-                  <div class="hero-body">
-                    <p class="title"><FontAwesomeIcon className="fas" icon={faFileInvoiceDollar} />&nbsp;No recent transactions</p>
-                    <p class="subtitle">This wallet currently does not have any transactions.</p>
+                </> : <>
+                    <nav class="level">
+                  <div class="level-item has-text-centered">
+                    <div>
+                      <p class="heading">Coins</p>
+                      <p class="title">{totalCoins}</p>
+                    </div>
                   </div>
-                </section>
-            </> : <>
-                <table className="table is-fullwidth is-size-7">
-                  <thead>
-                    <tr>
-                      <th></th>
-                      <th>Date</th>
-                      <th>Type</th>
-                      <th>Coin(s)</th>
-                      <th>Sender</th>
-                      <th>Receiver</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {transactions.map((transaction) => (
-                      <tr key={transaction.hash}>
-                        <td>{transaction.type === "coin" ? <><FontAwesomeIcon className="fas" icon={faCoins} /></> : <><FontAwesomeIcon className="fas" icon={faCubes} /></>}</td>
-                        <td>{transaction.timestamp}</td>
-                        <td>{transaction.from === currentOpenWalletAtAddress ? "Sent" : "Received"}</td>
-                        <td>{transaction.value}</td>
-                        <td>{transaction.from}</td>
-                        <td>{transaction.to}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <div className="has-text-right">
-                    <Link to={`/transactions`}>See More&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} /></Link>
-                </div>
-            </>}
+                  <div class="level-item has-text-centered">
+                    <div>
+                      <p class="heading">Tokens Count</p>
+                      <p class="title">{totalTokens}</p>
+                    </div>
+                  </div>
+
+                </nav>
+
+                <h1 className="subtitle is-4 pt-5"><FontAwesomeIcon className="fas" icon={faFileInvoiceDollar} />&nbsp;Recent Transactions</h1>
+                {transactions.length === 0 ? <>
+                    <section class="hero is-warning is-medium">
+                      <div class="hero-body">
+                        <p class="title"><FontAwesomeIcon className="fas" icon={faFileInvoiceDollar} />&nbsp;No recent transactions</p>
+                        <p class="subtitle">This wallet currently does not have any transactions.</p>
+                      </div>
+                    </section>
+                </> : <>
+                    <table className="table is-fullwidth is-size-7">
+                      <thead>
+                        <tr>
+                          <th></th>
+                          <th>Date</th>
+                          <th>Type</th>
+                          <th>Coin(s)</th>
+                          <th>Sender</th>
+                          <th>Receiver</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {transactions.map((transaction) => (
+                          <tr key={transaction.hash}>
+                            <td>{transaction.type === "coin" ? <><FontAwesomeIcon className="fas" icon={faCoins} /></> : <><FontAwesomeIcon className="fas" icon={faCubes} /></>}</td>
+                            <td>{transaction.timestamp}</td>
+                            <td>{transaction.from === currentOpenWalletAtAddress ? "Sent" : "Received"}</td>
+                            <td>{transaction.value}</td>
+                            <td>{transaction.from}</td>
+                            <td>{transaction.to}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    <div className="has-text-right">
+                        <Link to={`/transactions`}>See More&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} /></Link>
+                    </div>
+                </>}
+                </>}
+
+
             </nav>
             </section>
           </div>
