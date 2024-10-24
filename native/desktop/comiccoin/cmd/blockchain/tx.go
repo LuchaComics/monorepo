@@ -7,7 +7,7 @@ const (
 	transactionsURL = "/v1/api/txs"
 )
 
-func txCmd() *cobra.Command {
+func TxCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "tx",
 		Short: "Execute commands related to transactions",
