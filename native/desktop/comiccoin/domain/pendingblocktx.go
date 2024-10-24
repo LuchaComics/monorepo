@@ -19,6 +19,9 @@ type PendingBlockTransactionRepository interface {
 	Upsert(bd *PendingBlockTransaction) error
 	ListAll() ([]*PendingBlockTransaction, error)
 	DeleteAll() error
+	OpenTransaction() error
+	CommitTransaction() error
+	DiscardTransaction()
 }
 
 func (dto *PendingBlockTransaction) Serialize() ([]byte, error) {

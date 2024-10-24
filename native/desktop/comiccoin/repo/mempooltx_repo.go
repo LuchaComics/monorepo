@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log/slog"
 
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
-	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage"
 )
 
 type MempoolTransactionRepo struct {
@@ -78,4 +78,16 @@ func (r *MempoolTransactionRepo) DeleteAll() error {
 	}
 
 	return err
+}
+
+func (r *MempoolTransactionRepo) OpenTransaction() error {
+	return r.dbClient.OpenTransaction()
+}
+
+func (r *MempoolTransactionRepo) CommitTransaction() error {
+	return r.dbClient.CommitTransaction()
+}
+
+func (r *MempoolTransactionRepo) DiscardTransaction() {
+	r.dbClient.DiscardTransaction()
 }

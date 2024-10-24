@@ -3,20 +3,22 @@ package service
 import (
 	"context"
 	"fmt"
-	"log"
 	"log/slog"
 	"time"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/kmutexutil"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/kmutexutil"
 )
 
 type ProofOfAuthorityValidationService struct {
 	config                                       *config.Config
 	logger                                       *slog.Logger
 	kmutex                                       kmutexutil.KMutexProvider
+	storageTransactionOpenUseCase                *usecase.StorageTransactionOpenUseCase
+	storageTransactionCommitUseCase              *usecase.StorageTransactionCommitUseCase
+	storageTransactionDiscardUseCase             *usecase.StorageTransactionDiscardUseCase
 	receiveProposedBlockDataDTOUseCase           *usecase.ReceiveProposedBlockDataDTOUseCase
 	getBlockchainLastestHashUseCase              *usecase.GetBlockchainLastestHashUseCase
 	getBlockDataUseCase                          *usecase.GetBlockDataUseCase
@@ -34,19 +36,22 @@ func NewProofOfAuthorityValidationService(
 	cfg *config.Config,
 	logger *slog.Logger,
 	kmutex kmutexutil.KMutexProvider,
-	uc1 *usecase.ReceiveProposedBlockDataDTOUseCase,
-	uc2 *usecase.GetBlockchainLastestHashUseCase,
-	uc3 *usecase.GetBlockDataUseCase,
-	uc4 *usecase.GetAccountsHashStateUseCase,
-	uc5 *usecase.GetTokensHashStateUseCase,
-	uc6 *usecase.CreateBlockDataUseCase,
-	uc7 *usecase.SetBlockchainLastestHashUseCase,
-	uc8 *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase,
-	uc9 *usecase.GetAccountUseCase,
-	uc10 *usecase.UpsertAccountUseCase,
-	uc11 *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase,
+	uc1 *usecase.StorageTransactionOpenUseCase,
+	uc2 *usecase.StorageTransactionCommitUseCase,
+	uc3 *usecase.StorageTransactionDiscardUseCase,
+	uc4 *usecase.ReceiveProposedBlockDataDTOUseCase,
+	uc5 *usecase.GetBlockchainLastestHashUseCase,
+	uc6 *usecase.GetBlockDataUseCase,
+	uc7 *usecase.GetAccountsHashStateUseCase,
+	uc8 *usecase.GetTokensHashStateUseCase,
+	uc9 *usecase.CreateBlockDataUseCase,
+	uc10 *usecase.SetBlockchainLastestHashUseCase,
+	uc11 *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase,
+	uc12 *usecase.GetAccountUseCase,
+	uc13 *usecase.UpsertAccountUseCase,
+	uc14 *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase,
 ) *ProofOfAuthorityValidationService {
-	return &ProofOfAuthorityValidationService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11}
+	return &ProofOfAuthorityValidationService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12, uc13, uc14}
 }
 
 func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
@@ -141,11 +146,11 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 
 	// Load up into our datastructure.
 	newBlockData := &domain.BlockData{
-		Hash:            proposedBlockData.Hash,
-		Header:          proposedBlockData.Header,
+		Hash:                 proposedBlockData.Hash,
+		Header:               proposedBlockData.Header,
 		HeaderSignatureBytes: proposedBlockData.HeaderSignatureBytes,
-		Trans:           proposedBlockData.Trans,
-		Validator:       proposedBlockData.Validator,
+		Trans:                proposedBlockData.Trans,
+		Validator:            proposedBlockData.Validator,
 	}
 	newBlock, err := domain.ToBlock(newBlockData)
 	if err != nil {
@@ -169,6 +174,19 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 	}
 
 	//
+	// STEP (PRE) 5
+	// Start a transaction in the database and if any errors occur then
+	// we will need to discard the transaction. On success then we commit
+	// the storage transaction.
+	//
+
+	if err := s.storageTransactionOpenUseCase.Execute(); err != nil {
+		s.logger.Error("failed opening storage transaction",
+			slog.Any("error", err))
+		return nil
+	}
+
+	//
 	// STEP 5:
 	// Iterate through all the pending transactions and perform various
 	// computations...
@@ -185,7 +203,8 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 			if err := s.processAccountForBlockTransaction(&blockTx); err != nil {
 				s.logger.Error("Failed processing transaction",
 					slog.Any("error", err))
-				log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+				s.storageTransactionDiscardUseCase.Execute()
+				return err
 			}
 		}
 
@@ -198,6 +217,7 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 			if err := s.processTokenForBlockTransaction(&blockTx); err != nil {
 				s.logger.Error("Failed processing token transaction",
 					slog.Any("error", err))
+				s.storageTransactionDiscardUseCase.Execute()
 				return err
 			}
 		}
@@ -222,7 +242,8 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 	if err != nil {
 		s.logger.Error("validator failed getting state root",
 			slog.Any("error", err))
-		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+		s.storageTransactionDiscardUseCase.Execute()
+		return err
 	}
 
 	// Ensure tokens are not tampered with.
@@ -230,7 +251,8 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 	if err != nil {
 		s.logger.Error("Failed getting tokens hash state",
 			slog.Any("error", err))
-		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+		s.storageTransactionDiscardUseCase.Execute()
+		return err
 	}
 	_ = currentTokensRootInThisNode //TODO: Add this feature when we are ready.
 
@@ -250,7 +272,8 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 		// Not an error but simply a friendly warning message.
 		s.logger.Warn("validator failed validating the proposed block with the previous block",
 			slog.Any("error", err))
-		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+		s.storageTransactionDiscardUseCase.Execute()
+		return err
 	}
 
 	//
@@ -261,7 +284,8 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 	if err := s.createBlockDataUseCase.Execute(newBlockData.Hash, newBlockData.Header, newBlockData.HeaderSignatureBytes, newBlockData.Trans, newBlockData.Validator); err != nil {
 		s.logger.Error("validator failed saving block data",
 			slog.Any("error", err))
-		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+		s.storageTransactionDiscardUseCase.Execute()
+		return err
 	}
 
 	s.logger.Info("validator add new block to blockchain",
@@ -273,7 +297,8 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 	if err := s.setBlockchainLastestHashUseCase.Execute(newBlockData.Hash); err != nil {
 		s.logger.Error("validator failed saving latest hash",
 			slog.Any("error", err))
-		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+		s.storageTransactionDiscardUseCase.Execute()
+		return err
 	}
 
 	s.logger.Debug("validator set latest hash in blockchain",
@@ -373,7 +398,7 @@ func (s *ProofOfAuthorityValidationService) processTokenForBlockTransaction(bloc
 	if err != nil {
 		s.logger.Error("Failed upserting (if previous token nonce GTE then current)",
 			slog.Any("error", err))
-		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+		return err
 	}
 
 	// DEVELOPERS NOTE:
@@ -383,7 +408,7 @@ func (s *ProofOfAuthorityValidationService) processTokenForBlockTransaction(bloc
 	if err := s.setBlockchainLastestTokenIDIfGreatestUseCase.Execute(blockTx.TokenID); err != nil {
 		s.logger.Error("validator failed saving latest hash",
 			slog.Any("error", err))
-		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+		return err
 	}
 
 	return nil

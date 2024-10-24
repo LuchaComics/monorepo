@@ -3,15 +3,14 @@ package service
 import (
 	"context"
 	"fmt"
-	"log"
 	"log/slog"
 	"time"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/merkle"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/kmutexutil"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/merkle"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/kmutexutil"
 )
 
 type ProofOfAuthorityMiningService struct {
@@ -19,6 +18,9 @@ type ProofOfAuthorityMiningService struct {
 	logger                                       *slog.Logger
 	kmutex                                       kmutexutil.KMutexProvider
 	getKeyService                                *GetKeyService
+	storageTransactionOpenUseCase                *usecase.StorageTransactionOpenUseCase
+	storageTransactionCommitUseCase              *usecase.StorageTransactionCommitUseCase
+	storageTransactionDiscardUseCase             *usecase.StorageTransactionDiscardUseCase
 	getAccountUseCase                            *usecase.GetAccountUseCase
 	getAccountsHashStateUseCase                  *usecase.GetAccountsHashStateUseCase
 	getTokenUseCase                              *usecase.GetTokenUseCase
@@ -42,24 +44,27 @@ func NewProofOfAuthorityMiningService(
 	logger *slog.Logger,
 	kmutex kmutexutil.KMutexProvider,
 	getKeyService *GetKeyService,
-	uc1 *usecase.GetAccountUseCase,
-	uc2 *usecase.GetAccountsHashStateUseCase,
-	uc3 *usecase.GetTokenUseCase,
-	uc4 *usecase.GetTokensHashStateUseCase,
-	uc5 *usecase.ListAllPendingBlockTransactionUseCase,
-	uc6 *usecase.GetBlockchainLastestHashUseCase,
-	uc7 *usecase.GetBlockDataUseCase,
-	uc8 *usecase.ProofOfWorkUseCase,
-	uc9 *usecase.CreateBlockDataUseCase,
-	uc10 *usecase.BroadcastProposedBlockDataDTOUseCase,
-	uc11 *usecase.DeleteAllPendingBlockTransactionUseCase,
-	uc12 *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase,
-	uc13 *usecase.UpsertAccountUseCase,
-	uc14 *usecase.SetBlockchainLastestHashUseCase,
-	uc15 *usecase.GetBlockchainLastestTokenIDUseCase,
-	uc16 *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase,
+	uc1 *usecase.StorageTransactionOpenUseCase,
+	uc2 *usecase.StorageTransactionCommitUseCase,
+	uc3 *usecase.StorageTransactionDiscardUseCase,
+	uc4 *usecase.GetAccountUseCase,
+	uc5 *usecase.GetAccountsHashStateUseCase,
+	uc6 *usecase.GetTokenUseCase,
+	uc7 *usecase.GetTokensHashStateUseCase,
+	uc8 *usecase.ListAllPendingBlockTransactionUseCase,
+	uc9 *usecase.GetBlockchainLastestHashUseCase,
+	uc10 *usecase.GetBlockDataUseCase,
+	uc11 *usecase.ProofOfWorkUseCase,
+	uc12 *usecase.CreateBlockDataUseCase,
+	uc13 *usecase.BroadcastProposedBlockDataDTOUseCase,
+	uc14 *usecase.DeleteAllPendingBlockTransactionUseCase,
+	uc15 *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase,
+	uc16 *usecase.UpsertAccountUseCase,
+	uc17 *usecase.SetBlockchainLastestHashUseCase,
+	uc18 *usecase.GetBlockchainLastestTokenIDUseCase,
+	uc19 *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase,
 ) *ProofOfAuthorityMiningService {
-	return &ProofOfAuthorityMiningService{config, logger, kmutex, getKeyService, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12, uc13, uc14, uc15, uc16}
+	return &ProofOfAuthorityMiningService{config, logger, kmutex, getKeyService, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12, uc13, uc14, uc15, uc16, uc17, uc18, uc19}
 }
 
 func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
@@ -131,6 +136,19 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	trans := make([]domain.BlockTransaction, 0)
 
 	//
+	// STEP (PRE) 3
+	// Start a transaction in the database and if any errors occur then
+	// we will need to discard the transaction. On success then we commit
+	// the storage transaction.
+	//
+
+	if err := s.storageTransactionOpenUseCase.Execute(); err != nil {
+		s.logger.Error("failed opening storage transaction",
+			slog.Any("error", err))
+		return nil
+	}
+
+	//
 	// STEP 3:
 	// Iterate through all the pending transactions and update our node's local
 	// database. Afterwords create the block transaction which we will include
@@ -146,12 +164,8 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 		if err := s.verifyPendingBlockTransaction(pendingBlockTx); err != nil {
 			s.logger.Error("Failed verifying the pending block transaction",
 				slog.Any("error", err))
-
-			// DEVELOPERS NOTE: To remove this `log.Fatalf` we would need to
-			// write code in the future which will undue anything that happend
-			// in the `processTokenForPendingBlockTransaction` function in
-			// this loop.
-			log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+			s.storageTransactionDiscardUseCase.Execute()
+			return err
 		}
 
 		//
@@ -163,11 +177,8 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 			if err := s.processTokenForPendingBlockTransaction(pendingBlockTx); err != nil {
 				s.logger.Error("Failed processing token in pending block transaction",
 					slog.Any("error", err))
-
-				// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
-				// write code to undue any processing of tokens that have
-				// ocurred in this loop.
-				log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+				s.storageTransactionDiscardUseCase.Execute()
+				return err
 			}
 		}
 
@@ -180,11 +191,8 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 			if err := s.processAccountForPendingBlockTransaction(pendingBlockTx); err != nil {
 				s.logger.Error("Failed processing account in pending block transaction",
 					slog.Any("error", err))
-
-				// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
-				// write code to undue any processing of tokens that have
-				// ocurred in this loop.
-				log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+				s.storageTransactionDiscardUseCase.Execute()
+				return err
 			}
 		}
 
@@ -204,12 +212,8 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	if err != nil {
 		s.logger.Error("Failed creating merkle tree",
 			slog.Any("error", err))
-
-		// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
-		// write code to undue actions from:
-		// - processAccountForPendingBlockTransaction
-		// - processTokenForPendingBlockTransaction
-		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+		s.storageTransactionDiscardUseCase.Execute()
+		return err
 	}
 
 	// Query the local database and get the most recent token ID.
@@ -217,12 +221,8 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	if err != nil {
 		s.logger.Error("Failed getting blockchains latest token id",
 			slog.Any("error", err))
-
-		// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
-		// write code to undue actions from:
-		// - processAccountForPendingBlockTransaction
-		// - processTokenForPendingBlockTransaction
-		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+		s.storageTransactionDiscardUseCase.Execute()
+		return err
 	}
 
 	// Iterate through all the accounts from this local machine, sort them and
@@ -254,12 +254,8 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	if err != nil {
 		s.logger.Error("Failed getting accounts hash state",
 			slog.Any("error", err))
-
-		// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
-		// write code to undue actions from:
-		// - processAccountForPendingBlockTransaction
-		// - processTokenForPendingBlockTransaction
-		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+		s.storageTransactionDiscardUseCase.Execute()
+		return err
 	}
 
 	// Ensure tokens are not tampered with.
@@ -267,12 +263,8 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	if err != nil {
 		s.logger.Error("Failed getting tokens hash state",
 			slog.Any("error", err))
-
-		// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
-		// write code to undue actions from:
-		// - processAccountForPendingBlockTransaction
-		// - processTokenForPendingBlockTransaction
-		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+		s.storageTransactionDiscardUseCase.Execute()
+		return err
 	}
 
 	// Construct the genesis block.
@@ -303,12 +295,8 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	if powErr != nil {
 		s.logger.Error("Failed to mine block header",
 			slog.Any("error", err))
-
-		// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
-		// write code to undue actions from:
-		// - processAccountForPendingBlockTransaction
-		// - processTokenForPendingBlockTransaction
-		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+		s.storageTransactionDiscardUseCase.Execute()
+		return err
 	}
 
 	block.Header.Nonce = nonce
@@ -327,12 +315,8 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	if err != nil {
 		s.logger.Error("Failed getting account wallet key",
 			slog.Any("error", err))
-
-		// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
-		// write code to undue actions from:
-		// - processAccountForPendingBlockTransaction
-		// - processTokenForPendingBlockTransaction
-		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+		s.storageTransactionDiscardUseCase.Execute()
+		return err
 	}
 	if coinbaseAccountKey == nil {
 		return fmt.Errorf("failed getting account wallet key: %v", "does not exist")
@@ -343,12 +327,8 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	if err != nil {
 		s.logger.Error("Failed to sign block header",
 			slog.Any("error", err))
-
-		// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
-		// write code to undue actions from:
-		// - processAccountForPendingBlockTransaction
-		// - processTokenForPendingBlockTransaction
-		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+		s.storageTransactionDiscardUseCase.Execute()
+		return err
 	}
 	blockData.HeaderSignatureBytes = blockDataHeaderSignatureBytes
 	blockData.Validator = poaValidator
@@ -376,13 +356,8 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	if err := s.deleteAllPendingBlockTransactionUseCase.Execute(); err != nil {
 		s.logger.Error("Failed deleting all pending block transactions",
 			slog.Any("error", err))
-
-		// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
-		// write code to undue actions from:
-		// - processAccountForPendingBlockTransaction
-		// - processTokenForPendingBlockTransaction
-		// - deleteAllPendingBlockTransactionUseCase
-		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+		s.storageTransactionDiscardUseCase.Execute()
+		return err
 	}
 
 	//
@@ -393,14 +368,8 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	if err := s.createBlockDataUseCase.Execute(blockData.Hash, blockData.Header, blockData.HeaderSignatureBytes, blockData.Trans, blockData.Validator); err != nil {
 		s.logger.Error("PoA mining service failed saving block data",
 			slog.Any("error", err))
-
-		// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
-		// write code to undue actions from:
-		// - processAccountForPendingBlockTransaction
-		// - processTokenForPendingBlockTransaction
-		// - deleteAllPendingBlockTransactionUseCase
-		// - createBlockDataUseCase
-		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+		s.storageTransactionDiscardUseCase.Execute()
+		return err
 	}
 
 	s.logger.Info("PoA mining service added new block to blockchain",
@@ -412,15 +381,8 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	if err := s.setBlockchainLastestHashUseCase.Execute(blockData.Hash); err != nil {
 		s.logger.Error("PoA mining service failed saving latest hash",
 			slog.Any("error", err))
-
-		// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
-		// write code to undue actions from:
-		// - processAccountForPendingBlockTransaction
-		// - processTokenForPendingBlockTransaction
-		// - deleteAllPendingBlockTransactionUseCase
-		// - createBlockDataUseCase
-		// - setBlockchainLastestHashUseCase
-		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+		s.storageTransactionDiscardUseCase.Execute()
+		return err
 	}
 
 	s.logger.Debug("PoA mining service set latest hash in blockchain",
@@ -453,20 +415,18 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 	if err := s.broadcastProposedBlockDataDTOUseCase.Execute(ctx, purposeBlockData); err != nil {
 		s.logger.Error("Failed to broadcast to peer-to-peer network the new block",
 			slog.Any("error", err))
-
-		// DEVELOPERS NOTE: To remove this  `log.Fatalf` we will need to
-		// write code to undue actions from:
-		// - processAccountForPendingBlockTransaction
-		// - processTokenForPendingBlockTransaction
-		// - deleteAllPendingBlockTransactionUseCase
-		// - createBlockDataUseCase
-		// - setBlockchainLastestHashUseCase
-		// - broadcastProposedBlockDataDTOUseCase
-		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+		s.storageTransactionDiscardUseCase.Execute()
+		return err
 	}
 
 	s.logger.Info("PoA mining service broadcasted new block data to propose to the network",
 		slog.Uint64("nonce", block.Header.Nonce))
+
+	if err := s.storageTransactionCommitUseCase.Execute(); err != nil {
+		s.logger.Error("failed to commit storage transaction",
+			slog.Any("error", err))
+		return nil
+	}
 
 	return nil
 }
@@ -652,7 +612,7 @@ func (s *ProofOfAuthorityMiningService) processTokenForPendingBlockTransaction(p
 	if err != nil {
 		s.logger.Error("Failed upserting (if previous token nonce GTE then current)",
 			slog.Any("error", err))
-		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+		return err
 	}
 
 	// DEVELOPERS NOTE:
@@ -662,7 +622,7 @@ func (s *ProofOfAuthorityMiningService) processTokenForPendingBlockTransaction(p
 	if err := s.setBlockchainLastestTokenIDIfGreatestUseCase.Execute(pendingBlockTx.TokenID); err != nil {
 		s.logger.Error("validator failed saving latest hash",
 			slog.Any("error", err))
-		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+		return err
 	}
 
 	return nil

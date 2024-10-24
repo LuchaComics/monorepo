@@ -16,7 +16,8 @@ import (
 // It uses a LevelDB database to store key-value pairs.
 type storageImpl struct {
 	// The LevelDB database instance.
-	db *leveldb.DB
+	db          *leveldb.DB
+	transaction *leveldb.Transaction
 }
 
 // NewDiskStorage creates a new instance of the storageImpl.
@@ -44,7 +45,15 @@ func NewDiskStorage(dbPath string, dbName string, logger *slog.Logger) storage.S
 // Get retrieves a value from the database by its key.
 // It returns an error if the key is not found.
 func (impl *storageImpl) Get(k string) ([]byte, error) {
-	bin, err := impl.db.Get([]byte(k), nil)
+	if impl.transaction == nil {
+		bin, err := impl.db.Get([]byte(k), nil)
+		if err == dberr.ErrNotFound {
+			return nil, nil
+		}
+		return bin, nil
+	}
+
+	bin, err := impl.transaction.Get([]byte(k), nil)
 	if err == dberr.ErrNotFound {
 		return nil, nil
 	}
@@ -54,8 +63,17 @@ func (impl *storageImpl) Get(k string) ([]byte, error) {
 // Set sets a value in the database by its key.
 // It returns an error if the operation fails.
 func (impl *storageImpl) Set(k string, val []byte) error {
-	impl.db.Delete([]byte(k), nil)
-	err := impl.db.Put([]byte(k), val, nil)
+	if impl.transaction == nil {
+		impl.db.Delete([]byte(k), nil)
+		err := impl.db.Put([]byte(k), val, nil)
+		if err == dberr.ErrNotFound {
+			return nil
+		}
+		return err
+	}
+
+	impl.transaction.Delete([]byte(k), nil)
+	err := impl.transaction.Put([]byte(k), val, nil)
 	if err == dberr.ErrNotFound {
 		return nil
 	}
@@ -65,7 +83,15 @@ func (impl *storageImpl) Set(k string, val []byte) error {
 // Delete deletes a value from the database by its key.
 // It returns an error if the operation fails.
 func (impl *storageImpl) Delete(k string) error {
-	err := impl.db.Delete([]byte(k), nil)
+	if impl.transaction == nil {
+		err := impl.db.Delete([]byte(k), nil)
+		if err == dberr.ErrNotFound {
+			return nil
+		}
+		return err
+	}
+
+	err := impl.transaction.Delete([]byte(k), nil)
 	if err == dberr.ErrNotFound {
 		return nil
 	}
@@ -76,7 +102,23 @@ func (impl *storageImpl) Delete(k string) error {
 // It calls the provided function for each pair.
 // It returns an error if the iteration fails.
 func (impl *storageImpl) Iterate(processFunc func(key, value []byte) error) error {
-	iter := impl.db.NewIterator(nil, nil)
+	if impl.transaction == nil {
+		iter := impl.db.NewIterator(nil, nil)
+		for ok := iter.First(); ok; ok = iter.Next() {
+			// Call the passed function for each key-value pair.
+			err := processFunc(iter.Key(), iter.Value())
+			if err == dberr.ErrNotFound {
+				return nil
+			}
+			if err != nil {
+				return err // Exit early if the processing function returns an error.
+			}
+		}
+		iter.Release()
+		return iter.Error()
+	}
+
+	iter := impl.transaction.NewIterator(nil, nil)
 	for ok := iter.First(); ok; ok = iter.Next() {
 		// Call the passed function for each key-value pair.
 		err := processFunc(iter.Key(), iter.Value())
@@ -94,5 +136,33 @@ func (impl *storageImpl) Iterate(processFunc func(key, value []byte) error) erro
 // Close closes the database.
 // It returns an error if the operation fails.
 func (impl *storageImpl) Close() error {
+	if impl.transaction != nil {
+		impl.transaction.Discard()
+	}
 	return impl.db.Close()
+}
+
+func (impl *storageImpl) OpenTransaction() error {
+	transaction, err := impl.db.OpenTransaction()
+	if err != nil {
+		return nil
+	}
+	impl.transaction = transaction
+	return nil
+}
+
+func (impl *storageImpl) CommitTransaction() error {
+	defer func() {
+		impl.transaction = nil
+	}()
+
+	// Commit the snapshot to the database
+	return impl.transaction.Commit()
+}
+
+func (impl *storageImpl) DiscardTransaction() {
+	defer func() {
+		impl.transaction = nil
+	}()
+	impl.transaction.Discard()
 }

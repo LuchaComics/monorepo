@@ -10,4 +10,8 @@ type BlockchainLastestTokenIDRepository interface {
 	// Set sets the latest token ID of the blockchain.
 	// It takes a token ID as a string and returns an error if one occurs.
 	Set(tokenID uint64) error
+
+	OpenTransaction() error
+	CommitTransaction() error
+	DiscardTransaction()
 }

@@ -18,4 +18,10 @@ type Storage interface {
 
 	// Close closes the database, releasing any system resources it holds.
 	Close() error
+
+	OpenTransaction() error
+
+	CommitTransaction() error
+
+	DiscardTransaction()
 }

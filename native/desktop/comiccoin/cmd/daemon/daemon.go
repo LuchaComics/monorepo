@@ -214,6 +214,47 @@ func DaemonCmd() *cobra.Command {
 				libP2PNetwork)
 
 			// ------------ Use-case ------------
+			// Storage Transcation
+			storageTransactionOpenUseCase := usecase.NewStorageTransactionOpenUseCase(
+				cfg,
+				logger,
+				accountRepo,
+				tokenRepo,
+				latestBlockDataHashRepo,
+				latestBlockDataTokenIDRepo,
+				blockDataRepo,
+				ikRepo,
+				mempoolTxRepo,
+				pendingBlockTxRepo,
+				walletRepo,
+			)
+			storageTransactionCommitUseCase := usecase.NewStorageTransactionCommitUseCase(
+				cfg,
+				logger,
+				accountRepo,
+				tokenRepo,
+				latestBlockDataHashRepo,
+				latestBlockDataTokenIDRepo,
+				blockDataRepo,
+				ikRepo,
+				mempoolTxRepo,
+				pendingBlockTxRepo,
+				walletRepo,
+			)
+			storageTransactionDiscardUseCase := usecase.NewStorageTransactionDiscardUseCase(
+				cfg,
+				logger,
+				accountRepo,
+				tokenRepo,
+				latestBlockDataHashRepo,
+				latestBlockDataTokenIDRepo,
+				blockDataRepo,
+				ikRepo,
+				mempoolTxRepo,
+				pendingBlockTxRepo,
+				walletRepo,
+			)
+
 			// Genesis Block Data
 			loadGenesisBlockDataAccountUseCase := usecase.NewLoadGenesisBlockDataUseCase(
 				cfg,
@@ -513,6 +554,9 @@ func DaemonCmd() *cobra.Command {
 				logger,
 				kmutex,
 				getKeyService,
+				storageTransactionOpenUseCase,
+				storageTransactionCommitUseCase,
+				storageTransactionDiscardUseCase,
 				getAccountUseCase,
 				getAccountsHashStateUseCase,
 				getTokenUseCase,
@@ -552,6 +596,9 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				kmutex,
+				storageTransactionOpenUseCase,
+				storageTransactionCommitUseCase,
+				storageTransactionDiscardUseCase,
 				receiveProposedBlockDataDTOUseCase,
 				getBlockchainLastestHashUseCase,
 				getBlockDataUseCase,
@@ -575,6 +622,9 @@ func DaemonCmd() *cobra.Command {
 			majorityVoteConsensusClientService := service.NewMajorityVoteConsensusClientService(
 				cfg,
 				logger,
+				storageTransactionOpenUseCase,
+				storageTransactionCommitUseCase,
+				storageTransactionDiscardUseCase,
 				consensusMechanismBroadcastRequestToNetworkUseCase,
 				consensusMechanismReceiveResponseFromNetworkUseCase,
 				getBlockchainLastestHashUseCase,

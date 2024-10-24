@@ -10,4 +10,8 @@ type BlockchainLastestHashRepository interface {
 	// Set sets the latest hash of the blockchain.
 	// It takes a hash as a string and returns an error if one occurs.
 	Set(hash string) error
+
+	OpenTransaction() error
+	CommitTransaction() error
+	DiscardTransaction()
 }

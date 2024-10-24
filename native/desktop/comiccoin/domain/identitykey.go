@@ -17,6 +17,9 @@ type IdentityKey struct {
 type IdentityKeyRepository interface {
 	GetByID(id string) (*IdentityKey, error)
 	Upsert(key *IdentityKey) error
+	OpenTransaction() error
+	CommitTransaction() error
+	DiscardTransaction()
 }
 
 func NewIdentityKey(id string) (*IdentityKey, error) {

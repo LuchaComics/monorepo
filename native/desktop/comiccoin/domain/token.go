@@ -32,6 +32,10 @@ type TokenRepository interface {
 	// HashState returns a hash based on the contents of the tokens and
 	// their metadata. This is added to each block and checked by peers.
 	HashState() (string, error)
+
+	OpenTransaction() error
+	CommitTransaction() error
+	DiscardTransaction()
 }
 
 // Serialize serializes the token into a byte slice.

@@ -74,3 +74,15 @@ func (r *WalletRepo) DeleteByAddress(address *common.Address) error {
 	}
 	return nil
 }
+
+func (r *WalletRepo) OpenTransaction() error {
+	return r.dbClient.OpenTransaction()
+}
+
+func (r *WalletRepo) CommitTransaction() error {
+	return r.dbClient.CommitTransaction()
+}
+
+func (r *WalletRepo) DiscardTransaction() {
+	r.dbClient.DiscardTransaction()
+}

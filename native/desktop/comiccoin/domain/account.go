@@ -75,6 +75,10 @@ type AccountRepository interface {
 	// HashState returns a hash based on the contents of the accounts and
 	// their balances. This is added to each block and checked by peers.
 	HashState() (string, error)
+
+	OpenTransaction() error
+	CommitTransaction() error
+	DiscardTransaction()
 }
 
 // Serialize serializes the account into a byte slice.

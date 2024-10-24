@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"strconv"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 )
 
 type BlockchainLastestTokenIDRepo struct {
@@ -43,4 +43,16 @@ func (r *BlockchainLastestTokenIDRepo) Get() (uint64, error) {
 		return 0, fmt.Errorf("failed parsing token ID: %v", err)
 	}
 	return tokenID, nil
+}
+
+func (r *BlockchainLastestTokenIDRepo) OpenTransaction() error {
+	return r.dbClient.OpenTransaction()
+}
+
+func (r *BlockchainLastestTokenIDRepo) CommitTransaction() error {
+	return r.dbClient.CommitTransaction()
+}
+
+func (r *BlockchainLastestTokenIDRepo) DiscardTransaction() {
+	r.dbClient.DiscardTransaction()
 }

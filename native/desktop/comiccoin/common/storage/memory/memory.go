@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -15,14 +16,16 @@ type cacheValue struct {
 // keyValueStorerImpl implements the db.Database interface.
 // It uses a LevelDB database to store key-value pairs.
 type keyValueStorerImpl struct {
-	data map[string]cacheValue
-	lock sync.Mutex
+	data   map[string]cacheValue
+	txData map[string]cacheValue
+	lock   sync.Mutex
 }
 
 // NewInMemoryStorage creates a new instance of the keyValueStorerImpl.
 func NewInMemoryStorage(logger *slog.Logger) storage.Storage {
 	return &keyValueStorerImpl{
-		data: make(map[string]cacheValue),
+		data:   make(map[string]cacheValue),
+		txData: nil,
 	}
 }
 
@@ -32,13 +35,19 @@ func (impl *keyValueStorerImpl) Get(k string) ([]byte, error) {
 	impl.lock.Lock()
 	defer impl.lock.Unlock()
 
-	cachedValue, ok := impl.data[k]
-	if !ok {
-		delete(impl.data, k)
-		return nil, fmt.Errorf("does not exist for: %v", k)
+	if impl.txData != nil {
+		cachedValue, ok := impl.txData[k]
+		if !ok {
+			return nil, fmt.Errorf("does not exist for: %v", k)
+		}
+		return cachedValue.value, nil
+	} else {
+		cachedValue, ok := impl.data[k]
+		if !ok {
+			return nil, fmt.Errorf("does not exist for: %v", k)
+		}
+		return cachedValue.value, nil
 	}
-
-	return cachedValue.value, nil
 }
 
 // Set sets a value in the database by its key.
@@ -47,8 +56,14 @@ func (impl *keyValueStorerImpl) Set(k string, val []byte) error {
 	impl.lock.Lock()
 	defer impl.lock.Unlock()
 
-	impl.data[k] = cacheValue{
-		value: val,
+	if impl.txData != nil {
+		impl.txData[k] = cacheValue{
+			value: val,
+		}
+	} else {
+		impl.data[k] = cacheValue{
+			value: val,
+		}
 	}
 	return nil
 }
@@ -59,7 +74,11 @@ func (impl *keyValueStorerImpl) Delete(k string) error {
 	impl.lock.Lock()
 	defer impl.lock.Unlock()
 
-	delete(impl.data, k)
+	if impl.txData != nil {
+		delete(impl.txData, k)
+	} else {
+		delete(impl.data, k)
+	}
 	return nil
 }
 
@@ -91,4 +110,43 @@ func (impl *keyValueStorerImpl) Close() error {
 	impl.data = make(map[string]cacheValue)
 
 	return nil
+}
+
+func (impl *keyValueStorerImpl) OpenTransaction() error {
+	impl.lock.Lock()
+	defer impl.lock.Unlock()
+
+	// Create a new transaction by creating a copy of the current data
+	impl.txData = make(map[string]cacheValue)
+	for k, v := range impl.data {
+		impl.txData[k] = v
+	}
+
+	return nil
+}
+
+func (impl *keyValueStorerImpl) CommitTransaction() error {
+	impl.lock.Lock()
+	defer impl.lock.Unlock()
+
+	// Check if a transaction is in progress
+	if impl.txData == nil {
+		return errors.New("no transaction in progress")
+	}
+
+	// Update the current data with the transaction data
+	impl.data = impl.txData
+	impl.txData = nil
+
+	return nil
+}
+
+func (impl *keyValueStorerImpl) DiscardTransaction() {
+	impl.lock.Lock()
+	defer impl.lock.Unlock()
+
+	// Check if a transaction is in progress
+	if impl.txData != nil {
+		impl.txData = nil
+	}
 }

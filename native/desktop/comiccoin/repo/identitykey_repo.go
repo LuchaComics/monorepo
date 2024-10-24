@@ -3,9 +3,9 @@ package repo
 import (
 	"log/slog"
 
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
-	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage"
 )
 
 type IdentityKeyRepo struct {
@@ -43,4 +43,16 @@ func (r *IdentityKeyRepo) GetByID(id string) (*domain.IdentityKey, error) {
 		return nil, err
 	}
 	return b, nil
+}
+
+func (r *IdentityKeyRepo) OpenTransaction() error {
+	return r.dbClient.OpenTransaction()
+}
+
+func (r *IdentityKeyRepo) CommitTransaction() error {
+	return r.dbClient.CommitTransaction()
+}
+
+func (r *IdentityKeyRepo) DiscardTransaction() {
+	r.dbClient.DiscardTransaction()
 }

@@ -100,3 +100,15 @@ func (r *BlockDataRepo) ListAllBlockTransactionsByAddress(address *common.Addres
 
 	return res, err
 }
+
+func (r *BlockDataRepo) OpenTransaction() error {
+	return r.dbClient.OpenTransaction()
+}
+
+func (r *BlockDataRepo) CommitTransaction() error {
+	return r.dbClient.CommitTransaction()
+}
+
+func (r *BlockDataRepo) DiscardTransaction() {
+	r.dbClient.DiscardTransaction()
+}

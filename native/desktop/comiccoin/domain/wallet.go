@@ -30,6 +30,10 @@ type WalletRepository interface {
 
 	// DeleteByID deletes an wallet by its Address.
 	DeleteByAddress(address *common.Address) error
+
+	OpenTransaction() error
+	CommitTransaction() error
+	DiscardTransaction()
 }
 
 // Serialize serializes the wallet into a byte slice.

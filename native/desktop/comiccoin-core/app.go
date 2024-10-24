@@ -266,6 +266,47 @@ func (a *App) startup(ctx context.Context) {
 
 	a.logger.Debug("Startup loading usecases...")
 
+	// Storage Transcation
+	storageTransactionOpenUseCase := usecase.NewStorageTransactionOpenUseCase(
+		cfg,
+		logger,
+		accountRepo,
+		tokenRepo,
+		latestBlockDataHashRepo,
+		latestBlockDataTokenIDRepo,
+		blockDataRepo,
+		ikRepo,
+		mempoolTxRepo,
+		pendingBlockTxRepo,
+		walletRepo,
+	)
+	storageTransactionCommitUseCase := usecase.NewStorageTransactionCommitUseCase(
+		cfg,
+		logger,
+		accountRepo,
+		tokenRepo,
+		latestBlockDataHashRepo,
+		latestBlockDataTokenIDRepo,
+		blockDataRepo,
+		ikRepo,
+		mempoolTxRepo,
+		pendingBlockTxRepo,
+		walletRepo,
+	)
+	storageTransactionDiscardUseCase := usecase.NewStorageTransactionDiscardUseCase(
+		cfg,
+		logger,
+		accountRepo,
+		tokenRepo,
+		latestBlockDataHashRepo,
+		latestBlockDataTokenIDRepo,
+		blockDataRepo,
+		ikRepo,
+		mempoolTxRepo,
+		pendingBlockTxRepo,
+		walletRepo,
+	)
+
 	// Genesis Block Data
 	loadGenesisBlockDataAccountUseCase := usecase.NewLoadGenesisBlockDataUseCase(
 		cfg,
@@ -586,6 +627,9 @@ func (a *App) startup(ctx context.Context) {
 		logger,
 		kmutex,
 		getKeyService,
+		storageTransactionOpenUseCase,
+		storageTransactionCommitUseCase,
+		storageTransactionDiscardUseCase,
 		getAccountUseCase,
 		getAccountsHashStateUseCase,
 		getTokenUseCase,
@@ -625,6 +669,9 @@ func (a *App) startup(ctx context.Context) {
 		cfg,
 		logger,
 		kmutex,
+		storageTransactionOpenUseCase,
+		storageTransactionCommitUseCase,
+		storageTransactionDiscardUseCase,
 		receiveProposedBlockDataDTOUseCase,
 		getBlockchainLastestHashUseCase,
 		getBlockDataUseCase,
@@ -648,6 +695,9 @@ func (a *App) startup(ctx context.Context) {
 	majorityVoteConsensusClientService := service.NewMajorityVoteConsensusClientService(
 		cfg,
 		logger,
+		storageTransactionOpenUseCase,
+		storageTransactionCommitUseCase,
+		storageTransactionDiscardUseCase,
 		consensusMechanismBroadcastRequestToNetworkUseCase,
 		consensusMechanismReceiveResponseFromNetworkUseCase,
 		getBlockchainLastestHashUseCase,

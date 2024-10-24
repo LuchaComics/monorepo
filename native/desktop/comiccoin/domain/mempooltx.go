@@ -72,6 +72,10 @@ type MempoolTransactionRepository interface {
 
 	// DeleteAll deletes all mempool transactions in the repository.
 	DeleteAll() error
+
+	OpenTransaction() error
+	CommitTransaction() error
+	DiscardTransaction()
 }
 
 // Serialize serializes the mempool transaction into a byte slice.

@@ -6,10 +6,10 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/signature"
 	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 )
 
 type AccountRepo struct {
@@ -98,6 +98,18 @@ func (r *AccountRepo) HashState() (string, error) {
 	// Sort and hash our accounts.
 	sort.Sort(byAccount(accountsWithBalance))
 	return signature.Hash(accountsWithBalance), nil
+}
+
+func (r *AccountRepo) OpenTransaction() error {
+	return r.dbClient.OpenTransaction()
+}
+
+func (r *AccountRepo) CommitTransaction() error {
+	return r.dbClient.CommitTransaction()
+}
+
+func (r *AccountRepo) DiscardTransaction() {
+	r.dbClient.DiscardTransaction()
 }
 
 // =============================================================================

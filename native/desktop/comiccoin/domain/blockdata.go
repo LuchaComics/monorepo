@@ -49,6 +49,10 @@ type BlockDataRepository interface {
 
 	// ListBlockTransactionsByAddress lists all the transactions for a particular address.
 	ListAllBlockTransactionsByAddress(address *common.Address) ([]*BlockTransaction, error)
+
+	OpenTransaction() error
+	CommitTransaction() error
+	DiscardTransaction()
 }
 
 // Serialize serializes a block data into a byte array.

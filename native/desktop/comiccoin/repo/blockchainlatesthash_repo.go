@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 )
 
 type BlockchainLastestHashRepo struct {
@@ -36,4 +36,16 @@ func (r *BlockchainLastestHashRepo) Get() (string, error) {
 		return string(""), fmt.Errorf("failed getting last block data hash from database: %v", err)
 	}
 	return string(bin), nil
+}
+
+func (r *BlockchainLastestHashRepo) OpenTransaction() error {
+	return r.dbClient.OpenTransaction()
+}
+
+func (r *BlockchainLastestHashRepo) CommitTransaction() error {
+	return r.dbClient.CommitTransaction()
+}
+
+func (r *BlockchainLastestHashRepo) DiscardTransaction() {
+	r.dbClient.DiscardTransaction()
 }

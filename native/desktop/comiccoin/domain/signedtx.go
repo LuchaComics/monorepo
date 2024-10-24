@@ -58,6 +58,9 @@ type SignedTransactionRepository interface {
 	Upsert(bd *SignedTransaction) error
 	ListAll() ([]*SignedTransaction, error)
 	DeleteAll() error
+	OpenTransaction() error
+	CommitTransaction() error
+	DiscardTransaction()
 }
 
 func (stx *SignedTransaction) Serialize() ([]byte, error) {

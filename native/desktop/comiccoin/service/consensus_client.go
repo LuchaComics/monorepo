@@ -3,19 +3,21 @@ package service
 import (
 	"context"
 	"fmt"
-	"log"
 	"log/slog"
 	"strings"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/signature"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/signature"
 )
 
 type MajorityVoteConsensusClientService struct {
 	config                                              *config.Config
 	logger                                              *slog.Logger
+	storageTransactionOpenUseCase                       *usecase.StorageTransactionOpenUseCase
+	storageTransactionCommitUseCase                     *usecase.StorageTransactionCommitUseCase
+	storageTransactionDiscardUseCase                    *usecase.StorageTransactionDiscardUseCase
 	consensusMechanismBroadcastRequestToNetworkUseCase  *usecase.ConsensusMechanismBroadcastRequestToNetworkUseCase
 	consensusMechanismReceiveResponseFromNetworkUseCase *usecase.ConsensusMechanismReceiveResponseFromNetworkUseCase
 	getBlockchainLastestHashUseCase                     *usecase.GetBlockchainLastestHashUseCase
@@ -31,18 +33,21 @@ type MajorityVoteConsensusClientService struct {
 func NewMajorityVoteConsensusClientService(
 	cfg *config.Config,
 	logger *slog.Logger,
-	uc1 *usecase.ConsensusMechanismBroadcastRequestToNetworkUseCase,
-	uc2 *usecase.ConsensusMechanismReceiveResponseFromNetworkUseCase,
-	uc3 *usecase.GetBlockchainLastestHashUseCase,
-	uc4 *usecase.SetBlockchainLastestHashUseCase,
-	uc5 *usecase.BlockDataDTOSendP2PRequestUseCase,
-	uc6 *usecase.BlockDataDTOReceiveP2PResponsetUseCase,
-	uc7 *usecase.CreateBlockDataUseCase,
-	uc8 *usecase.GetBlockDataUseCase,
-	uc9 *usecase.GetAccountUseCase,
-	uc10 *usecase.UpsertAccountUseCase,
+	uc1 *usecase.StorageTransactionOpenUseCase,
+	uc2 *usecase.StorageTransactionCommitUseCase,
+	uc3 *usecase.StorageTransactionDiscardUseCase,
+	uc4 *usecase.ConsensusMechanismBroadcastRequestToNetworkUseCase,
+	uc5 *usecase.ConsensusMechanismReceiveResponseFromNetworkUseCase,
+	uc6 *usecase.GetBlockchainLastestHashUseCase,
+	uc7 *usecase.SetBlockchainLastestHashUseCase,
+	uc8 *usecase.BlockDataDTOSendP2PRequestUseCase,
+	uc9 *usecase.BlockDataDTOReceiveP2PResponsetUseCase,
+	uc10 *usecase.CreateBlockDataUseCase,
+	uc11 *usecase.GetBlockDataUseCase,
+	uc12 *usecase.GetAccountUseCase,
+	uc13 *usecase.UpsertAccountUseCase,
 ) *MajorityVoteConsensusClientService {
-	return &MajorityVoteConsensusClientService{cfg, logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10}
+	return &MajorityVoteConsensusClientService{cfg, logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12, uc13}
 }
 
 func (s *MajorityVoteConsensusClientService) Execute(ctx context.Context) error {
@@ -83,6 +88,19 @@ func (s *MajorityVoteConsensusClientService) Execute(ctx context.Context) error 
 	}
 
 	//
+	// STEP (PRE) 3
+	// Start a transaction in the database and if any errors occur then
+	// we will need to discard the transaction. On success then we commit
+	// the storage transaction.
+	//
+
+	if err := s.storageTransactionOpenUseCase.Execute(); err != nil {
+		s.logger.Error("failed opening storage transaction",
+			slog.Any("error", err))
+		return nil
+	}
+
+	//
 	// STEP 3:
 	// Get the latest blockchain hash we have in our local database and compare
 	// with the received hash and if there are differences then we will need to
@@ -101,6 +119,7 @@ func (s *MajorityVoteConsensusClientService) Execute(ctx context.Context) error 
 		if err := s.runDownloadAndSyncBlockchainFromBlockDataHash(ctx, string(receivedHash)); err != nil {
 			s.logger.Error("blockchain failed to download and sync",
 				slog.Any("error", err))
+			s.storageTransactionDiscardUseCase.Execute()
 			return err
 		}
 
@@ -109,13 +128,19 @@ func (s *MajorityVoteConsensusClientService) Execute(ctx context.Context) error 
 		if err := s.setBlockchainLastestHashUseCase.Execute(string(receivedHash)); err != nil {
 			s.logger.Error("blockchain failed to save latest hash to database",
 				slog.Any("error", err))
+			s.storageTransactionDiscardUseCase.Execute()
 			return err
 		}
-
-		// Reaching here is success!
-		return nil
+		s.logger.Debug("local blockchain was updated successfully from the peer-to-peer network")
 	} else {
 		s.logger.Debug("local blockchain is up-to-date with peer-to-peer network")
+	}
+
+	// Reaching here is success!
+	if err := s.storageTransactionCommitUseCase.Execute(); err != nil {
+		s.logger.Error("failed to commit storage transaction",
+			slog.Any("error", err))
+		return nil
 	}
 
 	return nil
@@ -267,7 +292,6 @@ func (s *MajorityVoteConsensusClientService) processAccountForBlockTransaction(b
 		if acc == nil {
 			s.logger.Error("The `From` account does not exist in our database.",
 				slog.Any("hash", blockTx.From))
-			log.Fatalf("The `From` account does not exist in our database for hash: %v", blockTx.From.String())
 			return fmt.Errorf("The `From` account does not exist in our database for hash: %v", blockTx.From.String())
 		}
 		acc.Balance -= blockTx.Value

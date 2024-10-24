@@ -5,10 +5,10 @@ import (
 	"log/slog"
 	"sort"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/signature"
 	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 )
 
 type TokenRepo struct {
@@ -86,6 +86,18 @@ func (r *TokenRepo) HashState() (string, error) {
 	// Sort and hash our tokens.
 	sort.Sort(byToken(tokens))
 	return signature.Hash(tokens), nil
+}
+
+func (r *TokenRepo) OpenTransaction() error {
+	return r.dbClient.OpenTransaction()
+}
+
+func (r *TokenRepo) CommitTransaction() error {
+	return r.dbClient.CommitTransaction()
+}
+
+func (r *TokenRepo) DiscardTransaction() {
+	r.dbClient.DiscardTransaction()
 }
 
 // =============================================================================
