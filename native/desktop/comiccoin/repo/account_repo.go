@@ -1,7 +1,6 @@
 package repo
 
 import (
-	"fmt"
 	"log/slog"
 	"sort"
 
@@ -93,31 +92,34 @@ func (r *AccountRepo) HashState() (string, error) {
 	for _, account := range accounts {
 		if account.Balance > 0 {
 			accountsWithBalance = append(accountsWithBalance, account)
-
-			// For debugging purposes only.
-			fmt.Printf("func HashState() --> unsorted: Addr: %v, Balance: %v\n", account.Address, account.Balance)
 		}
 	}
 
-	// For debugging purposes only.
-	for _, account := range accountsWithBalance {
-		fmt.Printf("func HashState() --> pre-sort: Addr: %v, Balance: %v\n", account.Address, account.Balance)
-	}
-
-	// Sort and hash our accounts.
+	// Sort the accounts by address
 	sort.Sort(byAccount(accountsWithBalance))
 
-	// For debugging purposes only.
+	// Serialize the accounts to JSON
+	accountsBytes := make([]byte, 0)
 	for _, account := range accountsWithBalance {
-		fmt.Printf("func HashState() --> post-sort: Addr: %v, Balance: %v\n", account.Address, account.Balance)
+		// DEVELOPERS NOTE:
+		// In Go, the order of struct fields is determined by the order in which
+		// they are defined in the struct. However, this order is not guaranteed
+		// to be the same across different nodes or even different runs of the
+		// same program.
+		//
+		// To fix this issue, you can use a deterministic serialization
+		// algorithm, such as JSON or CBOR, to serialize the Account struct
+		// before hashing it. This will ensure that the fields are always
+		// serialized in the same order, regardless of the node or run.
+		accountsByte, err := account.Serialize()
+		if err != nil {
+			return "", err
+		}
+		accountsBytes = append(accountsBytes, accountsByte...)
 	}
 
-	res, err := signature.Hash(accountsWithBalance), nil
-	if err != nil {
-		fmt.Printf("func HashState() --> err: %v\n", err)
-		return "", err
-	}
-	fmt.Printf("func HashState() --> res: %v\n", res)
+	// Hash the serialized accounts
+	res := signature.Hash(accountsBytes)
 	return res, nil
 }
 
