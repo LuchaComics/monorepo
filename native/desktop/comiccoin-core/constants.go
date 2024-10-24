@@ -10,7 +10,7 @@ const (
 	ComicCoinDifficulty                     = 2
 	ComicCoinConsensusPollingDelayInMinutes = 1
 	ComicCoinConsensusProtocol              = constants.ConsensusPoA
-	ComicCoinPeerListenPort                 = 26642
-	ComicCoinBootstrapPeers                 = "/ip4/127.0.0.1/tcp/26642/p2p/QmeZtjicLB8wWJ9L1gPuD5wrjmKQwJU6gHGHoaSofkXtUx" // Example `/ip4/127.0.0.1/tcp/26642/p2p/QmXYZ`.
+	ComicCoinPeerListenPort                 = 26644
+	ComicCoinBootstrapPeers                 = "/ip4/127.0.0.1/tcp/26642/p2p/QmZi2NPQx41oxfXdpVNGFtWp4rN1RJoYVyvAinKM9MHLh1" // Example `/ip4/127.0.0.1/tcp/26642/p2p/QmXYZ`.
 	ComicCoinIdentityKeyID                  = constants.DefaultIdentityKeyID
 )

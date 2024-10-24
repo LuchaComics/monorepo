@@ -93,12 +93,25 @@ func (r *AccountRepo) HashState() (string, error) {
 	for _, account := range accounts {
 		if account.Balance > 0 {
 			accountsWithBalance = append(accountsWithBalance, account)
-			fmt.Printf("func HashState() --> Addr: %v, Balance: %v\n", account.Address, account.Balance)
+
+			// For debugging purposes only.
+			fmt.Printf("func HashState() --> unsorted: Addr: %v, Balance: %v\n", account.Address, account.Balance)
 		}
+	}
+
+	// For debugging purposes only.
+	for _, account := range accountsWithBalance {
+		fmt.Printf("func HashState() --> pre-sort: Addr: %v, Balance: %v\n", account.Address, account.Balance)
 	}
 
 	// Sort and hash our accounts.
 	sort.Sort(byAccount(accountsWithBalance))
+
+	// For debugging purposes only.
+	for _, account := range accountsWithBalance {
+		fmt.Printf("func HashState() --> post-sort: Addr: %v, Balance: %v\n", account.Address, account.Balance)
+	}
+
 	res, err := signature.Hash(accountsWithBalance), nil
 	if err != nil {
 		fmt.Printf("func HashState() --> err: %v\n", err)

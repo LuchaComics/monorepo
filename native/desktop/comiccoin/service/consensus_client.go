@@ -91,6 +91,17 @@ func (s *MajorityVoteConsensusClientService) Execute(ctx context.Context) error 
 		return nil
 	}
 
+	// Make sure that if we receive signature for the genesis block that
+	// this function aborts because there's no need to sync genesis block
+	// because all the peers in the network already have it. This code gets
+	// called when the other consensus server is joining the network and
+	// they don't have anything.
+	if receivedHash == signature.ZeroHash {
+		// For debugging purposes only.
+		s.logger.Debug("consensus mechanism detected the other consensus server joined peer-to-peer network with only the genesis block so our consensus client will abort syncing")
+		return nil
+	}
+
 	//
 	// STEP 3:
 	// Get the latest blockchain hash we have in our local database and compare
@@ -101,11 +112,40 @@ func (s *MajorityVoteConsensusClientService) Execute(ctx context.Context) error 
 	// Note: Do not handle any errors, if we have any errors then continue and
 	// fetch the latest hash from network anyway.
 	localHash, _ := s.getBlockchainLastestHashUseCase.Execute()
-
 	if localHash != string(receivedHash) {
 
 		//
-		// STEP (PRE) 3
+		// STEP 4:
+		// Lookup both the received and local hashes, and perform the following:
+		// 1. If no received hash d.n.e. then continue
+		// 2. Else if received hash exists locally then compare the
+		// `block_number` and if local's is greater then abort as it means
+		// the other consensus server is out-of-date.
+		//
+
+		localBlockData, err := s.getBlockDataUseCase.Execute(localHash)
+		if err != nil {
+			s.logger.Error("consensus mechanism failed getting from local database",
+				slog.Any("error", err))
+			return err
+		}
+		receivedBlockData, err := s.getBlockDataUseCase.Execute(receivedHash)
+		if err != nil {
+			s.logger.Error("consensus mechanism failed getting from local database",
+				slog.Any("error", err))
+			return err
+		}
+
+		// Defensive code: Check if consensus server has outdated blockchain.
+		if receivedBlockData != nil {
+			if localBlockData.Header.Number >= receivedBlockData.Header.Number {
+				s.logger.Debug("local blockchain is up-to-date with peer-to-peer network, however the other sending server has outdated blockchain...")
+			}
+			s.logger.Debug("local blockchain is out-of-date with peer-to-peer network, proceeding to update...")
+		}
+
+		//
+		// STEP 5
 		// Start a transaction in the database and if any errors occur then
 		// we will need to discard the transaction. On success then we commit
 		// the storage transaction.
@@ -177,14 +217,6 @@ func (s *MajorityVoteConsensusClientService) Execute(ctx context.Context) error 
 }
 
 func (s *MajorityVoteConsensusClientService) runDownloadAndSyncBlockchainFromBlockDataHash(ctx context.Context, blockDataHash string) error {
-	// Make sure that if we receive signature for the genesis block that
-	// this function aborts because there's no need to sync genesis block
-	// because all the peers in the network already have it.
-	if blockDataHash == signature.ZeroHash {
-		s.logger.Debug("consensus mechanism detected genesis block data so sync aborted")
-		return nil
-	}
-
 	// Algorithm:
 	// 1. Fetch from network the blockdata for `network_hash`
 	// 2. Save blockdata to local database
