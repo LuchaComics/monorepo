@@ -22,7 +22,7 @@ import SendCoinSubmissionView from "./Components/Send/SendCoinSubmissionView";
 import SendCoinSuccessView from "./Components/Send/SendCoinSuccessView";
 import ReceiveView from "./Components/Receive/View";
 import MoreView from "./Components/More/View";
-import TransactionsView from "./Components/Transactions/View";
+import ListTransactionsView from "./Components/Transactions/ListView";
 import ListTokensView from "./Components/Tokens/ListView";
 import SettingsView from "./Components/Settings/View";
 
@@ -81,8 +81,8 @@ function AppRoute() {
                             <Route path="/send-success" element={<SendCoinSuccessView />} exact />
                             <Route path="/receive" element={<ReceiveView />} exact />
                             <Route path="/more" element={<MoreView />} exact />
-                            <Route path="/more/transactions" element={<TransactionsView />} exact />
-                            <Route path="/transactions" element={<TransactionsView />} exact />
+                            <Route path="/more/transactions" element={<ListTransactionsView />} exact />
+                            <Route path="/transactions" element={<ListTransactionsView />} exact />
                             <Route path="/tokens" element={<ListTokensView />} exact />
                             <Route path="/settings" element={<SettingsView />} exact />
                             <Route path="*" element={<NotFoundErrorView />} />

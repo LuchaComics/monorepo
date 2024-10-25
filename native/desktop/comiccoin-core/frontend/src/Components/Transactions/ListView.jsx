@@ -19,7 +19,7 @@ import { GetTransactions } from "../../../wailsjs/go/main/App";
 import { currentOpenWalletAtAddressState } from "../../AppState";
 
 
-function TransactionsView() {
+function ListTransactionsView() {
     ////
     //// Global State
     ////
@@ -148,4 +148,4 @@ function TransactionsView() {
     )
 }
 
-export default TransactionsView
+export default ListTransactionsView
