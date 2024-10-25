@@ -38,8 +38,8 @@ type httpServerImpl struct {
 	// getAccountHTTPHandler is the handler for getting accounts.
 	getAccountHTTPHandler *handler.GetAccountHTTPHandler
 
-	// createTransactionHTTPHandler is the handler for creating transactions.
-	createTransactionHTTPHandler *handler.CreateTransactionHTTPHandler
+	// transferCoinHTTPHandler is the handler for creating transactions.
+	transferCoinHTTPHandler *handler.TransferCoinHTTPHandler
 
 	// mintTokenHTTPHandler is the handler for minting new Token.
 	mintTokenHTTPHandler *handler.ProofOfAuthorityTokenMintHTTPHandler
@@ -61,7 +61,7 @@ func NewHTTPServer(
 	mid mid.Middleware,
 	createAccountHTTPHandler *handler.CreateAccountHTTPHandler,
 	getAccountHTTPHandler *handler.GetAccountHTTPHandler,
-	createTransactionHTTPHandler *handler.CreateTransactionHTTPHandler,
+	transferCoinHTTPHandler *handler.TransferCoinHTTPHandler,
 	mintTokenHTTPHandler *handler.ProofOfAuthorityTokenMintHTTPHandler,
 	transferTokenHTTPHandler *handler.TransferTokenHTTPHandler,
 	burnTokenHTTPHandler *handler.BurnTokenHTTPHandler,
@@ -86,16 +86,16 @@ func NewHTTPServer(
 
 	// Create a new HTTP server instance.
 	port := &httpServerImpl{
-		cfg:                          cfg,
-		logger:                       logger,
-		server:                       srv,
-		createAccountHTTPHandler:     createAccountHTTPHandler,
-		getAccountHTTPHandler:        getAccountHTTPHandler,
-		createTransactionHTTPHandler: createTransactionHTTPHandler,
-		mintTokenHTTPHandler:         mintTokenHTTPHandler,
-		transferTokenHTTPHandler:     transferTokenHTTPHandler,
-		burnTokenHTTPHandler:         burnTokenHTTPHandler,
-		getTokenHTTPHandler:          getTokenHTTPHandler,
+		cfg:                      cfg,
+		logger:                   logger,
+		server:                   srv,
+		createAccountHTTPHandler: createAccountHTTPHandler,
+		getAccountHTTPHandler:    getAccountHTTPHandler,
+		transferCoinHTTPHandler:  transferCoinHTTPHandler,
+		mintTokenHTTPHandler:     mintTokenHTTPHandler,
+		transferTokenHTTPHandler: transferTokenHTTPHandler,
+		burnTokenHTTPHandler:     burnTokenHTTPHandler,
+		getTokenHTTPHandler:      getTokenHTTPHandler,
 	}
 
 	// Attach the HTTP server controller to the ServeMux.
@@ -158,10 +158,10 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		// case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "account" && r.Method == http.MethodDelete:
 		// 	port.account.DeleteByName(w, r, p[3])
 
-	// --- TRANSACTIONS --- //
-	case n == 3 && p[0] == "v1" && p[1] == "api" && p[2] == "txs" && r.Method == http.MethodPost:
+	// --- COINS --- //
+	case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "coins" && p[3] == "transfer" && r.Method == http.MethodPost:
 		// Handle the request to create a transaction.
-		port.createTransactionHTTPHandler.Execute(w, r)
+		port.transferCoinHTTPHandler.Execute(w, r)
 
 		// --- TOKENS --- //
 	case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "token" && r.Method == http.MethodGet:

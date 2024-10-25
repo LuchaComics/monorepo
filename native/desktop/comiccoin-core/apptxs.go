@@ -25,3 +25,25 @@ func (a *App) GetTransactions(address string) ([]*domain.BlockTransaction, error
 
 	return txs, nil
 }
+func (a *App) SubmitCoinTransaction(
+	toRecipientAddress string,
+	coins uint64,
+	message string,
+	senderAccountAddress string,
+	senderAccountPassword string,
+) error {
+	// addr := common.HexToAddress(address)
+	//
+	// // Defensive code
+	// if address == "" {
+	// 	return make([]*domain.BlockTransaction, 0), fmt.Errorf("failed because: address is null: %v", address)
+	// }
+	//
+	// txs, err := a.listRecentBlockTransactionService.Execute(&addr, 5)
+	// if err != nil {
+	// 	a.logger.Error("Failed getting account balance", slog.Any("error", err))
+	// 	return nil, err
+	// }
+
+	return nil
+}

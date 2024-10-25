@@ -15,10 +15,10 @@ import (
 	httphandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin/interface/http/handler"
 )
 
-func submitTxCmd() *cobra.Command {
+func transferCoinCmd() *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "submit",
-		Short: "Submit a (pending) transaction to the ComicCoin blockchain network",
+		Use:   "transfer",
+		Short: "Submit a (pending) transaction to the ComicCoin blockchain network to transfer coins from your account to another account",
 		Run: func(cmd *cobra.Command, args []string) {
 			doSubmitTransactionCommand()
 		},
@@ -32,6 +32,8 @@ func submitTxCmd() *cobra.Command {
 
 	cmd.Flags().Uint64Var(&flagAmount, "value", 0, "The amount of coins to send")
 	cmd.MarkFlagRequired("value")
+
+	cmd.Flags().StringVar(&flagData, "data", "", "Optional data to include with this transaction")
 
 	cmd.Flags().StringVar(&flagRecipientAddress, "recipient-address", "", "The address of the account whom will receive this coin")
 	cmd.MarkFlagRequired("recipient-address")
@@ -51,12 +53,12 @@ func doSubmitTransactionCommand() {
 
 	httpEndpoint := fmt.Sprintf("http://%s:%d%s", flagListenHTTPIP, flagListenHTTPPort, transactionsURL)
 
-	req := &httphandler.CreateTransactionRequestIDO{
+	req := &httphandler.TransferCoinRequestIDO{
 		SenderAccountAddress:  flagAccountAddress,
 		SenderAccountPassword: flagPassword,
 		RecipientAddress:      flagRecipientAddress,
 		Value:                 flagAmount,
-		Data:                  nil,
+		Data:                  flagData,
 	}
 
 	logger.Debug("Submitting to blockchain",
@@ -64,6 +66,7 @@ func doSubmitTransactionCommand() {
 		slog.Any("sender-account-addresss", flagAccountAddress),
 		slog.Any("sender-account-password", flagPassword),
 		slog.Any("value", flagAmount),
+		slog.Any("data", flagData),
 		slog.Any("recipient-address", flagRecipientAddress),
 		slog.Any("request", req),
 	)

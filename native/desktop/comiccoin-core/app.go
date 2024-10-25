@@ -45,7 +45,7 @@ type App struct {
 	createAccountService                   *service.CreateAccountService
 	getAccountService                      *service.GetAccountService
 	getAccountBalanceService               *service.GetAccountBalanceService
-	createTxService                        *service.CreateTransactionService
+	transferCoinService                    *service.TransferCoinService
 	poaTokenMintService                    *service.ProofOfAuthorityTokenMintService
 	transferTokenService                   *service.TransferTokenService
 	burnTokenService                       *service.BurnTokenService
@@ -540,7 +540,7 @@ func (a *App) startup(ctx context.Context) {
 		getBlockDataUseCase)
 
 	// Transaction
-	createTxService := service.NewCreateTransactionService(
+	transferCoinService := service.NewTransferCoinService(
 		cfg,
 		logger,
 		getAccountUseCase,
@@ -740,7 +740,7 @@ func (a *App) startup(ctx context.Context) {
 	a.createAccountService = createAccountService
 	a.getAccountService = getAccountService
 	a.getAccountBalanceService = getAccountBalanceService
-	a.createTxService = createTxService
+	a.transferCoinService = transferCoinService
 	a.listRecentBlockTransactionService = listRecentBlockTransactionService
 	a.listAllBlockTransactionService = listAllBlockTransactionService
 	a.poaTokenMintService = poaTokenMintService

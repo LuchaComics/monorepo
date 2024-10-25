@@ -8,26 +8,26 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 )
 
-type CreateTransactionHTTPHandler struct {
+type TransferCoinHTTPHandler struct {
 	config  *config.Config
 	logger  *slog.Logger
-	service *service.CreateTransactionService
+	service *service.TransferCoinService
 }
 
-func NewCreateTransactionHTTPHandler(
+func NewTransferCoinHTTPHandler(
 	cfg *config.Config,
 	logger *slog.Logger,
-	createTransactionService *service.CreateTransactionService,
-) *CreateTransactionHTTPHandler {
-	return &CreateTransactionHTTPHandler{cfg, logger, createTransactionService}
+	transferCoinService *service.TransferCoinService,
+) *TransferCoinHTTPHandler {
+	return &TransferCoinHTTPHandler{cfg, logger, transferCoinService}
 }
 
-type CreateTransactionRequestIDO struct {
+type TransferCoinRequestIDO struct {
 	// Name of the account
 	SenderAccountAddress string `json:"sender_account_address"`
 
@@ -40,16 +40,16 @@ type CreateTransactionRequestIDO struct {
 	RecipientAddress string `json:"recipient_address"`
 
 	// Data is any Token related data attached
-	Data []byte `json:"data"`
+	Data string `json:"data"`
 }
 
-type BlockchainCreateTransactionResponseIDO struct {
+type BlockchainTransferCoinResponseIDO struct {
 }
 
-func (h *CreateTransactionHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
+func (h *TransferCoinHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	req, err := unmarshalCreateTransactionRequest(ctx, r)
+	req, err := unmarshalTransferCoinRequest(ctx, r)
 	if err != nil {
 		httperror.ResponseError(w, err)
 		return
@@ -70,7 +70,7 @@ func (h *CreateTransactionHTTPHandler) Execute(w http.ResponseWriter, r *http.Re
 		req.SenderAccountPassword,
 		&toAddr,
 		req.Value,
-		req.Data,
+		[]byte(req.Data),
 	)
 	if serviceExecErr != nil {
 		httperror.ResponseError(w, serviceExecErr)
@@ -80,9 +80,9 @@ func (h *CreateTransactionHTTPHandler) Execute(w http.ResponseWriter, r *http.Re
 	w.WriteHeader(http.StatusCreated)
 }
 
-func unmarshalCreateTransactionRequest(ctx context.Context, r *http.Request) (*CreateTransactionRequestIDO, error) {
+func unmarshalTransferCoinRequest(ctx context.Context, r *http.Request) (*TransferCoinRequestIDO, error) {
 	// Initialize our array which will store all the results from the remote server.
-	var requestData *CreateTransactionRequestIDO
+	var requestData *TransferCoinRequestIDO
 
 	defer r.Body.Close()
 

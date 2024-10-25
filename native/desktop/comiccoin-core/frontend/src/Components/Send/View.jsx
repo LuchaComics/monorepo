@@ -17,6 +17,7 @@ import logo from '../../assets/images/CPS-logo-2023-square.webp';
 import FormErrorBox from "../Reusable/FormErrorBox";
 import FormInputField from "../Reusable/FormInputField";
 import FormRadioField from "../Reusable/FormRadioField";
+import FormTextareaField from "../Reusable/FormTextareaField";
 
 
 function SendView() {
@@ -30,7 +31,8 @@ function SendView() {
 
     // Form Submission States.
     const [toAddress, setToAddress] = useState("");
-    const [amount, setAmount] = useState("");
+    const [coin, setCoin] = useState("");
+    const [message, setMessage] = useState("");
 
     ////
     //// Event handling.
@@ -95,35 +97,35 @@ function SendView() {
                   placeholder="0x000.."
                   value={toAddress}
                   errorText={errors && errors.toAddress}
-                  helpText=""
+                  helpText="Enter a ComicCoin address (e.g. 0x38e26e225a391ee497b63b90820a95eb36b5add6)."
                   onChange={(e) => setToAddress(e.target.value)}
                   isRequired={true}
-                  maxWidth="300px"
+                  maxWidth="400px"
                 />
 
                 <FormInputField
-                  label="Amount:"
-                  name="amount"
+                  label="Coin(s):"
+                  name="coin"
                   placeholder="0"
-                  value={amount}
-                  errorText={errors && errors.amount}
+                  value={coin}
+                  errorText={errors && errors.coin}
                   helpText=""
-                  onChange={(e) => setAmount(e.target.value)}
+                  onChange={(e) => setCoin(e.target.value)}
                   isRequired={true}
                   maxWidth="300px"
                 />
 
-                <FormInputField
-                  label="Transaction Fee:"
-                  name="transactionFee"
-                  placeholder=""
-                  value={`0`}
-                  errorText={errors && errors.transactionFee}
-                  helpText="ComicCoin has no transaction fees."
-                  onChange={null}
+                <FormTextareaField
+                  label="Message (Optional)"
+                  name="message"
+                  placeholder="Enter your message here..."
+                  value={message}
+                  errorText={errors && errors.message}
+                  onChange={(e) => setMessage(e.target.value)}
                   isRequired={true}
-                  maxWidth="300px"
-                  disabled={true}
+                  maxWidth="280px"
+                  helpText={"Optional field you may use to write a message to the receipient."}
+                  rows={4}
                 />
 
                 <div class="columns pt-5" style={{alignSelf: "flex-start"}}>
@@ -153,7 +155,7 @@ function SendView() {
             </section>
           </div>
         </>
-    )
+    );
 }
 
 export default SendView

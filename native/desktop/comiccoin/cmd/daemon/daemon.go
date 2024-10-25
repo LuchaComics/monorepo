@@ -480,7 +480,7 @@ func DaemonCmd() *cobra.Command {
 			_ = getAccountBalanceService // TODO
 
 			// Transaction
-			createTxService := service.NewCreateTransactionService(
+			transferCoinService := service.NewTransferCoinService(
 				cfg,
 				logger,
 				getAccountUseCase,
@@ -670,10 +670,10 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				getAccountService)
-			createTransactionHTTPHandler := httphandler.NewCreateTransactionHTTPHandler(
+			transferCoinHTTPHandler := httphandler.NewTransferCoinHTTPHandler(
 				cfg,
 				logger,
-				createTxService)
+				transferCoinService)
 			poaTokenMintHTTPHandler := httphandler.NewProofOfAuthorityTokenMintHTTPHandler(
 				cfg,
 				logger,
@@ -699,7 +699,7 @@ func DaemonCmd() *cobra.Command {
 				httpMiddleware,
 				createAccountHTTPHandler,
 				getAccountHTTPHandler,
-				createTransactionHTTPHandler,
+				transferCoinHTTPHandler,
 				poaTokenMintHTTPHandler,
 				transferTokenHTTPHandler,
 				burnTokenHTTPHandler,

@@ -14,6 +14,7 @@ var (
 	flagAmount           uint64
 	flagKeypairName      string
 	flagAccountAddress   string
+	flagData             string
 
 	flagRendezvousString string
 	flagBootstrapPeers   string
@@ -39,7 +40,7 @@ func BlockchainCmd() *cobra.Command {
 
 	// Attach our sub-commands
 	cmd.AddCommand(AccountCmd())
-	cmd.AddCommand(TxCmd())
+	cmd.AddCommand(CoinCmd())
 	cmd.AddCommand(InitCmd())
 	cmd.AddCommand(TokenCmd())
 

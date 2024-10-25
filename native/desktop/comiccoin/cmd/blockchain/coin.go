@@ -4,20 +4,20 @@ import "github.com/spf13/cobra"
 
 // HTTP endpoints
 const (
-	transactionsURL = "/v1/api/txs"
+	transactionsURL = "/v1/api/coins/transfer"
 )
 
-func TxCmd() *cobra.Command {
+func CoinCmd() *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "tx",
-		Short: "Execute commands related to transactions",
+		Use:   "coin",
+		Short: "Execute commands related to your coins",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Do nothing...
 		},
 	}
 
 	// // Attach our sub-commands for `tx`
-	cmd.AddCommand(submitTxCmd())
+	cmd.AddCommand(transferCoinCmd())
 
 	return cmd
 }

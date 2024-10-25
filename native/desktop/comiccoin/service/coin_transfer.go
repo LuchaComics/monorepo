@@ -8,13 +8,13 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 )
 
-type CreateTransactionService struct {
+type TransferCoinService struct {
 	config                                *config.Config
 	logger                                *slog.Logger
 	getAccountUseCase                     *usecase.GetAccountUseCase
@@ -23,18 +23,18 @@ type CreateTransactionService struct {
 	broadcastMempoolTransactionDTOUseCase *usecase.BroadcastMempoolTransactionDTOUseCase
 }
 
-func NewCreateTransactionService(
+func NewTransferCoinService(
 	cfg *config.Config,
 	logger *slog.Logger,
 	uc1 *usecase.GetAccountUseCase,
 	uc2 *usecase.GetWalletUseCase,
 	uc3 *usecase.WalletDecryptKeyUseCase,
 	uc4 *usecase.BroadcastMempoolTransactionDTOUseCase,
-) *CreateTransactionService {
-	return &CreateTransactionService{cfg, logger, uc1, uc2, uc3, uc4}
+) *TransferCoinService {
+	return &TransferCoinService{cfg, logger, uc1, uc2, uc3, uc4}
 }
 
-func (s *CreateTransactionService) Execute(
+func (s *TransferCoinService) Execute(
 	ctx context.Context,
 	fromAccountAddress *common.Address,
 	accountWalletPassword string,
