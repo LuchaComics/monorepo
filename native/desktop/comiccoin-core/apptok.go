@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 	"github.com/ethereum/go-ethereum/common"
@@ -48,7 +49,7 @@ func (a *App) TransferToken(
 }
 
 func (a *App) GetTokens(address string) ([]*domain.Token, error) {
-	addr := common.HexToAddress(address)
+	addr := common.HexToAddress(strings.ToLower(address))
 
 	// Defensive code
 	if address == "" {

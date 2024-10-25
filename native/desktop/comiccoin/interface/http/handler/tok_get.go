@@ -6,10 +6,11 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 )
 
 type GetTokenHTTPHandler struct {
@@ -52,7 +53,7 @@ func (h *GetTokenHTTPHandler) Execute(w http.ResponseWriter, r *http.Request, to
 	// Conver to our HTTP response and send back to the user.
 	responsePayload := &TokenGetResponseIDO{
 		ID:          token.ID,
-		Owner:       token.Owner.String(),
+		Owner:       strings.ToLower(token.Owner.String()),
 		MetadataURI: token.MetadataURI,
 		Nonce:       token.Nonce,
 	}

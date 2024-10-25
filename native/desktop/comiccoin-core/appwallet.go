@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 )
@@ -33,7 +34,7 @@ func (a *App) CreateWallet(walletPassword, walletPasswordRepeated, walletLabel s
 	// Save this newly created wallet address as the default address to
 	// load up when the application finishes loading.
 	walletAddress := account.Address.String()
-	preferences.SetDefaultWalletAddress(walletAddress)
+	preferences.SetDefaultWalletAddress(strings.ToLower(walletAddress))
 
 	// Return our address.
 	return walletAddress, nil
@@ -41,5 +42,5 @@ func (a *App) CreateWallet(walletPassword, walletPasswordRepeated, walletLabel s
 
 func (a *App) SetDefaultWalletAddress(walletAddress string) {
 	preferences := PreferencesInstance()
-	preferences.SetDefaultWalletAddress(walletAddress)
+	preferences.SetDefaultWalletAddress(strings.ToLower(walletAddress))
 }

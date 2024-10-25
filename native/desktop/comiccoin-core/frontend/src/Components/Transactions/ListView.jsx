@@ -132,7 +132,7 @@ function ListTransactionsView() {
                             <td>{transaction.type === "coin" ? <><FontAwesomeIcon className="fas" icon={faCoins} /></> : <><FontAwesomeIcon className="fas" icon={faCubes} /></>}</td>
                             <td>{`${new Date(transaction.timestamp).toLocaleString()}`}</td>
                             <td>{transaction.from === toLower(currentOpenWalletAtAddress) ? "Sent" : "Received"}</td>
-                            <td>{transaction.value}</td>
+                            <td>{transaction.type === "coin" ? <>{transaction.value}</> : <>-</>}</td>
                             <td>{transaction.from}</td>
                             <td>{transaction.to}</td>
                           </tr>

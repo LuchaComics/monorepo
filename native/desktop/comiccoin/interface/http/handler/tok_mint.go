@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"strings"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -45,8 +46,8 @@ func (h *ProofOfAuthorityTokenMintHTTPHandler) Execute(w http.ResponseWriter, r 
 		return
 	}
 
-	pofAddr := common.HexToAddress(req.ProofOfAuthorityAccountAddress)
-	toAddr := common.HexToAddress(req.To)
+	pofAddr := common.HexToAddress(strings.ToLower(req.ProofOfAuthorityAccountAddress))
+	toAddr := common.HexToAddress(strings.ToLower(req.To))
 
 	h.logger.Debug("Received Token mint request",
 		slog.Any("metadata_uri", req.MetadataURI),

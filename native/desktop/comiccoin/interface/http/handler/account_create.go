@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
@@ -61,7 +62,7 @@ func (h *CreateAccountHTTPHandler) Execute(w http.ResponseWriter, r *http.Reques
 	responsePayload := &AccountCreateResponseIDO{
 		Nonce:   account.Nonce,
 		Balance: account.Balance,
-		Address: account.Address.String(),
+		Address: strings.ToLower(account.Address.String()),
 	}
 
 	w.WriteHeader(http.StatusCreated)

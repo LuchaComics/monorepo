@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 
@@ -10,7 +11,7 @@ import (
 )
 
 func (a *App) GetTotalCoins(address string) (uint64, error) {
-	addr := common.HexToAddress(address)
+	addr := common.HexToAddress(strings.ToLower(address))
 
 	// Defensive code
 	if address == "" {
@@ -34,7 +35,7 @@ func (a *App) GetTotalCoins(address string) (uint64, error) {
 }
 
 func (a *App) GetTotalTokens(address string) (int, error) {
-	addr := common.HexToAddress(address)
+	addr := common.HexToAddress(strings.ToLower(address))
 
 	// Defensive code
 	if address == "" {
@@ -51,7 +52,7 @@ func (a *App) GetTotalTokens(address string) (int, error) {
 }
 
 func (a *App) GetRecentTransactions(address string) ([]*domain.BlockTransaction, error) {
-	addr := common.HexToAddress(address)
+	addr := common.HexToAddress(strings.ToLower(address))
 
 	// Defensive code
 	if address == "" {

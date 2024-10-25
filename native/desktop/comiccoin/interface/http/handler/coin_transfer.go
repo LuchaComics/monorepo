@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 
@@ -55,8 +56,8 @@ func (h *TransferCoinHTTPHandler) Execute(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	toAddr := common.HexToAddress(req.RecipientAddress)
-	senderAddr := common.HexToAddress(req.SenderAccountAddress)
+	toAddr := common.HexToAddress(strings.ToLower(req.RecipientAddress))
+	senderAddr := common.HexToAddress(strings.ToLower(req.SenderAccountAddress))
 
 	h.logger.Debug("tx submit received",
 		slog.Any("sender", senderAddr),

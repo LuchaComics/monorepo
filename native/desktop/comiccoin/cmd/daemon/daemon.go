@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -87,7 +88,7 @@ func DaemonCmd() *cobra.Command {
 				},
 			}
 			if flagConsensusProtocol == constants.ConsensusPoA && flagEnableMiner {
-				coinbaseAddr := common.HexToAddress(flagProofOfAuthorityAccountAddress)
+				coinbaseAddr := common.HexToAddress(strings.ToLower(flagProofOfAuthorityAccountAddress))
 				cfg.Blockchain.ProofOfAuthorityAccountAddress = &coinbaseAddr
 				cfg.Blockchain.ProofOfAuthorityWalletPassword = flagProofOfAuthorityWalletPassword
 			}

@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 )
 
 type GetAccountHTTPHandler struct {
@@ -35,7 +36,7 @@ type AccountGetResponseIDO struct {
 func (h *GetAccountHTTPHandler) Execute(w http.ResponseWriter, r *http.Request, accountAddressStr string) {
 	// ctx := r.Context()
 
-	accountAddress := common.HexToAddress(accountAddressStr)
+	accountAddress := common.HexToAddress(strings.ToLower(accountAddressStr))
 
 	account, serviceErr := h.getAccountService.Execute(&accountAddress)
 	if serviceErr != nil {

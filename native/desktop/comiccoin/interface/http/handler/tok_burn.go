@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"strings"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -44,7 +45,7 @@ func (h *BurnTokenHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokenOwnerAddr := common.HexToAddress(req.TokenOwnerAddress)
+	tokenOwnerAddr := common.HexToAddress(strings.ToLower(req.TokenOwnerAddress))
 
 	h.logger.Debug("Received Token burn request",
 		slog.Any("token_id", req.TokenID),

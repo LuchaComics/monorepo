@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"sort"
+	"strings"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/signature"
 	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage"
@@ -82,7 +83,7 @@ func (r *TokenRepo) ListByOwner(owner *common.Address) ([]*domain.Token, error) 
 			return err
 		}
 
-		if token.Owner == owner {
+		if strings.ToLower(token.Owner.Hex()) == strings.ToLower(owner.Hex()) {
 			res = append(res, token)
 		}
 

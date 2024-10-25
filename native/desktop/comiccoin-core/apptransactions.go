@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 
@@ -10,7 +11,7 @@ import (
 )
 
 func (a *App) GetTransactions(address string) ([]*domain.BlockTransaction, error) {
-	addr := common.HexToAddress(address)
+	addr := common.HexToAddress(strings.ToLower(address))
 
 	// Defensive code
 	if address == "" {

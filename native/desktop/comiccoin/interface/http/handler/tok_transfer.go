@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"strings"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -45,8 +46,8 @@ func (h *TransferTokenHTTPHandler) Execute(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	tokenOwnerAddr := common.HexToAddress(req.TokenOwnerAddress)
-	recipientAddr := common.HexToAddress(req.RecipientAddress)
+	tokenOwnerAddr := common.HexToAddress(strings.ToLower(req.TokenOwnerAddress))
+	recipientAddr := common.HexToAddress(strings.ToLower(req.RecipientAddress))
 
 	h.logger.Debug("Received Token transfer request",
 		slog.Any("token_id", req.TokenID),
