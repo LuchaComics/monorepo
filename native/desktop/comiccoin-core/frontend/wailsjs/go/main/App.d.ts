@@ -26,6 +26,8 @@ export function ListWallets():Promise<Array<domain.Wallet>>;
 
 export function SaveDataDirectory(arg1:string):Promise<void>;
 
+export function SetDefaultWalletAddress(arg1:string):Promise<void>;
+
 export function ShutdownApp():Promise<void>;
 
 export function TransferCoin(arg1:string,arg2:number,arg3:string,arg4:string,arg5:string):Promise<void>;

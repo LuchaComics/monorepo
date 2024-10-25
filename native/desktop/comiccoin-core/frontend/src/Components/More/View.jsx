@@ -90,6 +90,22 @@ function MoreView() {
                             </div>
                             <div className="media-content">
                               <div className="content">
+                                <h4>Wallets</h4>
+                                <p>View and sign into different wallets on your local computer</p>
+                              </div>
+                            </div>
+                          </article>
+                          <Link to="/wallets" className="button is-fullwidth is-link">Go to wallets</Link>
+                        </div>
+                      </div>
+                      <div className="column is-4">
+                        <div className="box">
+                          <article className="media">
+                            <div className="media-left">
+                              <i className="fas fa-cog fa-2x" />
+                            </div>
+                            <div className="media-content">
+                              <div className="content">
                                 <h4>Settings</h4>
                                 <p>Configure your account settings</p>
                               </div>

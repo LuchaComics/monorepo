@@ -38,3 +38,8 @@ func (a *App) CreateWallet(walletPassword, walletPasswordRepeated, walletLabel s
 	// Return our address.
 	return walletAddress, nil
 }
+
+func (a *App) SetDefaultWalletAddress(walletAddress string) {
+	preferences := PreferencesInstance()
+	preferences.SetDefaultWalletAddress(walletAddress)
+}

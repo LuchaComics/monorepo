@@ -50,6 +50,10 @@ export function SaveDataDirectory(arg1) {
   return window['go']['main']['App']['SaveDataDirectory'](arg1);
 }
 
+export function SetDefaultWalletAddress(arg1) {
+  return window['go']['main']['App']['SetDefaultWalletAddress'](arg1);
+}
+
 export function ShutdownApp() {
   return window['go']['main']['App']['ShutdownApp']();
 }
