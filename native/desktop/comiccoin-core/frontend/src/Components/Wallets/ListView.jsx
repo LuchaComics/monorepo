@@ -13,6 +13,7 @@ import {
   faCoins,
   faPlus,
   faChevronRight,
+  faChevronLeft,
   faLock,
   faHome
 } from "@fortawesome/free-solid-svg-icons";
@@ -104,6 +105,16 @@ function ListWalletsView() {
                 </> : <>
                     <div class="container">
                       <section class="section">
+                        <nav class="breadcrumb" aria-label="breadcrumbs">
+                            <ul>
+                              <li>
+                                <Link to="/more" aria-current="page">
+                                  <FontAwesomeIcon className="fas" icon={faChevronLeft} />
+                                  &nbsp;Back to More
+                                </Link>
+                              </li>
+                            </ul>
+                        </nav>
                         <nav class="box">
                           <div class="columns">
                             <div class="column">
