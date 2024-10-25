@@ -17,6 +17,7 @@ import logo from '../../assets/images/CPS-logo-2023-square.webp';
 import { GetTotalCoins, GetTotalTokens, GetRecentTransactions } from "../../../wailsjs/go/main/App";
 import { currentOpenWalletAtAddressState } from "../../AppState";
 import PageLoadingContent from "../Reusable/PageLoadingContent";
+import { toLower } from "lodash";
 
 
 function DashboardView() {
@@ -153,7 +154,7 @@ function DashboardView() {
                           <tr key={transaction.hash}>
                             <td>{transaction.type === "coin" ? <><FontAwesomeIcon className="fas" icon={faCoins} /></> : <><FontAwesomeIcon className="fas" icon={faCubes} /></>}</td>
                             <td>{`${new Date(transaction.timestamp).toLocaleString()}`}</td>
-                            <td>{transaction.from === currentOpenWalletAtAddress ? "Sent" : "Received"}</td>
+                            <td>{transaction.from === toLower(currentOpenWalletAtAddress) ? "Sent" : "Received"}</td>
                             <td>{transaction.value}</td>
                             <td>{transaction.from}</td>
                             <td>{transaction.to}</td>

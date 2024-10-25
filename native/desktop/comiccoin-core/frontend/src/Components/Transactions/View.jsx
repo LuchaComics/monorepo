@@ -13,6 +13,7 @@ import {
     faEllipsis
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
+import { toLower } from "lodash";
 
 import { GetTransactions } from "../../../wailsjs/go/main/App";
 import { currentOpenWalletAtAddressState } from "../../AppState";
@@ -130,7 +131,7 @@ function TransactionsView() {
                           <tr key={transaction.hash}>
                             <td>{transaction.type === "coin" ? <><FontAwesomeIcon className="fas" icon={faCoins} /></> : <><FontAwesomeIcon className="fas" icon={faCubes} /></>}</td>
                             <td>{`${new Date(transaction.timestamp).toLocaleString()}`}</td>
-                            <td>{transaction.from === currentOpenWalletAtAddress ? "Sent" : "Received"}</td>
+                            <td>{transaction.from === toLower(currentOpenWalletAtAddress) ? "Sent" : "Received"}</td>
                             <td>{transaction.value}</td>
                             <td>{transaction.from}</td>
                             <td>{transaction.to}</td>

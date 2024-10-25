@@ -55,6 +55,8 @@ function CreateWalletView() {
     ////
 
     const onSubmitClick = (e) => {
+        e.preventDefault();
+        
         // Update the GUI to let user know that the operation is under way.
         setIsLoading(true);
 
