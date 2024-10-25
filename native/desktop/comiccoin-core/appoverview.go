@@ -33,15 +33,21 @@ func (a *App) GetTotalCoins(address string) (uint64, error) {
 	return account.Balance, nil
 }
 
-func (a *App) GetTotalTokens(address string) (uint64, error) {
+func (a *App) GetTotalTokens(address string) (int, error) {
+	addr := common.HexToAddress(address)
+
 	// Defensive code
 	if address == "" {
 		return 0, fmt.Errorf("failed because: address is null: %v", address)
 	}
 
-	//TODO: Impl.
+	tokCount, err := a.countByOwnerTokenService.Execute(&addr)
+	if err != nil {
+		a.logger.Error("Failed getting account balance", slog.Any("error", err))
+		return 0, err
+	}
 
-	return 0, nil
+	return tokCount, nil
 }
 
 func (a *App) GetRecentTransactions(address string) ([]*domain.BlockTransaction, error) {
