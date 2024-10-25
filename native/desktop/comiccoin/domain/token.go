@@ -26,6 +26,10 @@ type TokenRepository interface {
 	// ListAll retrieves all tokens in the repository.
 	ListAll() ([]*Token, error)
 
+	// ListByOwner retrieves all the tokens in the repository that belongs
+	// to the owner address.
+	ListByOwner(owner *common.Address) ([]*Token, error)
+
 	// DeleteByID deletes an token by its ID.
 	DeleteByID(id uint64) error
 

@@ -9,6 +9,7 @@ import (
 	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 type TokenRepo struct {
@@ -69,6 +70,28 @@ func (r *TokenRepo) ListAll() ([]*domain.Token, error) {
 	return res, err
 }
 
+func (r *TokenRepo) ListByOwner(owner *common.Address) ([]*domain.Token, error) {
+	res := make([]*domain.Token, 0)
+	err := r.dbClient.Iterate(func(key, value []byte) error {
+		token, err := domain.NewTokenFromDeserialize(value)
+		if err != nil {
+			r.logger.Error("failed to deserialize",
+				slog.String("key", string(key)),
+				slog.String("value", string(value)),
+				slog.Any("error", err))
+			return err
+		}
+
+		if token.Owner == owner {
+			res = append(res, token)
+		}
+
+		// Return nil to indicate success
+		return nil
+	})
+
+	return res, err
+}
 func (r *TokenRepo) DeleteByID(id uint64) error {
 	err := r.dbClient.Delete(fmt.Sprintf("%v", id))
 	if err != nil {

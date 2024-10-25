@@ -1,7 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
+
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 func (a *App) TransferToken(
@@ -41,4 +45,22 @@ func (a *App) TransferToken(
 	// }
 
 	return nil
+}
+
+func (a *App) GetTokens(address string) ([]*domain.Token, error) {
+	addr := common.HexToAddress(address)
+
+	// Defensive code
+	if address == "" {
+		return make([]*domain.Token, 0), fmt.Errorf("failed because: address is null: %v", address)
+	}
+
+	toks, err := a.listByOwnerTokenService.Execute(&addr, 5)
+	if err != nil {
+		a.logger.Error("Failed listing tokens by owner",
+			slog.Any("error", err))
+		return nil, err
+	}
+
+	return toks, nil
 }

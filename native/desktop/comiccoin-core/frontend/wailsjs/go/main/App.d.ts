@@ -16,6 +16,8 @@ export function GetIsBlockhainNodeRunning():Promise<boolean>;
 
 export function GetRecentTransactions(arg1:string):Promise<Array<domain.BlockTransaction>>;
 
+export function GetTokens(arg1:string):Promise<Array<domain.Token>>;
+
 export function GetTotalCoins(arg1:string):Promise<number>;
 
 export function GetTotalTokens(arg1:string):Promise<number>;

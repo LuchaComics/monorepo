@@ -30,6 +30,10 @@ export function GetRecentTransactions(arg1) {
   return window['go']['main']['App']['GetRecentTransactions'](arg1);
 }
 
+export function GetTokens(arg1) {
+  return window['go']['main']['App']['GetTokens'](arg1);
+}
+
 export function GetTotalCoins(arg1) {
   return window['go']['main']['App']['GetTotalCoins'](arg1);
 }

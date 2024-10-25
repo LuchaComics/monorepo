@@ -50,6 +50,7 @@ type App struct {
 	transferTokenService                   *service.TransferTokenService
 	burnTokenService                       *service.BurnTokenService
 	getTokenService                        *service.GetTokenService
+	listByOwnerTokenService                *service.ListByOwnerTokenService
 	mempoolReceiveService                  *service.MempoolReceiveService
 	mempoolBatchSendService                *service.MempoolBatchSendService
 	proofOfWorkMiningService               *service.ProofOfWorkMiningService
@@ -366,6 +367,10 @@ func (a *App) startup(ctx context.Context) {
 		cfg,
 		logger,
 		tokenRepo)
+	listTokensByOwnerUseCase := usecase.NewListTokensByOwnerUseCase(
+		cfg,
+		logger,
+		tokenRepo)
 
 	// Mempool Transaction DTO
 	broadcastMempoolTxDTOUseCase := usecase.NewBroadcastMempoolTransactionDTOUseCase(
@@ -592,6 +597,10 @@ func (a *App) startup(ctx context.Context) {
 		cfg,
 		logger,
 		getTokenUseCase)
+	listByOwnerTokenService := service.NewListByOwnerTokenService(
+		cfg,
+		logger,
+		listTokensByOwnerUseCase)
 
 	// Mempool
 	mempoolReceiveService := service.NewMempoolReceiveService(
@@ -747,6 +756,7 @@ func (a *App) startup(ctx context.Context) {
 	a.transferTokenService = transferTokenService
 	a.burnTokenService = burnTokenService
 	a.getTokenService = getTokenService
+	a.listByOwnerTokenService = listByOwnerTokenService
 	a.mempoolReceiveService = mempoolReceiveService
 	a.mempoolBatchSendService = mempoolBatchSendService
 	a.proofOfWorkMiningService = proofOfWorkMiningService

@@ -50,21 +50,7 @@ function InitializeView() {
     }
 
     return (
-        <div className="column is-12">
-      <div className="section">
-        <section className="hero is-fullheight">
-          <div className="hero-body">
-            <div className="container">
-              <div className="columns is-centered">
-                <div className="column is-4 has-text-centered">
-                  Loading...
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-    </div>
+        <PageLoadingContent displayMessage="Initializing..." />
     )
 }
 
