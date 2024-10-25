@@ -111,14 +111,14 @@ func (r *AccountRepo) HashState() (string, error) {
 		// algorithm, such as JSON or CBOR, to serialize the Account struct
 		// before hashing it. This will ensure that the fields are always
 		// serialized in the same order, regardless of the node or run.
-		accountsByte, err := account.Serialize()
+		accountBytes, err := account.Serialize()
 		if err != nil {
 			return "", err
 		}
-		accountsBytes = append(accountsBytes, accountsByte...)
+		accountsBytes = append(accountsBytes, accountBytes...)
 	}
 
-	// Hash the serialized accounts
+	// Hash the deterministic serialized accounts
 	res := signature.Hash(accountsBytes)
 	return res, nil
 }

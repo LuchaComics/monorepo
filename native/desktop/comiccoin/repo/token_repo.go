@@ -108,7 +108,29 @@ func (r *TokenRepo) HashState() (string, error) {
 
 	// Sort and hash our tokens.
 	sort.Sort(byToken(tokens))
-	return signature.Hash(tokens), nil
+
+	// Serialize the accounts to JSON
+	tokensBytes := make([]byte, 0)
+	for _, tok := range tokens {
+		// DEVELOPERS NOTE:
+		// In Go, the order of struct fields is determined by the order in which
+		// they are defined in the struct. However, this order is not guaranteed
+		// to be the same across different nodes or even different runs of the
+		// same program.
+		//
+		// To fix this issue, you can use a deterministic serialization
+		// algorithm, such as JSON or CBOR, to serialize the Account struct
+		// before hashing it. This will ensure that the fields are always
+		// serialized in the same order, regardless of the node or run.
+		tokBytes, err := tok.Serialize()
+		if err != nil {
+			return "", err
+		}
+		tokensBytes = append(tokensBytes, tokBytes...)
+	}
+
+	// Hash the deterministic serialized tokens.
+	return signature.Hash(tokensBytes), nil
 }
 
 func (r *TokenRepo) OpenTransaction() error {
