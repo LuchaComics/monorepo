@@ -11,26 +11,66 @@ import {
   faPaperPlane,
   faEllipsis
 } from "@fortawesome/free-solid-svg-icons";
+import { useRecoilState } from "recoil";
+
+import FormErrorBox from "../Reusable/FormErrorBox";
+import PageLoadingContent from "../Reusable/PageLoadingContent";
+import { currentOpenWalletAtAddressState } from "../../AppState";
 
 
+function ListTokensView() {
+    ////
+    //// Global State
+    ////
 
-function TokensView() {
+    const [currentOpenWalletAtAddress] = useRecoilState(currentOpenWalletAtAddressState);
 
+    ////
+    //// Component states.
+    ////
+
+    // GUI States.
+    const [errors, setErrors] = useState({});
+    const [forceURL, setForceURL] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [tokens, setTokens] = useState([]);
+
+    ////
+    //// Event handling.
+    ////
+
+    ////
+    //// API.
+    ////
+
+    ////
+    //// Misc.
+    ////
 
     useEffect(() => {
       let mounted = true;
 
       if (mounted) {
             window.scrollTo(0, 0); // Start the page at the top of the page.
+            
       }
-
 
       return () => {
         mounted = false;
       };
     }, []);
 
+    ////
+    //// Component rendering.
+    ////
 
+    ////
+    //// Component rendering.
+    ////
+
+    if (forceURL !== "") {
+      return <Navigate to={forceURL} />;
+    }
 
     return (
         <>
@@ -68,18 +108,19 @@ function TokensView() {
                     </h1>
                   </div>
                 </div>
+                <FormErrorBox errors={errors} />
+                {isLoading ? <>
+                    <PageLoadingContent displayMessage="Fetching..." />
+                </> : <>
+                    <div className="section">
+                        <div className="container">
+                            <div className="columns is-multiline">
 
-                <div className="section">
-                  <div className="container">
-                    <div className="columns is-multiline">
 
-
-
-
+                            </div>
+                        </div>
                     </div>
-                    </div>
-                </div>
-
+                </>}
 
               </nav>
             </section>
@@ -88,4 +129,4 @@ function TokensView() {
     )
 }
 
-export default TokensView
+export default ListTokensView

@@ -23,7 +23,7 @@ import SendCoinSuccessView from "./Components/Send/SendCoinSuccessView";
 import ReceiveView from "./Components/Receive/View";
 import MoreView from "./Components/More/View";
 import TransactionsView from "./Components/Transactions/View";
-import TokensView from "./Components/Tokens/View";
+import ListTokensView from "./Components/Tokens/ListView";
 import SettingsView from "./Components/Settings/View";
 
 function AppRoute() {
@@ -83,7 +83,7 @@ function AppRoute() {
                             <Route path="/more" element={<MoreView />} exact />
                             <Route path="/more/transactions" element={<TransactionsView />} exact />
                             <Route path="/transactions" element={<TransactionsView />} exact />
-                            <Route path="/tokens" element={<TokensView />} exact />
+                            <Route path="/tokens" element={<ListTokensView />} exact />
                             <Route path="/settings" element={<SettingsView />} exact />
                             <Route path="*" element={<NotFoundErrorView />} />
                         </Routes>
