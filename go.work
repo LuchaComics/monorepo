@@ -8,4 +8,5 @@ use (
 	./native/desktop/comiccoin
 	./native/desktop/comiccoin-core
 	./native/desktop/comiccoin-nftstore
+	./native/desktop/comiccoin-registry
 )
