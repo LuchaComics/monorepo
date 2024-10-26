@@ -6,10 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/cmd/blockchain"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/cmd/daemon"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/cmd/initialization"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/cmd/version"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/cmd/submit"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/cmd/version"
 )
 
 var (
@@ -29,8 +27,8 @@ func init() {
 }
 
 var rootCmd = &cobra.Command{
-	Use:   "comiccoin",
-	Short: "ComicCoin CLI",
+	Use:   "comiccoin-nftstore",
+	Short: "ComicCoin NFT Store CLI",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Do nothing.
@@ -39,10 +37,10 @@ var rootCmd = &cobra.Command{
 
 func Execute() {
 	// Attach sub-commands to our main root.
-	rootCmd.AddCommand(initialization.InitCmd())
-	rootCmd.AddCommand(blockchain.BlockchainCmd())
-	rootCmd.AddCommand(daemon.DaemonCmd())
 	rootCmd.AddCommand(version.VersionCmd())
+	rootCmd.AddCommand(GetAssetCmd())
+	rootCmd.AddCommand(GetMetadataCmd())
+	rootCmd.AddCommand(submit.SubmitMetadataURICmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
