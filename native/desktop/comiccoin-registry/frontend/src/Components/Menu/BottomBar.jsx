@@ -13,7 +13,8 @@ import {
   faGauge,
   faPaperPlane,
   faEllipsis,
-  faInbox
+  faInbox,
+  faCubes
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
@@ -85,9 +86,18 @@ function BottomTabBar() {
                 <span className="icon is-small">
                   <FontAwesomeIcon icon={faGauge} />
                 </span>
-                <span>Overview</span>
+                <span>Dashboard</span>
               </Link>
             </li>
+            <li className={`has-text-grey-light ${location.pathname.includes("tokens") && "is-active"}`}>
+              <Link to="/tokens">
+                <span className="icon is-small">
+                  <FontAwesomeIcon icon={faCubes} />
+                </span>
+                <span>Tokens</span>
+              </Link>
+            </li>
+            {/*
             <li className={`has-text-grey-light ${location.pathname.includes("send") && "is-active"}`}>
               <Link to="/send">
                 <span className="icon is-small">
@@ -112,6 +122,7 @@ function BottomTabBar() {
                 <span>More</span>
               </Link>
             </li>
+            */}
         </ul>
     </nav>
   );

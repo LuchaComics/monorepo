@@ -85,7 +85,8 @@ function DashboardView() {
                     <PageLoadingContent displayMessage="Fetching..." />
 
                 </> : <>
-                    <nav class="level">
+                {/*
+                <nav class="level">
                   <div class="level-item has-text-centered">
                     <div>
                       <p class="heading">Coins</p>
@@ -98,46 +99,25 @@ function DashboardView() {
                       <p class="title">{totalTokens}</p>
                     </div>
                   </div>
-
                 </nav>
+                */}
 
-                <h1 className="subtitle is-4 pt-5"><FontAwesomeIcon className="fas" icon={faFileInvoiceDollar} />&nbsp;Recent Transactions</h1>
-                {transactions.length === 0 ? <>
-                    <section class="hero is-warning is-medium">
-                      <div class="hero-body">
-                        <p class="title"><FontAwesomeIcon className="fas" icon={faFileInvoiceDollar} />&nbsp;No recent transactions</p>
-                        <p class="subtitle">This wallet currently does not have any transactions.</p>
-                      </div>
-                    </section>
-                </> : <>
-                    <table className="table is-fullwidth is-size-7">
-                      <thead>
-                        <tr>
-                          <th></th>
-                          <th>Date</th>
-                          <th>Type</th>
-                          <th>Coin(s)</th>
-                          <th>Sender</th>
-                          <th>Receiver</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {transactions.map((transaction) => (
-                          <tr key={transaction.hash}>
-                            <td>{transaction.type === "coin" ? <><FontAwesomeIcon className="fas" icon={faCoins} /></> : <><FontAwesomeIcon className="fas" icon={faCubes} /></>}</td>
-                            <td>{`${new Date(transaction.timestamp).toLocaleString()}`}</td>
-                            <td>{transaction.from === toLower(currentOpenWalletAtAddress) ? "Sent" : "Received"}</td>
-                            <td>{transaction.type === "coin" ? <>{transaction.value}</> : <>-</>}</td>
-                            <td>{transaction.from}</td>
-                            <td>{transaction.to}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    <div className="has-text-right">
-                        <Link to={`/transactions`}>See More&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} /></Link>
-                    </div>
-                </>}
+                <section class="hero is-warning is-medium">
+                  <div class="hero-body">
+                    <p class="title"><FontAwesomeIcon className="fas" icon={faCubes} />&nbsp;Tokens</p>
+                    <p class="subtitle">To view the tokens in the ComicCoin blockchain or create new tokens continue below:</p>
+                    <p class="subtitle">
+                        <Link to="/tokens">
+                        View List&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} />
+                        </Link>
+                    </p>
+                    <p class="subtitle">
+                        <Link to="/tokens/new">
+                        New Token&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} />
+                        </Link>
+                    </p>
+                  </div>
+                </section>
                 </>}
 
 
