@@ -7,7 +7,7 @@
   "frontend:dev:watcher": "npm run dev",
   "frontend:dev:serverUrl": "auto",
   "author": {
-    "name": "Bartlomiej Mika",
-    "email": "bart@mikasoftware.com"
+    "name": "Collectible Protection Service",
+    "email": "info@cpscapsule.com"
   }
 }
