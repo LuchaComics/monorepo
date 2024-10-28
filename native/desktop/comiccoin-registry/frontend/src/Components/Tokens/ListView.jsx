@@ -14,7 +14,7 @@ import {
 import { useRecoilState } from "recoil";
 import { toLower } from "lodash";
 
-import { GetTokens } from "../../../wailsjs/go/main/App";
+import { GetNFTs } from "../../../wailsjs/go/main/App";
 
 
 function ListTokensView() {
@@ -41,11 +41,11 @@ function ListTokensView() {
       if (mounted) {
             window.scrollTo(0, 0); // Start the page at the top of the page.
 
-            GetTokens().then((txsResponse)=>{
-                console.log("GetTokens: results:", txsResponse);
+            GetNFTs().then((txsResponse)=>{
+                console.log("GetNFTs: results:", txsResponse);
                 setTokens(txsResponse);
             }).catch((errorRes)=>{
-                console.log("GetTokens: errors:", errorRes);
+                console.log("GetNFTs: errors:", errorRes);
             });
       }
 
@@ -97,7 +97,7 @@ function ListTokensView() {
                     <section class="hero is-warning is-medium">
                       <div class="hero-body">
                         <p class="title"><FontAwesomeIcon className="fas" icon={faCubes} />&nbsp;No recent tokens</p>
-                        <p class="subtitle">This blockchain currently does not have any tokens.</p>
+                        <p class="subtitle">ComicCoin currently does not have any tokens, to get started creating your first token please <Link to="/tokens/new">click here&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} />.</Link></p>
                       </div>
                     </section>
                 </> : <>

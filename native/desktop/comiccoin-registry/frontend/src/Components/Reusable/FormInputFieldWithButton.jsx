@@ -15,6 +15,7 @@ function FormInputFieldWithButton({
   disabled = false,
   onButtonClick,
   buttonLabel,
+  inputOnlyDisabled = false,
 }) {
   let classNameText = "input";
   if (errorText) {
@@ -32,7 +33,7 @@ function FormInputFieldWithButton({
             placeholder={placeholder}
             value={value}
             onChange={onChange}
-            disabled={disabled}
+            disabled={disabled || inputOnlyDisabled}
             autoComplete="off"
           />
         </div>

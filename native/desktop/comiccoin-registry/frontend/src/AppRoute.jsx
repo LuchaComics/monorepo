@@ -17,6 +17,7 @@ import PickDataDirectoryView from "./Components/Other/PickDataDirectoryView";
 import StartupView from "./Components/Other/StartupView";
 import DashboardView from "./Components/Dashboard/View";
 import ListTokensView from "./Components/Tokens/ListView";
+import CreateTokenView from "./Components/Tokens/CreateView";
 
 
 function AppRoute() {
@@ -69,6 +70,7 @@ function AppRoute() {
                             <Route path="/startup" element={<StartupView />} exact />
                             <Route path="/dashboard" element={<DashboardView />} exact />
                             <Route path="/tokens" element={<ListTokensView />} exact />
+                            <Route path="/tokens/new" element={<CreateTokenView />} exact />
                             {/*
                             <Route path="/wallets" element={<ListWalletsView />} exact />
                             <Route path="/wallet/add" element={<CreateWalletView />} exact />

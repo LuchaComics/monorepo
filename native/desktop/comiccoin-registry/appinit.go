@@ -20,7 +20,6 @@ func (a *App) GetDefaultDataDirectory() string {
 	return defaultDataDir
 }
 
-// Greet returns a greeting for the given name
 func (a *App) GetDataDirectoryFromDialog() string {
 	// Initialize Wails runtime
 	result, err := runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{
@@ -34,7 +33,6 @@ func (a *App) GetDataDirectoryFromDialog() string {
 	return result
 }
 
-// Greet returns a greeting for the given name
 func (a *App) SaveDataDirectory(newDataDirectory string) error {
 	// Defensive code
 	if newDataDirectory == "" {

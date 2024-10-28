@@ -6,6 +6,9 @@ import (
 	"log/slog"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/disk/leveldb"
+
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/repo"
 )
 
 // App struct
@@ -15,13 +18,16 @@ type App struct {
 	// Logger instance which provides detailed debugging information along
 	// with the console log messages.
 	logger *slog.Logger
+
+	nftRepo *repo.NFTRepo
 }
 
 // NewApp creates a new App application struct
 func NewApp() *App {
 	logger := logger.NewLogger()
 	return &App{
-		logger: logger,
+		logger:  logger,
+		nftRepo: nil,
 	}
 }
 
@@ -42,6 +48,11 @@ func (a *App) startup(ctx context.Context) {
 		a.logger.Debug("Startup halted: need to specify data directory")
 		return
 	}
+
+	nftByTokenIDDB := disk.NewDiskStorage(dataDir, "nft_by_tokenid", a.logger)
+	nftByMetadataURIDB := disk.NewDiskStorage(dataDir, "nft_by_metadatauri", a.logger)
+	nftRepo := repo.NewNFTRepo(a.logger, nftByTokenIDDB, nftByMetadataURIDB)
+	a.nftRepo = nftRepo
 }
 
 // Greet returns a greeting for the given name
