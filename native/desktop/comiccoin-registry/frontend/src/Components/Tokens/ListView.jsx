@@ -105,7 +105,7 @@ function ListTokensView() {
                     <table className="table is-fullwidth is-size-7">
                       <thead>
                         <tr>
-                          <th>ID</th>
+                          <th>Token ID</th>
                           <th>Name</th>
                           <th>Description</th>
                           <th>Created</th>
@@ -120,7 +120,7 @@ function ListTokensView() {
                             <td>{token.metadata.description}</td>
                             <td>{`${new Date(token.timestamp).toLocaleString()}`}</td>
                             <td>
-                                <Link to={`/token/${token.token_id}`}>View&nbsp;<FontAwesomeIcon className="fas" icon={faChevronRight} /></Link>                            
+                                <Link to={`/token/${token.token_id}`}>View&nbsp;<FontAwesomeIcon className="fas" icon={faChevronRight} /></Link>
                             </td>
                           </tr>
                         ))}
