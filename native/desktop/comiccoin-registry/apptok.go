@@ -131,7 +131,7 @@ func (a *App) CreateToken(
 	}
 
 	//
-	// STEP 3: Lookup and get the latest TokenID and increment by 1.
+	// STEP 2: Get related data.
 	//
 
 	tokenID, err := a.latestTokenIDRepo.Get()
@@ -145,8 +145,12 @@ func (a *App) CreateToken(
 	// at zero. Therefore this increment will work well.
 	tokenID++
 
+	// Get our data directory from our app preferences.
+	preferences := PreferencesInstance()
+	dataDir := preferences.DataDirectory
+
 	//
-	// STEP 2: Image upload to IPFS.
+	// STEP 3: Upload `image` file to IPFS.
 	//
 
 	imageUploadResponse, err := a.ipfsRepo.AddAndPinSingleFileFromLocalFileSystem(image)
@@ -162,7 +166,7 @@ func (a *App) CreateToken(
 		slog.Any("cid", imageUploadResponse.Hash))
 
 	//
-	// STEP 3: Animation upload to IPFs.
+	// STEP 4: Upload `animation` file to IPFs.
 	//
 
 	animationUploadResponse, err := a.ipfsRepo.AddAndPinSingleFileFromLocalFileSystem(animation)
@@ -178,7 +182,7 @@ func (a *App) CreateToken(
 		slog.Any("cid", animationUploadResponse.Hash))
 
 	//
-	// STEP 4: Attributes.
+	// STEP 5: Handle `attributes` unmarshalling.
 	//
 
 	attr := make([]*domain.TokenMetadataAttribute, 0)
@@ -195,8 +199,8 @@ func (a *App) CreateToken(
 	}
 
 	//
-	// STEP 5:
-	// Create Token metadata file locally.
+	// STEP 6:
+	// Create token `metadata` file locally.
 	//
 
 	metadata := &domain.TokenMetadata{
@@ -218,8 +222,6 @@ func (a *App) CreateToken(
 		return nil, err
 	}
 
-	preferences := PreferencesInstance()
-	dataDir := preferences.DataDirectory
 	metadataFilepath := filepath.Join(dataDir, "tokens", fmt.Sprintf("%v", tokenID), "metadata.json")
 
 	// Create the directories recursively.
@@ -238,7 +240,33 @@ func (a *App) CreateToken(
 	}
 
 	//
-	// STEP 6:
+	// STEP 7
+	// Copy `image` file so we can consolidate our token assets.
+	//
+
+	consolidatedImage := filepath.Join(dataDir, "tokens", fmt.Sprintf("%v", tokenID), imageUploadResponse.Name)
+
+	if err := CopyFile(image, consolidatedImage); err != nil {
+		a.logger.Error("Failed consolidating image.",
+			slog.Any("error", err))
+		return nil, err
+	}
+
+	//
+	// STEP 8
+	// Copy `image` file so we can consolidate our token assets.
+	//
+
+	consolidatedAnimation := filepath.Join(dataDir, "tokens", fmt.Sprintf("%v", tokenID), animationUploadResponse.Name)
+
+	if err := CopyFile(animation, consolidatedAnimation); err != nil {
+		a.logger.Error("Failed consolidating animation.",
+			slog.Any("error", err))
+		return nil, err
+	}
+
+	//
+	// STEP 9:
 	// Upload to IPFs and get the CID.
 	//
 
@@ -257,8 +285,8 @@ func (a *App) CreateToken(
 		slog.Any("cid", metadataUploadResponse.Hash))
 
 	//
-	// STEP 7:
-	// Create Token in our database.
+	// STEP 10:
+	// Update our database.
 	//
 
 	token := &domain.Token{
@@ -269,9 +297,17 @@ func (a *App) CreateToken(
 
 	if err := a.tokenRepo.Upsert(token); err != nil {
 		// If an error occurs, log an error and return an error.
-		a.logger.Error("Failed save to database the token",
+		a.logger.Error("Failed save to database the new token.",
 			slog.Any("error", err))
 		return nil, err
 	}
+
+	if err := a.latestTokenIDRepo.Set(tokenID); err != nil {
+		// If an error occurs, log an error and return an error.
+		a.logger.Error("Failed save to database the latest token ID.",
+			slog.Any("error", err))
+		return nil, err
+	}
+
 	return token, nil
 }
