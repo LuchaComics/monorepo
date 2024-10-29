@@ -14,11 +14,11 @@ export function GetImageFilePathFromDialog():Promise<string>;
 
 export function GetIsIPFSRunning():Promise<boolean>;
 
+export function GetToken(arg1:number):Promise<domain.Token>;
+
 export function GetTokens():Promise<Array<domain.Token>>;
 
 export function GetVideoFilePathFromDialog():Promise<string>;
-
-export function Greet(arg1:string):Promise<string>;
 
 export function SaveDataDirectory(arg1:string):Promise<void>;
 

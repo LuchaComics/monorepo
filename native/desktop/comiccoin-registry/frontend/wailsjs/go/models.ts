@@ -64,6 +64,7 @@ export namespace domain {
 	    token_id: number;
 	    metadata_uri: string;
 	    metadata?: TokenMetadata;
+	    timestamp: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new Token(source);
@@ -74,6 +75,7 @@ export namespace domain {
 	        this.token_id = source["token_id"];
 	        this.metadata_uri = source["metadata_uri"];
 	        this.metadata = this.convertValues(source["metadata"], TokenMetadata);
+	        this.timestamp = source["timestamp"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

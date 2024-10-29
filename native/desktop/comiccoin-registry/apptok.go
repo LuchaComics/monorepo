@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -28,6 +29,18 @@ func (a *App) GetTokens() ([]*domain.Token, error) {
 		res = make([]*domain.Token, 0)
 	}
 	return res, nil
+}
+
+// GetTokens returns the Token stored in the repository for the particular `tokenID`.
+func (a *App) GetToken(tokenID uint64) (*domain.Token, error) {
+	tok, err := a.tokenRepo.GetByTokenID(tokenID)
+	if err != nil {
+		a.logger.Error("Failed getting by token ID.",
+			slog.Any("error", err),
+		)
+		return nil, err
+	}
+	return tok, nil
 }
 
 // GetImageFilePathFromDialog opens a file dialog for the user to select an image file.
@@ -293,6 +306,7 @@ func (a *App) CreateToken(
 		TokenID:     tokenID,
 		MetadataURI: fmt.Sprintf("ipfs://%v", metadataUploadResponse.Hash),
 		Metadata:    metadata,
+		Timestamp:   uint64(time.Now().UTC().UnixMilli()),
 	}
 
 	if err := a.tokenRepo.Upsert(token); err != nil {

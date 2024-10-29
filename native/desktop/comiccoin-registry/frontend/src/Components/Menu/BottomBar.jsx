@@ -89,7 +89,7 @@ function BottomTabBar() {
                 <span>Dashboard</span>
               </Link>
             </li>
-            <li className={`has-text-grey-light ${location.pathname.includes("tokens") && "is-active"}`}>
+            <li className={`has-text-grey-light ${location.pathname.includes("token") && "is-active"}`}>
               <Link to="/tokens">
                 <span className="icon is-small">
                   <FontAwesomeIcon icon={faCubes} />

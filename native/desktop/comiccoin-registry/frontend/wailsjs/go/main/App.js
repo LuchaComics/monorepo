@@ -26,16 +26,16 @@ export function GetIsIPFSRunning() {
   return window['go']['main']['App']['GetIsIPFSRunning']();
 }
 
+export function GetToken(arg1) {
+  return window['go']['main']['App']['GetToken'](arg1);
+}
+
 export function GetTokens() {
   return window['go']['main']['App']['GetTokens']();
 }
 
 export function GetVideoFilePathFromDialog() {
   return window['go']['main']['App']['GetVideoFilePathFromDialog']();
-}
-
-export function Greet(arg1) {
-  return window['go']['main']['App']['Greet'](arg1);
 }
 
 export function SaveDataDirectory(arg1) {

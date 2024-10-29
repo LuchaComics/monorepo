@@ -9,7 +9,8 @@ import {
     faBarcode,
     faCubes,
     faCoins,
-    faEllipsis
+    faEllipsis,
+    faChevronRight
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 import { toLower } from "lodash";
@@ -104,28 +105,23 @@ function ListTokensView() {
                     <table className="table is-fullwidth is-size-7">
                       <thead>
                         <tr>
+                          <th>ID</th>
+                          <th>Name</th>
+                          <th>Description</th>
+                          <th>Created</th>
                           <th></th>
-                          {/*
-                          <th>Date</th>
-                          <th>Type</th>
-                          <th>Coin(s)</th>
-                          <th>Sender</th>
-                          <th>Receiver</th>
-                          */}
                         </tr>
                       </thead>
                       <tbody>
-                        {tokens.map((Token) => (
-                          <tr key={Token.hash}>
-                            <td>TODO</td>
-
-                            {/*
-                            <td>{`${new Date(Token.timestamp).toLocaleString()}`}</td>
-                            <td>-</td>
-                            <td>{Token.value}</td>
-                            <td>{Token.from}</td>
-                            <td>{Token.to}</td>
-                            */}
+                        {tokens.map((token) => (
+                          <tr key={token.token_id}>
+                            <td>{token.token_id}</td>
+                            <td>{token.metadata.name}</td>
+                            <td>{token.metadata.description}</td>
+                            <td>{`${new Date(token.timestamp).toLocaleString()}`}</td>
+                            <td>
+                                <Link to={`/token/${token.token_id}`}>View&nbsp;<FontAwesomeIcon className="fas" icon={faChevronRight} /></Link>                            
+                            </td>
                           </tr>
                         ))}
                       </tbody>

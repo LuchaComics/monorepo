@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
@@ -66,9 +65,4 @@ func (a *App) startup(ctx context.Context) {
 		a.logger,
 		latestTokenIDDB)
 	a.latestTokenIDRepo = latestTokenIDRepo
-}
-
-// Greet returns a greeting for the given name
-func (a *App) Greet(name string) string {
-	return fmt.Sprintf("Hello %s, It's show time!", name)
 }
