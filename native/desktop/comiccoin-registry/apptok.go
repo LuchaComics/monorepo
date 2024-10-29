@@ -134,7 +134,16 @@ func (a *App) CreateToken(
 	// STEP 3: Lookup and get the latest TokenID and increment by 1.
 	//
 
-	tokenID := uint64(1) // TEMPORARY
+	tokenID, err := a.latestTokenIDRepo.Get()
+	if err != nil {
+		a.logger.Error("Failed getting latest token ID.",
+			slog.Any("error", err))
+		return nil, err
+	}
+
+	// Please note that in ComicCoin genesis block, we already have a token set
+	// at zero. Therefore this increment will work well.
+	tokenID++
 
 	//
 	// STEP 2: Image upload to IPFS.
@@ -191,13 +200,13 @@ func (a *App) CreateToken(
 	//
 
 	metadata := &domain.TokenMetadata{
-		Image:           imageUploadResponse.Hash,
+		Image:           fmt.Sprintf("ipfs://%v", imageUploadResponse.Hash),
 		ExternalURL:     externalURL,
 		Description:     description,
 		Name:            name,
 		Attributes:      attr,
 		BackgroundColor: backgroundColor,
-		AnimationURL:    animationUploadResponse.Hash,
+		AnimationURL:    fmt.Sprintf("ipfs://%v", animationUploadResponse.Hash),
 		YoutubeURL:      youtubeURL,
 	}
 

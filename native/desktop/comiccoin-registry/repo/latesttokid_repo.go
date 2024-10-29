@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strconv"
+	"strings"
 
 	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage"
 )
@@ -34,8 +35,20 @@ func (r *LastestTokenIDRepo) Get() (uint64, error) {
 			slog.Any("error", err))
 		return 0, fmt.Errorf("failed getting last block data token ID from database: %v", err)
 	}
+
+	// If our database is empty then we just return `0` as result.
+	if string(bin) == "" {
+		return 0, nil
+	}
+
 	tokenID, err := strconv.ParseUint(string(bin), 10, 64)
 	if err != nil {
+		// CASE 1 OF 2: Empty db.
+		if strings.Contains(err.Error(), "strconv.ParseUint: parsing \"\"") {
+			return 0, nil
+		}
+
+		// CASE 2 OF 2: Full db.
 		r.logger.Error("failed parsing token ID",
 			slog.Any("error", err))
 		return 0, fmt.Errorf("failed parsing token ID: %v", err)

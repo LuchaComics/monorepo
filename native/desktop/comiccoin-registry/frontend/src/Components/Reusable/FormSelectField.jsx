@@ -18,7 +18,7 @@ function FormSelectField({
 }) {
   return (
     <div class="field pb-4">
-      <label class="label">{label}</label>
+      <label class="label has-text-black">{label}</label>
       <div class="control" style={{ maxWidth: maxWidth }}>
         <span class="select">
           <select
