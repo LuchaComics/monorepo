@@ -55,6 +55,9 @@ function CreateTokenView() {
     const onSubmitClick = (e) => {
         e.preventDefault();
 
+        // Update the GUI to let user know that the operation is under way.
+        setIsLoading(true);
+
         console.log("onSubmitClick: Beginning...");
         setErrors({}); // Reset the errors in the GUI.
 
@@ -64,26 +67,26 @@ function CreateTokenView() {
 
         //////
 
-        if (name === undefined || name === null || name === "") {
-          newErrors["name"] = "missing value";
-          hasErrors = true;
-        }
-        if (description === undefined || description === null || description === "") {
-          newErrors["description"] = "missing value";
-          hasErrors = true;
-        }
-        if (image === undefined || image === null || image === "") {
-          newErrors["image"] = "missing value";
-          hasErrors = true;
-        }
-        if (animation === undefined || animation === null || animation === "") {
-          newErrors["animation"] = "missing value";
-          hasErrors = true;
-        }
-        if (backgroundColor === undefined || backgroundColor === null || backgroundColor === "") {
-          newErrors["backgroundColor"] = "missing value";
-          hasErrors = true;
-        }
+        // if (name === undefined || name === null || name === "") {
+        //   newErrors["name"] = "missing value";
+        //   hasErrors = true;
+        // }
+        // if (description === undefined || description === null || description === "") {
+        //   newErrors["description"] = "missing value";
+        //   hasErrors = true;
+        // }
+        // if (image === undefined || image === null || image === "") {
+        //   newErrors["image"] = "missing value";
+        //   hasErrors = true;
+        // }
+        // if (animation === undefined || animation === null || animation === "") {
+        //   newErrors["animation"] = "missing value";
+        //   hasErrors = true;
+        // }
+        // if (backgroundColor === undefined || backgroundColor === null || backgroundColor === "") {
+        //   newErrors["backgroundColor"] = "missing value";
+        //   hasErrors = true;
+        // }
 
         //////
 
@@ -107,9 +110,41 @@ function CreateTokenView() {
         const attributesJSONString = JSON.stringify(attributes);
 
         // Submit the `dataDirectory` value to our backend.
-        CreateNFT(name, description, image, animation, youtubeURL, externalURL, attributesJSONString, backgroundColor).then( (result) => {
-            console.log("result:", result);
-            // setForceURL("/startup")
+        CreateNFT(name, description, image, animation, youtubeURL, externalURL, attributesJSONString, backgroundColor).then( (resp) => {
+            console.log("result:", resp);
+            setForceURL("/tokens")
+        }).catch((errorJsonString)=>{
+            console.log("errRes:", errorJsonString);
+            const errorObject = JSON.parse(errorJsonString);
+            let err = {};
+            if (errorObject.name != "") {
+                err.name = errorObject.name;
+            }
+            if (errorObject.description != "") {
+                err.description = errorObject.description;
+            }
+            if (errorObject.image != "") {
+                err.image = errorObject.image;
+            }
+            if (errorObject.animation != "") {
+                err.animation = errorObject.animation;
+            }
+            if (errorObject.background_color != "") {
+                err.backgroundColor = errorObject.background_color;
+            }
+            setErrors(err);
+
+            // The following code will cause the screen to scroll to the top of
+            // the page. Please see ``react-scroll`` for more information:
+            // https://github.com/fisshy/react-scroll
+            var scroll = Scroll.animateScroll;
+            scroll.scrollToTop();
+        }).finally(() => {
+            // this will be executed after then or catch has been executed
+            console.log("promise has been resolved or rejected");
+
+            // Update the GUI to let user know that the operation is completed.
+            setIsLoading(false);
         });
     }
 

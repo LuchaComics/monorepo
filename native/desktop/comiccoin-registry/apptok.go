@@ -3,8 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"log/slog"
+	"os"
+	"path/filepath"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -71,6 +74,10 @@ func (a *App) CreateNFT(
 	attributes string,
 	backgroundColor string,
 ) (*domain.NFT, error) {
+	//
+	// STEP 1: Validation.
+	//
+
 	// For debugging purposes only.
 	a.logger.Debug("received",
 		slog.String("name", name),
@@ -87,16 +94,68 @@ func (a *App) CreateNFT(
 	if name == "" {
 		e["name"] = "missing value"
 	}
+	if description == "" {
+		e["description"] = "missing value"
+	}
+	if image == "" {
+		e["image"] = "missing value"
+	}
+	if animation == "" {
+		e["animation"] = "missing value"
+	}
+	if backgroundColor == "" {
+		e["background_color"] = "missing value"
+	}
 	if len(e) != 0 {
 		a.logger.Warn("Failed validating",
 			slog.Any("error", e))
 		return nil, httperror.NewForBadRequest(&e)
 	}
 
+	//
+	// STEP 3: Lookup and get the latest TokenID and increment by 1.
+	//
+
+	tokenID := uint64(1) // TEMPORARY
+
+	//
+	// STEP 2: Image upload to IPFS
+	//
+
+	imageUploadResponse, err := a.ipfsRepo.AddAndPinSingleFileFromLocalFileSystem(image)
+	if err != nil {
+		a.logger.Error("Failed adding to IPFS.",
+			slog.Any("filepath", image),
+			slog.Any("error", err))
+		return nil, err
+	}
+	a.logger.Debug("Image uploaded to ipfs.",
+		slog.Any("local", image),
+		slog.Any("cid", imageUploadResponse.Hash))
+
+	//
+	// STEP 3: Animation upload to IPFS.
+	//
+
+	animationUploadResponse, err := a.ipfsRepo.AddAndPinSingleFileFromLocalFileSystem(animation)
+	if err != nil {
+		a.logger.Error("Failed adding animation to IPFS.",
+			slog.Any("filepath", animation),
+			slog.Any("error", err))
+		return nil, err
+	}
+	a.logger.Debug("Animation uploaded to ipfs.",
+		slog.Any("local", animation),
+		slog.Any("cid", animationUploadResponse.Hash))
+
+	//
+	// STEP 4: Attributes.
+	//
+
 	attr := make([]*domain.NFTMetadataAttribute, 0)
 	if attributes != "" {
 		if err := json.Unmarshal([]byte(attributes), &attr); err != nil {
-			a.logger.Warn("Failed unmarshal metadata attributes",
+			a.logger.Error("Failed unmarshal metadata attributes",
 				slog.Any("attributes", attributes),
 				slog.Any("error", e))
 
@@ -107,19 +166,78 @@ func (a *App) CreateNFT(
 			slog.Any("attr", attr))
 	}
 
+	//
+	// STEP 5:
+	// Create NFT metadata file locally	//
+	//
+
+	metadata := &domain.NFTMetadata{
+		Image:           imageUploadResponse.Hash,
+		ExternalURL:     externalURL,
+		Description:     description,
+		Name:            name,
+		Attributes:      attr,
+		BackgroundColor: backgroundColor,
+		AnimationURL:    animationUploadResponse.Hash,
+		YoutubeURL:      youtubeURL,
+	}
+
+	metadataBytes, err := json.MarshalIndent(metadata, "", "\t")
+	if err != nil {
+		a.logger.Error("Failed to marshal metadata",
+			slog.Any("error", err))
+		return nil, err
+	}
+
+	preferences := PreferencesInstance()
+	dataDir := preferences.DataDirectory
+	metadataFilepath := filepath.Join(dataDir, "tokens", fmt.Sprintf("%v", tokenID), "metadata.json")
+
+	// Create the directories recursively
+	if err := os.MkdirAll(filepath.Dir(metadataFilepath), 0755); err != nil {
+		a.logger.Error("Failed to create directories",
+			slog.Any("error", err))
+		return nil, err
+	}
+
+	if err := ioutil.WriteFile(metadataFilepath, metadataBytes, 0644); err != nil {
+		a.logger.Error("Failed to marshal metadata",
+			slog.Any("error", err))
+		return nil, err
+	}
+
+	//
+	// STEP 6:
+	// Upload to IPFS and get the CID.
+	//
+
+	metadataUploadResponse, err := a.ipfsRepo.AddAndPinSingleFileFromLocalFileSystem(metadataFilepath)
+	if err != nil {
+		a.logger.Error("Failed adding metadata to IPFS.",
+			slog.Any("token_id", tokenID),
+			slog.Any("filepath", metadataFilepath),
+			slog.Any("error", err))
+		return nil, err
+	}
+	a.logger.Debug("Metadata uploaded to ipfs.",
+		slog.Any("token_id", tokenID),
+		slog.Any("local", metadataFilepath),
+		slog.Any("cid", metadataUploadResponse.Hash))
+
+	//
+	// STEP 7: Create NFT in our database.
+	//
+
 	nft := &domain.NFT{
-		TokenID:     1,
-		MetadataURI: "",
-		Metadata: &domain.NFTMetadata{
-			Image:           image,
-			ExternalURL:     externalURL,
-			Description:     description,
-			Name:            name,
-			Attributes:      attr,
-			BackgroundColor: backgroundColor,
-			AnimationURL:    animation,
-			YoutubeURL:      youtubeURL,
-		},
+		TokenID:     tokenID,
+		MetadataURI: fmt.Sprintf("ipfs://%v", metadataUploadResponse.Hash),
+		Metadata:    metadata,
+	}
+
+	if err := a.nftRepo.Upsert(nft); err != nil {
+		a.logger.Error("Failed to save to database the nft",
+			slog.Any("error", err))
+		return nil, err
 	}
 	return nft, nil
 }
