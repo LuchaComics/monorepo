@@ -63,7 +63,7 @@ export namespace domain {
 	export class NFT {
 	    token_id: number;
 	    metadata_uri: string;
-	    metadata: NFTMetadata;
+	    metadata?: NFTMetadata;
 	
 	    static createFrom(source: any = {}) {
 	        return new NFT(source);

@@ -88,19 +88,38 @@ func (a *App) CreateNFT(
 		e["name"] = "missing value"
 	}
 	if len(e) != 0 {
-		a.logger.Warn("Failed creating new account",
+		a.logger.Warn("Failed validating",
 			slog.Any("error", e))
 		return nil, httperror.NewForBadRequest(&e)
 	}
 
-	if attributes == nil {
-		// attr
-		if err := json.Unmarshal(attributes, &wallet); err != nil {
+	attr := make([]*domain.NFTMetadataAttribute, 0)
+	if attributes != "" {
+		if err := json.Unmarshal([]byte(attributes), &attr); err != nil {
+			a.logger.Warn("Failed unmarshal metadata attributes",
+				slog.Any("attributes", attributes),
+				slog.Any("error", e))
+
 			// Return an error if the unmarshaling fails.
-			return nil, fmt.Errorf("failed to deserialize wallet: %v", err)
+			return nil, fmt.Errorf("failed to deserialize metadata attributete: %v", err)
 		}
+		a.logger.Debug("attributes",
+			slog.Any("attr", attr))
 	}
 
-	nft := &domain.NFT{}
+	nft := &domain.NFT{
+		TokenID:     1,
+		MetadataURI: "",
+		Metadata: &domain.NFTMetadata{
+			Image:           image,
+			ExternalURL:     externalURL,
+			Description:     description,
+			Name:            name,
+			Attributes:      attr,
+			BackgroundColor: backgroundColor,
+			AnimationURL:    animation,
+			YoutubeURL:      youtubeURL,
+		},
+	}
 	return nft, nil
 }

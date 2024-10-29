@@ -7,9 +7,9 @@ import (
 )
 
 type NFT struct {
-	TokenID     uint64      `json:"token_id"`
-	MetadataURI string      `json:"metadata_uri"`
-	Metadata    NFTMetadata `json:"metadata"`
+	TokenID     uint64       `json:"token_id"`
+	MetadataURI string       `json:"metadata_uri"`
+	Metadata    *NFTMetadata `json:"metadata"`
 }
 
 type NFTMetadata struct {
