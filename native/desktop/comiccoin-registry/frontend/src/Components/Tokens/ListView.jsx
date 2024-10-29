@@ -14,7 +14,7 @@ import {
 import { useRecoilState } from "recoil";
 import { toLower } from "lodash";
 
-import { GetNFTs } from "../../../wailsjs/go/main/App";
+import { GetTokens } from "../../../wailsjs/go/main/App";
 
 
 function ListTokensView() {
@@ -41,11 +41,11 @@ function ListTokensView() {
       if (mounted) {
             window.scrollTo(0, 0); // Start the page at the top of the page.
 
-            GetNFTs().then((txsResponse)=>{
-                console.log("GetNFTs: results:", txsResponse);
+            GetTokens().then((txsResponse)=>{
+                console.log("GetTokens: results:", txsResponse);
                 setTokens(txsResponse);
             }).catch((errorRes)=>{
-                console.log("GetNFTs: errors:", errorRes);
+                console.log("GetTokens: errors:", errorRes);
             });
       }
 

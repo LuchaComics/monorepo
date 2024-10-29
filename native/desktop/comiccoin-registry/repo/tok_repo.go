@@ -9,36 +9,36 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/domain"
 )
 
-type NFTRepo struct {
+type TokenRepo struct {
 	logger                  *slog.Logger
 	dbByTokenIDClient       disk.Storage
 	dbByMetadataURIIDClient disk.Storage
 }
 
-func NewNFTRepo(logger *slog.Logger, dbByTokenIDClient disk.Storage, dbByMetadataURIIDClient disk.Storage) *NFTRepo {
-	return &NFTRepo{logger, dbByTokenIDClient, dbByMetadataURIIDClient}
+func NewTokenRepo(logger *slog.Logger, dbByTokenIDClient disk.Storage, dbByMetadataURIIDClient disk.Storage) *TokenRepo {
+	return &TokenRepo{logger, dbByTokenIDClient, dbByMetadataURIIDClient}
 }
 
-func (r *NFTRepo) Upsert(nft *domain.NFT) error {
-	bBytes, err := nft.Serialize()
+func (r *TokenRepo) Upsert(token *domain.Token) error {
+	bBytes, err := token.Serialize()
 	if err != nil {
 		return err
 	}
-	if err := r.dbByTokenIDClient.Set(fmt.Sprintf("%v", nft.TokenID), bBytes); err != nil {
+	if err := r.dbByTokenIDClient.Set(fmt.Sprintf("%v", token.TokenID), bBytes); err != nil {
 		return err
 	}
-	if err := r.dbByMetadataURIIDClient.Set(nft.MetadataURI, bBytes); err != nil {
+	if err := r.dbByMetadataURIIDClient.Set(token.MetadataURI, bBytes); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *NFTRepo) GetByTokenID(tokenID uint64) (*domain.NFT, error) {
+func (r *TokenRepo) GetByTokenID(tokenID uint64) (*domain.Token, error) {
 	bBytes, err := r.dbByTokenIDClient.Get(fmt.Sprintf("%v", tokenID))
 	if err != nil {
 		return nil, err
 	}
-	b, err := domain.NewNFTFromDeserialize(bBytes)
+	b, err := domain.NewTokenFromDeserialize(bBytes)
 	if err != nil {
 		r.logger.Error("failed to deserialize",
 			slog.Any("token_id", tokenID),
@@ -49,10 +49,10 @@ func (r *NFTRepo) GetByTokenID(tokenID uint64) (*domain.NFT, error) {
 	return b, nil
 }
 
-func (r *NFTRepo) ListAll() ([]*domain.NFT, error) {
-	res := make([]*domain.NFT, 0)
+func (r *TokenRepo) ListAll() ([]*domain.Token, error) {
+	res := make([]*domain.Token, 0)
 	err := r.dbByTokenIDClient.Iterate(func(key, value []byte) error {
-		nft, err := domain.NewNFTFromDeserialize(value)
+		token, err := domain.NewTokenFromDeserialize(value)
 		if err != nil {
 			r.logger.Error("failed to deserialize",
 				slog.String("key", string(key)),
@@ -61,7 +61,7 @@ func (r *NFTRepo) ListAll() ([]*domain.NFT, error) {
 			return err
 		}
 
-		res = append(res, nft)
+		res = append(res, token)
 
 		// Return nil to indicate success
 		return nil
@@ -70,22 +70,22 @@ func (r *NFTRepo) ListAll() ([]*domain.NFT, error) {
 	return res, err
 }
 
-func (r *NFTRepo) DeleteByTokenID(tokenID uint64) error {
-	nft, err := r.GetByTokenID(tokenID)
+func (r *TokenRepo) DeleteByTokenID(tokenID uint64) error {
+	token, err := r.GetByTokenID(tokenID)
 	if err != nil {
 		return err
 	}
 	if err := r.dbByTokenIDClient.Delete(fmt.Sprintf("%v", tokenID)); err != nil {
 		return err
 	}
-	if err := r.dbByMetadataURIIDClient.Delete(nft.MetadataURI); err != nil {
+	if err := r.dbByMetadataURIIDClient.Delete(token.MetadataURI); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (r *NFTRepo) OpenTransaction() error {
+func (r *TokenRepo) OpenTransaction() error {
 	if err := r.dbByTokenIDClient.OpenTransaction(); err != nil {
 		return err
 	}
@@ -95,7 +95,7 @@ func (r *NFTRepo) OpenTransaction() error {
 	return nil
 }
 
-func (r *NFTRepo) CommitTransaction() error {
+func (r *TokenRepo) CommitTransaction() error {
 	if err := r.dbByTokenIDClient.CommitTransaction(); err != nil {
 		return err
 	}
@@ -105,7 +105,7 @@ func (r *NFTRepo) CommitTransaction() error {
 	return nil
 }
 
-func (r *NFTRepo) DiscardTransaction() {
+func (r *TokenRepo) DiscardTransaction() {
 	r.dbByTokenIDClient.DiscardTransaction()
 	r.dbByMetadataURIIDClient.DiscardTransaction()
 }

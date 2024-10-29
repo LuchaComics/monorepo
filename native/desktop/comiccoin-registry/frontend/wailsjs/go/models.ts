@@ -1,12 +1,12 @@
 export namespace domain {
 	
-	export class NFTMetadataAttribute {
+	export class TokenMetadataAttribute {
 	    display_type: string;
 	    trait_type: string;
 	    value: string;
 	
 	    static createFrom(source: any = {}) {
-	        return new NFTMetadataAttribute(source);
+	        return new TokenMetadataAttribute(source);
 	    }
 	
 	    constructor(source: any = {}) {
@@ -16,18 +16,18 @@ export namespace domain {
 	        this.value = source["value"];
 	    }
 	}
-	export class NFTMetadata {
+	export class TokenMetadata {
 	    image: string;
 	    external_url: string;
 	    description: string;
 	    name: string;
-	    attributes: NFTMetadataAttribute[];
+	    attributes: TokenMetadataAttribute[];
 	    background_color: string;
 	    animation_url: string;
 	    youtube_url: string;
 	
 	    static createFrom(source: any = {}) {
-	        return new NFTMetadata(source);
+	        return new TokenMetadata(source);
 	    }
 	
 	    constructor(source: any = {}) {
@@ -36,7 +36,7 @@ export namespace domain {
 	        this.external_url = source["external_url"];
 	        this.description = source["description"];
 	        this.name = source["name"];
-	        this.attributes = this.convertValues(source["attributes"], NFTMetadataAttribute);
+	        this.attributes = this.convertValues(source["attributes"], TokenMetadataAttribute);
 	        this.background_color = source["background_color"];
 	        this.animation_url = source["animation_url"];
 	        this.youtube_url = source["youtube_url"];
@@ -60,20 +60,20 @@ export namespace domain {
 		    return a;
 		}
 	}
-	export class NFT {
+	export class Token {
 	    token_id: number;
 	    metadata_uri: string;
-	    metadata?: NFTMetadata;
+	    metadata?: TokenMetadata;
 	
 	    static createFrom(source: any = {}) {
-	        return new NFT(source);
+	        return new Token(source);
 	    }
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.token_id = source["token_id"];
 	        this.metadata_uri = source["metadata_uri"];
-	        this.metadata = this.convertValues(source["metadata"], NFTMetadata);
+	        this.metadata = this.convertValues(source["metadata"], TokenMetadata);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

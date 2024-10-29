@@ -18,12 +18,12 @@ import {
 import { useRecoilState } from "recoil";
 import { toLower } from "lodash";
 
-import { GetImageFilePathFromDialog, GetVideoFilePathFromDialog, CreateNFT } from "../../../wailsjs/go/main/App";
+import { GetImageFilePathFromDialog, GetVideoFilePathFromDialog, CreateToken } from "../../../wailsjs/go/main/App";
 import FormErrorBox from "../Reusable/FormErrorBox";
 import FormInputField from "../Reusable/FormInputField";
 import FormInputFieldWithButton from "../Reusable/FormInputFieldWithButton";
 import FormTextareaField from "../Reusable/FormTextareaField";
-import FormNFTMetadataAttributesField from "../Reusable/FormNFTMetadataAttributesField";
+import FormTokenMetadataAttributesField from "../Reusable/FormTokenMetadataAttributesField";
 
 
 function CreateTokenView() {
@@ -110,7 +110,7 @@ function CreateTokenView() {
         const attributesJSONString = JSON.stringify(attributes);
 
         // Submit the `dataDirectory` value to our backend.
-        CreateNFT(name, description, image, animation, youtubeURL, externalURL, attributesJSONString, backgroundColor).then( (resp) => {
+        CreateToken(name, description, image, animation, youtubeURL, externalURL, attributesJSONString, backgroundColor).then( (resp) => {
             console.log("result:", resp);
             setForceURL("/tokens")
         }).catch((errorJsonString)=>{
@@ -309,7 +309,7 @@ function CreateTokenView() {
                   maxWidth="500px"
                 />
 
-                <FormNFTMetadataAttributesField
+                <FormTokenMetadataAttributesField
                   data={attributes}
                   onDataChange={setAttributes}
                 />

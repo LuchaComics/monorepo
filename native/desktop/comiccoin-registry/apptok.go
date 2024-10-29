@@ -15,17 +15,17 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/domain"
 )
 
-// GetNFTs returns a list of all NFTs stored in the repository.
-func (a *App) GetNFTs() ([]*domain.NFT, error) {
-	// Retrieve all NFTs from the repository.
-	res, err := a.nftRepo.ListAll()
+// GetTokens returns a list of all Tokens stored in the repository.
+func (a *App) GetTokens() ([]*domain.Token, error) {
+	// Retrieve all Tokens from the repository.
+	res, err := a.tokenRepo.ListAll()
 	if err != nil {
 		// If an error occurs, return an empty list and the error.
-		return make([]*domain.NFT, 0), err
+		return make([]*domain.Token, 0), err
 	}
-	// If no NFTs are found, return an empty list.
+	// If no Tokens are found, return an empty list.
 	if res == nil {
-		res = make([]*domain.NFT, 0)
+		res = make([]*domain.Token, 0)
 	}
 	return res, nil
 }
@@ -35,7 +35,7 @@ func (a *App) GetImageFilePathFromDialog() string {
 	// Initialize Wails runtime to interact with the desktop application.
 	result, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
 		// Set the title of the file dialog.
-		Title: "Please select the image for this NFT",
+		Title: "Please select the image for this Token",
 		// Set the file filters to only show image files.
 		Filters: []runtime.FileFilter{
 			{
@@ -60,7 +60,7 @@ func (a *App) GetVideoFilePathFromDialog() string {
 	// Initialize Wails runtime to interact with the desktop application.
 	result, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
 		// Set the title of the file dialog.
-		Title: "Please select the video for this NFT",
+		Title: "Please select the video for this Token",
 		// Set the file filters to only show video files.
 		Filters: []runtime.FileFilter{
 			{
@@ -80,8 +80,8 @@ func (a *App) GetVideoFilePathFromDialog() string {
 	return result
 }
 
-// CreateNFT creates a new NFT with the given metadata and uploads it to IPFS.
-func (a *App) CreateNFT(
+// CreateToken creates a new Token with the given metadata and uploads it to IPFS.
+func (a *App) CreateToken(
 	name string,
 	description string,
 	image string,
@@ -90,7 +90,7 @@ func (a *App) CreateNFT(
 	externalURL string,
 	attributes string,
 	backgroundColor string,
-) (*domain.NFT, error) {
+) (*domain.Token, error) {
 	//
 	// STEP 1: Validation.
 	//
@@ -172,7 +172,7 @@ func (a *App) CreateNFT(
 	// STEP 4: Attributes.
 	//
 
-	attr := make([]*domain.NFTMetadataAttribute, 0)
+	attr := make([]*domain.TokenMetadataAttribute, 0)
 	if attributes != "" {
 		if err := json.Unmarshal([]byte(attributes), &attr); err != nil {
 			// If an error occurs, log an error and return an error.
@@ -187,10 +187,10 @@ func (a *App) CreateNFT(
 
 	//
 	// STEP 5:
-	// Create NFT metadata file locally.
+	// Create Token metadata file locally.
 	//
 
-	metadata := &domain.NFTMetadata{
+	metadata := &domain.TokenMetadata{
 		Image:           imageUploadResponse.Hash,
 		ExternalURL:     externalURL,
 		Description:     description,
@@ -249,20 +249,20 @@ func (a *App) CreateNFT(
 
 	//
 	// STEP 7:
-	// Create NFT in our database.
+	// Create Token in our database.
 	//
 
-	nft := &domain.NFT{
+	token := &domain.Token{
 		TokenID:     tokenID,
 		MetadataURI: fmt.Sprintf("ipfs://%v", metadataUploadResponse.Hash),
 		Metadata:    metadata,
 	}
 
-	if err := a.nftRepo.Upsert(nft); err != nil {
+	if err := a.tokenRepo.Upsert(token); err != nil {
 		// If an error occurs, log an error and return an error.
-		a.logger.Error("Failed save to database the nft",
+		a.logger.Error("Failed save to database the token",
 			slog.Any("error", err))
 		return nil, err
 	}
-	return nft, nil
+	return token, nil
 }

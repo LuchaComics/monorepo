@@ -36,7 +36,7 @@ export const SIGNATURE_ROLES_WITH_EMPTY_OPTIONS = [
         onDataChange={(data)=>onDataChange(data)}
 
 */
-function FormNFTMetadataAttributesField({
+function FormTokenMetadataAttributesField({
   data = [],
   onDataChange = null,
   disabled = false,
@@ -121,7 +121,7 @@ function FormNFTMetadataAttributesField({
         <div class="modal-background"></div>
         <div class="modal-card">
           <header class="modal-card-head">
-            <p class="modal-card-title">Add NFT Metadata Attribute</p>
+            <p class="modal-card-title">Add Token Metadata Attribute</p>
             <button
               class="delete"
               aria-label="close"
@@ -254,4 +254,4 @@ function FormNFTMetadataAttributesField({
   );
 }
 
-export default FormNFTMetadataAttributesField;
+export default FormTokenMetadataAttributesField;

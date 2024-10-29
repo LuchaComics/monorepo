@@ -19,16 +19,19 @@ type App struct {
 	// with the console log messages.
 	logger *slog.Logger
 
-	nftRepo  *repo.NFTRepo
+	tokenRepo *repo.TokenRepo
+
 	ipfsRepo *repo.IPFSRepo
+
+	latestTokenIDRepo *repo.LastestTokenIDRepo
 }
 
 // NewApp creates a new App application struct
 func NewApp() *App {
 	logger := logger.NewLogger()
 	return &App{
-		logger:  logger,
-		nftRepo: nil,
+		logger:    logger,
+		tokenRepo: nil,
 	}
 }
 
@@ -50,13 +53,19 @@ func (a *App) startup(ctx context.Context) {
 		return
 	}
 
-	nftByTokenIDDB := disk.NewDiskStorage(dataDir, "nft_by_tokenid", a.logger)
-	nftByMetadataURIDB := disk.NewDiskStorage(dataDir, "nft_by_metadatauri", a.logger)
-	nftRepo := repo.NewNFTRepo(a.logger, nftByTokenIDDB, nftByMetadataURIDB)
-	a.nftRepo = nftRepo
+	tokenByTokenIDDB := disk.NewDiskStorage(dataDir, "token_by_id", a.logger)
+	tokenByMetadataURIDB := disk.NewDiskStorage(dataDir, "token_by_metadata_uri", a.logger)
+	tokenRepo := repo.NewTokenRepo(a.logger, tokenByTokenIDDB, tokenByMetadataURIDB)
+	a.tokenRepo = tokenRepo
 
 	ipfsNode := repo.NewIPFSRepo(a.logger, "http://localhost:5002")
 	a.ipfsRepo = ipfsNode
+
+	latestTokenIDDB := disk.NewDiskStorage(dataDir, "latest_token_id", a.logger)
+	latestTokenIDRepo := repo.NewLastestTokenIDRepo(
+		a.logger,
+		latestTokenIDDB)
+	a.latestTokenIDRepo = latestTokenIDRepo
 }
 
 // Greet returns a greeting for the given name
