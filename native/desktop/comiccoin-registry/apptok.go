@@ -15,29 +15,39 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/domain"
 )
 
+// GetNFTs returns a list of all NFTs stored in the repository.
 func (a *App) GetNFTs() ([]*domain.NFT, error) {
+	// Retrieve all NFTs from the repository.
 	res, err := a.nftRepo.ListAll()
 	if err != nil {
+		// If an error occurs, return an empty list and the error.
 		return make([]*domain.NFT, 0), err
 	}
+	// If no NFTs are found, return an empty list.
 	if res == nil {
 		res = make([]*domain.NFT, 0)
 	}
 	return res, nil
 }
 
+// GetImageFilePathFromDialog opens a file dialog for the user to select an image file.
 func (a *App) GetImageFilePathFromDialog() string {
-	// Initialize Wails runtime
+	// Initialize Wails runtime to interact with the desktop application.
 	result, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
+		// Set the title of the file dialog.
 		Title: "Please select the image for this NFT",
+		// Set the file filters to only show image files.
 		Filters: []runtime.FileFilter{
 			{
+				// Set the display name of the filter.
 				DisplayName: "Images (*.png;*.jpg)",
-				Pattern:     "*.png;*.jpg",
+				// Set the file pattern to match.
+				Pattern: "*.png;*.jpg",
 			},
 		},
 	})
 	if err != nil {
+		// If an error occurs, log the error and exit the application.
 		a.logger.Error("Failed opening file dialog",
 			slog.Any("error", err))
 		log.Fatalf("%v", err)
@@ -45,18 +55,24 @@ func (a *App) GetImageFilePathFromDialog() string {
 	return result
 }
 
+// GetVideoFilePathFromDialog opens a file dialog for the user to select a video file.
 func (a *App) GetVideoFilePathFromDialog() string {
-	// Initialize Wails runtime
+	// Initialize Wails runtime to interact with the desktop application.
 	result, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
-		Title: "Please select the image for this NFT",
+		// Set the title of the file dialog.
+		Title: "Please select the video for this NFT",
+		// Set the file filters to only show video files.
 		Filters: []runtime.FileFilter{
 			{
+				// Set the display name of the filter.
 				DisplayName: "Videos (*.mov;*.mp4;*.webm)",
-				Pattern:     "*.mov;*.mp4;*.webm",
+				// Set the file pattern to match.
+				Pattern: "*.mov;*.mp4;*.webm",
 			},
 		},
 	})
 	if err != nil {
+		// If an error occurs, log the error and exit the application.
 		a.logger.Error("Failed opening file dialog",
 			slog.Any("error", err))
 		log.Fatalf("%v", err)
@@ -64,6 +80,7 @@ func (a *App) GetVideoFilePathFromDialog() string {
 	return result
 }
 
+// CreateNFT creates a new NFT with the given metadata and uploads it to IPFS.
 func (a *App) CreateNFT(
 	name string,
 	description string,
@@ -78,7 +95,7 @@ func (a *App) CreateNFT(
 	// STEP 1: Validation.
 	//
 
-	// For debugging purposes only.
+	// Log the input values for debugging purposes.
 	a.logger.Debug("received",
 		slog.String("name", name),
 		slog.String("image", image),
@@ -89,7 +106,7 @@ func (a *App) CreateNFT(
 		slog.String("backgroundColor", backgroundColor),
 	)
 
-	// Defensive code purposes.
+	// Check if any of the required fields are missing.
 	e := make(map[string]string)
 	if name == "" {
 		e["name"] = "missing value"
@@ -107,6 +124,7 @@ func (a *App) CreateNFT(
 		e["background_color"] = "missing value"
 	}
 	if len(e) != 0 {
+		// If any fields are missing, log an error and return a bad request error.
 		a.logger.Warn("Failed validating",
 			slog.Any("error", e))
 		return nil, httperror.NewForBadRequest(&e)
@@ -119,11 +137,12 @@ func (a *App) CreateNFT(
 	tokenID := uint64(1) // TEMPORARY
 
 	//
-	// STEP 2: Image upload to IPFS
+	// STEP 2: Image upload to IPFS.
 	//
 
 	imageUploadResponse, err := a.ipfsRepo.AddAndPinSingleFileFromLocalFileSystem(image)
 	if err != nil {
+		// If an error occurs, log an error and return an error.
 		a.logger.Error("Failed adding to IPFS.",
 			slog.Any("filepath", image),
 			slog.Any("error", err))
@@ -134,12 +153,13 @@ func (a *App) CreateNFT(
 		slog.Any("cid", imageUploadResponse.Hash))
 
 	//
-	// STEP 3: Animation upload to IPFS.
+	// STEP 3: Animation upload to IPFs.
 	//
 
 	animationUploadResponse, err := a.ipfsRepo.AddAndPinSingleFileFromLocalFileSystem(animation)
 	if err != nil {
-		a.logger.Error("Failed adding animation to IPFS.",
+		// If an error occurs, log an error and return an error.
+		a.logger.Error("Failed adding animation to IPFs.",
 			slog.Any("filepath", animation),
 			slog.Any("error", err))
 		return nil, err
@@ -155,11 +175,10 @@ func (a *App) CreateNFT(
 	attr := make([]*domain.NFTMetadataAttribute, 0)
 	if attributes != "" {
 		if err := json.Unmarshal([]byte(attributes), &attr); err != nil {
+			// If an error occurs, log an error and return an error.
 			a.logger.Error("Failed unmarshal metadata attributes",
 				slog.Any("attributes", attributes),
-				slog.Any("error", e))
-
-			// Return an error if the unmarshaling fails.
+				slog.Any("error", err))
 			return nil, fmt.Errorf("failed to deserialize metadata attributete: %v", err)
 		}
 		a.logger.Debug("attributes",
@@ -168,7 +187,7 @@ func (a *App) CreateNFT(
 
 	//
 	// STEP 5:
-	// Create NFT metadata file locally	//
+	// Create NFT metadata file locally.
 	//
 
 	metadata := &domain.NFTMetadata{
@@ -184,7 +203,8 @@ func (a *App) CreateNFT(
 
 	metadataBytes, err := json.MarshalIndent(metadata, "", "\t")
 	if err != nil {
-		a.logger.Error("Failed to marshal metadata",
+		// If an error occurs, log an error and return an error.
+		a.logger.Error("Failed marshal metadata",
 			slog.Any("error", err))
 		return nil, err
 	}
@@ -193,27 +213,30 @@ func (a *App) CreateNFT(
 	dataDir := preferences.DataDirectory
 	metadataFilepath := filepath.Join(dataDir, "tokens", fmt.Sprintf("%v", tokenID), "metadata.json")
 
-	// Create the directories recursively
+	// Create the directories recursively.
 	if err := os.MkdirAll(filepath.Dir(metadataFilepath), 0755); err != nil {
-		a.logger.Error("Failed to create directories",
+		// If an error occurs, log an error and return an error.
+		a.logger.Error("Failed create directories",
 			slog.Any("error", err))
 		return nil, err
 	}
 
 	if err := ioutil.WriteFile(metadataFilepath, metadataBytes, 0644); err != nil {
-		a.logger.Error("Failed to marshal metadata",
+		// If an error occurs, log an error and return an error.
+		a.logger.Error("Failed write metadata file",
 			slog.Any("error", err))
 		return nil, err
 	}
 
 	//
 	// STEP 6:
-	// Upload to IPFS and get the CID.
+	// Upload to IPFs and get the CID.
 	//
 
 	metadataUploadResponse, err := a.ipfsRepo.AddAndPinSingleFileFromLocalFileSystem(metadataFilepath)
 	if err != nil {
-		a.logger.Error("Failed adding metadata to IPFS.",
+		// If an error occurs, log an error and return an error.
+		a.logger.Error("Failed adding metadata to IPFs.",
 			slog.Any("token_id", tokenID),
 			slog.Any("filepath", metadataFilepath),
 			slog.Any("error", err))
@@ -225,7 +248,8 @@ func (a *App) CreateNFT(
 		slog.Any("cid", metadataUploadResponse.Hash))
 
 	//
-	// STEP 7: Create NFT in our database.
+	// STEP 7:
+	// Create NFT in our database.
 	//
 
 	nft := &domain.NFT{
@@ -235,7 +259,8 @@ func (a *App) CreateNFT(
 	}
 
 	if err := a.nftRepo.Upsert(nft); err != nil {
-		a.logger.Error("Failed to save to database the nft",
+		// If an error occurs, log an error and return an error.
+		a.logger.Error("Failed save to database the nft",
 			slog.Any("error", err))
 		return nil, err
 	}
