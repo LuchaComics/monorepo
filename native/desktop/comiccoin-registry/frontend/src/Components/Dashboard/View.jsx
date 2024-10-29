@@ -102,7 +102,7 @@ function DashboardView() {
                 </nav>
                 */}
 
-                <section class="hero is-warning is-medium">
+                <section class="hero is-info is-medium">
                   <div class="hero-body">
                     <p class="title"><FontAwesomeIcon className="fas" icon={faCubes} />&nbsp;Tokens</p>
                     <p class="subtitle">To view the tokens in the ComicCoin blockchain or create new tokens continue below:</p>
