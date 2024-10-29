@@ -12,6 +12,8 @@ export function GetDefaultDataDirectory():Promise<string>;
 
 export function GetImageFilePathFromDialog():Promise<string>;
 
+export function GetIsIPFSRunning():Promise<boolean>;
+
 export function GetNFTs():Promise<Array<domain.NFT>>;
 
 export function GetVideoFilePathFromDialog():Promise<string>;

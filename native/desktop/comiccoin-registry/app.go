@@ -19,7 +19,8 @@ type App struct {
 	// with the console log messages.
 	logger *slog.Logger
 
-	nftRepo *repo.NFTRepo
+	nftRepo  *repo.NFTRepo
+	ipfsRepo *repo.IPFSRepo
 }
 
 // NewApp creates a new App application struct
@@ -53,6 +54,9 @@ func (a *App) startup(ctx context.Context) {
 	nftByMetadataURIDB := disk.NewDiskStorage(dataDir, "nft_by_metadatauri", a.logger)
 	nftRepo := repo.NewNFTRepo(a.logger, nftByTokenIDDB, nftByMetadataURIDB)
 	a.nftRepo = nftRepo
+
+	ipfsNode := repo.NewIPFSRepo(a.logger, "http://localhost:5002")
+	a.ipfsRepo = ipfsNode
 }
 
 // Greet returns a greeting for the given name

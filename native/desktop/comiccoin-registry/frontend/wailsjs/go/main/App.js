@@ -22,6 +22,10 @@ export function GetImageFilePathFromDialog() {
   return window['go']['main']['App']['GetImageFilePathFromDialog']();
 }
 
+export function GetIsIPFSRunning() {
+  return window['go']['main']['App']['GetIsIPFSRunning']();
+}
+
 export function GetNFTs() {
   return window['go']['main']['App']['GetNFTs']();
 }
