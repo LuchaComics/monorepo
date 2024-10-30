@@ -1,33 +1,26 @@
 package repo
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"log/slog"
-	"mime/multipart"
-	"net/http"
 	"os"
-	"path/filepath"
-	"strconv"
 	"strings"
+	"time"
+
+	"github.com/ipfs/boxo/files"
+	"github.com/ipfs/boxo/path"
+	"github.com/ipfs/go-cid"
+	"github.com/ipfs/kubo/client/rpc"
+	"github.com/libp2p/go-libp2p/core/peer"
+	ma "github.com/multiformats/go-multiaddr"
 )
 
 type IPFSRepo struct {
-	logger      *slog.Logger
-	APIEndpoint string
-}
-
-// Identity represents the identity of an IPFS node
-type Identity struct {
-	Addresses    []string `json:"Addresses"`
-	AgentVersion string   `json:"AgentVersion"`
-	ID           string   `json:"ID"`
-	Protocols    []string `json:"Protocols"`
-	PublicKey    string   `json:"PublicKey"`
+	logger *slog.Logger
+	api    *rpc.HttpApi
 }
 
 // AddResponse represents the response from the /api/v0/add endpoint
@@ -42,66 +35,52 @@ type AddResponse struct {
 }
 
 // NewIPFSRepo returns a new IPFSNode instance
-func NewIPFSRepo(logger *slog.Logger, apiEndpoint string) *IPFSRepo {
-	return &IPFSRepo{logger: logger, APIEndpoint: apiEndpoint}
+func NewIPFSRepo(logger *slog.Logger, ipfsIP string, ipfsPort string) *IPFSRepo {
+
+	// Step 1: Define the remote IPFS server address (replace with your remote IPFS server address)
+	ipfsAddress := fmt.Sprintf("/ip4/%s/tcp/%s", ipfsIP, ipfsPort) // Example: Replace with your remote IPFS server address
+
+	// Step 2: Create a Multiaddr using the remote IPFS address
+	multiaddr, err := ma.NewMultiaddr(ipfsAddress)
+	if err != nil {
+		log.Fatalf("failed to create multiaddr: %v", err)
+	}
+
+	// Step 3: Create a new IPFS HTTP API client using the remote server address
+	api, err := rpc.NewApi(multiaddr)
+	if err != nil {
+		log.Fatalf("failed to create IPFS HTTP API client: %v", err)
+	}
+
+	logger.Debug("connected to remote ipfs node")
+
+	return &IPFSRepo{
+		logger: logger,
+		api:    api,
+	}
 }
 
 // ID returns the IPFS node's identity information
-func (r *IPFSRepo) ID() (*Identity, error) {
-	req, err := http.NewRequest("POST", r.APIEndpoint+"/api/v0/id", nil)
-	if err != nil {
-		r.logger.Debug("failed to create request",
-			slog.Any("error", err))
-		return nil, err
+func (r *IPFSRepo) ID() (peer.ID, error) {
+	keyAPI := r.api.Key()
+	if keyAPI == nil {
+		return "", fmt.Errorf("Failed getting key: %v", "does not exist")
 	}
-
-	resp, err := http.DefaultClient.Do(req)
+	selfKey, err := keyAPI.Self(context.Background())
 	if err != nil {
-		r.logger.Debug("failed to post",
-			slog.Any("error", err))
-		return nil, err
+		return "", fmt.Errorf("Failed getting self: %v", err)
 	}
-	defer resp.Body.Close()
-
-	var identity Identity
-	err = json.NewDecoder(resp.Body).Decode(&identity)
-	if err != nil {
-		r.logger.Debug("failed to decode",
-			slog.Any("resp", resp),
-			slog.Any("error", err))
-		return nil, err
+	if selfKey == nil {
+		return "", fmt.Errorf("Failed getting self: %v", "does not exist")
 	}
-
-	return &identity, nil
+	return selfKey.ID(), nil
 }
 
-// // Version returns the IPFS node's version information
-// func (n *IPFSNode) Version() (*Version, error) {
-//     resp, err := http.Get(n.APIEndpoint + "/api/v0/version")
-//     if err != nil {
-//         return nil, err
-//     }
-//     defer resp.Body.Close()
-//
-//     var version Version
-//     err = json.NewDecoder(resp.Body).Decode(&version)
-//     if err != nil {
-//         return nil, err
-//     }
-//
-//     return &version, nil
-// }
-
-func (r *IPFSRepo) AddAndPinSingleFileFromLocalFileSystem(fullFilePath string) (*AddResponse, error) {
-	res, err := r.AddAndPinFromLocalFileSystem(fullFilePath)
-	if err != nil {
-		return nil, err
+func (r *IPFSRepo) PinAdd(fullFilePath string) (*AddResponse, error) {
+	unixfs := r.api.Unixfs()
+	if unixfs == nil {
+		return nil, fmt.Errorf("Failed getting unix fs: %v", "does not exist")
 	}
-	return res[0], nil
-}
-
-// Add adds a new file or directory to IPFS
-func (r *IPFSRepo) AddAndPinFromLocalFileSystem(fullFilePath string) ([]*AddResponse, error) {
 
 	// Open the file
 	file, err := os.Open(fullFilePath)
@@ -110,152 +89,70 @@ func (r *IPFSRepo) AddAndPinFromLocalFileSystem(fullFilePath string) ([]*AddResp
 	}
 	defer file.Close()
 
-	// Get the base name of the file
-	filename := filepath.Base(fullFilePath)
-
-	// Create a multipart/form-data request body
-	buf := new(bytes.Buffer)
-	writer := multipart.NewWriter(buf)
-	part, err := writer.CreateFormFile("file", filename)
+	// Get the file stat
+	stat, err := file.Stat()
 	if err != nil {
 		return nil, err
 	}
 
-	// Copy the file contents to the multipart request body
-	_, err = io.Copy(part, file)
-	if err != nil {
-		return nil, err
-	}
-	err = writer.Close()
+	// Create a reader file node
+	node, err := files.NewReaderPathFile(fullFilePath, file, stat)
 	if err != nil {
 		return nil, err
 	}
 
-	// Please see: https://docs.ipfs.tech/reference/kubo/rpc/#api-v0-add
-	// Summary:
-	// - pin: We want to automatically pin along with our save.
-	// - cid-version=1 --> We want to use the latest cid system.
-	// - wrap-with-directory --> Include filename! Important!
-	params := "?pin=true&cid-version=1&wrap-with-directory=false"
+	//TODO: CidVersion=1, Pin=True
 
-	// Set the request headers
-	req, err := http.NewRequest("POST", r.APIEndpoint+"/api/v0/add"+params, buf)
+	pathRes, err := unixfs.Add(context.Background(), node)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Content-Type", writer.FormDataContentType())
 
-	// Make the Add API call
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	// Create a JSON decoder
-	decoder := json.NewDecoder(resp.Body)
-
-	// Create a slice to store the AddResponse objects
-	var addResponses []*AddResponse
-
-	// Decode the JSON response
-	for decoder.More() {
-		var addResponse AddResponse
-		err = decoder.Decode(&addResponse)
-		if err != nil {
-			return nil, err
-		}
-		addResponses = append(addResponses, &addResponse)
+	// Create an AddResponse object from the pathRes
+	response := &AddResponse{
+		Hash: strings.Replace(pathRes.String(), "/ipfs/", "", -1),
 	}
 
-	// Print the Add API response
-	for _, addResponse := range addResponses {
-		fmt.Printf("Added file with CID: %s\n", addResponse.Hash)
-		fmt.Printf("File name: %s\n", addResponse.Name)
-		fmt.Printf("File size: %s\n", addResponse.Size)
-	}
-
-	return addResponses, nil
+	return response, nil
 }
 
 // Cat retrieves the contents of a file from IPFS
-func (r *IPFSRepo) Cat(cid string) ([]byte, string, uint64, error) {
-	url := fmt.Sprintf("%v/api/v0/get?arg=%s", r.APIEndpoint, cid)
+func (s *IPFSRepo) Get(ctx context.Context, cidString string) ([]byte, error) {
+	s.logger.Debug("fetching content from IPFS", slog.String("cid", cidString))
 
-	// Create a new HTTP request
-	req, err := http.NewRequest("POST", url, nil)
+	cid, err := cid.Decode(cidString)
 	if err != nil {
-		r.logger.Error("error new request",
-			slog.Any("error", err))
-		return nil, "", 0, err
+		s.logger.Error("failed to decode CID", slog.String("cid", cidString), slog.Any("error", err))
+		return nil, fmt.Errorf("failed to decode CID: %v", err)
 	}
 
-	// Set the User-Agent header
-	req.Header.Set("User-Agent", "My IPFS Client")
+	// Convert the CID to a path.Path
+	ipfsPath := path.FromCid(cid)
 
-	// Send the request
-	resp, err := http.DefaultClient.Do(req)
+	// Add a timeout to prevent hanging requests.
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Attempt to get the file from IPFS using the path
+	fileNode, err := s.api.Unixfs().Get(ctx, ipfsPath)
 	if err != nil {
-		r.logger.Error("failed executing http request",
-			slog.Any("error", err))
-		return nil, "", 0, err
-	}
-	defer resp.Body.Close()
-
-	// Check the response status code
-	if resp.StatusCode != 200 {
-		return nil, "", 0, fmt.Errorf("invalid response code: %d", resp.StatusCode)
+		s.logger.Error("failed to fetch content from IPFS", slog.String("cid", cidString), slog.Any("error", err))
+		return nil, fmt.Errorf("failed to fetch content from IPFS: %v", err)
 	}
 
-	// Get the content type
-	contentType := resp.Header.Get("Content-Type")
-
-	// If the content type is not specified, try to determine it based on the file extension
-	if contentType == "" {
-		// Try to determine the content type based on the Content-Transfer-Encoding header
-		encoding := resp.Header.Get("Content-Transfer-Encoding")
-		if encoding == "binary" {
-			// If the encoding is binary, try to determine the content type based on the file extension
-			// ...
-		}
-		log.Println("------->", encoding)
-
-		// Parse the CID and extract the file extension
-		parts := strings.Split(cid, "/")
-		filename := parts[len(parts)-1]
-		extension := strings.Split(filename, ".")[1]
-
-		// Determine the content type based on the file extension
-		switch extension {
-		case "png":
-			contentType = "image/png"
-		case "jpg":
-			contentType = "image/jpeg"
-		case "gif":
-			contentType = "image/gif"
-			// ...
-		}
+	// Convert the file node to a reader
+	fileReader := files.ToFile(fileNode)
+	if fileReader == nil {
+		s.logger.Error("failed to convert IPFS node to file reader", slog.String("cid", cidString))
+		return nil, fmt.Errorf("failed to convert IPFS node to file reader")
 	}
 
-	// Get the content length
-	contentLength, err := strconv.ParseUint(resp.Header.Get("X-Content-Length"), 10, 64)
+	// Read the content from the file reader
+	content, err := io.ReadAll(fileReader)
 	if err != nil {
-		r.logger.Error("failed parsing to int",
-			slog.Any("header", resp.Header),
-			slog.Any("error", err))
-		return nil, "", 0, err
+		s.logger.Error("failed to read content from IPFS", slog.String("cid", cidString), slog.Any("error", err))
+		return nil, fmt.Errorf("failed to read content from IPFS: %v", err)
 	}
 
-	// Read the response body
-	data, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		r.logger.Error("error reading all data",
-			slog.Any("error", err))
-		return nil, "", 0, err
-	}
-
-	r.logger.Debug("Get done",
-		slog.Any("header", resp.Header))
-
-	return data, contentType, contentLength, nil
+	return content, nil
 }

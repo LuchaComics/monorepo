@@ -57,7 +57,7 @@ func (a *App) startup(ctx context.Context) {
 	tokenRepo := repo.NewTokenRepo(a.logger, tokenByTokenIDDB, tokenByMetadataURIDB)
 	a.tokenRepo = tokenRepo
 
-	ipfsNode := repo.NewIPFSRepo(a.logger, "http://localhost:5002")
+	ipfsNode := repo.NewIPFSRepo(a.logger, "127.0.0.1", "5002")
 	a.ipfsRepo = ipfsNode
 
 	latestTokenIDDB := disk.NewDiskStorage(dataDir, "latest_token_id", a.logger)

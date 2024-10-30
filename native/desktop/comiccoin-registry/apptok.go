@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
@@ -166,7 +167,7 @@ func (a *App) CreateToken(
 	// STEP 3: Upload `image` file to IPFS.
 	//
 
-	imageUploadResponse, err := a.ipfsRepo.AddAndPinSingleFileFromLocalFileSystem(image)
+	imageUploadResponse, err := a.ipfsRepo.PinAdd(image)
 	if err != nil {
 		// If an error occurs, log an error and return an error.
 		a.logger.Error("Failed adding to IPFS.",
@@ -182,7 +183,7 @@ func (a *App) CreateToken(
 	// STEP 4: Upload `animation` file to IPFs.
 	//
 
-	animationUploadResponse, err := a.ipfsRepo.AddAndPinSingleFileFromLocalFileSystem(animation)
+	animationUploadResponse, err := a.ipfsRepo.PinAdd(animation)
 	if err != nil {
 		// If an error occurs, log an error and return an error.
 		a.logger.Error("Failed adding animation to IPFs.",
@@ -257,10 +258,21 @@ func (a *App) CreateToken(
 	// Copy `image` file so we can consolidate our token assets.
 	//
 
-	consolidatedImage := filepath.Join(dataDir, "tokens", fmt.Sprintf("%v", tokenID), imageUploadResponse.Name)
+	consolidatedImage := filepath.Join(dataDir, "tokens", fmt.Sprintf("%v", tokenID), strings.Replace(imageUploadResponse.Hash, "/ipfs/", "", -1))
+
+	// Create the directories recursively.
+	if err := os.MkdirAll(filepath.Dir(consolidatedImage), 0755); err != nil {
+		// If an error occurs, log an error and return an error.
+		a.logger.Error("Failed create directories",
+			slog.Any("error", err))
+		return nil, err
+	}
 
 	if err := CopyFile(image, consolidatedImage); err != nil {
 		a.logger.Error("Failed consolidating image.",
+			slog.Any("tokenID", tokenID),
+			slog.Any("dataDir", dataDir),
+			slog.Any("consolidatedImage", consolidatedImage),
 			slog.Any("error", err))
 		return nil, err
 	}
@@ -270,10 +282,21 @@ func (a *App) CreateToken(
 	// Copy `image` file so we can consolidate our token assets.
 	//
 
-	consolidatedAnimation := filepath.Join(dataDir, "tokens", fmt.Sprintf("%v", tokenID), animationUploadResponse.Name)
+	consolidatedAnimation := filepath.Join(dataDir, "tokens", fmt.Sprintf("%v", tokenID), strings.Replace(animationUploadResponse.Hash, "/ipfs/", "", -1))
+
+	// Create the directories recursively.
+	if err := os.MkdirAll(filepath.Dir(consolidatedAnimation), 0755); err != nil {
+		// If an error occurs, log an error and return an error.
+		a.logger.Error("Failed create directories",
+			slog.Any("error", err))
+		return nil, err
+	}
 
 	if err := CopyFile(animation, consolidatedAnimation); err != nil {
 		a.logger.Error("Failed consolidating animation.",
+			slog.Any("tokenID", tokenID),
+			slog.Any("dataDir", dataDir),
+			slog.Any("consolidatedImage", consolidatedImage),
 			slog.Any("error", err))
 		return nil, err
 	}
@@ -283,7 +306,7 @@ func (a *App) CreateToken(
 	// Upload to IPFs and get the CID.
 	//
 
-	metadataUploadResponse, err := a.ipfsRepo.AddAndPinSingleFileFromLocalFileSystem(metadataFilepath)
+	metadataUploadResponse, err := a.ipfsRepo.PinAdd(metadataFilepath)
 	if err != nil {
 		// If an error occurs, log an error and return an error.
 		a.logger.Error("Failed adding metadata to IPFs.",
