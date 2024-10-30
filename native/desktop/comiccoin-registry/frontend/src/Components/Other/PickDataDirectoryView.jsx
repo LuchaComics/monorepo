@@ -179,10 +179,6 @@ function PickDataDirectoryView() {
                   }
                 />
 
-                <p class="pb-4">When you dick OK, ComicCoin Core will begin to download and process the full ComicCoin block chain (1 MB) starting with the earliest transactions in 2024 when ComicCoin initially launched.</p>
-
-                <p class="pb-4">This initial synchronisation is very demanding, and may expose hardware problems with your computer that had previously gone unnoticed. Each time you run ComicCoin Core, it will continue downloading where it left off.</p>
-
                 <div class="columns pt-5" style={{alignSelf: "flex-start"}}>
                   <div class="column is-half ">
                     <button
