@@ -15,6 +15,7 @@ import (
 	"github.com/ipfs/boxo/path"
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/kubo/client/rpc"
+	"github.com/ipfs/kubo/core/coreiface/options"
 	"github.com/libp2p/go-libp2p/core/peer"
 	ma "github.com/multiformats/go-multiaddr"
 )
@@ -77,7 +78,7 @@ func (r *IPFSRepo) ID() (peer.ID, error) {
 	return selfKey.ID(), nil
 }
 
-func (r *IPFSRepo) Add(fullFilePath string) (string, error) {
+func (r *IPFSRepo) Add(fullFilePath string, shouldPin bool) (string, error) {
 	unixfs := r.api.Unixfs()
 	if unixfs == nil {
 		return "", fmt.Errorf("Failed getting unix fs: %v", "does not exist")
@@ -102,9 +103,14 @@ func (r *IPFSRepo) Add(fullFilePath string) (string, error) {
 		return "", err
 	}
 
-	//TODO: CidVersion=1, Pin=True
+	// We want to use the newest `CidVersion` in our update.
+	opts := func(settings *options.UnixfsAddSettings) error {
+		settings.CidVersion = 1
+		settings.Pin = shouldPin
+		return nil
+	}
 
-	pathRes, err := unixfs.Add(context.Background(), node)
+	pathRes, err := unixfs.Add(context.Background(), node, opts)
 	if err != nil {
 		return "", err
 	}
@@ -133,7 +139,7 @@ func (impl *IPFSRepo) Pin(cidString string) error {
 }
 
 func (r *IPFSRepo) PinAdd(fullFilePath string) (string, error) {
-	fileCID, err := r.Add(fullFilePath)
+	fileCID, err := r.Add(fullFilePath, false)
 	if err != nil {
 		return "", err
 	}
