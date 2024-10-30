@@ -26,17 +26,19 @@ type IPFSFileResponse struct {
 
 func (a *App) GetFileViaIPFS(ipfsPath string) (*IPFSFileResponse, error) {
 	cid := strings.Replace(ipfsPath, "ipfs://", "", -1)
-	bytes, err := a.ipfsRepo.Get(a.ctx, cid)
+	content, contentType, err := a.ipfsRepo.Get(a.ctx, cid)
 	if err != nil {
 		a.logger.Error("failed getting from cid",
 			slog.Any("error", err))
 		return nil, err
 	}
 
-	a.logger.Debug("",
-		slog.Any("cid", cid))
+	a.logger.Debug("GetFileViaIPFS",
+		slog.Any("cid", cid),
+		slog.Any("content_type", contentType))
 
 	return &IPFSFileResponse{
-		Data: bytes,
+		Data:        content,
+		ContentType: contentType,
 	}, nil
 }

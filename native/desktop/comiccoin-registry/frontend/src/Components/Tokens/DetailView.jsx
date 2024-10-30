@@ -21,7 +21,9 @@ import { GetTokens } from "../../../wailsjs/go/main/App";
 import FormRowText from "../Reusable/FormRowText";
 import { GetToken } from "../../../wailsjs/go/main/App";
 import PageLoadingContent from "../Reusable/PageLoadingContent";
-import FormRowImageViaIPFS from "../Reusable/FormRowImageViaIPFS";
+import FormRowIPFSImageField from "../Reusable/FormRowIPFSImageField";
+import FormRowIPFSVideoField from "../Reusable/FormRowIPFSVideoField";
+import FormRowYouTubeField from "../Reusable/FormRowYouTubeField";
 
 
 function TokenDetailView() {
@@ -126,15 +128,15 @@ function TokenDetailView() {
                   </div>
 
                   {token !== undefined && token !== null && token !== "" && <>
-                      <FormRowImageViaIPFS label="Image" ipfsPath={token.metadata.image} />
                       <FormRowText label="ID" value={token.token_id} />
                       <FormRowText label="Metadata URI" value={token.metadata_uri} />
                       <FormRowText label="Name" value={token.metadata.name} />
                       <FormRowText label="Description" value={token.metadata.description} />
                       <FormRowText label="External URL" value={token.metadata.external_url} />
                       <FormRowText label="Background Color" value={token.metadata.background_color} />
-                      <FormRowText label="Image" value={token.metadata.image} />
-                      <FormRowText label="Animation URL" value={token.metadata.animation_url} />
+                      <FormRowIPFSImageField label="Image" ipfsPath={token.metadata.image} />
+                      <FormRowIPFSVideoField label="Animation" ipfsPath={token.metadata.animation_url} />
+                      <FormRowYouTubeField label="YouTube URL" url={token.metadata.youtube_url} />
                   </>}
 
                   <div class="columns pt-5" style={{alignSelf: "flex-start"}}>

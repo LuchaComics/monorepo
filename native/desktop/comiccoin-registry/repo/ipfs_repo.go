@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"log/slog"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -76,54 +77,82 @@ func (r *IPFSRepo) ID() (peer.ID, error) {
 	return selfKey.ID(), nil
 }
 
-func (r *IPFSRepo) PinAdd(fullFilePath string) (*AddResponse, error) {
+func (r *IPFSRepo) Add(fullFilePath string) (string, error) {
 	unixfs := r.api.Unixfs()
 	if unixfs == nil {
-		return nil, fmt.Errorf("Failed getting unix fs: %v", "does not exist")
+		return "", fmt.Errorf("Failed getting unix fs: %v", "does not exist")
 	}
 
 	// Open the file
 	file, err := os.Open(fullFilePath)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	defer file.Close()
 
 	// Get the file stat
 	stat, err := file.Stat()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	// Create a reader file node
 	node, err := files.NewReaderPathFile(fullFilePath, file, stat)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	//TODO: CidVersion=1, Pin=True
 
 	pathRes, err := unixfs.Add(context.Background(), node)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	// Create an AddResponse object from the pathRes
-	response := &AddResponse{
-		Hash: strings.Replace(pathRes.String(), "/ipfs/", "", -1),
+	return strings.Replace(pathRes.String(), "/ipfs/", "", -1), nil
+}
+
+func (impl *IPFSRepo) Pin(cidString string) error {
+	impl.logger.Debug("pinning content to IPFS", slog.String("cid", cidString))
+
+	cid, err := cid.Decode(cidString)
+	if err != nil {
+		impl.logger.Error("failed to decode CID", slog.String("cid", cidString), slog.Any("error", err))
+		return fmt.Errorf("failed to decode CID: %v", err)
 	}
 
-	return response, nil
+	// Convert the CID to a path.Path
+	ipfsPath := path.FromCid(cid)
+
+	// Attempt to pin the content to the IPFS node using the CID
+	if err := impl.api.Pin().Add(context.Background(), ipfsPath); err != nil {
+		impl.logger.Error("failed to pin content to IPFS", slog.String("cid", cidString), slog.Any("error", err))
+		return fmt.Errorf("failed to pin content to IPFS: %v", err)
+	}
+	return nil
+}
+
+func (r *IPFSRepo) PinAdd(fullFilePath string) (string, error) {
+	fileCID, err := r.Add(fullFilePath)
+	if err != nil {
+		return "", err
+	}
+
+	if err := r.Pin(fileCID); err != nil {
+		return "", err
+	}
+
+	return fileCID, nil
 }
 
 // Cat retrieves the contents of a file from IPFS
-func (s *IPFSRepo) Get(ctx context.Context, cidString string) ([]byte, error) {
+func (s *IPFSRepo) Get(ctx context.Context, cidString string) ([]byte, string, error) {
 	s.logger.Debug("fetching content from IPFS", slog.String("cid", cidString))
 
 	cid, err := cid.Decode(cidString)
 	if err != nil {
 		s.logger.Error("failed to decode CID", slog.String("cid", cidString), slog.Any("error", err))
-		return nil, fmt.Errorf("failed to decode CID: %v", err)
+		return nil, "", fmt.Errorf("failed to decode CID: %v", err)
 	}
 
 	// Convert the CID to a path.Path
@@ -137,22 +166,22 @@ func (s *IPFSRepo) Get(ctx context.Context, cidString string) ([]byte, error) {
 	fileNode, err := s.api.Unixfs().Get(ctx, ipfsPath)
 	if err != nil {
 		s.logger.Error("failed to fetch content from IPFS", slog.String("cid", cidString), slog.Any("error", err))
-		return nil, fmt.Errorf("failed to fetch content from IPFS: %v", err)
+		return nil, "", fmt.Errorf("failed to fetch content from IPFS: %v", err)
 	}
 
 	// Convert the file node to a reader
 	fileReader := files.ToFile(fileNode)
 	if fileReader == nil {
 		s.logger.Error("failed to convert IPFS node to file reader", slog.String("cid", cidString))
-		return nil, fmt.Errorf("failed to convert IPFS node to file reader")
+		return nil, "", fmt.Errorf("failed to convert IPFS node to file reader")
 	}
 
 	// Read the content from the file reader
 	content, err := io.ReadAll(fileReader)
 	if err != nil {
 		s.logger.Error("failed to read content from IPFS", slog.String("cid", cidString), slog.Any("error", err))
-		return nil, fmt.Errorf("failed to read content from IPFS: %v", err)
+		return nil, "", fmt.Errorf("failed to read content from IPFS: %v", err)
 	}
 
-	return content, nil
+	return content, http.DetectContentType(content), nil
 }

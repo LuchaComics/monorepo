@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
@@ -41,6 +40,13 @@ func (a *App) GetToken(tokenID uint64) (*domain.Token, error) {
 		)
 		return nil, err
 	}
+
+	a.logger.Debug("fetched token",
+		slog.Any("token_id", tok.TokenID),
+		slog.Any("metadata_uri", tok.MetadataURI),
+		slog.Any("image", tok.Metadata.Image),
+		slog.Any("animation", tok.Metadata.AnimationURL),
+	)
 	return tok, nil
 }
 
@@ -167,7 +173,7 @@ func (a *App) CreateToken(
 	// STEP 3: Upload `image` file to IPFS.
 	//
 
-	imageUploadResponse, err := a.ipfsRepo.PinAdd(image)
+	imageCID, err := a.ipfsRepo.PinAdd(image)
 	if err != nil {
 		// If an error occurs, log an error and return an error.
 		a.logger.Error("Failed adding to IPFS.",
@@ -177,13 +183,13 @@ func (a *App) CreateToken(
 	}
 	a.logger.Debug("Image uploaded to ipfs.",
 		slog.Any("local", image),
-		slog.Any("cid", imageUploadResponse.Hash))
+		slog.Any("cid", imageCID))
 
 	//
 	// STEP 4: Upload `animation` file to IPFs.
 	//
 
-	animationUploadResponse, err := a.ipfsRepo.PinAdd(animation)
+	animationCID, err := a.ipfsRepo.PinAdd(animation)
 	if err != nil {
 		// If an error occurs, log an error and return an error.
 		a.logger.Error("Failed adding animation to IPFs.",
@@ -193,7 +199,7 @@ func (a *App) CreateToken(
 	}
 	a.logger.Debug("Animation uploaded to ipfs.",
 		slog.Any("local", animation),
-		slog.Any("cid", animationUploadResponse.Hash))
+		slog.Any("cid", animationCID))
 
 	//
 	// STEP 5: Handle `attributes` unmarshalling.
@@ -218,13 +224,13 @@ func (a *App) CreateToken(
 	//
 
 	metadata := &domain.TokenMetadata{
-		Image:           fmt.Sprintf("ipfs://%v", imageUploadResponse.Hash),
+		Image:           fmt.Sprintf("ipfs://%v", imageCID),
 		ExternalURL:     externalURL,
 		Description:     description,
 		Name:            name,
 		Attributes:      attr,
 		BackgroundColor: backgroundColor,
-		AnimationURL:    fmt.Sprintf("ipfs://%v", animationUploadResponse.Hash),
+		AnimationURL:    fmt.Sprintf("ipfs://%v", animationCID),
 		YoutubeURL:      youtubeURL,
 	}
 
@@ -258,7 +264,11 @@ func (a *App) CreateToken(
 	// Copy `image` file so we can consolidate our token assets.
 	//
 
-	consolidatedImage := filepath.Join(dataDir, "tokens", fmt.Sprintf("%v", tokenID), strings.Replace(imageUploadResponse.Hash, "/ipfs/", "", -1))
+	// Get the base name of the file
+	imageFilename := filepath.Base(image)
+
+	// Create new filepath of where to consolidate our file to.
+	consolidatedImage := filepath.Join(dataDir, "tokens", fmt.Sprintf("%v", tokenID), imageFilename)
 
 	// Create the directories recursively.
 	if err := os.MkdirAll(filepath.Dir(consolidatedImage), 0755); err != nil {
@@ -281,8 +291,11 @@ func (a *App) CreateToken(
 	// STEP 8
 	// Copy `image` file so we can consolidate our token assets.
 	//
+	// Get the base name of the file
+	animationFilename := filepath.Base(animation)
 
-	consolidatedAnimation := filepath.Join(dataDir, "tokens", fmt.Sprintf("%v", tokenID), strings.Replace(animationUploadResponse.Hash, "/ipfs/", "", -1))
+	// Create new filepath of where to consolidate our file to.
+	consolidatedAnimation := filepath.Join(dataDir, "tokens", fmt.Sprintf("%v", tokenID), animationFilename)
 
 	// Create the directories recursively.
 	if err := os.MkdirAll(filepath.Dir(consolidatedAnimation), 0755); err != nil {
@@ -306,7 +319,7 @@ func (a *App) CreateToken(
 	// Upload to IPFs and get the CID.
 	//
 
-	metadataUploadResponse, err := a.ipfsRepo.PinAdd(metadataFilepath)
+	metadataCID, err := a.ipfsRepo.PinAdd(metadataFilepath)
 	if err != nil {
 		// If an error occurs, log an error and return an error.
 		a.logger.Error("Failed adding metadata to IPFs.",
@@ -318,7 +331,7 @@ func (a *App) CreateToken(
 	a.logger.Debug("Metadata uploaded to ipfs.",
 		slog.Any("token_id", tokenID),
 		slog.Any("local", metadataFilepath),
-		slog.Any("cid", metadataUploadResponse.Hash))
+		slog.Any("cid", metadataCID))
 
 	//
 	// STEP 10:
@@ -327,7 +340,7 @@ func (a *App) CreateToken(
 
 	token := &domain.Token{
 		TokenID:     tokenID,
-		MetadataURI: fmt.Sprintf("ipfs://%v", metadataUploadResponse.Hash),
+		MetadataURI: fmt.Sprintf("ipfs://%v", metadataCID),
 		Metadata:    metadata,
 		Timestamp:   uint64(time.Now().UTC().UnixMilli()),
 	}
