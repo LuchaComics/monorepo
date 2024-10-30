@@ -12,7 +12,9 @@ import {
     faCoins,
     faEllipsis,
     faChevronRight,
-    faArrowLeft
+    faArrowLeft,
+    faLink,
+    faFile
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 import { toLower } from "lodash";
@@ -128,8 +130,17 @@ function TokenDetailView() {
                   </div>
 
                   {token !== undefined && token !== null && token !== "" && <>
+                      <h1 class="title is-5">
+                          <FontAwesomeIcon className="fas" icon={faLink} />
+                          &nbsp;Blockchain
+                      </h1>
                       <FormRowText label="ID" value={token.token_id} />
                       <FormRowText label="Metadata URI" value={token.metadata_uri} />
+
+                      <h1 class="title is-5">
+                          <FontAwesomeIcon className="fas" icon={faFile} />
+                          &nbsp;Metadata
+                      </h1>
                       <FormRowText label="Name" value={token.metadata.name} />
                       <FormRowText label="Description" value={token.metadata.description} />
                       <FormRowMetadataAttributesField label="Attributes (Optional)" attributes={token.metadata.attributes} />
