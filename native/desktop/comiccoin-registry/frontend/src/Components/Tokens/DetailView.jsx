@@ -21,6 +21,7 @@ import { GetTokens } from "../../../wailsjs/go/main/App";
 import FormRowText from "../Reusable/FormRowText";
 import { GetToken } from "../../../wailsjs/go/main/App";
 import PageLoadingContent from "../Reusable/PageLoadingContent";
+import FormRowImageViaIPFS from "../Reusable/FormRowImageViaIPFS";
 
 
 function TokenDetailView() {
@@ -125,6 +126,7 @@ function TokenDetailView() {
                   </div>
 
                   {token !== undefined && token !== null && token !== "" && <>
+                      <FormRowImageViaIPFS label="Image" ipfsPath={token.metadata.image} />
                       <FormRowText label="ID" value={token.token_id} />
                       <FormRowText label="Metadata URI" value={token.metadata_uri} />
                       <FormRowText label="Name" value={token.metadata.name} />

@@ -18,6 +18,10 @@ export function GetDefaultDataDirectory() {
   return window['go']['main']['App']['GetDefaultDataDirectory']();
 }
 
+export function GetFileViaIPFS(arg1) {
+  return window['go']['main']['App']['GetFileViaIPFS'](arg1);
+}
+
 export function GetImageFilePathFromDialog() {
   return window['go']['main']['App']['GetImageFilePathFromDialog']();
 }

@@ -5,11 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"log"
 	"log/slog"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 )
 
 type IPFSRepo struct {
@@ -174,38 +178,84 @@ func (r *IPFSRepo) AddAndPinFromLocalFileSystem(fullFilePath string) ([]*AddResp
 	return addResponses, nil
 }
 
-// // Cat retrieves the contents of a file from IPFS
-// func (n *IPFSNode) Cat(cid string) ([]byte, error) {
-//     resp, err := http.Get(n.APIEndpoint + "/api/v0/cat/" + cid)
-//     if err != nil {
-//         return nil, err
-//     }
-//     defer resp.Body.Close()
-//
-//     return ioutil.ReadAll(resp.Body)
-// }
-//
-// // PinAdd pins a file in IPFS
-// func (n *IPFSNode) PinAdd(cid string) (*PinAddResponse, error) {
-//     req, err := http.NewRequest("POST", n.APIEndpoint+"/api/v0/pin/add", nil)
-//     if err != nil {
-//         return nil, err
-//     }
-//     q := req.URL.Query()
-//     q.Add("arg", cid)
-//     req.URL.RawQuery = q.Encode()
-//
-//     resp, err := http.DefaultClient.Do(req)
-//     if err != nil {
-//         return nil, err
-//     }
-//     defer resp.Body.Close()
-//
-//     var pinAddResponse PinAddResponse
-//     err = json.NewDecoder(resp.Body).Decode(&pinAddResponse)
-//     if err != nil {
-//         return nil, err
-//     }
-//
-//     return &pinAddResponse, nil
-// }
+// Cat retrieves the contents of a file from IPFS
+func (r *IPFSRepo) Cat(cid string) ([]byte, string, uint64, error) {
+	url := fmt.Sprintf("%v/api/v0/get?arg=%s", r.APIEndpoint, cid)
+
+	// Create a new HTTP request
+	req, err := http.NewRequest("POST", url, nil)
+	if err != nil {
+		r.logger.Error("error new request",
+			slog.Any("error", err))
+		return nil, "", 0, err
+	}
+
+	// Set the User-Agent header
+	req.Header.Set("User-Agent", "My IPFS Client")
+
+	// Send the request
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		r.logger.Error("failed executing http request",
+			slog.Any("error", err))
+		return nil, "", 0, err
+	}
+	defer resp.Body.Close()
+
+	// Check the response status code
+	if resp.StatusCode != 200 {
+		return nil, "", 0, fmt.Errorf("invalid response code: %d", resp.StatusCode)
+	}
+
+	// Get the content type
+	contentType := resp.Header.Get("Content-Type")
+
+	// If the content type is not specified, try to determine it based on the file extension
+	if contentType == "" {
+		// Try to determine the content type based on the Content-Transfer-Encoding header
+		encoding := resp.Header.Get("Content-Transfer-Encoding")
+		if encoding == "binary" {
+			// If the encoding is binary, try to determine the content type based on the file extension
+			// ...
+		}
+		log.Println("------->", encoding)
+
+		// Parse the CID and extract the file extension
+		parts := strings.Split(cid, "/")
+		filename := parts[len(parts)-1]
+		extension := strings.Split(filename, ".")[1]
+
+		// Determine the content type based on the file extension
+		switch extension {
+		case "png":
+			contentType = "image/png"
+		case "jpg":
+			contentType = "image/jpeg"
+		case "gif":
+			contentType = "image/gif"
+			// ...
+		}
+	}
+
+	// Get the content length
+	contentLength, err := strconv.ParseUint(resp.Header.Get("X-Content-Length"), 10, 64)
+	if err != nil {
+		r.logger.Error("failed parsing to int",
+			slog.Any("header", resp.Header),
+			slog.Any("error", err))
+		return nil, "", 0, err
+	}
+
+	// Read the response body
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		r.logger.Error("error reading all data",
+			slog.Any("error", err))
+		return nil, "", 0, err
+	}
+
+	r.logger.Debug("Get done",
+		slog.Any("header", resp.Header))
+
+	return data, contentType, contentLength, nil
+}
