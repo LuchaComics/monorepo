@@ -24,7 +24,7 @@ import PageLoadingContent from "../Reusable/PageLoadingContent";
 import FormRowIPFSImageField from "../Reusable/FormRowIPFSImageField";
 import FormRowIPFSVideoField from "../Reusable/FormRowIPFSVideoField";
 import FormRowYouTubeField from "../Reusable/FormRowYouTubeField";
-
+import FormRowMetadataAttributesField from "../Reusable/FormRowMetadataAttributesField";
 
 function TokenDetailView() {
     ////
@@ -132,6 +132,7 @@ function TokenDetailView() {
                       <FormRowText label="Metadata URI" value={token.metadata_uri} />
                       <FormRowText label="Name" value={token.metadata.name} />
                       <FormRowText label="Description" value={token.metadata.description} />
+                      <FormRowMetadataAttributesField label="Attributes" attributes={token.metadata.attributes} />
                       <FormRowText label="External URL" value={token.metadata.external_url} />
                       <FormRowText label="Background Color" value={token.metadata.background_color} />
                       <FormRowIPFSImageField label="Image" ipfsPath={token.metadata.image} />
