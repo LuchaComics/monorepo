@@ -10,7 +10,8 @@ import {
     faCubes,
     faCoins,
     faEllipsis,
-    faChevronRight
+    faChevronRight,
+    faPlus
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 import { toLower } from "lodash";
@@ -109,7 +110,7 @@ function ListTokensView() {
                           <th>Name</th>
                           <th>Description</th>
                           <th>Created</th>
-                          <th></th>
+                          <th><Link to="/tokens/new"><FontAwesomeIcon className="fas" icon={faPlus} />&nbsp;New Token</Link></th>
                         </tr>
                       </thead>
                       <tbody>

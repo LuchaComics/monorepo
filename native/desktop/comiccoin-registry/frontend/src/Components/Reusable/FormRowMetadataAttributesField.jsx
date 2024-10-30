@@ -18,7 +18,7 @@ function FormRowMetadataAttributesField(props) {
               <thead className="is-size-7">
                 <tr>
                   <th>
-                    <abbr title="Signature Role">Display Type</abbr>
+                    <abbr title="Display Type">Display Type</abbr>
                   </th>
                   <th>Trait Type</th>
                   <th>Value</th>

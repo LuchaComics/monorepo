@@ -132,12 +132,12 @@ function TokenDetailView() {
                       <FormRowText label="Metadata URI" value={token.metadata_uri} />
                       <FormRowText label="Name" value={token.metadata.name} />
                       <FormRowText label="Description" value={token.metadata.description} />
-                      <FormRowMetadataAttributesField label="Attributes" attributes={token.metadata.attributes} />
-                      <FormRowText label="External URL" value={token.metadata.external_url} />
+                      <FormRowMetadataAttributesField label="Attributes (Optional)" attributes={token.metadata.attributes} />
+                      <FormRowText label="External URL (Optional)" value={token.metadata.external_url} />
                       <FormRowText label="Background Color" value={token.metadata.background_color} />
                       <FormRowIPFSImageField label="Image" ipfsPath={token.metadata.image} />
                       <FormRowIPFSVideoField label="Animation" ipfsPath={token.metadata.animation_url} />
-                      <FormRowYouTubeField label="YouTube URL" url={token.metadata.youtube_url} />
+                      <FormRowYouTubeField label="YouTube URL (Optional)" url={token.metadata.youtube_url} />
                   </>}
 
                   <div class="columns pt-5" style={{alignSelf: "flex-start"}}>

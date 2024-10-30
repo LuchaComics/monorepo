@@ -76,7 +76,7 @@ function FormTokenMetadataAttributesField({
       }
 
       // Update record.
-      copyOfArr.push({ displayType: displayType, traitType: traitType, value: value });
+      copyOfArr.push({ display_type: displayType, trait_type: traitType, value: value });
 
       // Run callback.
       onDataChange(copyOfArr);
@@ -180,7 +180,7 @@ function FormTokenMetadataAttributesField({
       </div>
 
       <div class="pb-4">
-        <label class="label">
+        <label class="label has-text-black">
          Attributes (Optional)
           {/*<button class="button is-success is-small" onClick={onAddListInputFieldClick} disabled={disabled}><FontAwesomeIcon className="fas" icon={faPlus} /></button>*/}
         </label>
@@ -194,7 +194,7 @@ function FormTokenMetadataAttributesField({
               <thead className="is-size-7">
                 <tr>
                   <th>
-                    <abbr title="Signature Role">Display Type</abbr>
+                    <abbr title="Display Type">Display Type</abbr>
                   </th>
                   <th>Trait Type</th>
                   <th>Value</th>
@@ -216,8 +216,8 @@ function FormTokenMetadataAttributesField({
                   data.map(function (datum, i) {
                     return (
                       <tr>
-                        <th>{datum.displayType}</th>
-                        <td>{datum.traitType}</td>
+                        <th>{datum.display_type}</th>
+                        <td>{datum.trait_type}</td>
                         <td>{datum.value}</td>
                         {disabled === false && (
                           <td>

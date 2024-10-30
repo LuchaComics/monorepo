@@ -151,7 +151,32 @@ func (a *App) CreateToken(
 	}
 
 	//
-	// STEP 2: Get related data.
+	// STEP 2: Handle `attributes` unmarshalling.
+	//
+
+	attrs := make([]*domain.TokenMetadataAttribute, 0)
+	if attributes != "" {
+		if err := json.Unmarshal([]byte(attributes), &attrs); err != nil {
+			// If an error occurs, log an error and return an error.
+			a.logger.Error("Failed unmarshal metadata attributes",
+				slog.Any("attributes", attributes),
+				slog.Any("error", err))
+			return nil, fmt.Errorf("failed to deserialize metadata attributete: %v", err)
+		}
+		a.logger.Debug("attributes",
+			slog.Any("attrs", attrs),
+			slog.Any("attrs_count", len(attrs)))
+
+		for _, atr := range attrs {
+			a.logger.Debug("attribute",
+				slog.Any("display_type", atr.DisplayType),
+				slog.Any("trait_type", atr.TraitType),
+				slog.Any("value", atr.Value))
+		}
+	}
+
+	//
+	// STEP 3: Get related data.
 	//
 
 	tokenID, err := a.latestTokenIDRepo.Get()
@@ -170,7 +195,7 @@ func (a *App) CreateToken(
 	dataDir := preferences.DataDirectory
 
 	//
-	// STEP 3: Upload `image` file to IPFS.
+	// STEP 4: Upload `image` file to IPFS.
 	//
 
 	imageCID, err := a.ipfsRepo.PinAdd(image)
@@ -186,7 +211,7 @@ func (a *App) CreateToken(
 		slog.Any("cid", imageCID))
 
 	//
-	// STEP 4: Upload `animation` file to IPFs.
+	// STEP 5: Upload `animation` file to IPFs.
 	//
 
 	animationCID, err := a.ipfsRepo.PinAdd(animation)
@@ -202,23 +227,6 @@ func (a *App) CreateToken(
 		slog.Any("cid", animationCID))
 
 	//
-	// STEP 5: Handle `attributes` unmarshalling.
-	//
-
-	attr := make([]*domain.TokenMetadataAttribute, 0)
-	if attributes != "" {
-		if err := json.Unmarshal([]byte(attributes), &attr); err != nil {
-			// If an error occurs, log an error and return an error.
-			a.logger.Error("Failed unmarshal metadata attributes",
-				slog.Any("attributes", attributes),
-				slog.Any("error", err))
-			return nil, fmt.Errorf("failed to deserialize metadata attributete: %v", err)
-		}
-		a.logger.Debug("attributes",
-			slog.Any("attr", attr))
-	}
-
-	//
 	// STEP 6:
 	// Create token `metadata` file locally.
 	//
@@ -228,7 +236,7 @@ func (a *App) CreateToken(
 		ExternalURL:     externalURL,
 		Description:     description,
 		Name:            name,
-		Attributes:      attr,
+		Attributes:      attrs,
 		BackgroundColor: backgroundColor,
 		AnimationURL:    fmt.Sprintf("ipfs://%v", animationCID),
 		YoutubeURL:      youtubeURL,
