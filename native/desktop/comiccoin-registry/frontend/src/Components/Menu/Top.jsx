@@ -94,7 +94,7 @@ function Topbar() {
                 height={28}
                 alt="Logo Image"
               />
-              &nbsp;ComicCoin
+              &nbsp;ComicCoin Registry
           </Link>
 
         </div>
