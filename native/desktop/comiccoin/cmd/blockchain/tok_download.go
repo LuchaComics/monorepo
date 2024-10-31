@@ -1,16 +1,9 @@
 package blockchain
 
 import (
-	"bytes"
-	"context"
-	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"log"
 	"log/slog"
-	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -62,6 +55,8 @@ func DownloadTokenCmd() *cobra.Command {
 				},
 			}
 
+			// --- Repositories ---
+
 			nftokenByTokenIDDB := disk.NewDiskStorage(flagDataDir, "non_fungible_token_by_id", logger)
 			nftokenByMetadataURIDB := disk.NewDiskStorage(flagDataDir, "non_fungible_token_by_metadata_uri", logger)
 			tokDB := disk.NewDiskStorage(flagDataDir, "token", logger)
@@ -71,19 +66,41 @@ func DownloadTokenCmd() *cobra.Command {
 				cfg,
 				logger,
 				tokDB)
-			ipfsNode := repo.NewIPFSRepo(cfg, logger)
+			ipfsRepo := repo.NewIPFSRepo(cfg, logger)
+
+			// --- Use-cases ---
 
 			getTokUseCase := usecase.NewGetTokenUseCase(
 				cfg,
 				logger,
 				tokRepo)
 
+			getNFTokUseCase := usecase.NewGetNonFungibleTokenUseCase(
+				cfg,
+				logger,
+				nftokenRepo)
+
+			downloadNFTokMetadataUsecase := usecase.NewDownloadMetadataNonFungibleTokenUseCase(
+				cfg,
+				logger,
+				ipfsRepo)
+
+			downloadNFTokAssetUsecase := usecase.NewDownloadNonFungibleTokenAssetUseCase(
+				cfg,
+				logger,
+				ipfsRepo)
+
+			createNFTokUseCase := usecase.NewCreateNonFungibleTokenUseCase(
+				cfg,
+				logger,
+				nftokenRepo)
+
 			//
 			// STEP 2
 			// Check if we can connect with IPFS node.
 			//
 
-			peerID, err := ipfsNode.ID()
+			peerID, err := ipfsRepo.ID()
 			if err != nil {
 				log.Fatalf("failed connecting to IPFS repo to get ID(): %v\n", err)
 			}
@@ -100,7 +117,7 @@ func DownloadTokenCmd() *cobra.Command {
 				log.Fatalf("failed converting token id to unit64: %v\n", err)
 			}
 
-			nftok, err := nftokenRepo.GetByTokenID(tokenID)
+			nftok, err := getNFTokUseCase.Execute(tokenID)
 			if err != nil {
 				logger.Debug("err", slog.Any("error", err))
 				return
@@ -132,42 +149,13 @@ func DownloadTokenCmd() *cobra.Command {
 				log.Fatalf("Token metadata URI contains protocol we do not support: %v\n", metadataURI)
 			}
 
-			//
-			// STEP 5
-			// Download the metadata file and unmarshal it.
-			//
-
-			cid := strings.Replace(metadataURI, "ipfs://", "", -1)
-			metadataBytes, contentType, err := ipfsNode.Get(context.Background(), cid)
+			metadata, metadataFilepath, err := downloadNFTokMetadataUsecase.Execute(tok.ID, metadataURI)
 			if err != nil {
-				log.Fatalf("failed getting from cid: %v\n", err)
+				log.Fatalf("failed getting or downloading nft metadata: %v\n", err)
 			}
 
-			var metadata *domain.NonFungibleTokenMetadata
-			if err := json.Unmarshal(metadataBytes, &metadata); err != nil {
-				log.Fatalf("failed unmarshalling metadata: %v\n", err)
-			}
-
-			logger.Debug("Downloaded metadata",
-				slog.Any("cid", cid),
-				slog.Any("metadata", metadata),
-				slog.Any("content_type", contentType))
-
-			//
-			// STEP 6
-			// Save the metadata in local filesystem
-			//
-
-			metadataFilepath := filepath.Join(flagDataDir, "non_fungible_token_assets", fmt.Sprintf("%v", tokenID), "metadata.json")
-
-			// Create the directories recursively.
-			if err := os.MkdirAll(filepath.Dir(metadataFilepath), 0755); err != nil {
-				log.Fatalf("Failed create directories: %v\n", err)
-			}
-
-			if err := ioutil.WriteFile(metadataFilepath, metadataBytes, 0644); err != nil {
-				log.Fatalf("Failed write metadata file: %v\n", err)
-			}
+			// Replace the IPFS path with our local systems filepath.
+			metadataURI = metadataFilepath
 
 			//
 			// STEP 7
@@ -175,51 +163,13 @@ func DownloadTokenCmd() *cobra.Command {
 			//
 
 			imageCID := strings.Replace(metadata.Image, "ipfs://", "", -1)
-			imageBytes, imageContentType, err := ipfsNode.Get(context.Background(), imageCID)
+			imageFilepath, err := downloadNFTokAssetUsecase.Execute(tok.ID, imageCID)
 			if err != nil {
-				log.Fatalf("failed getting image via cid: %v\n", err)
+				log.Fatalf("failed getting or downloading nft image asset: %v\n", err)
 			}
 
-			var imageFilename string
-			switch imageContentType {
-			case "image/png": //  Portable Network Graphics (PNG)
-				imageFilename = fmt.Sprintf("%v.png", imageCID)
-			case "image/jpeg": // Joint Photographic Experts Group (JPEG)
-				imageFilename = fmt.Sprintf("%v.jpg", imageCID)
-			case "image/jpg": // Joint Photographic Experts Group (JPG)
-				imageFilename = fmt.Sprintf("%v.jpg", imageCID)
-			case "image/gif": //  Graphics Interchange Format (GIF)
-				imageFilename = fmt.Sprintf("%v.gif", imageCID)
-			case "image/bmp": // Bitmap (BMP)
-				imageFilename = fmt.Sprintf("%v.bmp", imageCID)
-			case "image/tiff": // Tagged Image File Format (TIFF)
-				imageFilename = fmt.Sprintf("%v.tiff", imageCID)
-			case "image/tif": // Tagged Image File Format (TIFF)
-				imageFilename = fmt.Sprintf("%v.tif", imageCID)
-			case "image/webp": // Web Picture (WEBP)
-				imageFilename = fmt.Sprintf("%v.webp", imageCID)
-			case "image/svg+xml": // Scalable Vector Graphics (SVG)
-				imageFilename = fmt.Sprintf("%v.svg", imageCID)
-			default:
-				log.Fatalf("Unsupported image type: %v\n", imageContentType)
-			}
-
-			imageFilepath := filepath.Join(flagDataDir, "non_fungible_token_assets", fmt.Sprintf("%v", tokenID), imageFilename)
-			// Save the data to file.
-			f, err := os.Create(imageFilepath)
-			if err != nil {
-				log.Fatal(err)
-			}
-			defer f.Close()
-
-			// Convert the response bytes into reader.
-			imageBytesReader := bytes.NewReader(imageBytes)
-
-			// Save to local directory.
-			_, err = io.Copy(f, imageBytesReader)
-			if err != nil {
-				log.Fatal(err)
-			}
+			// Replace the IPFS path with our local systems filepath.
+			metadata.Image = imageFilepath
 
 			//
 			// STEP 8
@@ -227,53 +177,13 @@ func DownloadTokenCmd() *cobra.Command {
 			//
 
 			animationCID := strings.Replace(metadata.AnimationURL, "ipfs://", "", -1)
-			animationBytes, animationContentType, err := ipfsNode.Get(context.Background(), animationCID)
+			animationFilepath, err := downloadNFTokAssetUsecase.Execute(tok.ID, animationCID)
 			if err != nil {
-				log.Fatalf("failed getting animation via cid: %v\n", err)
+				log.Fatalf("failed getting or downloading nft image asset: %v\n", err)
 			}
 
-			var animationFilename string
-			switch animationContentType {
-			case "video/mp4": // MPEG-4
-				animationFilename = fmt.Sprintf("%v.mp4", animationCID)
-			case "video/x-m4v": // MPEG-4 Video
-				animationFilename = fmt.Sprintf("%v.m4v", animationCID)
-			case "video/quicktime": // QuickTime
-				animationFilename = fmt.Sprintf("%v.mov", animationCID)
-			case "video/webm": // WebM
-				animationFilename = fmt.Sprintf("%v.webm", animationCID)
-			case "video/ogg": // Ogg Theora
-				animationFilename = fmt.Sprintf("%v.ogv", animationCID)
-			case "video/x-flv": // Flash Video
-				animationFilename = fmt.Sprintf("%v.flv", animationCID)
-			case "video/x-msvideo": // AVI (Audio Video Interleave)
-				animationFilename = fmt.Sprintf("%v.avi", animationCID)
-			case "video/x-ms-wmv": //  Windows Media Video
-				animationFilename = fmt.Sprintf("%v.wmv", animationCID)
-			case "video/3gpp": // 3GPP (3rd Generation Partnership Project)
-				animationFilename = fmt.Sprintf("%v.3gp", animationCID)
-			case "video/3gpp2": // 3GPP2 (3rd Generation Partnership Project 2)
-				animationFilename = fmt.Sprintf("%v.3g2", animationCID)
-			default:
-				log.Fatalf("Unsupported video type: %v\n", animationContentType)
-			}
-
-			animationFilepath := filepath.Join(flagDataDir, "non_fungible_token_assets", fmt.Sprintf("%v", tokenID), animationFilename)
-			// Save the data to file.
-			f, err = os.Create(animationFilepath)
-			if err != nil {
-				log.Fatal(err)
-			}
-			defer f.Close()
-
-			// Convert the response bytes into reader.
-			animationBytesReader := bytes.NewReader(animationBytes)
-
-			// Save to local directory.
-			_, err = io.Copy(f, animationBytesReader)
-			if err != nil {
-				log.Fatal(err)
-			}
+			// Replace the IPFS path with our local systems filepath.
+			metadata.AnimationURL = animationFilepath
 
 			//
 			// STEP 8
@@ -292,9 +202,10 @@ func DownloadTokenCmd() *cobra.Command {
 				slog.Any("metadata", nftok.Metadata),
 			)
 
-			if err := nftokenRepo.Upsert(nftok); err != nil {
-				log.Fatalf("Failed upserting nft token: %v\n", err)
+			if err := createNFTokUseCase.Execute(nftok); err != nil {
+				log.Fatalf("Failed creating nft token: %v\n", err)
 			}
+			// _ = createNFTokUseCase
 		},
 	}
 	cmd.Flags().StringVar(&flagDataDir, "datadir", config.GetDefaultDataDirectory(), "Absolute path to your node's data dir where the DB will be/is stored")

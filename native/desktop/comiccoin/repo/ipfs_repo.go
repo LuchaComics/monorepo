@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 	"github.com/ipfs/boxo/files"
 	"github.com/ipfs/boxo/path"
 	"github.com/ipfs/go-cid"
@@ -40,7 +41,7 @@ type AddResponse struct {
 }
 
 // NewIPFSRepo returns a new IPFSNode instance
-func NewIPFSRepo(cfg *config.Config, logger *slog.Logger) *IPFSRepo {
+func NewIPFSRepo(cfg *config.Config, logger *slog.Logger) domain.IPFSRepository {
 
 	// Step 1: Define the remote IPFS server address (replace with your remote IPFS server address)
 	ipfsAddress := fmt.Sprintf("/ip4/%s/tcp/%s", cfg.IPFS.LocalIP, cfg.IPFS.LocalPort) // Example: Replace with your remote IPFS server address
