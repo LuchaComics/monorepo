@@ -20,6 +20,7 @@ type StorageTransactionDiscardUseCase struct {
 	pendingBlockTransactionRepo domain.PendingBlockTransactionRepository
 	walletRepo                  domain.WalletRepository
 	// signedTransactionRepo       domain.SignedTransactionRepository
+	nftokenRepo domain.NonFungibleTokenRepository
 }
 
 func NewStorageTransactionDiscardUseCase(
@@ -35,8 +36,9 @@ func NewStorageTransactionDiscardUseCase(
 	r8 domain.PendingBlockTransactionRepository,
 	r9 domain.WalletRepository,
 	// r9 domain.SignedTransactionRepository,
+	r10 domain.NonFungibleTokenRepository,
 ) *StorageTransactionDiscardUseCase {
-	return &StorageTransactionDiscardUseCase{config, logger, r1, r2, r3, r4, r5, r6, r7, r8, r9}
+	return &StorageTransactionDiscardUseCase{config, logger, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10}
 }
 
 func (uc *StorageTransactionDiscardUseCase) Execute() {
@@ -50,4 +52,5 @@ func (uc *StorageTransactionDiscardUseCase) Execute() {
 	uc.pendingBlockTransactionRepo.DiscardTransaction()
 	uc.walletRepo.DiscardTransaction()
 	// uc.signedTransactionRepo.DiscardTransaction()
+	uc.nftokenRepo.DiscardTransaction()
 }

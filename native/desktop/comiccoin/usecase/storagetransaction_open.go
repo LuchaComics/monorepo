@@ -20,6 +20,7 @@ type StorageTransactionOpenUseCase struct {
 	pendingBlockTransactionRepo domain.PendingBlockTransactionRepository
 	walletRepo                  domain.WalletRepository
 	// signedTransactionRepo       domain.SignedTransactionRepository
+	nftokenRepo domain.NonFungibleTokenRepository
 }
 
 func NewStorageTransactionOpenUseCase(
@@ -35,8 +36,9 @@ func NewStorageTransactionOpenUseCase(
 	r8 domain.PendingBlockTransactionRepository,
 	r9 domain.WalletRepository,
 	// r10 domain.SignedTransactionRepository,
+	r10 domain.NonFungibleTokenRepository,
 ) *StorageTransactionOpenUseCase {
-	return &StorageTransactionOpenUseCase{config, logger, r1, r2, r3, r4, r5, r6, r7, r8, r9}
+	return &StorageTransactionOpenUseCase{config, logger, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10}
 }
 
 func (uc *StorageTransactionOpenUseCase) Execute() error {
@@ -88,5 +90,10 @@ func (uc *StorageTransactionOpenUseCase) Execute() error {
 	// if err := uc.signedTransactionRepo.OpenTransaction(); err != nil {
 	// 	return err
 	// }
+	if err := uc.nftokenRepo.OpenTransaction(); err != nil {
+		uc.logger.Error("Failed opening transaction for non-fungible token",
+			slog.Any("error", err))
+		return err
+	}
 	return nil
 }

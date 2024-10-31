@@ -102,6 +102,8 @@ func DaemonCmd() *cobra.Command {
 			pendingBlockDataDB := disk.NewDiskStorage(cfg.DB.DataDir, "pending_block_data", logger)
 			mempoolTxDB := disk.NewDiskStorage(cfg.DB.DataDir, "mempool_tx", logger)
 			tokenDB := disk.NewDiskStorage(cfg.DB.DataDir, "token", logger)
+			nftokenByTokenIDDB := disk.NewDiskStorage(cfg.DB.DataDir, "non_fungible_token_by_id", logger)
+			nftokenByMetadataURIDB := disk.NewDiskStorage(cfg.DB.DataDir, "non_fungible_token_by_metadata_uri", logger)
 			memdb := memory.NewInMemoryStorage(logger)
 			kmutex := kmutexutil.NewKMutexProvider()
 
@@ -177,6 +179,10 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				tokenDB)
+			nftokenRepo := repo.NewNonFungibleTokenRepo(
+				logger,
+				nftokenByTokenIDDB,
+				nftokenByMetadataURIDB)
 			mempoolTxRepo := repo.NewMempoolTransactionRepo(
 				cfg,
 				logger,
@@ -228,6 +234,7 @@ func DaemonCmd() *cobra.Command {
 				mempoolTxRepo,
 				pendingBlockTxRepo,
 				walletRepo,
+				nftokenRepo,
 			)
 			storageTransactionCommitUseCase := usecase.NewStorageTransactionCommitUseCase(
 				cfg,
@@ -241,6 +248,7 @@ func DaemonCmd() *cobra.Command {
 				mempoolTxRepo,
 				pendingBlockTxRepo,
 				walletRepo,
+				nftokenRepo,
 			)
 			storageTransactionDiscardUseCase := usecase.NewStorageTransactionDiscardUseCase(
 				cfg,
@@ -254,6 +262,7 @@ func DaemonCmd() *cobra.Command {
 				mempoolTxRepo,
 				pendingBlockTxRepo,
 				walletRepo,
+				nftokenRepo,
 			)
 
 			// Genesis Block Data
