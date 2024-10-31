@@ -57,11 +57,10 @@ func DownloadTokenCmd() *cobra.Command {
 
 			// --- Repositories ---
 
-			nftokenByTokenIDDB := disk.NewDiskStorage(flagDataDir, "non_fungible_token_by_id", logger)
-			nftokenByMetadataURIDB := disk.NewDiskStorage(flagDataDir, "non_fungible_token_by_metadata_uri", logger)
+			nftokDB := disk.NewDiskStorage(flagDataDir, "non_fungible_token", logger)
 			tokDB := disk.NewDiskStorage(flagDataDir, "token", logger)
 
-			nftokenRepo := repo.NewNonFungibleTokenRepo(logger, nftokenByTokenIDDB, nftokenByMetadataURIDB)
+			nftokenRepo := repo.NewNonFungibleTokenRepo(logger, nftokDB)
 			tokRepo := repo.NewTokenRepo(
 				cfg,
 				logger,
@@ -196,16 +195,15 @@ func DownloadTokenCmd() *cobra.Command {
 				Metadata:    metadata,
 			}
 
-			logger.Debug("Downloaded from NFT.",
+			if err := createNFTokUseCase.Execute(nftok); err != nil {
+				log.Fatalf("Failed creating nft token: %v\n", err)
+			}
+
+			logger.Debug("Downloaded NFT successfully.",
 				slog.Any("token_id", nftok.TokenID),
 				slog.Any("metadata_uri", nftok.MetadataURI),
 				slog.Any("metadata", nftok.Metadata),
 			)
-
-			if err := createNFTokUseCase.Execute(nftok); err != nil {
-				log.Fatalf("Failed creating nft token: %v\n", err)
-			}
-			// _ = createNFTokUseCase
 		},
 	}
 	cmd.Flags().StringVar(&flagDataDir, "datadir", config.GetDefaultDataDirectory(), "Absolute path to your node's data dir where the DB will be/is stored")

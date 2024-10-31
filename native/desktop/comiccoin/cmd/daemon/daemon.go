@@ -102,8 +102,7 @@ func DaemonCmd() *cobra.Command {
 			pendingBlockDataDB := disk.NewDiskStorage(cfg.DB.DataDir, "pending_block_data", logger)
 			mempoolTxDB := disk.NewDiskStorage(cfg.DB.DataDir, "mempool_tx", logger)
 			tokenDB := disk.NewDiskStorage(cfg.DB.DataDir, "token", logger)
-			nftokenByTokenIDDB := disk.NewDiskStorage(cfg.DB.DataDir, "non_fungible_token_by_id", logger)
-			nftokenByMetadataURIDB := disk.NewDiskStorage(cfg.DB.DataDir, "non_fungible_token_by_metadata_uri", logger)
+			nftokDB := disk.NewDiskStorage(cfg.DB.DataDir, "non_fungible_token", logger)
 			memdb := memory.NewInMemoryStorage(logger)
 			kmutex := kmutexutil.NewKMutexProvider()
 
@@ -181,8 +180,7 @@ func DaemonCmd() *cobra.Command {
 				tokenDB)
 			nftokenRepo := repo.NewNonFungibleTokenRepo(
 				logger,
-				nftokenByTokenIDDB,
-				nftokenByMetadataURIDB)
+				nftokDB)
 			mempoolTxRepo := repo.NewMempoolTransactionRepo(
 				cfg,
 				logger,
