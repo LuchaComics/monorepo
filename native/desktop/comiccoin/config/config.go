@@ -19,6 +19,9 @@ type Config struct {
 
 	// Peer configuration.
 	Peer PeerConfig
+
+	// IPFS configuration.
+	IPFS IPFSConfig
 }
 
 // BlockchainConfig represents the configuration for the blockchain.
@@ -94,4 +97,10 @@ type PeerConfig struct {
 
 	// ListenAddresses is a list of multiaddresses that the peer will listen on.
 	ListenAddresses []maddr.Multiaddr
+}
+
+type IPFSConfig struct {
+	LocalIP             string
+	LocalPort           string
+	PublicGatewayDomain string
 }

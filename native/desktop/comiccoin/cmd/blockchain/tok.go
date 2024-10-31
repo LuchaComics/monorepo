@@ -24,6 +24,7 @@ func TokenCmd() *cobra.Command {
 	cmd.AddCommand(httpJsonApiTransferTokenCmd())
 	cmd.AddCommand(httpJsonApiGetTokenCmd())
 	cmd.AddCommand(httpJsonApiBurnTokenCmd())
+	cmd.AddCommand(DownloadTokenCmd())
 
 	return cmd
 }
