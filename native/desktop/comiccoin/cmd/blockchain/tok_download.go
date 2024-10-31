@@ -78,16 +78,16 @@ func DownloadTokenCmd() *cobra.Command {
 				logger,
 				tokRepo)
 
-			// //
-			// // STEP 2
-			// // Check if we can connect with IPFS node.
-			// //
 			//
-			// peerID, err := ipfsNode.ID()
-			// if err != nil {
-			// 	log.Fatalf("failed connecting to IPFS repo to get ID(): %v\n", err)
-			// }
-			// fmt.Printf("IPFS Node ID: %s\n", peerID)
+			// STEP 2
+			// Check if we can connect with IPFS node.
+			//
+
+			peerID, err := ipfsNode.ID()
+			if err != nil {
+				log.Fatalf("failed connecting to IPFS repo to get ID(): %v\n", err)
+			}
+			fmt.Printf("IPFS Node ID: %s\n", peerID)
 
 			//
 			// STEP 3
@@ -292,10 +292,9 @@ func DownloadTokenCmd() *cobra.Command {
 				slog.Any("metadata", nftok.Metadata),
 			)
 
-			// if err := nftokenRepo.Upsert(nftok); err != nil {
-			// 	log.Fatalf("Failed upserting nft token: %v\n", err)
-			// }
-
+			if err := nftokenRepo.Upsert(nftok); err != nil {
+				log.Fatalf("Failed upserting nft token: %v\n", err)
+			}
 		},
 	}
 	cmd.Flags().StringVar(&flagDataDir, "datadir", config.GetDefaultDataDirectory(), "Absolute path to your node's data dir where the DB will be/is stored")
