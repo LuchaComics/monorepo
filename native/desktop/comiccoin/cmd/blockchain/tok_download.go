@@ -300,10 +300,8 @@ func DownloadTokenCmd() *cobra.Command {
 	cmd.Flags().StringVar(&flagDataDir, "datadir", config.GetDefaultDataDirectory(), "Absolute path to your node's data dir where the DB will be/is stored")
 	cmd.Flags().StringVar(&flagTokenID, "token-id", "", "The value to lookup the token by")
 	cmd.MarkFlagRequired("token-id")
-	cmd.Flags().StringVar(&flagIPFSIP, "ipfs-ip", "", "")
-	cmd.MarkFlagRequired("ipfs-ip")
-	cmd.Flags().StringVar(&flagIPFSPort, "ipfs-port", "", "")
-	cmd.MarkFlagRequired("ipfs-port")
+	cmd.Flags().StringVar(&flagIPFSIP, "ipfs-ip", "127.0.0.1", "")
+	cmd.Flags().StringVar(&flagIPFSPort, "ipfs-port", "5001", "")
 	cmd.Flags().StringVar(&flagIPFSPubGatewayDomain, "ipfs-public-gateway-domain", "https://ipfs.io", "")
 	return cmd
 }
