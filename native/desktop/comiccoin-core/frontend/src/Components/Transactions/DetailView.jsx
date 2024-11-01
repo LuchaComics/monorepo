@@ -47,7 +47,7 @@ function TransactionDetailView() {
     const [forceURL, setForceURL] = useState("");
     const [blockData, setBlockData] = useState(null);
     const [seeMoreBlockInformation, setSeeMoreBlockInformation] = useState(false);
-    const [seeMoreTXInformation, setSeeMoreTXInformation] = useState(true);
+    const [seeMoreTXInformation, setSeeMoreTXInformation] = useState(false);
 
     ////
     //// Event handling.
@@ -190,7 +190,6 @@ function TransactionDetailView() {
                             <FormRowText label="Value" value={transaction.value} />
                         </> : <>
                             <FormRowText label="Token ID" value={transaction.token_id} />
-                            <FormRowText label="Token Nonce" value={transaction.token_nonce} />
                         </>}
                         <FormRowText label="From Address" value={transaction.from} />
                         <FormRowText label="To Address" value={transaction.to} />
@@ -204,6 +203,9 @@ function TransactionDetailView() {
                             <FormRowText label="V" value={transaction.v} />
                             <FormRowText label="S" value={transaction.s} />
                             <FormRowText label="Tip" value={transaction.tip} />
+                            {transaction.type === "token" && <>
+                                <FormRowText label="Token Nonce" value={transaction.token_nonce} />
+                            </>}
                         </>}
                        </div>
                     ))}
