@@ -5,15 +5,14 @@ import (
 	"log"
 	"log/slog"
 	"strconv"
-	"strings"
 
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
 	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/disk/leveldb"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
 	usecase "github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
 )
 
@@ -94,6 +93,17 @@ func DownloadTokenCmd() *cobra.Command {
 				logger,
 				nftokenRepo)
 
+			// --- Service ---
+
+			getOrDownloadNonFungibleTokenService := service.NewGetOrDownloadNonFungibleTokenService(
+				cfg,
+				logger,
+				getNFTokUseCase,
+				getTokUseCase,
+				downloadNFTokMetadataUsecase,
+				downloadNFTokAssetUsecase,
+				createNFTokUseCase)
+
 			//
 			// STEP 2
 			// Check if we can connect with IPFS node.
@@ -101,7 +111,7 @@ func DownloadTokenCmd() *cobra.Command {
 
 			peerID, err := ipfsRepo.ID()
 			if err != nil {
-				log.Fatalf("failed connecting to IPFS repo to get ID(): %v\n", err)
+				log.Fatalf("Failed connecting to IPFS node, you are not connected.")
 			}
 			fmt.Printf("IPFS Node ID: %s\n", peerID)
 
@@ -116,87 +126,9 @@ func DownloadTokenCmd() *cobra.Command {
 				log.Fatalf("failed converting token id to unit64: %v\n", err)
 			}
 
-			nftok, err := getNFTokUseCase.Execute(tokenID)
+			nftok, err := getOrDownloadNonFungibleTokenService.Execute(tokenID)
 			if err != nil {
-				logger.Debug("err", slog.Any("error", err))
-				return
-			}
-			if nftok != nil {
-				logger.Debug("Token already exists locally, aborting...")
-				return
-			}
-
-			//
-			// STEP 4
-			// Lookup our `token` in our db and retrieve the record so we can
-			// extract the `Metadata URI` value necessary to lookup later in
-			// the decentralized storage service (IPFS).
-			//
-
-			tok, err := getTokUseCase.Execute(tokenID)
-			if err != nil {
-				log.Fatalf("failed getting token due to err: %v\n", err)
-			}
-			if tok == nil {
-				log.Fatalf("Token does not exist for: %v\n", tokenID)
-			}
-
-			metadataURI := tok.MetadataURI
-
-			// Confirm URI is using protocol our app supports.
-			if strings.Contains(metadataURI, "ipfs://") == false {
-				log.Fatalf("Token metadata URI contains protocol we do not support: %v\n", metadataURI)
-			}
-
-			metadata, metadataFilepath, err := downloadNFTokMetadataUsecase.Execute(tok.ID, metadataURI)
-			if err != nil {
-				log.Fatalf("failed getting or downloading nft metadata: %v\n", err)
-			}
-
-			// Replace the IPFS path with our local systems filepath.
-			metadataURI = metadataFilepath
-
-			//
-			// STEP 7
-			// Download the image file from IPFS and save locally.
-			//
-
-			imageCID := strings.Replace(metadata.Image, "ipfs://", "", -1)
-			imageFilepath, err := downloadNFTokAssetUsecase.Execute(tok.ID, imageCID)
-			if err != nil {
-				log.Fatalf("failed getting or downloading nft image asset: %v\n", err)
-			}
-
-			// Replace the IPFS path with our local systems filepath.
-			metadata.Image = imageFilepath
-
-			//
-			// STEP 8
-			// Download the animation file from IPFS and save locally.
-			//
-
-			animationCID := strings.Replace(metadata.AnimationURL, "ipfs://", "", -1)
-			animationFilepath, err := downloadNFTokAssetUsecase.Execute(tok.ID, animationCID)
-			if err != nil {
-				log.Fatalf("failed getting or downloading nft image asset: %v\n", err)
-			}
-
-			// Replace the IPFS path with our local systems filepath.
-			metadata.AnimationURL = animationFilepath
-
-			//
-			// STEP 8
-			// Create our NFT token to be referenced in future.
-			//
-
-			nftok = &domain.NonFungibleToken{
-				TokenID:     tokenID,
-				MetadataURI: metadataURI,
-				Metadata:    metadata,
-			}
-
-			if err := createNFTokUseCase.Execute(nftok); err != nil {
-				log.Fatalf("Failed creating nft token: %v\n", err)
+				log.Fatalf("Failed downloading non-fungible tokens: %v\n", err)
 			}
 
 			logger.Debug("Downloaded NFT successfully.",
