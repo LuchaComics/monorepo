@@ -72,3 +72,11 @@ func NewTokenFromDeserialize(data []byte) (*Token, error) {
 	}
 	return token, nil
 }
+
+func ToTokenIDsArray(toks []*Token) []uint64 {
+	tokIDs := make([]uint64, len(toks))
+	for _, tok := range toks {
+		tokIDs = append(tokIDs, tok.ID)
+	}
+	return tokIDs
+}

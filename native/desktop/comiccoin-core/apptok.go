@@ -48,20 +48,29 @@ func (a *App) TransferToken(
 	return nil
 }
 
-func (a *App) GetTokens(address string) ([]*domain.Token, error) {
+func (a *App) GetNonFungibleTokensByOwnerAddress(address string) ([]*domain.NonFungibleToken, error) {
 	addr := common.HexToAddress(strings.ToLower(address))
 
 	// Defensive code
 	if address == "" {
-		return make([]*domain.Token, 0), fmt.Errorf("failed because: address is null: %v", address)
+		return make([]*domain.NonFungibleToken, 0), fmt.Errorf("failed because: address is null: %v", address)
 	}
 
-	toks, err := a.listByOwnerTokenService.Execute(&addr, 5)
+	//
+	// STEP 1:
+	// Lookup all the tokens. Note: A token only has `token_id` and
+	// `metadata_uri` fields - nothing else!
+	//
+
+	toks, err := a.listNonFungibleTokensByOwnerService.Execute(&addr)
 	if err != nil {
 		a.logger.Error("Failed listing tokens by owner",
 			slog.Any("error", err))
-		return nil, err
+		return make([]*domain.NonFungibleToken, 0), err
 	}
+
+	a.logger.Debug("",
+		slog.Any("toks", toks))
 
 	return toks, nil
 }

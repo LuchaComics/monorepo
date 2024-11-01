@@ -30,12 +30,12 @@ export function GetIsBlockhainNodeRunning() {
   return window['go']['main']['App']['GetIsBlockhainNodeRunning']();
 }
 
-export function GetRecentTransactions(arg1) {
-  return window['go']['main']['App']['GetRecentTransactions'](arg1);
+export function GetNonFungibleTokensByOwnerAddress(arg1) {
+  return window['go']['main']['App']['GetNonFungibleTokensByOwnerAddress'](arg1);
 }
 
-export function GetTokens(arg1) {
-  return window['go']['main']['App']['GetTokens'](arg1);
+export function GetRecentTransactions(arg1) {
+  return window['go']['main']['App']['GetRecentTransactions'](arg1);
 }
 
 export function GetTotalCoins(arg1) {

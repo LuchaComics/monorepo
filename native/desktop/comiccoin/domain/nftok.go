@@ -36,16 +36,19 @@ type NonFungibleTokenMetadataAttribute struct {
 }
 
 type NonFungibleTokenRepository interface {
-	// Upsert inserts or updates an wallet in the repository.
+	// Upsert inserts or updates an nfts in the repository.
 	Upsert(acc *NonFungibleToken) error
 
-	// GetByID retrieves an wallet by its Address.
+	// GetByID retrieves an nft by its token id.
 	GetByTokenID(tokenID uint64) (*NonFungibleToken, error)
 
-	// ListAll retrieves all wallets in the repository.
+	// ListAll retrieves all nfts in the repository.
 	ListAll() ([]*NonFungibleToken, error)
 
-	// DeleteByID deletes an wallet by its Address.
+	// ListByTokenIDs retrieves nfts that have the token is in the parameter
+	ListWithFilterByTokenIDs(tokIDs []uint64) ([]*NonFungibleToken, error)
+
+	// DeleteByID deletes an nft by its token id.
 	DeleteByTokenID(tokenID uint64) error
 
 	OpenTransaction() error
@@ -84,4 +87,12 @@ func NewNonFungibleTokenFromDeserialize(data []byte) (*NonFungibleToken, error) 
 		return nil, fmt.Errorf("failed to deserialize wallet: %v", err)
 	}
 	return wallet, nil
+}
+
+func ToNonFungibleTokenIDsArray(nftoks []*NonFungibleToken) []uint64 {
+	nftokIDs := make([]uint64, len(nftoks))
+	for _, nftok := range nftoks {
+		nftokIDs = append(nftokIDs, nftok.TokenID)
+	}
+	return nftokIDs
 }

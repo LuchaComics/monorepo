@@ -14,7 +14,7 @@ import {
 import { useRecoilState } from "recoil";
 import { toLower } from "lodash";
 
-import { GetTokens } from "../../../wailsjs/go/main/App";
+import { GetNonFungibleTokensByOwnerAddress } from "../../../wailsjs/go/main/App";
 import { currentOpenWalletAtAddressState } from "../../AppState";
 
 
@@ -48,11 +48,11 @@ function ListTokensView() {
       if (mounted) {
             window.scrollTo(0, 0); // Start the page at the top of the page.
 
-            GetTokens(currentOpenWalletAtAddress).then((txsResponse)=>{
-                console.log("GetTokens: results:", txsResponse);
-                setTokens(txsResponse);
+            GetNonFungibleTokensByOwnerAddress(currentOpenWalletAtAddress).then((nftoksRes)=>{
+                console.log("GetNonFungibleTokensByOwnerAddress: nftoksRes:", nftoksRes);
+                setTokens(nftoksRes);
             }).catch((errorRes)=>{
-                console.log("GetTokens: errors:", errorRes);
+                console.log("GetNonFungibleTokensByOwnerAddress: errorRes:", errorRes);
             });
       }
 

@@ -67,6 +67,7 @@ type App struct {
 	listAllBlockTransactionService                 *service.ListAllBlockTransactionService
 	getBlockDataByBlockTransactionTimestampService *service.GetBlockDataByBlockTransactionTimestampService
 	getOrDownloadNonFungibleTokenService           *service.GetOrDownloadNonFungibleTokenService
+	listNonFungibleTokensByOwnerService            *service.ListNonFungibleTokensByOwnerService
 	mempoolReceiveTaskHandler                      *task.MempoolReceiveTaskHandler
 	mempoolBatchSendTaskHandler                    *task.MempoolBatchSendTaskHandler
 	proofOfWorkMiningTaskHandler                   *task.ProofOfWorkMiningTaskHandler
@@ -412,7 +413,10 @@ func (a *App) startup(ctx context.Context) {
 		cfg,
 		logger,
 		ipfsRepo)
-
+	listNFTsWithFilterByTokenIDsyUseCase := usecase.NewListNonFungibleTokensWithFilterByTokenIDsyUseCase(
+		cfg,
+		logger,
+		nftokRepo)
 	upsertNFTokUseCase := usecase.NewUpsertNonFungibleTokenUseCase(
 		cfg,
 		logger,
@@ -670,6 +674,12 @@ func (a *App) startup(ctx context.Context) {
 		downloadNFTokMetadataUsecase,
 		downloadNFTokAssetUsecase,
 		upsertNFTokUseCase)
+	listNonFungibleTokensByOwnerService := service.NewListNonFungibleTokensByOwnerService(
+		cfg,
+		logger,
+		listTokensByOwnerUseCase,
+		listNFTsWithFilterByTokenIDsyUseCase,
+		getOrDownloadNonFungibleTokenService)
 
 	// Mempool
 	mempoolReceiveService := service.NewMempoolReceiveService(
@@ -822,6 +832,7 @@ func (a *App) startup(ctx context.Context) {
 	a.listRecentBlockTransactionService = listRecentBlockTransactionService
 	a.listAllBlockTransactionService = listAllBlockTransactionService
 	a.getOrDownloadNonFungibleTokenService = getOrDownloadNonFungibleTokenService
+	a.listNonFungibleTokensByOwnerService = listNonFungibleTokensByOwnerService
 	a.getBlockDataByBlockTransactionTimestampService = getBlockDataByBlockTransactionTimestampService
 	a.poaTokenMintService = poaTokenMintService
 	a.transferTokenService = transferTokenService

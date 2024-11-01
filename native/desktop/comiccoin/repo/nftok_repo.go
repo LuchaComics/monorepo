@@ -66,6 +66,32 @@ func (r *NonFungibleTokenRepo) ListAll() ([]*domain.NonFungibleToken, error) {
 	return res, err
 }
 
+func (r *NonFungibleTokenRepo) ListWithFilterByTokenIDs(tokIDs []uint64) ([]*domain.NonFungibleToken, error) {
+	res := make([]*domain.NonFungibleToken, 0)
+	err := r.dbClient.Iterate(func(key, value []byte) error {
+		token, err := domain.NewNonFungibleTokenFromDeserialize(value)
+		if err != nil {
+			r.logger.Error("failed to deserialize",
+				slog.String("key", string(key)),
+				slog.String("value", string(value)),
+				slog.Any("error", err))
+			return err
+		}
+
+		// Apply our filter to the results.
+		for _, tokID := range tokIDs {
+			if tokID == token.TokenID {
+				res = append(res, token)
+			}
+		}
+
+		// Return nil to indicate success
+		return nil
+	})
+
+	return res, err
+}
+
 func (r *NonFungibleTokenRepo) DeleteByTokenID(tokenID uint64) error {
 	if err := r.dbClient.Delete(fmt.Sprintf("%v", tokenID)); err != nil {
 		return err
