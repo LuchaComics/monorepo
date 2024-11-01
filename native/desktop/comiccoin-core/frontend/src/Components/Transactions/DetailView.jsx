@@ -14,7 +14,8 @@ import {
     faChevronRight,
     faEye,
     faLink,
-    faBullhorn
+    faBullhorn,
+    faLock
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 import { toLower } from "lodash";
@@ -45,6 +46,8 @@ function TransactionDetailView() {
     const [isLoading, setIsLoading] = useState(false);
     const [forceURL, setForceURL] = useState("");
     const [blockData, setBlockData] = useState(null);
+    const [seeMoreBlockInformation, setSeeMoreBlockInformation] = useState(false);
+    const [seeMoreTXInformation, setSeeMoreTXInformation] = useState(true);
 
     ////
     //// Event handling.
@@ -152,14 +155,31 @@ function TransactionDetailView() {
 
                     <h1 class="title is-5">
                         <FontAwesomeIcon className="fas" icon={faLink} />
-                        &nbsp;Block Information
+                        &nbsp;Block Information&nbsp;<button className="has-text-black is-size-7" onClick={(e)=>setSeeMoreBlockInformation(!seeMoreBlockInformation)}>{seeMoreBlockInformation ? <>See Less</> : <>See More</>}</button>
                     </h1>
-                    <FormRowText label="ID" value={blockData.hash} />
+                    <FormRowText label="Hash" value={blockData.hash} />
                     <FormRowText label="Number" value={blockData.header.number} />
+                    <FormRowText label="Timestamp" value={`${new Date(blockData.header.timestamp).toLocaleString()}`} />
+                    {seeMoreBlockInformation === true && <>
+                        <FormRowText label="Header Signature" value={blockData.header_signature_bytes} />
+                        <FormRowText label="Previous Block Hash" value={blockData.header.prev_block_hash} />
+                        <FormRowText label="Trans Root" value={blockData.header.trans_root} />
+                        <FormRowText label="Tokens Root" value={blockData.header.tokens_root} />
+                        <FormRowText label="Beneficiary" value={blockData.header.beneficiary} />
+                        <FormRowText label="Nonce" value={blockData.header.nonce} />
+                        <FormRowText label="Mining Reward" value={blockData.header.mining_reward} />
+                        <FormRowText label="Difficulty" value={blockData.header.difficulty} />
+                        <h1 class="title is-5">
+                            <FontAwesomeIcon className="fas" icon={faLock} />
+                            &nbsp;Blockchain Validation Service
+                        </h1>
+                        <FormRowText label="ID" value={blockData.validator.id} />
+                        <FormRowText label="Public Key" value={blockData.validator.public_key_bytes} />
+                    </>}
 
                     <h1 class="title is-5">
                         <FontAwesomeIcon className="fas" icon={faFileInvoiceDollar} />
-                        &nbsp;Transaction Information
+                        &nbsp;Transaction Information&nbsp;<button className="has-text-black is-size-7" onClick={(e)=>setSeeMoreTXInformation(!seeMoreTXInformation)}>{seeMoreTXInformation ? <>See Less</> : <>See More</>}</button>
                     </h1>
                     {blockData.trans.map((transaction) => (
                       <div key={transaction.timestamp}>
@@ -171,8 +191,19 @@ function TransactionDetailView() {
                         </> : <>
 
                         </>}
-                            <FormRowText label="From" value={transaction.from} />
-                            <FormRowText label="To" value={transaction.to} />
+                        <FormRowText label="From Address" value={transaction.from} />
+                        <FormRowText label="To Address" value={transaction.to} />
+                        {seeMoreTXInformation === true && <>
+                            <FormRowText label="Data" value={transaction.data} />
+                            <FormRowText label="Nonce" value={transaction.nonce} />
+                            <FormRowText label="Chain ID" value={transaction.chain_id} />
+                            <FormRowText label="Gas Price" value={transaction.gas_price} />
+                            <FormRowText label="Gas Unit" value={transaction.gas_unit} />
+                            <FormRowText label="R" value={transaction.r} />
+                            <FormRowText label="V" value={transaction.v} />
+                            <FormRowText label="S" value={transaction.s} />
+                            <FormRowText label="Tip" value={transaction.tip} />
+                        </>}
                        </div>
                     ))}
 
