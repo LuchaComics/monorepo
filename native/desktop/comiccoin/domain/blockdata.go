@@ -50,6 +50,8 @@ type BlockDataRepository interface {
 	// ListBlockTransactionsByAddress lists all the transactions for a particular address.
 	ListAllBlockTransactionsByAddress(address *common.Address) ([]*BlockTransaction, error)
 
+	GetByBlockTransactionNonce(nonce uint64) (*BlockData, error)
+
 	OpenTransaction() error
 	CommitTransaction() error
 	DiscardTransaction()
