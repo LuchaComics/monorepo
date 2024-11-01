@@ -12,13 +12,17 @@ import {
     faCoins,
     faEllipsis,
     faChevronRight,
-    faEye
+    faEye,
+    faLink,
+    faBullhorn
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 import { toLower } from "lodash";
 
+import PageLoadingContent from "../Reusable/PageLoadingContent";
 import { GetBlockDataByBlockTransactionTimestamp } from "../../../wailsjs/go/main/App";
 import { currentOpenWalletAtAddressState } from "../../AppState";
+import FormRowText from "../Reusable/FormRowText";
 
 
 function TransactionDetailView() {
@@ -38,10 +42,9 @@ function TransactionDetailView() {
     //// Component states.
     ////
 
+    const [isLoading, setIsLoading] = useState(false);
     const [forceURL, setForceURL] = useState("");
-    const [totalCoins, setTotalCoins] = useState(0);
-    const [totalTokens, setTotalTokens] = useState(0);
-    const [transactions, setTransactions] = useState([]);
+    const [blockData, setBlockData] = useState(null);
 
     ////
     //// Event handling.
@@ -56,12 +59,16 @@ function TransactionDetailView() {
 
       if (mounted) {
             window.scrollTo(0, 0); // Start the page at the top of the page.
+            setIsLoading(true);
 
-            GetBlockDataByBlockTransactionTimestamp(parseInt(timestamp)).then((txsResponse)=>{
-                console.log("GetBlockDataByBlockTransactionTimestamp: results:", txsResponse);
-                // setTransactions(txsResponse);
+            GetBlockDataByBlockTransactionTimestamp(parseInt(timestamp)).then((res)=>{
+                console.log("GetBlockDataByBlockTransactionTimestamp: res:", res);
+                setBlockData(res);
             }).catch((errorRes)=>{
                 console.log("GetBlockDataByBlockTransactionTimestamp: errors:", errorRes);
+            }).finally(() => {
+                // Update the GUI to let user know that the operation is completed.
+                setIsLoading(false);
             });
       }
 
@@ -76,6 +83,12 @@ function TransactionDetailView() {
 
     if (forceURL !== "") {
         return <Navigate to={forceURL} />;
+    }
+
+    if (isLoading) {
+        return (
+            <PageLoadingContent displayMessage="Please wait..." style={{ marginBottom: "100px" }} />
+        );
     }
 
     return (
@@ -121,15 +134,48 @@ function TransactionDetailView() {
                   </div>
                 </div>
 
-                {transactions.length === 0 ? <>
-                    <section class="hero is-warning is-medium">
-                      <div class="hero-body">
-                        <p class="title"><FontAwesomeIcon className="fas" icon={faFileInvoiceDollar} />&nbsp;No recent transactions</p>
-                        <p class="subtitle">This wallet currently does not have any transactions.</p>
-                      </div>
-                    </section>
-                </> : <>
-                    TODO: IMPL.
+                {blockData !== undefined && blockData !== null && blockData !== "" && <>
+                    {blockData.trans.map((transaction) => (
+                        <>
+                            {transaction.type === "token" && <>
+                                <article class="message is-primary">
+                                  <div class="message-header">
+                                    <p><FontAwesomeIcon className="fas" icon={faBullhorn} />&nbsp;Non-Fungible Token (NFT) Detected</p>
+                                  </div>
+                                  <div class="message-body">
+                                    This is a NFT! To view the contents of it, please <Link to={`/more/token/${transaction.token_id}`}>click here&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} /></Link>.
+                                  </div>
+                                </article>
+                            </>}
+                        </>
+                    ))}
+
+                    <h1 class="title is-5">
+                        <FontAwesomeIcon className="fas" icon={faLink} />
+                        &nbsp;Block Information
+                    </h1>
+                    <FormRowText label="ID" value={blockData.hash} />
+                    <FormRowText label="Number" value={blockData.header.number} />
+
+                    <h1 class="title is-5">
+                        <FontAwesomeIcon className="fas" icon={faFileInvoiceDollar} />
+                        &nbsp;Transaction Information
+                    </h1>
+                    {blockData.trans.map((transaction) => (
+                      <div key={transaction.timestamp}>
+                        <FormRowText label="Purpose" value={transaction.type === "coin" ? "Coin" : "Token"} />
+                        <FormRowText label="Type" value={transaction.from === toLower(currentOpenWalletAtAddress) ? "Sent" : "Received"} />
+                        <FormRowText label="Timestamp" value={`${new Date(transaction.timestamp).toLocaleString()}`} />
+                        {transaction.type === "coin" ? <>
+                            <FormRowText label="Value" value={transaction.value} />
+                        </> : <>
+
+                        </>}
+                            <FormRowText label="From" value={transaction.from} />
+                            <FormRowText label="To" value={transaction.to} />
+                       </div>
+                    ))}
+
                 </>}
 
               </nav>
