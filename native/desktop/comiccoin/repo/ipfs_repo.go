@@ -43,8 +43,8 @@ type AddResponse struct {
 // NewIPFSRepo returns a new IPFSNode instance
 func NewIPFSRepo(cfg *config.Config, logger *slog.Logger) domain.IPFSRepository {
 
-	// Step 1: Define the remote IPFS server address (replace with your remote IPFS server address)
-	ipfsAddress := fmt.Sprintf("/ip4/%s/tcp/%s", cfg.IPFS.LocalIP, cfg.IPFS.LocalPort) // Example: Replace with your remote IPFS server address
+	// Step 1: Define the remote IPFS server address.
+	ipfsAddress := fmt.Sprintf("/ip4/%s/tcp/%s", cfg.IPFS.RemoteIP, cfg.IPFS.RemotePort)
 
 	// Step 2: Create a Multiaddr using the remote IPFS address
 	multiaddr, err := ma.NewMultiaddr(ipfsAddress)

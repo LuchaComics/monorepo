@@ -100,7 +100,12 @@ type PeerConfig struct {
 }
 
 type IPFSConfig struct {
-	LocalIP             string
-	LocalPort           string
+	// RemoteIP is the IP address of the peer node running IPFS.
+	RemoteIP string
+
+	// RemotePort is the port to the peer node running IPFS.
+	RemotePort string
+
+	// PublicGatewayDomain is the HTTP domain to use as a fall-back if peer node is not running.
 	PublicGatewayDomain string
 }

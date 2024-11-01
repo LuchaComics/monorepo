@@ -65,6 +65,7 @@ type App struct {
 	blockchainStartupService               *service.BlockchainStartupService
 	listRecentBlockTransactionService      *service.ListRecentBlockTransactionService
 	listAllBlockTransactionService         *service.ListAllBlockTransactionService
+	getOrDownloadNonFungibleTokenService   *service.GetOrDownloadNonFungibleTokenService
 	mempoolReceiveTaskHandler              *task.MempoolReceiveTaskHandler
 	mempoolBatchSendTaskHandler            *task.MempoolBatchSendTaskHandler
 	proofOfWorkMiningTaskHandler           *task.ProofOfWorkMiningTaskHandler
@@ -142,6 +143,11 @@ func (a *App) startup(ctx context.Context) {
 			KeyName:        ComicCoinIdentityKeyID,
 			BootstrapPeers: bootstrapPeers,
 		},
+		IPFS: config.IPFSConfig{
+			RemoteIP:            ComicCoinIPFSRemoteIP,
+			RemotePort:          ComicCoinIPFSRemotePort,
+			PublicGatewayDomain: ComicCoinIPFSPublicGatewayDomain,
+		},
 	}
 	a.config = cfg
 
@@ -156,9 +162,8 @@ func (a *App) startup(ctx context.Context) {
 	ikDB := disk.NewDiskStorage(cfg.DB.DataDir, "identity_key", logger)
 	pendingBlockDataDB := disk.NewDiskStorage(cfg.DB.DataDir, "pending_block_data", logger)
 	mempoolTxDB := disk.NewDiskStorage(cfg.DB.DataDir, "mempool_tx", logger)
-	tokenDB := disk.NewDiskStorage(cfg.DB.DataDir, "token", logger)
-	nftokenByTokenIDDB := disk.NewDiskStorage(cfg.DB.DataDir, "non_fungible_token_by_id", logger)
-	nftokenByMetadataURIDB := disk.NewDiskStorage(cfg.DB.DataDir, "non_fungible_token_by_metadata_uri", logger)
+	tokDB := disk.NewDiskStorage(cfg.DB.DataDir, "token", logger)
+	nftokDB := disk.NewDiskStorage(cfg.DB.DataDir, "non_fungible_token", logger)
 	memdb := memory.NewInMemoryStorage(logger)
 	kmutex := kmutexutil.NewKMutexProvider()
 
@@ -223,14 +228,14 @@ func (a *App) startup(ctx context.Context) {
 		cfg,
 		logger,
 		memdb) // Do not store on disk, only in-memory.
-	tokenRepo := repo.NewTokenRepo(
+	tokRepo := repo.NewTokenRepo(
 		cfg,
 		logger,
-		tokenDB)
-	nftokenRepo := repo.NewNonFungibleTokenRepo(
+		tokDB)
+	nftokRepo := repo.NewNonFungibleTokenRepo(
 		logger,
-		nftokenByTokenIDDB,
-		nftokenByMetadataURIDB)
+		nftokDB)
+	ipfsRepo := repo.NewIPFSRepo(cfg, logger)
 	mempoolTxRepo := repo.NewMempoolTransactionRepo(
 		cfg,
 		logger,
@@ -279,7 +284,7 @@ func (a *App) startup(ctx context.Context) {
 		cfg,
 		logger,
 		accountRepo,
-		tokenRepo,
+		tokRepo,
 		latestBlockDataHashRepo,
 		latestBlockDataTokenIDRepo,
 		blockDataRepo,
@@ -287,13 +292,13 @@ func (a *App) startup(ctx context.Context) {
 		mempoolTxRepo,
 		pendingBlockTxRepo,
 		walletRepo,
-		nftokenRepo,
+		nftokRepo,
 	)
 	storageTransactionCommitUseCase := usecase.NewStorageTransactionCommitUseCase(
 		cfg,
 		logger,
 		accountRepo,
-		tokenRepo,
+		tokRepo,
 		latestBlockDataHashRepo,
 		latestBlockDataTokenIDRepo,
 		blockDataRepo,
@@ -301,13 +306,13 @@ func (a *App) startup(ctx context.Context) {
 		mempoolTxRepo,
 		pendingBlockTxRepo,
 		walletRepo,
-		nftokenRepo,
+		nftokRepo,
 	)
 	storageTransactionDiscardUseCase := usecase.NewStorageTransactionDiscardUseCase(
 		cfg,
 		logger,
 		accountRepo,
-		tokenRepo,
+		tokRepo,
 		latestBlockDataHashRepo,
 		latestBlockDataTokenIDRepo,
 		blockDataRepo,
@@ -315,7 +320,7 @@ func (a *App) startup(ctx context.Context) {
 		mempoolTxRepo,
 		pendingBlockTxRepo,
 		walletRepo,
-		nftokenRepo,
+		nftokRepo,
 	)
 
 	// Genesis Block Data
@@ -368,23 +373,49 @@ func (a *App) startup(ctx context.Context) {
 	upsertTokenIfPreviousTokenNonceGTEUseCase := usecase.NewUpsertTokenIfPreviousTokenNonceGTEUseCase(
 		cfg,
 		logger,
-		tokenRepo)
+		tokRepo)
 	getTokensHashStateUseCase := usecase.NewGetTokensHashStateUseCase(
 		cfg,
 		logger,
-		tokenRepo)
+		tokRepo)
 	getTokenUseCase := usecase.NewGetTokenUseCase(
 		cfg,
 		logger,
-		tokenRepo)
+		tokRepo)
 	listTokensByOwnerUseCase := usecase.NewListTokensByOwnerUseCase(
 		cfg,
 		logger,
-		tokenRepo)
+		tokRepo)
 	countTokensByOwnerUseCase := usecase.NewCountTokensByOwnerUseCase(
 		cfg,
 		logger,
-		tokenRepo)
+		tokRepo)
+
+	// Non-Fungible Token
+	getTokUseCase := usecase.NewGetTokenUseCase(
+		cfg,
+		logger,
+		tokRepo)
+
+	getNFTokUseCase := usecase.NewGetNonFungibleTokenUseCase(
+		cfg,
+		logger,
+		nftokRepo)
+
+	downloadNFTokMetadataUsecase := usecase.NewDownloadMetadataNonFungibleTokenUseCase(
+		cfg,
+		logger,
+		ipfsRepo)
+
+	downloadNFTokAssetUsecase := usecase.NewDownloadNonFungibleTokenAssetUseCase(
+		cfg,
+		logger,
+		ipfsRepo)
+
+	upsertNFTokUseCase := usecase.NewUpsertNonFungibleTokenUseCase(
+		cfg,
+		logger,
+		nftokRepo)
 
 	// Mempool Transaction DTO
 	broadcastMempoolTxDTOUseCase := usecase.NewBroadcastMempoolTransactionDTOUseCase(
@@ -620,6 +651,16 @@ func (a *App) startup(ctx context.Context) {
 		logger,
 		countTokensByOwnerUseCase)
 
+	// Non-Fungible Tokens
+	getOrDownloadNonFungibleTokenService := service.NewGetOrDownloadNonFungibleTokenService(
+		cfg,
+		logger,
+		getNFTokUseCase,
+		getTokUseCase,
+		downloadNFTokMetadataUsecase,
+		downloadNFTokAssetUsecase,
+		upsertNFTokUseCase)
+
 	// Mempool
 	mempoolReceiveService := service.NewMempoolReceiveService(
 		cfg,
@@ -770,6 +811,7 @@ func (a *App) startup(ctx context.Context) {
 	a.transferCoinService = transferCoinService
 	a.listRecentBlockTransactionService = listRecentBlockTransactionService
 	a.listAllBlockTransactionService = listAllBlockTransactionService
+	a.getOrDownloadNonFungibleTokenService = getOrDownloadNonFungibleTokenService
 	a.poaTokenMintService = poaTokenMintService
 	a.transferTokenService = transferTokenService
 	a.burnTokenService = burnTokenService

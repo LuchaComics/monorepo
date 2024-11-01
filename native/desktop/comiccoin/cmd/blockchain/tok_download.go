@@ -48,8 +48,8 @@ func DownloadTokenCmd() *cobra.Command {
 					DataDir: flagDataDir,
 				},
 				IPFS: config.IPFSConfig{
-					LocalIP:             flagIPFSIP,
-					LocalPort:           flagIPFSPort,
+					RemoteIP:            flagIPFSIP,
+					RemotePort:          flagIPFSPort,
 					PublicGatewayDomain: flagIPFSPubGatewayDomain,
 				},
 			}
