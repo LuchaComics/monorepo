@@ -8,17 +8,17 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 )
 
-type CreateNonFungibleTokenUseCase struct {
+type UpsertNonFungibleTokenUseCase struct {
 	config *config.Config
 	logger *slog.Logger
 	repo   domain.NonFungibleTokenRepository
 }
 
-func NewCreateNonFungibleTokenUseCase(config *config.Config, logger *slog.Logger, repo domain.NonFungibleTokenRepository) *CreateNonFungibleTokenUseCase {
-	return &CreateNonFungibleTokenUseCase{config, logger, repo}
+func NewUpsertNonFungibleTokenUseCase(config *config.Config, logger *slog.Logger, repo domain.NonFungibleTokenRepository) *UpsertNonFungibleTokenUseCase {
+	return &UpsertNonFungibleTokenUseCase{config, logger, repo}
 }
 
-func (uc *CreateNonFungibleTokenUseCase) Execute(nftok *domain.NonFungibleToken) error {
+func (uc *UpsertNonFungibleTokenUseCase) Execute(nftok *domain.NonFungibleToken) error {
 	//
 	// STEP 1: Validation.
 	//

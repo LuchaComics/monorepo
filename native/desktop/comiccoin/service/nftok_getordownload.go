@@ -17,7 +17,7 @@ type GetOrDownloadNonFungibleTokenService struct {
 	getTokUseCase                *usecase.GetTokenUseCase
 	downloadNFTokMetadataUsecase *usecase.DownloadMetadataNonFungibleTokenUseCase
 	downloadNFTokAssetUsecase    *usecase.DownloadNonFungibleTokenAssetUseCase
-	createNFTokUseCase           *usecase.CreateNonFungibleTokenUseCase
+	upsertNFTokUseCase           *usecase.UpsertNonFungibleTokenUseCase
 }
 
 func NewGetOrDownloadNonFungibleTokenService(
@@ -27,7 +27,7 @@ func NewGetOrDownloadNonFungibleTokenService(
 	uc2 *usecase.GetTokenUseCase,
 	uc3 *usecase.DownloadMetadataNonFungibleTokenUseCase,
 	uc4 *usecase.DownloadNonFungibleTokenAssetUseCase,
-	uc5 *usecase.CreateNonFungibleTokenUseCase,
+	uc5 *usecase.UpsertNonFungibleTokenUseCase,
 ) *GetOrDownloadNonFungibleTokenService {
 	return &GetOrDownloadNonFungibleTokenService{cfg, logger, uc1, uc2, uc3, uc4, uc5}
 }
@@ -90,6 +90,24 @@ func (s *GetOrDownloadNonFungibleTokenService) Execute(tokenID uint64) (*domain.
 
 	//
 	// STEP 3
+	// Create our NFT token to be referenced in future.
+	//
+
+	nftok = &domain.NonFungibleToken{
+		TokenID:     tokenID,
+		MetadataURI: metadataURI,
+		Metadata:    metadata,
+		State:       domain.NonFungibleTokenStateNotReady,
+	}
+
+	if err := s.upsertNFTokUseCase.Execute(nftok); err != nil {
+		s.logger.Error("Failed creating nft token.",
+			slog.Any("tokenID", tokenID))
+		return nil, fmt.Errorf("Failed creating nft token: %v\n", err)
+	}
+
+	//
+	// STEP 4
 	// Download the image file from IPFS and save locally.
 	//
 
@@ -105,7 +123,7 @@ func (s *GetOrDownloadNonFungibleTokenService) Execute(tokenID uint64) (*domain.
 	metadata.Image = imageFilepath
 
 	//
-	// STEP 4
+	// STEP 5
 	// Download the animation file from IPFS and save locally.
 	//
 
@@ -121,17 +139,18 @@ func (s *GetOrDownloadNonFungibleTokenService) Execute(tokenID uint64) (*domain.
 	metadata.AnimationURL = animationFilepath
 
 	//
-	// STEP 5
-	// Create our NFT token to be referenced in future.
+	// STEP 6
+	// Update our NFT token to be referenced in future.
 	//
 
 	nftok = &domain.NonFungibleToken{
 		TokenID:     tokenID,
 		MetadataURI: metadataURI,
 		Metadata:    metadata,
+		State:       domain.NonFungibleTokenStateReady,
 	}
 
-	if err := s.createNFTokUseCase.Execute(nftok); err != nil {
+	if err := s.upsertNFTokUseCase.Execute(nftok); err != nil {
 		s.logger.Error("Failed creating nft token.",
 			slog.Any("tokenID", tokenID))
 		return nil, fmt.Errorf("Failed creating nft token: %v\n", err)

@@ -88,7 +88,7 @@ func DownloadTokenCmd() *cobra.Command {
 				logger,
 				ipfsRepo)
 
-			createNFTokUseCase := usecase.NewCreateNonFungibleTokenUseCase(
+			upsertNFTokUseCase := usecase.NewUpsertNonFungibleTokenUseCase(
 				cfg,
 				logger,
 				nftokenRepo)
@@ -102,7 +102,7 @@ func DownloadTokenCmd() *cobra.Command {
 				getTokUseCase,
 				downloadNFTokMetadataUsecase,
 				downloadNFTokAssetUsecase,
-				createNFTokUseCase)
+				upsertNFTokUseCase)
 
 			//
 			// STEP 2

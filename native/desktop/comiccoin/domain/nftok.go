@@ -10,6 +10,7 @@ type NonFungibleToken struct {
 	TokenID     uint64                    `json:"token_id"`
 	MetadataURI string                    `json:"metadata_uri"`
 	Metadata    *NonFungibleTokenMetadata `json:"metadata"`
+	State       string                    `bson:"state" json:"state"`
 }
 
 type NonFungibleTokenMetadata struct {
@@ -22,6 +23,11 @@ type NonFungibleTokenMetadata struct {
 	AnimationURL    string                               `bson:"animation_url" json:"animation_url"`
 	YoutubeURL      string                               `bson:"youtube_url" json:"youtube_url"`
 }
+
+const (
+	NonFungibleTokenStateNotReady = "not_ready"
+	NonFungibleTokenStateReady    = "ready"
+)
 
 type NonFungibleTokenMetadataAttribute struct {
 	DisplayType string `bson:"display_type" json:"display_type"`
