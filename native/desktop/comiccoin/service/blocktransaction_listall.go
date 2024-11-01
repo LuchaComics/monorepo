@@ -25,7 +25,7 @@ func NewListAllBlockTransactionService(
 	return &ListAllBlockTransactionService{cfg, logger, uc1}
 }
 
-func (s *ListAllBlockTransactionService) Execute(address *common.Address, limit int) ([]*domain.BlockTransaction, error) {
+func (s *ListAllBlockTransactionService) Execute(address *common.Address) ([]*domain.BlockTransaction, error) {
 	//
 	// STEP 1: Validation.
 	//

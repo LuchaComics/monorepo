@@ -89,7 +89,7 @@ func (r *BlockDataRepo) ListAllBlockTransactionsByAddress(address *common.Addres
 		}
 
 		for _, tx := range blockdata.Trans {
-			if tx.To == address || tx.From == address {
+			if tx.To.String() == address.String() || tx.From.String() == address.String() {
 				res = append(res, &tx)
 			}
 		}
@@ -97,7 +97,6 @@ func (r *BlockDataRepo) ListAllBlockTransactionsByAddress(address *common.Addres
 		// Return nil to indicate success because non-nil's indicate error.
 		return nil
 	})
-
 	return res, err
 }
 

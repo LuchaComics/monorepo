@@ -11,7 +11,8 @@ import {
     faFileInvoiceDollar,
     faCoins,
     faEllipsis,
-    faChevronRight
+    faChevronRight,
+    faEye
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 import { toLower } from "lodash";
@@ -95,10 +96,16 @@ function TransactionDetailView() {
                       &nbsp;More
                     </Link>
                   </li>
-                  <li class="is-active">
-                    <Link to="/transactions" aria-current="page">
+                  <li>
+                    <Link to="/more/transactions" aria-current="page">
                       <FontAwesomeIcon className="fas" icon={faFileInvoiceDollar} />
                       &nbsp;Transactions
+                    </Link>
+                  </li>
+                  <li class="is-active">
+                    <Link to="/transactions" aria-current="page">
+                      <FontAwesomeIcon className="fas" icon={faEye} />
+                      &nbsp;Detail
                     </Link>
                   </li>
                 </ul>
@@ -108,8 +115,8 @@ function TransactionDetailView() {
                 <div class="columns">
                   <div class="column">
                     <h1 class="title is-4">
-                      <FontAwesomeIcon className="fas" icon={faFileInvoiceDollar} />
-                      &nbsp;Transaction {timestamp}
+                      <FontAwesomeIcon className="fas" icon={faEye} />
+                      &nbsp;Transaction Detail
                     </h1>
                   </div>
                 </div>

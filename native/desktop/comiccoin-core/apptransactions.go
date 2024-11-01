@@ -18,7 +18,7 @@ func (a *App) GetTransactions(address string) ([]*domain.BlockTransaction, error
 		return make([]*domain.BlockTransaction, 0), fmt.Errorf("failed because: address is null: %v", address)
 	}
 
-	txs, err := a.listRecentBlockTransactionService.Execute(&addr, 5)
+	txs, err := a.listAllBlockTransactionService.Execute(&addr)
 	if err != nil {
 		a.logger.Error("Failed getting account balance", slog.Any("error", err))
 		return nil, err
