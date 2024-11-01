@@ -1,11 +1,19 @@
 import {useState, useEffect} from 'react';
 import { Link, Navigate } from "react-router-dom";
+import { useRecoilState } from "recoil";
 
 import PageLoadingContent from "../Reusable/PageLoadingContent";
 import { GetIsBlockhainNodeRunning, DefaultWalletAddress } from "../../../wailsjs/go/main/App";
+import { currentOpenWalletAtAddressState } from "../../AppState";
 
 
 function StartupView() {
+    ////
+    //// Global State
+    ////
+
+    const [currentOpenWalletAtAddress, setCurrentOpenWalletAtAddress] = useRecoilState(currentOpenWalletAtAddressState);
+
     ////
     //// Component states.
     ////
@@ -32,7 +40,9 @@ function StartupView() {
                 // the user needs to log in again.
                 DefaultWalletAddress().then((addressResponse)=>{
                     console.log("default wallet address:", addressResponse);
-                    if (addressResponse !== "") {
+                    if (addressResponse !== undefined && addressResponse !== null && addressResponse !== "") {
+                        console.log("currentOpenWalletAtAddress:", currentOpenWalletAtAddress);
+                        setCurrentOpenWalletAtAddress(addressResponse);
                         setForceURL("/dashboard");
                     } else {
                         setForceURL("/wallets");

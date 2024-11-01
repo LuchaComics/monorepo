@@ -9,7 +9,8 @@ import {
   faBarcode,
   faCubes,
   faFileInvoiceDollar,
-  faCoins
+  faCoins,
+  faChevronRight
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
@@ -61,6 +62,9 @@ function DashboardView() {
                     setTotalCoins(totalCoinsResult);
                 }).catch((errorRes)=>{
                     console.log("GetTotalCoins: errors:", errorRes);
+                    if (errorRes.includes("address is null")) {
+                        setForceURL("/wallets")
+                    }
                 }),
                 GetTotalTokens(currentOpenWalletAtAddress).then((totalTokensResult)=>{
                     console.log("GetTotalTokens: results:", totalTokensResult);
@@ -147,23 +151,25 @@ function DashboardView() {
                           <th>Coin(s)</th>
                           <th>Sender</th>
                           <th>Receiver</th>
+                          <th></th>
                         </tr>
                       </thead>
                       <tbody>
                         {transactions.map((transaction) => (
-                          <tr key={transaction.hash}>
+                          <tr key={transaction.timestamp}>
                             <td>{transaction.type === "coin" ? <><FontAwesomeIcon className="fas" icon={faCoins} /></> : <><FontAwesomeIcon className="fas" icon={faCubes} /></>}</td>
                             <td>{`${new Date(transaction.timestamp).toLocaleString()}`}</td>
                             <td>{transaction.from === toLower(currentOpenWalletAtAddress) ? "Sent" : "Received"}</td>
                             <td>{transaction.type === "coin" ? <>{transaction.value}</> : <>-</>}</td>
                             <td>{transaction.from}</td>
                             <td>{transaction.to}</td>
+                            <td><Link to={`/more/transaction/${transaction.timestamp}`}><FontAwesomeIcon className="fas" icon={faChevronRight} /></Link></td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                     <div className="has-text-right">
-                        <Link to={`/transactions`}>See More&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} /></Link>
+                        <Link to={`/more/transactions`}>See More&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} /></Link>
                     </div>
                 </>}
                 </>}

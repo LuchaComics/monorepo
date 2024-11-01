@@ -1,5 +1,5 @@
 import {useState, useEffect} from 'react';
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faTasks,
@@ -20,7 +20,13 @@ import { GetTransactions } from "../../../wailsjs/go/main/App";
 import { currentOpenWalletAtAddressState } from "../../AppState";
 
 
-function ListTransactionsView() {
+function TransactionDetailView() {
+    ////
+    //// URL Parameters.
+    ////
+
+    const { timestamp } = useParams();
+
     ////
     //// Global State
     ////
@@ -103,7 +109,7 @@ function ListTransactionsView() {
                   <div class="column">
                     <h1 class="title is-4">
                       <FontAwesomeIcon className="fas" icon={faFileInvoiceDollar} />
-                      &nbsp;Transactions
+                      &nbsp;Transaction {timestamp}
                     </h1>
                   </div>
                 </div>
@@ -116,32 +122,7 @@ function ListTransactionsView() {
                       </div>
                     </section>
                 </> : <>
-                    <table className="table is-fullwidth is-size-7">
-                      <thead>
-                        <tr>
-                          <th></th>
-                          <th>Date</th>
-                          <th>Type</th>
-                          <th>Coin(s)</th>
-                          <th>Sender</th>
-                          <th>Receiver</th>
-                          <th></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {transactions.map((transaction) => (
-                          <tr key={transaction.timestamp}>
-                            <td>{transaction.type === "coin" ? <><FontAwesomeIcon className="fas" icon={faCoins} /></> : <><FontAwesomeIcon className="fas" icon={faCubes} /></>}</td>
-                            <td>{`${new Date(transaction.timestamp).toLocaleString()}`}</td>
-                            <td>{transaction.from === toLower(currentOpenWalletAtAddress) ? "Sent" : "Received"}</td>
-                            <td>{transaction.type === "coin" ? <>{transaction.value}</> : <>-</>}</td>
-                            <td>{transaction.from}</td>
-                            <td>{transaction.to}</td>
-                            <td><Link to={`/more/transaction/${transaction.timestamp}`}><FontAwesomeIcon className="fas" icon={faChevronRight} /></Link></td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                    TODO: IMPL.
                 </>}
 
               </nav>
@@ -151,4 +132,4 @@ function ListTransactionsView() {
     )
 }
 
-export default ListTransactionsView
+export default TransactionDetailView
