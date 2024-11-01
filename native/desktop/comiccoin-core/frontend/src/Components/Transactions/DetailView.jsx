@@ -189,7 +189,8 @@ function TransactionDetailView() {
                         {transaction.type === "coin" ? <>
                             <FormRowText label="Value" value={transaction.value} />
                         </> : <>
-
+                            <FormRowText label="Token ID" value={transaction.token_id} />
+                            <FormRowText label="Token Nonce" value={transaction.token_nonce} />
                         </>}
                         <FormRowText label="From Address" value={transaction.from} />
                         <FormRowText label="To Address" value={transaction.to} />
