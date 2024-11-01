@@ -17,7 +17,7 @@ import {
 import { useRecoilState } from "recoil";
 import { toLower } from "lodash";
 
-import { GetTransactions } from "../../../wailsjs/go/main/App";
+import { GetBlockDataByBlockTransactionTimestamp } from "../../../wailsjs/go/main/App";
 import { currentOpenWalletAtAddressState } from "../../AppState";
 
 
@@ -57,11 +57,11 @@ function TransactionDetailView() {
       if (mounted) {
             window.scrollTo(0, 0); // Start the page at the top of the page.
 
-            GetTransactions(currentOpenWalletAtAddress).then((txsResponse)=>{
-                console.log("GetTransactions: results:", txsResponse);
-                setTransactions(txsResponse);
+            GetBlockDataByBlockTransactionTimestamp(parseInt(timestamp)).then((txsResponse)=>{
+                console.log("GetBlockDataByBlockTransactionTimestamp: results:", txsResponse);
+                // setTransactions(txsResponse);
             }).catch((errorRes)=>{
-                console.log("GetTransactions: errors:", errorRes);
+                console.log("GetBlockDataByBlockTransactionTimestamp: errors:", errorRes);
             });
       }
 

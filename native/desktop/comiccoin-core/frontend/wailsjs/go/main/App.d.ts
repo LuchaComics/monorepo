@@ -6,6 +6,8 @@ export function CreateWallet(arg1:string,arg2:string,arg3:string):Promise<string
 
 export function DefaultWalletAddress():Promise<string>;
 
+export function GetBlockDataByBlockTransactionTimestamp(arg1:number):Promise<domain.BlockData>;
+
 export function GetDataDirectoryFromDialog():Promise<string>;
 
 export function GetDataDirectoryFromPreferences():Promise<string>;

@@ -10,6 +10,10 @@ export function DefaultWalletAddress() {
   return window['go']['main']['App']['DefaultWalletAddress']();
 }
 
+export function GetBlockDataByBlockTransactionTimestamp(arg1) {
+  return window['go']['main']['App']['GetBlockDataByBlockTransactionTimestamp'](arg1);
+}
+
 export function GetDataDirectoryFromDialog() {
   return window['go']['main']['App']['GetDataDirectoryFromDialog']();
 }

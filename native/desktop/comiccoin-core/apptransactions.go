@@ -26,3 +26,7 @@ func (a *App) GetTransactions(address string) ([]*domain.BlockTransaction, error
 
 	return txs, nil
 }
+
+func (a *App) GetBlockDataByBlockTransactionTimestamp(blockDataBlockTransactionTimestamp uint64) (*domain.BlockData, error) {
+	return a.getBlockDataByBlockTransactionTimestampService.Execute(blockDataBlockTransactionTimestamp)
+}

@@ -100,12 +100,13 @@ func (r *BlockDataRepo) ListAllBlockTransactionsByAddress(address *common.Addres
 	return res, err
 }
 
-func (r *BlockDataRepo) GetByBlockTransactionNonce(nonce uint64) (*domain.BlockData, error) {
+func (r *BlockDataRepo) GetByBlockTransactionTimestamp(timestamp uint64) (*domain.BlockData, error) {
 	var res *domain.BlockData
 	err := r.dbClient.Iterate(func(key, value []byte) error {
 		blockdata, err := domain.NewBlockDataFromDeserialize(value)
 		if err != nil {
 			r.logger.Error("failed to deserialize",
+				slog.Any("timestamp", timestamp),
 				slog.String("key", string(key)),
 				slog.String("value", string(value)),
 				slog.Any("error", err))
@@ -113,7 +114,7 @@ func (r *BlockDataRepo) GetByBlockTransactionNonce(nonce uint64) (*domain.BlockD
 		}
 
 		for _, tx := range blockdata.Trans {
-			if tx.Nonce == nonce {
+			if tx.TimeStamp == timestamp {
 				res = blockdata
 				return nil // Complete early the loop iteration.
 			}

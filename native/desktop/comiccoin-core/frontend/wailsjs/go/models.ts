@@ -1,5 +1,19 @@
 export namespace domain {
 	
+	export class Validator {
+	    id: string;
+	    public_key_bytes: number[];
+	
+	    static createFrom(source: any = {}) {
+	        return new Validator(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.public_key_bytes = source["public_key_bytes"];
+	    }
+	}
 	export class BlockTransaction {
 	    chain_id: number;
 	    nonce: number;
@@ -65,6 +79,78 @@ export namespace domain {
 		    return a;
 		}
 	}
+	export class BlockHeader {
+	    number: number;
+	    prev_block_hash: string;
+	    timestamp: number;
+	    beneficiary: number[];
+	    difficulty: number;
+	    mining_reward: number;
+	    state_root: string;
+	    trans_root: string;
+	    nonce: number;
+	    latest_token_id: number;
+	    tokens_root: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new BlockHeader(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.number = source["number"];
+	        this.prev_block_hash = source["prev_block_hash"];
+	        this.timestamp = source["timestamp"];
+	        this.beneficiary = source["beneficiary"];
+	        this.difficulty = source["difficulty"];
+	        this.mining_reward = source["mining_reward"];
+	        this.state_root = source["state_root"];
+	        this.trans_root = source["trans_root"];
+	        this.nonce = source["nonce"];
+	        this.latest_token_id = source["latest_token_id"];
+	        this.tokens_root = source["tokens_root"];
+	    }
+	}
+	export class BlockData {
+	    hash: string;
+	    header?: BlockHeader;
+	    header_signature_bytes: number[];
+	    trans: BlockTransaction[];
+	    validator?: Validator;
+	
+	    static createFrom(source: any = {}) {
+	        return new BlockData(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.hash = source["hash"];
+	        this.header = this.convertValues(source["header"], BlockHeader);
+	        this.header_signature_bytes = source["header_signature_bytes"];
+	        this.trans = this.convertValues(source["trans"], BlockTransaction);
+	        this.validator = this.convertValues(source["validator"], Validator);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	
 	export class Token {
 	    id: number;
 	    owner?: number[];
@@ -83,6 +169,7 @@ export namespace domain {
 	        this.nonce = source["nonce"];
 	    }
 	}
+	
 	export class Wallet {
 	    label: string;
 	    address?: number[];

@@ -39,42 +39,43 @@ type App struct {
 	// have access so we can close our connection upon exit of this application.
 	libP2PNetwork p2p.LibP2PNetwork
 
-	getKeyService                          *service.GetKeyService
-	walletListService                      *service.WalletListService
-	initAccountsFromBlockchainService      *service.InitAccountsFromBlockchainService
-	createAccountService                   *service.CreateAccountService
-	getAccountService                      *service.GetAccountService
-	getAccountBalanceService               *service.GetAccountBalanceService
-	transferCoinService                    *service.TransferCoinService
-	poaTokenMintService                    *service.ProofOfAuthorityTokenMintService
-	transferTokenService                   *service.TransferTokenService
-	burnTokenService                       *service.BurnTokenService
-	getTokenService                        *service.GetTokenService
-	listByOwnerTokenService                *service.ListByOwnerTokenService
-	countByOwnerTokenService               *service.CountByOwnerTokenService
-	mempoolReceiveService                  *service.MempoolReceiveService
-	mempoolBatchSendService                *service.MempoolBatchSendService
-	proofOfWorkMiningService               *service.ProofOfWorkMiningService
-	proofOfAuthorityMiningService          *service.ProofOfAuthorityMiningService
-	proofOfWorkValidationService           *service.ProofOfWorkValidationService
-	proofOfAuthorityValidationService      *service.ProofOfAuthorityValidationService
-	majorityVoteConsensusServerService     *service.MajorityVoteConsensusServerService
-	majorityVoteConsensusClientService     *service.MajorityVoteConsensusClientService
-	uploadServerService                    *service.BlockDataDTOServerService
-	initBlockDataService                   *service.InitBlockDataService
-	blockchainStartupService               *service.BlockchainStartupService
-	listRecentBlockTransactionService      *service.ListRecentBlockTransactionService
-	listAllBlockTransactionService         *service.ListAllBlockTransactionService
-	getOrDownloadNonFungibleTokenService   *service.GetOrDownloadNonFungibleTokenService
-	mempoolReceiveTaskHandler              *task.MempoolReceiveTaskHandler
-	mempoolBatchSendTaskHandler            *task.MempoolBatchSendTaskHandler
-	proofOfWorkMiningTaskHandler           *task.ProofOfWorkMiningTaskHandler
-	proofOfAuthorityMiningTaskHandler      *task.ProofOfAuthorityMiningTaskHandler
-	proofOfWorkValidationTaskHandler       *task.ProofOfWorkValidationTaskHandler
-	proofOfAuthorityValidationTaskHandler  *task.ProofOfAuthorityValidationTaskHandler
-	blockDataDTOServerTaskHandler          *task.BlockDataDTOServerTaskHandler
-	majorityVoteConsensusServerTaskHandler *task.MajorityVoteConsensusServerTaskHandler
-	majorityVoteConsensusClientTaskHandler *task.MajorityVoteConsensusClientTaskHandler
+	getKeyService                                  *service.GetKeyService
+	walletListService                              *service.WalletListService
+	initAccountsFromBlockchainService              *service.InitAccountsFromBlockchainService
+	createAccountService                           *service.CreateAccountService
+	getAccountService                              *service.GetAccountService
+	getAccountBalanceService                       *service.GetAccountBalanceService
+	transferCoinService                            *service.TransferCoinService
+	poaTokenMintService                            *service.ProofOfAuthorityTokenMintService
+	transferTokenService                           *service.TransferTokenService
+	burnTokenService                               *service.BurnTokenService
+	getTokenService                                *service.GetTokenService
+	listByOwnerTokenService                        *service.ListByOwnerTokenService
+	countByOwnerTokenService                       *service.CountByOwnerTokenService
+	mempoolReceiveService                          *service.MempoolReceiveService
+	mempoolBatchSendService                        *service.MempoolBatchSendService
+	proofOfWorkMiningService                       *service.ProofOfWorkMiningService
+	proofOfAuthorityMiningService                  *service.ProofOfAuthorityMiningService
+	proofOfWorkValidationService                   *service.ProofOfWorkValidationService
+	proofOfAuthorityValidationService              *service.ProofOfAuthorityValidationService
+	majorityVoteConsensusServerService             *service.MajorityVoteConsensusServerService
+	majorityVoteConsensusClientService             *service.MajorityVoteConsensusClientService
+	uploadServerService                            *service.BlockDataDTOServerService
+	initBlockDataService                           *service.InitBlockDataService
+	blockchainStartupService                       *service.BlockchainStartupService
+	listRecentBlockTransactionService              *service.ListRecentBlockTransactionService
+	listAllBlockTransactionService                 *service.ListAllBlockTransactionService
+	getBlockDataByBlockTransactionTimestampService *service.GetBlockDataByBlockTransactionTimestampService
+	getOrDownloadNonFungibleTokenService           *service.GetOrDownloadNonFungibleTokenService
+	mempoolReceiveTaskHandler                      *task.MempoolReceiveTaskHandler
+	mempoolBatchSendTaskHandler                    *task.MempoolBatchSendTaskHandler
+	proofOfWorkMiningTaskHandler                   *task.ProofOfWorkMiningTaskHandler
+	proofOfAuthorityMiningTaskHandler              *task.ProofOfAuthorityMiningTaskHandler
+	proofOfWorkValidationTaskHandler               *task.ProofOfWorkValidationTaskHandler
+	proofOfAuthorityValidationTaskHandler          *task.ProofOfAuthorityValidationTaskHandler
+	blockDataDTOServerTaskHandler                  *task.BlockDataDTOServerTaskHandler
+	majorityVoteConsensusServerTaskHandler         *task.MajorityVoteConsensusServerTaskHandler
+	majorityVoteConsensusClientTaskHandler         *task.MajorityVoteConsensusClientTaskHandler
 }
 
 // NewApp creates a new App application struct
@@ -490,6 +491,10 @@ func (a *App) startup(ctx context.Context) {
 		cfg,
 		logger,
 		blockDataRepo)
+	getBlockDataByBlockTransactionTimestampUseCase := usecase.NewGetBlockDataByBlockTransactionTimestampUseCase(
+		cfg,
+		logger,
+		blockDataRepo)
 
 	// Mining
 	proofOfWorkUseCase := usecase.NewProofOfWorkUseCase(cfg, logger)
@@ -609,6 +614,11 @@ func (a *App) startup(ctx context.Context) {
 		cfg,
 		logger,
 		listAllBlockTransactionByAddressUseCase,
+	)
+	getBlockDataByBlockTransactionTimestampService := service.NewGetBlockDataByBlockTransactionTimestampService(
+		cfg,
+		logger,
+		getBlockDataByBlockTransactionTimestampUseCase,
 	)
 
 	// Tokens
@@ -812,6 +822,7 @@ func (a *App) startup(ctx context.Context) {
 	a.listRecentBlockTransactionService = listRecentBlockTransactionService
 	a.listAllBlockTransactionService = listAllBlockTransactionService
 	a.getOrDownloadNonFungibleTokenService = getOrDownloadNonFungibleTokenService
+	a.getBlockDataByBlockTransactionTimestampService = getBlockDataByBlockTransactionTimestampService
 	a.poaTokenMintService = poaTokenMintService
 	a.transferTokenService = transferTokenService
 	a.burnTokenService = burnTokenService
