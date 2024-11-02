@@ -74,3 +74,17 @@ func (a *App) GetNonFungibleTokensByOwnerAddress(address string) ([]*domain.NonF
 
 	return toks, nil
 }
+
+func (a *App) GetNonFungibleToken(tokenID uint64) (*domain.NonFungibleToken, error) {
+	nftok, err := a.getOrDownloadNonFungibleTokenService.Execute(tokenID)
+	if err != nil {
+		a.logger.Error("Failed getting non-fungible token by token ID.",
+			slog.Any("error", err))
+		return nil, err
+	}
+
+	a.logger.Debug("",
+		slog.Any("nftok", nftok))
+
+	return nftok, nil
+}

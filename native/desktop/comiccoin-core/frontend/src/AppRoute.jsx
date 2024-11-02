@@ -25,6 +25,7 @@ import MoreView from "./Components/More/View";
 import ListTransactionsView from "./Components/Transactions/ListView";
 import TransactionDetailView from "./Components/Transactions/DetailView";
 import ListTokensView from "./Components/Tokens/ListView";
+import TokenDetailView from "./Components/Tokens/DetailView";
 import SettingsView from "./Components/Settings/View";
 
 function AppRoute() {
@@ -84,7 +85,8 @@ function AppRoute() {
                             <Route path="/more" element={<MoreView />} exact />
                             <Route path="/more/transactions" element={<ListTransactionsView />} exact />
                             <Route path="/more/transaction/:timestamp" element={<TransactionDetailView />} exact />
-                            <Route path="/tokens" element={<ListTokensView />} exact />
+                            <Route path="/more/tokens" element={<ListTokensView />} exact />
+                            <Route path="/more/token/:tokenID" element={<TokenDetailView />} exact />
                             <Route path="/settings" element={<SettingsView />} exact />
                             <Route path="*" element={<NotFoundErrorView />} />
                         </Routes>

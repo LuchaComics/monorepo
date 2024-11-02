@@ -16,6 +16,8 @@ export function GetDefaultDataDirectory():Promise<string>;
 
 export function GetIsBlockhainNodeRunning():Promise<boolean>;
 
+export function GetNonFungibleToken(arg1:number):Promise<domain.NonFungibleToken>;
+
 export function GetNonFungibleTokensByOwnerAddress(arg1:string):Promise<Array<domain.NonFungibleToken>>;
 
 export function GetRecentTransactions(arg1:string):Promise<Array<domain.BlockTransaction>>;

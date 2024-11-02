@@ -79,7 +79,7 @@ function MoreView() {
                               </div>
                             </div>
                           </article>
-                          <Link to="/tokens" className="button is-fullwidth is-link">Go to Tokens</Link>
+                          <Link to="/more/tokens" className="button is-fullwidth is-link">Go to Tokens</Link>
                         </div>
                       </div>
                       <div className="column is-4">

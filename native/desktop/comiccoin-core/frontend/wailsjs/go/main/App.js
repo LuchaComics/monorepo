@@ -30,6 +30,10 @@ export function GetIsBlockhainNodeRunning() {
   return window['go']['main']['App']['GetIsBlockhainNodeRunning']();
 }
 
+export function GetNonFungibleToken(arg1) {
+  return window['go']['main']['App']['GetNonFungibleToken'](arg1);
+}
+
 export function GetNonFungibleTokensByOwnerAddress(arg1) {
   return window['go']['main']['App']['GetNonFungibleTokensByOwnerAddress'](arg1);
 }
