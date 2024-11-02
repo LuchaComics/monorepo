@@ -66,7 +66,7 @@ func main() {
 		OnStartup:  app.startup,
 		OnShutdown: app.shutdown,
 		Mac: &mac.Options{
-			WebviewIsTransparent: true,
+			WebviewIsTransparent: true, // https://wails.io/docs/reference/options/#webviewistransparent
 		},
 		Bind: []interface{}{
 			app,

@@ -11,6 +11,7 @@ import {
     faCoins,
     faEllipsis
 } from "@fortawesome/free-solid-svg-icons";
+import logo from '../../assets/images/CPS-logo-2023-square.webp';
 import { useRecoilState } from "recoil";
 import { toLower } from "lodash";
 
@@ -132,7 +133,7 @@ function ListTokensView() {
                           <figure class="image is-4by3">
                             <img
                               src={`${token.metadata.image}`}
-                              alt="Placeholder image"
+                              alt={token.metadata.name}
                             />
                           </figure>
                           </div>
@@ -141,23 +142,21 @@ function ListTokensView() {
                             <div class="media-left">
                               <figure class="image is-48x48">
                                 <img
-                                  src="https://bulma.io/assets/images/placeholders/96x96.png"
-                                  alt="Placeholder image"
+                                  src={logo}
+                                  alt="ComicCoin"
                                 />
                               </figure>
                             </div>
                             <div class="media-content">
                               <p class="title is-4">{token.metadata.name}</p>
-                              <p class="subtitle is-6">@johnsmith</p>
+                              <p class="subtitle is-6">Token ID: {token.token_id}</p>
                             </div>
                           </div>
 
                           <div class="content">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec
-                            iaculis mauris. <a>@bulmaio</a>. <a href="#">#css</a>
-                            <a href="#">#responsive</a>
+                            {token.metadata.description}
                             <br />
-                            <time datetime="2016-1-1">11:09 PM - 1 Jan 2016</time>
+                            <Link to={`/more/token/${token.token_id}`}>View&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} /></Link>
                           </div>
                           </div>
                       </div>
