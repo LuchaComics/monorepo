@@ -16,6 +16,7 @@ import { toLower } from "lodash";
 
 import { GetNonFungibleTokensByOwnerAddress } from "../../../wailsjs/go/main/App";
 import { currentOpenWalletAtAddressState } from "../../AppState";
+import PageLoadingContent from "../Reusable/PageLoadingContent";
 
 
 function ListTokensView() {
@@ -29,9 +30,8 @@ function ListTokensView() {
     //// Component states.
     ////
 
+    const [isLoading, setIsLoading] = useState(false);
     const [forceURL, setForceURL] = useState("");
-    const [totalCoins, setTotalCoins] = useState(0);
-    const [totalTokens, setTotalTokens] = useState(0);
     const [tokens, setTokens] = useState([]);
 
     ////
@@ -48,11 +48,17 @@ function ListTokensView() {
       if (mounted) {
             window.scrollTo(0, 0); // Start the page at the top of the page.
 
+            // Update the GUI to let user know that the operation is under way.
+            setIsLoading(true);
+
             GetNonFungibleTokensByOwnerAddress(currentOpenWalletAtAddress).then((nftoksRes)=>{
                 console.log("GetNonFungibleTokensByOwnerAddress: nftoksRes:", nftoksRes);
                 setTokens(nftoksRes);
             }).catch((errorRes)=>{
                 console.log("GetNonFungibleTokensByOwnerAddress: errorRes:", errorRes);
+            }).finally((errorRes)=>{
+                // Update the GUI to let user know that the operation is completed.
+                setIsLoading(false);
             });
       }
 
@@ -67,6 +73,12 @@ function ListTokensView() {
 
     if (forceURL !== "") {
         return <Navigate to={forceURL} />;
+    }
+
+    if (isLoading) {
+        return (
+            <PageLoadingContent displayMessage="Fetching..." />
+        );
     }
 
     return (
@@ -114,35 +126,42 @@ function ListTokensView() {
                       </div>
                     </section>
                 </> : <>
-                    <table className="table is-fullwidth is-size-7">
-                      <thead>
-                        <tr>
-                          <th></th>
-                          {/*
-                          <th>Date</th>
-                          <th>Type</th>
-                          <th>Coin(s)</th>
-                          <th>Sender</th>
-                          <th>Receiver</th>
-                          */}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {tokens.map((Token) => (
-                          <tr key={Token.hash}>
-                            <td>TODO</td>
+                    {tokens.map((token) => (
+                      <div class="card" key={token.token_id}>
+                          <div class="card-image">
+                          <figure class="image is-4by3">
+                            <img
+                              src={`${token.metadata.image}`}
+                              alt="Placeholder image"
+                            />
+                          </figure>
+                          </div>
+                          <div class="card-content">
+                          <div class="media">
+                            <div class="media-left">
+                              <figure class="image is-48x48">
+                                <img
+                                  src="https://bulma.io/assets/images/placeholders/96x96.png"
+                                  alt="Placeholder image"
+                                />
+                              </figure>
+                            </div>
+                            <div class="media-content">
+                              <p class="title is-4">{token.metadata.name}</p>
+                              <p class="subtitle is-6">@johnsmith</p>
+                            </div>
+                          </div>
 
-                            {/*
-                            <td>{`${new Date(Token.timestamp).toLocaleString()}`}</td>
-                            <td>{Token.from === toLower(currentOpenWalletAtAddress) ? "Sent" : "Received"}</td>
-                            <td>{Token.value}</td>
-                            <td>{Token.from}</td>
-                            <td>{Token.to}</td>
-                            */}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                          <div class="content">
+                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec
+                            iaculis mauris. <a>@bulmaio</a>. <a href="#">#css</a>
+                            <a href="#">#responsive</a>
+                            <br />
+                            <time datetime="2016-1-1">11:09 PM - 1 Jan 2016</time>
+                          </div>
+                          </div>
+                      </div>
+                    ))}
                 </>}
 
               </nav>
