@@ -19,6 +19,9 @@ import { toLower } from "lodash";
 import { GetNonFungibleToken } from "../../../wailsjs/go/main/App";
 import { currentOpenWalletAtAddressState } from "../../AppState";
 import PageLoadingContent from "../Reusable/PageLoadingContent";
+import FormRowText from "../Reusable/FormRowText";
+import FormRowMetadataAttributesField from "../Reusable/FormRowMetadataAttributesField";
+import FormRowYouTubeField from "../Reusable/FormRowYouTubeField";
 
 
 function TokenDetailView() {
@@ -109,14 +112,14 @@ function TokenDetailView() {
                   </li>
                   <li class="">
                     <Link to="/more/tokens" aria-current="page">
-                      <FontAwesomeIcon className="fas" icon={faCubes} />
-                      &nbsp;Tokens
+                        <FontAwesomeIcon className="fas" icon={faCubes} />
+                        &nbsp;Tokens
                     </Link>
                   </li>
                   <li class="is-active">
                     <Link to={`/more/token/${tokenID}`} aria-current="page">
-                      <FontAwesomeIcon className="fas" icon={faCube} />
-                      &nbsp;Token ID {tokenID}
+                        <FontAwesomeIcon className="fas" icon={faCube} />
+                        &nbsp;Token ID {tokenID}
                     </Link>
                   </li>
                 </ul>
@@ -131,41 +134,19 @@ function TokenDetailView() {
                     </h1>
                   </div>
                 </div>
-                {token !== undefined && token !== null && token != "" ? <>
-                    <div class="card" key={token.token_id}>
-                        <div class="card-image">
-                            <figure class="image is-4by3">
-                                <img
-                                    src={token.metadata.image}
-                                    alt={token.metadata.name}
-                                />
-                            </figure>
-                        </div>
-                        <div class="card-content">
-                            <div class="media">
-                              <div class="media-left">
-                                <figure class="image is-48x48">
-                                  <img
-                                    src={logo}
-                                    alt="ComicCoin"
-                                  />
-                                </figure>
-                              </div>
-                              <div class="media-content">
-                                <p class="title is-4">{token.metadata.name}</p>
-                                <p class="subtitle is-6">Token ID: {token.token_id}</p>
-                              </div>
-                            </div>
-
-                            <div class="content">
-                              {token.metadata.description}
-                              <br />
-                              <Link to={`/more/token/${token.token_id}`}>View&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} /></Link>
-                            </div>
-                        </div>
-                    </div>
-                </> : <>
-                    None...
+                {token !== undefined && token !== null && token != "" && <>
+                    <FormRowText label="Name" value={token.metadata.name} />
+                    <FormRowText label="Description" value={token.metadata.description} />
+                    <FormRowMetadataAttributesField label="Attributes (Optional)" attributes={token.metadata.attributes} />
+                    <FormRowText label="External URL (Optional)" value={token.metadata.external_url} />
+                    {/*<FormRowText label="Background Color" value={token.metadata.background_color} />*/}
+                    <FormRowYouTubeField label="YouTube URL (Optional)" url={token.metadata.youtube_url} />
+                    <figure class="image is-4by3">
+                        <img
+                            src={token.metadata.image}
+                            alt={token.metadata.name}
+                        />
+                    </figure>
                 </>}
               </nav>
             </section>

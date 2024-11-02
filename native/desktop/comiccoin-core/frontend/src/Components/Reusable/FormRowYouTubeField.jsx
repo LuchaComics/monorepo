@@ -1,7 +1,6 @@
 import React, { useState, useEffect }  from "react";
 import { Link } from "react-router-dom";
 
-import { GetFileViaIPFS } from "../../../wailsjs/go/main/App";
 
 function FormRowYouTubeField(props) {
 
