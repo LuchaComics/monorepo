@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	signedIssuedTokenDTOTopicName        = "signedIssuedtokendto"
-	signedIssuedTokenDTORendezvousString = "github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain/signedIssuedtokendto"
+	signedIssuedTokenDTOTopicName        = "signedissuedtokendto"
+	signedIssuedTokenDTORendezvousString = "github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain/signedissuedtokendto"
 )
 
 type signedIssuedTokenDTORepoImpl struct {
@@ -123,7 +123,7 @@ func NewSignedIssuedTokenDTORepo(cfg *config.Config, logger *slog.Logger, libP2P
 
 				impl.logger.Debug("subscribed",
 					slog.Any("peer_id", p.ID),
-					slog.String("dto", "signedIssuedtokendto"),
+					slog.String("dto", "signedissuedtokendto"),
 					slog.String("topic", signedIssuedTokenDTOTopicName))
 
 				// Return nil to indicate success (no errors occured).
