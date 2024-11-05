@@ -102,6 +102,7 @@ func DaemonCmd() *cobra.Command {
 			pendingBlockDataDB := disk.NewDiskStorage(cfg.DB.DataDir, "pending_block_data", logger)
 			mempoolTxDB := disk.NewDiskStorage(cfg.DB.DataDir, "mempool_tx", logger)
 			tokenDB := disk.NewDiskStorage(cfg.DB.DataDir, "token", logger)
+			sitokenDB := disk.NewDiskStorage(cfg.DB.DataDir, "signed_issued_token", logger)
 			nftokDB := disk.NewDiskStorage(cfg.DB.DataDir, "non_fungible_token", logger)
 			memdb := memory.NewInMemoryStorage(logger)
 			kmutex := kmutexutil.NewKMutexProvider()
@@ -178,7 +179,11 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				tokenDB)
-			issuedTokenDTO := repo.NewIssuedTokenDTORepo(
+			sitokRepo := repo.NewSignedIssuedTokenRepo(
+				cfg,
+				logger,
+				sitokenDB)
+			sitokDTORepo := repo.NewSignedIssuedTokenDTORepo(
 				cfg,
 				logger,
 				libP2PNetwork)
@@ -327,15 +332,19 @@ func DaemonCmd() *cobra.Command {
 				logger,
 				tokenRepo)
 
-			// Issued Token
-			broadcastIssuedTokenDTOUseCase := usecase.NewBroadcastIssuedTokenDTOUseCase(
+			// Signed Issued Token DTO
+			createSignedIssuedTokenUseCase := usecase.NewCreateSignedIssuedTokenUseCase(
 				cfg,
 				logger,
-				issuedTokenDTO)
-			receiveIssuedTokenDTOUseCase := usecase.NewReceiveIssuedTokenDTOUseCase(
+				sitokRepo)
+			broadcastSignedIssuedTokenDTOUseCase := usecase.NewBroadcastSignedIssuedTokenDTOUseCase(
 				cfg,
 				logger,
-				issuedTokenDTO)
+				sitokDTORepo)
+			receiveSignedIssuedTokenDTOUseCase := usecase.NewReceiveSignedIssuedTokenDTOUseCase(
+				cfg,
+				logger,
+				sitokDTORepo)
 
 			// Mempool Transaction DTO
 			broadcastMempoolTxDTOUseCase := usecase.NewBroadcastMempoolTransactionDTOUseCase(
@@ -520,7 +529,7 @@ func DaemonCmd() *cobra.Command {
 				walletDecryptKeyUseCase,
 				getBlockchainLastestTokenIDUseCase,
 				broadcastMempoolTxDTOUseCase,
-				broadcastIssuedTokenDTOUseCase)
+				broadcastSignedIssuedTokenDTOUseCase)
 
 			transferTokenService := service.NewTransferTokenService(
 				cfg,
@@ -683,13 +692,13 @@ func DaemonCmd() *cobra.Command {
 				initAccountsFromBlockchainService,
 				initBlockDataService,
 			)
-			issuedTokenClientService := service.NewIssuedTokenClientService(
+			signedIssuedTokenClientService := service.NewSignedIssuedTokenClientService(
 				cfg,
 				logger,
 				kmutex,
-				receiveIssuedTokenDTOUseCase,
+				receiveSignedIssuedTokenDTOUseCase,
 				loadGenesisBlockDataUseCase,
-				upsertTokenIfPreviousTokenNonceGTEUseCase,
+				createSignedIssuedTokenUseCase,
 			)
 
 			// ------------ Interface ------------
@@ -775,10 +784,10 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				majorityVoteConsensusClientService)
-			tm10 := taskmnghandler.NewIssuedTokenClientServiceTaskHandler(
+			tm10 := taskmnghandler.NewSignedIssuedTokenClientServiceTaskHandler(
 				cfg,
 				logger,
-				issuedTokenClientService)
+				signedIssuedTokenClientService)
 
 			taskManager := taskmng.NewTaskManager(
 				cfg,

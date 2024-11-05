@@ -18,18 +18,18 @@ type TaskManager interface {
 }
 
 type taskManagerImpl struct {
-	cfg                                    *config.Config
-	logger                                 *slog.Logger
-	mempoolReceiveTaskHandler              *task.MempoolReceiveTaskHandler
-	mempoolBatchSendTaskHandler            *task.MempoolBatchSendTaskHandler
-	proofOfWorkMiningTaskHandler           *task.ProofOfWorkMiningTaskHandler
-	proofOfAuthorityMiningTaskHandler      *task.ProofOfAuthorityMiningTaskHandler
-	proofOfWorkValidationTaskHandler       *task.ProofOfWorkValidationTaskHandler
-	proofOfAuthorityValidationTaskHandler  *task.ProofOfAuthorityValidationTaskHandler
-	blockDataDTOServerTaskHandler          *task.BlockDataDTOServerTaskHandler
-	majorityVoteConsensusServerTaskHandler *task.MajorityVoteConsensusServerTaskHandler
-	majorityVoteConsensusClientTaskHandler *task.MajorityVoteConsensusClientTaskHandler
-	issuedTokenClientServiceTaskHandler    *task.IssuedTokenClientServiceTaskHandler
+	cfg                                       *config.Config
+	logger                                    *slog.Logger
+	mempoolReceiveTaskHandler                 *task.MempoolReceiveTaskHandler
+	mempoolBatchSendTaskHandler               *task.MempoolBatchSendTaskHandler
+	proofOfWorkMiningTaskHandler              *task.ProofOfWorkMiningTaskHandler
+	proofOfAuthorityMiningTaskHandler         *task.ProofOfAuthorityMiningTaskHandler
+	proofOfWorkValidationTaskHandler          *task.ProofOfWorkValidationTaskHandler
+	proofOfAuthorityValidationTaskHandler     *task.ProofOfAuthorityValidationTaskHandler
+	blockDataDTOServerTaskHandler             *task.BlockDataDTOServerTaskHandler
+	majorityVoteConsensusServerTaskHandler    *task.MajorityVoteConsensusServerTaskHandler
+	majorityVoteConsensusClientTaskHandler    *task.MajorityVoteConsensusClientTaskHandler
+	signedIssuedTokenClientServiceTaskHandler *task.SignedIssuedTokenClientServiceTaskHandler
 }
 
 func NewTaskManager(
@@ -44,21 +44,21 @@ func NewTaskManager(
 	blockDataDTOServerTaskHandler *task.BlockDataDTOServerTaskHandler,
 	majorityVoteConsensusServerTaskHandler *task.MajorityVoteConsensusServerTaskHandler,
 	majorityVoteConsensusClientTaskHandler *task.MajorityVoteConsensusClientTaskHandler,
-	issuedTokenClientServiceTaskHandler *task.IssuedTokenClientServiceTaskHandler,
+	signedIssuedTokenClientServiceTaskHandler *task.SignedIssuedTokenClientServiceTaskHandler,
 ) TaskManager {
 	port := &taskManagerImpl{
-		cfg:                                    cfg,
-		logger:                                 logger,
-		mempoolReceiveTaskHandler:              mempoolReceiveTaskHandler,
-		mempoolBatchSendTaskHandler:            mempoolBatchSendTaskHandler,
-		proofOfWorkMiningTaskHandler:           proofOfWorkMiningTaskHandler,
-		proofOfAuthorityMiningTaskHandler:      proofOfAuthorityMiningTaskHandler,
-		proofOfWorkValidationTaskHandler:       proofOfWorkValidationTaskHandler,
-		proofOfAuthorityValidationTaskHandler:  proofOfAuthorityValidationTaskHandler,
-		blockDataDTOServerTaskHandler:          blockDataDTOServerTaskHandler,
-		majorityVoteConsensusServerTaskHandler: majorityVoteConsensusServerTaskHandler,
-		majorityVoteConsensusClientTaskHandler: majorityVoteConsensusClientTaskHandler,
-		issuedTokenClientServiceTaskHandler:    issuedTokenClientServiceTaskHandler,
+		cfg:                                       cfg,
+		logger:                                    logger,
+		mempoolReceiveTaskHandler:                 mempoolReceiveTaskHandler,
+		mempoolBatchSendTaskHandler:               mempoolBatchSendTaskHandler,
+		proofOfWorkMiningTaskHandler:              proofOfWorkMiningTaskHandler,
+		proofOfAuthorityMiningTaskHandler:         proofOfAuthorityMiningTaskHandler,
+		proofOfWorkValidationTaskHandler:          proofOfWorkValidationTaskHandler,
+		proofOfAuthorityValidationTaskHandler:     proofOfAuthorityValidationTaskHandler,
+		blockDataDTOServerTaskHandler:             blockDataDTOServerTaskHandler,
+		majorityVoteConsensusServerTaskHandler:    majorityVoteConsensusServerTaskHandler,
+		majorityVoteConsensusClientTaskHandler:    majorityVoteConsensusClientTaskHandler,
+		signedIssuedTokenClientServiceTaskHandler: signedIssuedTokenClientServiceTaskHandler,
 	}
 	return port
 }
@@ -184,21 +184,21 @@ func (port *taskManagerImpl) Run() {
 		}
 	}(port.blockDataDTOServerTaskHandler, port.logger)
 
-	go func(server *taskmnghandler.IssuedTokenClientServiceTaskHandler, loggerp *slog.Logger) {
-		loggerp.Info("Running issued token dto server...")
+	go func(client *taskmnghandler.SignedIssuedTokenClientServiceTaskHandler, loggerp *slog.Logger) {
+		loggerp.Info("Running signed issued token dto client...")
 		ctx := context.Background()
 		for {
-			if err := server.Execute(ctx); err != nil {
-				loggerp.Error("issued token server error",
+			if err := client.Execute(ctx); err != nil {
+				loggerp.Error("signed issued token client error",
 					slog.Any("error", err))
 				time.Sleep(10 * time.Second)
 				continue
 			}
 			// DEVELOPERS NOTE:
 			// No need for delays, automatically start executing again.
-			port.logger.Debug("issued token dto server executing again ...")
+			port.logger.Debug("signed issued token dto client executing again ...")
 		}
-	}(port.issuedTokenClientServiceTaskHandler, port.logger)
+	}(port.signedIssuedTokenClientServiceTaskHandler, port.logger)
 }
 
 func (port *taskManagerImpl) Shutdown() {

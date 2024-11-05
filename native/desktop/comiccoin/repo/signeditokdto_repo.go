@@ -15,11 +15,11 @@ import (
 )
 
 const (
-	issuedTokenDTOTopicName        = "issuedtokendto"
-	issuedTokenDTORendezvousString = "github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain/issuedtokendto"
+	signedIssuedTokenDTOTopicName        = "signedIssuedtokendto"
+	signedIssuedTokenDTORendezvousString = "github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain/signedIssuedtokendto"
 )
 
-type issuedTokenDTORepoImpl struct {
+type signedIssuedTokenDTORepoImpl struct {
 	config        *config.Config
 	logger        *slog.Logger
 	libP2PNetwork p2p.LibP2PNetwork
@@ -27,13 +27,13 @@ type issuedTokenDTORepoImpl struct {
 	sub           *pubsub.Subscription
 }
 
-func NewIssuedTokenDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork p2p.LibP2PNetwork) domain.IssuedTokenDTORepository {
+func NewSignedIssuedTokenDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwork p2p.LibP2PNetwork) domain.SignedIssuedTokenDTORepository {
 	//
 	// STEP 1
 	// Initialize our instance
 	//
 
-	impl := &issuedTokenDTORepoImpl{
+	impl := &signedIssuedTokenDTORepoImpl{
 		config:        cfg,
 		logger:        logger,
 		libP2PNetwork: libP2PNetwork,
@@ -43,12 +43,12 @@ func NewIssuedTokenDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwor
 
 	//
 	// STEP 2:
-	// Create and advertise our `issuedTokenDTORendezvousString` which is essentially telling
+	// Create and advertise our `signedIssuedTokenDTORendezvousString` which is essentially telling
 	// our P2P network that clients can meet and communicate in our app at this
 	// specific location.
 	//
 
-	impl.libP2PNetwork.AdvertiseWithRendezvousString(context.Background(), impl.libP2PNetwork.GetHost(), issuedTokenDTORendezvousString)
+	impl.libP2PNetwork.AdvertiseWithRendezvousString(context.Background(), impl.libP2PNetwork.GetHost(), signedIssuedTokenDTORendezvousString)
 
 	//
 	// STEP 3:
@@ -70,7 +70,7 @@ func NewIssuedTokenDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwor
 	// Join the `topic` in the pub-sub.
 	//
 
-	topic, err := psObj.Join(issuedTokenDTORendezvousString)
+	topic, err := psObj.Join(signedIssuedTokenDTORendezvousString)
 	if err != nil {
 		log.Fatalf("failed joining pub-sub for topic: %v", err)
 	}
@@ -88,14 +88,14 @@ func NewIssuedTokenDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwor
 	if err != nil {
 		impl.logger.Error("failed subscribing to our topic",
 			slog.Any("error", err),
-			slog.String("topic_name", issuedTokenDTOTopicName))
+			slog.String("topic_name", signedIssuedTokenDTOTopicName))
 		log.Fatalf("failed subscribing to our topic: %v", err)
 	}
 	if sub == nil {
 		err := fmt.Errorf("failed subscribing to our topic: %v", "topic does not exist")
 		impl.logger.Error("failed subscribing to our topic",
 			slog.Any("error", err),
-			slog.String("topic_name", issuedTokenDTOTopicName))
+			slog.String("topic_name", signedIssuedTokenDTOTopicName))
 		log.Fatalf("failed subscribing to our topic: %v", err)
 	}
 	impl.sub = sub
@@ -110,7 +110,7 @@ func NewIssuedTokenDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwor
 	go func() {
 
 		impl.logger.Debug("waiting for peers to connect to topic...",
-			slog.String("topic_name", issuedTokenDTOTopicName))
+			slog.String("topic_name", signedIssuedTokenDTOTopicName))
 
 		for {
 
@@ -119,12 +119,12 @@ func NewIssuedTokenDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwor
 			// Wait to connect with new peers.
 			//
 
-			impl.libP2PNetwork.DiscoverPeersAtRendezvousString(context.Background(), impl.libP2PNetwork.GetHost(), issuedTokenDTORendezvousString, func(p peer.AddrInfo) error {
+			impl.libP2PNetwork.DiscoverPeersAtRendezvousString(context.Background(), impl.libP2PNetwork.GetHost(), signedIssuedTokenDTORendezvousString, func(p peer.AddrInfo) error {
 
 				impl.logger.Debug("subscribed",
 					slog.Any("peer_id", p.ID),
-					slog.String("dto", "issuedtokendto"),
-					slog.String("topic", issuedTokenDTOTopicName))
+					slog.String("dto", "signedIssuedtokendto"),
+					slog.String("topic", signedIssuedTokenDTOTopicName))
 
 				// Return nil to indicate success (no errors occured).
 				return nil
@@ -135,7 +135,7 @@ func NewIssuedTokenDTORepo(cfg *config.Config, logger *slog.Logger, libP2PNetwor
 	return impl
 }
 
-func (impl *issuedTokenDTORepoImpl) BroadcastToP2PNetwork(ctx context.Context, bd *domain.IssuedTokenDTO) error {
+func (impl *signedIssuedTokenDTORepoImpl) BroadcastToP2PNetwork(ctx context.Context, bd *domain.SignedIssuedTokenDTO) error {
 	//
 	// STEP 1
 	// Marshal the DTO into a binary payload which we can send over the network.
@@ -144,7 +144,7 @@ func (impl *issuedTokenDTORepoImpl) BroadcastToP2PNetwork(ctx context.Context, b
 	bdBytes, err := bd.Serialize()
 	if err != nil {
 		impl.logger.Error("Failed to publish",
-			slog.String("topic_name", issuedTokenDTOTopicName),
+			slog.String("topic_name", signedIssuedTokenDTOTopicName),
 			slog.Any("error", err))
 		return err
 	}
@@ -154,17 +154,17 @@ func (impl *issuedTokenDTORepoImpl) BroadcastToP2PNetwork(ctx context.Context, b
 
 	if err := impl.topic.Publish(ctx, bdBytes); err != nil {
 		impl.logger.Error("Failed to publish",
-			slog.String("topic_name", issuedTokenDTOTopicName),
+			slog.String("topic_name", signedIssuedTokenDTOTopicName),
 			slog.Any("error", err))
-		return fmt.Errorf("failed to publish: %s", issuedTokenDTOTopicName)
+		return fmt.Errorf("failed to publish: %s", signedIssuedTokenDTOTopicName)
 	}
 	impl.logger.Debug("Published",
-		slog.Any("topic", issuedTokenDTOTopicName))
+		slog.Any("topic", signedIssuedTokenDTOTopicName))
 
 	return nil
 }
 
-func (impl *issuedTokenDTORepoImpl) ReceiveFromP2PNetwork(ctx context.Context) (*domain.IssuedTokenDTO, error) {
+func (impl *signedIssuedTokenDTORepoImpl) ReceiveFromP2PNetwork(ctx context.Context) (*domain.SignedIssuedTokenDTO, error) {
 	//
 	// STEP 2:
 	// We will receive the incoming message from our P2P network.
@@ -177,7 +177,7 @@ func (impl *issuedTokenDTORepoImpl) ReceiveFromP2PNetwork(ctx context.Context) (
 	if err != nil {
 		impl.logger.Error("Failed to receive message",
 			slog.Any("error", err),
-			slog.String("topic_name", issuedTokenDTOTopicName))
+			slog.String("topic_name", signedIssuedTokenDTOTopicName))
 		return nil, err
 	}
 
@@ -186,11 +186,11 @@ func (impl *issuedTokenDTORepoImpl) ReceiveFromP2PNetwork(ctx context.Context) (
 	// We need to deserialize the incoming message into our DTO.
 	//
 
-	stxDTO, err := domain.NewIssuedTokenDTOFromDeserialize(msg.Data)
+	stxDTO, err := domain.NewSignedIssuedTokenDTOFromDeserialize(msg.Data)
 	if err != nil {
 		impl.logger.Error("Failed to deserialize message",
 			slog.Any("error", err),
-			slog.String("topic_name", issuedTokenDTOTopicName))
+			slog.String("topic_name", signedIssuedTokenDTOTopicName))
 		return nil, err
 	}
 

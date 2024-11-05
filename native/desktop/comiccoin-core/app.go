@@ -68,7 +68,7 @@ type App struct {
 	getBlockDataByBlockTransactionTimestampService *service.GetBlockDataByBlockTransactionTimestampService
 	getOrDownloadNonFungibleTokenService           *service.GetOrDownloadNonFungibleTokenService
 	listNonFungibleTokensByOwnerService            *service.ListNonFungibleTokensByOwnerService
-	issuedTokenClientService                       *service.IssuedTokenClientService
+	signedIssuedTokenClientService                 *service.SignedIssuedTokenClientService
 	mempoolReceiveTaskHandler                      *task.MempoolReceiveTaskHandler
 	mempoolBatchSendTaskHandler                    *task.MempoolBatchSendTaskHandler
 	proofOfWorkMiningTaskHandler                   *task.ProofOfWorkMiningTaskHandler
@@ -78,7 +78,7 @@ type App struct {
 	blockDataDTOServerTaskHandler                  *task.BlockDataDTOServerTaskHandler
 	majorityVoteConsensusServerTaskHandler         *task.MajorityVoteConsensusServerTaskHandler
 	majorityVoteConsensusClientTaskHandler         *task.MajorityVoteConsensusClientTaskHandler
-	issuedTokenClientServiceTaskHandler            *task.IssuedTokenClientServiceTaskHandler
+	signedIssuedTokenClientServiceTaskHandler      *task.SignedIssuedTokenClientServiceTaskHandler
 }
 
 // NewApp creates a new App application struct
@@ -167,6 +167,7 @@ func (a *App) startup(ctx context.Context) {
 	pendingBlockDataDB := disk.NewDiskStorage(cfg.DB.DataDir, "pending_block_data", logger)
 	mempoolTxDB := disk.NewDiskStorage(cfg.DB.DataDir, "mempool_tx", logger)
 	tokDB := disk.NewDiskStorage(cfg.DB.DataDir, "token", logger)
+	sitokenDB := disk.NewDiskStorage(cfg.DB.DataDir, "signed_issued_token", logger)
 	nftokDB := disk.NewDiskStorage(cfg.DB.DataDir, "non_fungible_token", logger)
 	memdb := memory.NewInMemoryStorage(logger)
 	kmutex := kmutexutil.NewKMutexProvider()
@@ -236,7 +237,11 @@ func (a *App) startup(ctx context.Context) {
 		cfg,
 		logger,
 		tokDB)
-	itokDTORepo := repo.NewIssuedTokenDTORepo(
+	sitokRepo := repo.NewSignedIssuedTokenRepo(
+		cfg,
+		logger,
+		sitokenDB)
+	sitokDTORepo := repo.NewSignedIssuedTokenDTORepo(
 		cfg,
 		logger,
 		libP2PNetwork)
@@ -428,15 +433,19 @@ func (a *App) startup(ctx context.Context) {
 		logger,
 		nftokRepo)
 
-	// Issued Token
-	broadcastIssuedTokenDTOUseCase := usecase.NewBroadcastIssuedTokenDTOUseCase(
+	// Signed Issued Token DTO
+	createSignedIssuedTokenUseCase := usecase.NewCreateSignedIssuedTokenUseCase(
 		cfg,
 		logger,
-		itokDTORepo)
-	receiveIssuedTokenDTOUseCase := usecase.NewReceiveIssuedTokenDTOUseCase(
+		sitokRepo)
+	broadcastSignedIssuedTokenDTOUseCase := usecase.NewBroadcastSignedIssuedTokenDTOUseCase(
 		cfg,
 		logger,
-		itokDTORepo)
+		sitokDTORepo)
+	receiveSignedIssuedTokenDTOUseCase := usecase.NewReceiveSignedIssuedTokenDTOUseCase(
+		cfg,
+		logger,
+		sitokDTORepo)
 
 	// Mempool Transaction DTO
 	broadcastMempoolTxDTOUseCase := usecase.NewBroadcastMempoolTransactionDTOUseCase(
@@ -651,7 +660,7 @@ func (a *App) startup(ctx context.Context) {
 		walletDecryptKeyUseCase,
 		getBlockchainLastestTokenIDUseCase,
 		broadcastMempoolTxDTOUseCase,
-		broadcastIssuedTokenDTOUseCase)
+		broadcastSignedIssuedTokenDTOUseCase)
 
 	transferTokenService := service.NewTransferTokenService(
 		cfg,
@@ -838,13 +847,13 @@ func (a *App) startup(ctx context.Context) {
 		initAccountsFromBlockchainService,
 		initBlockDataService,
 	)
-	issuedTokenClientService := service.NewIssuedTokenClientService(
+	signedIssuedTokenClientService := service.NewSignedIssuedTokenClientService(
 		cfg,
 		logger,
 		kmutex,
-		receiveIssuedTokenDTOUseCase,
+		receiveSignedIssuedTokenDTOUseCase,
 		loadGenesisBlockDataUseCase,
-		upsertTokenIfPreviousTokenNonceGTEUseCase,
+		createSignedIssuedTokenUseCase,
 	)
 
 	// Save the services to our application.
@@ -877,7 +886,7 @@ func (a *App) startup(ctx context.Context) {
 	a.uploadServerService = uploadServerService
 	a.initBlockDataService = initBlockDataService
 	a.blockchainStartupService = blockchainStartupService
-	a.issuedTokenClientService = issuedTokenClientService
+	a.signedIssuedTokenClientService = signedIssuedTokenClientService
 
 	//
 	// BACKGROUND TASKS
@@ -922,10 +931,10 @@ func (a *App) startup(ctx context.Context) {
 		cfg,
 		logger,
 		majorityVoteConsensusClientService)
-	tm10 := taskmnghandler.NewIssuedTokenClientServiceTaskHandler(
+	tm10 := taskmnghandler.NewSignedIssuedTokenClientServiceTaskHandler(
 		cfg,
 		logger,
-		issuedTokenClientService)
+		signedIssuedTokenClientService)
 
 	// Save the services to our application.
 	a.mempoolReceiveTaskHandler = tm1
@@ -937,7 +946,7 @@ func (a *App) startup(ctx context.Context) {
 	a.blockDataDTOServerTaskHandler = tm7
 	a.majorityVoteConsensusServerTaskHandler = tm8
 	a.majorityVoteConsensusClientTaskHandler = tm9
-	a.issuedTokenClientServiceTaskHandler = tm10
+	a.signedIssuedTokenClientServiceTaskHandler = tm10
 
 	//
 	// STEP 2

@@ -111,6 +111,26 @@ func FromAddress(value any, v, r, s *big.Int) (string, error) {
 	return crypto.PubkeyToAddress(*publicKey).String(), nil
 }
 
+// GetPublicKeyFromSignature extracts the public key for the account that signed the data.
+func GetPublicKeyFromSignature(value any, v, r, s *big.Int) (*ecdsa.PublicKey, error) {
+
+	// Prepare the data for public key extraction.
+	data, err := stamp(value)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert the [R|S|V] format into the original 65 bytes.
+	sig := ToSignatureBytes(v, r, s)
+
+	// Capture the public key associated with this data and signature.
+	publicKey, err := crypto.SigToPub(data, sig)
+	if err != nil {
+		return nil, err
+	}
+	return publicKey, nil
+}
+
 // SignatureString returns the signature as a string.
 func SignatureString(v, r, s *big.Int) string {
 	return hexutil.Encode(ToSignatureBytesWithComicCoinID(v, r, s))

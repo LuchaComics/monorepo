@@ -9,30 +9,24 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 )
 
-type BroadcastIssuedTokenDTOUseCase struct {
+type BroadcastSignedIssuedTokenDTOUseCase struct {
 	config *config.Config
 	logger *slog.Logger
-	repo   domain.IssuedTokenDTORepository
+	repo   domain.SignedIssuedTokenDTORepository
 }
 
-func NewBroadcastIssuedTokenDTOUseCase(config *config.Config, logger *slog.Logger, repo domain.IssuedTokenDTORepository) *BroadcastIssuedTokenDTOUseCase {
-	return &BroadcastIssuedTokenDTOUseCase{config, logger, repo}
+func NewBroadcastSignedIssuedTokenDTOUseCase(config *config.Config, logger *slog.Logger, repo domain.SignedIssuedTokenDTORepository) *BroadcastSignedIssuedTokenDTOUseCase {
+	return &BroadcastSignedIssuedTokenDTOUseCase{config, logger, repo}
 }
 
-func (uc *BroadcastIssuedTokenDTOUseCase) Execute(ctx context.Context, tok *domain.IssuedToken, sig []byte, val *domain.Validator) error {
+func (uc *BroadcastSignedIssuedTokenDTOUseCase) Execute(ctx context.Context, ido *domain.SignedIssuedToken) error {
 	//
 	// STEP 1: Validation.
 	//
 
 	e := make(map[string]string)
-	if tok == nil {
+	if ido == nil {
 		e["token"] = "missing value"
-	}
-	if sig == nil {
-		e["token_signature_bytes"] = "missing value"
-	}
-	if val == nil {
-		e["validator"] = "missing value"
 	}
 	if len(e) != 0 {
 		uc.logger.Warn("Validation failed.",
@@ -46,10 +40,14 @@ func (uc *BroadcastIssuedTokenDTOUseCase) Execute(ctx context.Context, tok *doma
 
 	// Get a signature of the token.
 
-	dto := &domain.IssuedTokenDTO{
-		Token:               tok,
-		TokenSignatureBytes: sig,
-		Validator:           val,
+	dto := &domain.SignedIssuedTokenDTO{
+		IssuedToken: domain.IssuedToken{
+			ID:          ido.ID,
+			MetadataURI: ido.MetadataURI,
+		},
+		V: ido.V,
+		R: ido.R,
+		S: ido.S,
 	}
 
 	//

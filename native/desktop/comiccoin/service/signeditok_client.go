@@ -12,42 +12,42 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
 )
 
-// IssuedTokenClientService represents a node service which will wait to
+// SignedIssuedTokenClientService represents a node service which will wait to
 // receive any newly minted non-fungible tokens from the proof of authority.
-type IssuedTokenClientService struct {
-	config                                    *config.Config
-	logger                                    *slog.Logger
-	kmutex                                    kmutexutil.KMutexProvider
-	receiveIssuedTokenDTOUseCase              *usecase.ReceiveIssuedTokenDTOUseCase
-	loadGenesisBlockDataUseCase               *usecase.LoadGenesisBlockDataUseCase
-	upsertTokenIfPreviousTokenNonceGTEUseCase *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase
+type SignedIssuedTokenClientService struct {
+	config                             *config.Config
+	logger                             *slog.Logger
+	kmutex                             kmutexutil.KMutexProvider
+	receiveSignedIssuedTokenDTOUseCase *usecase.ReceiveSignedIssuedTokenDTOUseCase
+	loadGenesisBlockDataUseCase        *usecase.LoadGenesisBlockDataUseCase
+	createSignedIssuedTokenUseCase     *usecase.CreateSignedIssuedTokenUseCase
 }
 
-func NewIssuedTokenClientService(
+func NewSignedIssuedTokenClientService(
 	cfg *config.Config,
 	logger *slog.Logger,
 	kmutex kmutexutil.KMutexProvider,
-	uc1 *usecase.ReceiveIssuedTokenDTOUseCase,
+	uc1 *usecase.ReceiveSignedIssuedTokenDTOUseCase,
 	uc2 *usecase.LoadGenesisBlockDataUseCase,
-	uc3 *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase,
-) *IssuedTokenClientService {
-	return &IssuedTokenClientService{cfg, logger, kmutex, uc1, uc2, uc3}
+	uc3 *usecase.CreateSignedIssuedTokenUseCase,
+) *SignedIssuedTokenClientService {
+	return &SignedIssuedTokenClientService{cfg, logger, kmutex, uc1, uc2, uc3}
 }
 
-func (s *IssuedTokenClientService) Execute(ctx context.Context) error {
+func (s *SignedIssuedTokenClientService) Execute(ctx context.Context) error {
 
 	//
 	// STEP 1
 	// Wait to receive data (which also was validated) from the P2P network.
 	//
 
-	itok, sig, poaValidator, err := s.receiveIssuedTokenDTOUseCase.Execute(ctx)
+	sitok, err := s.receiveSignedIssuedTokenDTOUseCase.Execute(ctx)
 	if err != nil {
 		s.logger.Error("Failed receiving issued token from PoA.",
 			slog.Any("error", err))
 		return err
 	}
-	if itok == nil || sig == nil || poaValidator == nil {
+	if sitok == nil {
 		// Developer Note:
 		// If we haven't received anything, that means we haven't connected to
 		// the distributed / P2P network, so all we can do at the moment is to
@@ -57,9 +57,7 @@ func (s *IssuedTokenClientService) Execute(ctx context.Context) error {
 	}
 
 	s.logger.Info("received itok dto from network",
-		slog.Any("itok_id", itok.ID),
-		slog.Any("sig", sig),
-		slog.Any("val", poaValidator),
+		slog.Any("itok_id", sitok.ID),
 	)
 
 	// Lock the mempool's database so we coordinate when we delete the mempool
@@ -89,10 +87,17 @@ func (s *IssuedTokenClientService) Execute(ctx context.Context) error {
 	// the correct party. This code verifies that the the public key of the
 	// authority matches the public key set on the genesis block because the
 	// user has opend up the actual authorities wallet.
-	if bytes.Equal(genesisBlockData.Validator.PublicKeyBytes, poaValidator.PublicKeyBytes) == false {
+	publicKeyBytes, err := sitok.PublicKeyBytes()
+	if err != nil {
+		s.logger.Error("Failed getting public key bytes",
+			slog.Any("error", err))
+		return fmt.Errorf("Failed getting public key bytes: %v", err)
+
+	}
+	if bytes.Equal(genesisBlockData.Validator.PublicKeyBytes, publicKeyBytes) == false {
 		s.logger.Error("Failed comparing public keys of validators",
 			slog.Any("genesis_val_pk", genesisBlockData.Validator.PublicKeyBytes),
-			slog.Any("itok_val_pk", poaValidator.PublicKeyBytes))
+			slog.Any("itok_val_pk", publicKeyBytes))
 		return fmt.Errorf("Failed comparing public keys: %s", "they do not match")
 	}
 
@@ -101,9 +106,9 @@ func (s *IssuedTokenClientService) Execute(ctx context.Context) error {
 	// Confirm the signature matches the validator's signature.
 	//
 
-	if poaValidator.Verify(sig, itok) == false {
+	if err := sitok.Verify(); err != nil {
 		s.logger.Error("validator failed validating: authority signature is invalid")
-		return fmt.Errorf("validator failed validating: %v", "authority signature is invalid")
+		return fmt.Errorf("validator failed validating: %v", err)
 	}
 
 	//
@@ -111,14 +116,14 @@ func (s *IssuedTokenClientService) Execute(ctx context.Context) error {
 	// Save to our local database.
 	//
 
-	if err := s.upsertTokenIfPreviousTokenNonceGTEUseCase.Execute(itok.ID, nil, itok.MetadataURI, 0); err != nil {
-		s.logger.Error("Failed saving issued token",
+	if err := s.createSignedIssuedTokenUseCase.Execute(sitok); err != nil {
+		s.logger.Error("Failed saving signed issued token",
 			slog.Any("error", err))
 		return err
 	}
 
-	s.logger.Info("saved issued token",
-		slog.Any("itok_id", itok.ID),
+	s.logger.Info("saved signed issued token",
+		slog.Any("sitok_id", sitok.ID),
 	)
 
 	return nil

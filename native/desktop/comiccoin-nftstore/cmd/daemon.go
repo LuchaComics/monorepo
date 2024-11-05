@@ -97,6 +97,7 @@ func doDaemonCmd() {
 	ikDB := disk.NewDiskStorage(cfg.DB.DataDir, "identity_key", logger)
 	blockDataDB := disk.NewDiskStorage(cfg.DB.DataDir, "block_data", logger)
 	tokDB := disk.NewDiskStorage(cfg.DB.DataDir, "token", logger)
+	sitokenDB := disk.NewDiskStorage(cfg.DB.DataDir, "signed_issued_token", logger)
 	nftokDB := disk.NewDiskStorage(cfg.DB.DataDir, "non_fungible_token", logger)
 
 	logger.Debug("Startup loading peer-to-peer client...")
@@ -156,7 +157,11 @@ func doDaemonCmd() {
 		cfg,
 		logger,
 		tokDB)
-	issuedTokenDTO := repo.NewIssuedTokenDTORepo(
+	sitokRepo := repo.NewSignedIssuedTokenRepo(
+		cfg,
+		logger,
+		sitokenDB)
+	sitokDTORepo := repo.NewSignedIssuedTokenDTORepo(
 		cfg,
 		logger,
 		libP2PNetwork)
@@ -171,16 +176,24 @@ func doDaemonCmd() {
 
 	logger.Debug("Startup loading usecases...")
 
-	_ = nftokDB
-	_ = tokDB
-	_ = tokRepo
-	_ = nftokRepo
-	_ = ipfsRepo
+	_ = tokRepo   //TODO: Use?
+	_ = nftokRepo //TODO: Use?
+	_ = ipfsRepo  //TODO: Use?
 
-	receiveIssuedTokenDTOUseCase := usecase.NewReceiveIssuedTokenDTOUseCase(
+	// Signed Issued Token DTO
+	createSignedIssuedTokenUseCase := usecase.NewCreateSignedIssuedTokenUseCase(
 		cfg,
 		logger,
-		issuedTokenDTO)
+		sitokRepo)
+	broadcastSignedIssuedTokenDTOUseCase := usecase.NewBroadcastSignedIssuedTokenDTOUseCase(
+		cfg,
+		logger,
+		sitokDTORepo)
+	_ = broadcastSignedIssuedTokenDTOUseCase //TODO: Use?
+	receiveSignedIssuedTokenDTOUseCase := usecase.NewReceiveSignedIssuedTokenDTOUseCase(
+		cfg,
+		logger,
+		sitokDTORepo)
 
 	// Genesis Block Data
 	loadGenesisBlockDataUseCase := usecase.NewLoadGenesisBlockDataUseCase(
@@ -188,51 +201,51 @@ func doDaemonCmd() {
 		logger,
 		genesisBlockDataRepo)
 
-	// Token
-	upsertTokenIfPreviousTokenNonceGTEUseCase := usecase.NewUpsertTokenIfPreviousTokenNonceGTEUseCase(
-		cfg,
-		logger,
-		tokRepo)
-
 	//
 	// Services.
 	//
 
-	issuedTokenClientService := service.NewIssuedTokenClientService(
+	logger.Debug("Startup loading services...")
+
+	signedIssuedTokenClientService := service.NewSignedIssuedTokenClientService(
 		cfg,
 		logger,
 		kmutex,
-		receiveIssuedTokenDTOUseCase,
+		receiveSignedIssuedTokenDTOUseCase,
 		loadGenesisBlockDataUseCase,
-		upsertTokenIfPreviousTokenNonceGTEUseCase,
+		createSignedIssuedTokenUseCase,
 	)
 
 	//
 	// Interface.
 	//
 
-	tm10 := taskmnghandler.NewIssuedTokenClientServiceTaskHandler(
+	tm10 := taskmnghandler.NewSignedIssuedTokenClientServiceTaskHandler(
 		cfg,
 		logger,
-		issuedTokenClientService)
+		signedIssuedTokenClientService)
 
-	logger.Info("Node running.")
+	logger.Debug("Startup background tasks...")
 
-	go func(server *taskmnghandler.IssuedTokenClientServiceTaskHandler, loggerp *slog.Logger) {
-		loggerp.Info("Running issued token dto server...")
+	go func(client *taskmnghandler.SignedIssuedTokenClientServiceTaskHandler, loggerp *slog.Logger) {
+		loggerp.Info("Running issued token dto client...")
 		ctx := context.Background()
 		for {
-			if err := server.Execute(ctx); err != nil {
-				loggerp.Error("issued token server error",
+			if err := client.Execute(ctx); err != nil {
+				loggerp.Error("issued token client error",
 					slog.Any("error", err))
 				time.Sleep(10 * time.Second)
 				continue
 			}
 			// DEVELOPERS NOTE:
 			// No need for delays, automatically start executing again.
-			logger.Debug("issued token dto server executing again ...")
+			logger.Debug("issued token dto client executing again ...")
 		}
 	}(tm10, logger)
+
+	logger.Info("Node running.")
+
+	//TODO: Add IPFS HTTP Gateway
 
 	<-done
 }

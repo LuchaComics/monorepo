@@ -24,7 +24,7 @@ type ProofOfAuthorityTokenMintService struct {
 	walletDecryptKeyUseCase               *usecase.WalletDecryptKeyUseCase
 	getBlockchainLastestTokenIDUseCase    *usecase.GetBlockchainLastestTokenIDUseCase
 	broadcastMempoolTransactionDTOUseCase *usecase.BroadcastMempoolTransactionDTOUseCase
-	broadcastIssuedTokenDTOUseCase        *usecase.BroadcastIssuedTokenDTOUseCase
+	broadcastSignedIssuedTokenDTOUseCase  *usecase.BroadcastSignedIssuedTokenDTOUseCase
 }
 
 func NewProofOfAuthorityTokenMintService(
@@ -36,7 +36,7 @@ func NewProofOfAuthorityTokenMintService(
 	uc3 *usecase.WalletDecryptKeyUseCase,
 	uc4 *usecase.GetBlockchainLastestTokenIDUseCase,
 	uc5 *usecase.BroadcastMempoolTransactionDTOUseCase,
-	uc6 *usecase.BroadcastIssuedTokenDTOUseCase,
+	uc6 *usecase.BroadcastSignedIssuedTokenDTOUseCase,
 ) *ProofOfAuthorityTokenMintService {
 	return &ProofOfAuthorityTokenMintService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6}
 }
@@ -220,20 +220,19 @@ func (s *ProofOfAuthorityTokenMintService) Execute(
 	// Issue our newly minted NFT to the blockchain.
 	//
 
-	issuedToken := &domain.IssuedToken{
+	itok := &domain.IssuedToken{
 		ID:          newTokenID,
 		MetadataURI: metadataURI,
 	}
-
-	issuedTokenSignatureBytes, signingErr := issuedToken.Sign(key.PrivateKey)
+	sitok, signingErr := itok.Sign(key.PrivateKey)
 	if signingErr != nil {
 		s.logger.Debug("Failed to sign the token mint transaction",
 			slog.Any("error", signingErr))
 		return signingErr
 	}
 
-	if broadcastErr := s.broadcastIssuedTokenDTOUseCase.Execute(ctx, issuedToken, issuedTokenSignatureBytes, validator); err != nil {
-		s.logger.Debug("Failed to broadcase issued token",
+	if broadcastErr := s.broadcastSignedIssuedTokenDTOUseCase.Execute(ctx, sitok); err != nil {
+		s.logger.Debug("Failed to broadcase signed issued token",
 			slog.Any("error", broadcastErr))
 		return signingErr
 	}

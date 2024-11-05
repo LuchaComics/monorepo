@@ -9,17 +9,17 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 )
 
-type ReceiveIssuedTokenDTOUseCase struct {
+type ReceiveSignedIssuedTokenDTOUseCase struct {
 	config *config.Config
 	logger *slog.Logger
-	repo   domain.IssuedTokenDTORepository
+	repo   domain.SignedIssuedTokenDTORepository
 }
 
-func NewReceiveIssuedTokenDTOUseCase(config *config.Config, logger *slog.Logger, repo domain.IssuedTokenDTORepository) *ReceiveIssuedTokenDTOUseCase {
-	return &ReceiveIssuedTokenDTOUseCase{config, logger, repo}
+func NewReceiveSignedIssuedTokenDTOUseCase(config *config.Config, logger *slog.Logger, repo domain.SignedIssuedTokenDTORepository) *ReceiveSignedIssuedTokenDTOUseCase {
+	return &ReceiveSignedIssuedTokenDTOUseCase{config, logger, repo}
 }
 
-func (uc *ReceiveIssuedTokenDTOUseCase) Execute(ctx context.Context) (*domain.IssuedToken, []byte, *domain.Validator, error) {
+func (uc *ReceiveSignedIssuedTokenDTOUseCase) Execute(ctx context.Context) (*domain.SignedIssuedToken, error) {
 	//
 	// STEP 1:
 	// Wait to receive from the P2P Network. It just takes one node to publish
@@ -30,18 +30,13 @@ func (uc *ReceiveIssuedTokenDTOUseCase) Execute(ctx context.Context) (*domain.Is
 	if err != nil {
 		uc.logger.Error("failed receiving issued token dto from network",
 			slog.Any("error", err))
-		return nil, nil, nil, err
+		return nil, err
 	}
 	if dto == nil {
 		// Developer Note:
 		// If we haven't received anything, that means we haven't connected to
 		// the distributed / P2P network, so all we can do is return nil.
-		return nil, nil, nil, nil
-	}
-	if dto.Token == nil || dto.TokenSignatureBytes == nil || dto.Validator == nil {
-		// Developer Note:
-		// Any of these missing fields are grounds for immediate termination.
-		return nil, nil, nil, nil
+		return nil, nil
 	}
 
 	//
@@ -50,9 +45,14 @@ func (uc *ReceiveIssuedTokenDTOUseCase) Execute(ctx context.Context) (*domain.Is
 	// validation before returning it for this function.
 	//
 
-	ido := &domain.IssuedToken{
-		ID:          dto.Token.ID,
-		MetadataURI: dto.Token.MetadataURI,
+	ido := &domain.SignedIssuedToken{
+		IssuedToken: domain.IssuedToken{
+			ID:          dto.ID,
+			MetadataURI: dto.MetadataURI,
+		},
+		V: dto.V,
+		R: dto.R,
+		S: dto.S,
 	}
 
 	e := make(map[string]string)
@@ -62,11 +62,11 @@ func (uc *ReceiveIssuedTokenDTOUseCase) Execute(ctx context.Context) (*domain.Is
 	if len(e) != 0 {
 		uc.logger.Warn("Validation failed for received issued token",
 			slog.Any("error", e))
-		return nil, nil, nil, httperror.NewForBadRequest(&e)
+		return nil, httperror.NewForBadRequest(&e)
 	}
 
 	uc.logger.Debug("Received issued token dto from network",
 		slog.Any("token_id", ido.ID))
 
-	return ido, dto.TokenSignatureBytes, dto.Validator, nil
+	return ido, nil
 }

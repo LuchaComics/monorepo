@@ -8,21 +8,21 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
 )
 
-type IssuedTokenClientServiceTaskHandler struct {
+type SignedIssuedTokenClientServiceTaskHandler struct {
 	config  *config.Config
 	logger  *slog.Logger
-	service *service.IssuedTokenClientService
+	service *service.SignedIssuedTokenClientService
 }
 
-func NewIssuedTokenClientServiceTaskHandler(
+func NewSignedIssuedTokenClientServiceTaskHandler(
 	cfg *config.Config,
 	logger *slog.Logger,
-	s *service.IssuedTokenClientService,
-) *IssuedTokenClientServiceTaskHandler {
-	return &IssuedTokenClientServiceTaskHandler{cfg, logger, s}
+	s *service.SignedIssuedTokenClientService,
+) *SignedIssuedTokenClientServiceTaskHandler {
+	return &SignedIssuedTokenClientServiceTaskHandler{cfg, logger, s}
 }
 
-func (h *IssuedTokenClientServiceTaskHandler) Execute(ctx context.Context) error {
+func (h *SignedIssuedTokenClientServiceTaskHandler) Execute(ctx context.Context) error {
 	if serviceExecErr := h.service.Execute(ctx); serviceExecErr != nil {
 		return serviceExecErr
 	}
