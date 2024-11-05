@@ -6,7 +6,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/cmd/submit"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/cmd/version"
 )
 
@@ -39,9 +38,6 @@ func Execute() {
 	// Attach sub-commands to our main root.
 	rootCmd.AddCommand(version.VersionCmd())
 	rootCmd.AddCommand(DaemonCmd())
-	rootCmd.AddCommand(GetAssetCmd())
-	rootCmd.AddCommand(GetMetadataCmd())
-	rootCmd.AddCommand(submit.SubmitMetadataURICmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)

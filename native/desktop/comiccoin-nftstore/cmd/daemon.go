@@ -23,10 +23,15 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/config/constants"
+	http "github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/interface/http"
+	httphandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/interface/http/handler"
+	httpmiddle "github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/interface/http/middleware"
 )
 
 // Command line argument flags
-var ()
+var (
+	flagListenHTTPAddress string
+)
 
 func DaemonCmd() *cobra.Command {
 	var cmd = &cobra.Command{
@@ -38,6 +43,7 @@ func DaemonCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&flagDataDir, "datadir", "./data", "Absolute path to your store's data dir where the assets will be/are stored")
+	cmd.Flags().StringVar(&flagListenHTTPAddress, "listen-http-address", "127.0.0.1:8080", "The IP and port to run our IPFS HTTP gateway on")
 
 	return cmd
 }
@@ -76,7 +82,8 @@ func doDaemonCmd() {
 			ConsensusProtocol:              constants.ComicCoinConsensusProtocol,
 		},
 		App: config.AppConfig{
-			DirPath: flagDataDir,
+			DirPath:     flagDataDir,
+			HTTPAddress: flagListenHTTPAddress,
 		},
 		DB: config.DBConfig{
 			DataDir: flagDataDir,
@@ -251,6 +258,22 @@ func doDaemonCmd() {
 	// Interface.
 	//
 
+	// --- HTTP --- //
+
+	getTokenHTTPHandler := httphandler.NewGetTokenHTTPHandler(
+		cfg,
+		logger)
+	httpMiddleware := httpmiddle.NewMiddleware(
+		cfg,
+		logger)
+	httpServ := http.NewHTTPServer(
+		cfg,
+		logger,
+		httpMiddleware,
+		getTokenHTTPHandler,
+	)
+
+	// --- Tasks --- //
 	tm10 := taskmnghandler.NewSignedIssuedTokenClientServiceTaskHandler(
 		cfg,
 		logger,
@@ -293,6 +316,12 @@ func doDaemonCmd() {
 			time.Sleep(10 * time.Second)
 		}
 	}(tm11, logger)
+
+	// Run in background the peer to peer node which will synchronize our
+	// blockchain with the network.
+	// go peerNode.Run()
+	go httpServ.Run()
+	defer httpServ.Shutdown()
 
 	logger.Info("Node running.")
 
