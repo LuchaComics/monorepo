@@ -38,6 +38,7 @@ func Execute() {
 	// Attach sub-commands to our main root.
 	rootCmd.AddCommand(version.VersionCmd())
 	rootCmd.AddCommand(DaemonCmd())
+	rootCmd.AddCommand(GenerateAPIKeyCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)

@@ -68,6 +68,8 @@ type AppConfig struct {
 	// DirPath is the path to the directory where all files for this application are saved.
 	DirPath string
 
+	HMACSecret []byte
+
 	// HTTPAddress is the address and port that the HTTP JSON API server will listen on.
 	// Do not expose to the public!
 	HTTPAddress string

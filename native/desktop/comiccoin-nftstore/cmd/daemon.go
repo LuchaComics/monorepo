@@ -1,25 +1,14 @@
 package cmd
 
 import (
-	"context"
-	"fmt"
 	"log"
 	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/kmutexutil"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/net/p2p"
-	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/disk/leveldb"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
-	taskmnghandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin/interface/task/handler"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
-	ma "github.com/multiformats/go-multiaddr"
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/config/constants"
@@ -100,153 +89,6 @@ func doDaemonCmd() {
 		},
 	}
 
-	kmutex := kmutexutil.NewKMutexProvider()
-	ikDB := disk.NewDiskStorage(cfg.DB.DataDir, "identity_key", logger)
-	blockDataDB := disk.NewDiskStorage(cfg.DB.DataDir, "block_data", logger)
-	sitokenDB := disk.NewDiskStorage(cfg.DB.DataDir, "signed_issued_token", logger)
-	nftokDB := disk.NewDiskStorage(cfg.DB.DataDir, "non_fungible_token", logger)
-
-	logger.Debug("Startup loading peer-to-peer client...")
-	ikRepo := repo.NewIdentityKeyRepo(cfg, logger, ikDB)
-	ikCreateUseCase := usecase.NewCreateIdentityKeyUseCase(cfg, logger, ikRepo)
-	ikGetUseCase := usecase.NewGetIdentityKeyUseCase(cfg, logger, ikRepo)
-	ikCreateService := service.NewCreateIdentityKeyService(cfg, logger, ikCreateUseCase, ikGetUseCase)
-	ikGetService := service.NewGetIdentityKeyService(cfg, logger, ikGetUseCase)
-
-	// Get our identity key.
-	ik, err := ikGetService.Execute(constants.ComicCoinIdentityKeyID)
-	if err != nil {
-		log.Fatalf("Failed getting identity key: %v", err)
-	}
-	if ik == nil {
-		ik, err = ikCreateService.Execute(constants.ComicCoinIdentityKeyID)
-		if err != nil {
-			log.Fatalf("Failed creating ComicCoin identity key: %v", err)
-		}
-
-		// This is anomously behaviour so crash if this happens.
-		if ik == nil {
-			log.Fatal("Failed creating ComicCoin identity key: d.n.e.")
-		}
-	}
-	privateKey, _ := ik.GetPrivateKey()
-	publicKey, _ := ik.GetPublicKey()
-	libP2PNetwork := p2p.NewLibP2PNetwork(cfg, logger, privateKey, publicKey)
-	h := libP2PNetwork.GetHost()
-
-	// Save to our app.
-	// a.libP2PNetwork = libP2PNetwork
-	_ = libP2PNetwork
-
-	// Build host multiaddress
-	hostAddr, _ := ma.NewMultiaddr(fmt.Sprintf("/ipfs/%s", h.ID()))
-
-	// Now we can build a full multiaddress to reach this host
-	// by encapsulating both addresses:
-	addr := h.Addrs()[0]
-	fullAddr := addr.Encapsulate(hostAddr)
-
-	logger.Info("node ready",
-		slog.Any("peer identity", h.ID()),
-		slog.Any("full address", fullAddr),
-	)
-
-	//
-	// Repositories
-	//
-
-	genesisBlockDataRepo := repo.NewGenesisBlockDataRepo(
-		cfg,
-		logger,
-		blockDataDB)
-	sitokRepo := repo.NewSignedIssuedTokenRepo(
-		cfg,
-		logger,
-		sitokenDB)
-	sitokDTORepo := repo.NewSignedIssuedTokenDTORepo(
-		cfg,
-		logger,
-		libP2PNetwork)
-	nftokRepo := repo.NewNonFungibleTokenRepo(
-		logger,
-		nftokDB)
-	ipfsRepo := repo.NewIPFSRepo(cfg, logger)
-
-	//
-	// Use-case.
-	//
-
-	logger.Debug("Startup loading usecases...")
-
-	// Signed Issued Token
-	listAllSignedIssuedTokenUseCase := usecase.NewListAllSignedIssuedTokenUseCase(
-		cfg,
-		logger,
-		sitokRepo)
-
-	// Signed Issued Token DTO
-	createSignedIssuedTokenUseCase := usecase.NewCreateSignedIssuedTokenUseCase(
-		cfg,
-		logger,
-		sitokRepo)
-	broadcastSignedIssuedTokenDTOUseCase := usecase.NewBroadcastSignedIssuedTokenDTOUseCase(
-		cfg,
-		logger,
-		sitokDTORepo)
-	_ = broadcastSignedIssuedTokenDTOUseCase //TODO: Use?
-	receiveSignedIssuedTokenDTOUseCase := usecase.NewReceiveSignedIssuedTokenDTOUseCase(
-		cfg,
-		logger,
-		sitokDTORepo)
-
-	// NFT
-	getNFTokUseCase := usecase.NewGetNonFungibleTokenUseCase(
-		cfg,
-		logger,
-		nftokRepo)
-	upsertNFTokUseCase := usecase.NewUpsertNonFungibleTokenUseCase(
-		cfg,
-		logger,
-		nftokRepo)
-	downloadNFTokMetadataUsecase := usecase.NewDownloadMetadataNonFungibleTokenUseCase(
-		cfg,
-		logger,
-		ipfsRepo)
-	downloadNFTokAssetUsecase := usecase.NewDownloadNonFungibleTokenAssetUseCase(
-		cfg,
-		logger,
-		ipfsRepo)
-
-	// Genesis Block Data
-	loadGenesisBlockDataUseCase := usecase.NewLoadGenesisBlockDataUseCase(
-		cfg,
-		logger,
-		genesisBlockDataRepo)
-
-	//
-	// Services.
-	//
-
-	logger.Debug("Startup loading services...")
-
-	signedIssuedTokenClientService := service.NewSignedIssuedTokenClientService(
-		cfg,
-		logger,
-		kmutex,
-		receiveSignedIssuedTokenDTOUseCase,
-		loadGenesisBlockDataUseCase,
-		createSignedIssuedTokenUseCase,
-	)
-	nonFungibleTokenAssetsService := service.NewNonFungibleTokenAssetsService(
-		cfg,
-		logger,
-		listAllSignedIssuedTokenUseCase,
-		getNFTokUseCase,
-		downloadNFTokMetadataUsecase,
-		downloadNFTokAssetUsecase,
-		upsertNFTokUseCase,
-	)
-
 	//
 	// Interface.
 	//
@@ -265,50 +107,6 @@ func doDaemonCmd() {
 		httpMiddleware,
 		ipfsGatewayHTTPHandler,
 	)
-
-	// --- Tasks --- //
-	tm10 := taskmnghandler.NewSignedIssuedTokenClientServiceTaskHandler(
-		cfg,
-		logger,
-		signedIssuedTokenClientService)
-
-	tm11 := taskmnghandler.NewNonFungibleTokenAssetsServiceTaskHandler(
-		cfg,
-		logger,
-		nonFungibleTokenAssetsService)
-
-	logger.Debug("Startup background tasks...")
-
-	go func(client *taskmnghandler.SignedIssuedTokenClientServiceTaskHandler, loggerp *slog.Logger) {
-		loggerp.Info("Running issued token dto client...")
-		ctx := context.Background()
-		for {
-			if err := client.Execute(ctx); err != nil {
-				loggerp.Error("issued token client error",
-					slog.Any("error", err))
-				time.Sleep(10 * time.Second)
-				continue
-			}
-			// DEVELOPERS NOTE:
-			// No need for delays, automatically start executing again.
-			logger.Debug("issued token dto client executing again ...")
-		}
-	}(tm10, logger)
-
-	go func(client *taskmnghandler.NonFungibleTokenAssetsServiceTaskHandler, loggerp *slog.Logger) {
-		loggerp.Info("Running token assets...")
-		ctx := context.Background()
-		for {
-			if err := client.Execute(ctx); err != nil {
-				loggerp.Error("token assets error",
-					slog.Any("error", err))
-				time.Sleep(10 * time.Second)
-				continue
-			}
-			loggerp.Debug("token assets executing again in 10 seconds...")
-			time.Sleep(10 * time.Second)
-		}
-	}(tm11, logger)
 
 	// Run in background the peer to peer node which will synchronize our
 	// blockchain with the network.
