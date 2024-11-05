@@ -12,8 +12,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	ah "github.com/LuchaComics/monorepo/native/desktop/comiccoin/interface/http/handler"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
+	ah "github.com/LuchaComics/monorepo/native/desktop/comiccoin/interface/http/handler"
 )
 
 func httpJsonApiGetAccountCmd() *cobra.Command {

@@ -68,6 +68,7 @@ type App struct {
 	getBlockDataByBlockTransactionTimestampService *service.GetBlockDataByBlockTransactionTimestampService
 	getOrDownloadNonFungibleTokenService           *service.GetOrDownloadNonFungibleTokenService
 	listNonFungibleTokensByOwnerService            *service.ListNonFungibleTokensByOwnerService
+	issuedTokenClientService                       *service.IssuedTokenClientService
 	mempoolReceiveTaskHandler                      *task.MempoolReceiveTaskHandler
 	mempoolBatchSendTaskHandler                    *task.MempoolBatchSendTaskHandler
 	proofOfWorkMiningTaskHandler                   *task.ProofOfWorkMiningTaskHandler
@@ -77,6 +78,7 @@ type App struct {
 	blockDataDTOServerTaskHandler                  *task.BlockDataDTOServerTaskHandler
 	majorityVoteConsensusServerTaskHandler         *task.MajorityVoteConsensusServerTaskHandler
 	majorityVoteConsensusClientTaskHandler         *task.MajorityVoteConsensusClientTaskHandler
+	issuedTokenClientServiceTaskHandler            *task.IssuedTokenClientServiceTaskHandler
 }
 
 // NewApp creates a new App application struct
@@ -234,6 +236,10 @@ func (a *App) startup(ctx context.Context) {
 		cfg,
 		logger,
 		tokDB)
+	itokDTORepo := repo.NewIssuedTokenDTORepo(
+		cfg,
+		logger,
+		libP2PNetwork)
 	nftokRepo := repo.NewNonFungibleTokenRepo(
 		logger,
 		nftokDB)
@@ -326,7 +332,7 @@ func (a *App) startup(ctx context.Context) {
 	)
 
 	// Genesis Block Data
-	loadGenesisBlockDataAccountUseCase := usecase.NewLoadGenesisBlockDataUseCase(
+	loadGenesisBlockDataUseCase := usecase.NewLoadGenesisBlockDataUseCase(
 		cfg,
 		logger,
 		genesisBlockDataRepo)
@@ -421,6 +427,16 @@ func (a *App) startup(ctx context.Context) {
 		cfg,
 		logger,
 		nftokRepo)
+
+	// Issued Token
+	broadcastIssuedTokenDTOUseCase := usecase.NewBroadcastIssuedTokenDTOUseCase(
+		cfg,
+		logger,
+		itokDTORepo)
+	receiveIssuedTokenDTOUseCase := usecase.NewReceiveIssuedTokenDTOUseCase(
+		cfg,
+		logger,
+		itokDTORepo)
 
 	// Mempool Transaction DTO
 	broadcastMempoolTxDTOUseCase := usecase.NewBroadcastMempoolTransactionDTOUseCase(
@@ -570,7 +586,7 @@ func (a *App) startup(ctx context.Context) {
 	initAccountsFromBlockchainService := service.NewInitAccountsFromBlockchainService(
 		cfg,
 		logger,
-		loadGenesisBlockDataAccountUseCase,
+		loadGenesisBlockDataUseCase,
 		getBlockchainLastestHashUseCase,
 		getBlockDataUseCase,
 		getAccountUseCase,
@@ -630,11 +646,12 @@ func (a *App) startup(ctx context.Context) {
 		cfg,
 		logger,
 		kmutex,
-		loadGenesisBlockDataAccountUseCase,
+		loadGenesisBlockDataUseCase,
 		getWalletUseCase,
 		walletDecryptKeyUseCase,
 		getBlockchainLastestTokenIDUseCase,
-		broadcastMempoolTxDTOUseCase)
+		broadcastMempoolTxDTOUseCase,
+		broadcastIssuedTokenDTOUseCase)
 
 	transferTokenService := service.NewTransferTokenService(
 		cfg,
@@ -765,6 +782,7 @@ func (a *App) startup(ctx context.Context) {
 		getBlockDataUseCase,
 		getAccountsHashStateUseCase,
 		getTokensHashStateUseCase,
+		loadGenesisBlockDataUseCase,
 		createBlockDataUseCase,
 		setBlockchainLastestHashUseCase,
 		setBlockchainLastestTokenIDIfGreatestUseCase,
@@ -809,7 +827,7 @@ func (a *App) startup(ctx context.Context) {
 	initBlockDataService := service.NewInitBlockDataService(
 		cfg,
 		logger,
-		loadGenesisBlockDataAccountUseCase,
+		loadGenesisBlockDataUseCase,
 		getBlockDataUseCase,
 		createBlockDataUseCase,
 		setBlockchainLastestHashUseCase,
@@ -819,6 +837,14 @@ func (a *App) startup(ctx context.Context) {
 		logger,
 		initAccountsFromBlockchainService,
 		initBlockDataService,
+	)
+	issuedTokenClientService := service.NewIssuedTokenClientService(
+		cfg,
+		logger,
+		kmutex,
+		receiveIssuedTokenDTOUseCase,
+		loadGenesisBlockDataUseCase,
+		upsertTokenIfPreviousTokenNonceGTEUseCase,
 	)
 
 	// Save the services to our application.
@@ -851,6 +877,7 @@ func (a *App) startup(ctx context.Context) {
 	a.uploadServerService = uploadServerService
 	a.initBlockDataService = initBlockDataService
 	a.blockchainStartupService = blockchainStartupService
+	a.issuedTokenClientService = issuedTokenClientService
 
 	//
 	// BACKGROUND TASKS
@@ -895,6 +922,10 @@ func (a *App) startup(ctx context.Context) {
 		cfg,
 		logger,
 		majorityVoteConsensusClientService)
+	tm10 := taskmnghandler.NewIssuedTokenClientServiceTaskHandler(
+		cfg,
+		logger,
+		issuedTokenClientService)
 
 	// Save the services to our application.
 	a.mempoolReceiveTaskHandler = tm1
@@ -906,6 +937,7 @@ func (a *App) startup(ctx context.Context) {
 	a.blockDataDTOServerTaskHandler = tm7
 	a.majorityVoteConsensusServerTaskHandler = tm8
 	a.majorityVoteConsensusClientTaskHandler = tm9
+	a.issuedTokenClientServiceTaskHandler = tm10
 
 	//
 	// STEP 2

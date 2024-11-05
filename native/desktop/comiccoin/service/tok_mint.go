@@ -8,11 +8,11 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/kmutexutil"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/kmutexutil"
 )
 
 type ProofOfAuthorityTokenMintService struct {
@@ -24,6 +24,7 @@ type ProofOfAuthorityTokenMintService struct {
 	walletDecryptKeyUseCase               *usecase.WalletDecryptKeyUseCase
 	getBlockchainLastestTokenIDUseCase    *usecase.GetBlockchainLastestTokenIDUseCase
 	broadcastMempoolTransactionDTOUseCase *usecase.BroadcastMempoolTransactionDTOUseCase
+	broadcastIssuedTokenDTOUseCase        *usecase.BroadcastIssuedTokenDTOUseCase
 }
 
 func NewProofOfAuthorityTokenMintService(
@@ -35,8 +36,9 @@ func NewProofOfAuthorityTokenMintService(
 	uc3 *usecase.WalletDecryptKeyUseCase,
 	uc4 *usecase.GetBlockchainLastestTokenIDUseCase,
 	uc5 *usecase.BroadcastMempoolTransactionDTOUseCase,
+	uc6 *usecase.BroadcastIssuedTokenDTOUseCase,
 ) *ProofOfAuthorityTokenMintService {
-	return &ProofOfAuthorityTokenMintService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5}
+	return &ProofOfAuthorityTokenMintService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6}
 }
 
 func (s *ProofOfAuthorityTokenMintService) Execute(
@@ -135,6 +137,7 @@ func (s *ProofOfAuthorityTokenMintService) Execute(
 	if key.PrivateKey.PublicKey.Equal(publicKeyECDSA) == false {
 		return fmt.Errorf("failed comparing public keys: %s", "they do not match")
 	}
+	s.logger.Debug("PoA validator confirmed...")
 
 	//
 	// STEP 4
@@ -214,12 +217,29 @@ func (s *ProofOfAuthorityTokenMintService) Execute(
 
 	//
 	// STEP 7
-	// Finish, however do not save the `token_id`, let our PoA validator
-	// handle updating the database if the submission was correct. The reason
-	// for this is because if we update the local database to early and the PoA
-	// validator fails, then our local database will have incorrect latest
-	// `token_id` values saved.
+	// Issue our newly minted NFT to the blockchain.
 	//
+
+	issuedToken := &domain.IssuedToken{
+		ID:          newTokenID,
+		MetadataURI: metadataURI,
+	}
+
+	issuedTokenSignatureBytes, signingErr := issuedToken.Sign(key.PrivateKey)
+	if signingErr != nil {
+		s.logger.Debug("Failed to sign the token mint transaction",
+			slog.Any("error", signingErr))
+		return signingErr
+	}
+
+	if broadcastErr := s.broadcastIssuedTokenDTOUseCase.Execute(ctx, issuedToken, issuedTokenSignatureBytes, validator); err != nil {
+		s.logger.Debug("Failed to broadcase issued token",
+			slog.Any("error", broadcastErr))
+		return signingErr
+	}
+
+	s.logger.Debug("Pending token mint transaction signed successfully",
+		slog.Uint64("tx_token_id", stx.TokenID))
 
 	return nil
 }

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"log/slog"
@@ -24,6 +25,7 @@ type ProofOfAuthorityValidationService struct {
 	getBlockDataUseCase                          *usecase.GetBlockDataUseCase
 	getAccountsHashStateUseCase                  *usecase.GetAccountsHashStateUseCase
 	getTokensHashStateUseCase                    *usecase.GetTokensHashStateUseCase
+	loadGenesisBlockDataUseCase                  *usecase.LoadGenesisBlockDataUseCase
 	createBlockDataUseCase                       *usecase.CreateBlockDataUseCase
 	setBlockchainLastestHashUseCase              *usecase.SetBlockchainLastestHashUseCase
 	setBlockchainLastestTokenIDIfGreatestUseCase *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase
@@ -44,14 +46,15 @@ func NewProofOfAuthorityValidationService(
 	uc6 *usecase.GetBlockDataUseCase,
 	uc7 *usecase.GetAccountsHashStateUseCase,
 	uc8 *usecase.GetTokensHashStateUseCase,
-	uc9 *usecase.CreateBlockDataUseCase,
-	uc10 *usecase.SetBlockchainLastestHashUseCase,
-	uc11 *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase,
-	uc12 *usecase.GetAccountUseCase,
-	uc13 *usecase.UpsertAccountUseCase,
-	uc14 *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase,
+	uc9 *usecase.LoadGenesisBlockDataUseCase,
+	uc10 *usecase.CreateBlockDataUseCase,
+	uc11 *usecase.SetBlockchainLastestHashUseCase,
+	uc12 *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase,
+	uc13 *usecase.GetAccountUseCase,
+	uc14 *usecase.UpsertAccountUseCase,
+	uc15 *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase,
 ) *ProofOfAuthorityValidationService {
-	return &ProofOfAuthorityValidationService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12, uc13, uc14}
+	return &ProofOfAuthorityValidationService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12, uc13, uc14, uc15}
 }
 
 func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
@@ -172,6 +175,30 @@ func (s *ProofOfAuthorityValidationService) Execute(ctx context.Context) error {
 		s.logger.Error("validator failed validating: authority signature is invalid")
 		return fmt.Errorf("validator failed validating: %v", "authority signature is invalid")
 	}
+
+	//
+	// STEP 4
+	// Confirm the validator's public key of this new block data matches the
+	// validator's public key of the genesis block.
+	//
+
+	genesisBlockData, err := s.loadGenesisBlockDataUseCase.Execute()
+	if err != nil {
+		s.logger.Error("Failed loading up genesis block from file",
+			slog.Any("error", err))
+		return fmt.Errorf("Failed loading up genesis block from file: %v", err)
+	}
+	if genesisBlockData == nil {
+		s.logger.Error("genesis block d.n.e.")
+		return fmt.Errorf("genesis block does not exist")
+	}
+	if bytes.Equal(genesisBlockData.Validator.PublicKeyBytes, poaValidator.PublicKeyBytes) == false {
+		s.logger.Error("Failed comparing public keys of validators",
+			slog.Any("genesis_val_pk", genesisBlockData.Validator.PublicKeyBytes),
+			slog.Any("newblock_val_pk", poaValidator.PublicKeyBytes))
+		return fmt.Errorf("failed comparing public keys: %s", "they do not match")
+	}
+	s.logger.Debug("PoA validator confirmed...")
 
 	//
 	// STEP (PRE) 5

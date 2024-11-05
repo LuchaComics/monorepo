@@ -130,6 +130,22 @@ func (a *App) startBackgroundTasks() {
 			a.logger.Debug("block data dto server executing again ...")
 		}
 	}(a.blockDataDTOServerTaskHandler, a.logger)
+
+	go func(client *taskmnghandler.IssuedTokenClientServiceTaskHandler, loggerp *slog.Logger) {
+		loggerp.Info("Running issued token dto client...")
+		ctx := context.Background()
+		for {
+			if err := client.Execute(ctx); err != nil {
+				loggerp.Error("issued token client error",
+					slog.Any("error", err))
+				time.Sleep(10 * time.Second)
+				continue
+			}
+			// DEVELOPERS NOTE:
+			// No need for delays, automatically start executing again.
+			loggerp.Debug("issued token dto client executing again ...")
+		}
+	}(a.issuedTokenClientServiceTaskHandler, a.logger)
 }
 
 func (a *App) stopBackgroundTasks() {

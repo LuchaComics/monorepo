@@ -178,6 +178,10 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				tokenDB)
+			issuedTokenDTO := repo.NewIssuedTokenDTORepo(
+				cfg,
+				logger,
+				libP2PNetwork)
 			nftokenRepo := repo.NewNonFungibleTokenRepo(
 				logger,
 				nftokDB)
@@ -264,7 +268,7 @@ func DaemonCmd() *cobra.Command {
 			)
 
 			// Genesis Block Data
-			loadGenesisBlockDataAccountUseCase := usecase.NewLoadGenesisBlockDataUseCase(
+			loadGenesisBlockDataUseCase := usecase.NewLoadGenesisBlockDataUseCase(
 				cfg,
 				logger,
 				genesisBlockDataRepo)
@@ -322,6 +326,16 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				tokenRepo)
+
+			// Issued Token
+			broadcastIssuedTokenDTOUseCase := usecase.NewBroadcastIssuedTokenDTOUseCase(
+				cfg,
+				logger,
+				issuedTokenDTO)
+			receiveIssuedTokenDTOUseCase := usecase.NewReceiveIssuedTokenDTOUseCase(
+				cfg,
+				logger,
+				issuedTokenDTO)
 
 			// Mempool Transaction DTO
 			broadcastMempoolTxDTOUseCase := usecase.NewBroadcastMempoolTransactionDTOUseCase(
@@ -458,7 +472,7 @@ func DaemonCmd() *cobra.Command {
 			initAccountsFromBlockchainService := service.NewInitAccountsFromBlockchainService(
 				cfg,
 				logger,
-				loadGenesisBlockDataAccountUseCase,
+				loadGenesisBlockDataUseCase,
 				getBlockchainLastestHashUseCase,
 				getBlockDataUseCase,
 				getAccountUseCase,
@@ -501,11 +515,12 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				kmutex,
-				loadGenesisBlockDataAccountUseCase,
+				loadGenesisBlockDataUseCase,
 				getWalletUseCase,
 				walletDecryptKeyUseCase,
 				getBlockchainLastestTokenIDUseCase,
-				broadcastMempoolTxDTOUseCase)
+				broadcastMempoolTxDTOUseCase,
+				broadcastIssuedTokenDTOUseCase)
 
 			transferTokenService := service.NewTransferTokenService(
 				cfg,
@@ -612,6 +627,7 @@ func DaemonCmd() *cobra.Command {
 				getBlockDataUseCase,
 				getAccountsHashStateUseCase,
 				getTokensHashStateUseCase,
+				loadGenesisBlockDataUseCase,
 				createBlockDataUseCase,
 				setBlockchainLastestHashUseCase,
 				setBlockchainLastestTokenIDIfGreatestUseCase,
@@ -656,7 +672,7 @@ func DaemonCmd() *cobra.Command {
 			initBlockDataService := service.NewInitBlockDataService(
 				cfg,
 				logger,
-				loadGenesisBlockDataAccountUseCase,
+				loadGenesisBlockDataUseCase,
 				getBlockDataUseCase,
 				createBlockDataUseCase,
 				setBlockchainLastestHashUseCase,
@@ -666,6 +682,14 @@ func DaemonCmd() *cobra.Command {
 				logger,
 				initAccountsFromBlockchainService,
 				initBlockDataService,
+			)
+			issuedTokenClientService := service.NewIssuedTokenClientService(
+				cfg,
+				logger,
+				kmutex,
+				receiveIssuedTokenDTOUseCase,
+				loadGenesisBlockDataUseCase,
+				upsertTokenIfPreviousTokenNonceGTEUseCase,
 			)
 
 			// ------------ Interface ------------
@@ -751,6 +775,10 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				majorityVoteConsensusClientService)
+			tm10 := taskmnghandler.NewIssuedTokenClientServiceTaskHandler(
+				cfg,
+				logger,
+				issuedTokenClientService)
 
 			taskManager := taskmng.NewTaskManager(
 				cfg,
@@ -764,6 +792,7 @@ func DaemonCmd() *cobra.Command {
 				tm7,
 				tm8,
 				tm9,
+				tm10,
 			)
 
 			//

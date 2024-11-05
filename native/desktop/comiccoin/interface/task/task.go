@@ -29,6 +29,7 @@ type taskManagerImpl struct {
 	blockDataDTOServerTaskHandler          *task.BlockDataDTOServerTaskHandler
 	majorityVoteConsensusServerTaskHandler *task.MajorityVoteConsensusServerTaskHandler
 	majorityVoteConsensusClientTaskHandler *task.MajorityVoteConsensusClientTaskHandler
+	issuedTokenClientServiceTaskHandler    *task.IssuedTokenClientServiceTaskHandler
 }
 
 func NewTaskManager(
@@ -43,6 +44,7 @@ func NewTaskManager(
 	blockDataDTOServerTaskHandler *task.BlockDataDTOServerTaskHandler,
 	majorityVoteConsensusServerTaskHandler *task.MajorityVoteConsensusServerTaskHandler,
 	majorityVoteConsensusClientTaskHandler *task.MajorityVoteConsensusClientTaskHandler,
+	issuedTokenClientServiceTaskHandler *task.IssuedTokenClientServiceTaskHandler,
 ) TaskManager {
 	port := &taskManagerImpl{
 		cfg:                                    cfg,
@@ -56,6 +58,7 @@ func NewTaskManager(
 		blockDataDTOServerTaskHandler:          blockDataDTOServerTaskHandler,
 		majorityVoteConsensusServerTaskHandler: majorityVoteConsensusServerTaskHandler,
 		majorityVoteConsensusClientTaskHandler: majorityVoteConsensusClientTaskHandler,
+		issuedTokenClientServiceTaskHandler:    issuedTokenClientServiceTaskHandler,
 	}
 	return port
 }
@@ -180,6 +183,22 @@ func (port *taskManagerImpl) Run() {
 			port.logger.Debug("block data dto server executing again ...")
 		}
 	}(port.blockDataDTOServerTaskHandler, port.logger)
+
+	go func(server *taskmnghandler.IssuedTokenClientServiceTaskHandler, loggerp *slog.Logger) {
+		loggerp.Info("Running issued token dto server...")
+		ctx := context.Background()
+		for {
+			if err := server.Execute(ctx); err != nil {
+				loggerp.Error("issued token server error",
+					slog.Any("error", err))
+				time.Sleep(10 * time.Second)
+				continue
+			}
+			// DEVELOPERS NOTE:
+			// No need for delays, automatically start executing again.
+			port.logger.Debug("issued token dto server executing again ...")
+		}
+	}(port.issuedTokenClientServiceTaskHandler, port.logger)
 }
 
 func (port *taskManagerImpl) Shutdown() {
