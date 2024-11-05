@@ -103,7 +103,6 @@ func doDaemonCmd() {
 	kmutex := kmutexutil.NewKMutexProvider()
 	ikDB := disk.NewDiskStorage(cfg.DB.DataDir, "identity_key", logger)
 	blockDataDB := disk.NewDiskStorage(cfg.DB.DataDir, "block_data", logger)
-	tokDB := disk.NewDiskStorage(cfg.DB.DataDir, "token", logger)
 	sitokenDB := disk.NewDiskStorage(cfg.DB.DataDir, "signed_issued_token", logger)
 	nftokDB := disk.NewDiskStorage(cfg.DB.DataDir, "non_fungible_token", logger)
 
@@ -160,10 +159,6 @@ func doDaemonCmd() {
 		cfg,
 		logger,
 		blockDataDB)
-	tokRepo := repo.NewTokenRepo(
-		cfg,
-		logger,
-		tokDB)
 	sitokRepo := repo.NewSignedIssuedTokenRepo(
 		cfg,
 		logger,
@@ -182,8 +177,6 @@ func doDaemonCmd() {
 	//
 
 	logger.Debug("Startup loading usecases...")
-
-	_ = tokRepo //TODO: Use?
 
 	// Signed Issued Token
 	listAllSignedIssuedTokenUseCase := usecase.NewListAllSignedIssuedTokenUseCase(
