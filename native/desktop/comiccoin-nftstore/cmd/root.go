@@ -38,6 +38,7 @@ var rootCmd = &cobra.Command{
 func Execute() {
 	// Attach sub-commands to our main root.
 	rootCmd.AddCommand(version.VersionCmd())
+	rootCmd.AddCommand(DaemonCmd())
 	rootCmd.AddCommand(GetAssetCmd())
 	rootCmd.AddCommand(GetMetadataCmd())
 	rootCmd.AddCommand(submit.SubmitMetadataURICmd())
