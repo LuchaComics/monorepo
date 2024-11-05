@@ -260,7 +260,7 @@ func doDaemonCmd() {
 
 	// --- HTTP --- //
 
-	getTokenHTTPHandler := httphandler.NewGetTokenHTTPHandler(
+	ipfsGatewayHTTPHandler := httphandler.NewIPFSGatewayHTTPHandler(
 		cfg,
 		logger)
 	httpMiddleware := httpmiddle.NewMiddleware(
@@ -270,7 +270,7 @@ func doDaemonCmd() {
 		cfg,
 		logger,
 		httpMiddleware,
-		getTokenHTTPHandler,
+		ipfsGatewayHTTPHandler,
 	)
 
 	// --- Tasks --- //

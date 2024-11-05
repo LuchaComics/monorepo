@@ -32,8 +32,8 @@ type httpServerImpl struct {
 	// server is the underlying HTTP server.
 	server *http.Server
 
-	// getTokenHTTPHandler is the handler for getting Token detail.
-	getTokenHTTPHandler *handler.GetTokenHTTPHandler
+	// ipfsGatewayHTTPHandler is the handler for getting Token detail.
+	ipfsGatewayHTTPHandler *handler.IPFSGatewayHTTPHandler
 }
 
 // NewHTTPServer creates a new HTTP server instance.
@@ -41,7 +41,7 @@ func NewHTTPServer(
 	cfg *config.Config,
 	logger *slog.Logger,
 	mid mid.Middleware,
-	getTokenHTTPHandler *handler.GetTokenHTTPHandler,
+	ipfsGatewayHTTPHandler *handler.IPFSGatewayHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.HTTPAddress == "" {
@@ -62,10 +62,10 @@ func NewHTTPServer(
 
 	// Create a new HTTP server instance.
 	port := &httpServerImpl{
-		cfg:                 cfg,
-		logger:              logger,
-		server:              srv,
-		getTokenHTTPHandler: getTokenHTTPHandler,
+		cfg:                    cfg,
+		logger:                 logger,
+		server:                 srv,
+		ipfsGatewayHTTPHandler: ipfsGatewayHTTPHandler,
 	}
 
 	// Attach the HTTP server controller to the ServeMux.
@@ -115,10 +115,10 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 	// Handle the request based on the URL path tokens.
 	switch {
 	// --- TOKENS --- //
-	case n == 4 && p[0] == "v1" && p[1] == "api" && p[2] == "token" && r.Method == http.MethodGet:
+	case n == 2 && p[0] == "ipfs" && r.Method == http.MethodGet:
 		// Handle the request to getting a transaction.
-		port.getTokenHTTPHandler.Execute(w, r, p[3])
-		// --- CATCH ALL: D.N.E. ---
+		port.ipfsGatewayHTTPHandler.Execute(w, r, p[1])
+	// --- CATCH ALL: D.N.E. ---
 	default:
 		// Log a message to indicate that the request is not found.
 		port.logger.Debug("404 request",
