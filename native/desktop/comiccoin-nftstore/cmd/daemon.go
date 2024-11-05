@@ -176,9 +176,13 @@ func doDaemonCmd() {
 
 	logger.Debug("Startup loading usecases...")
 
-	_ = tokRepo   //TODO: Use?
-	_ = nftokRepo //TODO: Use?
-	_ = ipfsRepo  //TODO: Use?
+	_ = tokRepo //TODO: Use?
+
+	// Signed Issued Token
+	listAllSignedIssuedTokenUseCase := usecase.NewListAllSignedIssuedTokenUseCase(
+		cfg,
+		logger,
+		sitokRepo)
 
 	// Signed Issued Token DTO
 	createSignedIssuedTokenUseCase := usecase.NewCreateSignedIssuedTokenUseCase(
@@ -194,6 +198,24 @@ func doDaemonCmd() {
 		cfg,
 		logger,
 		sitokDTORepo)
+
+	// NFT
+	getNFTokUseCase := usecase.NewGetNonFungibleTokenUseCase(
+		cfg,
+		logger,
+		nftokRepo)
+	upsertNFTokUseCase := usecase.NewUpsertNonFungibleTokenUseCase(
+		cfg,
+		logger,
+		nftokRepo)
+	downloadNFTokMetadataUsecase := usecase.NewDownloadMetadataNonFungibleTokenUseCase(
+		cfg,
+		logger,
+		ipfsRepo)
+	downloadNFTokAssetUsecase := usecase.NewDownloadNonFungibleTokenAssetUseCase(
+		cfg,
+		logger,
+		ipfsRepo)
 
 	// Genesis Block Data
 	loadGenesisBlockDataUseCase := usecase.NewLoadGenesisBlockDataUseCase(
@@ -215,6 +237,15 @@ func doDaemonCmd() {
 		loadGenesisBlockDataUseCase,
 		createSignedIssuedTokenUseCase,
 	)
+	nonFungibleTokenAssetsService := service.NewNonFungibleTokenAssetsService(
+		cfg,
+		logger,
+		listAllSignedIssuedTokenUseCase,
+		getNFTokUseCase,
+		downloadNFTokMetadataUsecase,
+		downloadNFTokAssetUsecase,
+		upsertNFTokUseCase,
+	)
 
 	//
 	// Interface.
@@ -224,6 +255,11 @@ func doDaemonCmd() {
 		cfg,
 		logger,
 		signedIssuedTokenClientService)
+
+	tm11 := taskmnghandler.NewNonFungibleTokenAssetsServiceTaskHandler(
+		cfg,
+		logger,
+		nonFungibleTokenAssetsService)
 
 	logger.Debug("Startup background tasks...")
 
@@ -243,9 +279,22 @@ func doDaemonCmd() {
 		}
 	}(tm10, logger)
 
-	logger.Info("Node running.")
+	go func(client *taskmnghandler.NonFungibleTokenAssetsServiceTaskHandler, loggerp *slog.Logger) {
+		loggerp.Info("Running token assets...")
+		ctx := context.Background()
+		for {
+			if err := client.Execute(ctx); err != nil {
+				loggerp.Error("token assets error",
+					slog.Any("error", err))
+				time.Sleep(10 * time.Second)
+				continue
+			}
+			loggerp.Debug("token assets executing again in 10 seconds...")
+			time.Sleep(10 * time.Second)
+		}
+	}(tm11, logger)
 
-	//TODO: Add IPFS HTTP Gateway
+	logger.Info("Node running.")
 
 	<-done
 }

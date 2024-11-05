@@ -30,6 +30,7 @@ type taskManagerImpl struct {
 	majorityVoteConsensusServerTaskHandler    *task.MajorityVoteConsensusServerTaskHandler
 	majorityVoteConsensusClientTaskHandler    *task.MajorityVoteConsensusClientTaskHandler
 	signedIssuedTokenClientServiceTaskHandler *task.SignedIssuedTokenClientServiceTaskHandler
+	nonFungibleTokenAssetsServiceTaskHandler  *task.NonFungibleTokenAssetsServiceTaskHandler
 }
 
 func NewTaskManager(
