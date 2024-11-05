@@ -1,16 +1,21 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/kmutexutil"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/net/p2p"
 	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/disk/leveldb"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
+	taskmnghandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin/interface/task/handler"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
@@ -18,7 +23,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/config/constants"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
 )
 
 // Command line argument flags
@@ -89,7 +93,9 @@ func doDaemonCmd() {
 		},
 	}
 
+	kmutex := kmutexutil.NewKMutexProvider()
 	ikDB := disk.NewDiskStorage(cfg.DB.DataDir, "identity_key", logger)
+	blockDataDB := disk.NewDiskStorage(cfg.DB.DataDir, "block_data", logger)
 	tokDB := disk.NewDiskStorage(cfg.DB.DataDir, "token", logger)
 	nftokDB := disk.NewDiskStorage(cfg.DB.DataDir, "non_fungible_token", logger)
 
@@ -142,10 +148,18 @@ func doDaemonCmd() {
 	// Repositories
 	//
 
+	genesisBlockDataRepo := repo.NewGenesisBlockDataRepo(
+		cfg,
+		logger,
+		blockDataDB)
 	tokRepo := repo.NewTokenRepo(
 		cfg,
 		logger,
 		tokDB)
+	issuedTokenDTO := repo.NewIssuedTokenDTORepo(
+		cfg,
+		logger,
+		libP2PNetwork)
 	nftokRepo := repo.NewNonFungibleTokenRepo(
 		logger,
 		nftokDB)
@@ -163,13 +177,62 @@ func doDaemonCmd() {
 	_ = nftokRepo
 	_ = ipfsRepo
 
+	receiveIssuedTokenDTOUseCase := usecase.NewReceiveIssuedTokenDTOUseCase(
+		cfg,
+		logger,
+		issuedTokenDTO)
+
+	// Genesis Block Data
+	loadGenesisBlockDataUseCase := usecase.NewLoadGenesisBlockDataUseCase(
+		cfg,
+		logger,
+		genesisBlockDataRepo)
+
+	// Token
+	upsertTokenIfPreviousTokenNonceGTEUseCase := usecase.NewUpsertTokenIfPreviousTokenNonceGTEUseCase(
+		cfg,
+		logger,
+		tokRepo)
+
 	//
 	// Services.
 	//
 
-	// (Service)
-	// (3) poll latest tokenIDs, get latest token
+	issuedTokenClientService := service.NewIssuedTokenClientService(
+		cfg,
+		logger,
+		kmutex,
+		receiveIssuedTokenDTOUseCase,
+		loadGenesisBlockDataUseCase,
+		upsertTokenIfPreviousTokenNonceGTEUseCase,
+	)
 
-	// (Intervace)
-	// (4) offer ipfs gateway
+	//
+	// Interface.
+	//
+
+	tm10 := taskmnghandler.NewIssuedTokenClientServiceTaskHandler(
+		cfg,
+		logger,
+		issuedTokenClientService)
+
+	logger.Info("Node running.")
+
+	go func(server *taskmnghandler.IssuedTokenClientServiceTaskHandler, loggerp *slog.Logger) {
+		loggerp.Info("Running issued token dto server...")
+		ctx := context.Background()
+		for {
+			if err := server.Execute(ctx); err != nil {
+				loggerp.Error("issued token server error",
+					slog.Any("error", err))
+				time.Sleep(10 * time.Second)
+				continue
+			}
+			// DEVELOPERS NOTE:
+			// No need for delays, automatically start executing again.
+			logger.Debug("issued token dto server executing again ...")
+		}
+	}(tm10, logger)
+
+	<-done
 }
