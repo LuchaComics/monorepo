@@ -7,9 +7,9 @@ import (
 
 	"github.com/rs/cors"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/interface/http/handler"
 	mid "github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/interface/http/middleware"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 )
 
 // HTTPServer represents an HTTP server that handles incoming requests.

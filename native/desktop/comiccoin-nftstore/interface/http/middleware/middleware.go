@@ -4,8 +4,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
-
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/common/security/blacklist"
 )
 
@@ -14,13 +12,11 @@ type Middleware interface {
 }
 
 type middleware struct {
-	Config    *config.Config
 	Logger    *slog.Logger
 	Blacklist blacklist.Provider
 }
 
 func NewMiddleware(
-	configp *config.Config,
 	loggerp *slog.Logger,
 	blp blacklist.Provider,
 ) Middleware {

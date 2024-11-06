@@ -13,11 +13,9 @@ import (
 	pkgfilepath "path/filepath"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
-	pkg_config "github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/config/constants"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/service"
 )
 
@@ -52,53 +50,12 @@ func doPinAddCmd() {
 	//
 
 	// Environment variables.
-	appSecretKey := config.GetEnvString("COMICCOIN_NFTSTORE_APP_SECRET_KEY", true)
-	hmacSecretKey := config.GetEnvBytes("COMICCOIN_NFTSTORE_HMAC_SECRET_KEY", true)
 	apiKey := config.GetEnvBytes("COMICCOIN_NFTSTORE_API_KEY", true)
 
 	// --- Common --- //
 	logger := logger.NewLogger()
 	logger.Info("Starting file uploader ...",
 		slog.Any("api_key", apiKey))
-
-	comicCoinConfig := &pkg_config.Config{
-		IPFS: pkg_config.IPFSConfig{
-			RemoteIP:            constants.ComicCoinIPFSRemoteIP,
-			RemotePort:          constants.ComicCoinIPFSRemotePort,
-			PublicGatewayDomain: constants.ComicCoinIPFSPublicGatewayDomain,
-		},
-	}
-
-	cfg := &config.Config{
-		Blockchain: config.BlockchainConfig{
-			ChainID:                        constants.ComicCoinChainID,
-			TransPerBlock:                  constants.ComicCoinTransPerBlock,
-			Difficulty:                     constants.ComicCoinDifficulty,
-			ConsensusPollingDelayInMinutes: constants.ComicCoinConsensusPollingDelayInMinutes,
-			ConsensusProtocol:              constants.ComicCoinConsensusProtocol,
-		},
-		App: config.AppConfig{
-			DirPath:     flagDataDir,
-			HTTPAddress: flagListenHTTPAddress,
-			HMACSecret:  hmacSecretKey,
-			AppSecret:   appSecretKey,
-		},
-		DB: config.DBConfig{
-			DataDir: flagDataDir,
-		},
-		Peer: config.PeerConfig{
-			ListenPort: constants.ComicCoinPeerListenPort,
-			KeyName:    constants.ComicCoinIdentityKeyID,
-		},
-		IPFS: config.IPFSConfig{
-			RemoteIP:            constants.ComicCoinIPFSRemoteIP,
-			RemotePort:          constants.ComicCoinIPFSRemotePort,
-			PublicGatewayDomain: constants.ComicCoinIPFSPublicGatewayDomain,
-		},
-	}
-
-	_ = cfg
-	_ = comicCoinConfig
 
 	//
 	// STEP 2:

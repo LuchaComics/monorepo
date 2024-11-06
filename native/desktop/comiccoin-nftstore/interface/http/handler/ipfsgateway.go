@@ -10,21 +10,18 @@ import (
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/service"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 )
 
 type IPFSGatewayHTTPHandler struct {
-	config                   *config.Config
 	logger                   *slog.Logger
 	pinObjectGetByCIDService *service.PinObjectGetByCIDService
 }
 
 func NewIPFSGatewayHTTPHandler(
-	cfg *config.Config,
 	logger *slog.Logger,
 	s *service.PinObjectGetByCIDService,
 ) *IPFSGatewayHTTPHandler {
-	return &IPFSGatewayHTTPHandler{cfg, logger, s}
+	return &IPFSGatewayHTTPHandler{logger, s}
 }
 
 func (h *IPFSGatewayHTTPHandler) Execute(w http.ResponseWriter, r *http.Request, cid string) {

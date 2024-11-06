@@ -78,7 +78,7 @@ func doDaemonCmd() {
 		log.Fatalf("Failed converting string to multi-addresses: %v\n", err)
 	}
 
-	comicCoinConfig := &pkg_config.Config{
+	comicCoinConfig := &pkg_config.Config{ // Only used by `ipfsRepo` in this file.
 		App: pkg_config.AppConfig{
 			HTTPAddress: flagListenHTTPAddress,
 		},
@@ -88,7 +88,7 @@ func doDaemonCmd() {
 			PublicGatewayDomain: constants.ComicCoinIPFSPublicGatewayDomain,
 		},
 	}
-	nftStoreConfig := &config.Config{
+	config := &config.Config{
 		Blockchain: config.BlockchainConfig{
 			ChainID:                        constants.ComicCoinChainID,
 			TransPerBlock:                  constants.ComicCoinTransPerBlock,
@@ -118,13 +118,13 @@ func doDaemonCmd() {
 	}
 
 	passp := password.NewProvider()
-	jwtp := jwt.NewProvider(nftStoreConfig)
+	jwtp := jwt.NewProvider(config)
 	blackp := blacklist.NewProvider()
 
 	// --- Disk --- //
 
-	pinObjsByCIDDB := disk.NewDiskStorage(nftStoreConfig.DB.DataDir, "pin_objects_by_cid", logger)
-	pinObjsByRequestIDDB := disk.NewDiskStorage(nftStoreConfig.DB.DataDir, "pin_objects_by_request_id", logger)
+	pinObjsByCIDDB := disk.NewDiskStorage(config.DB.DataDir, "pin_objects_by_cid", logger)
+	pinObjsByRequestIDDB := disk.NewDiskStorage(config.DB.DataDir, "pin_objects_by_request_id", logger)
 
 	// --- Repository --- //
 
@@ -142,7 +142,7 @@ func doDaemonCmd() {
 	// --- Service --- //
 
 	ipfsPinAddService := service.NewIPFSPinAddService(
-		nftStoreConfig,
+		config,
 		logger,
 		jwtp,
 		passp,
@@ -163,18 +163,16 @@ func doDaemonCmd() {
 	// --- HTTP --- //
 
 	ipfsGatewayHTTPHandler := httphandler.NewIPFSGatewayHTTPHandler(
-		comicCoinConfig,
 		logger,
 		pinObjectGetByCIDService)
 	ipfsPinAddHTTPHandler := httphandler.NewIPFSPinAddHTTPHandler(
 		logger,
 		ipfsPinAddService)
 	httpMiddleware := httpmiddle.NewMiddleware(
-		comicCoinConfig,
 		logger,
 		blackp)
 	httpServ := http.NewHTTPServer(
-		comicCoinConfig,
+		config,
 		logger,
 		httpMiddleware,
 		ipfsGatewayHTTPHandler,
