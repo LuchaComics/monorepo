@@ -4,10 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"log"
 	"log/slog"
 	"net/http"
-	"regexp"
 	"strings"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/service"
@@ -40,30 +38,52 @@ func (h *IPFSPinAddHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) 
 	// Set the maximum upload size (100 MB in this example)
 	r.Body = http.MaxBytesReader(w, r.Body, 100<<20) // 100 MB
 
-	// Extract the filename from the "Content-Disposition" header, if provided
-	contentDisposition := r.Header.Get("Content-Disposition")
-	if contentDisposition == "" {
-		h.logger.Error("missing `Content-Disposition` header in your request")
-		httperror.ResponseError(w, httperror.NewForBadRequestWithSingleField("error", "missing `Content-Disposition` header in your request"))
-	}
-	filename := getFilenameFromContentDispositionText(contentDisposition)
-	if filename == "" {
-		h.logger.Error("missing or corrupt `filename` from your requests `Content-Disposition` text")
-		httperror.ResponseError(w, httperror.NewForBadRequestWithSingleField("error", "missing or corrupt `filename` from your requests `Content-Disposition` text"))
-	}
-
 	// Extract the content-type from the request header
-	contentType := r.Header.Get("Content-Type")
+	contentType := r.Header.Get("X-File-Content-Type")
 	if contentType == "" {
-		h.logger.Error("missing `Content-Type` header in your request")
+		h.logger.Error("missing `X-File-Content-Type` header in your request")
 		httperror.ResponseError(w, httperror.NewForBadRequestWithSingleField("error", "missing `Content-Type` header in your request"))
 	}
 
-	// Read the binary data from the request body into a byte slice
-	data, err := io.ReadAll(r.Body)
+	// Parse the multipart form data
+	mr, err := r.MultipartReader()
 	if err != nil {
-		h.logger.Error("Failed to read request body")
-		http.Error(w, "Failed to read request body", http.StatusInternalServerError)
+		h.logger.Error("Failed to create multipart reader", slog.Any("error", err))
+		http.Error(w, "Failed to read multipart data", http.StatusBadRequest)
+		return
+	}
+
+	var filename string
+	var data []byte
+
+	// Iterate over each part in the multipart form
+	for {
+		part, err := mr.NextPart()
+		if err == io.EOF {
+			break // End of parts
+		}
+		if err != nil {
+			h.logger.Error("Error reading next part", slog.Any("error", err))
+			http.Error(w, "Error reading multipart data", http.StatusInternalServerError)
+			return
+		}
+
+		// Check if the part has a filename (i.e., it's a file upload)
+		if part.FileName() != "" {
+			filename = part.FileName()
+			data, err = io.ReadAll(part)
+			if err != nil {
+				h.logger.Error("Failed to read file part", slog.Any("error", err))
+				http.Error(w, "Failed to read file data", http.StatusInternalServerError)
+				return
+			}
+			break // Process only the first file part
+		}
+	}
+
+	if filename == "" {
+		h.logger.Error("No file found in the multipart data")
+		httperror.ResponseError(w, httperror.NewForBadRequestWithSingleField("error", "No file found in the multipart data"))
 		return
 	}
 
@@ -84,21 +104,5 @@ func (h *IPFSPinAddHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) 
 		h.logger.Error("Failed encoding response", slog.Any("error", err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
-	}
-}
-
-func getFilenameFromContentDispositionText(contentDispositionText string) string {
-	// Define the regular expression pattern to extract the filename
-	pattern := `filename=([^;]+)`
-	re := regexp.MustCompile(pattern)
-
-	// Find the first match
-	matches := re.FindStringSubmatch(contentDispositionText)
-	if len(matches) > 1 {
-		// Trim any leading or trailing whitespace around the filename
-		return strings.TrimSpace(matches[1])
-	} else {
-		log.Println("contentDispositionText:", contentDispositionText)
-		return ""
 	}
 }

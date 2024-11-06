@@ -102,11 +102,8 @@ func doPinAddCmd() {
 
 	//
 	// STEP 2:
-	// Open the file.
+	// Open the file and get file details.
 	//
-
-	// Get the filename from the filepath.
-	fileName := pkgfilepath.Base(flagFilepath)
 
 	// Open the file at the path.
 	file, err := os.Open(flagFilepath)
@@ -115,14 +112,26 @@ func doPinAddCmd() {
 	}
 	defer file.Close()
 
-	// Create a buffer to write the multipart form data
-	var b bytes.Buffer
-	writer := multipart.NewWriter(&b)
+	// Detect content type of the file
+	buffer := make([]byte, 512) // 512 bytes are sufficient for content detection
+	_, err = file.Read(buffer)
+	if err != nil {
+		log.Fatalf("failed to read file for content detection: %v", err)
+	}
+	file.Seek(0, 0) // Reset file pointer after reading for detection
+	contentType := http.DetectContentType(buffer)
+
+	// Get the filename from the filepath.
+	fileName := pkgfilepath.Base(flagFilepath)
 
 	//
 	// STEP 3
 	// Add the file to the form.
 	//
+
+	// Create a buffer to write the multipart form data
+	var b bytes.Buffer
+	writer := multipart.NewWriter(&b)
 
 	// Create a form field writer for the file field
 	fileField, err := writer.CreateFormFile("data", fileName)
@@ -136,7 +145,7 @@ func doPinAddCmd() {
 	}
 
 	//
-	// STEP X
+	// STEP 4
 	// Close the form
 	//
 
@@ -145,12 +154,8 @@ func doPinAddCmd() {
 		log.Fatalf("failed to close writer: %v", err)
 	}
 
-	contentType := writer.FormDataContentType()
-
-	formData := &b
-
 	// Send HTTP request with the multipart form data
-	req, err := http.NewRequest("POST", "http://127.0.0.1:8080/ipfs/pin-add", formData)
+	req, err := http.NewRequest("POST", "http://127.0.0.1:8080/ipfs/pin-add", &b)
 	if err != nil {
 		fmt.Printf("failed to create request: %v\n", err)
 		return
@@ -159,18 +164,11 @@ func doPinAddCmd() {
 	// Create a Bearer string by appending string access token
 	var bearer = "JWT " + string(apiKey)
 
-	// add authorization header to the req
+	// Add headers
 	req.Header.Add("Authorization", bearer)
-
-	// Set the Content-Type header
-	req.Header.Set("Content-Type", contentType)
-
-	// disposition, params, err := mime.ParseMediaType(fmt.Sprintf("attachment;filename=%s", fileName))
-	// fmt.Println("params", params)
-	// fmt.Println("err", err)
-
-	disposition := fmt.Sprintf("attachment;filename=%s", fileName)
-	req.Header.Set("Content-Disposition", disposition)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req.Header.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
+	req.Header.Set("X-File-Content-Type", contentType) // Custom header to carry content type
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -211,6 +209,11 @@ func doPinAddCmd() {
 		)
 		return
 	}
+
+	//
+	// STEP 5:
+	// Print the success message.
+	//
 
 	var rawJSON bytes.Buffer
 	teeReader := io.TeeReader(resp.Body, &rawJSON) // TeeReader allows you to read the JSON and capture it
