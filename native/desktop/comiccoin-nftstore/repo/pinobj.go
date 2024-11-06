@@ -19,10 +19,18 @@ func NewPinObjectRepo(logger *slog.Logger, dbByCIDClient disk.Storage, dbByReque
 }
 
 func (r *PinObjectRepo) Upsert(pinobj *domain.PinObject) error {
+	if pinobj == nil {
+		r.logger.Warn("Nil detected")
+		return nil
+	}
 	bBytes, err := pinobj.Serialize()
 	if err != nil {
 		r.logger.Error("Failed serializing pinobject", slog.Any("error", err))
 		return err
+	}
+	if bBytes == nil {
+		r.logger.Warn("Nil bytes after serialization detected")
+		return nil
 	}
 
 	// DEVELOPERS NOTE:
@@ -30,7 +38,7 @@ func (r *PinObjectRepo) Upsert(pinobj *domain.PinObject) error {
 	// always unique on every API post call, therefore if an existing record
 	// exists then we will default to use the existing records `RequestID`.
 	fetched, err := r.GetByCID(pinobj.CID)
-	if fetched == nil && err == nil {
+	if fetched != nil && err == nil {
 		pinobj.RequestID = fetched.RequestID
 	}
 
