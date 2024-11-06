@@ -32,6 +32,7 @@ func Execute() {
 	rootCmd.AddCommand(version.VersionCmd())
 	rootCmd.AddCommand(GenerateAPIKeyCmd())
 	rootCmd.AddCommand(PinAddCmd())
+	rootCmd.AddCommand(GetCmd())
 	rootCmd.AddCommand(DaemonCmd())
 
 	if err := rootCmd.Execute(); err != nil {

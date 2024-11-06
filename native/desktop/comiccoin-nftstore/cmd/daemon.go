@@ -133,7 +133,9 @@ func doDaemonCmd() {
 
 	ipfsGetNodeIDUseCase := usecase.NewIPFSGetNodeIDUseCase(logger, ipfsRepo)
 	ipfsPinAddUsecase := usecase.NewIPFSPinAddUseCase(logger, ipfsRepo)
+	ipfsGetUseCase := usecase.NewIPFSGetUseCase(logger, ipfsRepo)
 	upsertPinObjectUseCase := usecase.NewUpsertPinObjectUseCase(logger, pinObjRepo)
+	pinObjectGetByCIDUseCase := usecase.NewPinObjectGetByCIDUseCase(logger, pinObjRepo)
 
 	// --- Service --- //
 
@@ -146,6 +148,11 @@ func doDaemonCmd() {
 		ipfsPinAddUsecase,
 		upsertPinObjectUseCase,
 	)
+	pinObjectGetByCIDService := service.NewPinObjectGetByCIDService(
+		logger,
+		pinObjectGetByCIDUseCase,
+		ipfsGetUseCase,
+	)
 
 	//
 	// Interface.
@@ -155,7 +162,8 @@ func doDaemonCmd() {
 
 	ipfsGatewayHTTPHandler := httphandler.NewIPFSGatewayHTTPHandler(
 		comicCoinConfig,
-		logger)
+		logger,
+		pinObjectGetByCIDService)
 	ipfsPinAddHTTPHandler := httphandler.NewIPFSPinAddHTTPHandler(
 		logger,
 		ipfsPinAddService)
