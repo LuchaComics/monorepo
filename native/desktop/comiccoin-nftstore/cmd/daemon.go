@@ -8,10 +8,19 @@ import (
 	"syscall"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/disk/leveldb"
+	pkg_config "github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
+	pkg_repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/config/constants"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/interface/http"
+	httphandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/interface/http/handler"
+	httpmiddle "github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/interface/http/middleware"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/repo"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/service"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/usecase"
 )
 
 // Command line argument flags
@@ -66,7 +75,17 @@ func doDaemonCmd() {
 		log.Fatalf("Failed converting string to multi-addresses: %v\n", err)
 	}
 
-	cfg := &config.Config{
+	comicCoinConfig := &pkg_config.Config{
+		App: pkg_config.AppConfig{
+			HTTPAddress: flagListenHTTPAddress,
+		},
+		IPFS: pkg_config.IPFSConfig{
+			RemoteIP:            constants.ComicCoinIPFSRemoteIP,
+			RemotePort:          constants.ComicCoinIPFSRemotePort,
+			PublicGatewayDomain: constants.ComicCoinIPFSPublicGatewayDomain,
+		},
+	}
+	nftStoreConfig := &config.Config{
 		Blockchain: config.BlockchainConfig{
 			ChainID:                        constants.ComicCoinChainID,
 			TransPerBlock:                  constants.ComicCoinTransPerBlock,
@@ -95,7 +114,28 @@ func doDaemonCmd() {
 		},
 	}
 
-	_ = cfg
+	pinObjsByCIDDB := disk.NewDiskStorage(nftStoreConfig.DB.DataDir, "pin_objects_by_cid", logger)
+	pinObjsByRequestIDDB := disk.NewDiskStorage(nftStoreConfig.DB.DataDir, "pin_objects_by_request_id", logger)
+
+	// --- Repository --- //
+
+	ipfsRepo := pkg_repo.NewIPFSRepo(comicCoinConfig, logger)
+	pinObjRepo := repo.NewPinObjectRepo(logger, pinObjsByCIDDB, pinObjsByRequestIDDB)
+
+	// --- UseCase --- //
+
+	ipfsGetNodeIDUseCase := usecase.NewIPFSGetNodeIDUseCase(logger, ipfsRepo)
+	ipfsPinAddUsecase := usecase.NewIPFSPinAddUseCase(logger, ipfsRepo)
+	upsertPinObjectUseCase := usecase.NewUpsertPinObjectUseCase(logger, pinObjRepo)
+
+	// --- Service --- //
+
+	nftAssetPinAddService := service.NewNFTAssetPinAddService(
+		logger,
+		ipfsGetNodeIDUseCase,
+		ipfsPinAddUsecase,
+		upsertPinObjectUseCase,
+	)
 
 	//
 	// Interface.
@@ -103,26 +143,30 @@ func doDaemonCmd() {
 
 	// --- HTTP --- //
 
-	// ipfsGatewayHTTPHandler := httphandler.NewIPFSGatewayHTTPHandler(
-	// 	cfg,
-	// 	logger)
-	// httpMiddleware := httpmiddle.NewMiddleware(
-	// 	cfg,
-	// 	logger)
-	// httpServ := http.NewHTTPServer(
-	// 	cfg,
-	// 	logger,
-	// 	httpMiddleware,
-	// 	ipfsGatewayHTTPHandler,
-	// )
-	//
-	// // Run in background the peer to peer node which will synchronize our
-	// // blockchain with the network.
-	// // go peerNode.Run()
-	// go httpServ.Run()
-	// defer httpServ.Shutdown()
-	//
-	// logger.Info("Node running.")
+	ipfsGatewayHTTPHandler := httphandler.NewIPFSGatewayHTTPHandler(
+		comicCoinConfig,
+		logger)
+	ipfsPinAddHTTPHandler := httphandler.NewNFTAssetPinAddHTTPHandler(
+		logger,
+		nftAssetPinAddService)
+	httpMiddleware := httpmiddle.NewMiddleware(
+		comicCoinConfig,
+		logger)
+	httpServ := http.NewHTTPServer(
+		comicCoinConfig,
+		logger,
+		httpMiddleware,
+		ipfsGatewayHTTPHandler,
+		ipfsPinAddHTTPHandler,
+	)
+
+	// Run in background the peer to peer node which will synchronize our
+	// blockchain with the network.
+	// go peerNode.Run()
+	go httpServ.Run()
+	defer httpServ.Shutdown()
+
+	logger.Info("Node running.")
 
 	<-done
 }

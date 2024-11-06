@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -127,7 +128,7 @@ func (r *IPFSRepo) AddViaFileContent(fileContent []byte, shouldPin bool) (string
 		return "", fmt.Errorf("Failed getting unix fs: %v", "does not exist")
 	}
 
-	file := files.NewBytesFile(fileContent)
+	file := bytes.NewReader(fileContent)
 
 	// Create a reader file node
 	node := files.NewReaderFile(file)
@@ -161,6 +162,27 @@ func (r *IPFSRepo) AddViaFile(file *os.File, shouldPin bool) (string, error) {
 
 	// Create a reader file node
 	node := files.NewReaderStatFile(file, stat)
+
+	// We want to use the newest `CidVersion` in our update.
+	opts := func(settings *options.UnixfsAddSettings) error {
+		settings.CidVersion = 1
+		settings.Pin = shouldPin
+		return nil
+	}
+
+	pathRes, err := unixfs.Add(context.Background(), node, opts)
+	if err != nil {
+		return "", err
+	}
+
+	return strings.Replace(pathRes.String(), "/ipfs/", "", -1), nil
+}
+
+func (r *IPFSRepo) AddViaReaderFile(node files.File, shouldPin bool) (string, error) {
+	unixfs := r.api.Unixfs()
+	if unixfs == nil {
+		return "", fmt.Errorf("Failed getting unix fs: %v", "does not exist")
+	}
 
 	// We want to use the newest `CidVersion` in our update.
 	opts := func(settings *options.UnixfsAddSettings) error {

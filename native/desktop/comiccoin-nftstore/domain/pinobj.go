@@ -58,7 +58,6 @@ type PinObject struct {
 	ContentType int8   `json:"content_type,omitempty"`
 
 	// ID variable is the unique identifier we use internally in our system.
-	ID                    uint64    `json:"id,omitempty"`
 	CreatedFromIPAddress  string    `json:"created_from_ip_address,omitempty"`
 	ModifiedAt            time.Time `json:"modified_at,omitempty"`
 	ModifiedFromIPAddress string    `json:"modified_from_ip_address,omitempty"`

@@ -34,6 +34,8 @@ type httpServerImpl struct {
 
 	// ipfsGatewayHTTPHandler is the handler for getting Token detail.
 	ipfsGatewayHTTPHandler *handler.IPFSGatewayHTTPHandler
+
+	nftAssetPinAddHTTPHandler *handler.NFTAssetPinAddHTTPHandler
 }
 
 // NewHTTPServer creates a new HTTP server instance.
@@ -42,6 +44,7 @@ func NewHTTPServer(
 	logger *slog.Logger,
 	mid mid.Middleware,
 	ipfsGatewayHTTPHandler *handler.IPFSGatewayHTTPHandler,
+	nftAssetPinAddHTTPHandler *handler.NFTAssetPinAddHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.HTTPAddress == "" {
@@ -62,10 +65,11 @@ func NewHTTPServer(
 
 	// Create a new HTTP server instance.
 	port := &httpServerImpl{
-		cfg:                    cfg,
-		logger:                 logger,
-		server:                 srv,
-		ipfsGatewayHTTPHandler: ipfsGatewayHTTPHandler,
+		cfg:                       cfg,
+		logger:                    logger,
+		server:                    srv,
+		ipfsGatewayHTTPHandler:    ipfsGatewayHTTPHandler,
+		nftAssetPinAddHTTPHandler: nftAssetPinAddHTTPHandler,
 	}
 
 	// Attach the HTTP server controller to the ServeMux.
@@ -114,10 +118,10 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 
 	// Handle the request based on the URL path tokens.
 	switch {
-	// --- TOKENS --- //
 	case n == 2 && p[0] == "ipfs" && r.Method == http.MethodGet:
-		// Handle the request to getting a transaction.
 		port.ipfsGatewayHTTPHandler.Execute(w, r, p[1])
+	case n == 2 && p[0] == "ipfs" && p[1] == "pin-add" && r.Method == http.MethodPost:
+		port.nftAssetPinAddHTTPHandler.Execute(w, r)
 	// --- CATCH ALL: D.N.E. ---
 	default:
 		// Log a message to indicate that the request is not found.
