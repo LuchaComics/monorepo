@@ -69,6 +69,7 @@ type AppConfig struct {
 	DirPath string
 
 	HMACSecret []byte
+	AppSecret  string
 
 	// HTTPAddress is the address and port that the HTTP JSON API server will listen on.
 	// Do not expose to the public!

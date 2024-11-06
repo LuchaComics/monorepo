@@ -81,7 +81,7 @@ func (r *IPFSRepo) ID() (peer.ID, error) {
 	return selfKey.ID(), nil
 }
 
-func (r *IPFSRepo) Add(fullFilePath string, shouldPin bool) (string, error) {
+func (r *IPFSRepo) AddViaFilePath(fullFilePath string, shouldPin bool) (string, error) {
 	unixfs := r.api.Unixfs()
 	if unixfs == nil {
 		return "", fmt.Errorf("Failed getting unix fs: %v", "does not exist")
@@ -121,6 +121,62 @@ func (r *IPFSRepo) Add(fullFilePath string, shouldPin bool) (string, error) {
 	return strings.Replace(pathRes.String(), "/ipfs/", "", -1), nil
 }
 
+func (r *IPFSRepo) AddViaFileContent(fileContent []byte, shouldPin bool) (string, error) {
+	unixfs := r.api.Unixfs()
+	if unixfs == nil {
+		return "", fmt.Errorf("Failed getting unix fs: %v", "does not exist")
+	}
+
+	file := files.NewBytesFile(fileContent)
+
+	// Create a reader file node
+	node := files.NewReaderFile(file)
+
+	// We want to use the newest `CidVersion` in our update.
+	opts := func(settings *options.UnixfsAddSettings) error {
+		settings.CidVersion = 1
+		settings.Pin = shouldPin
+		return nil
+	}
+
+	pathRes, err := unixfs.Add(context.Background(), node, opts)
+	if err != nil {
+		return "", err
+	}
+
+	return strings.Replace(pathRes.String(), "/ipfs/", "", -1), nil
+}
+
+func (r *IPFSRepo) AddViaFile(file *os.File, shouldPin bool) (string, error) {
+	unixfs := r.api.Unixfs()
+	if unixfs == nil {
+		return "", fmt.Errorf("Failed getting unix fs: %v", "does not exist")
+	}
+
+	// Get the file stat
+	stat, err := file.Stat()
+	if err != nil {
+		return "", err
+	}
+
+	// Create a reader file node
+	node := files.NewReaderStatFile(file, stat)
+
+	// We want to use the newest `CidVersion` in our update.
+	opts := func(settings *options.UnixfsAddSettings) error {
+		settings.CidVersion = 1
+		settings.Pin = shouldPin
+		return nil
+	}
+
+	pathRes, err := unixfs.Add(context.Background(), node, opts)
+	if err != nil {
+		return "", err
+	}
+
+	return strings.Replace(pathRes.String(), "/ipfs/", "", -1), nil
+}
+
 func (impl *IPFSRepo) Pin(cidString string) error {
 	impl.logger.Debug("pinning content to IPFS", slog.String("cid", cidString))
 
@@ -141,8 +197,8 @@ func (impl *IPFSRepo) Pin(cidString string) error {
 	return nil
 }
 
-func (r *IPFSRepo) PinAdd(fullFilePath string) (string, error) {
-	fileCID, err := r.Add(fullFilePath, false)
+func (r *IPFSRepo) PinAddViaFilePath(fullFilePath string) (string, error) {
+	fileCID, err := r.AddViaFilePath(fullFilePath, false)
 	if err != nil {
 		return "", err
 	}

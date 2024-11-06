@@ -8,18 +8,16 @@ import (
 	"syscall"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/spf13/cobra"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/config/constants"
-	http "github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/interface/http"
-	httphandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/interface/http/handler"
-	httpmiddle "github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/interface/http/middleware"
 )
 
 // Command line argument flags
 var (
 	flagListenHTTPAddress string
+	flagAppSecretKey      string
 )
 
 func DaemonCmd() *cobra.Command {
@@ -43,7 +41,13 @@ func doDaemonCmd() {
 	// Load up our dependencies and configuration
 	//
 
+	appSecretKey := config.GetEnvString("COMICCOIN_NFTSTORE_APP_SECRET_KEY", true)
+	hmacSecretKey := config.GetEnvBytes("COMICCOIN_NFTSTORE_HMAC_SECRET_KEY", true)
+
 	logger := logger.NewLogger()
+	logger.Info("Starting daemon...",
+		slog.Any("flatHMACSecret", hmacSecretKey),
+		slog.Any("appSecretKey", appSecretKey))
 
 	// Load up our operating system interaction handlers, more specifically
 	// signals. The OS sends our application various signals based on the
@@ -73,6 +77,8 @@ func doDaemonCmd() {
 		App: config.AppConfig{
 			DirPath:     flagDataDir,
 			HTTPAddress: flagListenHTTPAddress,
+			HMACSecret:  hmacSecretKey,
+			AppSecret:   appSecretKey,
 		},
 		DB: config.DBConfig{
 			DataDir: flagDataDir,
@@ -89,32 +95,34 @@ func doDaemonCmd() {
 		},
 	}
 
+	_ = cfg
+
 	//
 	// Interface.
 	//
 
 	// --- HTTP --- //
 
-	ipfsGatewayHTTPHandler := httphandler.NewIPFSGatewayHTTPHandler(
-		cfg,
-		logger)
-	httpMiddleware := httpmiddle.NewMiddleware(
-		cfg,
-		logger)
-	httpServ := http.NewHTTPServer(
-		cfg,
-		logger,
-		httpMiddleware,
-		ipfsGatewayHTTPHandler,
-	)
-
-	// Run in background the peer to peer node which will synchronize our
-	// blockchain with the network.
-	// go peerNode.Run()
-	go httpServ.Run()
-	defer httpServ.Shutdown()
-
-	logger.Info("Node running.")
+	// ipfsGatewayHTTPHandler := httphandler.NewIPFSGatewayHTTPHandler(
+	// 	cfg,
+	// 	logger)
+	// httpMiddleware := httpmiddle.NewMiddleware(
+	// 	cfg,
+	// 	logger)
+	// httpServ := http.NewHTTPServer(
+	// 	cfg,
+	// 	logger,
+	// 	httpMiddleware,
+	// 	ipfsGatewayHTTPHandler,
+	// )
+	//
+	// // Run in background the peer to peer node which will synchronize our
+	// // blockchain with the network.
+	// // go peerNode.Run()
+	// go httpServ.Run()
+	// defer httpServ.Shutdown()
+	//
+	// logger.Info("Node running.")
 
 	<-done
 }
