@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"log"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -67,17 +66,6 @@ func doDaemonCmd() {
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL, syscall.SIGUSR1)
 
-	// DEVELOPERS NOTE:
-	// Every ComicCoin node must be connected to a peer whom coordinates
-	// connecting all the other nodes in the network, therefore we get the
-	// following node(s) that act in this role.
-	bootstrapPeers, err := config.StringToAddres(constants.ComicCoinBootstrapPeers)
-	if err != nil {
-		logger.Error("Startup aborted: failed converting string to multi-addresses",
-			slog.Any("error", err))
-		log.Fatalf("Failed converting string to multi-addresses: %v\n", err)
-	}
-
 	comicCoinConfig := &pkg_config.Config{ // Only used by `ipfsRepo` in this file.
 		App: pkg_config.AppConfig{
 			HTTPAddress: flagListenHTTPAddress,
@@ -89,13 +77,6 @@ func doDaemonCmd() {
 		},
 	}
 	config := &config.Config{
-		Blockchain: config.BlockchainConfig{
-			ChainID:                        constants.ComicCoinChainID,
-			TransPerBlock:                  constants.ComicCoinTransPerBlock,
-			Difficulty:                     constants.ComicCoinDifficulty,
-			ConsensusPollingDelayInMinutes: constants.ComicCoinConsensusPollingDelayInMinutes,
-			ConsensusProtocol:              constants.ComicCoinConsensusProtocol,
-		},
 		App: config.AppConfig{
 			DirPath:     flagDataDir,
 			HTTPAddress: flagListenHTTPAddress,
@@ -104,16 +85,6 @@ func doDaemonCmd() {
 		},
 		DB: config.DBConfig{
 			DataDir: flagDataDir,
-		},
-		Peer: config.PeerConfig{
-			ListenPort:     constants.ComicCoinPeerListenPort,
-			KeyName:        constants.ComicCoinIdentityKeyID,
-			BootstrapPeers: bootstrapPeers,
-		},
-		IPFS: config.IPFSConfig{
-			RemoteIP:            constants.ComicCoinIPFSRemoteIP,
-			RemotePort:          constants.ComicCoinIPFSRemotePort,
-			PublicGatewayDomain: constants.ComicCoinIPFSPublicGatewayDomain,
 		},
 	}
 
