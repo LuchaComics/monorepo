@@ -32,6 +32,7 @@ func (mid *middleware) Attach(fn http.HandlerFunc) http.HandlerFunc {
 	// will start from the bottom and proceed upwards.
 	// Ex: `RateLimitMiddleware` will be executed first and
 	//     `ProtectedURLsMiddleware` will be executed last.
+	fn = mid.IPAddressMiddleware(fn)
 	fn = mid.URLProcessorMiddleware(fn)
 	fn = mid.RateLimitMiddleware(fn)
 

@@ -13,6 +13,8 @@ import (
 	pkg_repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
 	"github.com/spf13/cobra"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/common/security/jwt"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/common/security/password"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/config/constants"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/interface/http"
@@ -114,6 +116,11 @@ func doDaemonCmd() {
 		},
 	}
 
+	passp := password.NewProvider()
+	jwtp := jwt.NewProvider(nftStoreConfig)
+
+	// --- Disk --- //
+
 	pinObjsByCIDDB := disk.NewDiskStorage(nftStoreConfig.DB.DataDir, "pin_objects_by_cid", logger)
 	pinObjsByRequestIDDB := disk.NewDiskStorage(nftStoreConfig.DB.DataDir, "pin_objects_by_request_id", logger)
 
@@ -130,8 +137,11 @@ func doDaemonCmd() {
 
 	// --- Service --- //
 
-	nftAssetPinAddService := service.NewNFTAssetPinAddService(
+	ipfsPinAddService := service.NewIPFSPinAddService(
+		nftStoreConfig,
 		logger,
+		jwtp,
+		passp,
 		ipfsGetNodeIDUseCase,
 		ipfsPinAddUsecase,
 		upsertPinObjectUseCase,
@@ -146,9 +156,9 @@ func doDaemonCmd() {
 	ipfsGatewayHTTPHandler := httphandler.NewIPFSGatewayHTTPHandler(
 		comicCoinConfig,
 		logger)
-	ipfsPinAddHTTPHandler := httphandler.NewNFTAssetPinAddHTTPHandler(
+	ipfsPinAddHTTPHandler := httphandler.NewIPFSPinAddHTTPHandler(
 		logger,
-		nftAssetPinAddService)
+		ipfsPinAddService)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		comicCoinConfig,
 		logger)

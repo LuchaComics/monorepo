@@ -42,6 +42,7 @@ func (uc *UpsertPinObjectUseCase) Execute(ctx context.Context, pinobj *domain.Pi
 		}
 	}
 	if len(e) != 0 {
+		uc.logger.Warn("Validation failed", slog.Any("e", e))
 		return httperror.NewForBadRequest(&e)
 	}
 

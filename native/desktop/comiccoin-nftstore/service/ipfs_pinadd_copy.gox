@@ -12,20 +12,20 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 )
 
-type NFTAssetPinAddService struct {
+type IPFSPinAddService struct {
 	logger                 *slog.Logger
 	ipfsGetNodeIDUseCase   *usecase.IPFSGetNodeIDUseCase
 	ipfsPinAddUsecase      *usecase.IPFSPinAddUseCase
 	upsertPinObjectUseCase *usecase.UpsertPinObjectUseCase
 }
 
-func NewNFTAssetPinAddService(
+func NewIPFSPinAddService(
 	logger *slog.Logger,
 	uc1 *usecase.IPFSGetNodeIDUseCase,
 	uc2 *usecase.IPFSPinAddUseCase,
 	uc3 *usecase.UpsertPinObjectUseCase,
-) *NFTAssetPinAddService {
-	return &NFTAssetPinAddService{logger, uc1, uc2, uc3}
+) *IPFSPinAddService {
+	return &IPFSPinAddService{logger, uc1, uc2, uc3}
 }
 
 type PinObjectCreateServiceRequestIDO struct {
@@ -48,7 +48,7 @@ type PinObjectCreateServiceResponseIDO struct {
 	Meta      map[string]string `bson:"meta" json:"meta"`
 }
 
-func (uc *NFTAssetPinAddService) Execute(ctx context.Context, req *PinObjectCreateServiceRequestIDO) (*PinObjectCreateServiceResponseIDO, error) {
+func (uc *IPFSPinAddService) Execute(ctx context.Context, req *PinObjectCreateServiceRequestIDO) (*PinObjectCreateServiceResponseIDO, error) {
 	//
 	// STEP 1:
 	// Validation.

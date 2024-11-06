@@ -18,6 +18,7 @@ import (
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/config/constants"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/service"
 )
 
 // Command line argument flags
@@ -26,12 +27,12 @@ var (
 	// flagAPIKey   string
 )
 
-func UploadFileCmd() *cobra.Command {
+func PinAddCmd() *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "uploadfile",
-		Short: "Commands used to upload a file to the NFT store",
+		Use:   "pinadd",
+		Short: "Commands used to upload a file to the NFT store and have it pinned as well",
 		Run: func(cmd *cobra.Command, args []string) {
-			doUploadFileCmd()
+			doPinAddCmd()
 		},
 	}
 
@@ -44,7 +45,7 @@ func UploadFileCmd() *cobra.Command {
 	return cmd
 }
 
-func doUploadFileCmd() {
+func doPinAddCmd() {
 	//
 	// STEP 1
 	// Load up our dependencies and configuration
@@ -57,7 +58,8 @@ func doUploadFileCmd() {
 
 	// --- Common --- //
 	logger := logger.NewLogger()
-	logger.Info("Starting file uploader ...")
+	logger.Info("Starting file uploader ...",
+		slog.Any("api_key", apiKey))
 
 	comicCoinConfig := &pkg_config.Config{
 		IPFS: pkg_config.IPFSConfig{
@@ -147,38 +149,6 @@ func doUploadFileCmd() {
 
 	formData := &b
 
-	// // Populate the required `meta` for IPFS.
-	// meta := make(map[string]string, 0)
-	// meta["filename"] = filename
-	// meta["content_type"] = contentType
-	// meta["content_length"] = fmt.Sprintf("%v", len(bytes))
-	//
-	// req := &service.PinObjectCreateServiceRequestIDO{
-	// 	Name:    filename,
-	// 	Origins: make([]string, 0),
-	// 	Meta:    meta,
-	// 	File:    file,
-	// }
-
-	// res, err := nftAssetPinAddService.Execute(context.Background(), req)
-	// if err != nil {
-	// 	log.Fatalf("Failed submitting file to pin in ipfs: %v\n", err)
-	// }
-	// if res == nil {
-	// 	log.Fatalf("Response is empty: %v\n", res)
-	// }
-
-	// logger.Debug("Successfully uploaded file",
-	// 	slog.Any("RequestID", res.RequestID),
-	// 	slog.Any("Status", res.Status),
-	// 	slog.Any("Created", res.Created),
-	// 	slog.Any("Delegates", res.Delegates),
-	// 	slog.Any("Info", res.Info),
-	// 	slog.Any("CID", res.CID),
-	// 	slog.Any("Name", res.Name),
-	// 	slog.Any("Origins", res.Origins),
-	// 	slog.Any("Meta", res.Meta))
-
 	// Send HTTP request with the multipart form data
 	req, err := http.NewRequest("POST", "http://127.0.0.1:8080/ipfs/pin-add", formData)
 	if err != nil {
@@ -242,5 +212,26 @@ func doUploadFileCmd() {
 		return
 	}
 
-	//TODO: THIS CODE WORKS, CONTINUE DEV. HERE!
+	var rawJSON bytes.Buffer
+	teeReader := io.TeeReader(resp.Body, &rawJSON) // TeeReader allows you to read the JSON and capture it
+
+	post := &service.IPFSPinAddResponseIDO{}
+	if err := json.NewDecoder(teeReader).Decode(&post); err != nil {
+		logger.Error("decoding string error",
+			slog.Any("err", err),
+			slog.String("json", rawJSON.String()),
+		)
+		return
+	}
+
+	logger.Debug("Submitted successfully",
+		slog.Any("RequestID", post.RequestID),
+		slog.Any("Status", post.Status),
+		slog.Any("Created", post.Created),
+		slog.Any("Delegates", post.Delegates),
+		slog.Any("Info", post.Info),
+		slog.Any("CID", post.CID),
+		slog.Any("Name", post.Name),
+		slog.Any("Origins", post.Origins),
+		slog.Any("Meta", post.Meta))
 }

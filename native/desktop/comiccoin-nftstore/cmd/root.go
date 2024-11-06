@@ -31,7 +31,7 @@ func Execute() {
 	// Attach sub-commands to our main root.
 	rootCmd.AddCommand(version.VersionCmd())
 	rootCmd.AddCommand(GenerateAPIKeyCmd())
-	rootCmd.AddCommand(UploadFileCmd())
+	rootCmd.AddCommand(PinAddCmd())
 	rootCmd.AddCommand(DaemonCmd())
 
 	if err := rootCmd.Execute(); err != nil {

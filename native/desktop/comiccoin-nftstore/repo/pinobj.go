@@ -21,12 +21,25 @@ func NewPinObjectRepo(logger *slog.Logger, dbByCIDClient disk.Storage, dbByReque
 func (r *PinObjectRepo) Upsert(pinobj *domain.PinObject) error {
 	bBytes, err := pinobj.Serialize()
 	if err != nil {
+		r.logger.Error("Failed serializing pinobject", slog.Any("error", err))
 		return err
 	}
+
+	// DEVELOPERS NOTE:
+	// We want to make sure the `CID` is always unique but the `RequestID` is
+	// always unique on every API post call, therefore if an existing record
+	// exists then we will default to use the existing records `RequestID`.
+	fetched, err := r.GetByCID(pinobj.CID)
+	if fetched == nil && err == nil {
+		pinobj.RequestID = fetched.RequestID
+	}
+
 	if err := r.dbByCIDClient.Set(pinobj.CID, bBytes); err != nil {
+		r.logger.Error("Failed setting by cid", slog.Any("error", err))
 		return err
 	}
 	if err := r.dbByRequestIDClient.Set(fmt.Sprintf("%v", pinobj.RequestID), bBytes); err != nil {
+		r.logger.Error("Failed setting by request id", slog.Any("error", err))
 		return err
 	}
 	return nil
@@ -35,8 +48,15 @@ func (r *PinObjectRepo) Upsert(pinobj *domain.PinObject) error {
 func (r *PinObjectRepo) GetByCID(cid string) (*domain.PinObject, error) {
 	bBytes, err := r.dbByCIDClient.Get(cid)
 	if err != nil {
+		r.logger.Error("Failed getting from db", slog.Any("error", err))
 		return nil, err
 	}
+
+	// If nothing exists then simply return nil, do not continue and error.
+	if bBytes == nil {
+		return nil, nil
+	}
+
 	b, err := domain.NewPinObjectFromDeserialize(bBytes)
 	if err != nil {
 		r.logger.Error("failed to deserialize",
@@ -51,6 +71,7 @@ func (r *PinObjectRepo) GetByCID(cid string) (*domain.PinObject, error) {
 func (r *PinObjectRepo) GetByRequestID(requestID uint64) (*domain.PinObject, error) {
 	bBytes, err := r.dbByRequestIDClient.Get(fmt.Sprintf("%v", requestID))
 	if err != nil {
+		r.logger.Error("Failed getting from db", slog.Any("error", err))
 		return nil, err
 	}
 	b, err := domain.NewPinObjectFromDeserialize(bBytes)
@@ -88,12 +109,15 @@ func (r *PinObjectRepo) ListAll() ([]*domain.PinObject, error) {
 func (r *PinObjectRepo) DeleteByRequestID(requestID uint64) error {
 	pinobj, err := r.GetByRequestID(requestID)
 	if err != nil {
+		r.logger.Error("Failed getting from db", slog.Any("error", err))
 		return err
 	}
 	if err := r.dbByCIDClient.Delete(pinobj.CID); err != nil {
+		r.logger.Error("Failed deleting from db by cid", slog.Any("error", err))
 		return err
 	}
 	if err := r.dbByRequestIDClient.Delete(fmt.Sprintf("%v", requestID)); err != nil {
+		r.logger.Error("Failed getting from db by request id", slog.Any("error", err))
 		return err
 	}
 
@@ -102,13 +126,16 @@ func (r *PinObjectRepo) DeleteByRequestID(requestID uint64) error {
 
 func (r *PinObjectRepo) DeleteByCID(cid string) error {
 	pinobj, err := r.GetByCID(cid)
+	r.logger.Error("Failed getting from db", slog.Any("error", err))
 	if err != nil {
 		return err
 	}
 	if err := r.dbByCIDClient.Delete(cid); err != nil {
+		r.logger.Error("Failed deleting from db by cid", slog.Any("error", err))
 		return err
 	}
 	if err := r.dbByRequestIDClient.Delete(fmt.Sprintf("%v", pinobj.RequestID)); err != nil {
+		r.logger.Error("Failed getting from db by request id", slog.Any("error", err))
 		return err
 	}
 

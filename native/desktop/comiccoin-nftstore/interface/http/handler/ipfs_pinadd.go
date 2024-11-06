@@ -1,7 +1,8 @@
 package handler
 
 import (
-	"fmt"
+	"context"
+	"encoding/json"
 	"io"
 	"log"
 	"log/slog"
@@ -13,21 +14,22 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 )
 
-type NFTAssetPinAddHTTPHandler struct {
+type IPFSPinAddHTTPHandler struct {
 	logger  *slog.Logger
-	service *service.NFTAssetPinAddService
+	service *service.IPFSPinAddService
 }
 
-func NewNFTAssetPinAddHTTPHandler(
+func NewIPFSPinAddHTTPHandler(
 	logger *slog.Logger,
-	service *service.NFTAssetPinAddService,
-) *NFTAssetPinAddHTTPHandler {
-	return &NFTAssetPinAddHTTPHandler{logger, service}
+	service *service.IPFSPinAddService,
+) *IPFSPinAddHTTPHandler {
+	return &IPFSPinAddHTTPHandler{logger, service}
 }
 
-func (h *NFTAssetPinAddHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
+func (h *IPFSPinAddHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
+		h.logger.Error("Authorization header is missing")
 		http.Error(w, "Authorization header is missing", http.StatusUnauthorized)
 		return
 	}
@@ -41,46 +43,48 @@ func (h *NFTAssetPinAddHTTPHandler) Execute(w http.ResponseWriter, r *http.Reque
 	// Extract the filename from the "Content-Disposition" header, if provided
 	contentDisposition := r.Header.Get("Content-Disposition")
 	if contentDisposition == "" {
+		h.logger.Error("missing `Content-Disposition` header in your request")
 		httperror.ResponseError(w, httperror.NewForBadRequestWithSingleField("error", "missing `Content-Disposition` header in your request"))
 	}
 	filename := getFilenameFromContentDispositionText(contentDisposition)
 	if filename == "" {
+		h.logger.Error("missing or corrupt `filename` from your requests `Content-Disposition` text")
 		httperror.ResponseError(w, httperror.NewForBadRequestWithSingleField("error", "missing or corrupt `filename` from your requests `Content-Disposition` text"))
 	}
 
 	// Extract the content-type from the request header
 	contentType := r.Header.Get("Content-Type")
 	if contentType == "" {
+		h.logger.Error("missing `Content-Type` header in your request")
 		httperror.ResponseError(w, httperror.NewForBadRequestWithSingleField("error", "missing `Content-Type` header in your request"))
 	}
 
 	// Read the binary data from the request body into a byte slice
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
+		h.logger.Error("Failed to read request body")
 		http.Error(w, "Failed to read request body", http.StatusInternalServerError)
 		return
 	}
 
-	// // Optionally, you can log the received information
-	// fmt.Printf("Received file: %s\n", filename)
-	// fmt.Printf("Content-Type: %s\n", contentType)
-	// fmt.Printf("File size: %d bytes\n", len(data))
-	// fmt.Printf("apiKey: %s\n", apiKey)
-
-	req := &IpfsAddRequestIDO{
+	req := &service.IPFSPinAddRequestIDO{
 		ApiKey:      apiKey,
 		Filename:    filename,
 		ContentType: contentType,
 		Data:        data,
 	}
-	fmt.Println(req) //TODO: THIS CODE WORKS, CONTINUE DEV. HERE!
-}
+	resp, err := h.service.Execute(context.Background(), req)
+	if err != nil {
+		h.logger.Error("Failed executing ipfs pin-add", slog.Any("error", err))
+		httperror.ResponseError(w, err)
+		return
+	}
 
-type IpfsAddRequestIDO struct {
-	ApiKey      string `bson:"api_key" json:"api_key"`
-	Filename    string `bson:"filename" json:"filename"`
-	ContentType string `bson:"content_type" json:"content_type"`
-	Data        []byte `bson:"data" json:"data"`
+	if err := json.NewEncoder(w).Encode(&resp); err != nil {
+		h.logger.Error("Failed encoding response", slog.Any("error", err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func getFilenameFromContentDispositionText(contentDispositionText string) string {
