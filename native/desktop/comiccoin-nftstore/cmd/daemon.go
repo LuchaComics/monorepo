@@ -13,6 +13,7 @@ import (
 	pkg_repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
 	"github.com/spf13/cobra"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/common/security/blacklist"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/common/security/jwt"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/common/security/password"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/config"
@@ -118,6 +119,7 @@ func doDaemonCmd() {
 
 	passp := password.NewProvider()
 	jwtp := jwt.NewProvider(nftStoreConfig)
+	blackp := blacklist.NewProvider()
 
 	// --- Disk --- //
 
@@ -169,7 +171,8 @@ func doDaemonCmd() {
 		ipfsPinAddService)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		comicCoinConfig,
-		logger)
+		logger,
+		blackp)
 	httpServ := http.NewHTTPServer(
 		comicCoinConfig,
 		logger,

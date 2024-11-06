@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
+
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/common/security/blacklist"
 )
 
 type Middleware interface {
@@ -12,16 +14,19 @@ type Middleware interface {
 }
 
 type middleware struct {
-	Config *config.Config
-	Logger *slog.Logger
+	Config    *config.Config
+	Logger    *slog.Logger
+	Blacklist blacklist.Provider
 }
 
 func NewMiddleware(
 	configp *config.Config,
 	loggerp *slog.Logger,
+	blp blacklist.Provider,
 ) Middleware {
 	return &middleware{
-		Logger: loggerp,
+		Logger:    loggerp,
+		Blacklist: blp,
 	}
 }
 
@@ -32,6 +37,7 @@ func (mid *middleware) Attach(fn http.HandlerFunc) http.HandlerFunc {
 	// will start from the bottom and proceed upwards.
 	// Ex: `RateLimitMiddleware` will be executed first and
 	//     `ProtectedURLsMiddleware` will be executed last.
+	fn = mid.EnforceBlacklistMiddleware(fn)
 	fn = mid.IPAddressMiddleware(fn)
 	fn = mid.URLProcessorMiddleware(fn)
 	fn = mid.RateLimitMiddleware(fn)
