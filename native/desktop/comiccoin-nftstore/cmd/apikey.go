@@ -5,12 +5,12 @@ import (
 	"log/slog"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config/constants"
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/common/security/jwt"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/common/security/password"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/config/constants"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/usecase"
 )
 

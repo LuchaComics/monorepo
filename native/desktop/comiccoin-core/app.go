@@ -6,6 +6,8 @@ import (
 	"log"
 	"log/slog"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config/constants"
+
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/kmutexutil"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
 	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/net/p2p"
@@ -123,7 +125,7 @@ func (a *App) startup(ctx context.Context) {
 	// Every ComicCoin node must be connected to a peer whom coordinates
 	// connecting all the other nodes in the network, therefore we get the
 	// following node(s) that act in this role.
-	bootstrapPeers, err := config.StringToAddres(ComicCoinBootstrapPeers)
+	bootstrapPeers, err := config.StringToAddres(constants.ComicCoinBootstrapPeers)
 	if err != nil {
 		a.logger.Error("Startup aborted: failed converting string to multi-addresses",
 			slog.Any("error", err))
@@ -138,11 +140,11 @@ func (a *App) startup(ctx context.Context) {
 	// Initialize the configuration.
 	cfg := &config.Config{
 		Blockchain: config.BlockchainConfig{
-			ChainID:                        ComicCoinChainID,
-			TransPerBlock:                  ComicCoinTransPerBlock,
-			Difficulty:                     ComicCoinDifficulty,
-			ConsensusPollingDelayInMinutes: ComicCoinConsensusPollingDelayInMinutes,
-			ConsensusProtocol:              ComicCoinConsensusProtocol,
+			ChainID:                        constants.ComicCoinChainID,
+			TransPerBlock:                  constants.ComicCoinTransPerBlock,
+			Difficulty:                     constants.ComicCoinDifficulty,
+			ConsensusPollingDelayInMinutes: constants.ComicCoinConsensusPollingDelayInMinutes,
+			ConsensusProtocol:              constants.ComicCoinConsensusProtocol,
 		},
 		App: config.AppConfig{
 			DirPath: dataDir,
@@ -151,12 +153,12 @@ func (a *App) startup(ctx context.Context) {
 			DataDir: dataDir,
 		},
 		Peer: config.PeerConfig{
-			ListenPort:     ComicCoinPeerListenPort,
-			KeyName:        ComicCoinIdentityKeyID,
+			ListenPort:     constants.ComicCoinPeerListenPort,
+			KeyName:        constants.ComicCoinIdentityKeyID,
 			BootstrapPeers: bootstrapPeers,
 		},
 		NFTAssetStore: config.NFTAssetStoreConfig{
-			Address: ComicCoinIPFSPublicGatewayDomain,
+			Address: constants.ComicCoinIPFSPublicGatewayDomain,
 		},
 	}
 	a.config = cfg
@@ -186,12 +188,12 @@ func (a *App) startup(ctx context.Context) {
 	ikGetService := service.NewGetIdentityKeyService(cfg, logger, ikGetUseCase)
 
 	// Get our identity key.
-	ik, err := ikGetService.Execute(ComicCoinIdentityKeyID)
+	ik, err := ikGetService.Execute(constants.ComicCoinIdentityKeyID)
 	if err != nil {
 		log.Fatalf("Failed getting identity key: %v", err)
 	}
 	if ik == nil {
-		ik, err = ikCreateService.Execute(ComicCoinIdentityKeyID)
+		ik, err = ikCreateService.Execute(constants.ComicCoinIdentityKeyID)
 		if err != nil {
 			log.Fatalf("Failed creating ComicCoin identity key: %v", err)
 		}

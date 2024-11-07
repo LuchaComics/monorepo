@@ -7,13 +7,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
+	pkgconsts "github.com/LuchaComics/monorepo/native/desktop/comiccoin/config/constants"
+
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/common/security/jwt"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/common/security/password"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/config/constants"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/usecase"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 )
 
 type IPFSPinAddService struct {
@@ -109,7 +111,7 @@ func (s *IPFSPinAddService) Execute(ctx context.Context, req *IPFSPinAddRequestI
 		return nil, httperror.NewForUnauthorizedWithSingleField("api_key", "corrupted payload: missing `secret`")
 	}
 	chainID := apiKeyPayload[0]
-	if chainID != fmt.Sprintf("%v", constants.ComicCoinChainID) {
+	if chainID != fmt.Sprintf("%v", pkgconsts.ComicCoinChainID) {
 		s.logger.Error("api_key - invalid: `chain_id` does not match mainnet value")
 		return nil, httperror.NewForUnauthorizedWithSingleField("api_key", "invalid: `chain_id` does not match mainnet value")
 	}

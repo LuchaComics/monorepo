@@ -16,6 +16,8 @@ export function GetDefaultDataDirectory():Promise<string>;
 
 export function GetIsBlockhainNodeRunning():Promise<boolean>;
 
+export function GetNFTStoreRemoteAddressFromPreferences():Promise<string>;
+
 export function GetNonFungibleToken(arg1:number):Promise<domain.NonFungibleToken>;
 
 export function GetNonFungibleTokensByOwnerAddress(arg1:string):Promise<Array<domain.NonFungibleToken>>;
@@ -31,6 +33,8 @@ export function GetTransactions(arg1:string):Promise<Array<domain.BlockTransacti
 export function ListWallets():Promise<Array<domain.Wallet>>;
 
 export function SaveDataDirectory(arg1:string):Promise<void>;
+
+export function SaveNFTStoreRemoteAddress(arg1:string):Promise<void>;
 
 export function SetDefaultWalletAddress(arg1:string):Promise<void>;
 
