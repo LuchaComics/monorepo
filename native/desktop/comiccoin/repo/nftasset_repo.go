@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -49,6 +50,10 @@ type NFTAssetRepoConfigurationProviderImpl struct {
 // NewNFTAssetRepoConfigurationProvider constructs a new configuration provider
 // for IPFS connections with the specified remote address and API key.
 func NewNFTAssetRepoConfigurationProvider(remoteAddress string, apiKey string) NFTAssetRepoConfigurationProvider {
+	// Defensive code: Enforce `remoteAddress` is set at minimum.
+	if remoteAddress == "" {
+		log.Fatal("Missing `remoteAddress` parameter.")
+	}
 	return &NFTAssetRepoConfigurationProviderImpl{
 		remoteAddress: remoteAddress,
 		apiKey:        apiKey,
@@ -149,6 +154,11 @@ func (r *NFTAssetRepo) Version(ctx context.Context) (string, error) {
 // PinAddViaFilepath uploads a file to IPFS via the specified file path and pins it.
 // The function prepares a multipart form request with the file content and metadata, and sends it.
 func (r *NFTAssetRepo) PinAddViaFilepath(ctx context.Context, fullFilePath string) (string, error) {
+	// Defensive Code: Enforce access based on if API key was set.
+	if r.config.GetNFTAssetNodeAPIKey() == "" {
+		r.logger.Warn("Cannot pin and add because no API key set.")
+		return "", errors.New("Cannot pin and add because no API key set.")
+	}
 
 	//
 	// STEP 1:
