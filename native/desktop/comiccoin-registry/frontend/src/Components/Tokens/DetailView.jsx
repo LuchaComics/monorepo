@@ -19,9 +19,11 @@ import {
 import { useRecoilState } from "recoil";
 import { toLower } from "lodash";
 
-import { GetTokens } from "../../../wailsjs/go/main/App";
 import FormRowText from "../Reusable/FormRowText";
-import { GetToken } from "../../../wailsjs/go/main/App";
+import {
+    GetToken,
+    GetNFTStoreRemoteAddressFromPreferences
+} from "../../../wailsjs/go/main/App";
 import PageLoadingContent from "../Reusable/PageLoadingContent";
 import FormRowIPFSImageField from "../Reusable/FormRowIPFSImageField";
 import FormRowIPFSVideoField from "../Reusable/FormRowIPFSVideoField";
@@ -45,6 +47,7 @@ function TokenDetailView() {
     const [totalCoins, setTotalCoins] = useState(0);
     const [totalTokens, setTotalTokens] = useState(0);
     const [token, setToken] = useState(null);
+    const [remoteAddress, setRemoteAddress] = useState("http://127.0.0.1:8080");
 
     ////
     //// Event handling.
@@ -75,6 +78,12 @@ function TokenDetailView() {
                 // Update the GUI to let user know that the operation is completed.
                 setIsLoading(false);
             });
+
+            // Get the remote address.
+            GetNFTStoreRemoteAddressFromPreferences().then( (resp)=>{
+                console.log("OnStartup: RemoteAddress:", resp);
+                setRemoteAddress(resp);
+            })
       }
 
       return () => {
@@ -147,8 +156,10 @@ function TokenDetailView() {
                       <FormRowMetadataAttributesField label="Attributes (Optional)" attributes={token.metadata.attributes} />
                       <FormRowText label="External URL (Optional)" value={token.metadata.external_url} />
                       <FormRowText label="Background Color" value={token.metadata.background_color} />
-                      <FormRowIPFSImageField label="Image" ipfsPath={token.metadata.image} />
-                      <FormRowIPFSVideoField label="Animation" ipfsPath={token.metadata.animation_url} />
+                      {remoteAddress && <>
+                          <FormRowIPFSImageField label="Image" ipfsGatewayDomain={remoteAddress} ipfsPath={token.metadata.image} />
+                          <FormRowIPFSVideoField label="Animation" ipfsGatewayDomain={remoteAddress} ipfsPath={token.metadata.animation_url} />
+                      </>}
                       <FormRowYouTubeField label="YouTube URL (Optional)" url={token.metadata.youtube_url} />
                   </>}
 

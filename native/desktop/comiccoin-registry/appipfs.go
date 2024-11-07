@@ -4,6 +4,8 @@ import (
 	"log"
 	"log/slog"
 	"strings"
+
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/domain"
 )
 
 func (a *App) GetIsIPFSRunning() bool {
@@ -18,15 +20,9 @@ func (a *App) GetIsIPFSRunning() bool {
 	return true
 }
 
-type IPFSFileResponse struct {
-	Data          []byte `json:"data"`
-	ContentType   string `json:"content_type"`
-	ContentLength uint64 `json:"content_length"`
-}
-
-func (a *App) GetFileViaIPFS(ipfsPath string) (*IPFSFileResponse, error) {
+func (a *App) GetFileViaIPFS(ipfsPath string) (*domain.RemoteIPFSGetFileResponse, error) {
 	cid := strings.Replace(ipfsPath, "ipfs://", "", -1)
-	content, contentType, err := a.remoteIpfsRepo.Get(a.ctx, cid)
+	resp, err := a.remoteIpfsRepo.Get(a.ctx, cid)
 	if err != nil {
 		a.logger.Error("failed getting from cid",
 			slog.Any("error", err))
@@ -35,10 +31,7 @@ func (a *App) GetFileViaIPFS(ipfsPath string) (*IPFSFileResponse, error) {
 
 	a.logger.Debug("GetFileViaIPFS",
 		slog.Any("cid", cid),
-		slog.Any("content_type", contentType))
+		slog.Any("content_type", resp.ContentType))
 
-	return &IPFSFileResponse{
-		Data:        content,
-		ContentType: contentType,
-	}, nil
+	return resp, nil
 }

@@ -1,5 +1,23 @@
 export namespace domain {
 	
+	export class RemoteIPFSGetFileResponse {
+	    filename: string;
+	    content: number[];
+	    content_type: string;
+	    content_length: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new RemoteIPFSGetFileResponse(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.filename = source["filename"];
+	        this.content = source["content"];
+	        this.content_type = source["content_type"];
+	        this.content_length = source["content_length"];
+	    }
+	}
 	export class TokenMetadataAttribute {
 	    display_type: string;
 	    trait_type: string;
@@ -95,27 +113,6 @@ export namespace domain {
 		    }
 		    return a;
 		}
-	}
-
-}
-
-export namespace main {
-	
-	export class IPFSFileResponse {
-	    data: number[];
-	    content_type: string;
-	    content_length: number;
-	
-	    static createFrom(source: any = {}) {
-	        return new IPFSFileResponse(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.data = source["data"];
-	        this.content_type = source["content_type"];
-	        this.content_length = source["content_length"];
-	    }
 	}
 
 }

@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	pkgfilepath "path/filepath"
+	"strings"
 	"time"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/domain"
@@ -256,7 +257,62 @@ func (r *RemoteIPFSRepo) PinAddViaFilepath(ctx context.Context, fullFilePath str
 	return post.CID, nil
 }
 
-func (r *RemoteIPFSRepo) Get(ctx context.Context, cidString string) ([]byte, string, error) {
-	log.Fatal("TODO: IMPL.")
-	return nil, "", nil
+func (r *RemoteIPFSRepo) Get(ctx context.Context, cidString string) (*domain.RemoteIPFSGetFileResponse, error) {
+	modifiedGatewayURL := strings.ReplaceAll(gatewayURL, "${CID}", cidString)
+	httpEndpoint := fmt.Sprintf("%s%s", r.remoteAddress, modifiedGatewayURL)
+
+	httpClient, err := http.NewRequest("GET", httpEndpoint, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to setup get request: %w", err)
+	}
+	httpClient.Header.Add("Content-Type", "application/json")
+
+	r.logger.Debug("Submitting to HTTP JSON API",
+		slog.String("url", httpEndpoint),
+		slog.String("method", "GET"))
+
+	client := &http.Client{}
+	res, err := client.Do(httpClient)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute request: %w", err)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected response code: %v", res.StatusCode)
+	}
+
+	// Prepare the response struct
+	resp := &domain.RemoteIPFSGetFileResponse{}
+
+	// Determine the content type and filename
+	resp.ContentType = res.Header.Get("Content-Type")
+	contentDisposition := res.Header.Get("Content-Disposition")
+
+	if strings.Contains(contentDisposition, "filename*=") {
+		filenameParts := strings.Split(contentDisposition, "filename*=")
+		if len(filenameParts) > 1 {
+			resp.Filename = strings.Trim(filenameParts[1], "\"")
+		}
+	} else {
+		resp.Filename = "default-filename"
+	}
+
+	// Read response body into a byte slice
+	bodyContent, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	// Assign content and length
+	resp.Content = bodyContent
+	resp.ContentLength = uint64(len(bodyContent))
+
+	r.logger.Debug("Fetched file content",
+		slog.String("filename", resp.Filename),
+		slog.String("content_type", resp.ContentType),
+		slog.Uint64("content_length", resp.ContentLength),
+	)
+
+	return resp, nil
 }

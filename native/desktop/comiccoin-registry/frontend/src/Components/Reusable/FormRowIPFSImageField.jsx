@@ -8,7 +8,7 @@ function FormRowIPFSImageField(props) {
   ////
   //// Props.
   ////
-  const { label, ipfsPath, helpText, type = "text" } = props;
+  const { label, ipfsGatewayDomain, ipfsPath, helpText, type = "text" } = props;
 
   ////
   //// Component states.
@@ -47,7 +47,7 @@ function FormRowIPFSImageField(props) {
       <div class="control">
         {fileURL && (
           <p>
-            {ipfsPath && <img src={`https://ipfs.io/ipfs/${ipfsPath.replace("ipfs://", "")}`} width="320" height="240" />}
+            {ipfsPath && <img src={`${ipfsGatewayDomain}/ipfs/${ipfsPath.replace("ipfs://", "")}`} width="320" height="240" />}
           </p>
         )}
         {helpText !== undefined && helpText !== null && helpText !== "" && (

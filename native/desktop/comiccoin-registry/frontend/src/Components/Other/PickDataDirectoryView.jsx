@@ -25,7 +25,12 @@ import FormErrorBox from "../Reusable/FormErrorBox";
 import FormRadioField from "../Reusable/FormRadioField";
 import FormInputField from "../Reusable/FormInputField";
 import FormInputFieldWithButton from "../Reusable/FormInputFieldWithButton";
-import {GetDefaultDataDirectory, GetDataDirectoryFromDialog, SaveDataDirectory, ShutdownApp} from "../../../wailsjs/go/main/App";
+import {
+    GetDefaultDataDirectory,
+    GetDataDirectoryFromDialog,
+    SaveDataDirectory,
+    ShutdownApp
+} from "../../../wailsjs/go/main/App";
 
 
 function PickDataDirectoryView() {

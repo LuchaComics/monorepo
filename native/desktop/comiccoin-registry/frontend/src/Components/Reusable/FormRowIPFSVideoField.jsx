@@ -8,7 +8,7 @@ function FormRowIPFSVideoField(props) {
   ////
   //// Props.
   ////
-  const { label, ipfsPath, helpText, type = "text" } = props;
+  const { label, ipfsGatewayDomain, ipfsPath, helpText, type = "text" } = props;
 
   ////
   //// Component states.
@@ -49,7 +49,7 @@ function FormRowIPFSVideoField(props) {
           <p>
             {ipfsPath && <>
                 <video width="320" height="240" controls>
-                    <source src={`https://ipfs.io/ipfs/${ipfsPath.replace("ipfs://", "")}`} type={contentType} />
+                    <source src={`${ipfsGatewayDomain}/ipfs/${ipfsPath.replace("ipfs://", "")}`} type={contentType} />
                     Your browser does not support the video tag.
                 </video>
             </>}
