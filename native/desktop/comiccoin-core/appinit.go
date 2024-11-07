@@ -20,6 +20,12 @@ func (a *App) GetDefaultDataDirectory() string {
 	return defaultDataDir
 }
 
+func (a *App) GetNFTStoreRemoteAddressFromPreferences() string {
+	preferences := PreferencesInstance()
+	nftStoreRemoteAddress := preferences.NFTStoreRemoteAddress
+	return nftStoreRemoteAddress
+}
+
 // Greet returns a greeting for the given name
 func (a *App) GetDataDirectoryFromDialog() string {
 	// Initialize Wails runtime
@@ -52,6 +58,25 @@ func (a *App) SaveDataDirectory(newDataDirectory string) error {
 	a.logger.Debug("Data directory was set by user",
 		slog.Any("data_directory", newDataDirectory))
 	a.startup(a.ctx)
+	return nil
+}
+
+func (a *App) SaveNFTStoreRemoteAddress(nftStoreRemoteAddress string) error {
+	// Defensive code
+	if nftStoreRemoteAddress == "" {
+		return fmt.Errorf("failed saving nft store remote address because: %v", "value is empty")
+	}
+	preferences := PreferencesInstance()
+	err := preferences.SetNFTStoreRemoteAddress(nftStoreRemoteAddress)
+	if err != nil {
+		a.logger.Error("Failed setting nft store remote address",
+			slog.Any("error", err))
+		return err
+	}
+
+	// Re-attempt the startup now that we have value set.
+	a.logger.Debug("NFT store remote address was set by user",
+		slog.Any("api_key", nftStoreRemoteAddress))
 	return nil
 }
 

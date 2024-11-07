@@ -27,6 +27,11 @@ type Preferences struct {
 	// automatically opend every time the application loads up. This is selected
 	// by the user.
 	DefaultWalletAddress string `json:"default_wallet_address"`
+
+	// NFTStoreRemoteAddress variable holds the full address to the location
+	// of the NFTStore on the network. Example: https://example.com or
+	// http://127.0.0.1:8080.
+	NFTStoreRemoteAddress string `json:"nft_store_remote_address"`
 }
 
 var (
@@ -74,6 +79,15 @@ func (pref *Preferences) SetDataDirectory(dataDir string) error {
 
 func (pref *Preferences) SetDefaultWalletAddress(newAdrs string) error {
 	pref.DefaultWalletAddress = newAdrs
+	data, err := json.MarshalIndent(pref, "", "\t")
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(FilePathPreferences, data, 0666)
+}
+
+func (pref *Preferences) SetNFTStoreRemoteAddress(remoteAddress string) error {
+	pref.NFTStoreRemoteAddress = remoteAddress
 	data, err := json.MarshalIndent(pref, "", "\t")
 	if err != nil {
 		return err

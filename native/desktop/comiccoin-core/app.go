@@ -28,6 +28,8 @@ type App struct {
 	// with the console log messages.
 	logger *slog.Logger
 
+	kmutex kmutexutil.KMutexProvider
+
 	// Variable tells the application whether our app is connected to the
 	// blockchain network as a node and executing successfully or not.
 	isBlockchainNodeRunning bool
@@ -84,10 +86,12 @@ type App struct {
 // NewApp creates a new App application struct
 func NewApp() *App {
 	logger := logger.NewLogger()
+	kmutex := kmutexutil.NewKMutexProvider()
 
 	cfg := &config.Config{}
 	return &App{
 		logger:                  logger,
+		kmutex:                  kmutex,
 		isBlockchainNodeRunning: false,
 		config:                  cfg,
 	}
@@ -96,6 +100,10 @@ func NewApp() *App {
 // startup is called when the app starts. The context is saved
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
+	// Ensure that this function executes only one time and never concurrently.
+	a.kmutex.Acquire("startup")
+	defer a.kmutex.Release("startup")
+
 	a.ctx = ctx
 	a.logger.Debug("Startup beginning...")
 
@@ -157,6 +165,7 @@ func (a *App) startup(ctx context.Context) {
 
 	// For convinenence
 	logger := a.logger
+	kmutex := a.kmutex
 
 	a.logger.Debug("Startup loading disk database...")
 	walletDB := disk.NewDiskStorage(cfg.DB.DataDir, "wallet", logger)
@@ -170,7 +179,6 @@ func (a *App) startup(ctx context.Context) {
 	sitokenDB := disk.NewDiskStorage(cfg.DB.DataDir, "signed_issued_token", logger)
 	nftokDB := disk.NewDiskStorage(cfg.DB.DataDir, "non_fungible_token", logger)
 	memdb := memory.NewInMemoryStorage(logger)
-	kmutex := kmutexutil.NewKMutexProvider()
 
 	a.logger.Debug("Startup loading peer-to-peer client...")
 	ikRepo := repo.NewIdentityKeyRepo(cfg, logger, ikDB)
