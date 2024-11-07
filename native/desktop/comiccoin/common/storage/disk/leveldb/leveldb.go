@@ -24,7 +24,7 @@ type storageImpl struct {
 // It opens the database file at the specified path and returns an error if it fails.
 func NewDiskStorage(dbPath string, dbName string, logger *slog.Logger) storage.Storage {
 	if dbPath == "" {
-		log.Fatal("cannot have empty filepath for the database")
+		log.Fatal("NewDiskStorage: cannot have empty filepath for the database\n")
 	}
 
 	o := &opt.Options{
@@ -35,7 +35,7 @@ func NewDiskStorage(dbPath string, dbName string, logger *slog.Logger) storage.S
 
 	db, err := leveldb.OpenFile(filePath, o)
 	if err != nil {
-		log.Fatalf("failed loading up key value storer adapter at %v", filePath)
+		log.Fatalf("NewDiskStorage: failed loading up key value storer adapter at %v with error: %v\n", filePath, err)
 	}
 	return &storageImpl{
 		db: db,

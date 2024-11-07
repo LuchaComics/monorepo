@@ -32,7 +32,7 @@ func (impl *peerProviderImpl) DiscoverPeersAtRendezvousString(ctx context.Contex
 		impl.logger.Error("Failed routing discovery finding peers",
 			slog.Any("rendezvous_string", rendezvousString),
 			slog.Any("error", err))
-		log.Fatalf("Failed routing discovery finding peers: %v", err)
+		log.Fatalf("DiscoverPeersAtRendezvousString: Failed routing discovery finding peers: %v", err)
 	}
 
 	// Iterate over the peers found at the rendezvous string.

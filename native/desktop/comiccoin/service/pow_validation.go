@@ -7,10 +7,10 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/kmutexutil"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/kmutexutil"
 )
 
 type ProofOfWorkValidationService struct {
@@ -121,11 +121,11 @@ func (s *ProofOfWorkValidationService) Execute(ctx context.Context) error {
 	//
 
 	newBlockData := &domain.BlockData{
-		Hash:            proposedBlockData.Hash,
-		Header:          proposedBlockData.Header,
+		Hash:                 proposedBlockData.Hash,
+		Header:               proposedBlockData.Header,
 		HeaderSignatureBytes: proposedBlockData.HeaderSignatureBytes,
-		Trans:           proposedBlockData.Trans,
-		Validator:       proposedBlockData.Validator,
+		Trans:                proposedBlockData.Trans,
+		Validator:            proposedBlockData.Validator,
 	}
 	newBlock, err := domain.ToBlock(newBlockData)
 	if err != nil {
@@ -311,7 +311,7 @@ func (s *ProofOfWorkValidationService) processTokenForBlockTransaction(blockTx *
 	if err != nil {
 		s.logger.Error("Failed upserting (if previous token nonce GTE then current)",
 			slog.Any("error", err))
-		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+		log.Fatalf("processTokenForBlockTransaction: DB corruption b/c of error - you will need to re-create the db!")
 	}
 
 	// DEVELOPERS NOTE:
@@ -321,7 +321,7 @@ func (s *ProofOfWorkValidationService) processTokenForBlockTransaction(blockTx *
 	if err := s.setBlockchainLastestTokenIDIfGreatestUseCase.Execute(blockTx.TokenID); err != nil {
 		s.logger.Error("validator failed saving latest hash",
 			slog.Any("error", err))
-		log.Fatalf("DB corruption b/c of error - you will need to re-create the db!")
+		log.Fatalf("processTokenForBlockTransaction: DB corruption b/c of error - you will need to re-create the db!")
 	}
 
 	return nil

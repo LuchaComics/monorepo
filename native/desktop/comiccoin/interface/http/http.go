@@ -69,7 +69,7 @@ func NewHTTPServer(
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.HTTPAddress == "" {
-		log.Fatal("missing http address")
+		log.Fatal("NewHTTPServer: missing http address")
 	}
 
 	// Initialize the ServeMux.
@@ -116,7 +116,7 @@ func (port *httpServerImpl) Run() {
 		port.logger.Error("listen failed", slog.Any("error", err))
 
 		// Terminate the application if the server fails to start.
-		log.Fatalf("failed to listen and server: %v", err)
+		log.Fatalf("httpServerImpl: Run: failed to listen and server: %v", err)
 	}
 }
 

@@ -17,6 +17,10 @@ export function GetImageFilePathFromDialog():Promise<string>;
 
 export function GetIsIPFSRunning():Promise<boolean>;
 
+export function GetNFTStoreAPIKeyFromPreferences():Promise<string>;
+
+export function GetNFTStoreRemoteAddressFromPreferences():Promise<string>;
+
 export function GetToken(arg1:number):Promise<domain.Token>;
 
 export function GetTokens():Promise<Array<domain.Token>>;
@@ -25,4 +29,12 @@ export function GetVideoFilePathFromDialog():Promise<string>;
 
 export function SaveDataDirectory(arg1:string):Promise<void>;
 
+export function SaveNFTStoreAPIKey(arg1:string):Promise<void>;
+
+export function SaveNFTStoreConfigVariables(arg1:string,arg2:string):Promise<void>;
+
+export function SaveNFTStoreRemoteAddress(arg1:string):Promise<void>;
+
 export function ShutdownApp():Promise<void>;
+
+export function StartupApp():Promise<void>;

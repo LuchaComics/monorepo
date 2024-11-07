@@ -1,6 +1,7 @@
 import {useState, useEffect} from 'react';
 import { Link, Navigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Scroll from "react-scroll";
 import {
   faArrowLeft,
   faTasks,
@@ -22,29 +23,39 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 import FormErrorBox from "../Reusable/FormErrorBox";
+import FormTextareaField from "../Reusable/FormTextareaField";
 import FormRadioField from "../Reusable/FormRadioField";
 import FormInputField from "../Reusable/FormInputField";
 import FormInputFieldWithButton from "../Reusable/FormInputFieldWithButton";
-import {GetDefaultDataDirectory, GetDataDirectoryFromDialog, SaveDataDirectory, ShutdownApp} from "../../../wailsjs/go/main/App";
+import {
+    GetNFTStoreRemoteAddressFromPreferences,
+    GetNFTStoreAPIKeyFromPreferences,
+    GetDataDirectoryFromDialog,
+    SaveNFTStoreConfigVariables,
+    ShutdownApp
+} from "../../../wailsjs/go/main/App";
+import PageLoadingContent from "../Reusable/PageLoadingContent";
 
 
-function PickDataDirectoryView() {
+function NFTSToreSetupView() {
 
     ////
     //// Component states.
     ////
 
     const [errors, setErrors] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
     const [useDefaultLocation, setUseDefaultLocation] = useState(1);
     const [forceURL, setForceURL] = useState("");
-    const [dataDirectory, setDataDirectory] = useState("./ComicCoinRegistry");
+    const [remoteAddress, setRemoteAddress] = useState("http://127.0.0.1:8080");
+    const [apiKey, setApiKey] = useState("");
     const [showCancelWarning, setShowCancelWarning] = useState(false);
 
     ////
     //// Event handling.
     ////
 
-    const setDataDirectoryCallback = (result) => setDataDirectory(result);
+    const setRemoteAddressCallback = (result) => setRemoteAddress(result);
 
     ////
     //// API.
@@ -52,12 +63,35 @@ function PickDataDirectoryView() {
 
     const onSubmitClick = (e) => {
         e.preventDefault();
+        setErrors({});
+        setIsLoading(true);
 
-        // Submit the `dataDirectory` value to our backend.
-        SaveDataDirectory(dataDirectory).then( (result) => {
+        // Submit the `remoteAddress` value to our backend.
+        SaveNFTStoreConfigVariables(apiKey, remoteAddress).then( (result) => {
             console.log("result:", result);
-            setForceURL("/config-nftstore")
-        })
+            setForceURL("/startup")
+        }).catch((errorJsonString)=>{
+            console.log("errRes:", errorJsonString);
+            const errorObject = JSON.parse(errorJsonString);
+            console.log("errorObject:", errorObject);
+
+            let err = {};
+            if (errorObject.nftStoreRemoteAddress != "") {
+                err.remoteAddress = errorObject.nftStoreRemoteAddress;
+            }
+            if (errorObject.nftStoreAPIKey != "") {
+                err.apiKey = errorObject.nftStoreAPIKey;
+            }
+            setErrors(err);
+
+            // The following code will cause the screen to scroll to the top of
+            // the page. Please see ``react-scroll`` for more information:
+            // https://github.com/fisshy/react-scroll
+            var scroll = Scroll.animateScroll;
+            scroll.scrollToTop();
+        }).finally(()=>{
+            setIsLoading(false);
+        });
     }
 
     ////
@@ -69,8 +103,13 @@ function PickDataDirectoryView() {
 
       if (mounted) {
             window.scrollTo(0, 0); // Start the page at the top of the page.
-            GetDefaultDataDirectory().then( (defaultDataDirResponse)=>{
-                setDataDirectory(defaultDataDirResponse);
+            GetNFTStoreRemoteAddressFromPreferences().then( (resp)=>{
+                console.log("OnStartup: RemoteAddress:", resp);
+                setRemoteAddress(resp);
+            })
+            GetNFTStoreAPIKeyFromPreferences().then( (resp)=>{
+                console.log("OnStartup: API Key:", resp);
+                setApiKey(resp);
             })
       }
 
@@ -92,7 +131,11 @@ function PickDataDirectoryView() {
       return <Navigate to={forceURL} />;
     }
 
-    console.log("dataDirectory:", dataDirectory);
+    if (isLoading) {
+        return (
+            <PageLoadingContent displayMessage="Please wait..." />
+        )
+    }
 
     return (
         <>
@@ -139,44 +182,31 @@ function PickDataDirectoryView() {
 
                 <FormErrorBox errors={errors} />
 
-                <p class="pb-4">As this is the first time the program is launched, you can choose where ComicCoin Registry will store its data</p>
-                <p class="pb-4">ComicCoin Registry stores all the token assets and metadata.</p>
+                <p class="pb-4">Next you will need to configure how to connect to the <b>NFT Store</b>.</p>
+                <p class="pb-4">ComicCoin Registry requires the following fields to be filled out.</p>
 
-                <FormRadioField
-                  label="Please pick the location:"
-                  name="useDefaultLocation"
-                  value={useDefaultLocation}
-                  opt1Value={1}
-                  opt1Label="Use the default data directory."
-                  opt2Value={2}
-                  opt2Label="Use a custom data directory."
-                  errorText={errors && errors.useDefaultLocation}
-                  onChange={(e) =>
-                    setUseDefaultLocation(parseInt(e.target.value))
-                  }
-                  maxWidth="180px"
-                  hasOptPerLine={true}
-                />
-
-                <FormInputFieldWithButton
-                  label="Data Directory"
-                  name="dataDirectory"
-                  placeholder="Data Directory"
-                  value={dataDirectory}
-                  errorText={errors && errors.dataDirectory}
-                  helpText=""
-                  onChange={(e) => setDataDirectory(e.target.value)}
+                <FormInputField
+                  label="Remote Address"
+                  name="remoteAddress"
+                  placeholder=""
+                  value={remoteAddress}
+                  errorText={errors && errors.remoteAddress}
+                  helpText="Please enter the address the NFT Store can be reached at."
+                  onChange={(e) => setRemoteAddress(e.target.value)}
                   isRequired={true}
                   maxWidth="500px"
-                  disabled={useDefaultLocation == 1}
-                  buttonLabel={<><FontAwesomeIcon className="fas" icon={faEllipsis} /></>}
-                  onButtonClick={(e) =>
-                    GetDataDirectoryFromDialog().then((dataDirectoryResult) => {
-                        if (dataDirectoryResult !== "") {
-                            setDataDirectory(dataDirectoryResult);
-                        }
-                    })
-                  }
+                />
+
+                <FormTextareaField
+                  label="API Key"
+                  name="apiKey"
+                  placeholder=""
+                  value={apiKey}
+                  errorText={errors && errors.apiKey}
+                  helpText="Please keep this key safe!"
+                  onChange={(e) => setApiKey(e.target.value)}
+                  isRequired={true}
+                  rows={5}
                 />
 
                 <div class="columns pt-5" style={{alignSelf: "flex-start"}}>
@@ -207,4 +237,4 @@ function PickDataDirectoryView() {
     )
 }
 
-export default PickDataDirectoryView
+export default NFTSToreSetupView

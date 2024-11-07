@@ -62,7 +62,7 @@ func NewSignedIssuedTokenDTORepo(cfg *config.Config, logger *slog.Logger, libP2P
 
 	psObj := impl.libP2PNetwork.GetPubSubSingletonInstance()
 	if psObj == nil {
-		log.Fatal("failed to get pub-sub object")
+		log.Fatal("NewSignedIssuedTokenDTORepo: failed to get pub-sub object")
 	}
 
 	//
@@ -72,10 +72,10 @@ func NewSignedIssuedTokenDTORepo(cfg *config.Config, logger *slog.Logger, libP2P
 
 	topic, err := psObj.Join(signedIssuedTokenDTORendezvousString)
 	if err != nil {
-		log.Fatalf("failed joining pub-sub for topic: %v", err)
+		log.Fatalf("NewSignedIssuedTokenDTORepo: failed joining pub-sub for topic: %v", err)
 	}
 	if topic == nil {
-		log.Fatal("joined pub-sub topic does not exist")
+		log.Fatal("NewSignedIssuedTokenDTORepo: joined pub-sub topic does not exist")
 	}
 	impl.topic = topic
 
@@ -89,14 +89,14 @@ func NewSignedIssuedTokenDTORepo(cfg *config.Config, logger *slog.Logger, libP2P
 		impl.logger.Error("failed subscribing to our topic",
 			slog.Any("error", err),
 			slog.String("topic_name", signedIssuedTokenDTOTopicName))
-		log.Fatalf("failed subscribing to our topic: %v", err)
+		log.Fatalf("NewSignedIssuedTokenDTORepo: failed subscribing to our topic: %v", err)
 	}
 	if sub == nil {
 		err := fmt.Errorf("failed subscribing to our topic: %v", "topic does not exist")
 		impl.logger.Error("failed subscribing to our topic",
 			slog.Any("error", err),
 			slog.String("topic_name", signedIssuedTokenDTOTopicName))
-		log.Fatalf("failed subscribing to our topic: %v", err)
+		log.Fatalf("NewSignedIssuedTokenDTORepo: failed subscribing to our topic: %v", err)
 	}
 	impl.sub = sub
 

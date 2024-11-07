@@ -103,7 +103,7 @@ func NewLibP2PNetwork(cfg *config.Config, logger *slog.Logger, priv crypto.PrivK
 	// Create a new host node with a predictable identifier.
 	h, err := impl.newHostWithPredictableIdentifier()
 	if err != nil {
-		log.Fatalf("failed to load host: %v", err)
+		log.Fatalf("NewLibP2PNetwork: failed to load host: %v", err)
 	}
 	impl.host = h
 
@@ -118,7 +118,7 @@ func NewLibP2PNetwork(cfg *config.Config, logger *slog.Logger, priv crypto.PrivK
 	// Create a new gossip pub-sub instance.
 	ps, err := pubsub.NewGossipSub(context.Background(), h)
 	if err != nil {
-		log.Fatalf("failed setting new gossip sub: %v", err)
+		log.Fatalf("NewLibP2PNetwork: failed setting new gossip sub: %v", err)
 	}
 	impl.gossipPubSub = ps
 

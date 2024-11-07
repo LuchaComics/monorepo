@@ -38,7 +38,7 @@ func (node *peerProviderImpl) newKademliaDHT(ctx context.Context) *dht.IpfsDHT {
 	if err != nil {
 		node.logger.Debug("Failed to create new dht",
 			slog.Any("error", err))
-		log.Fatal(err)
+		log.Fatalf("newKademliaDHT: %v\n", err)
 	}
 
 	// Bootstrap the DHT to populate the peer table.
@@ -46,7 +46,7 @@ func (node *peerProviderImpl) newKademliaDHT(ctx context.Context) *dht.IpfsDHT {
 	if err = kademliaDHT.Bootstrap(ctx); err != nil {
 		node.logger.Debug("Failed bootstrapping the dht",
 			slog.Any("error", err))
-		log.Fatal(err)
+		log.Fatalf("newKademliaDHT: %v\n", err)
 	}
 
 	// Wait for the bootstrapping process to complete.

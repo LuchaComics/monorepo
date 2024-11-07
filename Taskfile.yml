@@ -16,17 +16,17 @@ tasks:
     cmds:
       - go work use ./cloud/cps-backend
 
-  useipfs:
-    desc: Load up the go workspace for the `cps-ipfsstore-backend` module.
+  usecomiccoin:
+    desc: Load up the go workspace for the `comiccoin` module.
     cmds:
-      - go work use ./cloud/cps-ipfsstore-backend
+      - go work use ./native/desktop/comiccoin
 
-  usenft:
-    desc: Load up the go workspace for the `cps-nftstore-backend` module.
+  usenftstore:
+    desc: Load up the go workspace for the `comiccoin-nftstore` module.
     cmds:
-      - go work use ./cloud/cps-nftstore-backend
+      - go work use ./native/desktop/comiccoin-nftstore
 
-  usenftcli:
-    desc: Load up the go workspace for the `cps-nftstore-cli` module.
+  useregistry:
+    desc: Load up the go workspace for the `comiccoin-registry` module.
     cmds:
-      - go work use ./cloud/cps-nftstore-cli
+      - go work use ./native/desktop/comiccoin-registry

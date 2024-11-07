@@ -30,13 +30,13 @@ func (s *BlockchainStartupService) Execute() error {
 	// and not on disk.
 	s.logger.Info("Loading accounts into memory...")
 	if err := s.initAccountsFromBlockchainService.Execute(); err != nil {
-		log.Fatalf("failed executing accounts initialization: %v\n", err)
+		log.Fatalf("BlockchainStartupService: Execute: failed executing accounts initialization: %v\n", err)
 	}
 	s.logger.Info("Accounts database ready.")
 
 	s.logger.Info("Initializing blockchain database...")
 	if err := s.initBlockDataService.Execute(); err != nil {
-		log.Fatalf("failed executing blockdata initialization: %v\n", err)
+		log.Fatalf("BlockchainStartupService: Execute: failed executing blockdata initialization: %v\n", err)
 	}
 	s.logger.Info("Blockchain database ready")
 

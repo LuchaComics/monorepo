@@ -9,9 +9,9 @@ import (
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/libp2p/go-libp2p/core/peer"
 
+	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/net/p2p"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
-	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/net/p2p"
 )
 
 const (
@@ -62,7 +62,7 @@ func NewMempoolTransactionDTORepo(cfg *config.Config, logger *slog.Logger, libP2
 
 	psObj := impl.libP2PNetwork.GetPubSubSingletonInstance()
 	if psObj == nil {
-		log.Fatal("failed to get pub-sub object")
+		log.Fatal("NewMempoolTransactionDTORepo: failed to get pub-sub object")
 	}
 
 	//
@@ -72,10 +72,10 @@ func NewMempoolTransactionDTORepo(cfg *config.Config, logger *slog.Logger, libP2
 
 	topic, err := psObj.Join(mempoolTransactionRendezvousString)
 	if err != nil {
-		log.Fatalf("failed joining pub-sub for topic: %v", err)
+		log.Fatalf("NewMempoolTransactionDTORepo: failed joining pub-sub for topic: %v", err)
 	}
 	if topic == nil {
-		log.Fatal("joined pub-sub topic does not exist")
+		log.Fatal("NewMempoolTransactionDTORepo: joined pub-sub topic does not exist")
 	}
 	impl.topic = topic
 
@@ -89,14 +89,14 @@ func NewMempoolTransactionDTORepo(cfg *config.Config, logger *slog.Logger, libP2
 		impl.logger.Error("failed subscribing to our topic",
 			slog.Any("error", err),
 			slog.String("topic_name", mempoolTransactionTopicName))
-		log.Fatalf("failed subscribing to our topic: %v", err)
+		log.Fatalf("NewMempoolTransactionDTORepo: failed subscribing to our topic: %v", err)
 	}
 	if sub == nil {
 		err := fmt.Errorf("failed subscribing to our topic: %v", "topic does not exist")
 		impl.logger.Error("failed subscribing to our topic",
 			slog.Any("error", err),
 			slog.String("topic_name", mempoolTransactionTopicName))
-		log.Fatalf("failed subscribing to our topic: %v", err)
+		log.Fatalf("NewMempoolTransactionDTORepo: failed subscribing to our topic: %v", err)
 	}
 	impl.sub = sub
 

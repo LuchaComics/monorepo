@@ -50,13 +50,13 @@ func NewIPFSRepo(cfg *config.Config, logger *slog.Logger) domain.IPFSRepository 
 	// Step 2: Create a Multiaddr using the remote IPFS address
 	multiaddr, err := ma.NewMultiaddr(ipfsAddress)
 	if err != nil {
-		log.Fatalf("failed to create multiaddr: %v", err)
+		log.Fatalf("NewIPFSRepo: failed to create multiaddr: %v", err)
 	}
 
 	// Step 3: Create a new IPFS HTTP API client using the remote server address
 	api, err := rpc.NewApi(multiaddr)
 	if err != nil {
-		log.Fatalf("failed to create IPFS HTTP API client: %v", err)
+		log.Fatalf("NewIPFSRepo: failed to create IPFS HTTP API client: %v", err)
 	}
 
 	return &IPFSRepo{

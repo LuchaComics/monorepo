@@ -30,6 +30,14 @@ export function GetIsIPFSRunning() {
   return window['go']['main']['App']['GetIsIPFSRunning']();
 }
 
+export function GetNFTStoreAPIKeyFromPreferences() {
+  return window['go']['main']['App']['GetNFTStoreAPIKeyFromPreferences']();
+}
+
+export function GetNFTStoreRemoteAddressFromPreferences() {
+  return window['go']['main']['App']['GetNFTStoreRemoteAddressFromPreferences']();
+}
+
 export function GetToken(arg1) {
   return window['go']['main']['App']['GetToken'](arg1);
 }
@@ -46,6 +54,22 @@ export function SaveDataDirectory(arg1) {
   return window['go']['main']['App']['SaveDataDirectory'](arg1);
 }
 
+export function SaveNFTStoreAPIKey(arg1) {
+  return window['go']['main']['App']['SaveNFTStoreAPIKey'](arg1);
+}
+
+export function SaveNFTStoreConfigVariables(arg1, arg2) {
+  return window['go']['main']['App']['SaveNFTStoreConfigVariables'](arg1, arg2);
+}
+
+export function SaveNFTStoreRemoteAddress(arg1) {
+  return window['go']['main']['App']['SaveNFTStoreRemoteAddress'](arg1);
+}
+
 export function ShutdownApp() {
   return window['go']['main']['App']['ShutdownApp']();
+}
+
+export function StartupApp() {
+  return window['go']['main']['App']['StartupApp']();
 }

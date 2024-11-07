@@ -2,42 +2,27 @@ import {useState, useEffect} from 'react';
 import { Link, Navigate } from "react-router-dom";
 
 import PageLoadingContent from "../Reusable/PageLoadingContent";
-import {GetIsIPFSRunning} from "../../../wailsjs/go/main/App";
+import {
+    StartupApp,
+} from "../../../wailsjs/go/main/App";
 
-
+/**
+ * The purpose of this view is to display a loading message to the user while
+ * the application loads up / finishes initializing. Once completed this view
+ * will redirect the user to the dashboard.
+ */
 function StartupView() {
     ////
     //// Component states.
     ////
 
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [forceURL, setForceURL] = useState("");
     const [intervalId, setIntervalId] = useState(null);
 
     ////
     //// Event handling.
     ////
-
-    // Function will make a call to check to see if our node is running
-    // and if our backend says the node is running then we will redirect
-    // to another page.
-    const backgroundPollingTick = () => {
-        // Update the GUI to let user know that the operation is under way.
-        setIsLoading(true);
-
-        GetIsIPFSRunning().then((isIPFSRunningRes)=>{
-            console.log("isIPFSRunningRes:", isIPFSRunningRes);
-            if (isIPFSRunningRes === true) {
-              setForceURL("/dashboard");
-            }
-        }).finally(() => {
-            // this will be executed after then or catch has been executed
-            console.log("promise has been resolved or rejected");
-
-            // Update the GUI to let user know that the operation is completed.
-            setIsLoading(false);
-        });
-    }
 
     ////
     //// Misc.
@@ -46,9 +31,26 @@ function StartupView() {
     useEffect(() => {
       let mounted = true;
 
-      // Initalize the background timer to tick every second.
-      const interval = setInterval(backgroundPollingTick, 1000);
-      setIntervalId(interval);
+      const startBackend = async () => {
+        try {
+            const result = await StartupApp();
+            if (mounted) {
+                console.log("Backend is ready.");
+                setForceURL("/dashboard");
+            }
+        } catch (errResp) {
+            console.log("Backend has error.", errResp);
+            if (mounted) {
+                setErrors(errResp);
+            }
+        } finally {
+            if (mounted) {
+                console.log("Finished.");
+            }
+        }
+      };
+
+      startBackend();
 
       if (mounted) {
         window.scrollTo(0, 0); // Start the page at the top of the page.
@@ -57,10 +59,10 @@ function StartupView() {
        // Cleanup the interval when the component unmounts
       return () => {
         console.log("unmounted")
-        clearInterval(interval);
+        // clearInterval(interval);
         mounted = false;
       };
-    }, []); // The empty dependency array ensures the effect runs only once on mount
+  }, []); // The empty dependency array ensures the effect runs only once on mount
 
     ////
     //// Component rendering.
@@ -68,6 +70,12 @@ function StartupView() {
 
     if (forceURL !== "") {
         return <Navigate to={forceURL} />;
+    }
+
+    if (isLoading) {
+        return (
+            <PageLoadingContent displayMessage="Please wait..." />
+        )
     }
 
     return (

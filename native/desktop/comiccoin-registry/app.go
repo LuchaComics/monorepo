@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/kmutexutil"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
 	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/disk/leveldb"
 
@@ -18,6 +19,8 @@ type App struct {
 	// with the console log messages.
 	logger *slog.Logger
 
+	kmutex kmutexutil.KMutexProvider
+
 	tokenRepo *repo.TokenRepo
 
 	ipfsRepo *repo.IPFSRepo
@@ -28,15 +31,23 @@ type App struct {
 // NewApp creates a new App application struct
 func NewApp() *App {
 	logger := logger.NewLogger()
+	kmutex := kmutexutil.NewKMutexProvider()
 	return &App{
-		logger:    logger,
-		tokenRepo: nil,
+		logger:            logger,
+		kmutex:            kmutex,
+		tokenRepo:         nil,
+		ipfsRepo:          nil,
+		latestTokenIDRepo: nil,
 	}
 }
 
 // startup is called when the app starts. The context is saved
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
+	// Ensure that this function executes only one time and never concurrently.
+	a.kmutex.Acquire("startup")
+	defer a.kmutex.Release("startup")
+
 	a.ctx = ctx
 	a.logger.Debug("Startup beginning...")
 
@@ -52,17 +63,34 @@ func (a *App) startup(ctx context.Context) {
 		return
 	}
 
-	tokenByTokenIDDB := disk.NewDiskStorage(dataDir, "token_by_id", a.logger)
-	tokenByMetadataURIDB := disk.NewDiskStorage(dataDir, "token_by_metadata_uri", a.logger)
-	tokenRepo := repo.NewTokenRepo(a.logger, tokenByTokenIDDB, tokenByMetadataURIDB)
-	a.tokenRepo = tokenRepo
+	if a.tokenRepo == nil {
+		a.logger.Debug("Loading disk storage: token_by_id")
+		tokenByTokenIDDB := disk.NewDiskStorage(dataDir, "token_by_id", a.logger)
 
-	ipfsNode := repo.NewIPFSRepo(a.logger, "127.0.0.1", "5002")
-	a.ipfsRepo = ipfsNode
+		a.logger.Debug("Loading disk storage: token_by_metadata_uri")
+		tokenByMetadataURIDB := disk.NewDiskStorage(dataDir, "token_by_metadata_uri", a.logger)
 
-	latestTokenIDDB := disk.NewDiskStorage(dataDir, "latest_token_id", a.logger)
-	latestTokenIDRepo := repo.NewLastestTokenIDRepo(
-		a.logger,
-		latestTokenIDDB)
-	a.latestTokenIDRepo = latestTokenIDRepo
+		a.logger.Debug("Loading repo: tokenRepo")
+		tokenRepo := repo.NewTokenRepo(a.logger, tokenByTokenIDDB, tokenByMetadataURIDB)
+		a.tokenRepo = tokenRepo
+	}
+
+	if a.ipfsRepo == nil {
+		a.logger.Debug("Loading repo: ipfs repo")
+		ipfsNode := repo.NewIPFSRepo(a.logger, "127.0.0.1", "5002")
+		a.ipfsRepo = ipfsNode
+	}
+
+	if a.latestTokenIDRepo == nil {
+		a.logger.Debug("Loading disk storage: latest_token_id")
+		latestTokenIDDB := disk.NewDiskStorage(dataDir, "latest_token_id", a.logger)
+
+		a.logger.Debug("Loading repo: latestTokenIDRepo")
+		latestTokenIDRepo := repo.NewLastestTokenIDRepo(
+			a.logger,
+			latestTokenIDDB)
+		a.latestTokenIDRepo = latestTokenIDRepo
+	}
+
+	a.logger.Debug("startup: finished...")
 }
