@@ -11,7 +11,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/LuchaComics/monorepo/cloud/cps-backend/provider/logger"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
 	handler "github.com/LuchaComics/monorepo/native/desktop/comiccoin/interface/http/handler"
 )
 
