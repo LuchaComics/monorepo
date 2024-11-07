@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-function FormRowMetadataAttributesField(props) {
+function FormRowMetadataAttributes(props) {
   const { label, attributes, helpText, type = "text" } = props;
   return (
     <div class="field pb-4">
@@ -52,4 +52,4 @@ function FormRowMetadataAttributesField(props) {
   );
 }
 
-export default FormRowMetadataAttributesField;
+export default FormRowMetadataAttributes;

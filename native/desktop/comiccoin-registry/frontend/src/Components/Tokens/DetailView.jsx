@@ -25,10 +25,11 @@ import {
     GetNFTStoreRemoteAddressFromPreferences
 } from "../../../wailsjs/go/main/App";
 import PageLoadingContent from "../Reusable/PageLoadingContent";
-import FormRowIPFSImageField from "../Reusable/FormRowIPFSImageField";
-import FormRowIPFSVideoField from "../Reusable/FormRowIPFSVideoField";
+import FormRowIPFSImage from "../Reusable/FormRowIPFSImage";
+import FormRowIPFSVideo from "../Reusable/FormRowIPFSVideo";
+import FormRowIPFSDownloadLink from "../Reusable/FormRowIPFSDownloadLink";
 import FormRowYouTubeField from "../Reusable/FormRowYouTubeField";
-import FormRowMetadataAttributesField from "../Reusable/FormRowMetadataAttributesField";
+import FormRowMetadataAttributes from "../Reusable/FormRowMetadataAttributes";
 
 
 function TokenDetailView() {
@@ -145,20 +146,25 @@ function TokenDetailView() {
                           &nbsp;Blockchain
                       </h1>
                       <FormRowText label="ID" value={token.token_id} />
-                      <FormRowText label="Metadata URI" value={token.metadata_uri} />
-
+                      {remoteAddress && <>
+                          <FormRowIPFSDownloadLink
+                               label="Metadata URI"
+                               ipfsGatewayDomain={remoteAddress}
+                               ipfsPath={`${token.metadata_uri}`}
+                          />
+                      </>}
                       <h1 class="title is-5">
                           <FontAwesomeIcon className="fas" icon={faFile} />
                           &nbsp;Metadata
                       </h1>
                       <FormRowText label="Name" value={token.metadata.name} />
                       <FormRowText label="Description" value={token.metadata.description} />
-                      <FormRowMetadataAttributesField label="Attributes (Optional)" attributes={token.metadata.attributes} />
+                      <FormRowMetadataAttributes label="Attributes (Optional)" attributes={token.metadata.attributes} />
                       <FormRowText label="External URL (Optional)" value={token.metadata.external_url} />
                       <FormRowText label="Background Color" value={token.metadata.background_color} />
                       {remoteAddress && <>
-                          <FormRowIPFSImageField label="Image" ipfsGatewayDomain={remoteAddress} ipfsPath={token.metadata.image} />
-                          <FormRowIPFSVideoField label="Animation" ipfsGatewayDomain={remoteAddress} ipfsPath={token.metadata.animation_url} />
+                          <FormRowIPFSImage label="Image" ipfsGatewayDomain={remoteAddress} ipfsPath={token.metadata.image} />
+                          <FormRowIPFSVideo label="Animation" ipfsGatewayDomain={remoteAddress} ipfsPath={token.metadata.animation_url} />
                       </>}
                       <FormRowYouTubeField label="YouTube URL (Optional)" url={token.metadata.youtube_url} />
                   </>}

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import { GetFileViaIPFS } from "../../../wailsjs/go/main/App";
 
-function FormRowIPFSImageField(props) {
+function FormRowIPFSVideo(props) {
 
   ////
   //// Props.
@@ -47,7 +47,12 @@ function FormRowIPFSImageField(props) {
       <div class="control">
         {fileURL && (
           <p>
-            {ipfsPath && <img src={`${ipfsGatewayDomain}/ipfs/${ipfsPath.replace("ipfs://", "")}`} width="320" height="240" />}
+            {ipfsPath && <>
+                <video width="320" height="240" controls>
+                    <source src={`${ipfsGatewayDomain}/ipfs/${ipfsPath.replace("ipfs://", "")}`} type={contentType} />
+                    Your browser does not support the video tag.
+                </video>
+            </>}
           </p>
         )}
         {helpText !== undefined && helpText !== null && helpText !== "" && (
@@ -58,4 +63,4 @@ function FormRowIPFSImageField(props) {
   );
 }
 
-export default FormRowIPFSImageField;
+export default FormRowIPFSVideo;
