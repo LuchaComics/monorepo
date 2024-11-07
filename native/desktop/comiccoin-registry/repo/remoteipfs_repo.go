@@ -38,7 +38,7 @@ func (r *RemoteIPFSRepo) Version(ctx context.Context) (string, error) {
 	// Make `GET` request to HTTP JSON API.
 	//
 
-	httpEndpoint := fmt.Sprintf("http://%s%s", r.remoteAddress, versionURL)
+	httpEndpoint := fmt.Sprintf("%s%s", r.remoteAddress, versionURL)
 
 	httpClient, err := http.NewRequest("GET", httpEndpoint, nil)
 	if err != nil {
