@@ -9,7 +9,6 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
 	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/disk/leveldb"
 	pkg_config "github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
-	pkg_repo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/common/security/blacklist"
@@ -99,7 +98,7 @@ func doDaemonCmd() {
 
 	// --- Repository --- //
 
-	ipfsRepo := pkg_repo.NewIPFSRepo(comicCoinConfig, logger)
+	ipfsRepo := repo.NewIPFSRepo(comicCoinConfig, logger)
 	pinObjRepo := repo.NewPinObjectRepo(logger, pinObjsByCIDDB, pinObjsByRequestIDDB)
 
 	// --- UseCase --- //

@@ -5,15 +5,16 @@ import (
 	"log/slog"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
-	pkg_domain "github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
+
+	domain "github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/domain"
 )
 
 type IPFSGetUseCase struct {
 	logger   *slog.Logger
-	ipfsRepo pkg_domain.IPFSRepository
+	ipfsRepo domain.IPFSRepository
 }
 
-func NewIPFSGetUseCase(logger *slog.Logger, r1 pkg_domain.IPFSRepository) *IPFSGetUseCase {
+func NewIPFSGetUseCase(logger *slog.Logger, r1 domain.IPFSRepository) *IPFSGetUseCase {
 	return &IPFSGetUseCase{logger, r1}
 }
 

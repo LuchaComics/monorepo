@@ -1,4 +1,3 @@
-// Copy and pasted from `comiccoin`
 package repo
 
 import (
@@ -15,7 +14,6 @@ import (
 	"time"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 	"github.com/ipfs/boxo/files"
 	"github.com/ipfs/boxo/path"
 	"github.com/ipfs/go-cid"
@@ -23,6 +21,8 @@ import (
 	"github.com/ipfs/kubo/core/coreiface/options"
 	"github.com/libp2p/go-libp2p/core/peer"
 	ma "github.com/multiformats/go-multiaddr"
+
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/domain"
 )
 
 type IPFSRepo struct {

@@ -3,16 +3,17 @@ package usecase
 import (
 	"log/slog"
 
-	pkg_domain "github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 	"github.com/libp2p/go-libp2p/core/peer"
+
+	domain "github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/domain"
 )
 
 type IPFSGetNodeIDUseCase struct {
 	logger   *slog.Logger
-	ipfsRepo pkg_domain.IPFSRepository
+	ipfsRepo domain.IPFSRepository
 }
 
-func NewIPFSGetNodeIDUseCase(logger *slog.Logger, r1 pkg_domain.IPFSRepository) *IPFSGetNodeIDUseCase {
+func NewIPFSGetNodeIDUseCase(logger *slog.Logger, r1 domain.IPFSRepository) *IPFSGetNodeIDUseCase {
 	return &IPFSGetNodeIDUseCase{logger, r1}
 }
 
