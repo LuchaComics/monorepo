@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"log/slog"
 	"net/http"
 )
@@ -15,6 +16,13 @@ func NewGetVersionHTTPHandler(
 	return &GetVersionHTTPHandler{logger}
 }
 
-func (h *GetVersionHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
+type VersionResponseIDO struct {
+	Version string `json:"version"`
+}
 
+func (h *GetVersionHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
+	h.logger.Debug("Version requested")
+
+	response := VersionResponseIDO{Version: "1.0"}
+	json.NewEncoder(w).Encode(response)
 }

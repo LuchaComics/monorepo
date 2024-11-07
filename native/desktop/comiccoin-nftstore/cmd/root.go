@@ -34,6 +34,7 @@ func Execute() {
 	rootCmd.AddCommand(PinAddCmd())
 	rootCmd.AddCommand(GetCmd())
 	rootCmd.AddCommand(DaemonCmd())
+	rootCmd.AddCommand(RemoteVersionCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)

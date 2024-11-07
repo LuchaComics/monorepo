@@ -8,6 +8,7 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
 	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/disk/leveldb"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/repo"
 )
 
@@ -23,7 +24,7 @@ type App struct {
 
 	tokenRepo *repo.TokenRepo
 
-	ipfsRepo *repo.IPFSRepo
+	remoteIpfsRepo domain.RemoteIPFSRepository
 
 	latestTokenIDRepo *repo.LastestTokenIDRepo
 }
@@ -36,7 +37,7 @@ func NewApp() *App {
 		logger:            logger,
 		kmutex:            kmutex,
 		tokenRepo:         nil,
-		ipfsRepo:          nil,
+		remoteIpfsRepo:    nil,
 		latestTokenIDRepo: nil,
 	}
 }
@@ -75,10 +76,14 @@ func (a *App) startup(ctx context.Context) {
 		a.tokenRepo = tokenRepo
 	}
 
-	if a.ipfsRepo == nil {
-		a.logger.Debug("Loading repo: ipfs repo")
-		ipfsNode := repo.NewIPFSRepo(a.logger, "127.0.0.1", "5002")
-		a.ipfsRepo = ipfsNode
+	if a.remoteIpfsRepo == nil {
+		nftStoreRemoteAddress := preferences.NFTStoreRemoteAddress
+		nftStoreAPIKey := preferences.NFTStoreAPIKey
+		a.logger.Debug("Loading repo: remote ipfs repo",
+			slog.Any("nftStoreRemoteAddress", nftStoreRemoteAddress),
+			slog.Any("nftStoreAPIKey", nftStoreAPIKey))
+		remoteIpfsRepo := repo.NewRemoteIPFSRepo(a.logger, nftStoreRemoteAddress, nftStoreAPIKey)
+		a.remoteIpfsRepo = remoteIpfsRepo
 	}
 
 	if a.latestTokenIDRepo == nil {

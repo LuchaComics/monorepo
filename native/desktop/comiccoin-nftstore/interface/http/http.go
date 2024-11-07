@@ -32,7 +32,8 @@ type httpServerImpl struct {
 	// server is the underlying HTTP server.
 	server *http.Server
 
-	// ipfsGatewayHTTPHandler is the handler for getting Token detail.
+	getVersionHTTPHandler *handler.GetVersionHTTPHandler
+
 	ipfsGatewayHTTPHandler *handler.IPFSGatewayHTTPHandler
 
 	ipfsPinAddHTTPHandler *handler.IPFSPinAddHTTPHandler
@@ -43,6 +44,7 @@ func NewHTTPServer(
 	cfg *config.Config,
 	logger *slog.Logger,
 	mid mid.Middleware,
+	getVersionHTTPHandler *handler.GetVersionHTTPHandler,
 	ipfsGatewayHTTPHandler *handler.IPFSGatewayHTTPHandler,
 	ipfsPinAddHTTPHandler *handler.IPFSPinAddHTTPHandler,
 ) HTTPServer {
@@ -68,6 +70,7 @@ func NewHTTPServer(
 		cfg:                    cfg,
 		logger:                 logger,
 		server:                 srv,
+		getVersionHTTPHandler:  getVersionHTTPHandler,
 		ipfsGatewayHTTPHandler: ipfsGatewayHTTPHandler,
 		ipfsPinAddHTTPHandler:  ipfsPinAddHTTPHandler,
 	}
@@ -118,6 +121,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 
 	// Handle the request based on the URL path tokens.
 	switch {
+	case n == 1 && p[0] == "version" && r.Method == http.MethodGet:
+		port.getVersionHTTPHandler.Execute(w, r)
 	case n == 2 && p[0] == "ipfs" && r.Method == http.MethodGet:
 		port.ipfsGatewayHTTPHandler.Execute(w, r, p[1])
 	case n == 2 && p[0] == "ipfs" && p[1] == "pin-add" && r.Method == http.MethodPost:

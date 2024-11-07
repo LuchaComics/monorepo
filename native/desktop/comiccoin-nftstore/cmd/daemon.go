@@ -132,7 +132,8 @@ func doDaemonCmd() {
 	//
 
 	// --- HTTP --- //
-
+	getVersionHTTPHandler := httphandler.NewGetVersionHTTPHandler(
+		logger)
 	ipfsGatewayHTTPHandler := httphandler.NewIPFSGatewayHTTPHandler(
 		logger,
 		pinObjectGetByCIDService)
@@ -146,6 +147,7 @@ func doDaemonCmd() {
 		config,
 		logger,
 		httpMiddleware,
+		getVersionHTTPHandler,
 		ipfsGatewayHTTPHandler,
 		ipfsPinAddHTTPHandler,
 	)

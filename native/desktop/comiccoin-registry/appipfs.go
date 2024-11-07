@@ -1,20 +1,20 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"log/slog"
 	"strings"
 )
 
 func (a *App) GetIsIPFSRunning() bool {
-	peerID, err := a.ipfsRepo.ID()
-	if err != nil {
-		a.logger.Error("failed connecting to IPFS repo to get ID()",
-			slog.Any("error", err))
-		return false
-	}
-	fmt.Printf("IPFS Node ID: %s\n", peerID)
-
+	// peerID, err := a.remoteIpfsRepo.ID()
+	// if err != nil {
+	// 	a.logger.Error("failed connecting to IPFS repo to get ID()",
+	// 		slog.Any("error", err))
+	// 	return false
+	// }
+	// fmt.Printf("IPFS Node ID: %s\n", peerID)
+	log.Fatal("deprecated")
 	return true
 }
 
@@ -26,7 +26,7 @@ type IPFSFileResponse struct {
 
 func (a *App) GetFileViaIPFS(ipfsPath string) (*IPFSFileResponse, error) {
 	cid := strings.Replace(ipfsPath, "ipfs://", "", -1)
-	content, contentType, err := a.ipfsRepo.Get(a.ctx, cid)
+	content, contentType, err := a.remoteIpfsRepo.Get(a.ctx, cid)
 	if err != nil {
 		a.logger.Error("failed getting from cid",
 			slog.Any("error", err))

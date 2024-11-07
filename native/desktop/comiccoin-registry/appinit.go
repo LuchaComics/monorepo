@@ -7,6 +7,8 @@ import (
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/repo"
 )
 
 func (a *App) GetDataDirectoryFromPreferences() string {
@@ -100,6 +102,11 @@ func (a *App) SaveNFTStoreRemoteAddress(nftStoreRemoteAddress string) error {
 }
 
 func (a *App) SaveNFTStoreConfigVariables(nftStoreAPIKey string, nftStoreRemoteAddress string) error {
+	//
+	// STEP 1:
+	// Validation.
+	//
+
 	e := make(map[string]string)
 	if nftStoreAPIKey == "" {
 		e["nftStoreAPIKey"] = "missing value"
@@ -113,6 +120,23 @@ func (a *App) SaveNFTStoreConfigVariables(nftStoreAPIKey string, nftStoreRemoteA
 			slog.Any("error", e))
 		return httperror.NewForBadRequest(&e)
 	}
+
+	//
+	// STEP 2:
+	// Confirm the remote address works.
+	//
+
+	tempIpfsRepo := repo.NewRemoteIPFSRepo(a.logger, nftStoreRemoteAddress, nftStoreAPIKey)
+	version, err := tempIpfsRepo.Version(a.ctx)
+	if err != nil {
+		return httperror.NewForBadRequestWithSingleField("nftStoreRemoteAddress", fmt.Sprintf("%v", err))
+	}
+	fmt.Println("version -->", version)
+
+	//
+	// STEP 3:
+	// Save to preferences.
+	//
 
 	if err := a.SaveNFTStoreRemoteAddress(nftStoreRemoteAddress); err != nil {
 		a.logger.Error("Failed setting nft store remote address",

@@ -198,7 +198,7 @@ func (a *App) CreateToken(
 	// STEP 4: Upload `image` file to IPFS.
 	//
 
-	imageCID, err := a.ipfsRepo.PinAdd(image)
+	imageCID, err := a.remoteIpfsRepo.PinAddViaFilepath(a.ctx, image)
 	if err != nil {
 		// If an error occurs, log an error and return an error.
 		a.logger.Error("Failed adding to IPFS.",
@@ -214,7 +214,7 @@ func (a *App) CreateToken(
 	// STEP 5: Upload `animation` file to IPFs.
 	//
 
-	animationCID, err := a.ipfsRepo.PinAdd(animation)
+	animationCID, err := a.remoteIpfsRepo.PinAddViaFilepath(a.ctx, animation)
 	if err != nil {
 		// If an error occurs, log an error and return an error.
 		a.logger.Error("Failed adding animation to IPFs.",
@@ -327,7 +327,7 @@ func (a *App) CreateToken(
 	// Upload to IPFs and get the CID.
 	//
 
-	metadataCID, err := a.ipfsRepo.PinAdd(metadataFilepath)
+	metadataCID, err := a.remoteIpfsRepo.PinAddViaFilepath(a.ctx, metadataFilepath)
 	if err != nil {
 		// If an error occurs, log an error and return an error.
 		a.logger.Error("Failed adding metadata to IPFs.",
