@@ -56,7 +56,7 @@ func doGenerateAPIKeyCmd() {
 			HTTPAddress: flagListenHTTPAddress,
 		},
 	}
-	logger := logger.NewLogger()
+	logger := logger.NewProvider()
 	passp := password.NewProvider()
 	jwtp := jwt.NewProvider(cfg)
 	apiKeyGenUseCase := usecase.NewGenerateAPIKeyUseCase(logger, passp, jwtp)

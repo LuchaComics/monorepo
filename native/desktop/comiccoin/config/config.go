@@ -20,8 +20,8 @@ type Config struct {
 	// Peer configuration.
 	Peer PeerConfig
 
-	// IPFS configuration.
-	IPFS IPFSConfig
+	// NFT asset store configuration.
+	NFTAssetStore NFTAssetStoreConfig
 }
 
 // BlockchainConfig represents the configuration for the blockchain.
@@ -99,13 +99,7 @@ type PeerConfig struct {
 	ListenAddresses []maddr.Multiaddr
 }
 
-type IPFSConfig struct {
-	// RemoteIP is the IP address of the peer node running IPFS.
-	RemoteIP string
-
-	// RemotePort is the port to the peer node running IPFS.
-	RemotePort string
-
-	// PublicGatewayDomain is the HTTP domain to use as a fall-back if peer node is not running.
-	PublicGatewayDomain string
+type NFTAssetStoreConfig struct {
+	// Address is the HTTP domain to use when looking up NFT assets via CID values.
+	Address string
 }

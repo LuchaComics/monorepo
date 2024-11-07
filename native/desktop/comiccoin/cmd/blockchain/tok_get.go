@@ -12,8 +12,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	ah "github.com/LuchaComics/monorepo/native/desktop/comiccoin/interface/http/handler"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
+	ah "github.com/LuchaComics/monorepo/native/desktop/comiccoin/interface/http/handler"
 )
 
 // Command line argument flags
@@ -26,7 +26,7 @@ func httpJsonApiGetTokenCmd() *cobra.Command {
 		Use:   "get",
 		Short: "Get token detail",
 		Run: func(cmd *cobra.Command, args []string) {
-			logger := logger.NewLogger()
+			logger := logger.NewProvider()
 			logger.Debug("Get token detail...")
 
 			modifiedTokenDetailURL := strings.ReplaceAll(tokenDetailURL, "${TOKEN_ID}", flagTokenID)

@@ -53,7 +53,7 @@ func doPinAddCmd() {
 	apiKey := config.GetEnvBytes("COMICCOIN_NFTSTORE_API_KEY", true)
 
 	// --- Common --- //
-	logger := logger.NewLogger()
+	logger := logger.NewProvider()
 	logger.Info("Starting file uploader ...",
 		slog.Any("api_key", apiKey))
 

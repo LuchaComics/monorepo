@@ -33,7 +33,7 @@ func InitCmd() *cobra.Command {
 			// Load up our dependencies and configuration
 			//
 
-			logger := logger.NewLogger()
+			logger := logger.NewProvider()
 			logger.Debug("Excuting...", slog.String("data_dir", flagDataDir))
 
 			// We can setup minimal settings as the systems affect don't have

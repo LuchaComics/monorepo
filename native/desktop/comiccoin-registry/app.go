@@ -32,7 +32,7 @@ type App struct {
 
 // NewApp creates a new App application struct
 func NewApp() *App {
-	logger := logger.NewLogger()
+	logger := logger.NewProvider()
 	kmutex := kmutexutil.NewKMutexProvider()
 	return &App{
 		logger:            logger,

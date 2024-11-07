@@ -47,7 +47,7 @@ func doDownloadToken() {
 	// Load up our dependencies and configuration
 	//
 
-	logger := logger.NewLogger()
+	logger := logger.NewProvider()
 	logger.Debug("Excuting...",
 		slog.String("data_dir", flagDataDir))
 	if flagDataDir == "./data" {
@@ -61,10 +61,8 @@ func doDownloadToken() {
 		DB: config.DBConfig{
 			DataDir: flagDataDir,
 		},
-		IPFS: config.IPFSConfig{
-			RemoteIP:            flagIPFSIP,
-			RemotePort:          flagIPFSPort,
-			PublicGatewayDomain: flagIPFSPubGatewayDomain,
+		NFTAssetStore: config.NFTAssetStoreConfig{
+			Address: flagIPFSPubGatewayDomain,
 		},
 	}
 
@@ -78,7 +76,7 @@ func doDownloadToken() {
 		cfg,
 		logger,
 		tokDB)
-	nftAssetRepoCfg := repo.NewNFTAssetRepoConfigurationProvider(flagIPFSPubGatewayDomain, "")
+	nftAssetRepoCfg := repo.NewNFTAssetRepoConfigurationProvider(cfg.NFTAssetStore.Address, "")
 	nftAssetRepo := repo.NewNFTAssetRepo(nftAssetRepoCfg, logger)
 
 	// --- Use-cases ---

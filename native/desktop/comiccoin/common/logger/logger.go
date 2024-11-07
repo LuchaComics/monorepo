@@ -5,9 +5,9 @@ import (
 	"os"
 )
 
-// NewLogger creates a new logger instance with a configurable logging level.
+// NewProvider creates a new logger instance with a configurable logging level.
 // The logger is set to log to the standard output and includes source file information.
-func NewLogger() *slog.Logger {
+func NewProvider() *slog.Logger {
 	// Create a logging level variable to control the verbosity of the logger.
 	// The level is set to Info by default.
 	var loggingLevel = new(slog.LevelVar)

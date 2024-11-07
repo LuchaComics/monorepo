@@ -21,7 +21,7 @@ func httpJsonApiGetAccountCmd() *cobra.Command {
 		Use:   "get",
 		Short: "Get account detail",
 		Run: func(cmd *cobra.Command, args []string) {
-			logger := logger.NewLogger()
+			logger := logger.NewProvider()
 			logger.Debug("Creating get account...")
 
 			logger.Debug("Get account detail...")

@@ -46,7 +46,7 @@ func doGetCmd() {
 	// Load up our dependencies and configuration
 	//
 
-	logger := logger.NewLogger()
+	logger := logger.NewProvider()
 	modifiedIpfsGatewayURL := strings.ReplaceAll(ipfsGatewayURL, "${CID}", flagCID)
 	httpEndpoint := fmt.Sprintf("http://%s%s", flagListenHTTPAddress, modifiedIpfsGatewayURL)
 

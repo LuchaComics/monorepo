@@ -39,7 +39,7 @@ func doRemoteVersionCmd() {
 	// Load up our dependencies and configuration
 	//
 
-	logger := logger.NewLogger()
+	logger := logger.NewProvider()
 	httpEndpoint := fmt.Sprintf("http://%s%s", flagListenHTTPAddress, versionURL)
 
 	//

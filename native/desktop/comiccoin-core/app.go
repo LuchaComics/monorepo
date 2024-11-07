@@ -85,7 +85,7 @@ type App struct {
 
 // NewApp creates a new App application struct
 func NewApp() *App {
-	logger := logger.NewLogger()
+	logger := logger.NewProvider()
 	kmutex := kmutexutil.NewKMutexProvider()
 
 	cfg := &config.Config{}
@@ -155,10 +155,8 @@ func (a *App) startup(ctx context.Context) {
 			KeyName:        ComicCoinIdentityKeyID,
 			BootstrapPeers: bootstrapPeers,
 		},
-		IPFS: config.IPFSConfig{
-			RemoteIP:            ComicCoinIPFSRemoteIP,
-			RemotePort:          ComicCoinIPFSRemotePort,
-			PublicGatewayDomain: ComicCoinIPFSPublicGatewayDomain,
+		NFTAssetStore: config.NFTAssetStoreConfig{
+			Address: ComicCoinIPFSPublicGatewayDomain,
 		},
 	}
 	a.config = cfg
@@ -256,7 +254,8 @@ func (a *App) startup(ctx context.Context) {
 	nftokRepo := repo.NewNonFungibleTokenRepo(
 		logger,
 		nftokDB)
-	ipfsRepo := repo.NewIPFSRepo(cfg, logger)
+	nftAssetRepoCfg := repo.NewNFTAssetRepoConfigurationProvider(cfg.NFTAssetStore.Address, "")
+	nftAssetRepo := repo.NewNFTAssetRepo(nftAssetRepoCfg, logger)
 	mempoolTxRepo := repo.NewMempoolTransactionRepo(
 		cfg,
 		logger,
@@ -426,12 +425,12 @@ func (a *App) startup(ctx context.Context) {
 	downloadNFTokMetadataUsecase := usecase.NewDownloadMetadataNonFungibleTokenUseCase(
 		cfg,
 		logger,
-		ipfsRepo)
+		nftAssetRepo)
 
 	downloadNFTokAssetUsecase := usecase.NewDownloadNonFungibleTokenAssetUseCase(
 		cfg,
 		logger,
-		ipfsRepo)
+		nftAssetRepo)
 	listNFTsWithFilterByTokenIDsyUseCase := usecase.NewListNonFungibleTokensWithFilterByTokenIDsyUseCase(
 		cfg,
 		logger,

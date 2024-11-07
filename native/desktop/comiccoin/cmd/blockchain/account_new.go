@@ -20,7 +20,7 @@ func httpJsonApiNewAccountCmd() *cobra.Command {
 		Use:   "new",
 		Short: "Creates a new wallet in our ComicCoin node local filesystem and encrypts it with the inputted password",
 		Run: func(cmd *cobra.Command, args []string) {
-			logger := logger.NewLogger()
+			logger := logger.NewProvider()
 			logger.Debug("Creating new account...")
 
 			httpEndpoint := fmt.Sprintf("http://%s:%d%s", flagListenHTTPIP, flagListenHTTPPort, accountsURL)

@@ -53,7 +53,7 @@ func doDaemonCmd() {
 	appSecretKey := config.GetEnvString("COMICCOIN_NFTSTORE_APP_SECRET_KEY", true)
 	hmacSecretKey := config.GetEnvBytes("COMICCOIN_NFTSTORE_HMAC_SECRET_KEY", true)
 
-	logger := logger.NewLogger()
+	logger := logger.NewProvider()
 	logger.Info("Starting daemon...",
 		slog.Any("flatHMACSecret", hmacSecretKey),
 		slog.Any("appSecretKey", appSecretKey))

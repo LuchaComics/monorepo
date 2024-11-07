@@ -93,7 +93,7 @@ func DaemonCmd() *cobra.Command {
 				cfg.Blockchain.ProofOfAuthorityWalletPassword = flagProofOfAuthorityWalletPassword
 			}
 
-			logger := logger.NewLogger()
+			logger := logger.NewProvider()
 			walletDB := disk.NewDiskStorage(cfg.DB.DataDir, "wallet", logger)
 			blockDataDB := disk.NewDiskStorage(cfg.DB.DataDir, "block_data", logger)
 			latestHashDB := disk.NewDiskStorage(cfg.DB.DataDir, "latest_hash", logger)
