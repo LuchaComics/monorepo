@@ -56,7 +56,7 @@ function CreateWalletView() {
 
     const onSubmitClick = (e) => {
         e.preventDefault();
-        
+
         // Update the GUI to let user know that the operation is under way.
         setIsLoading(true);
 
@@ -109,23 +109,14 @@ function CreateWalletView() {
       return <Navigate to={forceURL} />;
     }
 
+    if (isLoading) {
+        return (
+            <PageLoadingContent displayMessage="Please wait..." style={{ marginBottom: "100px" }} />
+        );
+    }
+
     return (
         <>
-            {isLoading
-            ? <>
-                <div class="container">
-                    <section class="section">
-                        {/* Page */}
-                        <nav class="box" style={{ padding: "20px", marginBottom: "20px" }}>
-                        <p class="title is-2">
-                          <FontAwesomeIcon className="fas" icon={faPlus} />
-                          &nbsp;Add Wallet
-                        </p>
-                            <PageLoadingContent displayMessage="Submitting..." style={{ marginBottom: "100px" }} />
-                        </nav>
-                    </section>
-                </div>
-            </> :<>
             <div class="container">
               <section class="section">
                 {/* Page */}
@@ -200,8 +191,7 @@ function CreateWalletView() {
                   </div>
                 </nav>
               </section>
-              </div>
-            </>}
+            </div>
         </>
     )
 }

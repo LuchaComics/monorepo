@@ -16,7 +16,10 @@ import {
 import { useRecoilState } from "recoil";
 import { toLower } from "lodash";
 
-import { GetTransactions } from "../../../wailsjs/go/main/App";
+import PageLoadingContent from "../Reusable/PageLoadingContent";
+import {
+    GetTransactions
+} from "../../../wailsjs/go/main/App";
 import { currentOpenWalletAtAddressState } from "../../AppState";
 
 
@@ -31,9 +34,8 @@ function ListTransactionsView() {
     //// Component states.
     ////
 
+    const [isLoading, setIsLoading] = useState(false);
     const [forceURL, setForceURL] = useState("");
-    const [totalCoins, setTotalCoins] = useState(0);
-    const [totalTokens, setTotalTokens] = useState(0);
     const [transactions, setTransactions] = useState([]);
 
     ////
@@ -50,11 +52,14 @@ function ListTransactionsView() {
       if (mounted) {
             window.scrollTo(0, 0); // Start the page at the top of the page.
 
+            setIsLoading(true);
             GetTransactions(currentOpenWalletAtAddress).then((txsResponse)=>{
                 console.log("GetTransactions: results:", txsResponse);
                 setTransactions(txsResponse);
             }).catch((errorRes)=>{
                 console.log("GetTransactions: errors:", errorRes);
+            }).finally(()=>{
+                setIsLoading(false);
             });
       }
 
@@ -69,6 +74,12 @@ function ListTransactionsView() {
 
     if (forceURL !== "") {
         return <Navigate to={forceURL} />;
+    }
+
+    if (isLoading) {
+        return (
+            <PageLoadingContent displayMessage="Loading..." />
+        );
     }
 
     return (

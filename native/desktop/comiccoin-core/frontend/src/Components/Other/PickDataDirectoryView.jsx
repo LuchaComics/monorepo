@@ -21,11 +21,17 @@ import {
   faEllipsis
 } from "@fortawesome/free-solid-svg-icons";
 
+import PageLoadingContent from "../Reusable/PageLoadingContent";
 import FormErrorBox from "../Reusable/FormErrorBox";
 import FormRadioField from "../Reusable/FormRadioField";
 import FormInputField from "../Reusable/FormInputField";
 import FormInputFieldWithButton from "../Reusable/FormInputFieldWithButton";
-import {GetDefaultDataDirectory, GetDataDirectoryFromDialog, SaveDataDirectory, ShutdownApp} from "../../../wailsjs/go/main/App";
+import {
+    GetDefaultDataDirectory,
+    GetDataDirectoryFromDialog,
+    SaveDataDirectory,
+    ShutdownApp,
+} from "../../../wailsjs/go/main/App";
 
 
 function PickDataDirectoryView() {
@@ -34,6 +40,7 @@ function PickDataDirectoryView() {
     //// Component states.
     ////
 
+    const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState({});
     const [useDefaultLocation, setUseDefaultLocation] = useState(1);
     const [forceURL, setForceURL] = useState("");
@@ -44,21 +51,23 @@ function PickDataDirectoryView() {
     //// Event handling.
     ////
 
-    const setDataDirectoryCallback = (result) => setDataDirectory(result);
-
-    ////
-    //// API.
-    ////
-
     const onSubmitClick = (e) => {
         e.preventDefault();
+
+        setIsLoading(true);
 
         // Submit the `dataDirectory` value to our backend.
         SaveDataDirectory(dataDirectory).then( (result) => {
             console.log("result:", result);
             setForceURL("/startup")
-        })
+        }).finally(()=>{
+            setIsLoading(false);
+        });
     }
+
+    ////
+    //// API.
+    ////
 
     ////
     //// Misc.
@@ -90,6 +99,12 @@ function PickDataDirectoryView() {
 
     if (forceURL !== "") {
       return <Navigate to={forceURL} />;
+    }
+
+    if (isLoading) {
+        return (
+            <PageLoadingContent displayMessage="Saving..." />
+        );
     }
 
     return (

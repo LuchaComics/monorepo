@@ -114,7 +114,7 @@ function DashboardView() {
 
                 {isLoading
                 ? <>
-                    <PageLoadingContent displayMessage="Fetching..." />
+                    <PageLoadingContent displayMessage="Loading..." />
 
                 </> : <>
                     <nav class="level">

@@ -88,7 +88,7 @@ function TokenDetailView() {
 
     if (isLoading) {
         return (
-            <PageLoadingContent displayMessage="Fetching..." />
+            <PageLoadingContent displayMessage="Loading..." />
         );
     }
 

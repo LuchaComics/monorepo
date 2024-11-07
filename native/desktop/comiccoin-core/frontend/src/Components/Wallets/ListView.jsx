@@ -84,7 +84,7 @@ function ListWalletsView() {
         <>
             {isLoading
             ? <>
-                <PageLoadingContent displayMessage="Fetching..." />
+                <PageLoadingContent displayMessage="Loading..." />
             </> : <>
                 {wallets.length === 0 ? <>
                     <section class="hero is-fullheight-with-navbar is-info">
