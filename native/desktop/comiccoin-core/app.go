@@ -158,7 +158,7 @@ func (a *App) startup(ctx context.Context) {
 			BootstrapPeers: bootstrapPeers,
 		},
 		NFTAssetStore: config.NFTAssetStoreConfig{
-			Address: constants.ComicCoinIPFSPublicGatewayDomain,
+			Address: constants.ComicCoinNFTAssetStoreAddress,
 		},
 	}
 	a.config = cfg
