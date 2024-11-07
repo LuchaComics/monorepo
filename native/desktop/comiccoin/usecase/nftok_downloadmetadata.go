@@ -21,10 +21,10 @@ import (
 type DownloadMetadataNonFungibleTokenUseCase struct {
 	config *config.Config
 	logger *slog.Logger
-	repo   domain.IPFSRepository
+	repo   domain.NFTAssetRepository
 }
 
-func NewDownloadMetadataNonFungibleTokenUseCase(config *config.Config, logger *slog.Logger, r domain.IPFSRepository) *DownloadMetadataNonFungibleTokenUseCase {
+func NewDownloadMetadataNonFungibleTokenUseCase(config *config.Config, logger *slog.Logger, r domain.NFTAssetRepository) *DownloadMetadataNonFungibleTokenUseCase {
 	return &DownloadMetadataNonFungibleTokenUseCase{config, logger, r}
 }
 
@@ -51,13 +51,13 @@ func (uc *DownloadMetadataNonFungibleTokenUseCase) Execute(tokenID uint64, metad
 
 func (uc *DownloadMetadataNonFungibleTokenUseCase) executeForIPFS(tokenID uint64, ipfsPath string) (*domain.NonFungibleTokenMetadata, string, error) {
 	cid := strings.Replace(ipfsPath, "ipfs://", "", -1)
-	metadataBytes, _, err := uc.repo.Get(context.Background(), cid)
+	nftAsset, err := uc.repo.Get(context.Background(), cid)
 	if err != nil {
 		return nil, "", err
 	}
 
 	var metadata *domain.NonFungibleTokenMetadata
-	if err := json.Unmarshal(metadataBytes, &metadata); err != nil {
+	if err := json.Unmarshal(nftAsset.Content, &metadata); err != nil {
 		return nil, "", err
 	}
 
@@ -68,7 +68,7 @@ func (uc *DownloadMetadataNonFungibleTokenUseCase) executeForIPFS(tokenID uint64
 		log.Fatalf("Failed create directories: %v\n", err)
 	}
 
-	if err := ioutil.WriteFile(metadataFilepath, metadataBytes, 0644); err != nil {
+	if err := ioutil.WriteFile(metadataFilepath, nftAsset.Content, 0644); err != nil {
 		log.Fatalf("Failed write metadata file: %v\n", err)
 	}
 
