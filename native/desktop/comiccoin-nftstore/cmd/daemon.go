@@ -8,7 +8,6 @@ import (
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
 	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/disk/leveldb"
-	pkg_config "github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/common/security/blacklist"
@@ -65,16 +64,6 @@ func doDaemonCmd() {
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL, syscall.SIGUSR1)
 
-	comicCoinConfig := &pkg_config.Config{ // Only used by `ipfsRepo` in this file.
-		App: pkg_config.AppConfig{
-			HTTPAddress: flagListenHTTPAddress,
-		},
-		IPFS: pkg_config.IPFSConfig{
-			RemoteIP:            constants.ComicCoinIPFSRemoteIP,
-			RemotePort:          constants.ComicCoinIPFSRemotePort,
-			PublicGatewayDomain: constants.ComicCoinIPFSPublicGatewayDomain,
-		},
-	}
 	config := &config.Config{
 		App: config.AppConfig{
 			DirPath:     flagDataDir,
@@ -97,8 +86,12 @@ func doDaemonCmd() {
 	pinObjsByRequestIDDB := disk.NewDiskStorage(config.DB.DataDir, "pin_objects_by_request_id", logger)
 
 	// --- Repository --- //
-
-	ipfsRepo := repo.NewIPFSRepo(comicCoinConfig, logger)
+	ipfsRepoConfig := repo.NewIPFSRepoConfigurationProvider(
+		constants.ComicCoinIPFSRemoteIP,
+		constants.ComicCoinIPFSRemotePort,
+		constants.ComicCoinIPFSPublicGatewayDomain,
+	)
+	ipfsRepo := repo.NewIPFSRepo(ipfsRepoConfig, logger)
 	pinObjRepo := repo.NewPinObjectRepo(logger, pinObjsByCIDDB, pinObjsByRequestIDDB)
 
 	// --- UseCase --- //

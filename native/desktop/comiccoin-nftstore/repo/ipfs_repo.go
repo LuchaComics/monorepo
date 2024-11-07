@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/ipfs/boxo/files"
 	"github.com/ipfs/boxo/path"
 	"github.com/ipfs/go-cid"
@@ -25,10 +24,59 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/domain"
 )
 
+// IPFSRepoConfigurationProvider is an interface for configuration providers
+// that provide all needed settings to connect to an IPFS node either remote
+// or a local IPFS node.
+type IPFSRepoConfigurationProvider interface {
+	GetIPFSNodeRemoteIP() string         // Retrieves the remote or local IPFS service remote IP.
+	GetIPFSNodeRemotePort() string       // Retrieves the remote or local IPFS service remote port.
+	GetPublicIPFSGatewayAddress() string // Retrieves a publically accessible IPFS gateway address.
+}
+
+// IPFSRepoConfigurationProviderImpl is a struct that implements
+// IPFSRepoConfigurationProvider for storing IPFS connection details.
+type IPFSRepoConfigurationProviderImpl struct {
+	remoteIP                 string // IP of the IPFS service
+	remotePort               string // Port of the IPFS service
+	publicIPFSGatewayAddress string // Publically accessible IPFS gateway
+}
+
+// NewIPFSRepoConfigurationProvider constructs a new configuration provider
+// for IPFS connections.
+func NewIPFSRepoConfigurationProvider(remoteIP, remotePort, publicGatewayAddress string) IPFSRepoConfigurationProvider {
+	// Defensive code: Enforce parameters.
+	if remoteIP == "" {
+		log.Fatal("Missing `remoteIP` parameter.")
+	}
+	if remotePort == "" {
+		log.Fatal("Missing `remotePort` parameter.")
+	}
+	if publicGatewayAddress == "" {
+		log.Fatal("Missing `publicGatewayAddress` parameter.")
+	}
+	return &IPFSRepoConfigurationProviderImpl{
+		remoteIP:                 remoteIP,
+		remotePort:               remotePort,
+		publicIPFSGatewayAddress: publicGatewayAddress,
+	}
+}
+
+func (impl *IPFSRepoConfigurationProviderImpl) GetIPFSNodeRemoteIP() string {
+	return impl.remoteIP
+}
+
+func (impl *IPFSRepoConfigurationProviderImpl) GetIPFSNodeRemotePort() string {
+	return impl.remotePort
+}
+
+func (impl *IPFSRepoConfigurationProviderImpl) GetPublicIPFSGatewayAddress() string {
+	return impl.publicIPFSGatewayAddress
+}
+
 type IPFSRepo struct {
-	logger              *slog.Logger
-	api                 *rpc.HttpApi
-	publicGatewayDomain string
+	config IPFSRepoConfigurationProvider // Holds IPFS connection configuration
+	logger *slog.Logger
+	api    *rpc.HttpApi
 }
 
 // AddResponse represents the response from the /api/v0/add endpoint
@@ -43,10 +91,10 @@ type AddResponse struct {
 }
 
 // NewIPFSRepo returns a new IPFSNode instance
-func NewIPFSRepo(cfg *config.Config, logger *slog.Logger) domain.IPFSRepository {
+func NewIPFSRepo(cfg IPFSRepoConfigurationProvider, logger *slog.Logger) domain.IPFSRepository {
 
 	// Step 1: Define the remote IPFS server address.
-	ipfsAddress := fmt.Sprintf("/ip4/%s/tcp/%s", cfg.IPFS.RemoteIP, cfg.IPFS.RemotePort)
+	ipfsAddress := fmt.Sprintf("/ip4/%s/tcp/%s", cfg.GetIPFSNodeRemoteIP(), cfg.GetIPFSNodeRemotePort())
 
 	// Step 2: Create a Multiaddr using the remote IPFS address
 	multiaddr, err := ma.NewMultiaddr(ipfsAddress)
@@ -61,9 +109,9 @@ func NewIPFSRepo(cfg *config.Config, logger *slog.Logger) domain.IPFSRepository 
 	}
 
 	return &IPFSRepo{
-		logger:              logger,
-		api:                 api,
-		publicGatewayDomain: cfg.IPFS.PublicGatewayDomain,
+		config: cfg,
+		logger: logger,
+		api:    api,
 	}
 }
 
@@ -278,7 +326,7 @@ func (s *IPFSRepo) Get(ctx context.Context, cidString string) ([]byte, string, e
 }
 
 func (s *IPFSRepo) getViaHTTPPublicGateway(ctx context.Context, cidString string) ([]byte, string, error) {
-	uri := fmt.Sprintf("%v/ipfs/%v", s.publicGatewayDomain, cidString)
+	uri := fmt.Sprintf("%v/ipfs/%v", s.config.GetPublicIPFSGatewayAddress(), cidString)
 
 	s.logger.Debug("Fetching from public IPFS gateway... Please wait...",
 		slog.String("cid", cidString))
