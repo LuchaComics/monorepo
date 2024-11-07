@@ -206,6 +206,13 @@ func (a *App) CreateToken(
 			slog.Any("error", err))
 		return nil, err
 	}
+	if imageCID == "" {
+		err := fmt.Errorf("Failed uploading image")
+		a.logger.Error("IPFS returned no cid.",
+			slog.Any("filepath", image),
+			slog.Any("error", err))
+		return nil, err
+	}
 	a.logger.Debug("Image uploaded to ipfs.",
 		slog.Any("local", image),
 		slog.Any("cid", imageCID))
@@ -250,7 +257,7 @@ func (a *App) CreateToken(
 		return nil, err
 	}
 
-	metadataFilepath := filepath.Join(dataDir, "tokens", fmt.Sprintf("%v", tokenID), "metadata.json")
+	metadataFilepath := filepath.Join(dataDir, "token_assets", fmt.Sprintf("%v", tokenID), "metadata.json")
 
 	// Create the directories recursively.
 	if err := os.MkdirAll(filepath.Dir(metadataFilepath), 0755); err != nil {
@@ -276,7 +283,7 @@ func (a *App) CreateToken(
 	imageFilename := filepath.Base(image)
 
 	// Create new filepath of where to consolidate our file to.
-	consolidatedImage := filepath.Join(dataDir, "tokens", fmt.Sprintf("%v", tokenID), imageFilename)
+	consolidatedImage := filepath.Join(dataDir, "token_assets", fmt.Sprintf("%v", tokenID), imageFilename)
 
 	// Create the directories recursively.
 	if err := os.MkdirAll(filepath.Dir(consolidatedImage), 0755); err != nil {
@@ -303,7 +310,7 @@ func (a *App) CreateToken(
 	animationFilename := filepath.Base(animation)
 
 	// Create new filepath of where to consolidate our file to.
-	consolidatedAnimation := filepath.Join(dataDir, "tokens", fmt.Sprintf("%v", tokenID), animationFilename)
+	consolidatedAnimation := filepath.Join(dataDir, "token_assets", fmt.Sprintf("%v", tokenID), animationFilename)
 
 	// Create the directories recursively.
 	if err := os.MkdirAll(filepath.Dir(consolidatedAnimation), 0755); err != nil {
