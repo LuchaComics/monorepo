@@ -6,9 +6,8 @@ import (
 	"log/slog"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
-
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/repo"
 )
 
 func (a *App) GetDataDirectoryFromPreferences() string {
@@ -126,8 +125,8 @@ func (a *App) SaveNFTStoreConfigVariables(nftStoreAPIKey string, nftStoreRemoteA
 	// Confirm the remote address works.
 	//
 
-	tempIpfsRepo := repo.NewRemoteIPFSRepoWithConfiguration(a.logger, nftStoreRemoteAddress, nftStoreAPIKey)
-	version, err := tempIpfsRepo.Version(a.ctx)
+	tempNFTAssetRepo := repo.NewNFTAssetRepoWithConfiguration(a.logger, nftStoreRemoteAddress, nftStoreAPIKey)
+	version, err := tempNFTAssetRepo.Version(a.ctx)
 	if err != nil {
 		return httperror.NewForBadRequestWithSingleField("nftStoreRemoteAddress", fmt.Sprintf("%v", err))
 	}
