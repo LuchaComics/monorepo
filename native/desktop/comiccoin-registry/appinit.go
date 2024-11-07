@@ -126,7 +126,7 @@ func (a *App) SaveNFTStoreConfigVariables(nftStoreAPIKey string, nftStoreRemoteA
 	// Confirm the remote address works.
 	//
 
-	tempIpfsRepo := repo.NewRemoteIPFSRepo(a.logger, nftStoreRemoteAddress, nftStoreAPIKey)
+	tempIpfsRepo := repo.NewRemoteIPFSRepoWithConfiguration(a.logger, nftStoreRemoteAddress, nftStoreAPIKey)
 	version, err := tempIpfsRepo.Version(a.ctx)
 	if err != nil {
 		return httperror.NewForBadRequestWithSingleField("nftStoreRemoteAddress", fmt.Sprintf("%v", err))

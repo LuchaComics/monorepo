@@ -1,3 +1,4 @@
+// The RemoteIPFSRepo package provides a set of functions for interacting with a remote IPFS repository. It allows users to retrieve the version of the repository, pin files to the repository, and retrieve files from the repository.
 package repo
 
 import (
@@ -18,34 +19,77 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/domain"
 )
 
-type RemoteIPFSRepo struct {
-	logger        *slog.Logger
-	remoteAddress string
-	apiKey        string
-}
-
+// Constants defining API endpoint paths
 const (
-	versionURL = "/version"
-	pinAddURL  = "/ipfs/pin-add"
-	gatewayURL = "/ipfs/${CID}"
+	versionURL = "/version"      // Path for checking IPFS service version
+	pinAddURL  = "/ipfs/pin-add" // Path for adding a pin to IPFS
+	gatewayURL = "/ipfs/${CID}"  // Path for fetching content from IPFS by CID
 )
 
-// NewRemoteIPFSRepo returns a new RemoteIPFSRepo instance
-func NewRemoteIPFSRepo(logger *slog.Logger, remoteAddress string, apiKey string) domain.RemoteIPFSRepository {
-	return &RemoteIPFSRepo{
-		logger:        logger,
+// RemoteIPFSRepoConfigurationProvider is an interface for configuration providers
+// that provide remote address and API key needed for IPFS interaction.
+type RemoteIPFSRepoConfigurationProvider interface {
+	GetRemoteIPFSNodeAddress() string // Retrieves the remote IPFS service address
+	GetRemoteIPFSNodeAPIKey() string  // Retrieves the API key for authentication
+}
+
+// RemoteIPFSRepo handles interactions with a remote IPFS service.
+type RemoteIPFSRepo struct {
+	config RemoteIPFSRepoConfigurationProvider // Holds IPFS connection configuration
+	logger *slog.Logger                        // Logger instance for logging debug and error messages
+}
+
+// RemoteIPFSRepoConfigurationProviderImpl is a struct that implements
+// RemoteIPFSRepoConfigurationProvider for storing IPFS connection details.
+type RemoteIPFSRepoConfigurationProviderImpl struct {
+	remoteAddress string // Address of the IPFS service
+	apiKey        string // API key for accessing IPFS service
+}
+
+// NewRemoteIPFSRepoConfigurationProvider constructs a new configuration provider
+// for IPFS connections with the specified remote address and API key.
+func NewRemoteIPFSRepoConfigurationProvider(remoteAddress string, apiKey string) RemoteIPFSRepoConfigurationProvider {
+	return &RemoteIPFSRepoConfigurationProviderImpl{
 		remoteAddress: remoteAddress,
 		apiKey:        apiKey,
 	}
 }
 
+// GetRemoteIPFSNodeAddress retrieves the remote IPFS service address.
+func (impl *RemoteIPFSRepoConfigurationProviderImpl) GetRemoteIPFSNodeAddress() string {
+	return impl.remoteAddress
+}
+
+// GetRemoteIPFSNodeAPIKey retrieves the API key for IPFS service authentication.
+func (impl *RemoteIPFSRepoConfigurationProviderImpl) GetRemoteIPFSNodeAPIKey() string {
+	return impl.apiKey
+}
+
+// NewRemoteIPFSRepo initializes a new RemoteIPFSRepo instance with the provided configuration and logger.
+func NewRemoteIPFSRepo(cfg RemoteIPFSRepoConfigurationProvider, logger *slog.Logger) domain.RemoteIPFSRepository {
+	return &RemoteIPFSRepo{
+		config: cfg,
+		logger: logger,
+	}
+}
+
+// NewRemoteIPFSRepoWithConfiguration initializes a new RemoteIPFSRepo instance directly with address and API key.
+func NewRemoteIPFSRepoWithConfiguration(logger *slog.Logger, remoteAddress string, apiKey string) domain.RemoteIPFSRepository {
+	return &RemoteIPFSRepo{
+		config: NewRemoteIPFSRepoConfigurationProvider(remoteAddress, apiKey),
+		logger: logger,
+	}
+}
+
+// Version fetches the version of the remote IPFS service.
+// It makes a GET request to the version endpoint and parses the JSON response.
 func (r *RemoteIPFSRepo) Version(ctx context.Context) (string, error) {
 	//
 	// STEP 1:
 	// Make `GET` request to HTTP JSON API.
 	//
 
-	httpEndpoint := fmt.Sprintf("%s%s", r.remoteAddress, versionURL)
+	httpEndpoint := fmt.Sprintf("%s%s", r.config.GetRemoteIPFSNodeAddress(), versionURL)
 
 	httpClient, err := http.NewRequest("GET", httpEndpoint, nil)
 	if err != nil {
@@ -102,6 +146,8 @@ func (r *RemoteIPFSRepo) Version(ctx context.Context) (string, error) {
 	return respContent.Version, nil
 }
 
+// PinAddViaFilepath uploads a file to IPFS via the specified file path and pins it.
+// The function prepares a multipart form request with the file content and metadata, and sends it.
 func (r *RemoteIPFSRepo) PinAddViaFilepath(ctx context.Context, fullFilePath string) (string, error) {
 
 	//
@@ -161,13 +207,13 @@ func (r *RemoteIPFSRepo) PinAddViaFilepath(ctx context.Context, fullFilePath str
 	}
 
 	// Send HTTP request with the multipart form data
-	req, err := http.NewRequest("POST", fmt.Sprintf("%v%v", r.remoteAddress, pinAddURL), &b)
+	req, err := http.NewRequest("POST", fmt.Sprintf("%v%v", r.config.GetRemoteIPFSNodeAddress(), pinAddURL), &b)
 	if err != nil {
 		return "", fmt.Errorf("failed to create request: %v\n", err)
 	}
 
 	// Create a Bearer string by appending string access token
-	var bearer = "JWT " + string(r.apiKey)
+	var bearer = "JWT " + string(r.config.GetRemoteIPFSNodeAPIKey())
 
 	// Add headers
 	req.Header.Add("Authorization", bearer)
@@ -257,9 +303,11 @@ func (r *RemoteIPFSRepo) PinAddViaFilepath(ctx context.Context, fullFilePath str
 	return post.CID, nil
 }
 
+// Get retrieves content from the IPFS service by a given CID.
+// This method constructs the URL for the IPFS gateway and fetches the content.
 func (r *RemoteIPFSRepo) Get(ctx context.Context, cidString string) (*domain.RemoteIPFSGetFileResponse, error) {
 	modifiedGatewayURL := strings.ReplaceAll(gatewayURL, "${CID}", cidString)
-	httpEndpoint := fmt.Sprintf("%s%s", r.remoteAddress, modifiedGatewayURL)
+	httpEndpoint := fmt.Sprintf("%s%s", r.config.GetRemoteIPFSNodeAddress(), modifiedGatewayURL)
 
 	httpClient, err := http.NewRequest("GET", httpEndpoint, nil)
 	if err != nil {

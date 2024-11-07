@@ -82,7 +82,9 @@ func (a *App) startup(ctx context.Context) {
 		a.logger.Debug("Loading repo: remote ipfs repo",
 			slog.Any("nftStoreRemoteAddress", nftStoreRemoteAddress),
 			slog.Any("nftStoreAPIKey", nftStoreAPIKey))
-		remoteIpfsRepo := repo.NewRemoteIPFSRepo(a.logger, nftStoreRemoteAddress, nftStoreAPIKey)
+
+		ipfsRepoConfig := repo.NewRemoteIPFSRepoConfiguration(nftStoreRemoteAddress, nftStoreAPIKey)
+		remoteIpfsRepo := repo.NewRemoteIPFSRepo(ipfsRepoConfig, a.logger)
 		a.remoteIpfsRepo = remoteIpfsRepo
 	}
 
