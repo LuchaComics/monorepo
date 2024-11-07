@@ -10,8 +10,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	httphandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/interface/http/handler"
-
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/domain"
 )
 
@@ -80,7 +78,12 @@ func (r *RemoteIPFSRepo) Version(ctx context.Context) (string, error) {
 	var rawJSON bytes.Buffer
 	teeReader := io.TeeReader(resp.Body, &rawJSON) // TeeReader allows you to read the JSON and capture it
 
-	respContent := &httphandler.VersionResponseIDO{}
+	// Copy and pasted from "github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstore/interface/http/handler".
+	type VersionResponseIDO struct {
+		Version string `json:"version"`
+	}
+
+	respContent := &VersionResponseIDO{}
 	if err := json.NewDecoder(teeReader).Decode(&respContent); err != nil {
 		r.logger.Error("decoding string error",
 			slog.Any("err", err),

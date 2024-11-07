@@ -131,7 +131,9 @@ func (a *App) SaveNFTStoreConfigVariables(nftStoreAPIKey string, nftStoreRemoteA
 	if err != nil {
 		return httperror.NewForBadRequestWithSingleField("nftStoreRemoteAddress", fmt.Sprintf("%v", err))
 	}
-	fmt.Println("version -->", version)
+	if version != "1.0" {
+		return httperror.NewForBadRequestWithSingleField("nftStoreRemoteAddress", fmt.Sprintf("Wrong version: %v", version))
+	}
 
 	//
 	// STEP 3:
