@@ -10,11 +10,11 @@ export function GetDataDirectoryFromPreferences():Promise<string>;
 
 export function GetDefaultDataDirectory():Promise<string>;
 
-export function GetFileViaIPFS(arg1:string):Promise<domain.RemoteIPFSGetFileResponse>;
+export function GetFileViaIPFS(arg1:string):Promise<domain.NFTAsset>;
 
 export function GetImageFilePathFromDialog():Promise<string>;
 
-export function GetIsIPFSRunning():Promise<boolean>;
+export function GetIsNFTAssetStoreRunning():Promise<boolean>;
 
 export function GetNFTStoreAPIKeyFromPreferences():Promise<string>;
 

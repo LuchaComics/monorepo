@@ -1,13 +1,13 @@
 export namespace domain {
 	
-	export class RemoteIPFSGetFileResponse {
+	export class NFTAsset {
 	    filename: string;
 	    content: number[];
 	    content_type: string;
 	    content_length: number;
 	
 	    static createFrom(source: any = {}) {
-	        return new RemoteIPFSGetFileResponse(source);
+	        return new NFTAsset(source);
 	    }
 	
 	    constructor(source: any = {}) {

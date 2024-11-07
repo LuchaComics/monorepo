@@ -26,8 +26,8 @@ export function GetImageFilePathFromDialog() {
   return window['go']['main']['App']['GetImageFilePathFromDialog']();
 }
 
-export function GetIsIPFSRunning() {
-  return window['go']['main']['App']['GetIsIPFSRunning']();
+export function GetIsNFTAssetStoreRunning() {
+  return window['go']['main']['App']['GetIsNFTAssetStoreRunning']();
 }
 
 export function GetNFTStoreAPIKeyFromPreferences() {
