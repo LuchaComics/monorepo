@@ -26,8 +26,9 @@ func (a *App) GetTotalCoins(address string) (uint64, error) {
 
 	// Defensive code
 	if account == nil {
-		err := fmt.Errorf("Failed getting account because D.N.E. at address: %v", addr)
-		a.logger.Error("Failed getting account balance", slog.Any("error", err))
+		err := fmt.Errorf("Failed getting account because D.N.E. at address: %v", strings.ToLower(address))
+		a.logger.Error("Failed getting account balance",
+			slog.Any("error", err))
 		return 0, err
 	}
 
