@@ -28,20 +28,20 @@
 2. When you you finish successfully you should see something like this (but not exact values as the values will be different every time your run the command):
 
    ```text
-   msg="Blockchain node intitialized and ready" "peer identity"=QmV4wVkFvw4Rof9HB7PDQfFAZ8UAdNDEVq8At19iUarAhV "full address"=/ip4/127.0.0.1/tcp/26642/p2p/QmV4wVkFvw4Rof9HB7PDQfFAZ8UAdNDEVq8At19iUarAhV
+   msg="Blockchain node intitialized and ready" "peer identity"=QmfYJfA7uRJNodrozCLAB2VWcp8dP8q289E8JwhJY5HSi7 "full address"=/ip4/127.0.0.1/tcp/26642/p2p/QmfYJfA7uRJNodrozCLAB2VWcp8dP8q289E8JwhJY5HSi7
    ```
 
 3. From the output we must do the following:
 
-   * `QmV4wVkFvw4Rof9HB7PDQfFAZ8UAdNDEVq8At19iUarAhV` is a p2p address we use in our network to indicate that we are the **proof of authority**.
+   * `QmfYJfA7uRJNodrozCLAB2VWcp8dP8q289E8JwhJY5HSi7` is a p2p address we use in our network to indicate that we are the **proof of authority**.
    * In your `comiccoin/config/constants/constants.go` folder, please update `ComicCoinBootstrapPeers` value to be set this value.
 
 
 4. For convenience in these tutorials, save the output of this into an environment variable.
 
    ```shell
-   export COMICCOIN_POF_ADDRESS=QmV4wVkFvw4Rof9HB7PDQfFAZ8UAdNDEVq8At19iUarAhV
-   export COMICCOIN_BOOTSTRAP_PEERS=/ip4/127.0.0.1/tcp/26642/p2p/QmV4wVkFvw4Rof9HB7PDQfFAZ8UAdNDEVq8At19iUarAhV
+   export COMICCOIN_POF_ADDRESS=QmfYJfA7uRJNodrozCLAB2VWcp8dP8q289E8JwhJY5HSi7
+   export COMICCOIN_BOOTSTRAP_PEERS=/ip4/127.0.0.1/tcp/26642/p2p/QmfYJfA7uRJNodrozCLAB2VWcp8dP8q289E8JwhJY5HSi7
    ```
 
 ### (B) Initializing the ComicCoin Blockchain.
@@ -66,10 +66,10 @@
    --coinbase-password-repeated=$COMICCOIN_COINBASE_PASSWORD;
    ```
 
-3. You have successfully initialized the blockchain! For our example, let's say the `coinbase` account was created with the following address `0x0a111ddb2653e853c4a16b5cb28425af21ca0cbc`. For convenience, save the output of this into an environment variable.
+3. You have successfully initialized the blockchain! For our example, let's say the `coinbase` account was created with the following address `0x509a9aa36c478a0cd42731c5a254e79a8026b806`. For convenience, save the output of this into an environment variable.
 
     ```shell
-    export COMICCOIN_COINBASE_ADDRESS=0x0a111ddb2653e853c4a16b5cb28425af21ca0cbc;
+    export COMICCOIN_COINBASE_ADDRESS=0x509a9aa36c478a0cd42731c5a254e79a8026b806;
     ```
 
 ## Part 2: Start a Peer-to-Peer Network
@@ -240,7 +240,7 @@ Go to the [`comiccoin-core`](../comiccoin-core) repository and setup the GUI app
 
 Here is an example.
 
-1. In the GUI application you created a wallet, and lets say for example the value of the wallet address is `0x69e3bbac4367ea6f11074fb523ac38019cb15c06` and the metadata URI is `ipfs://bafkreic2d4xod5umcoxum7hf6hy4vghnyroxgvnboartkkda376mtrtlty`.
+1. In the GUI application you created a wallet, and lets say for example the value of the wallet address is `0xf501feccbbca00ac8ce678a175aa9fba9c6b2fec` and the metadata URI is `ipfs://bafkreic2d4xod5umcoxum7hf6hy4vghnyroxgvnboartkkda376mtrtlty`.
 
 2. In our `comiccoin` directory, run the following to mint our new token to coinbase:
 
@@ -258,7 +258,7 @@ Here is an example.
     go run main.go blockchain token transfer \
     --token-owner-address=$COMICCOIN_COINBASE_ADDRESS \
     --token-owner-password=$COMICCOIN_COINBASE_PASSWORD \
-    --recipient-address=0x69e3bbac4367ea6f11074fb523ac38019cb15c06 \
+    --recipient-address=0xf501feccbbca00ac8ce678a175aa9fba9c6b2fec \
     --token-id=1
     ```
 
@@ -269,7 +269,7 @@ Here is an example.
     --sender-account-address=$COMICCOIN_COINBASE_ADDRESS \
     --sender-account-password=$COMICCOIN_COINBASE_PASSWORD \
     --value=1 \
-    --recipient-address=0x69e3bbac4367ea6f11074fb523ac38019cb15c06;
+    --recipient-address=0xf501feccbbca00ac8ce678a175aa9fba9c6b2fec;
     ```
 
 4. Confirm (via CLI) that the correct NFT ownership address is set.

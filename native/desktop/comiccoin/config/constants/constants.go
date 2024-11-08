@@ -26,7 +26,7 @@ const (
 	ComicCoinConsensusPollingDelayInMinutes = 1
 	ComicCoinConsensusProtocol              = ConsensusPoA
 	ComicCoinPeerListenPort                 = 26644
-	ComicCoinBootstrapPeers                 = "/ip4/127.0.0.1/tcp/26642/p2p/QmV4wVkFvw4Rof9HB7PDQfFAZ8UAdNDEVq8At19iUarAhV"
+	ComicCoinBootstrapPeers                 = "/ip4/127.0.0.1/tcp/26642/p2p/QmfYJfA7uRJNodrozCLAB2VWcp8dP8q289E8JwhJY5HSi7"
 	ComicCoinIdentityKeyID                  = DefaultIdentityKeyID
 	ComicCoinNFTAssetStoreAddress           = "http://127.0.0.1:8080" // TODO: Change to PROD NFT asset store when ready.
 )
