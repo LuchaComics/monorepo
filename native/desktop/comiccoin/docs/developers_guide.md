@@ -166,12 +166,74 @@ and run the following command to create our `alice` wallet. Please replace the p
    go run main.go blockchain account get --account-address=$COMICCOIN_ALICE_WALLET_ADDRESS;
    ```
 
-## Part 4: Creating Non-Fungible Tokens (NFT)
-### (A) Create the NFT metadata file
+## Part 4: Creating a Non-Fungible Token (NFT)
+### (A) Mint the NFT metadata file
 Every NFT is essentially a map of `token_id` values to a `metadata_uri` values. To begin we will need to create a **metdata file** and post to our ComicCoin NFT Assets store so we can get a `cid` value that we'll set for the **metadata file**; afterwords, we will need to mint a token with that newly generated `metadata_uri`.
 
-1. Go to the [`comiccoin-nftassetstore`](../comiccoin-nftassetstore) repository and setup the project.
+1. Go to the [`comiccoin-nftassetstore`](../comiccoin-nftassetstore) repository and setup the CLI application. Once this CLI application is running, come back and proceed to step 2.
 
-2. Go to the [`comiccoin-registry`](../comiccoin-registry) repository and setup the project.
+2. Go to the [`comiccoin-registry`](../comiccoin-registry) repository and setup the GUI application. Once this GUI application is running, come back and proceed to step 3.
 
-TODO...
+3. While running the **ComicCoin Registry** please click **New Token** and follow the instructions on creating your first token! When you have created your first token you should get a **metadata URI**. For example, let's say we get the following `ipfs://bafkreihl2xri7c6tskbuc2bpqb7iunssbbfy5ei4jrl4micgykzyltj6gi`.
+
+### (B) Mint the NFT in the ComicCoin Blockchain
+Now return back to here to `comiccoin` and run the following minting command to creates a *new* Token. Notes: (1) We assign our *New Token* to `coinbase` wallet first. (2) Special thanks to [this link](https://github.com/momokonagata/sample-NFT-metadata).
+
+   ```shell
+   go run main.go blockchain token mint \
+   --poa-address=$COMICCOIN_COINBASE_ADDRESS \
+   --poa-password=$COMICCOIN_COINBASE_PASSWORD \
+   --recipient-address=$COMICCOIN_COINBASE_ADDRESS \
+   --metadata-uri='ipfs://bafkreihl2xri7c6tskbuc2bpqb7iunssbbfy5ei4jrl4micgykzyltj6gi'
+   ```
+
+If you didn't receive any errors in the terminal then you've successfully minted your first non-fungible token!
+
+### (C) Verify NFT exists in ComicCoin blockchain
+Anyone can look our *new* token (via `token_id=1`) using this command:
+
+```shell
+go run main.go blockchain token get --token-id=1
+```
+
+## Part 5: Transfer a NFT
+1. You can transfer an existing token (via `token_id=1`), that your previously minted, to `alice`.
+
+   ```shell
+   go run main.go blockchain token transfer \
+   --token-owner-address=$COMICCOIN_COINBASE_ADDRESS \
+   --token-owner-password=$COMICCOIN_COINBASE_PASSWORD \
+   --recipient-address=$COMICCOIN_ALICE_WALLET_ADDRESS \
+   --token-id=1
+   ```
+
+2. Anyone can look up existing token (via `token_id=1`) using this command:
+
+    ```shell
+    go run main.go blockchain token get --token-id=1
+    ```
+3. If you didn't receive any errors in the terminal then you've successfully transfered your first non-fungible token to a user in the ComicCoin blockchain network!
+
+## Part 6: Burn a NFT
+Owners of NFT have the ability to *burn* their token, which in essence means assign the ownership of the token to a nil-addresses which means no-one ever will be able to claim the token ownership.
+
+1. New owner (`alice`) burns existing token (via `token_id=1`).
+
+   ```shell
+   go run main.go blockchain token burn \
+   --token-owner-address=$COMICCOIN_ALICE_WALLET_ADDRESS \
+   --token-owner-password=$COMICCOIN_ALICE_WALLET_PASSWORD \
+   --token-id=1
+   ```
+
+2. Anyone can look up existing token (via `token_id=1`) using this command:
+
+    ```shell
+    go run main.go blockchain token get --token-id=1
+    ```
+
+3. In the terminal if you see the owner address equal `0x0000000000000000000000000000000000000000` then you have successfully burned the NFT.
+
+## Part 7: GUI Wallet Application
+
+Go to the [`comiccoin-core`](../comiccoin-core) repository and setup the GUI application. This is the GUI application that user's can use to manage their coins and tokens in the blockchain.

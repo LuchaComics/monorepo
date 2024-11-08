@@ -18,6 +18,7 @@ import {
 import { useRecoilState } from "recoil";
 import { toLower } from "lodash";
 
+import PageLoadingContent from "../Reusable/PageLoadingContent";
 import { GetImageFilePathFromDialog, GetVideoFilePathFromDialog, CreateToken } from "../../../wailsjs/go/main/App";
 import FormErrorBox from "../Reusable/FormErrorBox";
 import FormInputField from "../Reusable/FormInputField";
@@ -55,6 +56,9 @@ function CreateTokenView() {
     const onSubmitClick = (e) => {
         e.preventDefault();
 
+        // Reset the errors.
+        setErrors({});
+
         // Update the GUI to let user know that the operation is under way.
         setIsLoading(true);
 
@@ -66,30 +70,37 @@ function CreateTokenView() {
             setForceURL("/tokens")
         }).catch((errorJsonString)=>{
             console.log("errRes:", errorJsonString);
-            const errorObject = JSON.parse(errorJsonString);
-            let err = {};
-            if (errorObject.name != "") {
-                err.name = errorObject.name;
-            }
-            if (errorObject.description != "") {
-                err.description = errorObject.description;
-            }
-            if (errorObject.image != "") {
-                err.image = errorObject.image;
-            }
-            if (errorObject.animation != "") {
-                err.animation = errorObject.animation;
-            }
-            if (errorObject.background_color != "") {
-                err.backgroundColor = errorObject.background_color;
-            }
-            setErrors(err);
 
-            // The following code will cause the screen to scroll to the top of
-            // the page. Please see ``react-scroll`` for more information:
-            // https://github.com/fisshy/react-scroll
-            var scroll = Scroll.animateScroll;
-            scroll.scrollToTop();
+            let err = {};
+            try {
+                const errorObject = JSON.parse(errorJsonString);
+                if (errorObject.name != "") {
+                    err.name = errorObject.name;
+                }
+                if (errorObject.description != "") {
+                    err.description = errorObject.description;
+                }
+                if (errorObject.image != "") {
+                    err.image = errorObject.image;
+                }
+                if (errorObject.animation != "") {
+                    err.animation = errorObject.animation;
+                }
+                if (errorObject.background_color != "") {
+                    err.backgroundColor = errorObject.background_color;
+                }
+            } catch (e) {
+                console.log("CreateToken:err:", e);
+                err.message = errorJsonString;
+            } finally {
+                setErrors(err);
+
+                // The following code will cause the screen to scroll to the top of
+                // the page. Please see ``react-scroll`` for more information:
+                // https://github.com/fisshy/react-scroll
+                var scroll = Scroll.animateScroll;
+                scroll.scrollToTop();
+            }
         }).finally(() => {
             // this will be executed after then or catch has been executed
             console.log("promise has been resolved or rejected");
@@ -127,6 +138,12 @@ function CreateTokenView() {
 
     if (forceURL !== "") {
         return <Navigate to={forceURL} />;
+    }
+
+    if (isLoading) {
+        return (
+            <PageLoadingContent displayMessage="Submitting..." />
+        );
     }
 
     return (
