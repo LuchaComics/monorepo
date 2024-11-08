@@ -110,6 +110,13 @@ func (s *InitAccountsFromBlockchainService) Execute() error {
 						return err
 					}
 				}
+				if blockTx.Type == domain.TransactionTypeToken {
+					if err := s.processTokenBlockTransaction(&blockTx, accountInfos); err != nil {
+						s.logger.Error("Failed processing coin block transaction",
+							slog.Any("error", err))
+						return err
+					}
+				}
 			}
 		}
 
@@ -226,7 +233,7 @@ func (s *InitAccountsFromBlockchainService) processGenesisBlockData() (*domain.A
 }
 
 func (s *InitAccountsFromBlockchainService) processCoinBlockTransaction(blockTx *domain.BlockTransaction, accountInfos map[common.Address]*AccountInfo) error {
-	s.logger.Debug("processing block tx.",
+	s.logger.Debug("processing coin block tx.",
 		slog.Any("from", blockTx.From),
 		slog.Any("to", blockTx.To),
 		slog.Uint64("value", blockTx.Value),
@@ -278,6 +285,58 @@ func (s *InitAccountsFromBlockchainService) processCoinBlockTransaction(blockTx 
 		accountInfo.TotalAmountReceived += blockTx.Value
 		accountInfo.AmountsReceived = append(accountInfo.AmountsReceived, blockTx.Value)
 
+		accountInfos[*blockTx.To] = accountInfo
+	}
+
+	return nil
+}
+
+// processCoinBlockTransaction method will add account if no coins exist in the account but a token exists, if
+// coins and tokens exist then this method will do nothing.
+func (s *InitAccountsFromBlockchainService) processTokenBlockTransaction(blockTx *domain.BlockTransaction, accountInfos map[common.Address]*AccountInfo) error {
+	s.logger.Debug("processing token block tx.",
+		slog.Any("from", blockTx.From),
+		slog.Any("to", blockTx.To),
+		slog.Uint64("token_id", blockTx.TokenID),
+		slog.String("token_metadata_uri", blockTx.TokenMetadataURI),
+		slog.Any("token_nonce", blockTx.TokenNonce),
+	)
+
+	//
+	// STEP 1
+	//
+
+	if blockTx.From != nil {
+		accountInfo, ok := accountInfos[*blockTx.From]
+		if !ok || accountInfo == nil {
+			accountInfo = &AccountInfo{
+				Address:             blockTx.From,
+				Nonce:               0,
+				TotalAmountSent:     0,
+				TotalAmountReceived: 0,
+				AmountsSent:         []uint64{},
+				AmountsReceived:     []uint64{},
+			}
+		}
+		accountInfos[*blockTx.From] = accountInfo
+	}
+
+	//
+	// STEP 2
+	//
+
+	if blockTx.To != nil {
+		accountInfo, ok := accountInfos[*blockTx.To]
+		if !ok || accountInfo == nil {
+			accountInfo = &AccountInfo{
+				Address:             blockTx.To,
+				Nonce:               0,
+				TotalAmountSent:     0,
+				TotalAmountReceived: 0,
+				AmountsSent:         []uint64{},
+				AmountsReceived:     []uint64{},
+			}
+		}
 		accountInfos[*blockTx.To] = accountInfo
 	}
 
