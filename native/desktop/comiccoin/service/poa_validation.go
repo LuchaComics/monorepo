@@ -14,24 +14,24 @@ import (
 )
 
 type ProofOfAuthorityValidationService struct {
-	config                                       *config.Config
-	logger                                       *slog.Logger
-	kmutex                                       kmutexutil.KMutexProvider
-	storageTransactionOpenUseCase                *usecase.StorageTransactionOpenUseCase
-	storageTransactionCommitUseCase              *usecase.StorageTransactionCommitUseCase
-	storageTransactionDiscardUseCase             *usecase.StorageTransactionDiscardUseCase
-	receiveProposedBlockDataDTOUseCase           *usecase.ReceiveProposedBlockDataDTOUseCase
-	getBlockchainLastestHashUseCase              *usecase.GetBlockchainLastestHashUseCase
-	getBlockDataUseCase                          *usecase.GetBlockDataUseCase
-	getAccountsHashStateUseCase                  *usecase.GetAccountsHashStateUseCase
-	getTokensHashStateUseCase                    *usecase.GetTokensHashStateUseCase
-	loadGenesisBlockDataUseCase                  *usecase.LoadGenesisBlockDataUseCase
-	createBlockDataUseCase                       *usecase.CreateBlockDataUseCase
-	setBlockchainLastestHashUseCase              *usecase.SetBlockchainLastestHashUseCase
-	setBlockchainLastestTokenIDIfGreatestUseCase *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase
-	getAccountUseCase                            *usecase.GetAccountUseCase
-	upsertAccountUseCase                         *usecase.UpsertAccountUseCase
-	upsertTokenIfPreviousTokenNonceGTEUseCase    *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase
+	config                                    *config.Config
+	logger                                    *slog.Logger
+	kmutex                                    kmutexutil.KMutexProvider
+	storageTransactionOpenUseCase             *usecase.StorageTransactionOpenUseCase
+	storageTransactionCommitUseCase           *usecase.StorageTransactionCommitUseCase
+	storageTransactionDiscardUseCase          *usecase.StorageTransactionDiscardUseCase
+	receiveProposedBlockDataDTOUseCase        *usecase.ReceiveProposedBlockDataDTOUseCase
+	getBlockchainLastestHashUseCase           *usecase.GetBlockchainLastestHashUseCase
+	getBlockDataUseCase                       *usecase.GetBlockDataUseCase
+	getAccountsHashStateUseCase               *usecase.GetAccountsHashStateUseCase
+	getTokensHashStateUseCase                 *usecase.GetTokensHashStateUseCase
+	loadGenesisBlockDataUseCase               *usecase.LoadGenesisBlockDataUseCase
+	createBlockDataUseCase                    *usecase.CreateBlockDataUseCase
+	setBlockchainLastestHashUseCase           *usecase.SetBlockchainLastestHashUseCase
+	setBlockchainLastestTokenIDIfGTUseCase    *usecase.SetBlockchainLastestTokenIDIfGTUseCase
+	getAccountUseCase                         *usecase.GetAccountUseCase
+	upsertAccountUseCase                      *usecase.UpsertAccountUseCase
+	upsertTokenIfPreviousTokenNonceGTEUseCase *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase
 }
 
 func NewProofOfAuthorityValidationService(
@@ -49,7 +49,7 @@ func NewProofOfAuthorityValidationService(
 	uc9 *usecase.LoadGenesisBlockDataUseCase,
 	uc10 *usecase.CreateBlockDataUseCase,
 	uc11 *usecase.SetBlockchainLastestHashUseCase,
-	uc12 *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase,
+	uc12 *usecase.SetBlockchainLastestTokenIDIfGTUseCase,
 	uc13 *usecase.GetAccountUseCase,
 	uc14 *usecase.UpsertAccountUseCase,
 	uc15 *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase,
@@ -460,7 +460,7 @@ func (s *ProofOfAuthorityValidationService) processTokenForBlockTransaction(bloc
 	// This code will execute when we mint new tokens, it will not execute if
 	// we are `transfering` or `burning` a token since no new token IDs are
 	// created.
-	if err := s.setBlockchainLastestTokenIDIfGreatestUseCase.Execute(blockTx.TokenID); err != nil {
+	if err := s.setBlockchainLastestTokenIDIfGTUseCase.Execute(blockTx.TokenID); err != nil {
 		s.logger.Error("validator failed saving latest hash",
 			slog.Any("error", err))
 		return err

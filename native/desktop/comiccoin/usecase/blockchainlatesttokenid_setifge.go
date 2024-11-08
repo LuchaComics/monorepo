@@ -10,21 +10,21 @@ import (
 // Usecase (UC) represents always having the greatest token ID saved and
 // never having any value lesser then the current token ID saved in the
 // database, therefore keeping a consistent token ID sequence.
-type SetBlockchainLastestTokenIDIfGTUseCase struct {
+type SetBlockchainLastestTokenIDIfGTEUseCase struct {
 	config *config.Config
 	logger *slog.Logger
 	repo   domain.BlockchainLastestTokenIDRepository
 }
 
-func NewSetBlockchainLastestTokenIDIfGTUseCase(
+func NewSetBlockchainLastestTokenIDIfGTEUseCase(
 	config *config.Config,
 	logger *slog.Logger,
 	repo domain.BlockchainLastestTokenIDRepository,
-) *SetBlockchainLastestTokenIDIfGTUseCase {
-	return &SetBlockchainLastestTokenIDIfGTUseCase{config, logger, repo}
+) *SetBlockchainLastestTokenIDIfGTEUseCase {
+	return &SetBlockchainLastestTokenIDIfGTEUseCase{config, logger, repo}
 }
 
-func (uc *SetBlockchainLastestTokenIDIfGTUseCase) Execute(tokenID uint64) error {
+func (uc *SetBlockchainLastestTokenIDIfGTEUseCase) Execute(tokenID uint64) error {
 	// Developers Note:
 	// The following code check the existence of the previous most recent token
 	// ID value so we can check and enforce actual latest token ID values get
@@ -36,7 +36,7 @@ func (uc *SetBlockchainLastestTokenIDIfGTUseCase) Execute(tokenID uint64) error 
 			slog.Any("error", err))
 		latestTokenID = 0
 	}
-	if tokenID > latestTokenID {
+	if tokenID >= latestTokenID {
 		return uc.repo.Set(tokenID)
 	}
 	return nil

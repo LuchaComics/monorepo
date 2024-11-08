@@ -42,7 +42,7 @@ func (s *TransferCoinService) Execute(
 	value uint64,
 	data []byte,
 ) error {
-	s.logger.Debug("Validating... --->>>>>>>>>>",
+	s.logger.Debug("Validating...",
 		slog.Any("from_account_address", fromAccountAddress),
 		slog.Any("account_wallet_password", accountWalletPassword),
 		slog.Any("to", to),

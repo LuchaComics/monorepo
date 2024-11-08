@@ -43,7 +43,7 @@ func doGenerateAPIKeyCmd() {
 
 	// Developers Note:
 	// To create a `` then run the following in your console:
-	// `openssl rand -hex 64.`
+	// `openssl rand -hex 64`
 
 	// Misc
 	cfg := &config.Config{

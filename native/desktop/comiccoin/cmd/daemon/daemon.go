@@ -54,6 +54,9 @@ func DaemonCmd() *cobra.Command {
 			// Load up our dependencies and configuration
 			//
 
+			logger := logger.NewProvider()
+			kmutex := kmutexutil.NewKMutexProvider()
+
 			// Load up our operating system interaction handlers, more specifically
 			// signals. The OS sends our application various signals based on the
 			// OS's state, we want to listen into the termination signals.
@@ -91,9 +94,12 @@ func DaemonCmd() *cobra.Command {
 				coinbaseAddr := common.HexToAddress(strings.ToLower(flagProofOfAuthorityAccountAddress))
 				cfg.Blockchain.ProofOfAuthorityAccountAddress = &coinbaseAddr
 				cfg.Blockchain.ProofOfAuthorityWalletPassword = flagProofOfAuthorityWalletPassword
+				logger.Debug("Executing with proof of authority full node...",
+					slog.Any("pow_address", coinbaseAddr),
+					slog.Any("pow_password", flagProofOfAuthorityWalletPassword),
+				)
 			}
 
-			logger := logger.NewProvider()
 			walletDB := disk.NewDiskStorage(cfg.DB.DataDir, "wallet", logger)
 			blockDataDB := disk.NewDiskStorage(cfg.DB.DataDir, "block_data", logger)
 			latestHashDB := disk.NewDiskStorage(cfg.DB.DataDir, "latest_hash", logger)
@@ -105,7 +111,6 @@ func DaemonCmd() *cobra.Command {
 			sitokenDB := disk.NewDiskStorage(cfg.DB.DataDir, "signed_issued_token", logger)
 			nftokDB := disk.NewDiskStorage(cfg.DB.DataDir, "non_fungible_token", logger)
 			memdb := memory.NewInMemoryStorage(logger)
-			kmutex := kmutexutil.NewKMutexProvider()
 
 			// ------------ Peer-to-Peer (P2P) ------------
 			ikRepo := repo.NewIdentityKeyRepo(cfg, logger, ikDB)
@@ -399,7 +404,7 @@ func DaemonCmd() *cobra.Command {
 				cfg,
 				logger,
 				latestBlockDataTokenIDRepo)
-			setBlockchainLastestTokenIDIfGreatestUseCase := usecase.NewSetBlockchainLastestTokenIDIfGreatestUseCase(
+			setBlockchainLastestTokenIDIfGTUseCase := usecase.NewSetBlockchainLastestTokenIDIfGTUseCase(
 				cfg,
 				logger,
 				latestBlockDataTokenIDRepo)
@@ -604,7 +609,7 @@ func DaemonCmd() *cobra.Command {
 				upsertAccountUseCase,
 				setBlockchainLastestHashUseCase,
 				getBlockchainLastestTokenIDUseCase,
-				setBlockchainLastestTokenIDIfGreatestUseCase,
+				setBlockchainLastestTokenIDIfGTUseCase,
 			)
 
 			// Validation
@@ -622,7 +627,7 @@ func DaemonCmd() *cobra.Command {
 				upsertAccountUseCase,
 				upsertTokenIfPreviousTokenNonceGTEUseCase,
 				getBlockchainLastestTokenIDUseCase,
-				setBlockchainLastestTokenIDIfGreatestUseCase,
+				setBlockchainLastestTokenIDIfGTUseCase,
 			)
 			proofOfAuthorityValidationService := service.NewProofOfAuthorityValidationService(
 				cfg,
@@ -639,7 +644,7 @@ func DaemonCmd() *cobra.Command {
 				loadGenesisBlockDataUseCase,
 				createBlockDataUseCase,
 				setBlockchainLastestHashUseCase,
-				setBlockchainLastestTokenIDIfGreatestUseCase,
+				setBlockchainLastestTokenIDIfGTUseCase,
 				getAccountUseCase,
 				upsertAccountUseCase,
 				upsertTokenIfPreviousTokenNonceGTEUseCase,

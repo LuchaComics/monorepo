@@ -14,20 +14,20 @@ import (
 )
 
 type ProofOfWorkValidationService struct {
-	config                                       *config.Config
-	logger                                       *slog.Logger
-	kmutex                                       kmutexutil.KMutexProvider
-	receiveProposedBlockDataDTOUseCase           *usecase.ReceiveProposedBlockDataDTOUseCase
-	getBlockchainLastestHashUseCase              *usecase.GetBlockchainLastestHashUseCase
-	getBlockDataUseCase                          *usecase.GetBlockDataUseCase
-	getAccountsHashStateUseCase                  *usecase.GetAccountsHashStateUseCase
-	createBlockDataUseCase                       *usecase.CreateBlockDataUseCase
-	setBlockchainLastestHashUseCase              *usecase.SetBlockchainLastestHashUseCase
-	getAccountUseCase                            *usecase.GetAccountUseCase
-	upsertAccountUseCase                         *usecase.UpsertAccountUseCase
-	upsertTokenIfPreviousTokenNonceGTEUseCase    *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase
-	getBlockchainLastestTokenIDUseCase           *usecase.GetBlockchainLastestTokenIDUseCase
-	setBlockchainLastestTokenIDIfGreatestUseCase *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase
+	config                                    *config.Config
+	logger                                    *slog.Logger
+	kmutex                                    kmutexutil.KMutexProvider
+	receiveProposedBlockDataDTOUseCase        *usecase.ReceiveProposedBlockDataDTOUseCase
+	getBlockchainLastestHashUseCase           *usecase.GetBlockchainLastestHashUseCase
+	getBlockDataUseCase                       *usecase.GetBlockDataUseCase
+	getAccountsHashStateUseCase               *usecase.GetAccountsHashStateUseCase
+	createBlockDataUseCase                    *usecase.CreateBlockDataUseCase
+	setBlockchainLastestHashUseCase           *usecase.SetBlockchainLastestHashUseCase
+	getAccountUseCase                         *usecase.GetAccountUseCase
+	upsertAccountUseCase                      *usecase.UpsertAccountUseCase
+	upsertTokenIfPreviousTokenNonceGTEUseCase *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase
+	getBlockchainLastestTokenIDUseCase        *usecase.GetBlockchainLastestTokenIDUseCase
+	setBlockchainLastestTokenIDIfGTUseCase    *usecase.SetBlockchainLastestTokenIDIfGTUseCase
 }
 
 func NewProofOfWorkValidationService(
@@ -44,7 +44,7 @@ func NewProofOfWorkValidationService(
 	uc8 *usecase.UpsertAccountUseCase,
 	uc9 *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase,
 	uc10 *usecase.GetBlockchainLastestTokenIDUseCase,
-	uc11 *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase,
+	uc11 *usecase.SetBlockchainLastestTokenIDIfGTUseCase,
 ) *ProofOfWorkValidationService {
 	return &ProofOfWorkValidationService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11}
 }
@@ -318,7 +318,7 @@ func (s *ProofOfWorkValidationService) processTokenForBlockTransaction(blockTx *
 	// This code will execute when we mint new tokens, it will not execute if
 	// we are `transfering` or `burning` a token since no new token IDs are
 	// created.
-	if err := s.setBlockchainLastestTokenIDIfGreatestUseCase.Execute(blockTx.TokenID); err != nil {
+	if err := s.setBlockchainLastestTokenIDIfGTUseCase.Execute(blockTx.TokenID); err != nil {
 		s.logger.Error("validator failed saving latest hash",
 			slog.Any("error", err))
 		log.Fatalf("processTokenForBlockTransaction: DB corruption b/c of error - you will need to re-create the db!")

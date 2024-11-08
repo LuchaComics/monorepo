@@ -14,29 +14,29 @@ import (
 )
 
 type ProofOfAuthorityMiningService struct {
-	config                                       *config.Config
-	logger                                       *slog.Logger
-	kmutex                                       kmutexutil.KMutexProvider
-	getKeyService                                *GetKeyService
-	storageTransactionOpenUseCase                *usecase.StorageTransactionOpenUseCase
-	storageTransactionCommitUseCase              *usecase.StorageTransactionCommitUseCase
-	storageTransactionDiscardUseCase             *usecase.StorageTransactionDiscardUseCase
-	getAccountUseCase                            *usecase.GetAccountUseCase
-	getAccountsHashStateUseCase                  *usecase.GetAccountsHashStateUseCase
-	getTokenUseCase                              *usecase.GetTokenUseCase
-	getTokensHashStateUseCase                    *usecase.GetTokensHashStateUseCase
-	listAllPendingBlockTransactionUseCase        *usecase.ListAllPendingBlockTransactionUseCase
-	getBlockchainLastestHashUseCase              *usecase.GetBlockchainLastestHashUseCase
-	getBlockDataUseCase                          *usecase.GetBlockDataUseCase
-	proofOfWorkUseCase                           *usecase.ProofOfWorkUseCase
-	createBlockDataUseCase                       *usecase.CreateBlockDataUseCase
-	broadcastProposedBlockDataDTOUseCase         *usecase.BroadcastProposedBlockDataDTOUseCase
-	deleteAllPendingBlockTransactionUseCase      *usecase.DeleteAllPendingBlockTransactionUseCase
-	upsertTokenIfPreviousTokenNonceGTEUseCase    *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase
-	upsertAccountUseCase                         *usecase.UpsertAccountUseCase
-	setBlockchainLastestHashUseCase              *usecase.SetBlockchainLastestHashUseCase
-	getBlockchainLastestTokenIDUseCase           *usecase.GetBlockchainLastestTokenIDUseCase
-	setBlockchainLastestTokenIDIfGreatestUseCase *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase
+	config                                    *config.Config
+	logger                                    *slog.Logger
+	kmutex                                    kmutexutil.KMutexProvider
+	getKeyService                             *GetKeyService
+	storageTransactionOpenUseCase             *usecase.StorageTransactionOpenUseCase
+	storageTransactionCommitUseCase           *usecase.StorageTransactionCommitUseCase
+	storageTransactionDiscardUseCase          *usecase.StorageTransactionDiscardUseCase
+	getAccountUseCase                         *usecase.GetAccountUseCase
+	getAccountsHashStateUseCase               *usecase.GetAccountsHashStateUseCase
+	getTokenUseCase                           *usecase.GetTokenUseCase
+	getTokensHashStateUseCase                 *usecase.GetTokensHashStateUseCase
+	listAllPendingBlockTransactionUseCase     *usecase.ListAllPendingBlockTransactionUseCase
+	getBlockchainLastestHashUseCase           *usecase.GetBlockchainLastestHashUseCase
+	getBlockDataUseCase                       *usecase.GetBlockDataUseCase
+	proofOfWorkUseCase                        *usecase.ProofOfWorkUseCase
+	createBlockDataUseCase                    *usecase.CreateBlockDataUseCase
+	broadcastProposedBlockDataDTOUseCase      *usecase.BroadcastProposedBlockDataDTOUseCase
+	deleteAllPendingBlockTransactionUseCase   *usecase.DeleteAllPendingBlockTransactionUseCase
+	upsertTokenIfPreviousTokenNonceGTEUseCase *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase
+	upsertAccountUseCase                      *usecase.UpsertAccountUseCase
+	setBlockchainLastestHashUseCase           *usecase.SetBlockchainLastestHashUseCase
+	getBlockchainLastestTokenIDUseCase        *usecase.GetBlockchainLastestTokenIDUseCase
+	setBlockchainLastestTokenIDIfGTUseCase    *usecase.SetBlockchainLastestTokenIDIfGTUseCase
 }
 
 func NewProofOfAuthorityMiningService(
@@ -62,7 +62,7 @@ func NewProofOfAuthorityMiningService(
 	uc16 *usecase.UpsertAccountUseCase,
 	uc17 *usecase.SetBlockchainLastestHashUseCase,
 	uc18 *usecase.GetBlockchainLastestTokenIDUseCase,
-	uc19 *usecase.SetBlockchainLastestTokenIDIfGreatestUseCase,
+	uc19 *usecase.SetBlockchainLastestTokenIDIfGTUseCase,
 ) *ProofOfAuthorityMiningService {
 	return &ProofOfAuthorityMiningService{config, logger, kmutex, getKeyService, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12, uc13, uc14, uc15, uc16, uc17, uc18, uc19}
 }
@@ -330,7 +330,12 @@ func (s *ProofOfAuthorityMiningService) Execute(ctx context.Context) error {
 		return err
 	}
 	if coinbaseAccountKey == nil {
-		return fmt.Errorf("failed getting account wallet key: %v", "does not exist")
+		err := fmt.Errorf("failed getting account wallet key: %v", "does not exist")
+		s.logger.Error("Failed getting account wallet key",
+			slog.Any("poa_address", s.config.Blockchain.ProofOfAuthorityAccountAddress),
+			slog.Any("poa_password", s.config.Blockchain.ProofOfAuthorityWalletPassword),
+			slog.Any("error", err))
+		return err
 	}
 
 	coinbasePrivateKey := coinbaseAccountKey.PrivateKey
@@ -639,7 +644,7 @@ func (s *ProofOfAuthorityMiningService) processTokenForPendingBlockTransaction(p
 	// This code will execute when we mint new tokens, it will not execute if
 	// we are `transfering` or `burning` a token since no new token IDs are
 	// created.
-	if err := s.setBlockchainLastestTokenIDIfGreatestUseCase.Execute(pendingBlockTx.TokenID); err != nil {
+	if err := s.setBlockchainLastestTokenIDIfGTUseCase.Execute(pendingBlockTx.TokenID); err != nil {
 		s.logger.Error("validator failed saving latest hash",
 			slog.Any("error", err))
 		return err

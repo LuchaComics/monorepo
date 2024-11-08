@@ -158,7 +158,7 @@ func doRunInitBlockchain() {
 		cfg,
 		logger,
 		accountRepo)
-	setBlockchainLastestTokenIDIfGreatestUseCase := usecase.NewSetBlockchainLastestTokenIDIfGreatestUseCase(
+	setBlockchainLastestTokenIDIfGTEUseCase := usecase.NewSetBlockchainLastestTokenIDIfGTEUseCase(
 		cfg,
 		logger,
 		latestBlockDataTokenIDRepo)
@@ -216,7 +216,7 @@ func doRunInitBlockchain() {
 		getAccountsHashStateUseCase,
 		getTokensHashStateUseCase,
 		setBlockchainLastestHashUseCase,
-		setBlockchainLastestTokenIDIfGreatestUseCase,
+		setBlockchainLastestTokenIDIfGTEUseCase,
 		createBlockDataUseCase,
 		proofOfWorkUseCase,
 		upsertAccountUseCase,
@@ -229,6 +229,7 @@ func doRunInitBlockchain() {
 	}
 
 	logger.Info("Blockchain successfully initialized",
+		slog.Any("coinbase_password", flagPassword),
 		slog.Any("coinbase_address", account.Address),
 	)
 }
