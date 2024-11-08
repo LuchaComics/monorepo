@@ -28,20 +28,20 @@
 2. When you you finish successfully you should see something like this (but not exact values as the values will be different every time your run the command):
 
    ```text
-   msg="Blockchain node intitialized and ready" "peer identity"=QmcmBzpxfCe7dR4GhegYwP8JKgY1rEtYqkjMeQTFfcue6X "full address"=/ip4/127.0.0.1/tcp/26642/p2p/QmcmBzpxfCe7dR4GhegYwP8JKgY1rEtYqkjMeQTFfcue6X
+   msg="Blockchain node intitialized and ready" "peer identity"=QmZ6ZaEqTZZQY9eTJ5agR4XnNGY8Ca1Qdiv1wLayWc4PSt "full address"=/ip4/127.0.0.1/tcp/26642/p2p/QmZ6ZaEqTZZQY9eTJ5agR4XnNGY8Ca1Qdiv1wLayWc4PSt
    ```
 
 3. From the output we must do the following:
 
-   * `QmcmBzpxfCe7dR4GhegYwP8JKgY1rEtYqkjMeQTFfcue6X` is a p2p address we use in our network to indicate that we are the **proof of authority**.
+   * `QmZ6ZaEqTZZQY9eTJ5agR4XnNGY8Ca1Qdiv1wLayWc4PSt` is a p2p address we use in our network to indicate that we are the **proof of authority**.
    * In your `comiccoin/config/constants/constants.go` folder, please update `ComicCoinBootstrapPeers` value to be set this value.
 
 
 4. For convenience in these tutorials, save the output of this into an environment variable.
 
    ```shell
-   export COMICCOIN_POF_ADDRESS=QmcmBzpxfCe7dR4GhegYwP8JKgY1rEtYqkjMeQTFfcue6X
-   export COMICCOIN_BOOTSTRAP_PEERS=/ip4/127.0.0.1/tcp/26642/p2p/QmcmBzpxfCe7dR4GhegYwP8JKgY1rEtYqkjMeQTFfcue6X
+   export COMICCOIN_POF_ADDRESS=QmZ6ZaEqTZZQY9eTJ5agR4XnNGY8Ca1Qdiv1wLayWc4PSt
+   export COMICCOIN_BOOTSTRAP_PEERS=/ip4/127.0.0.1/tcp/26642/p2p/QmZ6ZaEqTZZQY9eTJ5agR4XnNGY8Ca1Qdiv1wLayWc4PSt
    ```
 
 ### (B) Initializing the ComicCoin Blockchain.
@@ -66,10 +66,10 @@
    --coinbase-password-repeated=$COMICCOIN_COINBASE_PASSWORD;
    ```
 
-3. You have successfully initialized the blockchain! For our example, let's say the `coinbase` account was created with the following address `0x704185d9511b11bb03fd492ae306423343377a09`. For convenience, save the output of this into an environment variable.
+3. You have successfully initialized the blockchain! For our example, let's say the `coinbase` account was created with the following address `0x8ea8d1fb065872d0daf0091cf3fe9e24740bdacf`. For convenience, save the output of this into an environment variable.
 
     ```shell
-    export COMICCOIN_COINBASE_ADDRESS=0x704185d9511b11bb03fd492ae306423343377a09;
+    export COMICCOIN_COINBASE_ADDRESS=0x8ea8d1fb065872d0daf0091cf3fe9e24740bdacf;
     ```
 
 ## Part 2: Start a Peer-to-Peer Network
@@ -143,10 +143,10 @@ and run the following command to create our `alice` wallet. Please replace the p
    --wallet-label=alice;
    ```
 
-2. For our example, let's say outputted address was: `0xfaea8212cb24dd69b1cc60b40febe4e7015939fb`. So for convenience in these tutorials, save the output of this into an environment variable.
+2. For our example, let's say outputted address was: `0x25b52caedcf770e04d2d8cd4dca39b6dfff139ff`. So for convenience in these tutorials, save the output of this into an environment variable.
 
    ```shell
-   export COMICCOIN_ALICE_WALLET_ADDRESS=0xfaea8212cb24dd69b1cc60b40febe4e7015939fb
+   export COMICCOIN_ALICE_WALLET_ADDRESS=0x25b52caedcf770e04d2d8cd4dca39b6dfff139ff
    export COMICCOIN_ALICE_WALLET_PASSWORD=...
    ```
 

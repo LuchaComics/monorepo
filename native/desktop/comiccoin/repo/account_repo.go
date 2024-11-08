@@ -3,6 +3,7 @@ package repo
 import (
 	"log/slog"
 	"sort"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 
@@ -27,14 +28,14 @@ func (r *AccountRepo) Upsert(account *domain.Account) error {
 	if err != nil {
 		return err
 	}
-	if err := r.dbClient.Set(account.Address.String(), bBytes); err != nil {
+	if err := r.dbClient.Set(strings.ToLower(account.Address.String()), bBytes); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (r *AccountRepo) GetByAddress(addr *common.Address) (*domain.Account, error) {
-	bBytes, err := r.dbClient.Get(addr.String())
+	bBytes, err := r.dbClient.Get(strings.ToLower(addr.String()))
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +72,7 @@ func (r *AccountRepo) ListAll() ([]*domain.Account, error) {
 }
 
 func (r *AccountRepo) DeleteByAddress(addr *common.Address) error {
-	err := r.dbClient.Delete(addr.String())
+	err := r.dbClient.Delete(strings.ToLower(addr.String()))
 	if err != nil {
 		return err
 	}
@@ -148,7 +149,7 @@ func (ba byAccount) Len() int {
 // Less helps to sort the list by account id in ascending order to keep the
 // accounts in the right order of processing.
 func (ba byAccount) Less(i, j int) bool {
-	return ba[i].Address.String() < ba[j].Address.String()
+	return strings.ToLower(ba[i].Address.String()) < strings.ToLower(ba[j].Address.String())
 }
 
 // Swap moves accounts in the order of the account id value.
