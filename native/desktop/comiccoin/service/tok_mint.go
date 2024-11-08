@@ -224,7 +224,7 @@ func (s *ProofOfAuthorityTokenMintService) Execute(
 		ID:          newTokenID,
 		MetadataURI: metadataURI,
 	}
-	sitok, signingErr := itok.Sign(key.PrivateKey)
+	sitok, signingErr := itok.SignUsingProofOfAuthorityValidator(validator, key.PrivateKey)
 	if signingErr != nil {
 		s.logger.Debug("Failed to sign the token mint transaction",
 			slog.Any("error", signingErr))

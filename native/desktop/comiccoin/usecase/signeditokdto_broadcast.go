@@ -45,9 +45,8 @@ func (uc *BroadcastSignedIssuedTokenDTOUseCase) Execute(ctx context.Context, ido
 			ID:          ido.ID,
 			MetadataURI: ido.MetadataURI,
 		},
-		V: ido.V,
-		R: ido.R,
-		S: ido.S,
+		IssuedTokenSignatureBytes: ido.IssuedTokenSignatureBytes,
+		Validator:                 ido.Validator,
 	}
 
 	//

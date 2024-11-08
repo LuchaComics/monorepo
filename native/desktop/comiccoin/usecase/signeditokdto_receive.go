@@ -50,9 +50,8 @@ func (uc *ReceiveSignedIssuedTokenDTOUseCase) Execute(ctx context.Context) (*dom
 			ID:          dto.ID,
 			MetadataURI: dto.MetadataURI,
 		},
-		V: dto.V,
-		R: dto.R,
-		S: dto.S,
+		IssuedTokenSignatureBytes: dto.IssuedTokenSignatureBytes,
+		Validator:                 dto.Validator,
 	}
 
 	e := make(map[string]string)

@@ -27,14 +27,11 @@ func (uc *CreateSignedIssuedTokenUseCase) Execute(sitok *domain.SignedIssuedToke
 	if sitok.IssuedToken.MetadataURI == "" {
 		e["metadata_uri"] = "missing value"
 	}
-	if sitok.V == nil {
-		e["v"] = "missing value"
+	if sitok.IssuedTokenSignatureBytes == nil {
+		e["issued_token_signature_bytes"] = "missing value"
 	}
-	if sitok.R == nil {
-		e["r"] = "missing value"
-	}
-	if sitok.S == nil {
-		e["s"] = "missing value"
+	if sitok.Validator == nil {
+		e["validator"] = "missing value"
 	}
 	if len(e) != 0 {
 		uc.logger.Warn("Validation failed",

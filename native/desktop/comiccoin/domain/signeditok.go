@@ -3,9 +3,7 @@ package domain
 import (
 	"crypto/ecdsa"
 	"fmt"
-	"math/big"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/signature"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/fxamacker/cbor/v2"
 )
@@ -17,9 +15,14 @@ type IssuedToken struct {
 
 type SignedIssuedToken struct {
 	IssuedToken
-	V *big.Int `json:"v"` // Ethereum: Recovery identifier, either 29 or 30 with ardanID.
-	R *big.Int `json:"r"` // Ethereum: First coordinate of the ECDSA signature.
-	S *big.Int `json:"s"` // Ethereum: Second coordinate of the ECDSA signature.
+
+	// The signature of this block's "IssuedToken" field which was applied by the
+	// proof-of-authority validator.
+	IssuedTokenSignatureBytes []byte `json:"issued_token_signature_bytes"`
+
+	// The proof-of-authority validator whom executed the validation of
+	// this NFT in our blockchain. Must match genesis block validator.
+	Validator *Validator `json:"validator"`
 }
 
 type SignedIssuedTokenRepository interface {
@@ -32,37 +35,30 @@ type SignedIssuedTokenRepository interface {
 	DiscardTransaction()
 }
 
-// Sign function signs the issued token using the user's private key
-// and returns a signed version of that issued token.
-func (itok *IssuedToken) Sign(privateKey *ecdsa.PrivateKey) (*SignedIssuedToken, error) {
-	// Break the signature into the 3 parts: R, S, and V.
-	v, r, s, err := signature.Sign(itok, privateKey)
-	if err != nil {
-		return &SignedIssuedToken{}, err
-	}
-
-	// Create the signed transaction, including the original transaction and the signature parts.
-	signedTok := &SignedIssuedToken{
-		IssuedToken: *itok,
-		V:           v,
-		R:           r,
-		S:           s,
-	}
-
-	return signedTok, nil
-}
-
-func (sitok *SignedIssuedToken) Verify() error {
-	return signature.VerifySignature(sitok.V, sitok.R, sitok.S)
-}
-
-func (sitok *SignedIssuedToken) PublicKey() (*ecdsa.PublicKey, error) {
-	// Prepare the data for public key extraction.
-	hashedData, err := signature.HashWithComicCoinStamp(sitok)
+// SignUsingProofOfAuthorityValidator function signs the issued token using the
+// proof of authorities private key and returns a signed version of that issued token.
+func (itok *IssuedToken) SignUsingProofOfAuthorityValidator(poaValidator *Validator, poaPrivateKey *ecdsa.PrivateKey) (*SignedIssuedToken, error) {
+	issuedTokenSignatureBytes, err := poaValidator.Sign(poaPrivateKey, itok)
 	if err != nil {
 		return nil, err
 	}
-	return signature.GetPublicKeyFromSignature(hashedData, sitok.V, sitok.R, sitok.S)
+
+	// Create the signed transaction, including the original transaction and the signature parts.
+	signedIssuedTok := &SignedIssuedToken{
+		IssuedToken:               *itok,
+		IssuedTokenSignatureBytes: issuedTokenSignatureBytes,
+		Validator:                 poaValidator,
+	}
+
+	return signedIssuedTok, nil
+}
+
+func (sitok *SignedIssuedToken) Verify() bool {
+	return sitok.Validator.Verify(sitok.IssuedTokenSignatureBytes, sitok.IssuedToken)
+}
+
+func (sitok *SignedIssuedToken) PublicKey() (*ecdsa.PublicKey, error) {
+	return sitok.Validator.GetPublicKeyECDSA()
 }
 
 func (sitok *SignedIssuedToken) PublicKeyBytes() ([]byte, error) {

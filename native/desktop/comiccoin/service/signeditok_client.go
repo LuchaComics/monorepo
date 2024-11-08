@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"log/slog"
@@ -81,32 +82,33 @@ func (s *SignedIssuedTokenClientService) Execute(ctx context.Context) error {
 		return fmt.Errorf("genesis block does not exist")
 	}
 
-	// // Developers Note:
-	// // This is a super important step to enforce the authority being used by
-	// // the correct party. This code verifies that the the public key of the
-	// // authority matches the public key set on the genesis block because the
-	// // user has opend up the actual authorities wallet.
-	// publicKeyBytes, err := sitok.PublicKeyBytes()
-	// if err != nil {
-	// 	s.logger.Error("Failed getting public key bytes",
-	// 		slog.Any("error", err))
-	// 	return fmt.Errorf("Failed getting public key bytes: %v", err)
-	// }
-	// if bytes.Equal(genesisBlockData.Validator.PublicKeyBytes, publicKeyBytes) == false {
-	// 	s.logger.Error("Failed comparing public keys of validators",
-	// 		slog.Any("genesis_val_pk", genesisBlockData.Validator.PublicKeyBytes),
-	// 		slog.Any("itok_val_pk", publicKeyBytes))
-	// 	return fmt.Errorf("Failed comparing public keys: %s", "they do not match")
-	// }
+	// Developers Note:
+	// This is a super important step to enforce the authority being used by
+	// the correct party. This code verifies that the the public key of the
+	// authority matches the public key set on the genesis block because the
+	// user has opend up the actual authorities wallet.
+
+	publicKeyBytes, err := sitok.PublicKeyBytes()
+	if err != nil {
+		s.logger.Error("Failed getting public key bytes",
+			slog.Any("error", err))
+		return fmt.Errorf("Failed getting public key bytes: %v", err)
+	}
+	if bytes.Equal(genesisBlockData.Validator.PublicKeyBytes, publicKeyBytes) == false {
+		s.logger.Error("Failed comparing public keys of validators",
+			slog.Any("genesis_val_pk", genesisBlockData.Validator.PublicKeyBytes),
+			slog.Any("itok_val_pk", publicKeyBytes))
+		return fmt.Errorf("Failed comparing public keys: %s", "they do not match")
+	}
 
 	//
 	// STEP 3:
 	// Confirm the signature matches the validator's signature.
 	//
 
-	if err := sitok.Verify(); err != nil {
+	if sitok.Verify() == false {
 		s.logger.Error("validator failed validating: authority signature is invalid")
-		return fmt.Errorf("validator failed validating: %v", err)
+		return fmt.Errorf("validator failed validating")
 	}
 
 	//
