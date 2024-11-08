@@ -8,11 +8,11 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/kmutexutil"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/kmutexutil"
 )
 
 // Service represents token owners transfering the token they own to another
@@ -79,11 +79,15 @@ func (s *TransferTokenService) Execute(
 	wallet, err := s.getWalletUseCase.Execute(tokenOwnerAddr)
 	if err != nil {
 		s.logger.Error("failed getting from database",
+			slog.Any("token_id", tokenID),
+			slog.Any("token_owwner_addr", tokenOwnerAddr),
 			slog.Any("error", err))
 		return fmt.Errorf("failed getting from database: %s", err)
 	}
 	if wallet == nil {
 		s.logger.Error("failed getting from database",
+			slog.Any("token_id", tokenID),
+			slog.Any("token_owwner_addr", tokenOwnerAddr),
 			slog.Any("error", "d.n.e."))
 		return fmt.Errorf("failed getting from database: %s", "wallet d.n.e.")
 	}
@@ -91,6 +95,9 @@ func (s *TransferTokenService) Execute(
 	key, err := s.walletDecryptKeyUseCase.Execute(wallet.Filepath, tokenOwnerPassword)
 	if err != nil {
 		s.logger.Error("failed getting key",
+			slog.Any("wallet_filepath", wallet.Filepath),
+			slog.Any("token_id", tokenID),
+			slog.Any("token_owwner_addr", tokenOwnerAddr),
 			slog.Any("error", err))
 		return fmt.Errorf("failed getting key: %s", err)
 	}
@@ -106,6 +113,8 @@ func (s *TransferTokenService) Execute(
 	token, err := s.getTokenUseCase.Execute(tokenID)
 	if err != nil {
 		s.logger.Error("failed getting token",
+			slog.Any("token_id", tokenID),
+			slog.Any("token_owwner_addr", tokenOwnerAddr),
 			slog.Any("error", err))
 		return fmt.Errorf("failed getting token: %s", err)
 	}
@@ -114,6 +123,7 @@ func (s *TransferTokenService) Execute(
 	if token == nil {
 		s.logger.Warn("failed getting token",
 			slog.Any("token_id", tokenID),
+			slog.Any("token_owner_addr", tokenOwnerAddr),
 			slog.Any("error", "token does not exist"))
 		return fmt.Errorf("failed getting token: does not exist for ID: %v", tokenID)
 	}

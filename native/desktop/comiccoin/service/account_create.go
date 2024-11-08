@@ -71,6 +71,10 @@ func (s *CreateAccountService) Execute(dataDir, walletPassword string, walletPas
 		return nil, fmt.Errorf("failed creating new keystore: %s", err)
 	}
 
+	s.logger.Debug("Created new wallet for account",
+		slog.Any("wallet_address", walletAddress),
+		slog.Any("wallet_filepath", walletFilepath))
+
 	//
 	// STEP 3:
 	// Decrypt the wallet so we can extract data from it.

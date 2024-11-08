@@ -66,7 +66,7 @@ func (s *GetOrDownloadNonFungibleTokenService) Execute(tokenID uint64) (*domain.
 	if tok == nil {
 		s.logger.Error("Token does not exist.",
 			slog.Any("tokenID", tokenID))
-		return nil, fmt.Errorf("Token does not exist for: %v\n", tokenID)
+		return nil, fmt.Errorf("Token does not exist for: %v", tokenID)
 	}
 
 	// Confirm URI is using protocol our app supports.

@@ -3,23 +3,23 @@
     "header": {
         "number": 0,
         "prev_block_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-        "timestamp": 1731085987194,
-        "beneficiary": "0x8ea8d1fb065872d0daf0091cf3fe9e24740bdacf",
+        "timestamp": 1731091061452,
+        "beneficiary": "0x0a111ddb2653e853c4a16b5cb28425af21ca0cbc",
         "difficulty": 2,
         "mining_reward": 0,
-        "state_root": "0x1fec2c2f31a6135bd4eab65c1f56202d0889c06d6589d4b2bedb6e579ca84cfb",
-        "trans_root": "0xbbc19090cd8299b7167256c28c0bb58640bced83a3bb06228accc877d6c44221",
+        "state_root": "0xc6ef873b4c8ac5d01d4e5f72cea553892be0992d519adcc95466be84c8a8a8f5",
+        "trans_root": "0x61a160689a42bd7156ad5e1a85b019f8474bec0cdb261be26d39e07cac29a006",
         "nonce": 0,
         "latest_token_id": 0,
-        "tokens_root": "0x03b0630231b34d2ab2069158816ac4d532f8bba280dc5249a8a22746f8a65869"
+        "tokens_root": "0xe4682059f3ac4d24973d3b37704fe0039987f77ef68fc4771f2cf78382be5933"
     },
-    "header_signature_bytes": "MEUCIA4fyrl+x6AeQma4V5iyDhdRnZ3qHloiBfrotPi0ozteAiEAliIk+v9iT8awzGLJrVK1efvdXomR7gpWMQqz+9xtURY=",
+    "header_signature_bytes": "MEUCIQDLOHi/uPCXLTAY74fdLikaqIbiGPauEzApEJwokL1tuAIgKnQJZT0azOQzpnGE9MNmW2qWXqVxmOsBzxVE3rzcm1Y=",
     "trans": [
         {
             "chain_id": 1,
             "nonce": 0,
-            "from": "0x8ea8d1fb065872d0daf0091cf3fe9e24740bdacf",
-            "to": "0x8ea8d1fb065872d0daf0091cf3fe9e24740bdacf",
+            "from": "0x0a111ddb2653e853c4a16b5cb28425af21ca0cbc",
+            "to": "0x0a111ddb2653e853c4a16b5cb28425af21ca0cbc",
             "value": 18446744073709551615,
             "tip": 0,
             "data": "",
@@ -28,17 +28,17 @@
             "token_metadata_uri": "",
             "token_nonce": 0,
             "v": 29,
-            "r": 22532294503402701330149611499836005799064791936923169026755364635274765161522,
-            "s": 54247375596315838771454172925454283597599927047985461338451099901712651820775,
-            "timestamp": 1731085987194,
+            "r": 64664336132029214389518397802166625722726715786227709842931738323496934807023,
+            "s": 35945037675658735462896378222938170953118752758296007542221234169647037304136,
+            "timestamp": 1731091061452,
             "gas_price": 0,
             "gas_units": 0
         },
         {
             "chain_id": 1,
             "nonce": 0,
-            "from": "0x8ea8d1fb065872d0daf0091cf3fe9e24740bdacf",
-            "to": "0x8ea8d1fb065872d0daf0091cf3fe9e24740bdacf",
+            "from": "0x0a111ddb2653e853c4a16b5cb28425af21ca0cbc",
+            "to": "0x0a111ddb2653e853c4a16b5cb28425af21ca0cbc",
             "value": 0,
             "tip": 0,
             "data": "",
@@ -47,15 +47,15 @@
             "token_metadata_uri": "https://cpscapsule.com/comiccoin/tokens/0/metadata.json",
             "token_nonce": 0,
             "v": 29,
-            "r": 53045165417683625742148775947582028285005128670818050261553216856161066471245,
-            "s": 17007140510456862732848806223118306866955328288572575038162887596097153050675,
-            "timestamp": 1731085987194,
+            "r": 25232212749155584475827749937402490795509485644531713099736576853665013875365,
+            "s": 14726305550259295223183635134748879841547245103468678750809702108337558129362,
+            "timestamp": 1731091061452,
             "gas_price": 0,
             "gas_units": 0
         }
     ],
     "validator": {
         "id": "ComicCoin Blockchain Authority",
-        "public_key_bytes": "BIl9WG+97P3Ya7z6PQe3XeQrdg8QUR/lx8cMYbJH1T+s1/8HebSbTo521nNLc+l04kNyjMggJlfJGOHRNeXCYig="
+        "public_key_bytes": "BBqCDCfvrHjva2Rn8m49haDBnClgAow8G9DOLcce+NUmRqr+G4JqiSDEWFXJpEwsA4IZetbpdUS70IybGGdPj+E="
     }
 }

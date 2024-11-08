@@ -70,7 +70,7 @@ func (a *App) GetNonFungibleTokensByOwnerAddress(address string) ([]*domain.NonF
 	}
 
 	a.logger.Debug("",
-		slog.Any("toks", toks))
+		slog.Any("toks_count", len(toks)))
 
 	return toks, nil
 }

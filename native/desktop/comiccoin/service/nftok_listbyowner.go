@@ -60,6 +60,11 @@ func (s *ListNonFungibleTokensByOwnerService) Execute(address *common.Address) (
 
 	tokIDs := domain.ToTokenIDsArray(toks)
 
+	s.logger.Debug("Fetched token list by owner",
+		slog.Any("owner", address),
+		slog.Any("tokIDs", tokIDs),
+		slog.Any("toks", toks))
+
 	//
 	// STEP 3: Get all the NFTs we have in our database.
 	//
@@ -79,6 +84,11 @@ func (s *ListNonFungibleTokensByOwnerService) Execute(address *common.Address) (
 	//
 
 	nftokIDs := domain.ToNonFungibleTokenIDsArray(nftoks)
+
+	s.logger.Debug("Fetched non-fungible token list by token ids",
+		slog.Any("tokIDs", tokIDs),
+		slog.Any("nftokIDs", nftokIDs),
+		slog.Any("nftoks", nftoks))
 
 	// See what are the differences between the two arrays of type `uint64` data-types.
 	_, _, missingInNFTokIDsArr := arraydiff.Uints64(tokIDs, nftokIDs)
@@ -102,6 +112,9 @@ func (s *ListNonFungibleTokensByOwnerService) Execute(address *common.Address) (
 			nftoks = append(nftoks, nftok)
 		}
 	}
+
+	s.logger.Debug("Fetched non-fungible tokens",
+		slog.Any("nftoks", nftoks))
 
 	return nftoks, nil
 }

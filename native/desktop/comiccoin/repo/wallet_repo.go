@@ -2,6 +2,7 @@ package repo
 
 import (
 	"log/slog"
+	"strings"
 
 	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
@@ -24,17 +25,43 @@ func (r *WalletRepo) Upsert(wallet *domain.Wallet) error {
 	if err != nil {
 		return err
 	}
-	if err := r.dbClient.Set(wallet.Address.String(), bBytes); err != nil {
+	addr := strings.ToLower(wallet.Address.String())
+	r.logger.Debug("upserting wallet",
+		slog.Any("addr", addr))
+	if err := r.dbClient.Set(addr, bBytes); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (r *WalletRepo) GetByAddress(address *common.Address) (*domain.Wallet, error) {
-	bBytes, err := r.dbClient.Get(address.String())
+	// First attempt.
+	addr := strings.ToLower(address.String())
+	r.logger.Debug("getting by address...",
+		slog.Any("addr", addr))
+	bBytes, err := r.dbClient.Get(addr)
 	if err != nil {
+		r.logger.Debug("Failed getting by address",
+			slog.Any("addr", addr),
+			slog.Any("error", err))
 		return nil, err
 	}
+
+	// Second attempt.
+	if bBytes == nil {
+		addr := addr[2:] // Skip the `0x`
+		r.logger.Debug("retrying again with modified address...",
+			slog.Any("addr", addr))
+
+		bBytes, err = r.dbClient.Get(addr)
+		if err != nil {
+			r.logger.Debug("Failed getting by address",
+				slog.Any("addr", addr),
+				slog.Any("error", err))
+			return nil, err
+		}
+	}
+
 	b, err := domain.NewWalletFromDeserialize(bBytes)
 	if err != nil {
 		r.logger.Error("failed to deserialize",
@@ -68,7 +95,7 @@ func (r *WalletRepo) ListAll() ([]*domain.Wallet, error) {
 }
 
 func (r *WalletRepo) DeleteByAddress(address *common.Address) error {
-	err := r.dbClient.Delete(address.String())
+	err := r.dbClient.Delete(strings.ToLower(address.String()))
 	if err != nil {
 		return err
 	}

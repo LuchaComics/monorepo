@@ -46,7 +46,7 @@ func (h *GetAccountHTTPHandler) Execute(w http.ResponseWriter, r *http.Request, 
 
 	// Conver to our HTTP response and send back to the user.
 	responsePayload := &AccountGetResponseIDO{
-		Address: account.Address.String(),
+		Address: strings.ToLower(account.Address.String()),
 		Balance: account.Balance,
 		Nonce:   account.Nonce,
 	}

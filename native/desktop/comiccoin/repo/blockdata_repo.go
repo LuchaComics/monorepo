@@ -2,6 +2,7 @@ package repo
 
 import (
 	"log/slog"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 
@@ -89,7 +90,7 @@ func (r *BlockDataRepo) ListAllBlockTransactionsByAddress(address *common.Addres
 		}
 
 		for _, tx := range blockdata.Trans {
-			if tx.To.String() == address.String() || tx.From.String() == address.String() {
+			if strings.ToLower(tx.To.String()) == strings.ToLower(address.String()) || strings.ToLower(tx.From.String()) == strings.ToLower(address.String()) {
 				res = append(res, &tx)
 			}
 		}

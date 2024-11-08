@@ -33,7 +33,7 @@ func (a *App) CreateWallet(walletPassword, walletPasswordRepeated, walletLabel s
 
 	// Save this newly created wallet address as the default address to
 	// load up when the application finishes loading.
-	walletAddress := account.Address.String()
+	walletAddress := strings.ToLower(account.Address.String())
 	preferences.SetDefaultWalletAddress(strings.ToLower(walletAddress))
 
 	// Return our address.
