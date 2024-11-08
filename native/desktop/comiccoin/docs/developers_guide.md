@@ -170,7 +170,7 @@ and run the following command to create our `alice` wallet. Please replace the p
 ### (A) Create the NFT metadata file
 Every NFT is essentially a map of `token_id` values to a `metadata_uri` values. To begin we will need to create a **metdata file** and post to our ComicCoin NFT Assets store so we can get a `cid` value that we'll set for the **metadata file**; afterwords, we will need to mint a token with that newly generated `metadata_uri`.
 
-1. Go to the [`comiccoin-nftassetstore`](../comiccoin-nftstore) repository and setup the project.
+1. Go to the [`comiccoin-nftassetstore`](../comiccoin-nftassetstore) repository and setup the project.
 
 2. Go to the [`comiccoin-registry`](../comiccoin-registry) repository and setup the project.
 

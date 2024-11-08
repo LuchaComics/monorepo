@@ -21,10 +21,10 @@ tasks:
     cmds:
       - go work use ./native/desktop/comiccoin
 
-  usenftstore:
-    desc: Load up the go workspace for the `comiccoin-nftstore` module.
+  usenftassetstore:
+    desc: Load up the go workspace for the `comiccoin-nftassetstore` module.
     cmds:
-      - go work use ./native/desktop/comiccoin-nftstore
+      - go work use ./native/desktop/comiccoin-nftassetstore
 
   useregistry:
     desc: Load up the go workspace for the `comiccoin-registry` module.
