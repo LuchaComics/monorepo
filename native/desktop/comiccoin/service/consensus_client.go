@@ -359,85 +359,161 @@ func (s *MajorityVoteConsensusClientService) processAccountForBlockTransaction(b
 	// Therefore the code in this function is executed on a ready database.
 
 	//
-	// STEP 1
+	// CASE 1 OF 2: Coin Transaction
 	//
 
-	if blockTx.From != nil {
-		// DEVELOPERS NOTE:
-		// We already *should* have a `From` account in our database, so we can
-		acc, _ := s.getAccountUseCase.Execute(blockTx.From)
-		if acc == nil {
-			s.logger.Error("The `From` account does not exist in our database.",
-				slog.Any("hash", blockTx.From))
-			return fmt.Errorf("The `From` account does not exist in our database for hash: %v", blockTx.From.String())
-		}
-		acc.Balance -= blockTx.Value
-		acc.Nonce += 1 // Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
+	if blockTx.Type == domain.TransactionTypeCoin {
 
-		// DEVELOPERS NOTE:
-		// Do not update this accounts `Nonce`, we need to only update the
-		// `Nonce` to the receiving account, i.e. the `To` account.
+		//
+		// STEP 1
+		//
 
-		if err := s.upsertAccountUseCase.Execute(acc.Address, acc.Balance, acc.Nonce); err != nil {
-			s.logger.Error("Failed upserting account.",
-				slog.Any("error", err))
-			return err
-		}
+		if blockTx.From != nil {
+			// DEVELOPERS NOTE:
+			// We already *should* have a `From` account in our database, so we can
+			acc, _ := s.getAccountUseCase.Execute(blockTx.From)
+			if acc == nil {
+				s.logger.Error("The `From` account does not exist in our database.",
+					slog.Any("hash", blockTx.From))
+				return fmt.Errorf("The `From` account does not exist in our database for hash: %v", blockTx.From.String())
+			}
+			acc.Balance -= blockTx.Value
+			acc.Nonce += 1 // Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
 
-		s.logger.Debug("New `From` account balance via censensus",
-			slog.Any("account_address", acc.Address),
-			slog.Any("balance", acc.Balance),
-		)
-	}
+			// DEVELOPERS NOTE:
+			// Do not update this accounts `Nonce`, we need to only update the
+			// `Nonce` to the receiving account, i.e. the `To` account.
 
-	//
-	// STEP 2
-	//
-
-	if blockTx.To != nil {
-		// DEVELOPERS NOTE:
-		// It is perfectly normal that our account would possibly not exist
-		// so we would need to create a new Account record in our local
-		// in-memory database.
-		acc, _ := s.getAccountUseCase.Execute(blockTx.To)
-		if acc == nil {
-			if err := s.upsertAccountUseCase.Execute(blockTx.To, 0, 0); err != nil {
-				s.logger.Error("Failed creating account.",
+			if err := s.upsertAccountUseCase.Execute(acc.Address, acc.Balance, acc.Nonce); err != nil {
+				s.logger.Error("Failed upserting account.",
 					slog.Any("error", err))
 				return err
 			}
-			acc = &domain.Account{
-				Address: blockTx.To,
 
-				// Always start by zero, increment by 1 after mining successful.
-				Nonce: 0,
+			s.logger.Debug("New `From` account balance via censensus",
+				slog.Any("account_address", acc.Address),
+				slog.Any("balance", acc.Balance),
+			)
+		}
 
-				Balance: blockTx.Value,
+		//
+		// STEP 2
+		//
+
+		if blockTx.To != nil {
+			// DEVELOPERS NOTE:
+			// It is perfectly normal that our account would possibly not exist
+			// so we would need to create a new Account record in our local
+			// in-memory database.
+			acc, _ := s.getAccountUseCase.Execute(blockTx.To)
+			if acc == nil {
+				if err := s.upsertAccountUseCase.Execute(blockTx.To, 0, 0); err != nil {
+					s.logger.Error("Failed creating account.",
+						slog.Any("error", err))
+					return err
+				}
+				acc = &domain.Account{
+					Address: blockTx.To,
+
+					// Always start by zero, increment by 1 after mining successful.
+					Nonce: 0,
+
+					Balance: blockTx.Value,
+				}
+			} else {
+				acc.Balance += blockTx.Value
+				acc.Nonce += 1 // Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
 			}
-		} else {
-			acc.Balance += blockTx.Value
-			acc.Nonce += 1 // Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
+
+			if err := s.upsertAccountUseCase.Execute(acc.Address, acc.Balance, acc.Nonce); err != nil {
+				s.logger.Error("Failed upserting account.",
+					slog.Any("error", err))
+				return err
+			}
+
+			s.logger.Debug("New `To` account balance via censensus",
+				slog.Any("account_address", acc.Address),
+				slog.Any("balance", acc.Balance),
+			)
 		}
 
-		if err := s.upsertAccountUseCase.Execute(acc.Address, acc.Balance, acc.Nonce); err != nil {
-			s.logger.Error("Failed upserting account.",
-				slog.Any("error", err))
-			return err
-		}
-
-		s.logger.Debug("New `To` account balance via censensus",
-			slog.Any("account_address", acc.Address),
-			slog.Any("balance", acc.Balance),
-		)
-	}
+	} // end Coin
 
 	//
-	// STEP 3
+	// CASE 2 OF 2: Token Transaction
 	//
 
 	if blockTx.Type == domain.TransactionTypeToken {
-		//TODO: Impl.
-	}
+		//
+		// STEP 1:
+		// Check to see if we have an account for this particular token, if not
+		// then create it. Do thise from the `From` side of the transaction.
+		//
+
+		if blockTx.From != nil {
+			// DEVELOPERS NOTE:
+			// We already *should* have a `From` account in our database, so we can
+			acc, _ := s.getAccountUseCase.Execute(blockTx.From)
+			if acc == nil {
+				if err := s.upsertAccountUseCase.Execute(blockTx.To, 0, 0); err != nil {
+					s.logger.Error("Failed creating account.",
+						slog.Any("error", err))
+					return err
+				}
+				acc = &domain.Account{
+					Address: blockTx.To,
+					Nonce:   0, // Always start by zero, increment by 1 after mining successful.
+					Balance: 0,
+				}
+				if err := s.upsertAccountUseCase.Execute(acc.Address, acc.Balance, acc.Nonce); err != nil {
+					s.logger.Error("Failed upserting account.",
+						slog.Any("error", err))
+					return err
+				}
+				s.logger.Debug("New `From` account balance via validator b/c of token",
+					slog.Any("account_address", acc.Address),
+					slog.Any("balance", acc.Balance),
+				)
+			}
+		}
+
+		//
+		// STEP 2:
+		// Check to see if we have an account for this particular token, if not
+		// then create it.  Do thise from the `To` side of the transaction.
+		//
+
+		if blockTx.To != nil {
+			// DEVELOPERS NOTE:
+			// It is perfectly normal that our account would possibly not exist
+			// so we would need to create a new Account record in our local
+			// in-memory database.
+			acc, _ := s.getAccountUseCase.Execute(blockTx.To)
+			if acc == nil {
+				if err := s.upsertAccountUseCase.Execute(blockTx.To, 0, 0); err != nil {
+					s.logger.Error("Failed creating account.",
+						slog.Any("error", err))
+					return err
+				}
+				acc = &domain.Account{
+					Address: blockTx.To,
+					Nonce:   0, // Always start by zero, increment by 1 after mining successful.
+					Balance: 0,
+				}
+				if err := s.upsertAccountUseCase.Execute(acc.Address, acc.Balance, acc.Nonce); err != nil {
+					s.logger.Error("Failed upserting account.",
+						slog.Any("error", err))
+					return err
+				}
+
+				s.logger.Debug("New `To` account via validator b/c of token",
+					slog.Any("account_address", acc.Address),
+					slog.Any("balance", acc.Balance),
+				)
+			}
+		}
+
+	} // end Token
 
 	return nil
 }

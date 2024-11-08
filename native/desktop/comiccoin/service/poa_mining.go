@@ -626,6 +626,79 @@ func (s *ProofOfAuthorityMiningService) verifyPendingBlockTransaction(pendingBlo
 }
 
 func (s *ProofOfAuthorityMiningService) processTokenForPendingBlockTransaction(pendingBlockTx *domain.PendingBlockTransaction) error {
+	//
+	// STEP 1:
+	// Check to see if we have an account for this particular token, if not
+	// then create it. Do thise from the `From` side of the transaction.
+	//
+
+	if pendingBlockTx.From != nil {
+		// DEVELOPERS NOTE:
+		// We already *should* have a `From` account in our database, so we can
+		acc, _ := s.getAccountUseCase.Execute(pendingBlockTx.From)
+		if acc == nil {
+			if err := s.upsertAccountUseCase.Execute(pendingBlockTx.To, 0, 0); err != nil {
+				s.logger.Error("Failed creating account.",
+					slog.Any("error", err))
+				return err
+			}
+			acc = &domain.Account{
+				Address: pendingBlockTx.To,
+				Nonce:   0, // Always start by zero, increment by 1 after mining successful.
+				Balance: 0,
+			}
+			if err := s.upsertAccountUseCase.Execute(acc.Address, acc.Balance, acc.Nonce); err != nil {
+				s.logger.Error("Failed upserting account.",
+					slog.Any("error", err))
+				return err
+			}
+			s.logger.Debug("New `From` account balance via validator b/c of token",
+				slog.Any("account_address", acc.Address),
+				slog.Any("balance", acc.Balance),
+			)
+		}
+	}
+
+	//
+	// STEP 2:
+	// Check to see if we have an account for this particular token, if not
+	// then create it.  Do thise from the `To` side of the transaction.
+	//
+
+	if pendingBlockTx.To != nil {
+		// DEVELOPERS NOTE:
+		// It is perfectly normal that our account would possibly not exist
+		// so we would need to create a new Account record in our local
+		// in-memory database.
+		acc, _ := s.getAccountUseCase.Execute(pendingBlockTx.To)
+		if acc == nil {
+			if err := s.upsertAccountUseCase.Execute(pendingBlockTx.To, 0, 0); err != nil {
+				s.logger.Error("Failed creating account.",
+					slog.Any("error", err))
+				return err
+			}
+			acc = &domain.Account{
+				Address: pendingBlockTx.To,
+				Nonce:   0, // Always start by zero, increment by 1 after mining successful.
+				Balance: 0,
+			}
+			if err := s.upsertAccountUseCase.Execute(acc.Address, acc.Balance, acc.Nonce); err != nil {
+				s.logger.Error("Failed upserting account.",
+					slog.Any("error", err))
+				return err
+			}
+
+			s.logger.Debug("New `To` account via validator b/c of token",
+				slog.Any("account_address", acc.Address),
+				slog.Any("balance", acc.Balance),
+			)
+		}
+	}
+
+	//
+	// STEP 3:
+	//
+
 	// Save our token to the local database ONLY if this transaction
 	// is the most recent one. We track "most recent" transaction by
 	// the nonce value in the token.
