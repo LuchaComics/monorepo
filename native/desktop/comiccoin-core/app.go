@@ -6,14 +6,13 @@ import (
 	"log"
 	"log/slog"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config/constants"
-
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/kmutexutil"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
 	p2p "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/net/p2p"
 	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/disk/leveldb"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/memory"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config/constants"
 	task "github.com/LuchaComics/monorepo/native/desktop/comiccoin/interface/task/handler"
 	taskmnghandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin/interface/task/handler"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
@@ -92,10 +91,10 @@ func NewApp() *App {
 
 	cfg := &config.Config{}
 	return &App{
+		config:                  cfg,
 		logger:                  logger,
 		kmutex:                  kmutex,
 		isBlockchainNodeRunning: false,
-		config:                  cfg,
 	}
 }
 
@@ -509,7 +508,7 @@ func (a *App) startup(ctx context.Context) {
 		cfg,
 		logger,
 		latestBlockDataTokenIDRepo)
-	setBlockchainLastestTokenIDIfGreatestUseCase := usecase.NewSetBlockchainLastestTokenIDIfGreatestUseCase(
+	setBlockchainLastestTokenIDIfGTUseCase := usecase.NewSetBlockchainLastestTokenIDIfGTUseCase(
 		cfg,
 		logger,
 		latestBlockDataTokenIDRepo)
@@ -768,7 +767,7 @@ func (a *App) startup(ctx context.Context) {
 		upsertAccountUseCase,
 		setBlockchainLastestHashUseCase,
 		getBlockchainLastestTokenIDUseCase,
-		setBlockchainLastestTokenIDIfGreatestUseCase,
+		setBlockchainLastestTokenIDIfGTUseCase,
 	)
 
 	// Validation
@@ -786,7 +785,7 @@ func (a *App) startup(ctx context.Context) {
 		upsertAccountUseCase,
 		upsertTokenIfPreviousTokenNonceGTEUseCase,
 		getBlockchainLastestTokenIDUseCase,
-		setBlockchainLastestTokenIDIfGreatestUseCase,
+		setBlockchainLastestTokenIDIfGTUseCase,
 	)
 	proofOfAuthorityValidationService := service.NewProofOfAuthorityValidationService(
 		cfg,
@@ -803,7 +802,7 @@ func (a *App) startup(ctx context.Context) {
 		loadGenesisBlockDataUseCase,
 		createBlockDataUseCase,
 		setBlockchainLastestHashUseCase,
-		setBlockchainLastestTokenIDIfGreatestUseCase,
+		setBlockchainLastestTokenIDIfGTUseCase,
 		getAccountUseCase,
 		upsertAccountUseCase,
 		upsertTokenIfPreviousTokenNonceGTEUseCase,

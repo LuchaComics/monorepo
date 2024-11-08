@@ -79,17 +79,20 @@ func (s *MajorityVoteConsensusClientService) Execute(ctx context.Context) error 
 	// Wait to receive request from the peer-to-peer network.
 	//
 
-	receivedHash, err := s.consensusMechanismReceiveResponseFromNetworkUseCase.Execute(ctx)
+	dirtyReceivedHash, err := s.consensusMechanismReceiveResponseFromNetworkUseCase.Execute(ctx)
 	if err != nil {
 		s.logger.Error("consensus mechanism failed receiving response",
 			slog.Any("error", err))
 		return err
 	}
-	if receivedHash == "" {
+	if dirtyReceivedHash == "" {
 		// For debugging purposes only.
 		// s.logger.Warn("returned hash is empty")
 		return nil
 	}
+
+	// Minor change for defensive coding.
+	receivedHash := strings.ToLower(string(dirtyReceivedHash))
 
 	// Make sure that if we receive signature for the genesis block that
 	// this function aborts because there's no need to sync genesis block
@@ -111,8 +114,12 @@ func (s *MajorityVoteConsensusClientService) Execute(ctx context.Context) error 
 
 	// Note: Do not handle any errors, if we have any errors then continue and
 	// fetch the latest hash from network anyway.
-	localHash, _ := s.getBlockchainLastestHashUseCase.Execute()
-	if localHash != string(receivedHash) {
+	dirtyLocalHash, _ := s.getBlockchainLastestHashUseCase.Execute()
+
+	// Minor change for defensive coding.
+	localHash := strings.ToLower(string(dirtyLocalHash))
+
+	if localHash != receivedHash {
 
 		//
 		// STEP 4:
@@ -163,7 +170,7 @@ func (s *MajorityVoteConsensusClientService) Execute(ctx context.Context) error 
 			slog.Any("network_hash", receivedHash),
 			slog.Any("local_hash", localHash))
 
-		if err := s.runDownloadAndSyncBlockchainFromBlockDataHash(ctx, string(receivedHash)); err != nil {
+		if err := s.runDownloadAndSyncBlockchainFromBlockDataHash(ctx, receivedHash); err != nil {
 			s.logger.Error("blockchain failed to download and sync",
 				slog.Any("error", err))
 			s.storageTransactionDiscardUseCase.Execute()
@@ -172,7 +179,7 @@ func (s *MajorityVoteConsensusClientService) Execute(ctx context.Context) error 
 
 		// Once our sync has been completed, we can save our latest hash so
 		// we won't have to sync again.
-		if err := s.setBlockchainLastestHashUseCase.Execute(string(receivedHash)); err != nil {
+		if err := s.setBlockchainLastestHashUseCase.Execute(receivedHash); err != nil {
 			s.logger.Error("blockchain failed to save latest hash to database",
 				slog.Any("error", err))
 			s.storageTransactionDiscardUseCase.Execute()

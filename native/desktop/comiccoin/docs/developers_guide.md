@@ -237,3 +237,45 @@ Owners of NFT have the ability to *burn* their token, which in essence means ass
 ## Part 7: GUI Wallet Application
 
 Go to the [`comiccoin-core`](../comiccoin-core) repository and setup the GUI application. This is the GUI application that user's can use to manage their coins and tokens in the blockchain.
+
+Here is an example.
+
+1. In the GUI application you created a wallet, and lets say for example the value of the wallet address is `0x9e5fbdaad9f59de01bd33f341add978cad288184` and the metadata URI is `ipfs://bafkreic2d4xod5umcoxum7hf6hy4vghnyroxgvnboartkkda376mtrtlty`.
+
+2. In our `comiccoin` directory, run the following to mint our new token:
+
+    ```shell
+    go run main.go blockchain token mint \
+    --poa-address=$COMICCOIN_COINBASE_ADDRESS \
+    --poa-password=$COMICCOIN_COINBASE_PASSWORD \
+    --recipient-address=$COMICCOIN_COINBASE_ADDRESS \
+    --metadata-uri='ipfs://bafkreic2d4xod5umcoxum7hf6hy4vghnyroxgvnboartkkda376mtrtlty'
+    ```
+
+3. Afterwords transfer it to our new wallet address:
+
+    ```shell
+    go run main.go blockchain token transfer \
+    --token-owner-address=$COMICCOIN_COINBASE_ADDRESS \
+    --token-owner-password=$COMICCOIN_COINBASE_PASSWORD \
+    --recipient-address=0x9e5fbdaad9f59de01bd33f341add978cad288184 \
+    --token-id=3
+    ```
+
+4. You can also transfer coins to our new wallet address:
+
+    ```shell
+    go run main.go blockchain coin transfer \
+    --sender-account-address=$COMICCOIN_COINBASE_ADDRESS \
+    --sender-account-password=$COMICCOIN_COINBASE_PASSWORD \
+    --value=1 \
+    --recipient-address=0x9e5fbdaad9f59de01bd33f341add978cad288184;
+    ```
+
+4. Confirm (via CLI) that the correct NFT ownership address is set.
+
+    ```shell
+    go run main.go blockchain token get --token-id=2
+    ```
+
+5. Confirm (via GUI) that you can see the new NFT in your wallet.
