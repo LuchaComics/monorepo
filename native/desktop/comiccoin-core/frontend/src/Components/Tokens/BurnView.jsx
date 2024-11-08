@@ -10,11 +10,7 @@ import {
     faCubes,
     faCube,
     faCoins,
-    faEllipsis,
-    faTimesCircle,
-    faCheckCircle,
-    faExchange,
-    faFire
+    faEllipsis
 } from "@fortawesome/free-solid-svg-icons";
 import logo from '../../assets/images/CPS-logo-2023-square.webp';
 import { useRecoilState } from "recoil";
@@ -28,7 +24,7 @@ import FormRowMetadataAttributesField from "../Reusable/FormRowMetadataAttribute
 import FormRowYouTubeField from "../Reusable/FormRowYouTubeField";
 
 
-function TokenDetailView() {
+function TokenBurnView() {
     ////
     //// URL Parameters.
     ////
@@ -139,45 +135,13 @@ function TokenDetailView() {
                   </div>
                 </div>
                 {token !== undefined && token !== null && token != "" && <>
-                    <FormRowText label="Name" value={token.metadata.name} />
-                    <FormRowText label="Description" value={token.metadata.description} />
-                    <FormRowMetadataAttributesField label="Attributes (Optional)" attributes={token.metadata.attributes} />
-                    <FormRowText label="External URL (Optional)" value={token.metadata.external_url} />
-                    {/*<FormRowText label="Background Color" value={token.metadata.background_color} />*/}
-                    <FormRowYouTubeField label="YouTube URL (Optional)" url={token.metadata.youtube_url} />
-                    <figure class="image is-4by3">
-                        <img
-                            src={token.metadata.image}
-                            alt={token.metadata.name}
-                        />
-                    </figure>
+                    BURN TODO
                 </>}
-                <div class="columns pt-5" style={{alignSelf: "flex-start"}}>
-                  <div class="column is-half">
-                    <Link
-                      class="button is-danger is-fullwidth-mobile"
-                      to={`/more/token/${tokenID}/burn`}
-                    >
-                      <FontAwesomeIcon className="fas" icon={faFire} />
-                      &nbsp;Burn
-                    </Link>
-                  </div>
-                  <div class="column is-half has-text-right">
-                    <Link
-                      class="button is-success is-fullwidth-mobile"
-                      to={`/more/token/${tokenID}/transfer`}
-                    >
-                      <FontAwesomeIcon className="fas" icon={faExchange} />
-                      &nbsp;Transfer to Another Address
-                    </Link>
-                  </div>
-                </div>
               </nav>
-              <br />
             </section>
           </div>
         </>
     )
 }
 
-export default TokenDetailView
+export default TokenBurnView

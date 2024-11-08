@@ -82,6 +82,6 @@ export function TransferCoin(arg1, arg2, arg3, arg4, arg5) {
   return window['go']['main']['App']['TransferCoin'](arg1, arg2, arg3, arg4, arg5);
 }
 
-export function TransferToken(arg1, arg2, arg3, arg4, arg5) {
-  return window['go']['main']['App']['TransferToken'](arg1, arg2, arg3, arg4, arg5);
+export function TransferToken(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['TransferToken'](arg1, arg2, arg3, arg4);
 }

@@ -1,5 +1,5 @@
 import {useState, useEffect} from 'react';
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, Navigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faTasks,
@@ -11,24 +11,27 @@ import {
     faCube,
     faCoins,
     faEllipsis,
-    faTimesCircle,
-    faCheckCircle,
     faExchange,
-    faFire
+    faCheckCircle,
+    faTimesCircle
 } from "@fortawesome/free-solid-svg-icons";
 import logo from '../../assets/images/CPS-logo-2023-square.webp';
 import { useRecoilState } from "recoil";
 import { toLower } from "lodash";
 
-import { GetNonFungibleToken } from "../../../wailsjs/go/main/App";
+import {
+    GetNonFungibleToken,
+} from "../../../wailsjs/go/main/App";
 import { currentOpenWalletAtAddressState } from "../../AppState";
 import PageLoadingContent from "../Reusable/PageLoadingContent";
-import FormRowText from "../Reusable/FormRowText";
-import FormRowMetadataAttributesField from "../Reusable/FormRowMetadataAttributesField";
+import FormErrorBox from "../Reusable/FormErrorBox";
+import FormInputField from "../Reusable/FormInputField";
+import FormRadioField from "../Reusable/FormRadioField";
+import FormTextareaField from "../Reusable/FormTextareaField";
 import FormRowYouTubeField from "../Reusable/FormRowYouTubeField";
 
 
-function TokenDetailView() {
+function TokenTransferSuccessView() {
     ////
     //// URL Parameters.
     ////
@@ -45,13 +48,22 @@ function TokenDetailView() {
     //// Component states.
     ////
 
+    // GUI States.
     const [isLoading, setIsLoading] = useState(false);
     const [forceURL, setForceURL] = useState("");
     const [token, setToken] = useState([]);
+    const [errors, setErrors] = useState({});
+
+    // Form Submission States.
+    const [transferTo, setTransferTo] = useState("");
+    const [message, setMessage] = useState("");
+    const [walletPassword, setWalletPassword] = useState("");
 
     ////
     //// Event handling.
     ////
+
+
 
     ////
     //// Misc.
@@ -120,10 +132,16 @@ function TokenDetailView() {
                         &nbsp;Tokens
                     </Link>
                   </li>
-                  <li class="is-active">
+                  <li>
                     <Link to={`/more/token/${tokenID}`} aria-current="page">
                         <FontAwesomeIcon className="fas" icon={faCube} />
                         &nbsp;Token ID {tokenID}
+                    </Link>
+                  </li>
+                  <li class="is-active">
+                    <Link to={`/more/token/${tokenID}/transfer`} aria-current="page">
+                        <FontAwesomeIcon className="fas" icon={faExchange} />
+                        &nbsp;Transfer - Success
                     </Link>
                   </li>
                 </ul>
@@ -133,51 +151,48 @@ function TokenDetailView() {
                 <div class="columns">
                   <div class="column">
                     <h1 class="title is-4">
-                      <FontAwesomeIcon className="fas" icon={faCube} />
-                      &nbsp;Token ID {tokenID}
+                      <FontAwesomeIcon className="fas" icon={faExchange} />
+                      &nbsp;Transfer - Success
                     </h1>
                   </div>
                 </div>
-                {token !== undefined && token !== null && token != "" && <>
-                    <FormRowText label="Name" value={token.metadata.name} />
-                    <FormRowText label="Description" value={token.metadata.description} />
-                    <FormRowMetadataAttributesField label="Attributes (Optional)" attributes={token.metadata.attributes} />
-                    <FormRowText label="External URL (Optional)" value={token.metadata.external_url} />
-                    {/*<FormRowText label="Background Color" value={token.metadata.background_color} />*/}
-                    <FormRowYouTubeField label="YouTube URL (Optional)" url={token.metadata.youtube_url} />
-                    <figure class="image is-4by3">
-                        <img
-                            src={token.metadata.image}
-                            alt={token.metadata.name}
-                        />
-                    </figure>
-                </>}
+
+                <section class="hero is-success is-halfheight">
+                  <div class="hero-body">
+                    <div class="">
+                      <p class="title"> <FontAwesomeIcon className="fas" icon={faCheckCircle} />&nbsp;Token transfered!</p>
+                      <p class="subtitle">You have successfully transfered a token to the specified account. Please wait a few minutes for the transaction to get processed on the blockchain.</p>
+                    </div>
+                  </div>
+                </section>
+
                 <div class="columns pt-5" style={{alignSelf: "flex-start"}}>
                   <div class="column is-half">
-                    <Link
-                      class="button is-danger is-fullwidth-mobile"
-                      to={`/more/token/${tokenID}/burn`}
+                    {/*
+                    <button
+                      class="button is-fullwidth-mobile"
+                      onClick={(e) => setShowCancelWarning(true)}
                     >
-                      <FontAwesomeIcon className="fas" icon={faFire} />
-                      &nbsp;Burn
-                    </Link>
+                      <FontAwesomeIcon className="fas" icon={faTimesCircle} />
+                      &nbsp;Clear
+                    </button>
+                    */}
                   </div>
                   <div class="column is-half has-text-right">
                     <Link
-                      class="button is-success is-fullwidth-mobile"
-                      to={`/more/token/${tokenID}/transfer`}
+                      class="button is-primary is-fullwidth-mobile"
+                      to="/more/tokens"
                     >
-                      <FontAwesomeIcon className="fas" icon={faExchange} />
-                      &nbsp;Transfer to Another Address
+                      Go to tokens&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} />
                     </Link>
                   </div>
                 </div>
+
               </nav>
-              <br />
             </section>
           </div>
         </>
     )
 }
 
-export default TokenDetailView
+export default TokenTransferSuccessView
