@@ -212,7 +212,5 @@ func doRunNewAccount() {
 
 	logger.Debug("Genesis block created",
 		slog.Any("chain_id", blockchainState.ChainID),
-		// slog.Uint64("balance", account.Balance),
-		// slog.String("address", account.Address.Hex()),
 	)
 }

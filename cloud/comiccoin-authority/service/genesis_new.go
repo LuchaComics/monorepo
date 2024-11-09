@@ -3,12 +3,10 @@ package service
 import (
 	"context"
 	"crypto/ecdsa"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
 	"math"
-	"os"
 	"time"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -112,12 +110,9 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context, walletPassw
 	// Here is where we initialize the total supply of coins for the entire
 	// blockchain, so adjust accordingly. We will set the maximum value possible
 	// for the unsigned 64-bit integer in a computer. That's a big number!
-	initialSupply := uint64(math.MaxUint64) // Note: 18446744073709551615
+	initialSupply := uint64(math.MaxInt64) // Note: 9223372036854775807
 
 	// DEVELOPERS NOTE:
-	// The value of `18446744073709551615` using scientific notation is
-	// 1.8446744 × 10^19 which can be read as approximately `1.8 quintillion`.
-	//
 	// Also here are some additional notes on the order of magnitude for powers
 	// of 10:
 	// 10^0 = 1
@@ -360,19 +355,19 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context, walletPassw
 	}
 	genesisBlockData.HeaderSignatureBytes = genesisBlockHeaderSignatureBytes
 
+	// //
+	// // STEP 9:
+	// // Save genesis block to a JSON file.
+	// //
 	//
-	// STEP 9:
-	// Save genesis block to a JSON file.
+	// genesisBlockDataBytes, err := json.MarshalIndent(genesisBlockData, "", "    ")
+	// if err != nil {
+	// 	return nil, fmt.Errorf("Failed to serialize genesis block: %v", err)
+	// }
 	//
-
-	genesisBlockDataBytes, err := json.MarshalIndent(genesisBlockData, "", "    ")
-	if err != nil {
-		return nil, fmt.Errorf("Failed to serialize genesis block: %v", err)
-	}
-
-	if err := os.WriteFile("static/genesis.json", genesisBlockDataBytes, 0644); err != nil {
-		return nil, fmt.Errorf("Failed to write genesis block data to file: %v", err)
-	}
+	// if err := os.WriteFile("static/genesis.json", genesisBlockDataBytes, 0644); err != nil {
+	// 	return nil, fmt.Errorf("Failed to write genesis block data to file: %v", err)
+	// }
 
 	//
 	// STEP 10
@@ -399,6 +394,12 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context, walletPassw
 		AccountHashState:  stateRoot,
 		TokenHashState:    tokensRoot,
 		GenesisBlockData:  domain.BlockDataToGenesisBlockData(genesisBlockData),
+	}
+
+	if err := s.upsertBlockchainStateUseCase.Execute(ctx, blockchainState); err != nil {
+		s.logger.Error("Failed to save blockchain state",
+			slog.Any("error", err))
+		return nil, fmt.Errorf("Failed to save blockchain state: %v", err)
 	}
 
 	return blockchainState, nil
