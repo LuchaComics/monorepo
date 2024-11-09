@@ -37,18 +37,24 @@ func NewGenesistCmd() *cobra.Command {
 }
 
 func doRunNewAccount() {
-	// Common
+	//
+	// Load up dependencies.
+	//
+
+	// ------ Common ------
 	logger := logger.NewProvider()
 	cfg := config.NewProvider()
 	dbClient := mongodb.NewProvider(cfg, logger)
 	keystore := keystore.NewAdapter(cfg, logger)
 
-	// Repository
+	// ------ Repository ------
 	walletRepo := repo.NewWalletRepo(cfg, logger, dbClient)
 	accountRepo := repo.NewAccountRepo(cfg, logger, dbClient)
 	blockchainStateRepo := repo.NewBlockchainStateRepo(cfg, logger, dbClient)
+	tokRepo := repo.NewTokenRepo(cfg, logger, dbClient)
+	bdRepo := repo.NewBlockDataRepo(cfg, logger, dbClient)
 
-	// Use-case
+	// ------ Use-case ------
 	// Wallet
 	walletEncryptKeyUseCase := usecase.NewWalletEncryptKeyUseCase(
 		cfg,
@@ -67,6 +73,11 @@ func doRunNewAccount() {
 		logger,
 		walletRepo,
 	)
+	getWalletUseCase := usecase.NewGetWalletUseCase(
+		cfg,
+		logger,
+		walletRepo,
+	)
 
 	// Account
 	createAccountUseCase := usecase.NewCreateAccountUseCase(
@@ -75,6 +86,16 @@ func doRunNewAccount() {
 		accountRepo,
 	)
 	getAccountUseCase := usecase.NewGetAccountUseCase(
+		cfg,
+		logger,
+		accountRepo,
+	)
+	upsertAccountUseCase := usecase.NewUpsertAccountUseCase(
+		cfg,
+		logger,
+		accountRepo,
+	)
+	getAccountsHashStateUseCase := usecase.NewGetAccountsHashStateUseCase(
 		cfg,
 		logger,
 		accountRepo,
@@ -92,13 +113,32 @@ func doRunNewAccount() {
 		blockchainStateRepo,
 	)
 
+	// Token
+	upsertTokenIfPreviousTokenNonceGTEUseCase := usecase.NewUpsertTokenIfPreviousTokenNonceGTEUseCase(
+		cfg,
+		logger,
+		tokRepo,
+	)
+	getTokensHashStateUseCase := usecase.NewGetTokensHashStateUseCase(
+		cfg,
+		logger,
+		tokRepo,
+	)
+
+	// BlockData
+	upsertBlockDataUseCase := usecase.NewUpsertBlockDataUseCase(
+		cfg,
+		logger,
+		bdRepo,
+	)
+
 	// Proof of Work
 	proofOfWorkUseCase := usecase.NewProofOfWorkUseCase(
 		cfg,
 		logger,
 	)
 
-	// Service
+	// ------ Service ------
 	createAccountService := service.NewCreateAccountService(
 		cfg,
 		logger,
@@ -114,7 +154,12 @@ func doRunNewAccount() {
 		createAccountService,
 		getWalletUseCase,
 		walletDecryptKeyUseCase,
+		upsertAccountUseCase,
+		upsertTokenIfPreviousTokenNonceGTEUseCase,
+		getAccountsHashStateUseCase,
+		getTokensHashStateUseCase,
 		proofOfWorkUseCase,
+		upsertBlockDataUseCase,
 		upsertBlockchainStateUseCase,
 		getBlockchainStateUseCase,
 	)

@@ -3,6 +3,10 @@ package domain
 // GenesisBlockData represents the first block (data) in our blockchain.
 type GenesisBlockData BlockData
 
+func BlockDataToGenesisBlockData(bd *BlockData) *GenesisBlockData {
+	return (*GenesisBlockData)(bd)
+}
+
 // GenesisBlockDataRepository is an interface that defines the methods for
 // loading up the Genesis block from file.
 type GenesisBlockDataRepository interface {
