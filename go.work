@@ -1,6 +1,7 @@
 go 1.23.0
 
 use (
+	./cloud/comiccoin-authority
 	./cloud/cps-backend
 	./cloud/cps-ipfsstore-backend
 	./cloud/cps-nftstore-backend
