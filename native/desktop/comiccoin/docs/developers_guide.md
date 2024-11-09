@@ -240,7 +240,7 @@ Go to the [`comiccoin-core`](../comiccoin-core) repository and setup the GUI app
 
 Here is an example.
 
-1. In the GUI application you created a wallet, and lets say for example the value of the wallet address is `0x67690e5b00281d72bed52e4dc7d8292f0d8e86c2` and the metadata URI is `ipfs://bafkreic2d4xod5umcoxum7hf6hy4vghnyroxgvnboartkkda376mtrtlty`.
+1. In the GUI application you created a wallet, and lets say for example the value of the wallet address is `0x7d3d38791bffb1a854f2b74c313ad2509480986f` and the metadata URI is `ipfs://bafkreic2d4xod5umcoxum7hf6hy4vghnyroxgvnboartkkda376mtrtlty`.
 
 2. In our `comiccoin` directory, run the following to mint our new token to coinbase:
 
@@ -258,7 +258,7 @@ Here is an example.
     go run main.go blockchain token transfer \
     --token-owner-address=$COMICCOIN_COINBASE_ADDRESS \
     --token-owner-password=$COMICCOIN_COINBASE_PASSWORD \
-    --recipient-address=0x67690e5b00281d72bed52e4dc7d8292f0d8e86c2 \
+    --recipient-address=0x7d3d38791bffb1a854f2b74c313ad2509480986f \
     --token-id=2
     ```
 
@@ -269,7 +269,7 @@ Here is an example.
     --sender-account-address=$COMICCOIN_COINBASE_ADDRESS \
     --sender-account-password=$COMICCOIN_COINBASE_PASSWORD \
     --value=1 \
-    --recipient-address=0x67690e5b00281d72bed52e4dc7d8292f0d8e86c2;
+    --recipient-address=0x7d3d38791bffb1a854f2b74c313ad2509480986f;
     ```
 
 4. Confirm (via CLI) that the correct NFT ownership address is set.
