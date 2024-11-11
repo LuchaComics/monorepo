@@ -35,6 +35,7 @@ type httpServerImpl struct {
 
 	getVersionHTTPHandler          *handler.GetVersionHTTPHandler
 	getGenesisBlockDataHTTPHandler *handler.GetGenesisBlockDataHTTPHandler
+	getBlockchainStateHTTPHandler  *handler.GetBlockchainStateHTTPHandler
 }
 
 // NewHTTPServer creates a new HTTP server instance.
@@ -44,6 +45,7 @@ func NewHTTPServer(
 	mid mid.Middleware,
 	http1 *handler.GetVersionHTTPHandler,
 	http2 *handler.GetGenesisBlockDataHTTPHandler,
+	http3 *handler.GetBlockchainStateHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.IP == "" {
@@ -72,6 +74,7 @@ func NewHTTPServer(
 		server:                         srv,
 		getVersionHTTPHandler:          http1,
 		getGenesisBlockDataHTTPHandler: http2,
+		getBlockchainStateHTTPHandler:  http3,
 	}
 
 	// Attach the HTTP server controller to the ServeMux.
@@ -124,6 +127,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		port.getVersionHTTPHandler.Execute(w, r)
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "genesis" && r.Method == http.MethodGet:
 		port.getGenesisBlockDataHTTPHandler.Execute(w, r, p[3])
+	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "blockchain-state" && r.Method == http.MethodGet:
+		port.getBlockchainStateHTTPHandler.Execute(w, r, p[3])
 	// --- CATCH ALL: D.N.E. ---
 	default:
 		// Log a message to indicate that the request is not found.

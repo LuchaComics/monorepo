@@ -21,10 +21,6 @@ func NewGetGenesisBlockDataHTTPHandler(
 	return &GetGenesisBlockDataHTTPHandler{logger, s1}
 }
 
-type GenesisBlockDataResponseIDO struct {
-	GenesisBlockData string `json:"GenesisBlockData"`
-}
-
 func (h *GetGenesisBlockDataHTTPHandler) Execute(w http.ResponseWriter, r *http.Request, chainIDstr string) {
 	ctx := r.Context()
 	h.logger.Debug("GenesisBlockData requested")

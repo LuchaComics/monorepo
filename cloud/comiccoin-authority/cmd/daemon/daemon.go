@@ -57,6 +57,7 @@ func doRunDaemon() {
 	walletRepo := repo.NewWalletRepo(cfg, logger, dbClient)
 	accountRepo := repo.NewAccountRepo(cfg, logger, dbClient)
 	gbdRepo := repo.NewGenesisBlockDataRepo(cfg, logger, dbClient)
+	bcStateRepo := repo.NewBlockchainStateRepo(cfg, logger, dbClient)
 
 	_ = keystore
 	_ = walletRepo
@@ -67,6 +68,11 @@ func doRunDaemon() {
 		logger,
 		gbdRepo,
 	)
+	getBlockchainStateUseCase := usecase.NewGetBlockchainStateUseCase(
+		cfg,
+		logger,
+		bcStateRepo,
+	)
 
 	// --- Service
 
@@ -74,6 +80,11 @@ func doRunDaemon() {
 		cfg,
 		logger,
 		getGenesisBlockDataUseCase,
+	)
+	getBlockchainStateService := service.NewGetBlockchainStateService(
+		cfg,
+		logger,
+		getBlockchainStateUseCase,
 	)
 
 	//
@@ -97,6 +108,9 @@ func doRunDaemon() {
 	getGenesisBlockDataHTTPHandler := httphandler.NewGetGenesisBlockDataHTTPHandler(
 		logger,
 		getGenesisBlockDataService)
+	getBlockchainStateHTTPHandler := httphandler.NewGetBlockchainStateHTTPHandler(
+		logger,
+		getBlockchainStateService)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
 		blackp)
@@ -106,6 +120,7 @@ func doRunDaemon() {
 		httpMiddleware,
 		getVersionHTTPHandler,
 		getGenesisBlockDataHTTPHandler,
+		getBlockchainStateHTTPHandler,
 	)
 
 	// Run in background the peer to peer node which will synchronize our
