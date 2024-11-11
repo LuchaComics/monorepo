@@ -1,13 +1,13 @@
 go 1.23.0
 
 use (
+	./cloud/archive/cps-ipfsstore-backend
+	./cloud/archive/cps-nftstore-backend
+	./cloud/archive/cps-nftstore-cli
 	./cloud/comiccoin-authority
 	./cloud/cps-backend
-	./cloud/cps-ipfsstore-backend
-	./cloud/cps-nftstore-backend
-	./cloud/cps-nftstore-cli
-	./native/desktop/comiccoin
-	./native/desktop/comiccoin-core
-	./native/desktop/comiccoin-nftassetstore
-	./native/desktop/comiccoin-registry
+	./native/desktop/archive/comiccoin
+	./native/desktop/archive/comiccoin-core
+	./native/desktop/archive/comiccoin-nftassetstore
+	./native/desktop/archive/comiccoin-registry
 )
