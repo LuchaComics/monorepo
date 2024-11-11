@@ -38,6 +38,7 @@ type httpServerImpl struct {
 	getBlockchainStateHTTPHandler              *handler.GetBlockchainStateHTTPHandler
 	listAllBlockDataOrderedHashesHTTPHandler   *handler.ListAllBlockDataOrderedHashesHTTPHandler
 	listAllBlockDataUnorderedHashesHTTPHandler *handler.ListAllBlockDataUnorderedHashesHTTPHandler
+	getBlockDataHTTPHandler                    *handler.GetBlockDataHTTPHandler
 }
 
 // NewHTTPServer creates a new HTTP server instance.
@@ -50,6 +51,7 @@ func NewHTTPServer(
 	http3 *handler.GetBlockchainStateHTTPHandler,
 	http4 *handler.ListAllBlockDataOrderedHashesHTTPHandler,
 	http5 *handler.ListAllBlockDataUnorderedHashesHTTPHandler,
+	http6 *handler.GetBlockDataHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.IP == "" {
@@ -81,6 +83,7 @@ func NewHTTPServer(
 		getBlockchainStateHTTPHandler:            http3,
 		listAllBlockDataOrderedHashesHTTPHandler: http4,
 		listAllBlockDataUnorderedHashesHTTPHandler: http5,
+		getBlockDataHTTPHandler:                    http6,
 	}
 
 	// Attach the HTTP server controller to the ServeMux.
