@@ -19,8 +19,6 @@ type BlockchainState struct {
 
 	AccountHashState string `bson:"account_hash_state" json:"account_hash_state"`
 	TokenHashState   string `bson:"token_hash_state" json:"token_hash_state"`
-
-	GenesisBlockData *GenesisBlockData `bson:"genesis_block_data" json:"genesis_block_data"`
 }
 
 type BlockchainStateRepository interface {

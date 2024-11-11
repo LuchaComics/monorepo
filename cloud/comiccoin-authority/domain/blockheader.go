@@ -9,6 +9,7 @@ import (
 
 // BlockHeader represents common information required for each block.
 type BlockHeader struct {
+	ChainID       uint16         `bson:"chain_id" json:"chain_id"`               // Keep track of which chain this block belongs to.
 	Number        uint64         `bson:"number" json:"number"`                   // Ethereum: Block number in the chain.
 	PrevBlockHash string         `bson:"prev_block_hash" json:"prev_block_hash"` // Bitcoin: Hash of the previous block in the chain.
 	TimeStamp     uint64         `bson:"timestamp" json:"timestamp"`             // Bitcoin: Time the block was mined.

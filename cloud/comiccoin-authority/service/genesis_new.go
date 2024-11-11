@@ -30,6 +30,7 @@ type CreateGenesisBlockDataService struct {
 	getAccountsHashStateUseCase               *usecase.GetAccountsHashStateUseCase
 	getTokensHashStateUseCase                 *usecase.GetTokensHashStateUseCase
 	proofOfWorkUseCase                        *usecase.ProofOfWorkUseCase
+	upsertGenesisBlockDataUseCase             *usecase.UpsertGenesisBlockDataUseCase
 	upsertBlockDataUseCase                    *usecase.UpsertBlockDataUseCase
 	upsertBlockchainStateUseCase              *usecase.UpsertBlockchainStateUseCase
 	getBlockchainStateUseCase                 *usecase.GetBlockchainStateUseCase
@@ -46,11 +47,12 @@ func NewCreateGenesisBlockDataService(
 	uc5 *usecase.GetAccountsHashStateUseCase,
 	uc6 *usecase.GetTokensHashStateUseCase,
 	uc7 *usecase.ProofOfWorkUseCase,
-	uc8 *usecase.UpsertBlockDataUseCase,
-	uc9 *usecase.UpsertBlockchainStateUseCase,
-	uc10 *usecase.GetBlockchainStateUseCase,
+	uc8 *usecase.UpsertGenesisBlockDataUseCase,
+	uc9 *usecase.UpsertBlockDataUseCase,
+	uc10 *usecase.UpsertBlockchainStateUseCase,
+	uc11 *usecase.GetBlockchainStateUseCase,
 ) *CreateGenesisBlockDataService {
-	return &CreateGenesisBlockDataService{config, logger, s1, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10}
+	return &CreateGenesisBlockDataService{config, logger, s1, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11}
 }
 
 func (s *CreateGenesisBlockDataService) Execute(ctx context.Context, walletPassword string, walletPasswordRepeated string) (*domain.BlockchainState, error) {
@@ -291,6 +293,7 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context, walletPassw
 	// Construct the genesis block.
 	block := domain.Block{
 		Header: &domain.BlockHeader{
+			ChainID:       uint16(s.config.Blockchain.ChainID),
 			Number:        0, // Genesis always starts at zero
 			PrevBlockHash: prevBlockHash,
 			TimeStamp:     uint64(time.Now().UTC().UnixMilli()),
@@ -378,6 +381,10 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context, walletPassw
 		return nil, fmt.Errorf("Failed to write genesis block data to file: %v", err)
 	}
 
+	if err := s.upsertGenesisBlockDataUseCase.Execute(ctx, genesisBlockData.Hash, genesisBlockData.Header, genesisBlockData.HeaderSignatureBytes, genesisBlockData.Trans, genesisBlockData.Validator); err != nil {
+		return nil, fmt.Errorf("Failed to write genesis block data to file: %v", err)
+	}
+
 	s.logger.Debug("genesis block created, finished running service",
 		slog.String("hash", genesisBlockData.Hash))
 
@@ -393,7 +400,6 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context, walletPassw
 		LatestTokenID:     tokenTx.TokenID,
 		AccountHashState:  stateRoot,
 		TokenHashState:    tokensRoot,
-		GenesisBlockData:  domain.BlockDataToGenesisBlockData(genesisBlockData),
 	}
 
 	if err := s.upsertBlockchainStateUseCase.Execute(ctx, blockchainState); err != nil {

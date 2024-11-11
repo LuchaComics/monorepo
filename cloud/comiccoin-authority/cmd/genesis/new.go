@@ -52,6 +52,7 @@ func doRunNewAccount() {
 	accountRepo := repo.NewAccountRepo(cfg, logger, dbClient)
 	blockchainStateRepo := repo.NewBlockchainStateRepo(cfg, logger, dbClient)
 	tokRepo := repo.NewTokenRepo(cfg, logger, dbClient)
+	gbdRepo := repo.NewGenesisBlockDataRepo(cfg, logger, dbClient)
 	bdRepo := repo.NewBlockDataRepo(cfg, logger, dbClient)
 
 	// ------ Use-case ------
@@ -125,6 +126,13 @@ func doRunNewAccount() {
 		tokRepo,
 	)
 
+	// Genesis BlockData
+	upsertGenesisBlockDataUseCase := usecase.NewUpsertGenesisBlockDataUseCase(
+		cfg,
+		logger,
+		gbdRepo,
+	)
+
 	// BlockData
 	upsertBlockDataUseCase := usecase.NewUpsertBlockDataUseCase(
 		cfg,
@@ -159,6 +167,7 @@ func doRunNewAccount() {
 		getAccountsHashStateUseCase,
 		getTokensHashStateUseCase,
 		proofOfWorkUseCase,
+		upsertGenesisBlockDataUseCase,
 		upsertBlockDataUseCase,
 		upsertBlockchainStateUseCase,
 		getBlockchainStateUseCase,

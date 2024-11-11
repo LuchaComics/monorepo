@@ -33,9 +33,11 @@ func NewBlockDataRepo(cfg *config.Configuration, logger *slog.Logger, client *mo
 	// The following few lines of code will create the index for our app for this
 	// colleciton.
 	_, err := uc.Indexes().CreateMany(context.TODO(), []mongo.IndexModel{
-		{Keys: bson.D{{Key: "chainID", Value: 1}}},
+		{Keys: bson.D{{Key: "hash", Value: 1}}},
+		{Keys: bson.D{{Key: "header.number", Value: 1}}},
+		{Keys: bson.D{{Key: "header.timestamp", Value: 1}}},
 		{Keys: bson.D{
-			{Key: "chainID", Value: "text"},
+			{Key: "hash", Value: "text"},
 		}},
 	})
 	if err != nil {
