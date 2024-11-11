@@ -120,6 +120,34 @@ func (r *BlockDataRepo) ListInHashes(ctx context.Context, hashes []string) ([]*d
 	return blockDatas, nil
 }
 
+func (r *BlockDataRepo) ListInBetweenBlockNumbersForChainID(ctx context.Context, startBlockNumber, finishBlockNumber uint64, chainID uint16) ([]*domain.BlockData, error) {
+	blockDatas := make([]*domain.BlockData, 0)
+	filter := bson.M{
+		"header.chain_id": chainID,
+		"header.number": bson.M{
+			"$gte": startBlockNumber,
+			"$lte": finishBlockNumber,
+		},
+	}
+	cur, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+	for cur.Next(ctx) {
+		var blockData domain.BlockData
+		err := cur.Decode(&blockData)
+		if err != nil {
+			return nil, err
+		}
+		blockDatas = append(blockDatas, &blockData)
+	}
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+	return blockDatas, nil
+}
+
 func (r *BlockDataRepo) DeleteByHash(ctx context.Context, hash string) error {
 	_, err := r.collection.DeleteOne(ctx, bson.M{"hash": hash})
 	return err

@@ -99,6 +99,11 @@ func doRunDaemon() {
 		logger,
 		bdRepo,
 	)
+	listBlockDataFilteredBetweenBlockNumbersUseCase := usecase.NewListBlockDataFilteredBetweenBlockNumbersUseCase(
+		cfg,
+		logger,
+		bdRepo,
+	)
 
 	// --- Service
 
@@ -137,6 +142,11 @@ func doRunDaemon() {
 		logger,
 		listBlockDataFilteredInHashesUseCase,
 	)
+	listBlockDataFilteredBetweenBlockNumbersInChainIDService := service.NewListBlockDataFilteredBetweenBlockNumbersInChainIDService(
+		cfg,
+		logger,
+		listBlockDataFilteredBetweenBlockNumbersUseCase,
+	)
 
 	//
 	// STEP X
@@ -174,6 +184,9 @@ func doRunDaemon() {
 	listBlockDataFilteredInHashesHTTPHandler := httphandler.NewListBlockDataFilteredInHashesHTTPHandler(
 		logger,
 		listBlockDataFilteredInHashesService)
+	listBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler := httphandler.NewListBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler(
+		logger,
+		listBlockDataFilteredBetweenBlockNumbersInChainIDService)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
 		blackp)
@@ -188,6 +201,7 @@ func doRunDaemon() {
 		listAllBlockDataUnorderedHashesHTTPHandler,
 		getBlockDataHTTPHandler,
 		listBlockDataFilteredInHashesHTTPHandler,
+		listBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler,
 	)
 
 	// Run in background the peer to peer node which will synchronize our

@@ -51,7 +51,10 @@ type BlockDataRepository interface {
 
 	ListInHashes(ctx context.Context, hashes []string) ([]*BlockData, error)
 
+	ListInBetweenBlockNumbersForChainID(ctx context.Context, startBlockNumber, finishBlockNumber uint64, chainID uint16) ([]*BlockData, error)
+
 	ListBlockNumberByHashArrayForChainID(ctx context.Context, chainID uint16) ([]BlockNumberByHash, error)
+
 	ListUnorderedHashArrayForChainID(ctx context.Context, chainID uint16) ([]string, error)
 
 	// DeleteByHash deletes a block data by its hash.
