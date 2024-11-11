@@ -33,7 +33,8 @@ type httpServerImpl struct {
 	// server is the underlying HTTP server.
 	server *http.Server
 
-	getVersionHTTPHandler *handler.GetVersionHTTPHandler
+	getVersionHTTPHandler          *handler.GetVersionHTTPHandler
+	getGenesisBlockDataHTTPHandler *handler.GetGenesisBlockDataHTTPHandler
 }
 
 // NewHTTPServer creates a new HTTP server instance.
@@ -41,7 +42,8 @@ func NewHTTPServer(
 	cfg *config.Configuration,
 	logger *slog.Logger,
 	mid mid.Middleware,
-	getVersionHTTPHandler *handler.GetVersionHTTPHandler,
+	http1 *handler.GetVersionHTTPHandler,
+	http2 *handler.GetGenesisBlockDataHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.IP == "" {
@@ -65,10 +67,11 @@ func NewHTTPServer(
 
 	// Create a new HTTP server instance.
 	port := &httpServerImpl{
-		cfg:                   cfg,
-		logger:                logger,
-		server:                srv,
-		getVersionHTTPHandler: getVersionHTTPHandler,
+		cfg:                            cfg,
+		logger:                         logger,
+		server:                         srv,
+		getVersionHTTPHandler:          http1,
+		getGenesisBlockDataHTTPHandler: http2,
 	}
 
 	// Attach the HTTP server controller to the ServeMux.
@@ -119,6 +122,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 	switch {
 	case n == 1 && p[0] == "version" && r.Method == http.MethodGet:
 		port.getVersionHTTPHandler.Execute(w, r)
+	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "genesis" && r.Method == http.MethodGet:
+		port.getGenesisBlockDataHTTPHandler.Execute(w, r, p[3])
 	// --- CATCH ALL: D.N.E. ---
 	default:
 		// Log a message to indicate that the request is not found.

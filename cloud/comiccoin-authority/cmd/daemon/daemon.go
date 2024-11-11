@@ -19,6 +19,8 @@ import (
 	httphandler "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/interface/http/handler"
 	httpmiddle "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/interface/http/middleware"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/repo"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/service"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase"
 )
 
 func DaemonCmd() *cobra.Command {
@@ -54,10 +56,25 @@ func doRunDaemon() {
 	// Repository
 	walletRepo := repo.NewWalletRepo(cfg, logger, dbClient)
 	accountRepo := repo.NewAccountRepo(cfg, logger, dbClient)
+	gbdRepo := repo.NewGenesisBlockDataRepo(cfg, logger, dbClient)
 
 	_ = keystore
 	_ = walletRepo
 	_ = accountRepo
+
+	getGenesisBlockDataUseCase := usecase.NewGetGenesisBlockDataUseCase(
+		cfg,
+		logger,
+		gbdRepo,
+	)
+
+	// --- Service
+
+	getGenesisBlockDataService := service.NewGetGenesisBlockDataService(
+		cfg,
+		logger,
+		getGenesisBlockDataUseCase,
+	)
 
 	//
 	// STEP X
@@ -77,6 +94,9 @@ func doRunDaemon() {
 	// --- HTTP --- //
 	getVersionHTTPHandler := httphandler.NewGetVersionHTTPHandler(
 		logger)
+	getGenesisBlockDataHTTPHandler := httphandler.NewGetGenesisBlockDataHTTPHandler(
+		logger,
+		getGenesisBlockDataService)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
 		blackp)
@@ -85,6 +105,7 @@ func doRunDaemon() {
 		logger,
 		httpMiddleware,
 		getVersionHTTPHandler,
+		getGenesisBlockDataHTTPHandler,
 	)
 
 	// Run in background the peer to peer node which will synchronize our
