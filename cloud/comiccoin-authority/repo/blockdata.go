@@ -74,8 +74,34 @@ func (r *BlockDataRepo) GetByHash(ctx context.Context, hash string) (*domain.Blo
 }
 
 func (r *BlockDataRepo) ListAll(ctx context.Context) ([]*domain.BlockData, error) {
-	var blockDatas []*domain.BlockData
+	blockDatas := make([]*domain.BlockData, 0)
 	cur, err := r.collection.Find(ctx, bson.D{})
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+	for cur.Next(ctx) {
+		var blockData domain.BlockData
+		err := cur.Decode(&blockData)
+		if err != nil {
+			return nil, err
+		}
+		blockDatas = append(blockDatas, &blockData)
+	}
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+	return blockDatas, nil
+}
+
+func (r *BlockDataRepo) ListInHashes(ctx context.Context, hashes []string) ([]*domain.BlockData, error) {
+	blockDatas := make([]*domain.BlockData, 0)
+	filter := bson.M{
+		"hash": bson.M{
+			"$in": hashes,
+		},
+	}
+	cur, err := r.collection.Find(ctx, filter)
 	if err != nil {
 		return nil, err
 	}

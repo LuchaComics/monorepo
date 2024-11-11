@@ -39,6 +39,7 @@ type httpServerImpl struct {
 	listAllBlockDataOrderedHashesHTTPHandler   *handler.ListAllBlockDataOrderedHashesHTTPHandler
 	listAllBlockDataUnorderedHashesHTTPHandler *handler.ListAllBlockDataUnorderedHashesHTTPHandler
 	getBlockDataHTTPHandler                    *handler.GetBlockDataHTTPHandler
+	listBlockDataFilteredInHashesHTTPHandler   *handler.ListBlockDataFilteredInHashesHTTPHandler
 }
 
 // NewHTTPServer creates a new HTTP server instance.
@@ -52,6 +53,7 @@ func NewHTTPServer(
 	http4 *handler.ListAllBlockDataOrderedHashesHTTPHandler,
 	http5 *handler.ListAllBlockDataUnorderedHashesHTTPHandler,
 	http6 *handler.GetBlockDataHTTPHandler,
+	http7 *handler.ListBlockDataFilteredInHashesHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.IP == "" {
@@ -84,6 +86,7 @@ func NewHTTPServer(
 		listAllBlockDataOrderedHashesHTTPHandler: http4,
 		listAllBlockDataUnorderedHashesHTTPHandler: http5,
 		getBlockDataHTTPHandler:                    http6,
+		listBlockDataFilteredInHashesHTTPHandler:   http7,
 	}
 
 	// Attach the HTTP server controller to the ServeMux.
@@ -138,6 +141,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		port.getGenesisBlockDataHTTPHandler.Execute(w, r)
 	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "blockchain-state" && r.Method == http.MethodGet:
 		port.getBlockchainStateHTTPHandler.Execute(w, r)
+	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "blockdata" && r.Method == http.MethodGet:
+		port.listBlockDataFilteredInHashesHTTPHandler.Execute(w, r)
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "blockdata" && p[3] == "ordered-hashes" && r.Method == http.MethodGet:
 		port.listAllBlockDataOrderedHashesHTTPHandler.Execute(w, r)
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "blockdata" && p[3] == "hashes" && r.Method == http.MethodGet:

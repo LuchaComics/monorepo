@@ -49,6 +49,8 @@ type BlockDataRepository interface {
 	// It returns a list of block data and an error if one occurs.
 	ListAll(ctx context.Context) ([]*BlockData, error)
 
+	ListInHashes(ctx context.Context, hashes []string) ([]*BlockData, error)
+
 	ListBlockNumberByHashArrayForChainID(ctx context.Context, chainID uint16) ([]BlockNumberByHash, error)
 	ListUnorderedHashArrayForChainID(ctx context.Context, chainID uint16) ([]string, error)
 

@@ -94,23 +94,33 @@ func doRunDaemon() {
 		logger,
 		bdRepo,
 	)
+	listBlockDataFilteredInHashesUseCase := usecase.NewListBlockDataFilteredInHashesUseCase(
+		cfg,
+		logger,
+		bdRepo,
+	)
 
 	// --- Service
 
+	// Genesis
 	getGenesisBlockDataService := service.NewGetGenesisBlockDataService(
 		cfg,
 		logger,
 		getGenesisBlockDataUseCase,
 	)
-	getBlockDataService := service.NewGetBlockDataService(
-		cfg,
-		logger,
-		getBlockDataUseCase,
-	)
+
+	// Blockchain State
 	getBlockchainStateService := service.NewGetBlockchainStateService(
 		cfg,
 		logger,
 		getBlockchainStateUseCase,
+	)
+
+	// Block Data
+	getBlockDataService := service.NewGetBlockDataService(
+		cfg,
+		logger,
+		getBlockDataUseCase,
 	)
 	blockDataListAllOrderedHashesService := service.NewBlockDataListAllOrderedHashesService(
 		cfg,
@@ -121,6 +131,11 @@ func doRunDaemon() {
 		cfg,
 		logger,
 		listBlockDataUnorderedHashArrayUseCase,
+	)
+	listBlockDataFilteredInHashesService := service.NewListBlockDataFilteredInHashesService(
+		cfg,
+		logger,
+		listBlockDataFilteredInHashesUseCase,
 	)
 
 	//
@@ -156,6 +171,9 @@ func doRunDaemon() {
 	listAllBlockDataUnorderedHashesHTTPHandler := httphandler.NewListAllBlockDataUnorderedHashesHTTPHandler(
 		logger,
 		blockDataListAllUnorderedHashesService)
+	listBlockDataFilteredInHashesHTTPHandler := httphandler.NewListBlockDataFilteredInHashesHTTPHandler(
+		logger,
+		listBlockDataFilteredInHashesService)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
 		blackp)
@@ -169,6 +187,7 @@ func doRunDaemon() {
 		listAllBlockDataOrderedHashesHTTPHandler,
 		listAllBlockDataUnorderedHashesHTTPHandler,
 		getBlockDataHTTPHandler,
+		listBlockDataFilteredInHashesHTTPHandler,
 	)
 
 	// Run in background the peer to peer node which will synchronize our
