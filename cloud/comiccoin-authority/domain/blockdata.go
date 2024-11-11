@@ -50,6 +50,7 @@ type BlockDataRepository interface {
 	ListAll(ctx context.Context) ([]*BlockData, error)
 
 	ListBlockNumberByHashArrayForChainID(ctx context.Context, chainID uint16) ([]BlockNumberByHash, error)
+	ListUnorderedHashArrayForChainID(ctx context.Context, chainID uint16) ([]string, error)
 
 	// DeleteByHash deletes a block data by its hash.
 	// It takes a hash and returns an error if one occurs.

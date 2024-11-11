@@ -34,6 +34,7 @@ func NewBlockDataRepo(cfg *config.Configuration, logger *slog.Logger, client *mo
 	// colleciton.
 	_, err := uc.Indexes().CreateMany(context.TODO(), []mongo.IndexModel{
 		{Keys: bson.D{{Key: "hash", Value: 1}}},
+		{Keys: bson.D{{Key: "header.chain_id", Value: 1}}},
 		{Keys: bson.D{{Key: "header.number", Value: 1}}},
 		{Keys: bson.D{{Key: "header.timestamp", Value: 1}}},
 		{Keys: bson.D{
@@ -126,6 +127,37 @@ func (r *BlockDataRepo) ListBlockNumberByHashArrayForChainID(ctx context.Context
 		return nil, err
 	}
 	return blockNumberByHashArray, nil
+}
+
+func (r *BlockDataRepo) ListUnorderedHashArrayForChainID(ctx context.Context, chainID uint16) ([]string, error) {
+	hashArray := make([]string, 0)
+	projection := bson.M{
+		"_id":  0,
+		"hash": 1,
+	}
+	filter := bson.M{
+		"header.chain_id": chainID,
+	}
+	opts := options.Find().SetProjection(projection)
+	cur, err := r.collection.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+	var blockData struct {
+		Hash string `bson:"hash"`
+	}
+	for cur.Next(ctx) {
+		err := cur.Decode(&blockData)
+		if err != nil {
+			return nil, err
+		}
+		hashArray = append(hashArray, blockData.Hash)
+	}
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+	return hashArray, nil
 }
 
 func (r *BlockDataRepo) ListAllBlockTransactionsByAddress(ctx context.Context, address *common.Address) ([]*domain.BlockTransaction, error) {

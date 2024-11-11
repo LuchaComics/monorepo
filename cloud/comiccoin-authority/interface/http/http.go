@@ -33,10 +33,11 @@ type httpServerImpl struct {
 	// server is the underlying HTTP server.
 	server *http.Server
 
-	getVersionHTTPHandler                    *handler.GetVersionHTTPHandler
-	getGenesisBlockDataHTTPHandler           *handler.GetGenesisBlockDataHTTPHandler
-	getBlockchainStateHTTPHandler            *handler.GetBlockchainStateHTTPHandler
-	listAllBlockDataOrderedHashesHTTPHandler *handler.ListAllBlockDataOrderedHashesHTTPHandler
+	getVersionHTTPHandler                      *handler.GetVersionHTTPHandler
+	getGenesisBlockDataHTTPHandler             *handler.GetGenesisBlockDataHTTPHandler
+	getBlockchainStateHTTPHandler              *handler.GetBlockchainStateHTTPHandler
+	listAllBlockDataOrderedHashesHTTPHandler   *handler.ListAllBlockDataOrderedHashesHTTPHandler
+	listAllBlockDataUnorderedHashesHTTPHandler *handler.ListAllBlockDataUnorderedHashesHTTPHandler
 }
 
 // NewHTTPServer creates a new HTTP server instance.
@@ -48,6 +49,7 @@ func NewHTTPServer(
 	http2 *handler.GetGenesisBlockDataHTTPHandler,
 	http3 *handler.GetBlockchainStateHTTPHandler,
 	http4 *handler.ListAllBlockDataOrderedHashesHTTPHandler,
+	http5 *handler.ListAllBlockDataUnorderedHashesHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.IP == "" {
@@ -78,6 +80,7 @@ func NewHTTPServer(
 		getGenesisBlockDataHTTPHandler:           http2,
 		getBlockchainStateHTTPHandler:            http3,
 		listAllBlockDataOrderedHashesHTTPHandler: http4,
+		listAllBlockDataUnorderedHashesHTTPHandler: http5,
 	}
 
 	// Attach the HTTP server controller to the ServeMux.
@@ -134,6 +137,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		port.getBlockchainStateHTTPHandler.Execute(w, r)
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "blockdata" && p[3] == "ordered-hashes" && r.Method == http.MethodGet:
 		port.listAllBlockDataOrderedHashesHTTPHandler.Execute(w, r)
+	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "blockdata" && p[3] == "hashes" && r.Method == http.MethodGet:
+		port.listAllBlockDataUnorderedHashesHTTPHandler.Execute(w, r)
 	// --- CATCH ALL: D.N.E. ---
 	default:
 		// Log a message to indicate that the request is not found.
