@@ -56,6 +56,7 @@ func doRunDaemon() {
 	// Repository
 	walletRepo := repo.NewWalletRepo(cfg, logger, dbClient)
 	accountRepo := repo.NewAccountRepo(cfg, logger, dbClient)
+	bdRepo := repo.NewBlockDataRepo(cfg, logger, dbClient)
 	gbdRepo := repo.NewGenesisBlockDataRepo(cfg, logger, dbClient)
 	bcStateRepo := repo.NewBlockchainStateRepo(cfg, logger, dbClient)
 
@@ -63,15 +64,25 @@ func doRunDaemon() {
 	_ = walletRepo
 	_ = accountRepo
 
+	// Genesis Block Data
 	getGenesisBlockDataUseCase := usecase.NewGetGenesisBlockDataUseCase(
 		cfg,
 		logger,
 		gbdRepo,
 	)
+
+	// Blockchain State
 	getBlockchainStateUseCase := usecase.NewGetBlockchainStateUseCase(
 		cfg,
 		logger,
 		bcStateRepo,
+	)
+
+	// Block Data
+	listAllBlockNumberByHashArrayUseCase := usecase.NewListAllBlockNumberByHashArrayUseCase(
+		cfg,
+		logger,
+		bdRepo,
 	)
 
 	// --- Service
@@ -85,6 +96,11 @@ func doRunDaemon() {
 		cfg,
 		logger,
 		getBlockchainStateUseCase,
+	)
+	blockDataListAllOrderedHashesService := service.NewBlockDataListAllOrderedHashesService(
+		cfg,
+		logger,
+		listAllBlockNumberByHashArrayUseCase,
 	)
 
 	//
@@ -111,6 +127,9 @@ func doRunDaemon() {
 	getBlockchainStateHTTPHandler := httphandler.NewGetBlockchainStateHTTPHandler(
 		logger,
 		getBlockchainStateService)
+	listAllBlockDataOrderedHashesHTTPHandler := httphandler.NewListAllBlockDataOrderedHashesHTTPHandler(
+		logger,
+		blockDataListAllOrderedHashesService)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
 		blackp)
@@ -121,6 +140,7 @@ func doRunDaemon() {
 		getVersionHTTPHandler,
 		getGenesisBlockDataHTTPHandler,
 		getBlockchainStateHTTPHandler,
+		listAllBlockDataOrderedHashesHTTPHandler,
 	)
 
 	// Run in background the peer to peer node which will synchronize our

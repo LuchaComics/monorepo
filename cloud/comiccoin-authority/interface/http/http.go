@@ -33,9 +33,10 @@ type httpServerImpl struct {
 	// server is the underlying HTTP server.
 	server *http.Server
 
-	getVersionHTTPHandler          *handler.GetVersionHTTPHandler
-	getGenesisBlockDataHTTPHandler *handler.GetGenesisBlockDataHTTPHandler
-	getBlockchainStateHTTPHandler  *handler.GetBlockchainStateHTTPHandler
+	getVersionHTTPHandler                    *handler.GetVersionHTTPHandler
+	getGenesisBlockDataHTTPHandler           *handler.GetGenesisBlockDataHTTPHandler
+	getBlockchainStateHTTPHandler            *handler.GetBlockchainStateHTTPHandler
+	listAllBlockDataOrderedHashesHTTPHandler *handler.ListAllBlockDataOrderedHashesHTTPHandler
 }
 
 // NewHTTPServer creates a new HTTP server instance.
@@ -46,6 +47,7 @@ func NewHTTPServer(
 	http1 *handler.GetVersionHTTPHandler,
 	http2 *handler.GetGenesisBlockDataHTTPHandler,
 	http3 *handler.GetBlockchainStateHTTPHandler,
+	http4 *handler.ListAllBlockDataOrderedHashesHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.IP == "" {
@@ -69,12 +71,13 @@ func NewHTTPServer(
 
 	// Create a new HTTP server instance.
 	port := &httpServerImpl{
-		cfg:                            cfg,
-		logger:                         logger,
-		server:                         srv,
-		getVersionHTTPHandler:          http1,
-		getGenesisBlockDataHTTPHandler: http2,
-		getBlockchainStateHTTPHandler:  http3,
+		cfg:                                      cfg,
+		logger:                                   logger,
+		server:                                   srv,
+		getVersionHTTPHandler:                    http1,
+		getGenesisBlockDataHTTPHandler:           http2,
+		getBlockchainStateHTTPHandler:            http3,
+		listAllBlockDataOrderedHashesHTTPHandler: http4,
 	}
 
 	// Attach the HTTP server controller to the ServeMux.
@@ -125,10 +128,12 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 	switch {
 	case n == 1 && p[0] == "version" && r.Method == http.MethodGet:
 		port.getVersionHTTPHandler.Execute(w, r)
-	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "genesis" && r.Method == http.MethodGet:
-		port.getGenesisBlockDataHTTPHandler.Execute(w, r, p[3])
+	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "genesis" && r.Method == http.MethodGet:
+		port.getGenesisBlockDataHTTPHandler.Execute(w, r)
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "blockchain-state" && r.Method == http.MethodGet:
-		port.getBlockchainStateHTTPHandler.Execute(w, r, p[3])
+		port.getBlockchainStateHTTPHandler.Execute(w, r)
+	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "blockdata" && p[3] == "ordered-hashes" && r.Method == http.MethodGet:
+		port.listAllBlockDataOrderedHashesHTTPHandler.Execute(w, r)
 	// --- CATCH ALL: D.N.E. ---
 	default:
 		// Log a message to indicate that the request is not found.

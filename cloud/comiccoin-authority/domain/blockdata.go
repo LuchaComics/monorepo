@@ -29,6 +29,11 @@ type BlockData struct {
 	Validator *Validator `bson:"validator" json:"validator"`
 }
 
+type BlockNumberByHash struct {
+	Number uint64 `bson:"number"`
+	Hash   string `bson:"hash"`
+}
+
 // BlockDataRepository is an interface that defines the methods for interacting with block data.
 // It provides methods for upserting, getting, listing, and deleting block data.
 type BlockDataRepository interface {
@@ -43,6 +48,8 @@ type BlockDataRepository interface {
 	// ListAll lists all block data in the repository.
 	// It returns a list of block data and an error if one occurs.
 	ListAll(ctx context.Context) ([]*BlockData, error)
+
+	ListBlockNumberByHashArrayForChainID(ctx context.Context, chainID uint16) ([]BlockNumberByHash, error)
 
 	// DeleteByHash deletes a block data by its hash.
 	// It takes a hash and returns an error if one occurs.

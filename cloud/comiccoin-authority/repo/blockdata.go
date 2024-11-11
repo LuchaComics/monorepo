@@ -98,6 +98,36 @@ func (r *BlockDataRepo) DeleteByHash(ctx context.Context, hash string) error {
 	return err
 }
 
+func (r *BlockDataRepo) ListBlockNumberByHashArrayForChainID(ctx context.Context, chainID uint16) ([]domain.BlockNumberByHash, error) {
+	var blockNumberByHashArray []domain.BlockNumberByHash
+	projection := bson.M{
+		"_id":    0,
+		"number": 1,
+		"hash":   1,
+	}
+	filter := bson.M{
+		"chain_id": chainID,
+	}
+	opts := options.Find().SetProjection(projection)
+	cur, err := r.collection.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+	var blockData domain.BlockNumberByHash
+	for cur.Next(ctx) {
+		err := cur.Decode(&blockData)
+		if err != nil {
+			return nil, err
+		}
+		blockNumberByHashArray = append(blockNumberByHashArray, blockData)
+	}
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+	return blockNumberByHashArray, nil
+}
+
 func (r *BlockDataRepo) ListAllBlockTransactionsByAddress(ctx context.Context, address *common.Address) ([]*domain.BlockTransaction, error) {
 	var blockTransactions []*domain.BlockTransaction
 	cur, err := r.collection.Find(ctx, bson.M{

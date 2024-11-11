@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase"
@@ -24,5 +26,15 @@ func NewGetGenesisBlockDataService(
 }
 
 func (s *GetGenesisBlockDataService) Execute(ctx context.Context, chainID uint16) (*domain.GenesisBlockData, error) {
-	return s.getGenesisBlockDataUseCase.Execute(ctx, chainID)
+	genesis, err := s.getGenesisBlockDataUseCase.Execute(ctx, chainID)
+	if err != nil {
+		s.logger.Error("Failed getting genesis block data", slog.Any("error", err))
+		return nil, err
+	}
+	if genesis == nil {
+		errStr := fmt.Sprintf("Genesis block data does not exist for chain ID: %v", chainID)
+		s.logger.Error("Failed getting genesis block data", slog.Any("error", errStr))
+		return nil, httperror.NewForNotFoundWithSingleField("chain_id", errStr)
+	}
+	return genesis, nil
 }

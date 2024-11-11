@@ -10,19 +10,19 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/service"
 )
 
-type GetBlockchainStateHTTPHandler struct {
+type ListAllBlockDataOrderedHashesHTTPHandler struct {
 	logger  *slog.Logger
-	service *service.GetBlockchainStateService
+	service *service.BlockDataListAllOrderedHashesService
 }
 
-func NewGetBlockchainStateHTTPHandler(
+func NewListAllBlockDataOrderedHashesHTTPHandler(
 	logger *slog.Logger,
-	s1 *service.GetBlockchainStateService,
-) *GetBlockchainStateHTTPHandler {
-	return &GetBlockchainStateHTTPHandler{logger, s1}
+	s1 *service.BlockDataListAllOrderedHashesService,
+) *ListAllBlockDataOrderedHashesHTTPHandler {
+	return &ListAllBlockDataOrderedHashesHTTPHandler{logger, s1}
 }
 
-func (h *GetBlockchainStateHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
+func (h *ListAllBlockDataOrderedHashesHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	h.logger.Debug("Blockchain state requested")
 
@@ -38,14 +38,15 @@ func (h *GetBlockchainStateHTTPHandler) Execute(w http.ResponseWriter, r *http.R
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	blockchainState, err := h.service.Execute(ctx, uint16(chainID))
+
+	resp, err := h.service.Execute(ctx, uint16(chainID))
 	if err != nil {
 		httperror.ResponseError(w, err)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(&blockchainState); err != nil {
+	if err := json.NewEncoder(w).Encode(&resp); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
