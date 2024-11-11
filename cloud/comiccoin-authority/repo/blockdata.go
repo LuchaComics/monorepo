@@ -99,14 +99,14 @@ func (r *BlockDataRepo) DeleteByHash(ctx context.Context, hash string) error {
 }
 
 func (r *BlockDataRepo) ListBlockNumberByHashArrayForChainID(ctx context.Context, chainID uint16) ([]domain.BlockNumberByHash, error) {
-	var blockNumberByHashArray []domain.BlockNumberByHash
+	blockNumberByHashArray := make([]domain.BlockNumberByHash, 0)
 	projection := bson.M{
 		"_id":    0,
 		"number": 1,
 		"hash":   1,
 	}
 	filter := bson.M{
-		"chain_id": chainID,
+		"header.chain_id": chainID,
 	}
 	opts := options.Find().SetProjection(projection)
 	cur, err := r.collection.Find(ctx, filter, opts)

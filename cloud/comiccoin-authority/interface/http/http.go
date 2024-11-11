@@ -130,7 +130,7 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		port.getVersionHTTPHandler.Execute(w, r)
 	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "genesis" && r.Method == http.MethodGet:
 		port.getGenesisBlockDataHTTPHandler.Execute(w, r)
-	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "blockchain-state" && r.Method == http.MethodGet:
+	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "blockchain-state" && r.Method == http.MethodGet:
 		port.getBlockchainStateHTTPHandler.Execute(w, r)
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "blockdata" && p[3] == "ordered-hashes" && r.Method == http.MethodGet:
 		port.listAllBlockDataOrderedHashesHTTPHandler.Execute(w, r)

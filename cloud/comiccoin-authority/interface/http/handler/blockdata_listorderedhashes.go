@@ -24,7 +24,7 @@ func NewListAllBlockDataOrderedHashesHTTPHandler(
 
 func (h *ListAllBlockDataOrderedHashesHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	h.logger.Debug("Blockchain state requested")
+	h.logger.Debug("Blockdata ordered hashes requested")
 
 	// Here is where you extract url parameters.
 	query := r.URL.Query()
