@@ -2,13 +2,22 @@ package daemon
 
 import (
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/blockchain/keystore"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/blacklist"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/jwt"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/password"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/storage/database/mongodb"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/interface/http"
+	httphandler "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/interface/http/handler"
+	httpmiddle "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/interface/http/middleware"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/repo"
 )
 
@@ -25,11 +34,22 @@ func DaemonCmd() *cobra.Command {
 }
 
 func doRunDaemon() {
+	//
+	// STEP 1
+	// Load up our dependencies and configuration
+	//
+
 	// Common
 	logger := logger.NewProvider()
 	cfg := config.NewProvider()
 	dbClient := mongodb.NewProvider(cfg, logger)
 	keystore := keystore.NewAdapter(cfg, logger)
+	passp := password.NewProvider()
+	jwtp := jwt.NewProvider(cfg)
+	blackp := blacklist.NewProvider()
+
+	_ = passp
+	_ = jwtp
 
 	// Repository
 	walletRepo := repo.NewWalletRepo(cfg, logger, dbClient)
@@ -38,4 +58,42 @@ func doRunDaemon() {
 	_ = keystore
 	_ = walletRepo
 	_ = accountRepo
+
+	//
+	// STEP X
+	// Execute.
+	//
+
+	// Load up our operating system interaction handlers, more specifically
+	// signals. The OS sends our application various signals based on the
+	// OS's state, we want to listen into the termination signals.
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL, syscall.SIGUSR1)
+
+	//
+	// Interface.
+	//
+
+	// --- HTTP --- //
+	getVersionHTTPHandler := httphandler.NewGetVersionHTTPHandler(
+		logger)
+	httpMiddleware := httpmiddle.NewMiddleware(
+		logger,
+		blackp)
+	httpServ := http.NewHTTPServer(
+		cfg,
+		logger,
+		httpMiddleware,
+		getVersionHTTPHandler,
+	)
+
+	// Run in background the peer to peer node which will synchronize our
+	// blockchain with the network.
+	// go peerNode.Run()
+	go httpServ.Run()
+	defer httpServ.Shutdown()
+
+	logger.Info("Node running.")
+
+	<-done
 }
