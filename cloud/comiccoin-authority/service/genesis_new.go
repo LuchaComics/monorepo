@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
@@ -10,10 +9,12 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/crypto"
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/blockchain/merkle"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/blockchain/signature"
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
+
+	// "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase"
@@ -22,9 +23,8 @@ import (
 type CreateGenesisBlockDataService struct {
 	config                                    *config.Configuration
 	logger                                    *slog.Logger
-	createAccountService                      *CreateAccountService
-	getWalletUseCase                          *usecase.GetWalletUseCase
-	walletDecryptKeyUseCase                   *usecase.WalletDecryptKeyUseCase
+	getProofOfAuthorityPrivateKeyService      *GetProofOfAuthorityPrivateKeyService
+	getAccountUseCase                         *usecase.GetAccountUseCase
 	upsertAccountUseCase                      *usecase.UpsertAccountUseCase
 	upsertTokenIfPreviousTokenNonceGTEUseCase *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase
 	getAccountsHashStateUseCase               *usecase.GetAccountsHashStateUseCase
@@ -39,70 +39,42 @@ type CreateGenesisBlockDataService struct {
 func NewCreateGenesisBlockDataService(
 	config *config.Configuration,
 	logger *slog.Logger,
-	s1 *CreateAccountService,
-	uc1 *usecase.GetWalletUseCase,
-	uc2 *usecase.WalletDecryptKeyUseCase,
-	uc3 *usecase.UpsertAccountUseCase,
-	uc4 *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase,
-	uc5 *usecase.GetAccountsHashStateUseCase,
-	uc6 *usecase.GetTokensHashStateUseCase,
-	uc7 *usecase.ProofOfWorkUseCase,
-	uc8 *usecase.UpsertGenesisBlockDataUseCase,
-	uc9 *usecase.UpsertBlockDataUseCase,
-	uc10 *usecase.UpsertBlockchainStateUseCase,
-	uc11 *usecase.GetBlockchainStateUseCase,
+	s1 *GetProofOfAuthorityPrivateKeyService,
+	uc1 *usecase.GetAccountUseCase,
+	uc2 *usecase.UpsertAccountUseCase,
+	uc3 *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase,
+	uc4 *usecase.GetAccountsHashStateUseCase,
+	uc5 *usecase.GetTokensHashStateUseCase,
+	uc6 *usecase.ProofOfWorkUseCase,
+	uc7 *usecase.UpsertGenesisBlockDataUseCase,
+	uc8 *usecase.UpsertBlockDataUseCase,
+	uc9 *usecase.UpsertBlockchainStateUseCase,
+	uc10 *usecase.GetBlockchainStateUseCase,
 ) *CreateGenesisBlockDataService {
-	return &CreateGenesisBlockDataService{config, logger, s1, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11}
+	return &CreateGenesisBlockDataService{config, logger, s1, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10}
 }
 
-func (s *CreateGenesisBlockDataService) Execute(ctx context.Context, walletPassword string, walletPasswordRepeated string) (*domain.BlockchainState, error) {
+func (s *CreateGenesisBlockDataService) Execute(sessCtx mongo.SessionContext) (*domain.BlockchainState, error) {
 	s.logger.Debug("starting genesis creation service...")
 
 	//
 	// STEP 1:
-	// Validation.
+	// Get our coinbase account and private key.
 	//
 
-	e := make(map[string]string)
-	if walletPassword == "" {
-		e["wallet_password"] = "missing value"
+	coinbaseKey, err := s.getProofOfAuthorityPrivateKeyService.Execute(sessCtx)
+	if err != nil {
+		s.logger.Error("Failed getting proof of authority private key", slog.Any("error", err))
+		return nil, err
 	}
-	if walletPasswordRepeated == "" {
-		e["wallet_password_repeated"] = "missing value"
-	}
-	if walletPassword != walletPasswordRepeated {
-		e["wallet_password"] = "do not match"
-		e["wallet_password_repeated"] = "do not match"
-	}
-	if len(e) != 0 {
-		s.logger.Warn("Failed creating new account",
-			slog.Any("error", e))
-		return nil, httperror.NewForBadRequest(&e)
+	account, err := s.getAccountUseCase.Execute(sessCtx, s.config.Blockchain.ProofOfAuthorityAccountAddress)
+	if err != nil {
+		s.logger.Error("Failed getting proof of authority account", slog.Any("error", err))
+		return nil, err
 	}
 
 	//
 	// STEP 2:
-	// Create our coinbase account and get the key.
-	//
-
-	account, err := s.createAccountService.Execute(ctx, walletPassword, walletPasswordRepeated, "Coinbase")
-	if err != nil {
-		s.logger.Error("Failed creating account", slog.Any("error", err))
-		return nil, err
-	}
-	accountWallet, err := s.getWalletUseCase.Execute(ctx, account.Address)
-	if err != nil {
-		s.logger.Error("Failed creating wallet", slog.Any("error", err))
-		return nil, err
-	}
-	coinbaseKey, err := s.walletDecryptKeyUseCase.Execute(ctx, accountWallet.FilePath, walletPassword)
-	if err != nil {
-		s.logger.Error("Failed decrypting wallet", slog.Any("error", err))
-		return nil, err
-	}
-
-	//
-	// STEP 3:
 	// Set coinbase with all the coins.
 	//
 
@@ -128,7 +100,7 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context, walletPassw
 	// 10^24 = septillion
 
 	//
-	// STEP 1
+	// STEP 3
 	// Initialize our coinbase account in our in-memory database.
 	//
 
@@ -156,7 +128,7 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context, walletPassw
 	//
 	// From this point on, every time a transaction is sent from the account, the nonce value is incremented by 1.
 
-	if err := s.upsertAccountUseCase.Execute(ctx, account.Address, initialSupply, 0); err != nil {
+	if err := s.upsertAccountUseCase.Execute(sessCtx, account.Address, initialSupply, 0); err != nil {
 		s.logger.Error("Failed upserting account", slog.Any("error", err))
 		return nil, err
 	}
@@ -237,7 +209,7 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context, walletPassw
 	// Save our token to our database.
 	//
 
-	if err := s.upsertTokenIfPreviousTokenNonceGTEUseCase.Execute(ctx, tokenTx.TokenID, tokenTx.To, tokenTx.TokenMetadataURI, tokenTx.TokenNonce); err != nil {
+	if err := s.upsertTokenIfPreviousTokenNonceGTEUseCase.Execute(sessCtx, tokenTx.TokenID, tokenTx.To, tokenTx.TokenMetadataURI, tokenTx.TokenNonce); err != nil {
 		return nil, err
 	}
 
@@ -274,7 +246,7 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context, walletPassw
 		return nil, fmt.Errorf("Failed to create merkle tree: %v", err)
 	}
 
-	stateRoot, err := s.getAccountsHashStateUseCase.Execute(ctx)
+	stateRoot, err := s.getAccountsHashStateUseCase.Execute(sessCtx)
 	if err != nil {
 		s.logger.Error("Failed to get hash of all accounts",
 			slog.Any("error", err))
@@ -283,7 +255,7 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context, walletPassw
 
 	// Running this code get's a hash of all the tokens, thus making the
 	// tokens tamper proof.
-	tokensRoot, err := s.getTokensHashStateUseCase.Execute(ctx)
+	tokensRoot, err := s.getTokensHashStateUseCase.Execute(sessCtx)
 	if err != nil {
 		s.logger.Error("Failed to get hash of all tokens",
 			slog.Any("error", err))
@@ -316,7 +288,7 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context, walletPassw
 	// Execute the proof of work to find our nounce to meet the hash difficulty.
 	//
 
-	nonce, powErr := s.proofOfWorkUseCase.Execute(ctx, &block, s.config.Blockchain.Difficulty)
+	nonce, powErr := s.proofOfWorkUseCase.Execute(sessCtx, &block, s.config.Blockchain.Difficulty)
 	if powErr != nil {
 		return nil, fmt.Errorf("Failed to mine block: %v", powErr)
 	}
@@ -377,11 +349,11 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context, walletPassw
 	// Save genesis block to a database.
 	//
 
-	if err := s.upsertBlockDataUseCase.Execute(ctx, genesisBlockData.Hash, genesisBlockData.Header, genesisBlockData.HeaderSignatureBytes, genesisBlockData.Trans, genesisBlockData.Validator); err != nil {
+	if err := s.upsertBlockDataUseCase.Execute(sessCtx, genesisBlockData.Hash, genesisBlockData.Header, genesisBlockData.HeaderSignatureBytes, genesisBlockData.Trans, genesisBlockData.Validator); err != nil {
 		return nil, fmt.Errorf("Failed to write genesis block data to file: %v", err)
 	}
 
-	if err := s.upsertGenesisBlockDataUseCase.Execute(ctx, genesisBlockData.Hash, genesisBlockData.Header, genesisBlockData.HeaderSignatureBytes, genesisBlockData.Trans, genesisBlockData.Validator); err != nil {
+	if err := s.upsertGenesisBlockDataUseCase.Execute(sessCtx, genesisBlockData.Hash, genesisBlockData.Header, genesisBlockData.HeaderSignatureBytes, genesisBlockData.Trans, genesisBlockData.Validator); err != nil {
 		return nil, fmt.Errorf("Failed to write genesis block data to file: %v", err)
 	}
 
@@ -402,7 +374,7 @@ func (s *CreateGenesisBlockDataService) Execute(ctx context.Context, walletPassw
 		TokenHashState:    tokensRoot,
 	}
 
-	if err := s.upsertBlockchainStateUseCase.Execute(ctx, blockchainState); err != nil {
+	if err := s.upsertBlockchainStateUseCase.Execute(sessCtx, blockchainState); err != nil {
 		s.logger.Error("Failed to save blockchain state",
 			slog.Any("error", err))
 		return nil, fmt.Errorf("Failed to save blockchain state: %v", err)

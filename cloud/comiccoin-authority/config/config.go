@@ -78,6 +78,7 @@ func NewProvider() *Configuration {
 		address := common.HexToAddress(proofOfAuthorityAccountAddress)
 		c.Blockchain.ProofOfAuthorityAccountAddress = &address
 	}
+	c.Blockchain.ProofOfAuthorityWalletPassword = getEnv("COMICCOIN_AUTHORITY_BLOCKCHAIN_PROOF_OF_AUTHORITY_WALLET_PASSWORD", false)
 	// Database section.
 	c.DB.URI = getEnv("COMICCOIN_AUTHORITY_DB_URI", true)
 	c.DB.Name = getEnv("COMICCOIN_AUTHORITY_DB_NAME", true)

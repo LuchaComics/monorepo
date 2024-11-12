@@ -49,17 +49,11 @@ var (
 func TransferCoinsCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "transfer",
-		Short: "Submit a (pending) transaction to the ComicCoin blockchain network to transfer coins from your account to another account",
+		Short: "Submit a (pending) transaction to the ComicCoin blockchain network to transfer coins from coinbase account to another account",
 		Run: func(cmd *cobra.Command, args []string) {
 			doRunTransferCoinsCommand()
 		},
 	}
-
-	cmd.Flags().StringVar(&flagSenderAccountAddress, "sender-account-address", "", "The address of the account we will use in our coin transfer")
-	cmd.MarkFlagRequired("sender-account-address")
-
-	cmd.Flags().StringVar(&flagSenderAccountPassword, "sender-account-password", "", "The password to unlock the account which will transfer the coin")
-	cmd.MarkFlagRequired("sender-account-password")
 
 	cmd.Flags().Uint64Var(&flagQuantity, "value", 0, "The amount of coins to send")
 	cmd.MarkFlagRequired("value")
@@ -149,14 +143,13 @@ func doRunTransferCoinsCommand() {
 	// Define a transaction function with a series of operations
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
 
-		senderAddr := common.HexToAddress(strings.ToLower(flagSenderAccountAddress))
 		recAddr := common.HexToAddress(strings.ToLower(flagRecipientAddress))
 
 		// Execution
 		err := coinTransferService.Execute(
 			sessCtx,
-			&senderAddr,
-			flagSenderAccountPassword,
+			cfg.Blockchain.ProofOfAuthorityAccountAddress,
+			cfg.Blockchain.ProofOfAuthorityWalletPassword,
 			&recAddr,
 			flagQuantity,
 			[]byte(flagData),
@@ -170,17 +163,15 @@ func doRunTransferCoinsCommand() {
 	}
 
 	// Start a transaction
-	res, err := session.WithTransaction(ctx, transactionFunc)
-	if err != nil {
+	if _, err := session.WithTransaction(ctx, transactionFunc); err != nil {
 		logger.Error("session failed error",
 			slog.Any("error", err))
 		log.Fatalf("Failed transfering coins: %v\n", err)
 	}
 
 	logger.Debug("Coins transfered",
-		slog.Any("from", flagSenderAccountAddress),
-		slog.Any("to", flagRecipientAddress),
+		slog.Any("from", "coinbase"),
+		slog.Any("to", cfg.Blockchain.ProofOfAuthorityAccountAddress),
 		slog.Any("quantity", flagQuantity),
 	)
-
 }

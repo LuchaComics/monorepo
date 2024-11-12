@@ -27,12 +27,6 @@ func NewGenesistCmd() *cobra.Command {
 			doRunNewAccount()
 		},
 	}
-
-	cmd.Flags().StringVar(&flagPassword, "coinbase-password", "", "The password to encrypt the coinbase's account wallet")
-	cmd.MarkFlagRequired("coinbase-password")
-	cmd.Flags().StringVar(&flagPasswordRepeated, "coinbase-password-repeated", "", "The password (again) to verify you are entering the correct password")
-	cmd.MarkFlagRequired("coinbase-password-repeated")
-
 	return cmd
 }
 
@@ -63,12 +57,14 @@ func doRunNewAccount() {
 		keystore,
 		walletRepo,
 	)
+	_ = walletEncryptKeyUseCase
 	walletDecryptKeyUseCase := usecase.NewWalletDecryptKeyUseCase(
 		cfg,
 		logger,
 		keystore,
 		walletRepo,
 	)
+	_ = walletDecryptKeyUseCase
 	createWalletUseCase := usecase.NewCreateWalletUseCase(
 		cfg,
 		logger,
@@ -79,6 +75,7 @@ func doRunNewAccount() {
 		logger,
 		walletRepo,
 	)
+	_ = createWalletUseCase
 
 	// Account
 	createAccountUseCase := usecase.NewCreateAccountUseCase(
@@ -86,6 +83,7 @@ func doRunNewAccount() {
 		logger,
 		accountRepo,
 	)
+	_ = createAccountUseCase
 	getAccountUseCase := usecase.NewGetAccountUseCase(
 		cfg,
 		logger,
@@ -147,21 +145,17 @@ func doRunNewAccount() {
 	)
 
 	// ------ Service ------
-	createAccountService := service.NewCreateAccountService(
+	getProofOfAuthorityPrivateKeyService := service.NewGetProofOfAuthorityPrivateKeyService(
 		cfg,
 		logger,
-		walletEncryptKeyUseCase,
+		getWalletUseCase,
 		walletDecryptKeyUseCase,
-		createWalletUseCase,
-		createAccountUseCase,
-		getAccountUseCase,
 	)
 	createGenesisBlockDataService := service.NewCreateGenesisBlockDataService(
 		cfg,
 		logger,
-		createAccountService,
-		getWalletUseCase,
-		walletDecryptKeyUseCase,
+		getProofOfAuthorityPrivateKeyService,
+		getAccountUseCase,
 		upsertAccountUseCase,
 		upsertTokenIfPreviousTokenNonceGTEUseCase,
 		getAccountsHashStateUseCase,
@@ -186,16 +180,10 @@ func doRunNewAccount() {
 	}
 	defer session.EndSession(ctx)
 
-	logger.Debug("Creating new account...",
-		slog.Any("wallet_password", flagPassword),
-		slog.Any("wallet_password_repeated", flagPasswordRepeated),
-		slog.Any("wallet_label", flagLabel),
-	)
-
 	// Define a transaction function with a series of operations
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
 		// Execution
-		blockchainState, err := createGenesisBlockDataService.Execute(sessCtx, flagPassword, flagPasswordRepeated)
+		blockchainState, err := createGenesisBlockDataService.Execute(sessCtx)
 		if err != nil {
 			logger.Error("Failed initializing new blockchain from new genesis block",
 				slog.Any("error", err))
