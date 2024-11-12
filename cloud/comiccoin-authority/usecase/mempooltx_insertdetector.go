@@ -14,7 +14,7 @@ type MempoolTransactionInsertionDetectorUseCase struct {
 	config   *config.Configuration
 	logger   *slog.Logger
 	repo     domain.MempoolTransactionRepository
-	dataChan chan *domain.MempoolTransaction
+	dataChan <-chan domain.MempoolTransaction
 	quitChan chan struct{}
 }
 
@@ -27,19 +27,24 @@ func NewMempoolTransactionInsertionDetectorUseCase(config *config.Configuration,
 }
 
 func (uc *MempoolTransactionInsertionDetectorUseCase) Execute(ctx context.Context) (*domain.MempoolTransaction, error) {
+	// uc.logger.Debug("Waiting to receive...")
 	select {
 	case newEntry, ok := <-uc.dataChan:
 		if !ok {
+			// uc.logger.Debug("Error receiving.")
 			return nil, errors.New("channel closed")
 		}
-		return newEntry, nil
+		// uc.logger.Debug("Data received.",
+		// 	slog.Any("dataChan", newEntry))
+		return &newEntry, nil
 	case <-ctx.Done():
+		// uc.logger.Debug("Done receiving.")
 		return nil, ctx.Err()
 	}
 }
 
 // Terminate releases the channel resource
 func (uc *MempoolTransactionInsertionDetectorUseCase) Terminate() {
+	uc.logger.Debug("Closing change stream connection...")
 	close(uc.quitChan)
-	close(uc.dataChan)
 }

@@ -112,61 +112,44 @@ func (r *MempoolTransactionRepo) GetInsertionChangeStream(ctx context.Context) (
 	return changeStream, nil
 }
 
-func (r *MempoolTransactionRepo) GetInsertionChangeStreamChannel(ctx context.Context) (chan *domain.MempoolTransaction, chan struct{}, error) {
+func (r *MempoolTransactionRepo) GetInsertionChangeStreamChannel(ctx context.Context) (<-chan domain.MempoolTransaction, chan struct{}, error) {
 	changeStream, err := r.GetInsertionChangeStream(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	mempoolTxChan := make(chan *domain.MempoolTransaction)
+	dataChan := make(chan domain.MempoolTransaction)
 	quitChan := make(chan struct{})
-
 	go func() {
-		defer close(mempoolTxChan)
+		defer close(dataChan)
 		for changeStream.Next(ctx) {
+			// r.logger.Debug("Running next...")
 			select {
 			case <-quitChan:
+				// r.logger.Debug("Quit chan!")
 				changeStream.Close(ctx)
 				return
 			default:
+				// r.logger.Debug("OK...")
 			}
 
-			change := changeStream.Current
-			err := changeStream.Decode(&change)
-			if err != nil {
-				r.logger.Error("error decoding change stream", "err", err)
+			// SPECIAL THANKS: https://stackoverflow.com/a/74519310
+			var event struct {
+				Doc domain.MempoolTransaction `bson:"fullDocument"`
+			}
+
+			if err := changeStream.Decode(&event); err != nil {
+				r.logger.Error("Failed to decode event",
+					slog.Any("error", err))
 				continue
 			}
 
-			var mempoolTx domain.MempoolTransaction
-			err = bson.UnmarshalExtJSON(change, true, &mempoolTx)
-			if err != nil {
-				r.logger.Error("error unmarshaling mempoolTx", "err", err)
-				continue
-			}
+			// r.logger.Debug("Ready to send...",
+			// 	slog.Any("dataChan", event.Doc))
 
-			mempoolTxChan <- &mempoolTx
+			dataChan <- event.Doc
 		}
 		changeStream.Close(ctx)
 	}()
-
-	/*
-	   // HERE IS HOW TO CALL THIS FUNC:
-
-	   mempoolTxChan, quitChan, err := r.GetInsertionChangeStreamChannel(ctx)
-	   if err != nil {
-	       // handle error
-	   }
-
-	   // ...
-
-	   for mempoolTx := range mempoolTxChan {
-	       // process mempoolTx
-	   }
-
-	   // When you're done with the change stream
-	   close(quitChan)
-	*/
-
-	return mempoolTxChan, quitChan, nil
+	return dataChan, quitChan, nil
 }

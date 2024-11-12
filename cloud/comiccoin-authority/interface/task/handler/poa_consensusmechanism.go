@@ -24,5 +24,5 @@ func NewProofOfAuthorityConsensusMechanismTaskHandler(
 
 func (s *ProofOfAuthorityConsensusMechanismTaskHandler) Execute(ctx context.Context) error {
 
-	return nil
+	return s.proofOfAuthorityConsensusMechanismService.Execute(ctx)
 }

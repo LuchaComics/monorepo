@@ -52,7 +52,7 @@ func (port *taskManagerImpl) Run() {
 			// DEVELOPERS NOTE:
 			// No need for delays, automatically start executing again.
 			port.logger.Debug("poa consensus mechanism will run again ...")
-			time.Sleep(60 * time.Second)
+			//time.Sleep(60 * time.Second)
 		}
 	}(port.proofOfAuthorityConsensusMechanismTaskHandler, port.logger)
 }

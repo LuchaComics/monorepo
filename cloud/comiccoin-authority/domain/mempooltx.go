@@ -79,7 +79,7 @@ type MempoolTransactionRepository interface {
 	// DeleteAll deletes all mempool transactions in the repository.
 	DeleteByChainID(ctx context.Context, chainID uint16) error
 
-	GetInsertionChangeStreamChannel(ctx context.Context) (chan *MempoolTransaction, chan struct{}, error)
+	GetInsertionChangeStreamChannel(ctx context.Context) (<-chan MempoolTransaction, chan struct{}, error)
 }
 
 // Serialize serializes the mempool transaction into a byte slice.
