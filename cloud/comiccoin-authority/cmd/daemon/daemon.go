@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/blockchain/keystore"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/kmutexutil"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/blacklist"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/jwt"
@@ -18,6 +19,8 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/interface/http"
 	httphandler "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/interface/http/handler"
 	httpmiddle "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/interface/http/middleware"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/interface/task"
+	taskhandler "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/interface/task/handler"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/repo"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/service"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase"
@@ -43,6 +46,7 @@ func doRunDaemon() {
 
 	// Common
 	logger := logger.NewProvider()
+	kmutex := kmutexutil.NewKMutexProvider()
 	cfg := config.NewProvider()
 	dbClient := mongodb.NewProvider(cfg, logger)
 	keystore := keystore.NewAdapter(cfg, logger)
@@ -59,9 +63,9 @@ func doRunDaemon() {
 	bdRepo := repo.NewBlockDataRepo(cfg, logger, dbClient)
 	gbdRepo := repo.NewGenesisBlockDataRepo(cfg, logger, dbClient)
 	bcStateRepo := repo.NewBlockchainStateRepo(cfg, logger, dbClient)
+	mempoolTxRepo := repo.NewMempoolTransactionRepo(cfg, logger, dbClient)
 
 	_ = keystore
-	_ = walletRepo
 	_ = accountRepo
 
 	// Genesis Block Data
@@ -73,6 +77,11 @@ func doRunDaemon() {
 
 	// Blockchain State
 	getBlockchainStateUseCase := usecase.NewGetBlockchainStateUseCase(
+		cfg,
+		logger,
+		bcStateRepo,
+	)
+	upsertBlockchainStateUseCase := usecase.NewUpsertBlockchainStateUseCase(
 		cfg,
 		logger,
 		bcStateRepo,
@@ -104,6 +113,40 @@ func doRunDaemon() {
 		logger,
 		bdRepo,
 	)
+
+	// Wallet
+	walletDecryptKeyUseCase := usecase.NewWalletDecryptKeyUseCase(
+		cfg,
+		logger,
+		keystore,
+		walletRepo,
+	)
+	getWalletUseCase := usecase.NewGetWalletUseCase(
+		cfg,
+		logger,
+		walletRepo,
+	)
+
+	// Mempool Transaction
+	mempoolTransactionListByChainIDUseCase := usecase.NewMempoolTransactionListByChainIDUseCase(
+		cfg,
+		logger,
+		mempoolTxRepo,
+	)
+	mempoolTransactionDeleteByChainIDUseCase := usecase.NewMempoolTransactionDeleteByChainIDUseCase(
+		cfg,
+		logger,
+		mempoolTxRepo,
+	)
+	mempoolTransactionInsertionDetectorUseCase := usecase.NewMempoolTransactionInsertionDetectorUseCase(
+		cfg,
+		logger,
+		mempoolTxRepo,
+	)
+	defer func() {
+		// When we are done, we will need to terminate our access to this resource.
+		mempoolTransactionInsertionDetectorUseCase.Terminate()
+	}()
 
 	// --- Service
 
@@ -154,9 +197,41 @@ func doRunDaemon() {
 		logger,
 	)
 
+	// Proof of Authority Consensus Mechanism
+	getProofOfAuthorityPrivateKeyService := service.NewGetProofOfAuthorityPrivateKeyService(
+		cfg,
+		logger,
+		getWalletUseCase,
+		walletDecryptKeyUseCase,
+	)
+	proofOfAuthorityConsensusMechanismService := service.NewProofOfAuthorityConsensusMechanismService(
+		cfg,
+		logger,
+		kmutex,
+		getProofOfAuthorityPrivateKeyService,
+		mempoolTransactionInsertionDetectorUseCase,
+		mempoolTransactionListByChainIDUseCase,
+		mempoolTransactionDeleteByChainIDUseCase,
+		getBlockchainStateUseCase,
+		upsertBlockchainStateUseCase,
+		getGenesisBlockDataUseCase,
+	)
+
 	//
 	// Interface.
 	//
+
+	// --- Task Manager --- //
+	poaConsensusMechanismTask := taskhandler.NewProofOfAuthorityConsensusMechanismTaskHandler(
+		cfg,
+		logger,
+		proofOfAuthorityConsensusMechanismService,
+	)
+	taskManager := task.NewTaskManager(
+		cfg,
+		logger,
+		poaConsensusMechanismTask,
+	)
 
 	// --- HTTP --- //
 	getVersionHTTPHandler := httphandler.NewGetVersionHTTPHandler(
@@ -214,13 +289,13 @@ func doRunDaemon() {
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL, syscall.SIGUSR1)
 
-	// Run in background the peer to peer node which will synchronize our
-	// blockchain with the network.
-	// go peerNode.Run()
+	// Run in background
 	go httpServ.Run()
 	defer httpServ.Shutdown()
+	go taskManager.Run()
+	defer taskManager.Shutdown()
 
-	logger.Info("Node running.")
+	logger.Info("ComicCoin Authority is running.")
 
 	<-done
 }

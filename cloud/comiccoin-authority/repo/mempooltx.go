@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"log/slog"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -53,8 +54,11 @@ func NewMempoolTransactionRepo(cfg *config.Configuration, logger *slog.Logger, c
 }
 
 func (r *MempoolTransactionRepo) Upsert(ctx context.Context, mempoolTx *domain.MempoolTransaction) error {
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, 30*time.Second) // Use to prevent resource leaks.
+	defer cancel()
+
 	opts := options.Update().SetUpsert(true)
-	_, err := r.collection.UpdateOne(ctx, bson.M{
+	_, err := r.collection.UpdateOne(ctxWithTimeout, bson.M{
 		"chain_id":          mempoolTx.ChainID,
 		"transaction.nonce": mempoolTx.Transaction.Nonce,
 	}, bson.M{"$set": mempoolTx}, opts)
@@ -62,13 +66,16 @@ func (r *MempoolTransactionRepo) Upsert(ctx context.Context, mempoolTx *domain.M
 }
 
 func (r *MempoolTransactionRepo) ListByChainID(ctx context.Context, chainID uint16) ([]*domain.MempoolTransaction, error) {
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, 30*time.Second) // Use to prevent resource leaks.
+	defer cancel()
+
 	mempoolTxs := make([]*domain.MempoolTransaction, 0)
-	cur, err := r.collection.Find(ctx, bson.M{"chain_id": chainID})
+	cur, err := r.collection.Find(ctxWithTimeout, bson.M{"chain_id": chainID})
 	if err != nil {
 		return nil, err
 	}
-	defer cur.Close(ctx)
-	for cur.Next(ctx) {
+	defer cur.Close(ctxWithTimeout)
+	for cur.Next(ctxWithTimeout) {
 		var mempoolTx domain.MempoolTransaction
 		err := cur.Decode(&mempoolTx)
 		if err != nil {
@@ -83,6 +90,83 @@ func (r *MempoolTransactionRepo) ListByChainID(ctx context.Context, chainID uint
 }
 
 func (r *MempoolTransactionRepo) DeleteByChainID(ctx context.Context, chainID uint16) error {
-	//TODO: Impl.
-	return nil
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, 30*time.Second) // Use to prevent resource leaks.
+	defer cancel()
+	_, err := r.collection.DeleteMany(ctxWithTimeout, bson.M{"chain_id": chainID})
+	return err
+}
+
+// -----------------------------------------------------------------------------
+
+func (r *MempoolTransactionRepo) GetInsertionChangeStream(ctx context.Context) (*mongo.ChangeStream, error) {
+	pipeline := mongo.Pipeline{bson.D{{"$match", bson.D{{"$or",
+		bson.A{
+			bson.D{{"operationType", "insert"}}}}},
+	}}}
+
+	changeStream, err := r.collection.Watch(ctx, pipeline, options.ChangeStream().SetFullDocument(options.UpdateLookup))
+	if err != nil {
+		return nil, err
+	}
+
+	return changeStream, nil
+}
+
+func (r *MempoolTransactionRepo) GetInsertionChangeStreamChannel(ctx context.Context) (chan *domain.MempoolTransaction, chan struct{}, error) {
+	changeStream, err := r.GetInsertionChangeStream(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	mempoolTxChan := make(chan *domain.MempoolTransaction)
+	quitChan := make(chan struct{})
+
+	go func() {
+		defer close(mempoolTxChan)
+		for changeStream.Next(ctx) {
+			select {
+			case <-quitChan:
+				changeStream.Close(ctx)
+				return
+			default:
+			}
+
+			change := changeStream.Current
+			err := changeStream.Decode(&change)
+			if err != nil {
+				r.logger.Error("error decoding change stream", "err", err)
+				continue
+			}
+
+			var mempoolTx domain.MempoolTransaction
+			err = bson.UnmarshalExtJSON(change, true, &mempoolTx)
+			if err != nil {
+				r.logger.Error("error unmarshaling mempoolTx", "err", err)
+				continue
+			}
+
+			mempoolTxChan <- &mempoolTx
+		}
+		changeStream.Close(ctx)
+	}()
+
+	/*
+	   // HERE IS HOW TO CALL THIS FUNC:
+
+	   mempoolTxChan, quitChan, err := r.GetInsertionChangeStreamChannel(ctx)
+	   if err != nil {
+	       // handle error
+	   }
+
+	   // ...
+
+	   for mempoolTx := range mempoolTxChan {
+	       // process mempoolTx
+	   }
+
+	   // When you're done with the change stream
+	   close(quitChan)
+	*/
+
+	return mempoolTxChan, quitChan, nil
 }

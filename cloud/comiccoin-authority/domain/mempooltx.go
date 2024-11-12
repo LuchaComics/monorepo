@@ -61,6 +61,11 @@ func (tx MempoolTransaction) Validate(chainID uint16, isPoA bool) error {
 	return nil
 }
 
+type MempoolTransactionInsertionDetector interface {
+	Monitor(ctx context.Context, onChangeDetectedFunc func(data *MempoolTransaction) error) error
+	Close(ctx context.Context)
+}
+
 // MempoolTransactionRepository interface defines the methods for interacting with
 // the mempool transaction repository.
 // This interface provides a way to manage mempool transactions, including upserting, listing, and deleting.
@@ -73,6 +78,8 @@ type MempoolTransactionRepository interface {
 
 	// DeleteAll deletes all mempool transactions in the repository.
 	DeleteByChainID(ctx context.Context, chainID uint16) error
+
+	GetInsertionChangeStreamChannel(ctx context.Context) (chan *MempoolTransaction, chan struct{}, error)
 }
 
 // Serialize serializes the mempool transaction into a byte slice.
