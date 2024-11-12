@@ -41,6 +41,7 @@ type httpServerImpl struct {
 	getBlockDataHTTPHandler                                      *handler.GetBlockDataHTTPHandler
 	listBlockDataFilteredInHashesHTTPHandler                     *handler.ListBlockDataFilteredInHashesHTTPHandler
 	listBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler *handler.ListBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler
+	signedTransactionSubmissionHTTPHandler                       *handler.SignedTransactionSubmissionHTTPHandler
 }
 
 // NewHTTPServer creates a new HTTP server instance.
@@ -56,6 +57,7 @@ func NewHTTPServer(
 	http6 *handler.GetBlockDataHTTPHandler,
 	http7 *handler.ListBlockDataFilteredInHashesHTTPHandler,
 	http8 *handler.ListBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler,
+	http9 *handler.SignedTransactionSubmissionHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.IP == "" {
@@ -90,6 +92,7 @@ func NewHTTPServer(
 		getBlockDataHTTPHandler:                                      http6,
 		listBlockDataFilteredInHashesHTTPHandler:                     http7,
 		listBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler: http8,
+		signedTransactionSubmissionHTTPHandler:                       http9,
 	}
 
 	// Attach the HTTP server controller to the ServeMux.
@@ -148,6 +151,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		port.listBlockDataFilteredInHashesHTTPHandler.Execute(w, r)
 	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "blockdata-between" && r.Method == http.MethodGet:
 		port.listBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler.Execute(w, r)
+	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "signed-transaction" && r.Method == http.MethodPost:
+		port.signedTransactionSubmissionHTTPHandler.Execute(w, r)
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "blockdata" && p[3] == "ordered-hashes" && r.Method == http.MethodGet:
 		port.listAllBlockDataOrderedHashesHTTPHandler.Execute(w, r)
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "blockdata" && p[3] == "hashes" && r.Method == http.MethodGet:

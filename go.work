@@ -10,4 +10,5 @@ use (
 	./native/desktop/archive/comiccoin-core
 	./native/desktop/archive/comiccoin-nftassetstore
 	./native/desktop/archive/comiccoin-registry
+	./native/desktop/comiccoin-cli
 )

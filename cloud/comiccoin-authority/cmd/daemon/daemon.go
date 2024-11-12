@@ -148,16 +148,11 @@ func doRunDaemon() {
 		listBlockDataFilteredBetweenBlockNumbersUseCase,
 	)
 
-	//
-	// STEP X
-	// Execute.
-	//
-
-	// Load up our operating system interaction handlers, more specifically
-	// signals. The OS sends our application various signals based on the
-	// OS's state, we want to listen into the termination signals.
-	done := make(chan os.Signal, 1)
-	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL, syscall.SIGUSR1)
+	// Coins
+	signedTransactionSubmissionService := service.NewSignedTransactionSubmissionService(
+		cfg,
+		logger,
+	)
 
 	//
 	// Interface.
@@ -187,6 +182,9 @@ func doRunDaemon() {
 	listBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler := httphandler.NewListBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler(
 		logger,
 		listBlockDataFilteredBetweenBlockNumbersInChainIDService)
+	signedTransactionSubmissionHTTPHandler := httphandler.NewSignedTransactionSubmissionHTTPHandler(
+		logger,
+		signedTransactionSubmissionService)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
 		blackp)
@@ -202,7 +200,19 @@ func doRunDaemon() {
 		getBlockDataHTTPHandler,
 		listBlockDataFilteredInHashesHTTPHandler,
 		listBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler,
+		signedTransactionSubmissionHTTPHandler,
 	)
+
+	//
+	// STEP X
+	// Execute.
+	//
+
+	// Load up our operating system interaction handlers, more specifically
+	// signals. The OS sends our application various signals based on the
+	// OS's state, we want to listen into the termination signals.
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL, syscall.SIGUSR1)
 
 	// Run in background the peer to peer node which will synchronize our
 	// blockchain with the network.
