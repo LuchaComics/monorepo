@@ -8,10 +8,16 @@ import (
 )
 
 // GenesisBlockDataDTO represents the data that can be serialized to disk and over the network.
-type GenesisBlockDataDTO BlockchainState
+type GenesisBlockDataDTO GenesisBlockData
 
 type GenesisBlockDataDTORepository interface {
 	GetFromCentralAuthorityByChainID(ctx context.Context, chainID uint16) (*GenesisBlockDataDTO, error)
+}
+
+// BlockDataToGenesisBlockData method converts a `BlockData` data type into
+// a `GenesisBlockData` data type.
+func (dto *GenesisBlockDataDTO) ToIDO() *GenesisBlockData {
+	return (*GenesisBlockData)(dto)
 }
 
 // Serialize serializes a block data into a byte array.
