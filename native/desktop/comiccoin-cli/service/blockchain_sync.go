@@ -9,27 +9,31 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/usecase"
 )
 
-type LocalBlockchainSyncService struct {
+type LocalBlockchainSyncWithCentralAuthorityService struct {
 	config                                                  *config.Config
 	logger                                                  *slog.Logger
+	getBlockchainStateUseCase                               *usecase.GetBlockchainStateUseCase
 	getBlockchainStateFromCentralAuthorityByChainIDUseCase  *usecase.GetBlockchainStateFromCentralAuthorityByChainIDUseCase
+	upsertBlockchainStateUseCase                            *usecase.UpsertBlockchainStateUseCase
 	getGenesisBlockDataUseCase                              *usecase.GetGenesisBlockDataUseCase
 	getGenesisBlockDataFromCentralAuthorityByChainIDUseCase *usecase.GetGenesisBlockDataFromCentralAuthorityByChainIDUseCase
 	upsertGenesisBlockDataUseCase                           *usecase.UpsertGenesisBlockDataUseCase
 }
 
-func NewLocalBlockchainSyncService(
+func NewLocalBlockchainSyncWithCentralAuthorityService(
 	config *config.Config,
 	logger *slog.Logger,
-	uc1 *usecase.GetBlockchainStateFromCentralAuthorityByChainIDUseCase,
-	uc2 *usecase.GetGenesisBlockDataUseCase,
-	uc3 *usecase.GetGenesisBlockDataFromCentralAuthorityByChainIDUseCase,
-	uc4 *usecase.UpsertGenesisBlockDataUseCase,
-) *LocalBlockchainSyncService {
-	return &LocalBlockchainSyncService{config, logger, uc1, uc2, uc3, uc4}
+	uc1 *usecase.GetBlockchainStateUseCase,
+	uc2 *usecase.GetBlockchainStateFromCentralAuthorityByChainIDUseCase,
+	uc3 *usecase.UpsertBlockchainStateUseCase,
+	uc4 *usecase.GetGenesisBlockDataUseCase,
+	uc5 *usecase.GetGenesisBlockDataFromCentralAuthorityByChainIDUseCase,
+	uc6 *usecase.UpsertGenesisBlockDataUseCase,
+) *LocalBlockchainSyncWithCentralAuthorityService {
+	return &LocalBlockchainSyncWithCentralAuthorityService{config, logger, uc1, uc2, uc3, uc4, uc5, uc6}
 }
 
-func (s *LocalBlockchainSyncService) Execute(ctx context.Context) error {
+func (s *LocalBlockchainSyncWithCentralAuthorityService) Execute(ctx context.Context) error {
 	//
 	// STEP 1. Get blockchain state.
 	//

@@ -64,10 +64,6 @@ func doRunBlockchainSyncCmd() error {
 		cfg,
 		logger,
 		genesisBlockDataDB)
-	blockDataRepo := repo.NewBlockDataRepo(
-		cfg,
-		logger,
-		blockDataDB)
 	blockchainStateRepo := repo.NewBlockchainStateRepo(
 		cfg,
 		logger,
@@ -78,8 +74,24 @@ func doRunBlockchainSyncCmd() error {
 	genesisBlockDataDTORepo := repo.NewGenesisBlockDataDTORepo(
 		cfg,
 		logger)
+	blockDataRepo := repo.NewBlockDataRepo(
+		cfg,
+		logger,
+		blockDataDB)
+
+	_ = blockDataRepo
 
 	// ------------ Use-Case ------------
+	// Blockchain State
+	upsertBlockchainStateUseCase := usecase.NewUpsertBlockchainStateUseCase(
+		cfg,
+		logger,
+		blockchainStateRepo)
+	getBlockchainStateUseCase := usecase.NewGetBlockchainStateUseCase(
+		cfg,
+		logger,
+		blockchainStateRepo)
+
 	// Blockchain State DTO
 	getBlockchainStateFromCentralAuthorityByChainIDUseCase := usecase.NewGetBlockchainStateFromCentralAuthorityByChainIDUseCase(
 		cfg,
@@ -102,14 +114,13 @@ func doRunBlockchainSyncCmd() error {
 		logger,
 		genesisBlockDataRepo)
 
-	_ = blockDataRepo
-	_ = blockchainStateRepo
-
 	// ------------ Service ------------
-	localBlockchainSyncService := service.NewLocalBlockchainSyncService(
+	localBlockchainSyncService := service.NewLocalBlockchainSyncWithCentralAuthorityService(
 		cfg,
 		logger,
+		getBlockchainStateUseCase,
 		getBlockchainStateFromCentralAuthorityByChainIDUseCase,
+		upsertBlockchainStateUseCase,
 		getGenesisBlockDataUseCase,
 		getGenesisBlockDataFromCentralAuthorityByChainIDUseCase,
 		upsertGenesisBlockDataUseCase,
