@@ -66,7 +66,7 @@ func doRunNewAccountCmd() error {
 	accountRepo := repo.NewAccountRepo(
 		cfg,
 		logger,
-		accountDB) // Do not store on disk, only in-memory.
+		accountDB)
 
 	// ------ Use-case ------
 

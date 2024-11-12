@@ -92,17 +92,27 @@ func doRunBlockchainSyncCmd() error {
 		logger,
 		genesisBlockDataDTORepo)
 
-	_ = genesisBlockDataRepo
+	// Genesis Block Data
+	upsertGenesisBlockDataUseCase := usecase.NewUpsertGenesisBlockDataUseCase(
+		cfg,
+		logger,
+		genesisBlockDataRepo)
+	getGenesisBlockDataUseCase := usecase.NewGetGenesisBlockDataUseCase(
+		cfg,
+		logger,
+		genesisBlockDataRepo)
+
 	_ = blockDataRepo
 	_ = blockchainStateRepo
-	_ = blockchainStateDTORepo
 
 	// ------------ Service ------------
 	localBlockchainSyncService := service.NewLocalBlockchainSyncService(
 		cfg,
 		logger,
 		getBlockchainStateFromCentralAuthorityByChainIDUseCase,
+		getGenesisBlockDataUseCase,
 		getGenesisBlockDataFromCentralAuthorityByChainIDUseCase,
+		upsertGenesisBlockDataUseCase,
 	)
 
 	ctx := context.Background()

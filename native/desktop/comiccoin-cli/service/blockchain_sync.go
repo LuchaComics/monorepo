@@ -13,16 +13,20 @@ type LocalBlockchainSyncService struct {
 	config                                                  *config.Config
 	logger                                                  *slog.Logger
 	getBlockchainStateFromCentralAuthorityByChainIDUseCase  *usecase.GetBlockchainStateFromCentralAuthorityByChainIDUseCase
+	getGenesisBlockDataUseCase                              *usecase.GetGenesisBlockDataUseCase
 	getGenesisBlockDataFromCentralAuthorityByChainIDUseCase *usecase.GetGenesisBlockDataFromCentralAuthorityByChainIDUseCase
+	upsertGenesisBlockDataUseCase                           *usecase.UpsertGenesisBlockDataUseCase
 }
 
 func NewLocalBlockchainSyncService(
 	config *config.Config,
 	logger *slog.Logger,
 	uc1 *usecase.GetBlockchainStateFromCentralAuthorityByChainIDUseCase,
-	uc2 *usecase.GetGenesisBlockDataFromCentralAuthorityByChainIDUseCase,
+	uc2 *usecase.GetGenesisBlockDataUseCase,
+	uc3 *usecase.GetGenesisBlockDataFromCentralAuthorityByChainIDUseCase,
+	uc4 *usecase.UpsertGenesisBlockDataUseCase,
 ) *LocalBlockchainSyncService {
-	return &LocalBlockchainSyncService{config, logger, uc1, uc2}
+	return &LocalBlockchainSyncService{config, logger, uc1, uc2, uc3, uc4}
 }
 
 func (s *LocalBlockchainSyncService) Execute(ctx context.Context) error {
