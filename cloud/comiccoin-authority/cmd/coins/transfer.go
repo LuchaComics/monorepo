@@ -4,7 +4,9 @@ import (
 	"context"
 	"log"
 	"log/slog"
+	"strings"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 	"go.mongodb.org/mongo-driver/mongo"
 
@@ -12,8 +14,9 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/storage/database/mongodb"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config"
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/repo"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/service"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase"
 )
 
 // Command line argument flags
@@ -86,116 +89,49 @@ func doRunTransferCoinsCommand() {
 	// ------ Repository ------
 	walletRepo := repo.NewWalletRepo(cfg, logger, dbClient)
 	accountRepo := repo.NewAccountRepo(cfg, logger, dbClient)
+	mempoolTxRepo := repo.NewMempoolTransactionRepo(cfg, logger, dbClient)
 	// blockchainStateRepo := repo.NewBlockchainStateRepo(cfg, logger, dbClient)
 	// tokRepo := repo.NewTokenRepo(cfg, logger, dbClient)
 	// gbdRepo := repo.NewGenesisBlockDataRepo(cfg, logger, dbClient)
 	// bdRepo := repo.NewBlockDataRepo(cfg, logger, dbClient)
 
-	_ = keystore
-	_ = walletRepo
-	_ = accountRepo
+	// ------ Use-case ------
+	// Wallet
+	walletDecryptKeyUseCase := usecase.NewWalletDecryptKeyUseCase(
+		cfg,
+		logger,
+		keystore,
+		walletRepo,
+	)
+	getWalletUseCase := usecase.NewGetWalletUseCase(
+		cfg,
+		logger,
+		walletRepo,
+	)
 
-	// // ------ Use-case ------
-	// // Wallet
-	// walletEncryptKeyUseCase := usecase.NewWalletEncryptKeyUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	keystore,
-	// 	walletRepo,
-	// )
-	// walletDecryptKeyUseCase := usecase.NewWalletDecryptKeyUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	keystore,
-	// 	walletRepo,
-	// )
-	// createWalletUseCase := usecase.NewCreateWalletUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	walletRepo,
-	// )
-	// getWalletUseCase := usecase.NewGetWalletUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	walletRepo,
-	// )
-	//
-	// // Account
-	// createAccountUseCase := usecase.NewCreateAccountUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	accountRepo,
-	// )
-	// getAccountUseCase := usecase.NewGetAccountUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	accountRepo,
-	// )
-	// upsertAccountUseCase := usecase.NewUpsertAccountUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	accountRepo,
-	// )
-	// getAccountsHashStateUseCase := usecase.NewGetAccountsHashStateUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	accountRepo,
-	// )
+	// Account
+	getAccountUseCase := usecase.NewGetAccountUseCase(
+		cfg,
+		logger,
+		accountRepo,
+	)
 
-	// // Blockchain State
-	// getBlockchainStateUseCase := usecase.NewGetBlockchainStateUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	blockchainStateRepo,
-	// )
-	// upsertBlockchainStateUseCase := usecase.NewUpsertBlockchainStateUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	blockchainStateRepo,
-	// )
-	//
-	// // Token
-	// upsertTokenIfPreviousTokenNonceGTEUseCase := usecase.NewUpsertTokenIfPreviousTokenNonceGTEUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	tokRepo,
-	// )
-	// getTokensHashStateUseCase := usecase.NewGetTokensHashStateUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	tokRepo,
-	// )
-	//
-	// // Genesis BlockData
-	// upsertGenesisBlockDataUseCase := usecase.NewUpsertGenesisBlockDataUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	gbdRepo,
-	// )
-	//
-	// // BlockData
-	// upsertBlockDataUseCase := usecase.NewUpsertBlockDataUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	bdRepo,
-	// )
-	//
-	// // Proof of Work
-	// proofOfWorkUseCase := usecase.NewProofOfWorkUseCase(
-	// 	cfg,
-	// 	logger,
-	// )
+	// Mempool Transaction
+	mempoolTransactionCreateUseCase := usecase.NewMempoolTransactionCreateUseCase(
+		cfg,
+		logger,
+		mempoolTxRepo,
+	)
 
 	// ------ Service ------
-	// createAccountService := service.NewCreateAccountService(
-	// 	cfg,
-	// 	logger,
-	// 	walletEncryptKeyUseCase,
-	// 	walletDecryptKeyUseCase,
-	// 	createWalletUseCase,
-	// 	createAccountUseCase,
-	// 	getAccountUseCase,
-	// )
+	coinTransferService := service.NewCoinTransferService(
+		cfg,
+		logger,
+		getAccountUseCase,
+		getWalletUseCase,
+		walletDecryptKeyUseCase,
+		mempoolTransactionCreateUseCase,
+	)
 
 	////
 	//// Start the transaction.
@@ -210,27 +146,26 @@ func doRunTransferCoinsCommand() {
 	}
 	defer session.EndSession(ctx)
 
-	logger.Debug("Creating new account...",
-		slog.Any("wallet_password", flagSenderAccountPassword),
-		slog.Any("wallet_password_repeated", flagSenderAccountPasswordRepeated),
-		slog.Any("wallet_label", flagLabel),
-	)
-
 	// Define a transaction function with a series of operations
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
-		// // Execution
-		// blockchainState, err := createGenesisBlockDataService.Execute(sessCtx, flagPassword, flagPasswordRepeated)
-		// if err != nil {
-		// 	logger.Error("Failed initializing new blockchain from new genesis block",
-		// 		slog.Any("error", err))
-		// 	return nil, err
-		// }
-		// if blockchainState == nil {
-		// 	err := errors.New("Blockchain state does not exist")
-		// 	return nil, err
-		// }
-		//
-		// return blockchainState, nil
+
+		senderAddr := common.HexToAddress(strings.ToLower(flagSenderAccountAddress))
+		recAddr := common.HexToAddress(strings.ToLower(flagRecipientAddress))
+
+		// Execution
+		err := coinTransferService.Execute(
+			sessCtx,
+			&senderAddr,
+			flagSenderAccountPassword,
+			&recAddr,
+			flagQuantity,
+			[]byte(flagData),
+		)
+		if err != nil {
+			logger.Error("Failed transfering coins",
+				slog.Any("error", err))
+			return nil, err
+		}
 		return nil, nil
 	}
 
@@ -239,13 +174,13 @@ func doRunTransferCoinsCommand() {
 	if err != nil {
 		logger.Error("session failed error",
 			slog.Any("error", err))
-		log.Fatalf("Failed creating account: %v\n", err)
+		log.Fatalf("Failed transfering coins: %v\n", err)
 	}
 
-	blockchainState := res.(*domain.BlockchainState)
-
 	logger.Debug("Coins transfered",
-		slog.Any("chain_id", blockchainState.ChainID),
+		slog.Any("from", flagSenderAccountAddress),
+		slog.Any("to", flagRecipientAddress),
+		slog.Any("quantity", flagQuantity),
 	)
 
 }
