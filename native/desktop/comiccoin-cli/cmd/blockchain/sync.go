@@ -78,6 +78,9 @@ func doRunBlockchainSyncCmd() error {
 		cfg,
 		logger,
 		blockDataDB)
+	blockDataDTORepo := repo.NewBlockDataDTORepo(
+		cfg,
+		logger)
 
 	_ = blockDataRepo
 
@@ -114,6 +117,12 @@ func doRunBlockchainSyncCmd() error {
 		logger,
 		genesisBlockDataRepo)
 
+	// Block Data DTO
+	getBlockDataFromCentralAuthorityByBlockNumberUseCase := usecase.NewGetBlockDataFromCentralAuthorityByBlockNumberUseCase(
+		cfg,
+		logger,
+		blockDataDTORepo)
+
 	// ------------ Service ------------
 	localBlockchainSyncService := service.NewLocalBlockchainSyncWithCentralAuthorityService(
 		cfg,
@@ -124,6 +133,7 @@ func doRunBlockchainSyncCmd() error {
 		getGenesisBlockDataUseCase,
 		getGenesisBlockDataFromCentralAuthorityByChainIDUseCase,
 		upsertGenesisBlockDataUseCase,
+		getBlockDataFromCentralAuthorityByBlockNumberUseCase,
 	)
 
 	ctx := context.Background()

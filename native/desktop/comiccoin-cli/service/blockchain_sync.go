@@ -19,6 +19,7 @@ type LocalBlockchainSyncWithCentralAuthorityService struct {
 	getGenesisBlockDataUseCase                              *usecase.GetGenesisBlockDataUseCase
 	getGenesisBlockDataFromCentralAuthorityByChainIDUseCase *usecase.GetGenesisBlockDataFromCentralAuthorityByChainIDUseCase
 	upsertGenesisBlockDataUseCase                           *usecase.UpsertGenesisBlockDataUseCase
+	getBlockDataFromCentralAuthorityByBlockNumberUseCase    *usecase.GetBlockDataFromCentralAuthorityByBlockNumberUseCase
 }
 
 func NewLocalBlockchainSyncWithCentralAuthorityService(
@@ -30,8 +31,9 @@ func NewLocalBlockchainSyncWithCentralAuthorityService(
 	uc4 *usecase.GetGenesisBlockDataUseCase,
 	uc5 *usecase.GetGenesisBlockDataFromCentralAuthorityByChainIDUseCase,
 	uc6 *usecase.UpsertGenesisBlockDataUseCase,
+	uc7 *usecase.GetBlockDataFromCentralAuthorityByBlockNumberUseCase,
 ) *LocalBlockchainSyncWithCentralAuthorityService {
-	return &LocalBlockchainSyncWithCentralAuthorityService{config, logger, uc1, uc2, uc3, uc4, uc5, uc6}
+	return &LocalBlockchainSyncWithCentralAuthorityService{config, logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7}
 }
 
 func (s *LocalBlockchainSyncWithCentralAuthorityService) Execute(ctx context.Context) error {
@@ -44,13 +46,13 @@ func (s *LocalBlockchainSyncWithCentralAuthorityService) Execute(ctx context.Con
 
 	blockchainStateFromAuthority, err := s.getBlockchainStateFromCentralAuthorityByChainIDUseCase.Execute(ctx, s.config.Blockchain.ChainID)
 	if err != nil {
-		s.logger.Error("Failed getting from central authority",
+		s.logger.Error("Failed getting from the authority",
 			slog.Any("error", err))
 		return err
 	}
 	if blockchainStateFromAuthority == nil {
-		dneErr := errors.New("Failed fetching from central authority with no results")
-		s.logger.Error("Failed getting from central authority",
+		dneErr := errors.New("Failed fetching from the authority with no results")
+		s.logger.Error("Failed getting from the authority",
 			slog.Any("error", dneErr))
 		return dneErr
 	}
@@ -66,13 +68,13 @@ func (s *LocalBlockchainSyncWithCentralAuthorityService) Execute(ctx context.Con
 	}
 	if localblockchainState != nil {
 		if blockchainStateFromAuthority.LatestBlockNumber == localblockchainState.LatestBlockNumber {
-			s.logger.Debug("Local blockchain in sync with authority, finishing execution...")
+			s.logger.Debug("Local blockchain already in sync with the authority.")
 			return nil
 		} else {
 			s.logger.Debug("Local blockchain is out of sync with authority, beginning to update now...")
 		}
 	} else {
-		s.logger.Debug("Local blockchain in empty, beginning to download blockchain from central authority now...")
+		s.logger.Debug("Local blockchain in empty, beginning to download blockchain from the authority now...")
 
 		//
 		// STEP 2:
@@ -81,13 +83,13 @@ func (s *LocalBlockchainSyncWithCentralAuthorityService) Execute(ctx context.Con
 
 		genesisBlockDTO, err := s.getGenesisBlockDataFromCentralAuthorityByChainIDUseCase.Execute(ctx, s.config.Blockchain.ChainID)
 		if err != nil {
-			s.logger.Error("Failed getting genesis block from central authority",
+			s.logger.Error("Failed getting genesis block from the authority",
 				slog.Any("error", err))
 			return err
 		}
 		if genesisBlockDTO == nil {
-			dneErr := errors.New("Failed fetching genesis block from central authority with no results")
-			s.logger.Error("Failed getting genesis block from central authority",
+			dneErr := errors.New("Failed fetching genesis block from the authority with no results")
+			s.logger.Error("Failed getting genesis block from the authority",
 				slog.Any("error", dneErr))
 			return dneErr
 		}
@@ -105,7 +107,7 @@ func (s *LocalBlockchainSyncWithCentralAuthorityService) Execute(ctx context.Con
 		// Set latest blockchain state to point to the genesis block data.
 		//
 
-		localblockchainState := &domain.BlockchainState{
+		localblockchainState = &domain.BlockchainState{
 			ChainID:           genesisBlockIDO.Header.ChainID,
 			LatestBlockNumber: genesisBlockIDO.Header.Number,
 			LatestHash:        genesisBlockIDO.Hash,
@@ -120,23 +122,37 @@ func (s *LocalBlockchainSyncWithCentralAuthorityService) Execute(ctx context.Con
 			return err
 		}
 		s.logger.Debug("Initial blockchain state saved to local.")
-
 	}
 
 	//
 	// STEP 4:
-	// Ask central authority what hashes we are missing from our latest
-	// block data we have locally on our machine.
+	// Download all the missing block data from the authority.
 	//
 
-	//
-	// STEP 5:
-	// Download all the missing block data from the central authority.
-	//
+	startBlockNumber := localblockchainState.LatestBlockNumber
+	endBlockNumber := blockchainStateFromAuthority.LatestBlockNumber
+
+	for blockNumber := startBlockNumber; blockNumber < endBlockNumber; blockNumber++ {
+		blockData, err := s.getBlockDataFromCentralAuthorityByBlockNumberUseCase.Execute(ctx, blockNumber)
+		if err != nil {
+			s.logger.Error("Failed getting block data from the authority by block number",
+				slog.Any("error", err))
+			return err
+		}
+		s.logger.Debug("Fetched", slog.Any("block_data", blockData))
+
+		//TODO: Save block data to local database.
+	}
 
 	//
 	// STEP 6:
+	// Update the local blockchain state to be equal to the blockchain state
+	// of the network.
 	//
+
+	//TODO: Impl.
+
+	s.logger.Debug("Finished sync'ing with the authority")
 
 	return nil
 }

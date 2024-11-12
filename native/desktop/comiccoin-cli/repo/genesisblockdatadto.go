@@ -25,7 +25,6 @@ type GenesisBlockDataDTORepo struct {
 }
 
 func NewGenesisBlockDataDTORepo(cfg *config.Config, logger *slog.Logger) domain.GenesisBlockDataDTORepository {
-
 	return &GenesisBlockDataDTORepo{cfg, logger}
 }
 
