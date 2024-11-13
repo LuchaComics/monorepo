@@ -3,6 +3,7 @@ package domain
 import (
 	"context"
 	"fmt"
+	"math/big"
 
 	"github.com/fxamacker/cbor/v2"
 )
@@ -13,12 +14,38 @@ type BlockchainState struct {
 	// The unique identifier for this blockchain that we are managing the state for.
 	ChainID uint16 `bson:"chain_id" json:"chain_id"`
 
-	LatestBlockNumber uint64 `bson:"latest_block_number" json:"latest_block_number"`
+	LatestBlockNumber []byte `bson:"latest_block_number" json:"latest_block_number"`
 	LatestHash        string `bson:"latest_hash" json:"latest_hash"`
-	LatestTokenID     uint64 `bson:"latest_token_id" json:"latest_token_id"`
+	LatestTokenID     []byte `bson:"latest_token_id" json:"latest_token_id"`
 
 	AccountHashState string `bson:"account_hash_state" json:"account_hash_state"`
 	TokenHashState   string `bson:"token_hash_state" json:"token_hash_state"`
+}
+
+func (bs *BlockchainState) GetLatestBlockNumber() *big.Int {
+	return new(big.Int).SetBytes(bs.LatestBlockNumber)
+}
+
+func (bs *BlockchainState) IsLatestBlockNumberZero() bool {
+	// Special thanks to "Is there another way of testing if a big.Int is 0?" via https://stackoverflow.com/a/64257532
+	return len(bs.GetLatestBlockNumber().Bits()) == 0
+}
+
+func (bs *BlockchainState) SetLatestBlockNumber(n *big.Int) {
+	bs.LatestBlockNumber = n.Bytes()
+}
+
+func (bs *BlockchainState) GetLatestTokenID() *big.Int {
+	return new(big.Int).SetBytes(bs.LatestTokenID)
+}
+
+func (bs *BlockchainState) IsLatestTokenIDZero() bool {
+	// Special thanks to "Is there another way of testing if a big.Int is 0?" via https://stackoverflow.com/a/64257532
+	return len(bs.GetLatestTokenID().Bits()) == 0
+}
+
+func (bs *BlockchainState) SeLatestTokenID(n *big.Int) {
+	bs.LatestTokenID = n.Bytes()
 }
 
 type BlockchainStateRepository interface {

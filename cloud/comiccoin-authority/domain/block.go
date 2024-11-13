@@ -3,6 +3,7 @@ package domain
 import (
 	"errors"
 	"fmt"
+	"math/big"
 	"time"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/blockchain/merkle"
@@ -52,7 +53,7 @@ func NewBlockData(block Block) *BlockData {
 // Hash returns the unique hash for the Block.
 func (b Block) Hash() string {
 	// If this is the genesis block, return a special zero hash.
-	if b.Header.Number == 0 {
+	if b.Header.IsNumberZero() {
 		return signature.ZeroHash
 	}
 
@@ -99,8 +100,10 @@ func (b Block) ValidateBlock(previousBlock *Block, stateRoot string) error {
 
 	// The node who sent this block has a chain that is two or more blocks ahead
 	// of ours. This means there has been a fork and we are on the wrong side.
-	nextNumber := previousBlock.Header.Number + 1
-	if b.Header.Number >= (nextNumber + 2) {
+	currNumb := previousBlock.Header.GetNumber()
+	nextNumber := currNumb.Add(currNumb, big.NewInt(2))
+	nextNumberPlus2 := currNumb.Add(nextNumber, big.NewInt(2))
+	if b.Header.GetNumber().Cmp(nextNumberPlus2) >= 0 {
 		return ErrChainForked
 	}
 
@@ -128,8 +131,8 @@ func (b Block) ValidateBlock(previousBlock *Block, stateRoot string) error {
 	// Check: block number is the next number
 	//
 
-	if b.Header.Number != nextNumber {
-		return fmt.Errorf("this block is not the next number, got %d, exp %d", b.Header.Number, nextNumber)
+	if b.Header.GetNumber().Cmp(nextNumber) != 0 {
+		return fmt.Errorf("this block is not the next number, got %d, exp %d", b.Header.GetNumber(), nextNumber)
 	}
 
 	//

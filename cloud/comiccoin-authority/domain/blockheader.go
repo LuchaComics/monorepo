@@ -2,15 +2,25 @@ package domain
 
 import (
 	"fmt"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/fxamacker/cbor/v2"
 )
 
+// Known Issue:
+// MongoDB does not natively support storing `*big.Int` types directly,
+// which may cause issues if the `V`, `R`, and `S` fields of the
+// `SignedTransaction` are of type `*big.Int`.
+// These fields need to be converted to an alternate type (e.g., `string`
+// or `[]byte`) before saving to MongoDB, as `big.Int` values are not
+// natively serialized by BSON.
+// To resolve this, we convert `*big.Int` fields to `[]byte` in the model.
+
 // BlockHeader represents common information required for each block.
 type BlockHeader struct {
 	ChainID       uint16         `bson:"chain_id" json:"chain_id"`               // Keep track of which chain this block belongs to.
-	Number        uint64         `bson:"number" json:"number"`                   // Ethereum: Block number in the chain.
+	Number        []byte         `bson:"number" json:"number"`                   // Ethereum: Block number in the chain.
 	PrevBlockHash string         `bson:"prev_block_hash" json:"prev_block_hash"` // Bitcoin: Hash of the previous block in the chain.
 	TimeStamp     uint64         `bson:"timestamp" json:"timestamp"`             // Bitcoin: Time the block was mined.
 	Beneficiary   common.Address `bson:"beneficiary" json:"beneficiary"`         // Ethereum: The account who is receiving fees and tips.
@@ -24,10 +34,49 @@ type BlockHeader struct {
 	StateRoot string `json:"state_root"` // Ethereum: Represents a hash of the accounts and their balances.
 
 	TransRoot string `json:"trans_root"` // Both: Represents the merkle tree root hash for the transactions in this block.
-	Nonce     uint64 `json:"nonce"`      // Both: Value identified to solve the hash solution.
+	Nonce     []byte `json:"nonce"`      // Both: Value identified to solve the hash solution.
 
-	LatestTokenID uint64 `json:"latest_token_id"` // ComicCoin: The latest token that the blockchain points to.
+	LatestTokenID []byte `json:"latest_token_id"` // ComicCoin: The latest token that the blockchain points to.
 	TokensRoot    string `json:"tokens_root"`     // ComicCoin: Represents the hash of all the tokens and their owners.
+}
+
+func (bh *BlockHeader) GetNumber() *big.Int {
+	return new(big.Int).SetBytes(bh.Number)
+}
+
+func (bh *BlockHeader) IsNumberZero() bool {
+	// Special thanks to "Is there another way of testing if a big.Int is 0?" via https://stackoverflow.com/a/64257532
+	return len(bh.GetNumber().Bits()) == 0
+}
+
+func (bh *BlockHeader) SetNumber(n *big.Int) {
+	bh.Number = n.Bytes()
+}
+
+func (bh *BlockHeader) GetNonce() *big.Int {
+	return new(big.Int).SetBytes(bh.Nonce)
+}
+
+func (bh *BlockHeader) IsNonceZero() bool {
+	// Special thanks to "Is there another way of testing if a big.Int is 0?" via https://stackoverflow.com/a/64257532
+	return len(bh.GetNonce().Bits()) == 0
+}
+
+func (bh *BlockHeader) SetNonce(n *big.Int) {
+	bh.Nonce = n.Bytes()
+}
+
+func (bh *BlockHeader) GetLatestTokenID() *big.Int {
+	return new(big.Int).SetBytes(bh.LatestTokenID)
+}
+
+func (bh *BlockHeader) IsLatestTokenIDZero() bool {
+	// Special thanks to "Is there another way of testing if a big.Int is 0?" via https://stackoverflow.com/a/64257532
+	return len(bh.GetLatestTokenID().Bits()) == 0
+}
+
+func (bh *BlockHeader) SeLatestTokenID(n *big.Int) {
+	bh.LatestTokenID = n.Bytes()
 }
 
 // Serialize serializes a block header into a byte array.

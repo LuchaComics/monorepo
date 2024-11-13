@@ -3,16 +3,17 @@ package domain
 import (
 	"context"
 	"fmt"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/fxamacker/cbor/v2"
 )
 
 type Token struct {
-	ID          uint64          `bson:"id" json:"id"`
+	ID          []byte          `bson:"id" json:"id"`
 	Owner       *common.Address `bson:"owner" json:"owner"`
 	MetadataURI string          `bson:"metadata_uri" json:"metadata_uri"` // ComicCoin: URI pointing to Token metadata file (if this transaciton is an Token).
-	Nonce       uint64          `bson:"nonce" json:"nonce"`               // ComicCoin: Newly minted tokens always start at zero and for every transaction action afterwords (transfer, burn, etc) this value is increment by 1.
+	Nonce       []byte          `bson:"nonce" json:"nonce"`               // ComicCoin: Newly minted tokens always start at zero and for every transaction action afterwords (transfer, burn, etc) this value is increment by 1.
 }
 
 // TokenRepository interface defines the methods for interacting with the token repository.
@@ -22,7 +23,7 @@ type TokenRepository interface {
 	Upsert(ctx context.Context, tok *Token) error
 
 	// GetByAddress retrieves an token by its ID.
-	GetByID(ctx context.Context, id uint64) (*Token, error)
+	GetByID(ctx context.Context, id *big.Int) (*Token, error)
 
 	// ListAll retrieves all tokens in the repository.
 	ListAll(ctx context.Context) ([]*Token, error)
@@ -32,11 +33,37 @@ type TokenRepository interface {
 	ListByOwner(ctx context.Context, owner *common.Address) ([]*Token, error)
 
 	// DeleteByID deletes an token by its ID.
-	DeleteByID(ctx context.Context, id uint64) error
+	DeleteByID(ctx context.Context, id *big.Int) error
 
 	// HashState returns a hash based on the contents of the tokens and
 	// their metadata. This is added to each block and checked by peers.
 	HashState(ctx context.Context) (string, error)
+}
+
+func (tok *Token) GetID() *big.Int {
+	return new(big.Int).SetBytes(tok.ID)
+}
+
+func (tok *Token) IsLatestTokenIDZero() bool {
+	// Special thanks to "Is there another way of testing if a big.Int is 0?" via https://stackoverflow.com/a/64257532
+	return len(tok.GetID().Bits()) == 0
+}
+
+func (tok *Token) SeLatestTokenID(n *big.Int) {
+	tok.ID = n.Bytes()
+}
+
+func (tok *Token) GetNonce() *big.Int {
+	return new(big.Int).SetBytes(tok.Nonce)
+}
+
+func (tok *Token) IsNonceZero() bool {
+	// Special thanks to "Is there another way of testing if a big.Int is 0?" via https://stackoverflow.com/a/64257532
+	return len(tok.GetNonce().Bits()) == 0
+}
+
+func (tok *Token) SetNonce(n *big.Int) {
+	tok.Nonce = n.Bytes()
 }
 
 // Serialize serializes the token into a byte slice.
@@ -70,10 +97,10 @@ func NewTokenFromDeserialize(data []byte) (*Token, error) {
 	return token, nil
 }
 
-func ToTokenIDsArray(toks []*Token) []uint64 {
-	tokIDs := make([]uint64, len(toks))
+func ToTokenIDsArray(toks []*Token) []*big.Int {
+	tokIDs := make([]*big.Int, len(toks))
 	for _, tok := range toks {
-		tokIDs = append(tokIDs, tok.ID)
+		tokIDs = append(tokIDs, tok.GetID())
 	}
 	return tokIDs
 }

@@ -63,5 +63,5 @@ func (tx BlockTransaction) Equals(otherTx BlockTransaction) bool {
 	txSig := signature.ToSignatureBytes(txV, txR, txS)
 	otherTxSig := signature.ToSignatureBytes(otherTxV, otherTxR, otherTxS)
 
-	return tx.Nonce == otherTx.Nonce && bytes.Equal(txSig, otherTxSig)
+	return tx.GetNonce().Cmp(otherTx.GetNonce()) == 0 && bytes.Equal(txSig, otherTxSig)
 }

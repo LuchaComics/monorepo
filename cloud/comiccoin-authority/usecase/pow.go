@@ -19,7 +19,7 @@ func NewProofOfWorkUseCase(config *config.Configuration, logger *slog.Logger) *P
 	return &ProofOfWorkUseCase{config, logger}
 }
 
-func (uc *ProofOfWorkUseCase) Execute(ctx context.Context, b *domain.Block, difficulty uint16) (uint64, error) {
+func (uc *ProofOfWorkUseCase) Execute(ctx context.Context, b *domain.Block, difficulty uint16) (*big.Int, error) {
 	//
 	// STEP 1: Validation.
 	//
@@ -35,7 +35,7 @@ func (uc *ProofOfWorkUseCase) Execute(ctx context.Context, b *domain.Block, diff
 	if len(e) != 0 {
 		uc.logger.Warn("Failed executing proof of work",
 			slog.Any("error", e))
-		return 0, httperror.NewForBadRequest(&e)
+		return big.NewInt(0), httperror.NewForBadRequest(&e)
 	}
 
 	//
@@ -45,25 +45,26 @@ func (uc *ProofOfWorkUseCase) Execute(ctx context.Context, b *domain.Block, diff
 	// Choose zero starting point for the nonce. After this, the nonce
 	// will be incremented by 1 until a solution is found by us or another node.
 	nBig := big.NewInt(0)
-	b.Header.Nonce = nBig.Uint64()
+	b.Header.Nonce = nBig.Bytes()
 
 	for {
 		// Did we timeout trying to solve the problem.
 		if ctx.Err() != nil {
-			return 0, ctx.Err()
+			return big.NewInt(0), ctx.Err()
 		}
 
 		// Hash the block and check if we have solved the puzzle.
 		hash := b.Hash()
 		if !isHashSolved(b.Header.Difficulty, hash) {
-			b.Header.Nonce++
+			nBig.Add(nBig, big.NewInt(1))
+			b.Header.SetNonce(nBig)
 			continue
 		} else {
 			break
 		}
 	}
 
-	return b.Header.Nonce, nil
+	return b.Header.GetNonce(), nil
 }
 
 // isHashSolved checks the hash to make sure it complies with

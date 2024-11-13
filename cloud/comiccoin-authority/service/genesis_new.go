@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"math"
+	"math/big"
 	"time"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -141,7 +142,7 @@ func (s *CreateGenesisBlockDataService) Execute(sessCtx mongo.SessionContext) (*
 
 	coinTx := &domain.Transaction{
 		ChainID: s.config.Blockchain.ChainID,
-		Nonce:   0, // Will be calculated later.
+		Nonce:   big.NewInt(0).Bytes(), // Will be calculated later.
 		From:    account.Address,
 		To:      account.Address,
 		Value:   initialSupply,
@@ -162,16 +163,16 @@ func (s *CreateGenesisBlockDataService) Execute(sessCtx mongo.SessionContext) (*
 
 	tokenTx := &domain.Transaction{
 		ChainID:          s.config.Blockchain.ChainID,
-		Nonce:            0, // Will be calculated later.
+		Nonce:            big.NewInt(0).Bytes(), // Will be calculated later.
 		From:             account.Address,
 		To:               account.Address,
 		Value:            0, //Note: Tokens don't have coin value.
 		Tip:              0,
 		Data:             make([]byte, 0),
 		Type:             domain.TransactionTypeToken,
-		TokenID:          0, // The very first token in our entire blockchain starts at the value of zero.
+		TokenID:          big.NewInt(0).Bytes(), // The very first token in our entire blockchain starts at the value of zero.
 		TokenMetadataURI: "https://cpscapsule.com/comiccoin/tokens/0/metadata.json",
-		TokenNonce:       0, // Newly minted tokens always have their nonce start at value of zero.
+		TokenNonce:       big.NewInt(0).Bytes(), // Newly minted tokens always have their nonce start at value of zero.
 	}
 	signedTokenTx, err := tokenTx.Sign(coinbaseKey.PrivateKey)
 	if err != nil {
@@ -194,7 +195,7 @@ func (s *CreateGenesisBlockDataService) Execute(sessCtx mongo.SessionContext) (*
 		slog.Any("tx_sig_v", signedTokenTx.V),
 		slog.Any("tx_sig_r", signedTokenTx.R),
 		slog.Any("tx_sig_s", signedTokenTx.S),
-		slog.Uint64("tx_token_id", signedTokenTx.TokenID))
+		slog.Any("tx_token_id", signedTokenTx.GetTokenID()))
 
 	// Defensive code: Run this code to ensure this transaction is
 	// properly structured for our blockchain.
@@ -209,7 +210,7 @@ func (s *CreateGenesisBlockDataService) Execute(sessCtx mongo.SessionContext) (*
 	// Save our token to our database.
 	//
 
-	if err := s.upsertTokenIfPreviousTokenNonceGTEUseCase.Execute(sessCtx, tokenTx.TokenID, tokenTx.To, tokenTx.TokenMetadataURI, tokenTx.TokenNonce); err != nil {
+	if err := s.upsertTokenIfPreviousTokenNonceGTEUseCase.Execute(sessCtx, tokenTx.GetTokenID(), tokenTx.To, tokenTx.TokenMetadataURI, tokenTx.GetTokenNonce()); err != nil {
 		return nil, err
 	}
 
@@ -266,16 +267,16 @@ func (s *CreateGenesisBlockDataService) Execute(sessCtx mongo.SessionContext) (*
 	block := domain.Block{
 		Header: &domain.BlockHeader{
 			ChainID:       uint16(s.config.Blockchain.ChainID),
-			Number:        0, // Genesis always starts at zero
+			Number:        big.NewInt(0).Bytes(), // Genesis always starts at zero
 			PrevBlockHash: prevBlockHash,
 			TimeStamp:     uint64(time.Now().UTC().UnixMilli()),
 			Beneficiary:   *account.Address,
 			Difficulty:    s.config.Blockchain.Difficulty,
 			MiningReward:  s.config.Blockchain.MiningReward,
 			StateRoot:     stateRoot,
-			TransRoot:     tree.RootHex(), //
-			Nonce:         0,              // Will be identified by the POW algorithm.
-			LatestTokenID: 0,              // ComicCoin: Token ID values start at zero.
+			TransRoot:     tree.RootHex(),        //
+			Nonce:         big.NewInt(0).Bytes(), // Will be identified by the POW algorithm.
+			LatestTokenID: big.NewInt(0).Bytes(), // ComicCoin: Token ID values start at zero.
 			TokensRoot:    tokensRoot,
 		},
 		MerkleTree: tree,
@@ -293,10 +294,10 @@ func (s *CreateGenesisBlockDataService) Execute(sessCtx mongo.SessionContext) (*
 		return nil, fmt.Errorf("Failed to mine block: %v", powErr)
 	}
 
-	block.Header.Nonce = nonce
+	block.Header.Nonce = nonce.Bytes()
 
 	s.logger.Debug("genesis mining completed",
-		slog.Uint64("nonce", block.Header.Nonce))
+		slog.Any("nonce", block.Header.GetNonce()))
 
 	// STEP 7:
 	// Create our single proof-of-authority validator via coinbase account.

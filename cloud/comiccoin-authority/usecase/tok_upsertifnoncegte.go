@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"log/slog"
+	"math/big"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config"
@@ -32,10 +33,10 @@ func NewUpsertTokenIfPreviousTokenNonceGTEUseCase(config *config.Configuration, 
 
 func (uc *UpsertTokenIfPreviousTokenNonceGTEUseCase) Execute(
 	ctx context.Context,
-	id uint64,
+	id *big.Int,
 	owner *common.Address,
 	metadataURI string,
-	nonce uint64,
+	nonce *big.Int,
 ) error {
 	//
 	// STEP 1:
@@ -72,10 +73,10 @@ func (uc *UpsertTokenIfPreviousTokenNonceGTEUseCase) Execute(
 	//
 	if previousToken == nil {
 		token := &domain.Token{
-			ID:          id,
+			ID:          id.Bytes(),
 			Owner:       owner,
 			MetadataURI: metadataURI,
-			Nonce:       nonce,
+			Nonce:       nonce.Bytes(),
 		}
 		return uc.repo.Upsert(ctx, token)
 	}
@@ -90,7 +91,7 @@ func (uc *UpsertTokenIfPreviousTokenNonceGTEUseCase) Execute(
 	// Compare `nonce` values and if nonce is not GTE then exit this function.
 	//
 
-	isGTE := nonce >= previousToken.Nonce
+	isGTE := nonce.Cmp(previousToken.GetNonce()) >= 0
 
 	if !isGTE {
 		return nil
@@ -102,10 +103,10 @@ func (uc *UpsertTokenIfPreviousTokenNonceGTEUseCase) Execute(
 	//
 
 	token := &domain.Token{
-		ID:          id,
+		ID:          id.Bytes(),
 		Owner:       owner,
 		MetadataURI: metadataURI,
-		Nonce:       nonce,
+		Nonce:       nonce.Bytes(),
 	}
 	return uc.repo.Upsert(ctx, token)
 }

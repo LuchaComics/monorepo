@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"log/slog"
+	"math/big"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
@@ -18,6 +19,6 @@ func NewGetTokenUseCase(config *config.Configuration, logger *slog.Logger, repo 
 	return &GetTokenUseCase{config, logger, repo}
 }
 
-func (uc *GetTokenUseCase) Execute(ctx context.Context, tokenID uint64) (*domain.Token, error) {
+func (uc *GetTokenUseCase) Execute(ctx context.Context, tokenID *big.Int) (*domain.Token, error) {
 	return uc.repo.GetByID(ctx, tokenID)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"math/big"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -133,7 +134,7 @@ func (s *CoinTransferService) Execute(
 
 	tx := &domain.Transaction{
 		ChainID: s.config.Blockchain.ChainID,
-		Nonce:   uint64(time.Now().Unix()),
+		Nonce:   big.NewInt(time.Now().Unix()).Bytes(),
 		From:    wallet.Address,
 		To:      to,
 		Value:   value,
@@ -169,7 +170,7 @@ func (s *CoinTransferService) Execute(
 		slog.Any("tx_sig_v", stx.V),
 		slog.Any("tx_sig_r", stx.R),
 		slog.Any("tx_sig_s", stx.S),
-		slog.Uint64("tx_nonce", stx.Nonce))
+		slog.Any("tx_nonce", stx.GetNonce()))
 
 	mempoolTx := &domain.MempoolTransaction{
 		ID:                primitive.NewObjectID(),
@@ -202,7 +203,7 @@ func (s *CoinTransferService) Execute(
 	}
 
 	s.logger.Info("Pending signed transaction for coin transfer submitted to the authority",
-		slog.Uint64("tx_nonce", stx.Nonce))
+		slog.Any("tx_nonce", stx.GetNonce()))
 
 	return nil
 }

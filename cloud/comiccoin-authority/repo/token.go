@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"log/slog"
+	"math/big"
 	"sort"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -60,9 +61,10 @@ func (r *TokenRepo) Upsert(ctx context.Context, token *domain.Token) error {
 	return err
 }
 
-func (r *TokenRepo) GetByID(ctx context.Context, id uint64) (*domain.Token, error) {
+func (r *TokenRepo) GetByID(ctx context.Context, id *big.Int) (*domain.Token, error) {
 	var token domain.Token
-	err := r.collection.FindOne(ctx, bson.M{"id": id}).Decode(&token)
+	idBytes := id.Bytes()
+	err := r.collection.FindOne(ctx, bson.M{"id": idBytes}).Decode(&token)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, nil
@@ -114,8 +116,9 @@ func (r *TokenRepo) ListByOwner(ctx context.Context, owner *common.Address) ([]*
 	return tokens, nil
 }
 
-func (r *TokenRepo) DeleteByID(ctx context.Context, id uint64) error {
-	_, err := r.collection.DeleteOne(ctx, bson.M{"id": id})
+func (r *TokenRepo) DeleteByID(ctx context.Context, id *big.Int) error {
+	idBytes := id.Bytes()
+	_, err := r.collection.DeleteOne(ctx, bson.M{"id": idBytes})
 	return err
 }
 
@@ -165,7 +168,7 @@ func (ba byToken) Len() int {
 // Less helps to sort the list by token id in ascending order to keep the
 // tokens in the right order of processing.
 func (ba byToken) Less(i, j int) bool {
-	return ba[i].ID < ba[j].ID
+	return ba[i].GetID().Cmp(ba[j].GetID()) < 0
 }
 
 // Swap moves tokens in the order of the token id value.
