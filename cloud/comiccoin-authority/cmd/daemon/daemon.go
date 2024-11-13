@@ -64,9 +64,7 @@ func doRunDaemon() {
 	gbdRepo := repo.NewGenesisBlockDataRepo(cfg, logger, dbClient)
 	bcStateRepo := repo.NewBlockchainStateRepo(cfg, logger, dbClient)
 	mempoolTxRepo := repo.NewMempoolTransactionRepo(cfg, logger, dbClient)
-
-	_ = keystore
-	_ = accountRepo
+	tokenRepo := repo.NewTokenRepo(cfg, logger, dbClient)
 
 	// Genesis Block Data
 	getGenesisBlockDataUseCase := usecase.NewGetGenesisBlockDataUseCase(
@@ -113,6 +111,11 @@ func doRunDaemon() {
 		logger,
 		bdRepo,
 	)
+	upsertBlockDataUseCase := usecase.NewUpsertBlockDataUseCase(
+		cfg,
+		logger,
+		bdRepo,
+	)
 
 	// Wallet
 	walletDecryptKeyUseCase := usecase.NewWalletDecryptKeyUseCase(
@@ -127,12 +130,47 @@ func doRunDaemon() {
 		walletRepo,
 	)
 
+	// Account
+	getAccountUseCase := usecase.NewGetAccountUseCase(
+		cfg,
+		logger,
+		accountRepo,
+	)
+	getAccountsHashStateUseCase := usecase.NewGetAccountsHashStateUseCase(
+		cfg,
+		logger,
+		accountRepo,
+	)
+	upsertAccountUseCase := usecase.NewUpsertAccountUseCase(
+		cfg,
+		logger,
+		accountRepo,
+	)
+
+	// Token
+	getTokenUseCase := usecase.NewGetTokenUseCase(
+		cfg,
+		logger,
+		tokenRepo,
+	)
+	getTokensHashStateUseCase := usecase.NewGetTokensHashStateUseCase(
+		cfg,
+		logger,
+		tokenRepo,
+	)
+	upsertTokenIfPreviousTokenNonceGTEUseCase := usecase.NewUpsertTokenIfPreviousTokenNonceGTEUseCase(
+		cfg,
+		logger,
+		tokenRepo,
+	)
+
 	// Mempool Transaction
 	mempoolTransactionListByChainIDUseCase := usecase.NewMempoolTransactionListByChainIDUseCase(
 		cfg,
 		logger,
 		mempoolTxRepo,
 	)
+	_ = mempoolTransactionListByChainIDUseCase
 	mempoolTransactionDeleteByChainIDUseCase := usecase.NewMempoolTransactionDeleteByChainIDUseCase(
 		cfg,
 		logger,
@@ -147,6 +185,12 @@ func doRunDaemon() {
 		// When we are done, we will need to terminate our access to this resource.
 		mempoolTransactionInsertionDetectorUseCase.Terminate()
 	}()
+
+	// Proof of Work
+	proofOfWorkUseCase := usecase.NewProofOfWorkUseCase(
+		cfg,
+		logger,
+	)
 
 	// --- Service
 
@@ -208,13 +252,22 @@ func doRunDaemon() {
 		cfg,
 		logger,
 		kmutex,
+		dbClient, // We do this so we can use MongoDB's "transactions"
 		getProofOfAuthorityPrivateKeyService,
 		mempoolTransactionInsertionDetectorUseCase,
-		mempoolTransactionListByChainIDUseCase,
 		mempoolTransactionDeleteByChainIDUseCase,
 		getBlockchainStateUseCase,
 		upsertBlockchainStateUseCase,
 		getGenesisBlockDataUseCase,
+		getBlockDataUseCase,
+		getAccountUseCase,
+		getAccountsHashStateUseCase,
+		upsertAccountUseCase,
+		getTokenUseCase,
+		getTokensHashStateUseCase,
+		upsertTokenIfPreviousTokenNonceGTEUseCase,
+		proofOfWorkUseCase,
+		upsertBlockDataUseCase,
 	)
 
 	//
