@@ -108,24 +108,24 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 			slog.Any("token_id", mempoolTx.GetTokenID()),
 			slog.Any("token_metadata_uri", mempoolTx.TokenMetadataURI),
 			slog.Any("token_nonce", mempoolTx.GetTokenNonce()),
-			slog.Any("tx_sig_v", mempoolTx.V),
-			slog.Any("tx_sig_r", mempoolTx.R),
-			slog.Any("tx_sig_s", mempoolTx.S))
+			slog.Any("tx_sig_v_bytes", mempoolTx.VBytes),
+			slog.Any("tx_sig_r_bytes", mempoolTx.RBytes),
+			slog.Any("tx_sig_s_bytes", mempoolTx.SBytes))
 
-		if mempoolTx.V == nil {
-			err := fmt.Errorf("Missing: %v", "V")
+		if mempoolTx.VBytes == nil {
+			err := fmt.Errorf("Missing: %v", "v_bytes")
 			s.logger.Error("Failed validating memory pool transaction",
 				slog.Any("error", err))
 			return nil, err
 		}
-		if mempoolTx.R == nil {
-			err := fmt.Errorf("Missing: %v", "R")
+		if mempoolTx.RBytes == nil {
+			err := fmt.Errorf("Missing: %v", "r_bytes")
 			s.logger.Error("Failed validating memory pool transaction",
 				slog.Any("error", err))
 			return nil, err
 		}
-		if mempoolTx.S == nil {
-			err := fmt.Errorf("Missing: %v", "S")
+		if mempoolTx.SBytes == nil {
+			err := fmt.Errorf("Missing: %v", "s_bytes")
 			s.logger.Error("Failed validating memory pool transaction",
 				slog.Any("error", err))
 			return nil, err
@@ -430,9 +430,9 @@ func (s *ProofOfAuthorityConsensusMechanismService) verifyMempoolTransaction(ses
 		slog.Any("token_id", mempoolTx.GetTokenID()),
 		slog.Any("token_metadata_uri", mempoolTx.TokenMetadataURI),
 		slog.Any("token_nonce", mempoolTx.GetTokenNonce()),
-		slog.Any("tx_sig_v", mempoolTx.V),
-		slog.Any("tx_sig_r", mempoolTx.R),
-		slog.Any("tx_sig_s", mempoolTx.S))
+		slog.Any("tx_sig_v_bytes", mempoolTx.VBytes),
+		slog.Any("tx_sig_r_bytes", mempoolTx.RBytes),
+		slog.Any("tx_sig_s_bytes", mempoolTx.SBytes))
 
 	pk, err := mempoolTx.FromPublicKey()
 	if err != nil {
@@ -466,9 +466,9 @@ func (s *ProofOfAuthorityConsensusMechanismService) verifyMempoolTransaction(ses
 			slog.Any("token_id", mempoolTx.GetTokenID()),
 			slog.Any("token_metadata_uri", mempoolTx.TokenMetadataURI),
 			slog.Any("token_nonce", mempoolTx.GetTokenNonce()),
-			slog.Any("tx_sig_v", mempoolTx.V),
-			slog.Any("tx_sig_r", mempoolTx.R),
-			slog.Any("tx_sig_s", mempoolTx.S),
+			slog.Any("tx_sig_v_bytes", mempoolTx.VBytes),
+			slog.Any("tx_sig_r_bytes", mempoolTx.RBytes),
+			slog.Any("tx_sig_s_bytes", mempoolTx.SBytes),
 			slog.Any("error", err))
 		return err
 	}

@@ -192,9 +192,9 @@ func (s *CreateGenesisBlockDataService) Execute(sessCtx mongo.SessionContext) (*
 		slog.Any("from", signedTokenTx.From),
 		slog.Any("from_via_sig", nftFromAddr),
 		slog.Any("to", signedTokenTx.To),
-		slog.Any("tx_sig_v", signedTokenTx.V),
-		slog.Any("tx_sig_r", signedTokenTx.R),
-		slog.Any("tx_sig_s", signedTokenTx.S),
+		slog.Any("tx_sig_v_bytes", signedTokenTx.VBytes),
+		slog.Any("tx_sig_r_bytes", signedTokenTx.RBytes),
+		slog.Any("tx_sig_s_bytes", signedTokenTx.SBytes),
 		slog.Any("tx_token_id", signedTokenTx.GetTokenID()))
 
 	// Defensive code: Run this code to ensure this transaction is

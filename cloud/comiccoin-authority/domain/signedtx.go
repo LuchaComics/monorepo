@@ -23,21 +23,21 @@ type SignedTransaction struct {
 	// natively serialized by BSON.
 	// To resolve this, we convert `*big.Int` fields to `[]byte` in the model.
 
-	V []byte `bson:"v,omitempty" json:"v"`  // Ethereum: Recovery identifier, either 29 or 30 with comicCoinID.
-	R []byte `bson:"r,omitempty"  json:"r"` // Ethereum: First coordinate of the ECDSA signature.
-	S []byte `bson:"s,omitempty"  json:"s"` // Ethereum: Second coordinate of the ECDSA signature.
+	VBytes []byte `bson:"v_bytes,omitempty" json:"v_bytes"`  // Ethereum: Recovery identifier, either 29 or 30 with comicCoinID.
+	RBytes []byte `bson:"r_bytes,omitempty"  json:"r_bytes"` // Ethereum: First coordinate of the ECDSA signature.
+	SBytes []byte `bson:"s_bytes,omitempty"  json:"s_bytes"` // Ethereum: Second coordinate of the ECDSA signature.
 }
 
 // SetBigIntFields allows setting *big.Int values to []byte fields for MongoDB storage.
 func (tx *SignedTransaction) SetBigIntFields(v, r, s *big.Int) {
-	tx.V = v.Bytes()
-	tx.R = r.Bytes()
-	tx.S = s.Bytes()
+	tx.VBytes = v.Bytes()
+	tx.RBytes = r.Bytes()
+	tx.SBytes = s.Bytes()
 }
 
 // GetBigIntFields retrieves *big.Int values from []byte fields after loading from MongoDB.
 func (tx *SignedTransaction) GetBigIntFields() (*big.Int, *big.Int, *big.Int) {
-	return new(big.Int).SetBytes(tx.V), new(big.Int).SetBytes(tx.R), new(big.Int).SetBytes(tx.S)
+	return new(big.Int).SetBytes(tx.VBytes), new(big.Int).SetBytes(tx.RBytes), new(big.Int).SetBytes(tx.SBytes)
 }
 
 // Validate checks if the transaction is valid. It verifies the signature,

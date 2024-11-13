@@ -167,9 +167,9 @@ func (s *CoinTransferService) Execute(
 		slog.Any("token_id", stx.GetTokenID()),
 		slog.Any("token_metadata_uri", stx.TokenMetadataURI),
 		slog.Any("token_nonce", stx.GetTokenNonce()),
-		slog.Any("tx_sig_v", stx.V),
-		slog.Any("tx_sig_r", stx.R),
-		slog.Any("tx_sig_s", stx.S),
+		slog.Any("tx_sig_v_bytes", stx.VBytes),
+		slog.Any("tx_sig_r_bytes", stx.RBytes),
+		slog.Any("tx_sig_s_bytes", stx.SBytes),
 		slog.Any("tx_nonce", stx.GetNonce()))
 
 	mempoolTx := &domain.MempoolTransaction{
@@ -186,9 +186,9 @@ func (s *CoinTransferService) Execute(
 
 	s.logger.Debug("Mempool transaction ready for submission",
 		slog.Any("Transaction", stx.Transaction),
-		slog.Any("tx_sig_v", stx.V),
-		slog.Any("tx_sig_r", stx.R),
-		slog.Any("tx_sig_s", stx.S))
+		slog.Any("tx_sig_v_bytes", stx.VBytes),
+		slog.Any("tx_sig_r_bytes", stx.RBytes),
+		slog.Any("tx_sig_s_bytes", stx.SBytes))
 
 	//
 	// STEP 3

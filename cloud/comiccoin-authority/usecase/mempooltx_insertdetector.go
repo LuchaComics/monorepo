@@ -41,9 +41,9 @@ func (uc *MempoolTransactionInsertionDetectorUseCase) Execute(ctx context.Contex
 			uc.logger.Warn("Validation failed for get",
 				slog.Any("error", err),
 				slog.Any("Transaction", mempoolTx.Transaction),
-				slog.Any("tx_sig_v", mempoolTx.V),
-				slog.Any("tx_sig_r", mempoolTx.R),
-				slog.Any("tx_sig_s", mempoolTx.S))
+				slog.Any("tx_sig_v", mempoolTx.VBytes),
+				slog.Any("tx_sig_r", mempoolTx.RBytes),
+				slog.Any("tx_sig_s", mempoolTx.SBytes))
 			return nil, err
 		}
 

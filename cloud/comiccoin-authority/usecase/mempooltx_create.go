@@ -64,14 +64,14 @@ func (uc *MempoolTransactionCreateUseCase) Execute(ctx context.Context, mempoolT
 	}
 	// Tip - skip validating.
 	// Data - skip validating.
-	if mempoolTx.V == nil {
-		e["v"] = "missing value"
+	if mempoolTx.VBytes == nil {
+		e["v_bytes"] = "missing value"
 	}
-	if mempoolTx.R == nil {
-		e["r"] = "missing value"
+	if mempoolTx.RBytes == nil {
+		e["r_bytes"] = "missing value"
 	}
-	if mempoolTx.S == nil {
-		e["s"] = "missing value"
+	if mempoolTx.SBytes == nil {
+		e["s_bytes"] = "missing value"
 	}
 	if len(e) != 0 {
 		uc.logger.Warn("Validation failed for received",
