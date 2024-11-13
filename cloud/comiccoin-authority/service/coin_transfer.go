@@ -172,11 +172,8 @@ func (s *CoinTransferService) Execute(
 		slog.Uint64("tx_nonce", stx.Nonce))
 
 	mempoolTx := &domain.MempoolTransaction{
-		ID:          primitive.NewObjectID(),
-		Transaction: stx.Transaction,
-		V:           stx.V,
-		R:           stx.R,
-		S:           stx.S,
+		ID:                primitive.NewObjectID(),
+		SignedTransaction: stx,
 	}
 
 	// Defensive Coding.

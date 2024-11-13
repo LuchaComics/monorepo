@@ -7,16 +7,37 @@ import (
 	"math/big"
 
 	"github.com/fxamacker/cbor/v2"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 // SignedTransaction is a signed version of the transaction. This is how
 // clients like a wallet provide transactions for inclusion into the blockchain.
 type SignedTransaction struct {
 	Transaction
-	V *big.Int `bson:"v" json:"v"` // Ethereum: Recovery identifier, either 29 or 30 with comicCoinID.
-	R *big.Int `bson:"r" json:"r"` // Ethereum: First coordinate of the ECDSA signature.
-	S *big.Int `bson:"s" json:"s"` // Ethereum: Second coordinate of the ECDSA signature.
+
+	// Known Issue:
+	// MongoDB does not natively support storing `*big.Int` types directly,
+	// which may cause issues if the `V`, `R`, and `S` fields of the
+	// `SignedTransaction` are of type `*big.Int`.
+	// These fields need to be converted to an alternate type (e.g., `string`
+	// or `[]byte`) before saving to MongoDB, as `big.Int` values are not
+	// natively serialized by BSON.
+	// To resolve this, we convert `*big.Int` fields to `[]byte` in the model.
+
+	V []byte `bson:"v,omitempty" json:"v"`  // Ethereum: Recovery identifier, either 29 or 30 with comicCoinID.
+	R []byte `bson:"r,omitempty"  json:"r"` // Ethereum: First coordinate of the ECDSA signature.
+	S []byte `bson:"s,omitempty"  json:"s"` // Ethereum: Second coordinate of the ECDSA signature.
+}
+
+// SetBigIntFields allows setting *big.Int values to []byte fields for MongoDB storage.
+func (tx *SignedTransaction) SetBigIntFields(v, r, s *big.Int) {
+	tx.V = v.Bytes()
+	tx.R = r.Bytes()
+	tx.S = s.Bytes()
+}
+
+// GetBigIntFields retrieves *big.Int values from []byte fields after loading from MongoDB.
+func (tx *SignedTransaction) GetBigIntFields() (*big.Int, *big.Int, *big.Int) {
+	return new(big.Int).SetBytes(tx.V), new(big.Int).SetBytes(tx.R), new(big.Int).SetBytes(tx.S)
 }
 
 // Validate checks if the transaction is valid. It verifies the signature,
@@ -36,8 +57,11 @@ func (stx SignedTransaction) Validate(chainID uint16, isPoA bool) error {
 		}
 	}
 
+	// Note: MongoDB doesn't support `*big.Int` so we are forced to do this.
+	v, r, s := stx.GetBigIntFields()
+
 	// Validate the signature parts (R, S, and V).
-	if err := VerifySignature(stx.V, stx.R, stx.S); err != nil {
+	if err := VerifySignature(v, r, s); err != nil {
 		return err
 	}
 
@@ -77,65 +101,4 @@ func NewSignedTransactionFromDeserialize(data []byte) (*SignedTransaction, error
 		return nil, fmt.Errorf("failed to deserialize signed transaction: %v", err)
 	}
 	return stx, nil
-}
-
-// MarshalBSON overrides the default serializer to handle a bug with mongodb.
-func (stx *SignedTransaction) MarshalBSON() ([]byte, error) {
-	// Developers note:
-	// The reason *big.Int fields (like V, R, and S in SignedTransaction) aren't
-	// being saved in MongoDB is because MongoDB's bson package does not natively
-	// support encoding or decoding *big.Int values. By default, MongoDB doesn't
-	// know how to handle big.Int types, so they end up being ignored.
-	//
-	// To fix this, you need to manually convert *big.Int values to a format
-	// MongoDB can store (such as a string or integer) and then convert them back
-	// on retrieval. Here’s one way to achieve this by adding custom serialization
-	// for these fields
-
-	type Alias SignedTransaction // Alias to avoid recursion
-	return bson.Marshal(&struct {
-		V string `bson:"v"`
-		R string `bson:"r"`
-		S string `bson:"s"`
-		*Alias
-	}{
-		V:     stx.V.String(),
-		R:     stx.R.String(),
-		S:     stx.S.String(),
-		Alias: (*Alias)(stx),
-	})
-}
-
-// UnmarshalBSON overrides the default deserializer to handle a bug with mongodb.
-func (stx *SignedTransaction) UnmarshalBSON(data []byte) error {
-	// Developers note:
-	// The reason *big.Int fields (like V, R, and S in SignedTransaction) aren't
-	// being saved in MongoDB is because MongoDB's bson package does not natively
-	// support encoding or decoding *big.Int values. By default, MongoDB doesn't
-	// know how to handle big.Int types, so they end up being ignored.
-	//
-	// To fix this, you need to manually convert *big.Int values to a format
-	// MongoDB can store (such as a string or integer) and then convert them back
-	// on retrieval. Here’s one way to achieve this by adding custom serialization
-	// for these fields
-
-	type Alias SignedTransaction // Alias to avoid recursion
-	aux := &struct {
-		V string `bson:"v"`
-		R string `bson:"r"`
-		S string `bson:"s"`
-		*Alias
-	}{
-		Alias: (*Alias)(stx),
-	}
-
-	if err := bson.Unmarshal(data, aux); err != nil {
-		return err
-	}
-
-	stx.V, _ = new(big.Int).SetString(aux.V, 10)
-	stx.R, _ = new(big.Int).SetString(aux.R, 10)
-	stx.S, _ = new(big.Int).SetString(aux.S, 10)
-
-	return nil
 }

@@ -56,8 +56,12 @@ func (tx BlockTransaction) Hash() ([]byte, error) {
 // check between two block transactions. If the nonce and signatures are the
 // same, the two blocks are the same.
 func (tx BlockTransaction) Equals(otherTx BlockTransaction) bool {
-	txSig := signature.ToSignatureBytes(tx.V, tx.R, tx.S)
-	otherTxSig := signature.ToSignatureBytes(otherTx.V, otherTx.R, otherTx.S)
+	// Note: MongoDB doesn't support `*big.Int` so we are forced to do this.
+	txV, txR, txS := tx.SignedTransaction.GetBigIntFields()
+	otherTxV, otherTxR, otherTxS := otherTx.SignedTransaction.GetBigIntFields()
+
+	txSig := signature.ToSignatureBytes(txV, txR, txS)
+	otherTxSig := signature.ToSignatureBytes(otherTxV, otherTxR, otherTxS)
 
 	return tx.Nonce == otherTx.Nonce && bytes.Equal(txSig, otherTxSig)
 }

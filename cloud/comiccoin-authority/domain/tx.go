@@ -45,10 +45,10 @@ func (tx Transaction) Sign(privateKey *ecdsa.PrivateKey) (SignedTransaction, err
 	// Create the signed transaction, including the original transaction and the signature parts.
 	signedTx := SignedTransaction{
 		Transaction: tx,
-		V:           v,
-		R:           r,
-		S:           s,
 	}
+
+	// Note: MongoDB doesn't support `*big.Int` so we are forced to do this.
+	signedTx.SetBigIntFields(v, r, s)
 
 	return signedTx, nil
 }
@@ -61,8 +61,11 @@ func (tx Transaction) HashWithComicCoinStamp() ([]byte, error) {
 
 // FromAddress extracts the account address from the signed transaction by
 // recovering the public key from the signature.
-func (tx SignedTransaction) FromAddress() (string, error) {
-	return signature.FromAddress(tx.Transaction, tx.V, tx.R, tx.S)
+func (stx SignedTransaction) FromAddress() (string, error) {
+	// Note: MongoDB doesn't support `*big.Int` so we are forced to do this.
+	v, r, s := stx.GetBigIntFields()
+
+	return signature.FromAddress(stx.Transaction, v, r, s)
 }
 
 // VerifySignature checks if the signature is valid by ensuring the V value

@@ -231,7 +231,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 
 		// Create our block.
 		blockTx := domain.BlockTransaction{
-			SignedTransaction: *mempoolTx.ToSignedTransaction(),
+			SignedTransaction: mempoolTx.SignedTransaction,
 			TimeStamp:         uint64(time.Now().UTC().UnixMilli()),
 			GasPrice:          gasPrice,
 			GasUnits:          unitsOfGas,
