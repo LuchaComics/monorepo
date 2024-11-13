@@ -21,6 +21,7 @@ func TokensCmd() *cobra.Command {
 	cmd.AddCommand(MintTokenCmd())
 	cmd.AddCommand(GetTokenCmd())
 	cmd.AddCommand(TransferTokenCmd())
+	cmd.AddCommand(BurnTokenCmd())
 
 	return cmd
 }

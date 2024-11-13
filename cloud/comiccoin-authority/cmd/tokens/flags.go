@@ -6,4 +6,7 @@ var (
 
 	flagTransferRecipientAddress string
 	flagTransferTokenID          string
+
+	flagBurnRecipientAddress string
+	flagBurnTokenID          string
 )
