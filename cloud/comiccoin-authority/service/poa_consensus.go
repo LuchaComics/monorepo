@@ -556,9 +556,9 @@ func (s *ProofOfAuthorityConsensusMechanismService) processTokenForMempoolTransa
 				return err
 			}
 			acc = &domain.Account{
-				Address: mempoolTx.To,
-				Nonce:   big.NewInt(0).Bytes(), // Always start by zero, increment by 1 after mining successful.
-				Balance: 0,
+				Address:    mempoolTx.To,
+				NonceBytes: big.NewInt(0).Bytes(), // Always start by zero, increment by 1 after mining successful.
+				Balance:    0,
 			}
 			if err := s.upsertAccountUseCase.Execute(sessCtx, acc.Address, acc.Balance, acc.GetNonce()); err != nil {
 				s.logger.Error("Failed upserting account.",
@@ -591,9 +591,9 @@ func (s *ProofOfAuthorityConsensusMechanismService) processTokenForMempoolTransa
 				return err
 			}
 			acc = &domain.Account{
-				Address: mempoolTx.To,
-				Nonce:   big.NewInt(0).Bytes(), // Always start by zero, increment by 1 after mining successful.
-				Balance: 0,
+				Address:    mempoolTx.To,
+				NonceBytes: big.NewInt(0).Bytes(), // Always start by zero, increment by 1 after mining successful.
+				Balance:    0,
 			}
 			if err := s.upsertAccountUseCase.Execute(sessCtx, acc.Address, acc.Balance, acc.GetNonce()); err != nil {
 				s.logger.Error("Failed upserting account.",
@@ -667,7 +667,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) processAccountForMempoolTran
 		// Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
 		accNonce := acc.GetNonce()
 		accNonce.Add(accNonce, big.NewInt(1))
-		acc.Nonce = accNonce.Bytes()
+		acc.NonceBytes = accNonce.Bytes()
 
 		if err := s.upsertAccountUseCase.Execute(sessCtx, acc.Address, acc.Balance, acc.GetNonce()); err != nil {
 			s.logger.Error("Failed upserting account.",
@@ -701,7 +701,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) processAccountForMempoolTran
 				Address: mempoolTx.To,
 
 				// Always start by zero, increment by 1 after mining successful.
-				Nonce: big.NewInt(0).Bytes(),
+				NonceBytes: big.NewInt(0).Bytes(),
 
 				Balance: mempoolTx.Value,
 			}
@@ -711,7 +711,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) processAccountForMempoolTran
 			// Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
 			accNonce := acc.GetNonce()
 			accNonce.Add(accNonce, big.NewInt(1))
-			acc.Nonce = accNonce.Bytes()
+			acc.NonceBytes = accNonce.Bytes()
 		}
 
 		if err := s.upsertAccountUseCase.Execute(sessCtx, acc.Address, acc.Balance, acc.GetNonce()); err != nil {

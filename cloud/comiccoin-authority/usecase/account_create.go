@@ -46,9 +46,9 @@ func (uc *CreateAccountUseCase) Execute(ctx context.Context, address *common.Add
 	//
 
 	account := &domain.Account{
-		Address: address,
-		Nonce:   big.NewInt(0).Bytes(),
-		Balance: 0,
+		Address:    address,
+		NonceBytes: big.NewInt(0).Bytes(),
+		Balance:    0,
 	}
 
 	//

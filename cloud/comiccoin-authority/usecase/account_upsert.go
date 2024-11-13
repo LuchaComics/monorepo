@@ -41,9 +41,9 @@ func (uc *UpsertAccountUseCase) Execute(ctx context.Context, address *common.Add
 	//
 
 	account := &domain.Account{
-		Address: address,
-		Nonce:   nonce.Bytes(),
-		Balance: balance,
+		Address:    address,
+		NonceBytes: nonce.Bytes(),
+		Balance:    balance,
 	}
 
 	//

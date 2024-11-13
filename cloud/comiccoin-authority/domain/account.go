@@ -53,7 +53,7 @@ type Account struct {
 	// It's worth noting that the Nonce field in the BlockHeader struct has a
 	// different purpose. It's used to solve the proof-of-work puzzle required
 	// to mine a new block.
-	Nonce []byte `bson:"nonce" json:"nonce"`
+	NonceBytes []byte `bson:"nonce_bytes" json:"nonce_bytes"`
 
 	// The balance of the account in coins.
 	Balance uint64 `bson:"balance" json:"balance"`
@@ -80,7 +80,7 @@ type AccountRepository interface {
 }
 
 func (acc *Account) GetNonce() *big.Int {
-	return new(big.Int).SetBytes(acc.Nonce)
+	return new(big.Int).SetBytes(acc.NonceBytes)
 }
 
 func (acc *Account) IsNonceZero() bool {
@@ -89,7 +89,7 @@ func (acc *Account) IsNonceZero() bool {
 }
 
 func (acc *Account) SetNonce(n *big.Int) {
-	acc.Nonce = n.Bytes()
+	acc.NonceBytes = n.Bytes()
 }
 
 // Serialize serializes the account into a byte slice.

@@ -51,9 +51,9 @@ func (uc *GetOrCreateAccountUseCase) Execute(ctx context.Context, walletAddress 
 	//
 
 	account := &domain.Account{
-		Address: walletAddress,
-		Nonce:   nonce.Bytes(),
-		Balance: balance,
+		Address:    walletAddress,
+		NonceBytes: nonce.Bytes(),
+		Balance:    balance,
 	}
 
 	return uc.repo.Upsert(ctx, account)
