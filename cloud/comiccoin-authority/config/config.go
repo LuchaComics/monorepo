@@ -19,6 +19,8 @@ type serverConf struct {
 	Port          string
 	IP            string
 	HMACSecret    []byte
+	AuthSecret    []byte
+	APIKey        []byte
 }
 
 // BlockchainConfig represents the configuration for the blockchain.
@@ -61,7 +63,9 @@ func NewProvider() *Configuration {
 	c.App.DataDirectory = getEnv("COMICCOIN_AUTHORITY_APP_DATA_DIRECTORY", true)
 	c.App.Port = getEnv("COMICCOIN_AUTHORITY_PORT", true)
 	c.App.IP = getEnv("COMICCOIN_AUTHORITY_IP", false)
-	c.App.HMACSecret = []byte(getEnv("COMICCOIN_AUTHORITY_HMAC_SECRET", true))
+	c.App.HMACSecret = []byte(getEnv("COMICCOIN_AUTHORITY_APP_HMAC_SECRET", true))
+	c.App.AuthSecret = []byte(getEnv("COMICCOIN_AUTHORITY_APP_AUTH_SECRET", false))
+	c.App.APIKey = []byte(getEnv("COMICCOIN_AUTHORITY_APP_API_KEY", false))
 
 	// Blockchain section.
 	chainID, _ := strconv.ParseUint(getEnv("COMICCOIN_AUTHORITY_BLOCKCHAIN_CHAIN_ID", true), 10, 16)
