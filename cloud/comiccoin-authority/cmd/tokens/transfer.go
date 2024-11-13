@@ -171,18 +171,13 @@ func doRunTransferToken() {
 	)
 
 	// ------ Service ------
-	getProofOfAuthorityPrivateKeyService := service.NewGetProofOfAuthorityPrivateKeyService(
-		cfg,
-		logger,
-		getWalletUseCase,
-		walletDecryptKeyUseCase,
-	)
 	tokenTransferService := service.NewTokenTransferService(
 		cfg,
 		logger,
 		kmutex,
 		dbClient, // Note: Used for mongoDB transaction handling.
-		getProofOfAuthorityPrivateKeyService,
+		getWalletUseCase,
+		walletDecryptKeyUseCase,
 		getBlockchainStateUseCase,
 		upsertBlockchainStateUseCase,
 		getBlockDataUseCase,
@@ -201,7 +196,12 @@ func doRunTransferToken() {
 		slog.Any("address", transferRecipientAddress),
 		slog.Any("token_id", tokenID.Uint64()))
 
-	err := tokenTransferService.Execute(ctx, tokenID, cfg.Blockchain.ProofOfAuthorityAccountAddress, &transferRecipientAddress)
+	err := tokenTransferService.Execute(
+		ctx,
+		tokenID,
+		cfg.Blockchain.ProofOfAuthorityAccountAddress,
+		cfg.Blockchain.ProofOfAuthorityWalletPassword,
+		&transferRecipientAddress)
 	if err != nil {
 		logger.Error("Failed executing",
 			slog.Any("error", err))

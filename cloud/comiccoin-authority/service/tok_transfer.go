@@ -20,16 +20,17 @@ import (
 )
 
 type TokenTransferService struct {
-	config                               *config.Configuration
-	logger                               *slog.Logger
-	kmutex                               kmutexutil.KMutexProvider
-	dbClient                             *mongo.Client
-	getProofOfAuthorityPrivateKeyService *GetProofOfAuthorityPrivateKeyService
-	getBlockchainStateUseCase            *usecase.GetBlockchainStateUseCase
-	upsertBlockchainStateUseCase         *usecase.UpsertBlockchainStateUseCase
-	getBlockDataUseCase                  *usecase.GetBlockDataUseCase
-	getTokenUseCase                      *usecase.GetTokenUseCase
-	mempoolTransactionCreateUseCase      *usecase.MempoolTransactionCreateUseCase
+	config                          *config.Configuration
+	logger                          *slog.Logger
+	kmutex                          kmutexutil.KMutexProvider
+	dbClient                        *mongo.Client
+	getWalletUseCase                *usecase.GetWalletUseCase
+	walletDecryptKeyUseCase         *usecase.WalletDecryptKeyUseCase
+	getBlockchainStateUseCase       *usecase.GetBlockchainStateUseCase
+	upsertBlockchainStateUseCase    *usecase.UpsertBlockchainStateUseCase
+	getBlockDataUseCase             *usecase.GetBlockDataUseCase
+	getTokenUseCase                 *usecase.GetTokenUseCase
+	mempoolTransactionCreateUseCase *usecase.MempoolTransactionCreateUseCase
 }
 
 func NewTokenTransferService(
@@ -37,20 +38,22 @@ func NewTokenTransferService(
 	logger *slog.Logger,
 	kmutex kmutexutil.KMutexProvider,
 	client *mongo.Client,
-	s1 *GetProofOfAuthorityPrivateKeyService,
-	uc1 *usecase.GetBlockchainStateUseCase,
-	uc2 *usecase.UpsertBlockchainStateUseCase,
-	uc3 *usecase.GetBlockDataUseCase,
-	uc4 *usecase.GetTokenUseCase,
-	uc5 *usecase.MempoolTransactionCreateUseCase,
+	uc1 *usecase.GetWalletUseCase,
+	uc2 *usecase.WalletDecryptKeyUseCase,
+	uc3 *usecase.GetBlockchainStateUseCase,
+	uc4 *usecase.UpsertBlockchainStateUseCase,
+	uc5 *usecase.GetBlockDataUseCase,
+	uc6 *usecase.GetTokenUseCase,
+	uc7 *usecase.MempoolTransactionCreateUseCase,
 ) *TokenTransferService {
-	return &TokenTransferService{cfg, logger, kmutex, client, s1, uc1, uc2, uc3, uc4, uc5}
+	return &TokenTransferService{cfg, logger, kmutex, client, uc1, uc2, uc3, uc4, uc5, uc6, uc7}
 }
 
 func (s *TokenTransferService) Execute(
 	ctx context.Context,
 	tokenID *big.Int,
 	tokenOwnerAddress *common.Address,
+	tokenOwnerWalletPassword string,
 	recipientAddress *common.Address) error {
 	// Lock the mining service until it has completed executing (or errored).
 	s.kmutex.Acquire("token-services")
@@ -106,15 +109,24 @@ func (s *TokenTransferService) Execute(
 			return nil, fmt.Errorf("Blockchain state does not exist")
 		}
 
-		proofOfAuthorityPrivateKey, err := s.getProofOfAuthorityPrivateKeyService.Execute(sessCtx)
+		wallet, err := s.getWalletUseCase.Execute(ctx, tokenOwnerAddress)
 		if err != nil {
-			s.logger.Error("Failed getting proof of authority private key.",
+			s.logger.Error("failed getting wallet from database",
 				slog.Any("error", err))
-			return nil, err
+			return nil, fmt.Errorf("failed getting wallet from database: %s", err)
 		}
-		if proofOfAuthorityPrivateKey == nil {
-			s.logger.Error("Proof of authority private keydoes not exist.")
-			return nil, fmt.Errorf("Proof of authority private keydoes not exist")
+		if wallet == nil {
+			return nil, fmt.Errorf("failed getting wallet from database: %s", "d.n.e.")
+		}
+
+		key, err := s.walletDecryptKeyUseCase.Execute(ctx, wallet.KeystoreBytes, tokenOwnerWalletPassword)
+		if err != nil {
+			s.logger.Error("failed getting key",
+				slog.Any("error", err))
+			return nil, fmt.Errorf("failed getting key: %s", err)
+		}
+		if key == nil {
+			return nil, fmt.Errorf("failed getting key: %s", "d.n.e.")
 		}
 
 		recentBlockData, err := s.getBlockDataUseCase.Execute(sessCtx, blockchainState.LatestHash)
@@ -186,7 +198,7 @@ func (s *TokenTransferService) Execute(
 			TokenNonceBytes:  nonce.Bytes(), // Transfered tokens must increment nonce.
 		}
 
-		stx, signingErr := tx.Sign(proofOfAuthorityPrivateKey.PrivateKey)
+		stx, signingErr := tx.Sign(key.PrivateKey)
 		if signingErr != nil {
 			s.logger.Debug("Failed to sign the token transfer transaction",
 				slog.Any("error", signingErr))
