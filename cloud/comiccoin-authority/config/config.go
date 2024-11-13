@@ -63,7 +63,7 @@ func NewProvider() *Configuration {
 	c.App.DataDirectory = getEnv("COMICCOIN_AUTHORITY_APP_DATA_DIRECTORY", true)
 	c.App.Port = getEnv("COMICCOIN_AUTHORITY_PORT", true)
 	c.App.IP = getEnv("COMICCOIN_AUTHORITY_IP", false)
-	c.App.HMACSecret = []byte(getEnv("COMICCOIN_AUTHORITY_APP_HMAC_SECRET", true))
+	c.App.HMACSecret = []byte(getEnv("COMICCOIN_AUTHORITY_APP_HMAC_SECRET", false))
 	c.App.AuthSecret = []byte(getEnv("COMICCOIN_AUTHORITY_APP_AUTH_SECRET", false))
 	c.App.APIKey = []byte(getEnv("COMICCOIN_AUTHORITY_APP_API_KEY", false))
 
