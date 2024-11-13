@@ -19,7 +19,7 @@ func TokensCmd() *cobra.Command {
 
 	// // // Attach our sub-commands for `account`
 	cmd.AddCommand(MintTokenCmd())
-	// cmd.AddCommand(GetTokenCmd())
+	cmd.AddCommand(GetTokenCmd())
 
 	return cmd
 }

@@ -28,6 +28,14 @@ func NewTokenRepo(cfg *config.Configuration, logger *slog.Logger, client *mongo.
 	// ctx := context.Background()
 	uc := client.Database(cfg.DB.Name).Collection("tokens")
 
+	// // For debugging purposes only or if you are going to recreate new indexes.
+	// if _, err := uc.Indexes().DropAll(context.TODO()); err != nil {
+	// 	logger.Warn("failed deleting all indexes",
+	// 		slog.Any("err", err))
+	//
+	// 	// Do not crash app, just continue.
+	// }
+
 	// Note:
 	// * 1 for ascending
 	// * -1 for descending
@@ -36,9 +44,9 @@ func NewTokenRepo(cfg *config.Configuration, logger *slog.Logger, client *mongo.
 	// The following few lines of code will create the index for our app for this
 	// colleciton.
 	_, err := uc.Indexes().CreateMany(context.TODO(), []mongo.IndexModel{
-		{Keys: bson.D{{Key: "id", Value: 1}}},
+		{Keys: bson.D{{Key: "id_bytes", Value: 1}}},
 		{Keys: bson.D{
-			{Key: "id", Value: "text"},
+			{Key: "id_bytes", Value: "text"},
 		}},
 	})
 	if err != nil {
@@ -64,7 +72,7 @@ func (r *TokenRepo) Upsert(ctx context.Context, token *domain.Token) error {
 func (r *TokenRepo) GetByID(ctx context.Context, id *big.Int) (*domain.Token, error) {
 	var token domain.Token
 	idBytes := id.Bytes()
-	err := r.collection.FindOne(ctx, bson.M{"id": idBytes}).Decode(&token)
+	err := r.collection.FindOne(ctx, bson.M{"id_bytes": idBytes}).Decode(&token)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, nil
@@ -118,7 +126,7 @@ func (r *TokenRepo) ListByOwner(ctx context.Context, owner *common.Address) ([]*
 
 func (r *TokenRepo) DeleteByID(ctx context.Context, id *big.Int) error {
 	idBytes := id.Bytes()
-	_, err := r.collection.DeleteOne(ctx, bson.M{"id": idBytes})
+	_, err := r.collection.DeleteOne(ctx, bson.M{"id_bytes": idBytes})
 	return err
 }
 

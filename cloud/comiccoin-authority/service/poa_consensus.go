@@ -209,12 +209,19 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		// Process 🎟️ tokens.
 		//
 
+		latestTokenID := blockchainState.GetLatestTokenID()
 		if mempoolTx.Type == domain.TransactionTypeToken {
 			if err := s.processTokenForMempoolTransaction(sessCtx, mempoolTx, blockchainState); err != nil {
 				s.logger.Error("Failed processing token in mempool block transaction",
 					slog.Any("error", err))
 				return nil, err
 			}
+
+			// New `token_id` set in our blockchain state.
+			latestTokenID = mempoolTx.SignedTransaction.Transaction.GetTokenID()
+
+			s.logger.Debug("New token detected",
+				slog.Any("latest_token_id", latestTokenID))
 		}
 
 		//
@@ -309,9 +316,9 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 				Difficulty:         s.config.Blockchain.Difficulty,
 				MiningReward:       s.config.Blockchain.MiningReward,
 				StateRoot:          stateRoot,
-				TransRoot:          tree.RootHex(),                     //
-				NonceBytes:         big.NewInt(0).Bytes(),              // Will be identified by the PoW algorithm.
-				LatestTokenIDBytes: blockchainState.LatestTokenIDBytes, // Ensure our blockchain state has always the latest token ID recorded.
+				TransRoot:          tree.RootHex(),        //
+				NonceBytes:         big.NewInt(0).Bytes(), // Will be identified by the PoW algorithm.
+				LatestTokenIDBytes: latestTokenID.Bytes(), // Ensure our blockchain state has always the latest token ID recorded.
 				TokensRoot:         tokensRoot,
 			},
 			HeaderSignatureBytes: []byte{}, // Will be identified by the PoA algorithm in this function!
@@ -399,7 +406,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 
 		blockchainState.LatestBlockNumberBytes = blockData.Header.NumberBytes
 		blockchainState.LatestHash = blockData.Hash
-		// blockchainState.LatestTokenID = ... // No need because it's done elsewere here.
+		blockchainState.LatestTokenIDBytes = latestTokenID.Bytes()
 		if err := s.upsertBlockchainStateUseCase.Execute(sessCtx, blockchainState); err != nil {
 			s.logger.Error("Failed upserting blockchain state",
 				slog.Any("error", err))
