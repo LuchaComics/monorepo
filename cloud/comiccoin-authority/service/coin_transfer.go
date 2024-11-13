@@ -92,7 +92,7 @@ func (s *CoinTransferService) Execute(
 		return fmt.Errorf("failed getting from database: %s", "wallet d.n.e.")
 	}
 
-	key, err := s.walletDecryptKeyUseCase.Execute(ctx, wallet.FilePath, accountWalletPassword)
+	key, err := s.walletDecryptKeyUseCase.Execute(ctx, wallet.KeystoreBytes, accountWalletPassword)
 	if err != nil {
 		s.logger.Error("failed getting key",
 			slog.Any("from_account_address", fromAccountAddress),

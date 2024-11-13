@@ -29,7 +29,7 @@ func NewAccountEncryptKeyUseCase(
 	return &AccountEncryptKeyUseCase{config, logger, keystore, repo}
 }
 
-func (uc *AccountEncryptKeyUseCase) Execute(ctx context.Context, dataDir string, walletPassword string) (*common.Address, string, error) {
+func (uc *AccountEncryptKeyUseCase) Execute(ctx context.Context, dataDir string, walletPassword string) (*common.Address, []byte, error) {
 	//
 	// STEP 1: Validation.
 	//
@@ -44,19 +44,19 @@ func (uc *AccountEncryptKeyUseCase) Execute(ctx context.Context, dataDir string,
 	if len(e) != 0 {
 		uc.logger.Warn("Failed reading account key",
 			slog.Any("error", e))
-		return nil, "", httperror.NewForBadRequest(&e)
+		return nil, nil, httperror.NewForBadRequest(&e)
 	}
 
 	//
 	// STEP 2: Create the encryted physical wallet on file.
 	//
 
-	walletAddress, walletFilepath, err := uc.keystore.CreateWallet(walletPassword)
+	walletAddress, walletKeystoreBytes, err := uc.keystore.CreateWallet(walletPassword)
 	if err != nil {
 		uc.logger.Error("failed creating new keystore",
 			slog.Any("error", err))
-		return nil, "", fmt.Errorf("failed creating new keystore: %s", err)
+		return nil, nil, fmt.Errorf("failed creating new keystore: %s", err)
 	}
 
-	return &walletAddress, walletFilepath, nil
+	return &walletAddress, walletKeystoreBytes, nil
 }

@@ -3,67 +3,67 @@ package keystore
 import (
 	"fmt"
 	"io/ioutil"
-	"log/slog"
-	"path/filepath"
+	"os"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
-	kstore "github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
-
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config"
 )
 
 type KeystoreAdapter interface {
-	CreateWallet(password string) (common.Address, string, error)
-	OpenWallet(filename, password string) (*keystore.Key, error)
+	CreateWallet(password string) (common.Address, []byte, error)
+	OpenWallet(binaryData []byte, password string) (*keystore.Key, error)
 }
 
-type keystoreAdapterImpl struct {
-	datadir  string
-	filepath string
+type keystoreAdapterImpl struct{}
+
+func NewAdapter() KeystoreAdapter {
+	return &keystoreAdapterImpl{}
 }
 
-func NewAdapter(cfg *config.Configuration, logger *slog.Logger) KeystoreAdapter {
-	impl := &keystoreAdapterImpl{
-		datadir:  cfg.App.DataDirectory,
-		filepath: getKeystoreDirPath(cfg.App.DataDirectory),
+func (impl *keystoreAdapterImpl) CreateWallet(password string) (common.Address, []byte, error) {
+	return createWalletWithTempFile(password)
+}
+
+func (impl *keystoreAdapterImpl) OpenWallet(binaryData []byte, password string) (*keystore.Key, error) {
+	return decryptWalletFromBinary(binaryData, password)
+}
+
+func createWalletWithTempFile(password string) (common.Address, []byte, error) {
+	tempDir, err := ioutil.TempDir("", "keystore")
+	if err != nil {
+		return common.Address{}, nil, fmt.Errorf("failed to create temp directory: %v", err)
 	}
-	return impl
-}
+	defer os.RemoveAll(tempDir)
 
-func (impl *keystoreAdapterImpl) CreateWallet(password string) (common.Address, string, error) {
-	return newKeystore(impl.datadir, password)
-}
-
-func (impl *keystoreAdapterImpl) OpenWallet(filepath, password string) (*keystore.Key, error) {
-	return getKeyAfterDecryptingWalletAtFilepath(filepath, password)
-}
-
-const keystoreDirName = "keystore"
-
-func getKeystoreDirPath(dataDir string) string {
-	return filepath.Join(dataDir, keystoreDirName)
-}
-
-func newKeystore(dataDir, password string) (common.Address, string, error) {
-	ks := keystore.NewKeyStore(getKeystoreDirPath(dataDir), kstore.StandardScryptN, kstore.StandardScryptP)
+	ks := keystore.NewKeyStore(tempDir, keystore.StandardScryptN, keystore.StandardScryptP)
 	acc, err := ks.NewAccount(password)
 	if err != nil {
-		return common.Address{}, "", err
+		return common.Address{}, nil, fmt.Errorf("failed to create account: %v", err)
 	}
 
-	return acc.Address, acc.URL.Path, nil
+	keyJSON, err := ioutil.ReadFile(acc.URL.Path)
+	if err != nil {
+		return common.Address{}, nil, fmt.Errorf("failed reading keystore JSON: %v", err)
+	}
+
+	return acc.Address, keyJSON, nil
 }
 
-func getKeyAfterDecryptingWalletAtFilepath(walletFilepath string, walletPassword string) (*keystore.Key, error) {
-	keyJson, err := ioutil.ReadFile(walletFilepath)
+func decryptWalletFromBinary(binaryData []byte, password string) (*keystore.Key, error) {
+	tempFile, err := ioutil.TempFile("", "keystore-*")
 	if err != nil {
-		return nil, fmt.Errorf("failed reading file: %v", err)
+		return nil, fmt.Errorf("failed creating temp file: %v", err)
 	}
+	defer os.Remove(tempFile.Name())
 
-	key, err := keystore.DecryptKey(keyJson, walletPassword)
+	if _, err := tempFile.Write(binaryData); err != nil {
+		return nil, fmt.Errorf("failed writing to temp file: %v", err)
+	}
+	tempFile.Close()
+
+	key, err := keystore.DecryptKey(binaryData, password)
 	if err != nil {
-		return nil, fmt.Errorf("failed decrypting file: %v", err)
+		return nil, fmt.Errorf("failed decrypting key: %v", err)
 	}
 	return key, nil
 }

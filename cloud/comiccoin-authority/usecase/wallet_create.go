@@ -21,7 +21,7 @@ func NewCreateWalletUseCase(config *config.Configuration, logger *slog.Logger, r
 	return &CreateWalletUseCase{config, logger, repo}
 }
 
-func (uc *CreateWalletUseCase) Execute(ctx context.Context, address *common.Address, filepath string, label string) error {
+func (uc *CreateWalletUseCase) Execute(ctx context.Context, address *common.Address, keystoreBytes []byte, label string) error {
 	//
 	// STEP 1: Validation.
 	//
@@ -30,8 +30,8 @@ func (uc *CreateWalletUseCase) Execute(ctx context.Context, address *common.Addr
 	if address == nil {
 		e["address"] = "missing value"
 	}
-	if filepath == "" {
-		e["filepath"] = "missing value"
+	if keystoreBytes == nil {
+		e["keystore_bytes"] = "missing value"
 	}
 	if len(e) != 0 {
 		uc.logger.Warn("Failed creating new wallet",
@@ -44,9 +44,9 @@ func (uc *CreateWalletUseCase) Execute(ctx context.Context, address *common.Addr
 	//
 
 	wallet := &domain.Wallet{
-		Address:  address,
-		FilePath: filepath,
-		Label:    label,
+		Address:       address,
+		KeystoreBytes: keystoreBytes,
+		Label:         label,
 	}
 
 	//

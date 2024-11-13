@@ -49,7 +49,7 @@ func doRunDaemon() {
 	kmutex := kmutexutil.NewKMutexProvider()
 	cfg := config.NewProvider()
 	dbClient := mongodb.NewProvider(cfg, logger)
-	keystore := keystore.NewAdapter(cfg, logger)
+	keystore := keystore.NewAdapter()
 	passp := password.NewProvider()
 	jwtp := jwt.NewProvider(cfg)
 	blackp := blacklist.NewProvider()

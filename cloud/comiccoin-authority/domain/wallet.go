@@ -15,11 +15,8 @@ type Wallet struct {
 	// The public address of the wallet.
 	Address *common.Address `bson:"address" json:"address"`
 
-	// The file path where the wallet is stored.
-	FilePath string `bson:"file_path" json:"file_path"`
-
 	// FileContent contains
-	FileContent []byte `bson:"file_content" json:"file_content"`
+	KeystoreBytes []byte `bson:"keystore_bytes" json:"keystore_bytes"`
 }
 
 type WalletRepository interface {

@@ -29,14 +29,14 @@ func NewWalletDecryptKeyUseCase(
 	return &WalletDecryptKeyUseCase{config, logger, keystore, repo}
 }
 
-func (uc *WalletDecryptKeyUseCase) Execute(ctx context.Context, filepath string, password string) (*keystore.Key, error) {
+func (uc *WalletDecryptKeyUseCase) Execute(ctx context.Context, keystoreBytes []byte, password string) (*keystore.Key, error) {
 	//
 	// STEP 1: Validation.
 	//
 
 	e := make(map[string]string)
-	if filepath == "" {
-		e["filepath"] = "missing value"
+	if keystoreBytes == nil {
+		e["keystore_bytes"] = "missing value"
 	}
 	if password == "" {
 		e["password"] = "missing value"
@@ -51,7 +51,7 @@ func (uc *WalletDecryptKeyUseCase) Execute(ctx context.Context, filepath string,
 	// STEP 2: Decrypt key
 	//
 
-	key, err := uc.keystore.OpenWallet(filepath, password)
+	key, err := uc.keystore.OpenWallet(keystoreBytes, password)
 	if err != nil {
 		uc.logger.Warn("Failed getting wallet key",
 			slog.Any("error", err))

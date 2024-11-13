@@ -42,7 +42,7 @@ func doRunNewAccount() {
 	logger := logger.NewProvider()
 	cfg := config.NewProvider()
 	dbClient := mongodb.NewProvider(cfg, logger)
-	keystore := keystore.NewAdapter(cfg, logger)
+	keystore := keystore.NewAdapter()
 
 	// Repository
 	walletRepo := repo.NewWalletRepo(cfg, logger, dbClient)

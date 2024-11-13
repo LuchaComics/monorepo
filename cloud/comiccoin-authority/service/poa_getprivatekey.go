@@ -60,7 +60,7 @@ func (s *GetProofOfAuthorityPrivateKeyService) Execute(ctx context.Context) (*ke
 		return nil, fmt.Errorf("failed getting wallet from database: %s", "d.n.e.")
 	}
 
-	key, err := s.walletDecryptKeyUseCase.Execute(ctx, wallet.FilePath, s.config.Blockchain.ProofOfAuthorityWalletPassword)
+	key, err := s.walletDecryptKeyUseCase.Execute(ctx, wallet.KeystoreBytes, s.config.Blockchain.ProofOfAuthorityWalletPassword)
 	if err != nil {
 		s.logger.Error("failed getting key",
 			slog.Any("error", err))
