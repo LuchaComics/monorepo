@@ -20,10 +20,10 @@ import (
 // ZeroHash represents a hash code of zeros.
 const ZeroHash string = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
-// ardanID is an arbitrary number for signing messages. This will make it
+// comicCoinID is an arbitrary number for signing messages. This will make it
 // clear that the signature comes from the ComicCoin blockchain.
 // Ethereum and Bitcoin do this as well, but they use the value of 27.
-const ardanID = 29
+const comicCoinID = 29
 
 // =============================================================================
 
@@ -77,7 +77,7 @@ func Sign(value any, privateKey *ecdsa.PrivateKey) (v, r, s *big.Int, err error)
 func VerifySignature(v, r, s *big.Int) error {
 
 	// Check the recovery id is either 0 or 1.
-	uintV := v.Uint64() - ardanID
+	uintV := v.Uint64() - comicCoinID
 	if uintV != 0 && uintV != 1 {
 		return errors.New("invalid recovery id")
 	}
@@ -92,16 +92,21 @@ func VerifySignature(v, r, s *big.Int) error {
 
 // FromAddress extracts the address for the account that signed the data.
 func FromAddress(value any, v, r, s *big.Int) (string, error) {
+	log.Printf("signature.go -> FromAddress(): value: %v\n", value)
 
 	// Prepare the data for public key extraction.
 	data, err := stamp(value)
 	if err != nil {
-		log.Printf("signature.go -> FromAddress(): Stamp error: %v\n", err)
+		log.Printf("signature.go -> FromAddress(): stamp error: %v\n", err)
 		return "", err
 	}
 
+	log.Printf("signature.go -> FromAddress(): stamp data: %v\n", data)
+
 	// Convert the [R|S|V] format into the original 65 bytes.
 	sig := ToSignatureBytes(v, r, s)
+
+	log.Printf("signature.go -> FromAddress(): ToSignatureBytes sig: %v\n", data)
 
 	// Capture the public key associated with this data and signature.
 	publicKey, err := crypto.SigToPub(data, sig)
@@ -155,7 +160,7 @@ func ToVRSFromHexSignature(sigStr string) (v, r, s *big.Int, err error) {
 }
 
 // ToSignatureBytes converts the r, s, v values into a slice of bytes
-// with the removal of the ardanID.
+// with the removal of the comicCoinID.
 func ToSignatureBytes(v, r, s *big.Int) []byte {
 	sig := make([]byte, crypto.SignatureLength)
 
@@ -167,7 +172,7 @@ func ToSignatureBytes(v, r, s *big.Int) []byte {
 	s.FillBytes(sBytes)
 	copy(sig[32:], sBytes)
 
-	sig[64] = byte(v.Uint64() - ardanID)
+	sig[64] = byte(v.Uint64() - comicCoinID)
 
 	return sig
 }
@@ -208,7 +213,7 @@ func stamp(value any) ([]byte, error) {
 func toSignatureValues(sig []byte) (v, r, s *big.Int) {
 	r = big.NewInt(0).SetBytes(sig[:32])
 	s = big.NewInt(0).SetBytes(sig[32:64])
-	v = big.NewInt(0).SetBytes([]byte{sig[64] + ardanID})
+	v = big.NewInt(0).SetBytes([]byte{sig[64] + comicCoinID})
 
 	return v, r, s
 }

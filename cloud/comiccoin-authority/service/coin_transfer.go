@@ -6,11 +6,13 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 type CoinTransferService struct {
@@ -146,7 +148,14 @@ func (s *CoinTransferService) Execute(
 		return signingErr
 	}
 
-	s.logger.Debug("Pending transaction signed successfully",
+	// Defensive Coding.
+	if err := stx.Validate(s.config.Blockchain.ChainID, true); err != nil {
+		s.logger.Debug("Failed to validate signature of the signed transaction",
+			slog.Any("error", signingErr))
+		return signingErr
+	}
+
+	s.logger.Debug("Transaction signed successfully",
 		slog.Any("chain_id", stx.ChainID),
 		slog.Any("nonce", stx.Nonce),
 		slog.Any("from", stx.From),
@@ -163,11 +172,25 @@ func (s *CoinTransferService) Execute(
 		slog.Uint64("tx_nonce", stx.Nonce))
 
 	mempoolTx := &domain.MempoolTransaction{
+		ID:          primitive.NewObjectID(),
 		Transaction: stx.Transaction,
 		V:           stx.V,
 		R:           stx.R,
 		S:           stx.S,
 	}
+
+	// Defensive Coding.
+	if err := mempoolTx.Validate(s.config.Blockchain.ChainID, true); err != nil {
+		s.logger.Debug("Failed to validate signature of mempool transaction",
+			slog.Any("error", signingErr))
+		return signingErr
+	}
+
+	s.logger.Debug("Mempool transaction ready for submission",
+		slog.Any("Transaction", stx.Transaction),
+		slog.Any("tx_sig_v", stx.V),
+		slog.Any("tx_sig_r", stx.R),
+		slog.Any("tx_sig_s", stx.S))
 
 	//
 	// STEP 3

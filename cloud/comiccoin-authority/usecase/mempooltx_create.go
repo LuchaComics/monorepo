@@ -20,57 +20,57 @@ func NewMempoolTransactionCreateUseCase(config *config.Configuration, logger *sl
 	return &MempoolTransactionCreateUseCase{config, logger, repo}
 }
 
-func (uc *MempoolTransactionCreateUseCase) Execute(ctx context.Context, stx *domain.MempoolTransaction) error {
+func (uc *MempoolTransactionCreateUseCase) Execute(ctx context.Context, mempoolTx *domain.MempoolTransaction) error {
 	//
 	// STEP 1: Validation.
 	//
 
 	e := make(map[string]string)
-	if stx.ChainID != uc.config.Blockchain.ChainID {
+	if mempoolTx.ChainID != uc.config.Blockchain.ChainID {
 		e["chain_id"] = "wrong blockchain used"
 	}
 	// Nonce - skip validating.
-	if stx.From == nil {
+	if mempoolTx.From == nil {
 		e["from"] = "missing value"
 	}
-	if stx.To == nil {
+	if mempoolTx.To == nil {
 		e["to"] = "missing value"
 	}
-	if stx.Value <= 0 {
+	if mempoolTx.Value <= 0 {
 		// DEVELOPERS NOTE:
 		// Only `coin` type transactions need their value verified while the
 		// `token` type transactions can have zero value.
-		if stx.Type == domain.TransactionTypeCoin {
+		if mempoolTx.Type == domain.TransactionTypeCoin {
 			e["value"] = "missing value"
 		}
 	}
-	if stx.Type == "" {
+	if mempoolTx.Type == "" {
 		e["type"] = "missing value"
 	} else {
 		var validType bool = false
-		if stx.Type == domain.TransactionTypeCoin {
+		if mempoolTx.Type == domain.TransactionTypeCoin {
 			validType = true
 		}
-		if stx.Type == domain.TransactionTypeToken {
+		if mempoolTx.Type == domain.TransactionTypeToken {
 			validType = true
 
-			if stx.TokenMetadataURI == "" {
+			if mempoolTx.TokenMetadataURI == "" {
 				e["token_metadata_uri"] = "missing value"
 			}
 		}
 		if validType == false {
-			e["type"] = fmt.Sprintf("incorrect value: %v", stx.Type)
+			e["type"] = fmt.Sprintf("incorrect value: %v", mempoolTx.Type)
 		}
 	}
 	// Tip - skip validating.
 	// Data - skip validating.
-	if stx.V == nil {
+	if mempoolTx.V == nil {
 		e["v"] = "missing value"
 	}
-	if stx.R == nil {
+	if mempoolTx.R == nil {
 		e["r"] = "missing value"
 	}
-	if stx.S == nil {
+	if mempoolTx.S == nil {
 		e["s"] = "missing value"
 	}
 	if len(e) != 0 {
@@ -80,8 +80,18 @@ func (uc *MempoolTransactionCreateUseCase) Execute(ctx context.Context, stx *dom
 	}
 
 	//
-	// STEP 2: Insert into database.
+	// STEP 2: Validate
 	//
 
-	return uc.repo.Upsert(ctx, stx)
+	if err := mempoolTx.Validate(uc.config.Blockchain.ChainID, true); err != nil {
+		uc.logger.Warn("Validation failed for create",
+			slog.Any("error", err))
+		return err
+	}
+
+	//
+	// STEP 3: Insert into database.
+	//
+
+	return uc.repo.Upsert(ctx, mempoolTx)
 }

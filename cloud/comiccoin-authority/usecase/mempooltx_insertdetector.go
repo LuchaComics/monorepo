@@ -29,14 +29,25 @@ func NewMempoolTransactionInsertionDetectorUseCase(config *config.Configuration,
 func (uc *MempoolTransactionInsertionDetectorUseCase) Execute(ctx context.Context) (*domain.MempoolTransaction, error) {
 	// uc.logger.Debug("Waiting to receive...")
 	select {
-	case newEntry, ok := <-uc.dataChan:
+	case mempoolTx, ok := <-uc.dataChan:
 		if !ok {
 			// uc.logger.Debug("Error receiving.")
 			return nil, errors.New("channel closed")
 		}
 		// uc.logger.Debug("Data received.",
 		// 	slog.Any("dataChan", newEntry))
-		return &newEntry, nil
+
+		if err := mempoolTx.Validate(uc.config.Blockchain.ChainID, true); err != nil {
+			uc.logger.Warn("Validation failed for get",
+				slog.Any("error", err),
+				slog.Any("Transaction", mempoolTx.Transaction),
+				slog.Any("tx_sig_v", mempoolTx.V),
+				slog.Any("tx_sig_r", mempoolTx.R),
+				slog.Any("tx_sig_s", mempoolTx.S))
+			return nil, err
+		}
+
+		return &mempoolTx, nil
 	case <-ctx.Done():
 		// uc.logger.Debug("Done receiving.")
 		return nil, ctx.Err()

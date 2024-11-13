@@ -97,7 +97,38 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 			return nil, err
 		}
 		s.logger.Debug("New memory pool transaction detected!",
-			slog.Any("record", mempoolTx))
+			slog.Any("chain_id", mempoolTx.ChainID),
+			slog.Any("nonce", mempoolTx.Nonce),
+			slog.Any("from", mempoolTx.From),
+			slog.Any("to", mempoolTx.To),
+			slog.Any("value", mempoolTx.Value),
+			slog.Any("data", mempoolTx.Data),
+			slog.Any("type", mempoolTx.Type),
+			slog.Any("token_id", mempoolTx.TokenID),
+			slog.Any("token_metadata_uri", mempoolTx.TokenMetadataURI),
+			slog.Any("token_nonce", mempoolTx.TokenNonce),
+			slog.Any("tx_sig_v", mempoolTx.V),
+			slog.Any("tx_sig_r", mempoolTx.R),
+			slog.Any("tx_sig_s", mempoolTx.S))
+
+		if mempoolTx.V == nil {
+			err := fmt.Errorf("Missing: %v", "V")
+			s.logger.Error("Failed validating memory pool transaction",
+				slog.Any("error", err))
+			return nil, err
+		}
+		if mempoolTx.R == nil {
+			err := fmt.Errorf("Missing: %v", "R")
+			s.logger.Error("Failed validating memory pool transaction",
+				slog.Any("error", err))
+			return nil, err
+		}
+		if mempoolTx.S == nil {
+			err := fmt.Errorf("Missing: %v", "S")
+			s.logger.Error("Failed validating memory pool transaction",
+				slog.Any("error", err))
+			return nil, err
+		}
 
 		//
 		// STEP 3:
@@ -384,6 +415,31 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 }
 
 func (s *ProofOfAuthorityConsensusMechanismService) verifyMempoolTransaction(sessCtx mongo.SessionContext, mempoolTx *domain.MempoolTransaction) error {
+	s.logger.Debug("Preparing to verify",
+		slog.Any("chain_id", mempoolTx.ChainID),
+		slog.Any("nonce", mempoolTx.Nonce),
+		slog.Any("from", mempoolTx.From),
+		slog.Any("to", mempoolTx.To),
+		slog.Any("value", mempoolTx.Value),
+		slog.Any("data", mempoolTx.Data),
+		slog.Any("type", mempoolTx.Type),
+		slog.Any("token_id", mempoolTx.TokenID),
+		slog.Any("token_metadata_uri", mempoolTx.TokenMetadataURI),
+		slog.Any("token_nonce", mempoolTx.TokenNonce),
+		slog.Any("tx_sig_v", mempoolTx.V),
+		slog.Any("tx_sig_r", mempoolTx.R),
+		slog.Any("tx_sig_s", mempoolTx.S))
+
+	pk, err := mempoolTx.FromPublicKey()
+	if err != nil {
+		s.logger.Error("Failed getting from pk",
+			slog.Any("chain_id", s.config.Blockchain.ChainID),
+			slog.Any("error", err))
+		return err
+	}
+	s.logger.Debug("Preparing to verify",
+		slog.Any("pk", pk))
+
 	fromAddr, err := mempoolTx.FromAddress()
 	if err != nil {
 		s.logger.Error("Failed getting from address",

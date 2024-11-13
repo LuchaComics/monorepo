@@ -3,7 +3,6 @@ package task
 import (
 	"context"
 	"log/slog"
-	"time"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config"
 	taskhandler "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/interface/task/handler"
@@ -46,13 +45,10 @@ func (port *taskManagerImpl) Run() {
 			if err := task.Execute(backgroundCtx); err != nil {
 				loggerp.Error("Failed executing PoA consensus mechanism",
 					slog.Any("error", err))
-				time.Sleep(10 * time.Second)
-				continue
 			}
 			// DEVELOPERS NOTE:
 			// No need for delays, automatically start executing again.
 			port.logger.Debug("poa consensus mechanism will run again ...")
-			//time.Sleep(60 * time.Second)
 		}
 	}(port.proofOfAuthorityConsensusMechanismTaskHandler, port.logger)
 }

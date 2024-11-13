@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
@@ -53,14 +54,30 @@ func NewMempoolTransactionRepo(cfg *config.Configuration, logger *slog.Logger, c
 	}
 }
 
+func (r *MempoolTransactionRepo) GetByID(ctx context.Context, id primitive.ObjectID) (*domain.MempoolTransaction, error) {
+	var account domain.MempoolTransaction
+	err := r.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&account)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &account, nil
+}
+
 func (r *MempoolTransactionRepo) Upsert(ctx context.Context, mempoolTx *domain.MempoolTransaction) error {
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, 30*time.Second) // Use to prevent resource leaks.
 	defer cancel()
 
+	// Defensive Code: No empty ID values are allowed.
+	if mempoolTx.ID.IsZero() {
+		mempoolTx.ID = primitive.NewObjectID()
+	}
+
 	opts := options.Update().SetUpsert(true)
 	_, err := r.collection.UpdateOne(ctxWithTimeout, bson.M{
-		"chain_id":          mempoolTx.ChainID,
-		"transaction.nonce": mempoolTx.Transaction.Nonce,
+		"_id": mempoolTx.ID,
 	}, bson.M{"$set": mempoolTx}, opts)
 	return err
 }

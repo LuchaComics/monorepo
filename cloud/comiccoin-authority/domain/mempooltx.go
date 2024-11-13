@@ -2,9 +2,13 @@ package domain
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"math/big"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/blockchain/signature"
 	"github.com/fxamacker/cbor/v2"
@@ -13,23 +17,37 @@ import (
 // MempoolTransaction represents a transaction that is stored in the mempool.
 // It contains the transaction data, as well as the ECDSA signature and recovery identifier.
 type MempoolTransaction struct {
+	ID primitive.ObjectID `bson:"_id" json:"id"`
+
 	// The transaction data, including sender, recipient, amount, and other metadata.
 	Transaction
 
 	// The recovery identifier, either 29 or 30, depending on the Ethereum network.
-	V *big.Int `json:"v"`
+	V *big.Int `bson:"v" json:"v"`
 
 	// The first coordinate of the ECDSA signature.
-	R *big.Int `json:"r"`
+	R *big.Int `bson:"r" json:"r"`
 
 	// The second coordinate of the ECDSA signature.
-	S *big.Int `json:"s"`
+	S *big.Int `bson:"s" json:"s"`
 }
 
 // Validate checks if the transaction is valid.
 // It verifies the signature, makes sure the account addresses are correct,
 // and checks if the 'from' and 'to' accounts are not the same.
 func (tx MempoolTransaction) Validate(chainID uint16, isPoA bool) error {
+	if tx.V == nil || tx.R == nil || tx.S == nil {
+		return errors.New("V, R, or S is nil")
+	}
+
+	if tx.V.Uint64() == 0 || tx.R.Uint64() == 0 || tx.S.Uint64() == 0 {
+		return errors.New("V, R, or S is zero")
+	}
+
+	if tx.V.Uint64() < 29 || tx.V.Uint64() > 30 {
+		return errors.New("V is out of range")
+	}
+
 	// Check if the transaction's chain ID matches the expected one.
 	if tx.ChainID != chainID {
 		return fmt.Errorf("invalid chain id, got[%d] exp[%d]", tx.ChainID, chainID)
@@ -70,6 +88,8 @@ type MempoolTransactionInsertionDetector interface {
 // the mempool transaction repository.
 // This interface provides a way to manage mempool transactions, including upserting, listing, and deleting.
 type MempoolTransactionRepository interface {
+	GetByID(ctx context.Context, id primitive.ObjectID) (*MempoolTransaction, error)
+
 	// Upsert inserts or updates a mempool transaction in the repository.
 	Upsert(ctx context.Context, mempoolTx *MempoolTransaction) error
 
@@ -119,6 +139,10 @@ func (tx MempoolTransaction) FromAddress() (string, error) {
 	return signature.FromAddress(tx.Transaction, tx.V, tx.R, tx.S)
 }
 
+func (tx MempoolTransaction) FromPublicKey() (*ecdsa.PublicKey, error) {
+	return signature.GetPublicKeyFromSignature(tx.Transaction, tx.V, tx.R, tx.S)
+}
+
 // ToSignedTransaction converts the mempool transaction to a signed transaction.
 func (tx MempoolTransaction) ToSignedTransaction() *SignedTransaction {
 	return &SignedTransaction{
@@ -127,4 +151,65 @@ func (tx MempoolTransaction) ToSignedTransaction() *SignedTransaction {
 		R:           tx.R,
 		S:           tx.S,
 	}
+}
+
+// MarshalBSON overrides the default serializer to handle a bug with mongodb.
+func (tx *MempoolTransaction) MarshalBSON() ([]byte, error) {
+	// Developers note:
+	// The reason *big.Int fields (like V, R, and S in MempoolTransaction) aren't
+	// being saved in MongoDB is because MongoDB's bson package does not natively
+	// support encoding or decoding *big.Int values. By default, MongoDB doesn't
+	// know how to handle big.Int types, so they end up being ignored.
+	//
+	// To fix this, you need to manually convert *big.Int values to a format
+	// MongoDB can store (such as a string or integer) and then convert them back
+	// on retrieval. Here’s one way to achieve this by adding custom serialization
+	// for these fields
+
+	type Alias MempoolTransaction // Alias to avoid recursion
+	return bson.Marshal(&struct {
+		V string `bson:"v"`
+		R string `bson:"r"`
+		S string `bson:"s"`
+		*Alias
+	}{
+		V:     tx.V.String(),
+		R:     tx.R.String(),
+		S:     tx.S.String(),
+		Alias: (*Alias)(tx),
+	})
+}
+
+// UnmarshalBSON overrides the default deserializer to handle a bug with mongodb.
+func (tx *MempoolTransaction) UnmarshalBSON(data []byte) error {
+	// Developers note:
+	// The reason *big.Int fields (like V, R, and S in MempoolTransaction) aren't
+	// being saved in MongoDB is because MongoDB's bson package does not natively
+	// support encoding or decoding *big.Int values. By default, MongoDB doesn't
+	// know how to handle big.Int types, so they end up being ignored.
+	//
+	// To fix this, you need to manually convert *big.Int values to a format
+	// MongoDB can store (such as a string or integer) and then convert them back
+	// on retrieval. Here’s one way to achieve this by adding custom serialization
+	// for these fields
+
+	type Alias MempoolTransaction // Alias to avoid recursion
+	aux := &struct {
+		V string `bson:"v"`
+		R string `bson:"r"`
+		S string `bson:"s"`
+		*Alias
+	}{
+		Alias: (*Alias)(tx),
+	}
+
+	if err := bson.Unmarshal(data, aux); err != nil {
+		return err
+	}
+
+	tx.V, _ = new(big.Int).SetString(aux.V, 10)
+	tx.R, _ = new(big.Int).SetString(aux.R, 10)
+	tx.S, _ = new(big.Int).SetString(aux.S, 10)
+
+	return nil
 }

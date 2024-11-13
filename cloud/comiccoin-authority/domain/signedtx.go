@@ -7,13 +7,14 @@ import (
 	"math/big"
 
 	"github.com/fxamacker/cbor/v2"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // SignedTransaction is a signed version of the transaction. This is how
 // clients like a wallet provide transactions for inclusion into the blockchain.
 type SignedTransaction struct {
 	Transaction
-	V *big.Int `bson:"v" json:"v"` // Ethereum: Recovery identifier, either 29 or 30 with ardanID.
+	V *big.Int `bson:"v" json:"v"` // Ethereum: Recovery identifier, either 29 or 30 with comicCoinID.
 	R *big.Int `bson:"r" json:"r"` // Ethereum: First coordinate of the ECDSA signature.
 	S *big.Int `bson:"s" json:"s"` // Ethereum: Second coordinate of the ECDSA signature.
 }
@@ -76,4 +77,65 @@ func NewSignedTransactionFromDeserialize(data []byte) (*SignedTransaction, error
 		return nil, fmt.Errorf("failed to deserialize signed transaction: %v", err)
 	}
 	return stx, nil
+}
+
+// MarshalBSON overrides the default serializer to handle a bug with mongodb.
+func (stx *SignedTransaction) MarshalBSON() ([]byte, error) {
+	// Developers note:
+	// The reason *big.Int fields (like V, R, and S in SignedTransaction) aren't
+	// being saved in MongoDB is because MongoDB's bson package does not natively
+	// support encoding or decoding *big.Int values. By default, MongoDB doesn't
+	// know how to handle big.Int types, so they end up being ignored.
+	//
+	// To fix this, you need to manually convert *big.Int values to a format
+	// MongoDB can store (such as a string or integer) and then convert them back
+	// on retrieval. Here’s one way to achieve this by adding custom serialization
+	// for these fields
+
+	type Alias SignedTransaction // Alias to avoid recursion
+	return bson.Marshal(&struct {
+		V string `bson:"v"`
+		R string `bson:"r"`
+		S string `bson:"s"`
+		*Alias
+	}{
+		V:     stx.V.String(),
+		R:     stx.R.String(),
+		S:     stx.S.String(),
+		Alias: (*Alias)(stx),
+	})
+}
+
+// UnmarshalBSON overrides the default deserializer to handle a bug with mongodb.
+func (stx *SignedTransaction) UnmarshalBSON(data []byte) error {
+	// Developers note:
+	// The reason *big.Int fields (like V, R, and S in SignedTransaction) aren't
+	// being saved in MongoDB is because MongoDB's bson package does not natively
+	// support encoding or decoding *big.Int values. By default, MongoDB doesn't
+	// know how to handle big.Int types, so they end up being ignored.
+	//
+	// To fix this, you need to manually convert *big.Int values to a format
+	// MongoDB can store (such as a string or integer) and then convert them back
+	// on retrieval. Here’s one way to achieve this by adding custom serialization
+	// for these fields
+
+	type Alias SignedTransaction // Alias to avoid recursion
+	aux := &struct {
+		V string `bson:"v"`
+		R string `bson:"r"`
+		S string `bson:"s"`
+		*Alias
+	}{
+		Alias: (*Alias)(stx),
+	}
+
+	if err := bson.Unmarshal(data, aux); err != nil {
+		return err
+	}
+
+	stx.V, _ = new(big.Int).SetString(aux.V, 10)
+	stx.R, _ = new(big.Int).SetString(aux.R, 10)
+	stx.S, _ = new(big.Int).SetString(aux.S, 10)
+
+	return nil
 }
