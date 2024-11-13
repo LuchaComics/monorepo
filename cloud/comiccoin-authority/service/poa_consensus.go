@@ -550,17 +550,17 @@ func (s *ProofOfAuthorityConsensusMechanismService) processTokenForMempoolTransa
 		// We already *should* have a `From` account in our database, so we can
 		acc, _ := s.getAccountUseCase.Execute(sessCtx, mempoolTx.From)
 		if acc == nil {
-			if err := s.upsertAccountUseCase.Execute(sessCtx, mempoolTx.To, 0, 0); err != nil {
+			if err := s.upsertAccountUseCase.Execute(sessCtx, mempoolTx.To, 0, big.NewInt(0)); err != nil {
 				s.logger.Error("Failed creating account.",
 					slog.Any("error", err))
 				return err
 			}
 			acc = &domain.Account{
 				Address: mempoolTx.To,
-				Nonce:   0, // Always start by zero, increment by 1 after mining successful.
+				Nonce:   big.NewInt(0).Bytes(), // Always start by zero, increment by 1 after mining successful.
 				Balance: 0,
 			}
-			if err := s.upsertAccountUseCase.Execute(sessCtx, acc.Address, acc.Balance, acc.Nonce); err != nil {
+			if err := s.upsertAccountUseCase.Execute(sessCtx, acc.Address, acc.Balance, acc.GetNonce()); err != nil {
 				s.logger.Error("Failed upserting account.",
 					slog.Any("error", err))
 				return err
@@ -585,17 +585,17 @@ func (s *ProofOfAuthorityConsensusMechanismService) processTokenForMempoolTransa
 		// in-memory database.
 		acc, _ := s.getAccountUseCase.Execute(sessCtx, mempoolTx.To)
 		if acc == nil {
-			if err := s.upsertAccountUseCase.Execute(sessCtx, mempoolTx.To, 0, 0); err != nil {
+			if err := s.upsertAccountUseCase.Execute(sessCtx, mempoolTx.To, 0, big.NewInt(0)); err != nil {
 				s.logger.Error("Failed creating account.",
 					slog.Any("error", err))
 				return err
 			}
 			acc = &domain.Account{
 				Address: mempoolTx.To,
-				Nonce:   0, // Always start by zero, increment by 1 after mining successful.
+				Nonce:   big.NewInt(0).Bytes(), // Always start by zero, increment by 1 after mining successful.
 				Balance: 0,
 			}
-			if err := s.upsertAccountUseCase.Execute(sessCtx, acc.Address, acc.Balance, acc.Nonce); err != nil {
+			if err := s.upsertAccountUseCase.Execute(sessCtx, acc.Address, acc.Balance, acc.GetNonce()); err != nil {
 				s.logger.Error("Failed upserting account.",
 					slog.Any("error", err))
 				return err
@@ -663,9 +663,13 @@ func (s *ProofOfAuthorityConsensusMechanismService) processAccountForMempoolTran
 			return fmt.Errorf("The `From` account does not exist in our database for hash: %v", mempoolTx.From.String())
 		}
 		acc.Balance -= mempoolTx.Value
-		acc.Nonce += 1 // Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
 
-		if err := s.upsertAccountUseCase.Execute(sessCtx, acc.Address, acc.Balance, acc.Nonce); err != nil {
+		// Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
+		accNonce := acc.GetNonce()
+		accNonce.Add(accNonce, big.NewInt(1))
+		acc.Nonce = accNonce.Bytes()
+
+		if err := s.upsertAccountUseCase.Execute(sessCtx, acc.Address, acc.Balance, acc.GetNonce()); err != nil {
 			s.logger.Error("Failed upserting account.",
 				slog.Any("error", err))
 			return err
@@ -688,7 +692,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) processAccountForMempoolTran
 		// in-memory database.
 		acc, _ := s.getAccountUseCase.Execute(sessCtx, mempoolTx.To)
 		if acc == nil {
-			if err := s.upsertAccountUseCase.Execute(sessCtx, mempoolTx.To, 0, 0); err != nil {
+			if err := s.upsertAccountUseCase.Execute(sessCtx, mempoolTx.To, 0, big.NewInt(0)); err != nil {
 				s.logger.Error("Failed creating account.",
 					slog.Any("error", err))
 				return err
@@ -697,16 +701,20 @@ func (s *ProofOfAuthorityConsensusMechanismService) processAccountForMempoolTran
 				Address: mempoolTx.To,
 
 				// Always start by zero, increment by 1 after mining successful.
-				Nonce: 0,
+				Nonce: big.NewInt(0).Bytes(),
 
 				Balance: mempoolTx.Value,
 			}
 		} else {
 			acc.Balance += mempoolTx.Value
-			acc.Nonce += 1 // Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
+
+			// Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
+			accNonce := acc.GetNonce()
+			accNonce.Add(accNonce, big.NewInt(1))
+			acc.Nonce = accNonce.Bytes()
 		}
 
-		if err := s.upsertAccountUseCase.Execute(sessCtx, acc.Address, acc.Balance, acc.Nonce); err != nil {
+		if err := s.upsertAccountUseCase.Execute(sessCtx, acc.Address, acc.Balance, acc.GetNonce()); err != nil {
 			s.logger.Error("Failed upserting account.",
 				slog.Any("error", err))
 			return err

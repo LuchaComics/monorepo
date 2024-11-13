@@ -129,7 +129,7 @@ func (s *CreateGenesisBlockDataService) Execute(sessCtx mongo.SessionContext) (*
 	//
 	// From this point on, every time a transaction is sent from the account, the nonce value is incremented by 1.
 
-	if err := s.upsertAccountUseCase.Execute(sessCtx, account.Address, initialSupply, 0); err != nil {
+	if err := s.upsertAccountUseCase.Execute(sessCtx, account.Address, initialSupply, big.NewInt(0)); err != nil {
 		s.logger.Error("Failed upserting account", slog.Any("error", err))
 		return nil, err
 	}

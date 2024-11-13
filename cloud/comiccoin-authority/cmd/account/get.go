@@ -103,7 +103,7 @@ func doRunGetAccount() {
 	account := res.(*domain.Account)
 
 	logger.Debug("Account created",
-		slog.Uint64("nonce", account.Nonce),
+		slog.Any("nonce", account.GetNonce()),
 		slog.Uint64("balance", account.Balance),
 		slog.String("address", account.Address.Hex()),
 	)

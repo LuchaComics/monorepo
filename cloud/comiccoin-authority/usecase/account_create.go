@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"log/slog"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 
@@ -46,7 +47,7 @@ func (uc *CreateAccountUseCase) Execute(ctx context.Context, address *common.Add
 
 	account := &domain.Account{
 		Address: address,
-		Nonce:   0,
+		Nonce:   big.NewInt(0).Bytes(),
 		Balance: 0,
 	}
 

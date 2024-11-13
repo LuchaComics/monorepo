@@ -3,6 +3,7 @@ package domain
 import (
 	"context"
 	"fmt"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/fxamacker/cbor/v2"
@@ -52,7 +53,7 @@ type Account struct {
 	// It's worth noting that the Nonce field in the BlockHeader struct has a
 	// different purpose. It's used to solve the proof-of-work puzzle required
 	// to mine a new block.
-	Nonce uint64 `bson:"nonce" json:"nonce"`
+	Nonce []byte `bson:"nonce" json:"nonce"`
 
 	// The balance of the account in coins.
 	Balance uint64 `bson:"balance" json:"balance"`
@@ -76,6 +77,19 @@ type AccountRepository interface {
 	// HashState returns a hash based on the contents of the accounts and
 	// their balances. This is added to each block and checked by peers.
 	HashState(ctx context.Context) (string, error)
+}
+
+func (acc *Account) GetNonce() *big.Int {
+	return new(big.Int).SetBytes(acc.Nonce)
+}
+
+func (acc *Account) IsNonceZero() bool {
+	// Special thanks to "Is there another way of testing if a big.Int is 0?" via https://stackoverflow.com/a/64257532
+	return len(acc.GetNonce().Bits()) == 0
+}
+
+func (acc *Account) SetNonce(n *big.Int) {
+	acc.Nonce = n.Bytes()
 }
 
 // Serialize serializes the account into a byte slice.

@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"log/slog"
+	"math/big"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config"
@@ -20,7 +21,7 @@ func NewGetOrCreateAccountUseCase(config *config.Configuration, logger *slog.Log
 	return &GetOrCreateAccountUseCase{config, logger, repo}
 }
 
-func (uc *GetOrCreateAccountUseCase) Execute(ctx context.Context, walletAddress *common.Address, balance, nonce uint64) error {
+func (uc *GetOrCreateAccountUseCase) Execute(ctx context.Context, walletAddress *common.Address, balance uint64, nonce *big.Int) error {
 	//
 	// STEP 1: Validation.
 	//
@@ -51,7 +52,7 @@ func (uc *GetOrCreateAccountUseCase) Execute(ctx context.Context, walletAddress 
 
 	account := &domain.Account{
 		Address: walletAddress,
-		Nonce:   nonce,
+		Nonce:   nonce.Bytes(),
 		Balance: balance,
 	}
 
