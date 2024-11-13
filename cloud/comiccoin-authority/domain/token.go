@@ -10,10 +10,10 @@ import (
 )
 
 type Token struct {
-	ID          []byte          `bson:"id" json:"id"`
+	IDBytes     []byte          `bson:"id_bytes" json:"id_bytes"`
 	Owner       *common.Address `bson:"owner" json:"owner"`
 	MetadataURI string          `bson:"metadata_uri" json:"metadata_uri"` // ComicCoin: URI pointing to Token metadata file (if this transaciton is an Token).
-	Nonce       []byte          `bson:"nonce" json:"nonce"`               // ComicCoin: Newly minted tokens always start at zero and for every transaction action afterwords (transfer, burn, etc) this value is increment by 1.
+	NonceBytes  []byte          `bson:"nonce_bytes" json:"nonce_bytes"`   // ComicCoin: Newly minted tokens always start at zero and for every transaction action afterwords (transfer, burn, etc) this value is increment by 1.
 }
 
 // TokenRepository interface defines the methods for interacting with the token repository.
@@ -41,7 +41,7 @@ type TokenRepository interface {
 }
 
 func (tok *Token) GetID() *big.Int {
-	return new(big.Int).SetBytes(tok.ID)
+	return new(big.Int).SetBytes(tok.IDBytes)
 }
 
 func (tok *Token) IsLatestTokenIDZero() bool {
@@ -50,11 +50,11 @@ func (tok *Token) IsLatestTokenIDZero() bool {
 }
 
 func (tok *Token) SeLatestTokenID(n *big.Int) {
-	tok.ID = n.Bytes()
+	tok.IDBytes = n.Bytes()
 }
 
 func (tok *Token) GetNonce() *big.Int {
-	return new(big.Int).SetBytes(tok.Nonce)
+	return new(big.Int).SetBytes(tok.NonceBytes)
 }
 
 func (tok *Token) IsNonceZero() bool {
@@ -63,7 +63,7 @@ func (tok *Token) IsNonceZero() bool {
 }
 
 func (tok *Token) SetNonce(n *big.Int) {
-	tok.Nonce = n.Bytes()
+	tok.NonceBytes = n.Bytes()
 }
 
 // Serialize serializes the token into a byte slice.

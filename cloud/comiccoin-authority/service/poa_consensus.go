@@ -99,15 +99,15 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		}
 		s.logger.Debug("New memory pool transaction detected!",
 			slog.Any("chain_id", mempoolTx.ChainID),
-			slog.Any("nonce", mempoolTx.Nonce),
+			slog.Any("nonce", mempoolTx.GetNonce()),
 			slog.Any("from", mempoolTx.From),
 			slog.Any("to", mempoolTx.To),
 			slog.Any("value", mempoolTx.Value),
 			slog.Any("data", mempoolTx.Data),
 			slog.Any("type", mempoolTx.Type),
-			slog.Any("token_id", mempoolTx.TokenID),
+			slog.Any("token_id", mempoolTx.GetTokenID()),
 			slog.Any("token_metadata_uri", mempoolTx.TokenMetadataURI),
-			slog.Any("token_nonce", mempoolTx.TokenNonce),
+			slog.Any("token_nonce", mempoolTx.GetTokenNonce()),
 			slog.Any("tx_sig_v", mempoolTx.V),
 			slog.Any("tx_sig_r", mempoolTx.R),
 			slog.Any("tx_sig_s", mempoolTx.S))
@@ -302,17 +302,17 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		// Construct the block.
 		block := domain.Block{
 			Header: &domain.BlockHeader{
-				Number:        newBlockNumber.Bytes(),
-				PrevBlockHash: string(blockchainState.LatestHash),
-				TimeStamp:     uint64(time.Now().UTC().UnixMilli()),
-				Beneficiary:   recentBlockData.Header.Beneficiary,
-				Difficulty:    s.config.Blockchain.Difficulty,
-				MiningReward:  s.config.Blockchain.MiningReward,
-				StateRoot:     stateRoot,
-				TransRoot:     tree.RootHex(),                //
-				Nonce:         big.NewInt(0).Bytes(),         // Will be identified by the PoW algorithm.
-				LatestTokenID: blockchainState.LatestTokenID, // Ensure our blockchain state has always the latest token ID recorded.
-				TokensRoot:    tokensRoot,
+				NumberBytes:        newBlockNumber.Bytes(),
+				PrevBlockHash:      string(blockchainState.LatestHash),
+				TimeStamp:          uint64(time.Now().UTC().UnixMilli()),
+				Beneficiary:        recentBlockData.Header.Beneficiary,
+				Difficulty:         s.config.Blockchain.Difficulty,
+				MiningReward:       s.config.Blockchain.MiningReward,
+				StateRoot:          stateRoot,
+				TransRoot:          tree.RootHex(),                     //
+				NonceBytes:         big.NewInt(0).Bytes(),              // Will be identified by the PoW algorithm.
+				LatestTokenIDBytes: blockchainState.LatestTokenIDBytes, // Ensure our blockchain state has always the latest token ID recorded.
+				TokensRoot:         tokensRoot,
 			},
 			HeaderSignatureBytes: []byte{}, // Will be identified by the PoA algorithm in this function!
 			MerkleTree:           tree,
@@ -330,7 +330,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 			return nil, err
 		}
 
-		block.Header.Nonce = nonce.Bytes()
+		block.Header.NonceBytes = nonce.Bytes()
 
 		// Convert into saving for our database and transmitting over network.
 		blockData := domain.NewBlockData(block)
@@ -397,7 +397,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 			slog.String("previous_state_root", recentBlockData.Header.StateRoot),
 		)
 
-		blockchainState.LatestBlockNumber = blockData.Header.Number
+		blockchainState.LatestBlockNumberBytes = blockData.Header.NumberBytes
 		blockchainState.LatestHash = blockData.Hash
 		// blockchainState.LatestTokenID = ... // No need because it's done elsewere here.
 		if err := s.upsertBlockchainStateUseCase.Execute(sessCtx, blockchainState); err != nil {
@@ -421,15 +421,15 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 func (s *ProofOfAuthorityConsensusMechanismService) verifyMempoolTransaction(sessCtx mongo.SessionContext, mempoolTx *domain.MempoolTransaction) error {
 	s.logger.Debug("Preparing to verify",
 		slog.Any("chain_id", mempoolTx.ChainID),
-		slog.Any("nonce", mempoolTx.Nonce),
+		slog.Any("nonce", mempoolTx.GetNonce()),
 		slog.Any("from", mempoolTx.From),
 		slog.Any("to", mempoolTx.To),
 		slog.Any("value", mempoolTx.Value),
 		slog.Any("data", mempoolTx.Data),
 		slog.Any("type", mempoolTx.Type),
-		slog.Any("token_id", mempoolTx.TokenID),
+		slog.Any("token_id", mempoolTx.GetTokenID()),
 		slog.Any("token_metadata_uri", mempoolTx.TokenMetadataURI),
-		slog.Any("token_nonce", mempoolTx.TokenNonce),
+		slog.Any("token_nonce", mempoolTx.GetTokenNonce()),
 		slog.Any("tx_sig_v", mempoolTx.V),
 		slog.Any("tx_sig_r", mempoolTx.R),
 		slog.Any("tx_sig_s", mempoolTx.S))
@@ -457,15 +457,15 @@ func (s *ProofOfAuthorityConsensusMechanismService) verifyMempoolTransaction(ses
 		s.logger.Error("Failed validating pending block transaction.",
 			slog.Any("from_via_sig", fromAddr),
 			slog.Any("chain_id", mempoolTx.ChainID),
-			slog.Any("nonce", mempoolTx.Nonce),
+			slog.Any("nonce", mempoolTx.GetNonce()),
 			slog.Any("from", mempoolTx.From),
 			slog.Any("to", mempoolTx.To),
 			slog.Any("value", mempoolTx.Value),
 			slog.Any("data", mempoolTx.Data),
 			slog.Any("type", mempoolTx.Type),
-			slog.Any("token_id", mempoolTx.TokenID),
+			slog.Any("token_id", mempoolTx.GetTokenID()),
 			slog.Any("token_metadata_uri", mempoolTx.TokenMetadataURI),
-			slog.Any("token_nonce", mempoolTx.TokenNonce),
+			slog.Any("token_nonce", mempoolTx.GetTokenNonce()),
 			slog.Any("tx_sig_v", mempoolTx.V),
 			slog.Any("tx_sig_r", mempoolTx.R),
 			slog.Any("tx_sig_s", mempoolTx.S),
@@ -632,7 +632,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) processTokenForMempoolTransa
 	// we are `transfering` or `burning` a token since no new token IDs are
 	// created.
 	if blockchainState.GetLatestTokenID().Cmp(mempoolTx.GetTokenID()) > 0 {
-		blockchainState.LatestTokenID = mempoolTx.TokenID
+		blockchainState.LatestTokenIDBytes = mempoolTx.TokenIDBytes
 		if err := s.upsertBlockchainStateUseCase.Execute(sessCtx, blockchainState); err != nil {
 			s.logger.Error("validator failed saving latest hash",
 				slog.Any("error", err))

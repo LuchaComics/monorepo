@@ -57,7 +57,7 @@ func NewTokenRepo(cfg *config.Configuration, logger *slog.Logger, client *mongo.
 
 func (r *TokenRepo) Upsert(ctx context.Context, token *domain.Token) error {
 	opts := options.Update().SetUpsert(true)
-	_, err := r.collection.UpdateOne(ctx, bson.M{"id": token.ID}, bson.M{"$set": token}, opts)
+	_, err := r.collection.UpdateOne(ctx, bson.M{"id_bytes": token.IDBytes}, bson.M{"$set": token}, opts)
 	return err
 }
 

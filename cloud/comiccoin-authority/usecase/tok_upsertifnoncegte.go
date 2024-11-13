@@ -73,10 +73,10 @@ func (uc *UpsertTokenIfPreviousTokenNonceGTEUseCase) Execute(
 	//
 	if previousToken == nil {
 		token := &domain.Token{
-			ID:          id.Bytes(),
+			IDBytes:     id.Bytes(),
 			Owner:       owner,
 			MetadataURI: metadataURI,
-			Nonce:       nonce.Bytes(),
+			NonceBytes:  nonce.Bytes(),
 		}
 		return uc.repo.Upsert(ctx, token)
 	}
@@ -103,10 +103,10 @@ func (uc *UpsertTokenIfPreviousTokenNonceGTEUseCase) Execute(
 	//
 
 	token := &domain.Token{
-		ID:          id.Bytes(),
+		IDBytes:     id.Bytes(),
 		Owner:       owner,
 		MetadataURI: metadataURI,
-		Nonce:       nonce.Bytes(),
+		NonceBytes:  nonce.Bytes(),
 	}
 	return uc.repo.Upsert(ctx, token)
 }

@@ -21,20 +21,20 @@ const (
 // afterwords.
 type Transaction struct {
 	ChainID          uint16          `bson:"chain_id" json:"chain_id"`                     // Ethereum: The chain id that is listed in the genesis file.
-	Nonce            []byte          `bson:"nonce" json:"nonce"`                           // Ethereum: Unique id for the transaction supplied by the user.
+	NonceBytes       []byte          `bson:"nonce_bytes" json:"nonce_bytes"`               // Ethereum: Unique id for the transaction supplied by the user.
 	From             *common.Address `bson:"from" json:"from"`                             // Ethereum: Account sending the transaction. Will be checked against signature.
 	To               *common.Address `bson:"to" json:"to"`                                 // Ethereum: Account receiving the benefit of the transaction.
 	Value            uint64          `bson:"value" json:"value"`                           // Ethereum: Monetary value received from this transaction.
 	Tip              uint64          `bson:"tip" json:"tip"`                               // Ethereum: Tip offered by the sender as an incentive to mine this transaction.
 	Data             []byte          `bson:"data" json:"data"`                             // Ethereum: Extra data related to the transaction.
 	Type             string          `bson:"type" json:"type"`                             // ComicCoin: The type of transaction this is, either `coin` or `token`.
-	TokenID          []byte          `bson:"token_id" json:"token_id"`                     // ComicCoin: Unique identifier for the Token (if this transaciton is an Token).
+	TokenIDBytes     []byte          `bson:"token_id_bytes" json:"token_id_bytes"`         // ComicCoin: Unique identifier for the Token (if this transaciton is an Token).
 	TokenMetadataURI string          `bson:"token_metadata_uri" json:"token_metadata_uri"` // ComicCoin: URI pointing to Token metadata file (if this transaciton is an Token).
-	TokenNonce       []byte          `bson:"token_nonce" json:"token_nonce"`               // ComicCoin: For every transaction action (mint, transfer, burn, etc), increment token nonce by value of 1.
+	TokenNonceBytes  []byte          `bson:"token_nonce_bytes" json:"token_nonce_bytes"`   // ComicCoin: For every transaction action (mint, transfer, burn, etc), increment token nonce by value of 1.
 }
 
 func (tx *Transaction) GetNonce() *big.Int {
-	return new(big.Int).SetBytes(tx.Nonce)
+	return new(big.Int).SetBytes(tx.NonceBytes)
 }
 
 func (tx *Transaction) IsNonceZero() bool {
@@ -43,11 +43,11 @@ func (tx *Transaction) IsNonceZero() bool {
 }
 
 func (tx *Transaction) SetNonce(n *big.Int) {
-	tx.Nonce = n.Bytes()
+	tx.NonceBytes = n.Bytes()
 }
 
 func (tx *Transaction) GetTokenID() *big.Int {
-	return new(big.Int).SetBytes(tx.TokenID)
+	return new(big.Int).SetBytes(tx.TokenIDBytes)
 }
 
 func (tx *Transaction) IsTokenIDZero() bool {
@@ -56,11 +56,11 @@ func (tx *Transaction) IsTokenIDZero() bool {
 }
 
 func (tx *Transaction) SetTTokenID(n *big.Int) {
-	tx.TokenID = n.Bytes()
+	tx.TokenIDBytes = n.Bytes()
 }
 
 func (tx *Transaction) GetTokenNonce() *big.Int {
-	return new(big.Int).SetBytes(tx.TokenNonce)
+	return new(big.Int).SetBytes(tx.TokenNonceBytes)
 }
 
 func (tx *Transaction) IsTokenNonceZero() bool {
@@ -69,7 +69,7 @@ func (tx *Transaction) IsTokenNonceZero() bool {
 }
 
 func (tx *Transaction) SetTokenNonce(n *big.Int) {
-	tx.TokenNonce = n.Bytes()
+	tx.TokenNonceBytes = n.Bytes()
 }
 
 // Sign function signs the  transaction using the user's private key

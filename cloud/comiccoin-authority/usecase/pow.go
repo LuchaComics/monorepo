@@ -45,7 +45,7 @@ func (uc *ProofOfWorkUseCase) Execute(ctx context.Context, b *domain.Block, diff
 	// Choose zero starting point for the nonce. After this, the nonce
 	// will be incremented by 1 until a solution is found by us or another node.
 	nBig := big.NewInt(0)
-	b.Header.Nonce = nBig.Bytes()
+	b.Header.NonceBytes = nBig.Bytes()
 
 	for {
 		// Did we timeout trying to solve the problem.

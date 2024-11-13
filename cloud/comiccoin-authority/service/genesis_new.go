@@ -141,14 +141,14 @@ func (s *CreateGenesisBlockDataService) Execute(sessCtx mongo.SessionContext) (*
 	//
 
 	coinTx := &domain.Transaction{
-		ChainID: s.config.Blockchain.ChainID,
-		Nonce:   big.NewInt(0).Bytes(), // Will be calculated later.
-		From:    account.Address,
-		To:      account.Address,
-		Value:   initialSupply,
-		Tip:     0,
-		Data:    make([]byte, 0),
-		Type:    domain.TransactionTypeCoin,
+		ChainID:    s.config.Blockchain.ChainID,
+		NonceBytes: big.NewInt(0).Bytes(), // Will be calculated later.
+		From:       account.Address,
+		To:         account.Address,
+		Value:      initialSupply,
+		Tip:        0,
+		Data:       make([]byte, 0),
+		Type:       domain.TransactionTypeCoin,
 	}
 	signedCoinTx, err := coinTx.Sign(coinbaseKey.PrivateKey)
 	if err != nil {
@@ -163,16 +163,16 @@ func (s *CreateGenesisBlockDataService) Execute(sessCtx mongo.SessionContext) (*
 
 	tokenTx := &domain.Transaction{
 		ChainID:          s.config.Blockchain.ChainID,
-		Nonce:            big.NewInt(0).Bytes(), // Will be calculated later.
+		NonceBytes:       big.NewInt(0).Bytes(), // Will be calculated later.
 		From:             account.Address,
 		To:               account.Address,
 		Value:            0, //Note: Tokens don't have coin value.
 		Tip:              0,
 		Data:             make([]byte, 0),
 		Type:             domain.TransactionTypeToken,
-		TokenID:          big.NewInt(0).Bytes(), // The very first token in our entire blockchain starts at the value of zero.
+		TokenIDBytes:     big.NewInt(0).Bytes(), // The very first token in our entire blockchain starts at the value of zero.
 		TokenMetadataURI: "https://cpscapsule.com/comiccoin/tokens/0/metadata.json",
-		TokenNonce:       big.NewInt(0).Bytes(), // Newly minted tokens always have their nonce start at value of zero.
+		TokenNonceBytes:  big.NewInt(0).Bytes(), // Newly minted tokens always have their nonce start at value of zero.
 	}
 	signedTokenTx, err := tokenTx.Sign(coinbaseKey.PrivateKey)
 	if err != nil {
@@ -266,18 +266,18 @@ func (s *CreateGenesisBlockDataService) Execute(sessCtx mongo.SessionContext) (*
 	// Construct the genesis block.
 	block := domain.Block{
 		Header: &domain.BlockHeader{
-			ChainID:       uint16(s.config.Blockchain.ChainID),
-			Number:        big.NewInt(0).Bytes(), // Genesis always starts at zero
-			PrevBlockHash: prevBlockHash,
-			TimeStamp:     uint64(time.Now().UTC().UnixMilli()),
-			Beneficiary:   *account.Address,
-			Difficulty:    s.config.Blockchain.Difficulty,
-			MiningReward:  s.config.Blockchain.MiningReward,
-			StateRoot:     stateRoot,
-			TransRoot:     tree.RootHex(),        //
-			Nonce:         big.NewInt(0).Bytes(), // Will be identified by the POW algorithm.
-			LatestTokenID: big.NewInt(0).Bytes(), // ComicCoin: Token ID values start at zero.
-			TokensRoot:    tokensRoot,
+			ChainID:            uint16(s.config.Blockchain.ChainID),
+			NumberBytes:        big.NewInt(0).Bytes(), // Genesis always starts at zero
+			PrevBlockHash:      prevBlockHash,
+			TimeStamp:          uint64(time.Now().UTC().UnixMilli()),
+			Beneficiary:        *account.Address,
+			Difficulty:         s.config.Blockchain.Difficulty,
+			MiningReward:       s.config.Blockchain.MiningReward,
+			StateRoot:          stateRoot,
+			TransRoot:          tree.RootHex(),        //
+			NonceBytes:         big.NewInt(0).Bytes(), // Will be identified by the POW algorithm.
+			LatestTokenIDBytes: big.NewInt(0).Bytes(), // ComicCoin: Token ID values start at zero.
+			TokensRoot:         tokensRoot,
 		},
 		MerkleTree: tree,
 	}
@@ -294,7 +294,7 @@ func (s *CreateGenesisBlockDataService) Execute(sessCtx mongo.SessionContext) (*
 		return nil, fmt.Errorf("Failed to mine block: %v", powErr)
 	}
 
-	block.Header.Nonce = nonce.Bytes()
+	block.Header.NonceBytes = nonce.Bytes()
 
 	s.logger.Debug("genesis mining completed",
 		slog.Any("nonce", block.Header.GetNonce()))
@@ -367,12 +367,12 @@ func (s *CreateGenesisBlockDataService) Execute(sessCtx mongo.SessionContext) (*
 	//
 
 	blockchainState := &domain.BlockchainState{
-		ChainID:           s.config.Blockchain.ChainID,
-		LatestBlockNumber: genesisBlockData.Header.Number,
-		LatestHash:        genesisBlockData.Hash,
-		LatestTokenID:     tokenTx.TokenID,
-		AccountHashState:  stateRoot,
-		TokenHashState:    tokensRoot,
+		ChainID:                s.config.Blockchain.ChainID,
+		LatestBlockNumberBytes: genesisBlockData.Header.NumberBytes,
+		LatestHash:             genesisBlockData.Hash,
+		LatestTokenIDBytes:     tokenTx.TokenIDBytes,
+		AccountHashState:       stateRoot,
+		TokenHashState:         tokensRoot,
 	}
 
 	if err := s.upsertBlockchainStateUseCase.Execute(sessCtx, blockchainState); err != nil {

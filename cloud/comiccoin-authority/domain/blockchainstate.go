@@ -14,16 +14,16 @@ type BlockchainState struct {
 	// The unique identifier for this blockchain that we are managing the state for.
 	ChainID uint16 `bson:"chain_id" json:"chain_id"`
 
-	LatestBlockNumber []byte `bson:"latest_block_number" json:"latest_block_number"`
-	LatestHash        string `bson:"latest_hash" json:"latest_hash"`
-	LatestTokenID     []byte `bson:"latest_token_id" json:"latest_token_id"`
+	LatestBlockNumberBytes []byte `bson:"latest_block_number_bytes" json:"latest_block_number_bytes"`
+	LatestHash             string `bson:"latest_hash" json:"latest_hash"`
+	LatestTokenIDBytes     []byte `bson:"latest_token_id_bytes" json:"latest_token_id_bytes"`
 
 	AccountHashState string `bson:"account_hash_state" json:"account_hash_state"`
 	TokenHashState   string `bson:"token_hash_state" json:"token_hash_state"`
 }
 
 func (bs *BlockchainState) GetLatestBlockNumber() *big.Int {
-	return new(big.Int).SetBytes(bs.LatestBlockNumber)
+	return new(big.Int).SetBytes(bs.LatestBlockNumberBytes)
 }
 
 func (bs *BlockchainState) IsLatestBlockNumberZero() bool {
@@ -32,11 +32,11 @@ func (bs *BlockchainState) IsLatestBlockNumberZero() bool {
 }
 
 func (bs *BlockchainState) SetLatestBlockNumber(n *big.Int) {
-	bs.LatestBlockNumber = n.Bytes()
+	bs.LatestBlockNumberBytes = n.Bytes()
 }
 
 func (bs *BlockchainState) GetLatestTokenID() *big.Int {
-	return new(big.Int).SetBytes(bs.LatestTokenID)
+	return new(big.Int).SetBytes(bs.LatestTokenIDBytes)
 }
 
 func (bs *BlockchainState) IsLatestTokenIDZero() bool {
@@ -45,7 +45,7 @@ func (bs *BlockchainState) IsLatestTokenIDZero() bool {
 }
 
 func (bs *BlockchainState) SeLatestTokenID(n *big.Int) {
-	bs.LatestTokenID = n.Bytes()
+	bs.LatestTokenIDBytes = n.Bytes()
 }
 
 type BlockchainStateRepository interface {

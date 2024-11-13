@@ -133,13 +133,13 @@ func (s *CoinTransferService) Execute(
 	//
 
 	tx := &domain.Transaction{
-		ChainID: s.config.Blockchain.ChainID,
-		Nonce:   big.NewInt(time.Now().Unix()).Bytes(),
-		From:    wallet.Address,
-		To:      to,
-		Value:   value,
-		Data:    data,
-		Type:    domain.TransactionTypeCoin,
+		ChainID:    s.config.Blockchain.ChainID,
+		NonceBytes: big.NewInt(time.Now().Unix()).Bytes(),
+		From:       wallet.Address,
+		To:         to,
+		Value:      value,
+		Data:       data,
+		Type:       domain.TransactionTypeCoin,
 	}
 
 	stx, signingErr := tx.Sign(key.PrivateKey)
@@ -158,15 +158,15 @@ func (s *CoinTransferService) Execute(
 
 	s.logger.Debug("Transaction signed successfully",
 		slog.Any("chain_id", stx.ChainID),
-		slog.Any("nonce", stx.Nonce),
+		slog.Any("nonce", stx.GetNonce()),
 		slog.Any("from", stx.From),
 		slog.Any("to", stx.To),
 		slog.Any("value", stx.Value),
 		slog.Any("data", stx.Data),
 		slog.Any("type", stx.Type),
-		slog.Any("token_id", stx.TokenID),
+		slog.Any("token_id", stx.GetTokenID()),
 		slog.Any("token_metadata_uri", stx.TokenMetadataURI),
-		slog.Any("token_nonce", stx.TokenNonce),
+		slog.Any("token_nonce", stx.GetTokenNonce()),
 		slog.Any("tx_sig_v", stx.V),
 		slog.Any("tx_sig_r", stx.R),
 		slog.Any("tx_sig_s", stx.S),
