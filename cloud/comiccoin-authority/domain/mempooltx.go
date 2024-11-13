@@ -39,8 +39,10 @@ type MempoolTransactionRepository interface {
 	// ListAll retrieves all mempool transactions in the repository.
 	ListByChainID(ctx context.Context, chainID uint16) ([]*MempoolTransaction, error)
 
-	// DeleteAll deletes all mempool transactions in the repository.
+	// DeleteByChainID deletes all mempool transactions in the repository for the particular chainID.
 	DeleteByChainID(ctx context.Context, chainID uint16) error
+
+	DeleteByID(ctx context.Context, id primitive.ObjectID) error
 
 	GetInsertionChangeStreamChannel(ctx context.Context) (<-chan MempoolTransaction, chan struct{}, error)
 }

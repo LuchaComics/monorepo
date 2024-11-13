@@ -171,7 +171,7 @@ func doRunDaemon() {
 		mempoolTxRepo,
 	)
 	_ = mempoolTransactionListByChainIDUseCase
-	mempoolTransactionDeleteByChainIDUseCase := usecase.NewMempoolTransactionDeleteByChainIDUseCase(
+	mempoolTransactionDeleteByIDUseCase := usecase.NewMempoolTransactionDeleteByIDUseCase(
 		cfg,
 		logger,
 		mempoolTxRepo,
@@ -255,7 +255,7 @@ func doRunDaemon() {
 		dbClient, // We do this so we can use MongoDB's "transactions"
 		getProofOfAuthorityPrivateKeyService,
 		mempoolTransactionInsertionDetectorUseCase,
-		mempoolTransactionDeleteByChainIDUseCase,
+		mempoolTransactionDeleteByIDUseCase,
 		getBlockchainStateUseCase,
 		upsertBlockchainStateUseCase,
 		getGenesisBlockDataUseCase,

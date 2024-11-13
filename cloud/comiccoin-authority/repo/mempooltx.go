@@ -113,6 +113,13 @@ func (r *MempoolTransactionRepo) DeleteByChainID(ctx context.Context, chainID ui
 	return err
 }
 
+func (r *MempoolTransactionRepo) DeleteByID(ctx context.Context, id primitive.ObjectID) error {
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, 30*time.Second) // Use to prevent resource leaks.
+	defer cancel()
+	_, err := r.collection.DeleteOne(ctxWithTimeout, bson.M{"_id": id})
+	return err
+}
+
 // -----------------------------------------------------------------------------
 
 func (r *MempoolTransactionRepo) GetInsertionChangeStream(ctx context.Context) (*mongo.ChangeStream, error) {

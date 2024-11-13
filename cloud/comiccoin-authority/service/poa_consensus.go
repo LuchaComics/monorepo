@@ -29,7 +29,7 @@ type ProofOfAuthorityConsensusMechanismService struct {
 	dbClient                                   *mongo.Client
 	getProofOfAuthorityPrivateKeyService       *GetProofOfAuthorityPrivateKeyService
 	mempoolTransactionInsertionDetectorUseCase *usecase.MempoolTransactionInsertionDetectorUseCase
-	mempoolTransactionDeleteByChainIDUseCase   *usecase.MempoolTransactionDeleteByChainIDUseCase
+	mempoolTransactionDeleteByIDUseCase        *usecase.MempoolTransactionDeleteByIDUseCase
 	getBlockchainStateUseCase                  *usecase.GetBlockchainStateUseCase
 	upsertBlockchainStateUseCase               *usecase.UpsertBlockchainStateUseCase
 	getGenesisBlockDataUseCase                 *usecase.GetGenesisBlockDataUseCase
@@ -51,7 +51,7 @@ func NewProofOfAuthorityConsensusMechanismService(
 	client *mongo.Client,
 	s1 *GetProofOfAuthorityPrivateKeyService,
 	uc1 *usecase.MempoolTransactionInsertionDetectorUseCase,
-	uc2 *usecase.MempoolTransactionDeleteByChainIDUseCase,
+	uc2 *usecase.MempoolTransactionDeleteByIDUseCase,
 	uc3 *usecase.GetBlockchainStateUseCase,
 	uc4 *usecase.UpsertBlockchainStateUseCase,
 	uc5 *usecase.GetGenesisBlockDataUseCase,
@@ -371,7 +371,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		// Delete mempool data as it has already been processed.
 		//
 
-		if err := s.mempoolTransactionDeleteByChainIDUseCase.Execute(sessCtx, s.config.Blockchain.ChainID); err != nil {
+		if err := s.mempoolTransactionDeleteByIDUseCase.Execute(sessCtx, mempoolTx.ID); err != nil {
 			s.logger.Error("Failed deleting all pending block transactions",
 				slog.Any("error", err))
 			return nil, err
