@@ -10,6 +10,7 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/cmd/coins"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/cmd/daemon"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/cmd/genesis"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/cmd/tokens"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/cmd/version"
 )
 
@@ -31,6 +32,7 @@ func Execute() {
 	// Attach sub-commands to our main root.
 	rootCmd.AddCommand(account.AccountCmd())
 	rootCmd.AddCommand(coins.CoinsCmd())
+	rootCmd.AddCommand(tokens.TokensCmd())
 	rootCmd.AddCommand(genesis.GenesisCmd())
 	rootCmd.AddCommand(daemon.DaemonCmd())
 	rootCmd.AddCommand(version.VersionCmd())
