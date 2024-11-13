@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -95,6 +96,7 @@ func FromAddress(value any, v, r, s *big.Int) (string, error) {
 	// Prepare the data for public key extraction.
 	data, err := stamp(value)
 	if err != nil {
+		log.Printf("signature.go -> FromAddress(): Stamp error: %v\n", err)
 		return "", err
 	}
 
@@ -104,6 +106,7 @@ func FromAddress(value any, v, r, s *big.Int) (string, error) {
 	// Capture the public key associated with this data and signature.
 	publicKey, err := crypto.SigToPub(data, sig)
 	if err != nil {
+		log.Printf("signature.go -> FromAddress(): crypto.SigToPub error: %v\n", err)
 		return "", err
 	}
 
