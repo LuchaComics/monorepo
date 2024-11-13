@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"log/slog"
 	"math/big"
+	"strings"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
@@ -17,7 +19,7 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase"
 )
 
-type TokenMintService struct {
+type TokenTransferService struct {
 	config                               *config.Configuration
 	logger                               *slog.Logger
 	kmutex                               kmutexutil.KMutexProvider
@@ -26,10 +28,11 @@ type TokenMintService struct {
 	getBlockchainStateUseCase            *usecase.GetBlockchainStateUseCase
 	upsertBlockchainStateUseCase         *usecase.UpsertBlockchainStateUseCase
 	getBlockDataUseCase                  *usecase.GetBlockDataUseCase
+	getTokenUseCase                      *usecase.GetTokenUseCase
 	mempoolTransactionCreateUseCase      *usecase.MempoolTransactionCreateUseCase
 }
 
-func NewTokenMintService(
+func NewTokenTransferService(
 	cfg *config.Configuration,
 	logger *slog.Logger,
 	kmutex kmutexutil.KMutexProvider,
@@ -38,12 +41,17 @@ func NewTokenMintService(
 	uc1 *usecase.GetBlockchainStateUseCase,
 	uc2 *usecase.UpsertBlockchainStateUseCase,
 	uc3 *usecase.GetBlockDataUseCase,
-	uc4 *usecase.MempoolTransactionCreateUseCase,
-) *TokenMintService {
-	return &TokenMintService{cfg, logger, kmutex, client, s1, uc1, uc2, uc3, uc4}
+	uc4 *usecase.GetTokenUseCase,
+	uc5 *usecase.MempoolTransactionCreateUseCase,
+) *TokenTransferService {
+	return &TokenTransferService{cfg, logger, kmutex, client, s1, uc1, uc2, uc3, uc4, uc5}
 }
 
-func (s *TokenMintService) Execute(ctx context.Context, metadataURI string) (*big.Int, error) {
+func (s *TokenTransferService) Execute(
+	ctx context.Context,
+	tokenID *big.Int,
+	tokenOwnerAddress *common.Address,
+	recipientAddress *common.Address) error {
 	// Lock the mining service until it has completed executing (or errored).
 	s.kmutex.Acquire("token-services")
 	defer s.kmutex.Release("token-services")
@@ -53,13 +61,19 @@ func (s *TokenMintService) Execute(ctx context.Context, metadataURI string) (*bi
 	//
 
 	e := make(map[string]string)
-	if metadataURI == "" {
-		e["metadata_uri"] = "missing value"
+	if tokenID == nil {
+		e["token_id"] = "missing value"
+	}
+	if tokenOwnerAddress == nil {
+		e["token_owner_address"] = "missing value"
+	}
+	if recipientAddress == nil {
+		e["recipient_address"] = "missing value"
 	}
 	if len(e) != 0 {
-		s.logger.Warn("Failed validating token mint parameters",
+		s.logger.Warn("Failed validating token transfer parameters",
 			slog.Any("error", e))
-		return nil, httperror.NewForBadRequest(&e)
+		return httperror.NewForBadRequest(&e)
 	}
 
 	////
@@ -70,7 +84,7 @@ func (s *TokenMintService) Execute(ctx context.Context, metadataURI string) (*bi
 	if err != nil {
 		s.logger.Error("start session error",
 			slog.Any("error", err))
-		return nil, fmt.Errorf("Failed executing: %v\n", err)
+		return fmt.Errorf("Failed executing: %v\n", err)
 	}
 	defer session.EndSession(ctx)
 
@@ -114,24 +128,44 @@ func (s *TokenMintService) Execute(ctx context.Context, metadataURI string) (*bi
 			return nil, fmt.Errorf("Latest block data does not exist")
 		}
 
-		// // We want to attach on-chain our identity.
-		// poaValidator := recentBlockData.Validator
-		//
-		// // Apply whatever fees we request by the authority...
-		// gasPrice := uint64(s.config.Blockchain.GasPrice)
-		// unitsOfGas := uint64(s.config.Blockchain.UnitsOfGas)
-		//
-		// // Variable used to create the transactions to store on the blockchain.
-		// trans := make([]domain.BlockTransaction, 0)
+		token, err := s.getTokenUseCase.Execute(ctx, tokenID)
+		if err != nil {
+			if !strings.Contains(err.Error(), "does not exist") {
+				s.logger.Error("failed getting token",
+					slog.Any("token_id", tokenID),
+					slog.Any("error", err))
+				return nil, err
+			}
+		}
+		if token == nil {
+			s.logger.Warn("failed getting token",
+				slog.Any("token_id", tokenID),
+				slog.Any("error", "token does not exist"))
+			return nil, fmt.Errorf("failed getting token: does not exist for ID: %v", tokenID)
+		}
 
 		//
 		// STEP 3:
-		// Authority generates the latest token ID value by taking the previous
-		// token ID value and incrementing it by one.
+		// Verify the account owns the token
 		//
 
-		latestTokenID := blockchainState.GetLatestTokenID()
-		latestTokenID.Add(latestTokenID, big.NewInt(1))
+		if tokenOwnerAddress.Hex() != token.Owner.Hex() {
+			s.logger.Warn("permission failed",
+				slog.Any("token_id", tokenID))
+			return nil, fmt.Errorf("permission denied: token address is %v but your address is %v", token.Owner.Hex(), tokenOwnerAddress.Hex())
+		}
+
+		//
+		// STEP 4:
+		// Increment token `nonce` - this is very important as it tells the
+		// blockchain that we are commiting a transaction and hence the miner will
+		// execute the transfer. If we do not increment the nonce then no
+		// transaction happens!
+		//
+
+		nonce := token.GetNonce()
+		nonce.Add(nonce, big.NewInt(1))
+		token.SetNonce(nonce)
 
 		//
 		// STEP 4:
@@ -141,20 +175,20 @@ func (s *TokenMintService) Execute(ctx context.Context, metadataURI string) (*bi
 		tx := &domain.Transaction{
 			ChainID:          s.config.Blockchain.ChainID,
 			NonceBytes:       big.NewInt(time.Now().Unix()).Bytes(),
-			From:             s.config.Blockchain.ProofOfAuthorityAccountAddress,
-			To:               s.config.Blockchain.ProofOfAuthorityAccountAddress,
+			From:             tokenOwnerAddress,
+			To:               recipientAddress,
 			Value:            0, // Token have no value!
 			Tip:              0,
 			Data:             make([]byte, 0),
 			Type:             domain.TransactionTypeToken,
-			TokenIDBytes:     latestTokenID.Bytes(),
-			TokenMetadataURI: metadataURI,
-			TokenNonceBytes:  big.NewInt(0).Bytes(), // Newly minted tokens always have their nonce start at value of zero.
+			TokenIDBytes:     token.IDBytes,
+			TokenMetadataURI: token.MetadataURI,
+			TokenNonceBytes:  nonce.Bytes(), // Transfered tokens must increment nonce.
 		}
 
 		stx, signingErr := tx.Sign(proofOfAuthorityPrivateKey.PrivateKey)
 		if signingErr != nil {
-			s.logger.Debug("Failed to sign the token mint transaction",
+			s.logger.Debug("Failed to sign the token transfer transaction",
 				slog.Any("error", signingErr))
 			return nil, signingErr
 		}
@@ -166,7 +200,7 @@ func (s *TokenMintService) Execute(ctx context.Context, metadataURI string) (*bi
 			return nil, signingErr
 		}
 
-		s.logger.Debug("Pending token mint transaction signed successfully",
+		s.logger.Debug("Pending token transfer transaction signed successfully",
 			slog.Any("tx_token_id", stx.GetTokenID()))
 
 		mempoolTx := &domain.MempoolTransaction{
@@ -203,18 +237,15 @@ func (s *TokenMintService) Execute(ctx context.Context, metadataURI string) (*bi
 			slog.Any("tx_nonce", stx.GetNonce()))
 
 		// return tok, nil
-		return latestTokenID, nil
+		return nil, nil
 	}
 
 	// Start a transaction
-	res, err := session.WithTransaction(ctx, transactionFunc)
-	if err != nil {
+	if _, err := session.WithTransaction(ctx, transactionFunc); err != nil {
 		s.logger.Error("session failed error",
 			slog.Any("error", err))
-		return nil, fmt.Errorf("Failed creating account: %v\n", err)
+		return fmt.Errorf("Failed creating account: %v\n", err)
 	}
 
-	tokID := res.(*big.Int)
-
-	return tokID, nil
+	return nil
 }
