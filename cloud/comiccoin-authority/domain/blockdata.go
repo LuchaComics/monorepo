@@ -65,6 +65,10 @@ type BlockDataRepository interface {
 	ListAllBlockTransactionsByAddress(ctx context.Context, address *common.Address) ([]*BlockTransaction, error)
 
 	GetByBlockTransactionTimestamp(ctx context.Context, timestamp uint64) (*BlockData, error)
+
+	OpenTransaction() error
+	CommitTransaction() error
+	DiscardTransaction()
 }
 
 // Serialize serializes a block data into a byte array.

@@ -255,3 +255,17 @@ func (r *BlockDataRepo) GetByBlockTransactionTimestamp(ctx context.Context, time
 	}
 	return &blockData, nil
 }
+
+func (r *BlockDataRepo) OpenTransaction() error {
+	defer log.Fatal("Unsupported feature in the `comiccoin-authority` repository.")
+	return nil
+}
+
+func (r *BlockDataRepo) CommitTransaction() error {
+	defer log.Fatal("Unsupported feature in the `comiccoin-authority` repository.")
+	return nil
+}
+
+func (r *BlockDataRepo) DiscardTransaction() {
+	log.Fatal("Unsupported feature in the `comiccoin-authority` repository.")
+}

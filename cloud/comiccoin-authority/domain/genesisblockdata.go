@@ -21,6 +21,10 @@ func BlockDataToGenesisBlockData(bd *BlockData) *GenesisBlockData {
 type GenesisBlockDataRepository interface {
 	GetByChainID(ctx context.Context, chainID uint16) (*GenesisBlockData, error)
 	UpsertByChainID(ctx context.Context, genesis *GenesisBlockData) error
+
+	OpenTransaction() error
+	CommitTransaction() error
+	DiscardTransaction()
 }
 
 // Serialize serializes a genesis block data into a byte array.

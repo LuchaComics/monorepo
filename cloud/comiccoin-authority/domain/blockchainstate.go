@@ -66,6 +66,10 @@ type BlockchainStateRepository interface {
 
 	// DeleteByChainID deletes an blockchain state by its chain ID.
 	DeleteByChainID(ctx context.Context, chainID uint16) error
+
+	OpenTransaction() error
+	CommitTransaction() error
+	DiscardTransaction()
 }
 
 // Serialize serializes the blockchain state into a byte slice.

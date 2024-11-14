@@ -164,3 +164,18 @@ func (ba byAccount) Less(i, j int) bool {
 func (ba byAccount) Swap(i, j int) {
 	ba[i], ba[j] = ba[j], ba[i]
 }
+
+func (r *AccountRepo) OpenTransaction() error {
+	defer log.Fatal("Unsupported feature in the `comiccoin-authority` repository.")
+	return nil
+}
+
+func (r *AccountRepo) CommitTransaction() error {
+	defer log.Fatal("Unsupported feature in the `comiccoin-authority` repository.")
+	return nil
+}
+
+func (r *AccountRepo) DiscardTransaction() {
+	log.Fatal("Unsupported feature in the `comiccoin-authority` repository.")
+
+}

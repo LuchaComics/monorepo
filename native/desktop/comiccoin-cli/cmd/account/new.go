@@ -68,6 +68,20 @@ func doRunNewAccountCmd() error {
 
 	// ------ Use-case ------
 
+	// Storage Transaction
+	storageTransactionOpenUseCase := usecase.NewStorageTransactionOpenUseCase(
+		logger,
+		walletRepo,
+		accountRepo)
+	storageTransactionCommitUseCase := usecase.NewStorageTransactionCommitUseCase(
+		logger,
+		walletRepo,
+		accountRepo)
+	storageTransactionDiscardUseCase := usecase.NewStorageTransactionDiscardUseCase(
+		logger,
+		walletRepo,
+		accountRepo)
+
 	// Wallet
 	walletDecryptKeyUseCase := usecase.NewWalletDecryptKeyUseCase(
 		logger,
@@ -120,13 +134,27 @@ func doRunNewAccountCmd() error {
 
 	// ------ Execute ------
 	ctx := context.Background()
+
+	if err := storageTransactionOpenUseCase.Execute(); err != nil {
+		storageTransactionDiscardUseCase.Execute()
+		log.Fatalf("Failed to open storage transaction: %v\n", err)
+	}
+
 	account, err := createAccountService.Execute(ctx, flagPassword, flagPasswordRepeated, flagLabel)
 	if err != nil {
+		storageTransactionDiscardUseCase.Execute()
 		log.Fatalf("Failed to encrypt wallet: %v", err)
 	}
 	if account == nil {
+		storageTransactionDiscardUseCase.Execute()
 		log.Fatal("Account does not exist.")
 	}
+
+	if err := storageTransactionCommitUseCase.Execute(); err != nil {
+		storageTransactionDiscardUseCase.Execute()
+		log.Fatalf("Failed to open storage transaction: %v\n", err)
+	}
+
 	logger.Info("Account created",
 		slog.Any("nonce", account.GetNonce()),
 		slog.Uint64("balance", account.Balance),

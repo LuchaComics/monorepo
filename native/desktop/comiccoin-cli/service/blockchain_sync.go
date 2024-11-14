@@ -5,20 +5,36 @@ import (
 	"log/slog"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
+	auth_usecase "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/usecase"
 )
 
 type BlockchainSyncWithBlockchainAuthorityService struct {
-	logger                     *slog.Logger
-	genesisBlockDataGetOrSync  *GenesisBlockDataGetOrSyncService
-	blockchainStateSyncService *BlockchainStateSyncService
+	logger                                               *slog.Logger
+	getGenesisBlockDataUseCase                           *usecase.GetGenesisBlockDataUseCase
+	upsertGenesisBlockDataUseCase                        *usecase.UpsertGenesisBlockDataUseCase
+	getGenesisBlockDataDTOFromBlockchainAuthorityUseCase *auth_usecase.GetGenesisBlockDataDTOFromBlockchainAuthorityUseCase
+	getBlockchainStateUseCase                            *usecase.GetBlockchainStateUseCase
+	upsertBlockchainStateUseCase                         *usecase.UpsertBlockchainStateUseCase
+	getBlockchainStateDTOFromBlockchainAuthorityUseCase  *auth_usecase.GetBlockchainStateDTOFromBlockchainAuthorityUseCase
+	getBlockDataUseCase                                  *usecase.GetBlockDataUseCase
+	upsertBlockDataUseCase                               *usecase.UpsertBlockDataUseCase
+	getBlockDataDTOFromBlockchainAuthorityUseCase        *auth_usecase.GetBlockDataDTOFromBlockchainAuthorityUseCase
 }
 
 func NewBlockchainSyncWithBlockchainAuthorityService(
 	logger *slog.Logger,
-	s1 *GenesisBlockDataGetOrSyncService,
-	s2 *BlockchainStateSyncService,
+	uc1 *usecase.GetGenesisBlockDataUseCase,
+	uc2 *usecase.UpsertGenesisBlockDataUseCase,
+	uc3 *auth_usecase.GetGenesisBlockDataDTOFromBlockchainAuthorityUseCase,
+	uc4 *usecase.GetBlockchainStateUseCase,
+	uc5 *usecase.UpsertBlockchainStateUseCase,
+	uc6 *auth_usecase.GetBlockchainStateDTOFromBlockchainAuthorityUseCase,
+	uc7 *usecase.GetBlockDataUseCase,
+	uc8 *usecase.UpsertBlockDataUseCase,
+	uc9 *auth_usecase.GetBlockDataDTOFromBlockchainAuthorityUseCase,
 ) *BlockchainSyncWithBlockchainAuthorityService {
-	return &BlockchainSyncWithBlockchainAuthorityService{logger, s1, s2}
+	return &BlockchainSyncWithBlockchainAuthorityService{logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9}
 }
 
 func (s *BlockchainSyncWithBlockchainAuthorityService) Execute(ctx context.Context, chainID uint16) error {
@@ -35,36 +51,6 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) Execute(ctx context.Conte
 			slog.Any("error", e))
 		return httperror.NewForBadRequest(&e)
 	}
-
-	//
-	// STEP 2:
-	// Get genesis block data from authority if we don't have it locally, else
-	// get it locally.
-	//
-
-	genesis, err := s.genesisBlockDataGetOrSync.Execute(ctx, chainID)
-	if err != nil {
-		s.logger.Error("Failed getting genesis block",
-			slog.Any("chain_id", chainID),
-			slog.Any("error", err))
-		return err
-	}
-	_ = genesis
-
-	//
-	// STEP 3:
-	// Refresh our local blockchain state with what exists currently on the
-	// blockchain network.
-	//
-
-	latestBlockchainState, err := s.blockchainStateSyncService.Execute(ctx, chainID)
-	if err != nil {
-		s.logger.Error("Failed syncing blockchain state",
-			slog.Any("chain_id", chainID),
-			slog.Any("error", err))
-		return err
-	}
-	_ = latestBlockchainState
 
 	return nil
 }

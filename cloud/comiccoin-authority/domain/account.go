@@ -77,6 +77,10 @@ type AccountRepository interface {
 	// HashState returns a hash based on the contents of the accounts and
 	// their balances. This is added to each block and checked by peers.
 	HashState(ctx context.Context) (string, error)
+
+	OpenTransaction() error
+	CommitTransaction() error
+	DiscardTransaction()
 }
 
 func (acc *Account) GetNonce() *big.Int {

@@ -68,3 +68,17 @@ func (r *GenesisBlockDataRepo) GetByChainID(ctx context.Context, chainID uint16)
 	}
 	return &blockData, nil
 }
+
+func (r *GenesisBlockDataRepo) OpenTransaction() error {
+	defer log.Fatal("Unsupported feature in the `comiccoin-authority` repository.")
+	return nil
+}
+
+func (r *GenesisBlockDataRepo) CommitTransaction() error {
+	defer log.Fatal("Unsupported feature in the `comiccoin-authority` repository.")
+	return nil
+}
+
+func (r *GenesisBlockDataRepo) DiscardTransaction() {
+	log.Fatal("Unsupported feature in the `comiccoin-authority` repository.")
+}

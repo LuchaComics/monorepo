@@ -95,3 +95,18 @@ func (r *WalletRepo) DeleteByAddress(ctx context.Context, address *common.Addres
 	_, err := r.collection.DeleteOne(ctx, bson.M{"address": address})
 	return err
 }
+
+func (r *WalletRepo) OpenTransaction() error {
+	defer log.Fatal("Unsupported feature in the `comiccoin-authority` repository.")
+	return nil
+}
+
+func (r *WalletRepo) CommitTransaction() error {
+	defer log.Fatal("Unsupported feature in the `comiccoin-authority` repository.")
+	return nil
+}
+
+func (r *WalletRepo) DiscardTransaction() {
+	log.Fatal("Unsupported feature in the `comiccoin-authority` repository.")
+
+}

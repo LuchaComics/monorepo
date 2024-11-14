@@ -102,3 +102,17 @@ func (r *BlockchainStateRepo) DeleteByChainID(ctx context.Context, chainID uint1
 	_, err := r.collection.DeleteOne(ctx, bson.M{"chain_id": chainID})
 	return err
 }
+
+func (r *BlockchainStateRepo) OpenTransaction() error {
+	defer log.Fatal("Unsupported feature in the `comiccoin-authority` repository.")
+	return nil
+}
+
+func (r *BlockchainStateRepo) CommitTransaction() error {
+	defer log.Fatal("Unsupported feature in the `comiccoin-authority` repository.")
+	return nil
+}
+
+func (r *BlockchainStateRepo) DiscardTransaction() {
+	log.Fatal("Unsupported feature in the `comiccoin-authority` repository.")
+}

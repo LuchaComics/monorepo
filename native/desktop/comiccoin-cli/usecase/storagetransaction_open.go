@@ -3,19 +3,19 @@ package usecase
 import (
 	"log/slog"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/domain"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 )
 
 type StorageTransactionOpenUseCase struct {
 	logger      *slog.Logger
-	walletRepo  domain.ExtendedWalletRepository
-	accountRepo domain.ExtendedAccountRepository
+	walletRepo  domain.WalletRepository
+	accountRepo domain.AccountRepository
 }
 
 func NewStorageTransactionOpenUseCase(
 	logger *slog.Logger,
-	r1 domain.ExtendedWalletRepository,
-	r2 domain.ExtendedAccountRepository,
+	r1 domain.WalletRepository,
+	r2 domain.AccountRepository,
 ) *StorageTransactionOpenUseCase {
 	return &StorageTransactionOpenUseCase{logger, r1, r2}
 }

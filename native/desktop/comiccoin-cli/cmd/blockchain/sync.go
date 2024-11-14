@@ -45,66 +45,78 @@ func BlockchainSyncCmd() *cobra.Command {
 
 func doRunBlockchainSyncCmd() error {
 	// ------ Common ------
+
 	logger := logger.NewProvider()
 	logger.Info("Syncing blockchain...",
 		slog.Any("authority_address", flagAuthorityAddress))
 
-	// // ------ Database -----
-	// // walletDB := disk.NewDiskStorage(flagDataDirectory, "wallet", logger)
+	// ------ Database -----
+	walletDB := disk.NewDiskStorage(flagDataDirectory, "wallet", logger)
+	accountDB := disk.NewDiskStorage(flagDataDirectory, "account", logger)
 	genesisBlockDataDB := disk.NewDiskStorage(flagDataDirectory, "genesis_block_data", logger)
-	// blockDataDB := disk.NewDiskStorage(flagDataDirectory, "block_data", logger)
 	blockchainStateDB := disk.NewDiskStorage(flagDataDirectory, "blockchain_state", logger)
+	blockDataDB := disk.NewDiskStorage(flagDataDirectory, "block_data", logger)
 
 	// ------------ Repo ------------
+
+	accountRepo := repo.NewAccountRepo(
+		logger,
+		accountDB)
+	walletRepo := repo.NewWalletRepo(
+		logger,
+		walletDB)
 	genesisBlockDataRepo := repo.NewGenesisBlockDataRepo(
 		logger,
 		genesisBlockDataDB)
 	blockchainStateRepo := repo.NewBlockchainStateRepo(
 		logger,
 		blockchainStateDB)
-
 	blockchainStateDTORepoConfig := auth_repo.NewBlockchainStateDTOConfigurationProvider(flagAuthorityAddress)
 	blockchainStateDTORepo := auth_repo.NewBlockchainStateDTORepo(
 		blockchainStateDTORepoConfig,
 		logger)
-
 	genesisBlockDataDTORepoConfig := auth_repo.NewGenesisBlockDataDTOConfigurationProvider(flagAuthorityAddress)
 	genesisBlockDataDTORepo := auth_repo.NewGenesisBlockDataDTORepo(
 		genesisBlockDataDTORepoConfig,
 		logger)
+	blockDataRepo := repo.NewBlockDataRepo(
+		logger,
+		blockDataDB)
+	blockDataDTORepoConfig := auth_repo.NewBlockDataDTOConfigurationProvider(flagAuthorityAddress)
+	blockDataDTORepo := auth_repo.NewBlockDataDTORepo(
+		blockDataDTORepoConfig,
+		logger)
 
-	// blockDataRepo := repo.NewBlockDataRepo(
-	// 	cfg,
-	// 	logger,
-	// 	blockDataDB)
-	// blockDataDTORepo := repo.NewBlockDataDTORepo(
-	// 	cfg,
-	// 	logger)
-	//
-	// _ = blockDataRepo
-	//
-	// // ------------ Use-Case ------------
+	// ------------ Use-Case ------------
+
+	// Storage Transaction
+	storageTransactionOpenUseCase := usecase.NewStorageTransactionOpenUseCase(
+		logger,
+		walletRepo,
+		accountRepo)
+	storageTransactionCommitUseCase := usecase.NewStorageTransactionCommitUseCase(
+		logger,
+		walletRepo,
+		accountRepo)
+	storageTransactionDiscardUseCase := usecase.NewStorageTransactionDiscardUseCase(
+		logger,
+		walletRepo,
+		accountRepo)
+
 	// Blockchain State
 	upsertBlockchainStateUseCase := usecase.NewUpsertBlockchainStateUseCase(
 		logger,
 		blockchainStateRepo)
+	getBlockchainStateUseCase := usecase.NewGetBlockchainStateUseCase(
+		logger,
+		blockchainStateRepo)
 
-	// getBlockchainStateUseCase := usecase.NewGetBlockchainStateUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	blockchainStateRepo)
-	//
 	// Blockchain State DTO
 	getBlockchainStateDTOFromBlockchainAuthorityUseCase := auth_usecase.NewGetBlockchainStateDTOFromBlockchainAuthorityUseCase(
 		logger,
 		blockchainStateDTORepo)
 
-	// Genesis Block Data DTO
-	getGenesisBlockDataDTOFromCentralAuthorityUseCase := auth_usecase.NewGetGenesisBlockDataDTOFromBlockchainAuthorityUseCase(
-		logger,
-		genesisBlockDataDTORepo)
-
-	// // Genesis Block Data
+	// Genesis Block Data
 	upsertGenesisBlockDataUseCase := usecase.NewUpsertGenesisBlockDataUseCase(
 		logger,
 		genesisBlockDataRepo)
@@ -112,36 +124,55 @@ func doRunBlockchainSyncCmd() error {
 		logger,
 		genesisBlockDataRepo)
 
-	// // Block Data DTO
-	// getBlockDataFromCentralAuthorityByBlockNumberUseCase := usecase.NewGetBlockDataFromCentralAuthorityByBlockNumberUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	blockDataDTORepo)
-	//
+	// Genesis Block Data DTO
+	getGenesisBlockDataDTOFromBlockchainAuthorityUseCase := auth_usecase.NewGetGenesisBlockDataDTOFromBlockchainAuthorityUseCase(
+		logger,
+		genesisBlockDataDTORepo)
+
+	// Block Data
+	upsertBlockDataUseCase := usecase.NewUpsertBlockDataUseCase(
+		logger,
+		blockDataRepo)
+	getBlockDataUseCase := usecase.NewGetBlockDataUseCase(
+		logger,
+		blockDataRepo)
+
+	// Block Data DTO
+	getBlockDataDTOFromBlockchainAuthorityUseCase := auth_usecase.NewGetBlockDataDTOFromBlockchainAuthorityUseCase(
+		logger,
+		blockDataDTORepo)
+
 	// ------------ Service ------------
-	genesisBlockDataGetOrSyncService := service.NewGenesisBlockDataGetOrSyncService(
+
+	blockchainSyncService := service.NewBlockchainSyncWithBlockchainAuthorityService(
 		logger,
 		getGenesisBlockDataUseCase,
 		upsertGenesisBlockDataUseCase,
-		getGenesisBlockDataDTOFromCentralAuthorityUseCase,
-	)
-	blockchainStateSyncService := service.NewBlockchainStateSyncService(
-		logger,
-		getBlockchainStateDTOFromBlockchainAuthorityUseCase,
+		getGenesisBlockDataDTOFromBlockchainAuthorityUseCase,
+		getBlockchainStateUseCase,
 		upsertBlockchainStateUseCase,
-	)
-	blockchainSyncService := service.NewBlockchainSyncWithBlockchainAuthorityService(
-		logger,
-		genesisBlockDataGetOrSyncService,
-		blockchainStateSyncService,
+		getBlockchainStateDTOFromBlockchainAuthorityUseCase,
+		getBlockDataUseCase,
+		upsertBlockDataUseCase,
+		getBlockDataDTOFromBlockchainAuthorityUseCase,
 	)
 
 	// ------------ Execute ------------
 
 	ctx := context.Background()
+	if err := storageTransactionOpenUseCase.Execute(); err != nil {
+		storageTransactionDiscardUseCase.Execute()
+		log.Fatalf("Failed to open storage transaction: %v\n", err)
+	}
 
 	if err := blockchainSyncService.Execute(ctx, flagChainID); err != nil {
+		storageTransactionDiscardUseCase.Execute()
 		log.Fatalf("Failed to sync blockchain: %v\n", err)
+	}
+
+	if err := storageTransactionCommitUseCase.Execute(); err != nil {
+		storageTransactionDiscardUseCase.Execute()
+		log.Fatalf("Failed to open storage transaction: %v\n", err)
 	}
 
 	logger.Info("Finished syncing blockchain",
