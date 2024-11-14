@@ -11,7 +11,7 @@ import (
 type GenesisBlockDataDTO GenesisBlockData
 
 // BlockDataToGenesisBlockData method converts a `GenesisBlockData` data type into
-// a `GenesisBlockData` data type.
+// a `GenesisBlockDataDTO` data type.
 func GenesisBlockDataToGenesisBlockDataDTO(bd *GenesisBlockData) *GenesisBlockDataDTO {
 	return (*GenesisBlockDataDTO)(bd)
 }

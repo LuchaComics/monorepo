@@ -5,22 +5,16 @@ import (
 	"log/slog"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 )
 
 type UpsertBlockchainStateUseCase struct {
-	config *config.Configuration
 	logger *slog.Logger
 	repo   domain.BlockchainStateRepository
 }
 
-func NewUpsertBlockchainStateUseCase(
-	config *config.Configuration,
-	logger *slog.Logger,
-	repo domain.BlockchainStateRepository,
-) *UpsertBlockchainStateUseCase {
-	return &UpsertBlockchainStateUseCase{config, logger, repo}
+func NewUpsertBlockchainStateUseCase(logger *slog.Logger, repo domain.BlockchainStateRepository) *UpsertBlockchainStateUseCase {
+	return &UpsertBlockchainStateUseCase{logger, repo}
 }
 
 func (uc *UpsertBlockchainStateUseCase) Execute(ctx context.Context, bcs *domain.BlockchainState) error {

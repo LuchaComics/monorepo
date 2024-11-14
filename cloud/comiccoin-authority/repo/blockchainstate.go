@@ -32,9 +32,9 @@ func NewBlockchainStateRepo(cfg *config.Configuration, logger *slog.Logger, clie
 	// The following few lines of code will create the index for our app for this
 	// colleciton.
 	_, err := uc.Indexes().CreateMany(context.TODO(), []mongo.IndexModel{
-		{Keys: bson.D{{Key: "chainID", Value: 1}}},
+		{Keys: bson.D{{Key: "chain_id", Value: 1}}},
 		{Keys: bson.D{
-			{Key: "chainID", Value: "text"},
+			{Key: "chain_id", Value: "text"},
 		}},
 	})
 	if err != nil {
@@ -51,15 +51,15 @@ func NewBlockchainStateRepo(cfg *config.Configuration, logger *slog.Logger, clie
 	}
 }
 
-func (r *BlockchainStateRepo) Upsert(ctx context.Context, blockchainState *domain.BlockchainState) error {
+func (r *BlockchainStateRepo) UpsertByChainID(ctx context.Context, blockchainState *domain.BlockchainState) error {
 	opts := options.Update().SetUpsert(true)
-	_, err := r.collection.UpdateOne(ctx, bson.M{"chainID": blockchainState.ChainID}, bson.M{"$set": blockchainState}, opts)
+	_, err := r.collection.UpdateOne(ctx, bson.M{"chain_id": blockchainState.ChainID}, bson.M{"$set": blockchainState}, opts)
 	return err
 }
 
 func (r *BlockchainStateRepo) GetByChainID(ctx context.Context, chainID uint16) (*domain.BlockchainState, error) {
 	var blockchainState domain.BlockchainState
-	err := r.collection.FindOne(ctx, bson.M{"chainID": chainID}).Decode(&blockchainState)
+	err := r.collection.FindOne(ctx, bson.M{"chain_id": chainID}).Decode(&blockchainState)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, nil
@@ -99,6 +99,6 @@ func (r *BlockchainStateRepo) ListAll(ctx context.Context) ([]*domain.Blockchain
 }
 
 func (r *BlockchainStateRepo) DeleteByChainID(ctx context.Context, chainID uint16) error {
-	_, err := r.collection.DeleteOne(ctx, bson.M{"chainID": chainID})
+	_, err := r.collection.DeleteOne(ctx, bson.M{"chain_id": chainID})
 	return err
 }

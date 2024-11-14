@@ -53,19 +53,20 @@ func doRunBlockchainSyncCmd() error {
 	// // walletDB := disk.NewDiskStorage(flagDataDirectory, "wallet", logger)
 	genesisBlockDataDB := disk.NewDiskStorage(flagDataDirectory, "genesis_block_data", logger)
 	// blockDataDB := disk.NewDiskStorage(flagDataDirectory, "block_data", logger)
-	// blockchainStateDB := disk.NewDiskStorage(flagDataDirectory, "blockchain_state", logger)
-	//
-	// // ------------ Repo ------------
+	blockchainStateDB := disk.NewDiskStorage(flagDataDirectory, "blockchain_state", logger)
+
+	// ------------ Repo ------------
 	genesisBlockDataRepo := repo.NewGenesisBlockDataRepo(
 		logger,
 		genesisBlockDataDB)
-	// blockchainStateRepo := repo.NewBlockchainStateRepo(
-	// 	cfg,
-	// 	logger,
-	// 	blockchainStateDB)
-	// blockchainStateDTORepo := repo.NewBlockchainStateDTORepo(
-	// 	cfg,
-	// 	logger)
+	blockchainStateRepo := repo.NewBlockchainStateRepo(
+		logger,
+		blockchainStateDB)
+
+	blockchainStateDTORepoConfig := auth_repo.NewBlockchainStateDTOConfigurationProvider(flagAuthorityAddress)
+	blockchainStateDTORepo := auth_repo.NewBlockchainStateDTORepo(
+		blockchainStateDTORepoConfig,
+		logger)
 
 	genesisBlockDataDTORepoConfig := auth_repo.NewGenesisBlockDataDTOConfigurationProvider(flagAuthorityAddress)
 	genesisBlockDataDTORepo := auth_repo.NewGenesisBlockDataDTORepo(
@@ -83,21 +84,20 @@ func doRunBlockchainSyncCmd() error {
 	// _ = blockDataRepo
 	//
 	// // ------------ Use-Case ------------
-	// // Blockchain State
-	// upsertBlockchainStateUseCase := usecase.NewUpsertBlockchainStateUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	blockchainStateRepo)
+	// Blockchain State
+	upsertBlockchainStateUseCase := usecase.NewUpsertBlockchainStateUseCase(
+		logger,
+		blockchainStateRepo)
+
 	// getBlockchainStateUseCase := usecase.NewGetBlockchainStateUseCase(
 	// 	cfg,
 	// 	logger,
 	// 	blockchainStateRepo)
 	//
-	// // Blockchain State DTO
-	// getBlockchainStateFromCentralAuthorityByChainIDUseCase := usecase.NewGetBlockchainStateFromCentralAuthorityByChainIDUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	blockchainStateDTORepo)
+	// Blockchain State DTO
+	getBlockchainStateDTOFromBlockchainAuthorityUseCase := auth_usecase.NewGetBlockchainStateDTOFromBlockchainAuthorityUseCase(
+		logger,
+		blockchainStateDTORepo)
 
 	// Genesis Block Data DTO
 	getGenesisBlockDataDTOFromCentralAuthorityUseCase := auth_usecase.NewGetGenesisBlockDataDTOFromBlockchainAuthorityUseCase(
@@ -119,16 +119,21 @@ func doRunBlockchainSyncCmd() error {
 	// 	blockDataDTORepo)
 	//
 	// ------------ Service ------------
-	genesisBlockDataGetService := service.NewGenesisBlockDataGetService(
+	genesisBlockDataGetOrSyncService := service.NewGenesisBlockDataGetOrSyncService(
 		logger,
 		getGenesisBlockDataUseCase,
 		upsertGenesisBlockDataUseCase,
 		getGenesisBlockDataDTOFromCentralAuthorityUseCase,
 	)
-
+	blockchainStateSyncService := service.NewBlockchainStateSyncService(
+		logger,
+		getBlockchainStateDTOFromBlockchainAuthorityUseCase,
+		upsertBlockchainStateUseCase,
+	)
 	blockchainSyncService := service.NewBlockchainSyncWithBlockchainAuthorityService(
 		logger,
-		genesisBlockDataGetService,
+		genesisBlockDataGetOrSyncService,
+		blockchainStateSyncService,
 	)
 
 	// ------------ Execute ------------

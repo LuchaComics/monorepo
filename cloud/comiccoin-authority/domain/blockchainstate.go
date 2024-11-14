@@ -50,7 +50,7 @@ func (bs *BlockchainState) SeLatestTokenID(n *big.Int) {
 
 type BlockchainStateRepository interface {
 	// Upsert inserts or updates an blockchain state in the repository.
-	Upsert(ctx context.Context, acc *BlockchainState) error
+	UpsertByChainID(ctx context.Context, acc *BlockchainState) error
 
 	// GetByChainID retrieves an blockchain state by its chain ID.
 	GetByChainID(ctx context.Context, chainID uint16) (*BlockchainState, error)

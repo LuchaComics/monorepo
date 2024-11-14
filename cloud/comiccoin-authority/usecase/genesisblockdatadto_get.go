@@ -24,7 +24,7 @@ func (uc *GetGenesisBlockDataDTOFromBlockchainAuthorityUseCase) Execute(ctx cont
 
 	e := make(map[string]string)
 	if chainID == 0 {
-		e["chainID"] = "missing value"
+		e["chain_id"] = "missing value"
 	}
 	if len(e) != 0 {
 		uc.logger.Warn("Failed getting genesis block",

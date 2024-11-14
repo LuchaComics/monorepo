@@ -12,24 +12,24 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/usecase"
 )
 
-type GenesisBlockDataGetService struct {
+type GenesisBlockDataGetOrSyncService struct {
 	logger                                               *slog.Logger
 	getGenesisBlockDataUseCase                           *usecase.GetGenesisBlockDataUseCase
 	upsertGenesisBlockDataUseCase                        *usecase.UpsertGenesisBlockDataUseCase
 	getGenesisBlockDataDTOFromBlockchainAuthorityUseCase *authority_usecase.GetGenesisBlockDataDTOFromBlockchainAuthorityUseCase
 }
 
-func NewGenesisBlockDataGetService(
+func NewGenesisBlockDataGetOrSyncService(
 	logger *slog.Logger,
 	uc1 *usecase.GetGenesisBlockDataUseCase,
 	uc2 *usecase.UpsertGenesisBlockDataUseCase,
 	uc3 *authority_usecase.GetGenesisBlockDataDTOFromBlockchainAuthorityUseCase,
-) *GenesisBlockDataGetService {
-	return &GenesisBlockDataGetService{logger, uc1, uc2, uc3}
+) *GenesisBlockDataGetOrSyncService {
+	return &GenesisBlockDataGetOrSyncService{logger, uc1, uc2, uc3}
 }
 
 // Execute method gets genesis block data from authority if we don't have it locally, else gets genesis from local source.
-func (s *GenesisBlockDataGetService) Execute(ctx context.Context, chainID uint16) (*authority_domain.GenesisBlockData, error) {
+func (s *GenesisBlockDataGetOrSyncService) Execute(ctx context.Context, chainID uint16) (*authority_domain.GenesisBlockData, error) {
 	//
 	// STEP 1: Validation.
 	//
