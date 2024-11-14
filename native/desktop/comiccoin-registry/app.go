@@ -7,6 +7,8 @@ import (
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/common/kmutexutil"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/common/logger"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/domain"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/repo"
 )
 
 // App struct
@@ -15,8 +17,9 @@ type App struct {
 
 	// Logger instance which provides detailed debugging information along
 	// with the console log messages.
-	logger *slog.Logger
-	kmutex kmutexutil.KMutexProvider
+	logger       *slog.Logger
+	kmutex       kmutexutil.KMutexProvider
+	fileBaseRepo domain.FileBaseRepository
 }
 
 // NewApp creates a new App application struct
@@ -24,8 +27,9 @@ func NewApp() *App {
 	logger := logger.NewProvider()
 	kmutex := kmutexutil.NewKMutexProvider()
 	return &App{
-		logger: logger,
-		kmutex: kmutex,
+		logger:       logger,
+		kmutex:       kmutex,
+		fileBaseRepo: nil,
 	}
 }
 
@@ -50,6 +54,24 @@ func (a *App) startup(ctx context.Context) {
 		a.logger.Debug("Startup halted: need to specify data directory")
 		return
 	}
+
+	if a.fileBaseRepo == nil {
+		a.logger.Debug("Connecting to FileBase...")
+		newConfig := preferences.NFTStoreSettings
+
+		filebaseConfig := repo.NewFileBaseRepoConfigurationProvider(
+			newConfig["apiVersion"],
+			newConfig["accessKeyId"],
+			newConfig["secretAccessKey"],
+			newConfig["endpoint"],
+			newConfig["region"],
+			newConfig["s3ForcePathStyle"],
+		)
+		fileBaseRepo := repo.NewFileBaseRepo(filebaseConfig, a.logger)
+		a.fileBaseRepo = fileBaseRepo
+		a.logger.Debug("FileBase connected!")
+	}
+
 }
 
 // Greet returns a greeting for the given name

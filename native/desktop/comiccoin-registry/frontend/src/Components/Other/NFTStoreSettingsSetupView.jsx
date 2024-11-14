@@ -46,11 +46,11 @@ function NFTStoreSettingsSetupView() {
     const [isLoading, setIsLoading] = useState(false);
     const [useDefaultLocation, setUseDefaultLocation] = useState(1);
     const [forceURL, setForceURL] = useState("");
-    const [apiVersion, setApiVersion] = useState("");
-    const [endpoint, setEndpoint] = useState("");
+    const [apiVersion, setApiVersion] = useState("2006-03-01");
+    const [endpoint, setEndpoint] = useState("https://s3.filebase.com");
     const [secretAccessKey, setSecretAccessKey] = useState("");
     const [accessKeyId, setAccessKeyId] = useState("");
-    const [region, setRegion] = useState("");
+    const [region, setRegion] = useState("us-east-1");
     const [s3ForcePathStyle, setS3ForcePathStyle] = useState(true);
     const [showCancelWarning, setShowCancelWarning] = useState(false);
 

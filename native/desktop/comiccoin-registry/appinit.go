@@ -8,6 +8,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/common/httperror"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/repo"
 )
 
 func (a *App) GetDataDirectoryFromPreferences() string {
@@ -90,6 +91,18 @@ func (a *App) SaveNFTStoreSettings(newConfig map[string]string) error {
 			slog.Any("error", e))
 		return httperror.NewForBadRequest(&e)
 	}
+
+	filebaseConfig := repo.NewFileBaseRepoConfigurationProvider(
+		newConfig["apiVersion"],
+		newConfig["accessKeyId"],
+		newConfig["secretAccessKey"],
+		newConfig["endpoint"],
+		newConfig["region"],
+		newConfig["s3ForcePathStyle"],
+	)
+
+	fileBaseRepo := repo.NewFileBaseRepo(filebaseConfig, a.logger)
+	a.fileBaseRepo = fileBaseRepo
 
 	preferences := PreferencesInstance()
 	err := preferences.SetNFTStoreSettings(newConfig)
