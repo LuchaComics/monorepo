@@ -24,7 +24,7 @@ func NewGetGenesisBlockDataHTTPHandler(
 
 func (h *GetGenesisBlockDataHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	h.logger.Debug("GenesisBlockData requested")
+	h.logger.Debug("Genesis block data requested")
 
 	// Here is where you extract url parameters.
 	query := r.URL.Query()

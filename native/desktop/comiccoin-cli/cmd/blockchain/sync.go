@@ -1,11 +1,19 @@
 package blockchain
 
 import (
+	"context"
 	"log"
 	"log/slog"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
+	disk "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/storage/disk/leveldb"
+	auth_repo "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/repo"
+	auth_usecase "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase"
 	"github.com/spf13/cobra"
+
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/repo"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/service"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/usecase"
 )
 
 // Command line argument flags
@@ -43,15 +51,14 @@ func doRunBlockchainSyncCmd() error {
 
 	// // ------ Database -----
 	// // walletDB := disk.NewDiskStorage(flagDataDirectory, "wallet", logger)
-	// genesisBlockDataDB := disk.NewDiskStorage(flagDataDirectory, "genesis_block_data", logger)
+	genesisBlockDataDB := disk.NewDiskStorage(flagDataDirectory, "genesis_block_data", logger)
 	// blockDataDB := disk.NewDiskStorage(flagDataDirectory, "block_data", logger)
 	// blockchainStateDB := disk.NewDiskStorage(flagDataDirectory, "blockchain_state", logger)
 	//
 	// // ------------ Repo ------------
-	// genesisBlockDataRepo := repo.NewGenesisBlockDataRepo(
-	// 	cfg,
-	// 	logger,
-	// 	genesisBlockDataDB)
+	genesisBlockDataRepo := repo.NewGenesisBlockDataRepo(
+		logger,
+		genesisBlockDataDB)
 	// blockchainStateRepo := repo.NewBlockchainStateRepo(
 	// 	cfg,
 	// 	logger,
@@ -59,9 +66,12 @@ func doRunBlockchainSyncCmd() error {
 	// blockchainStateDTORepo := repo.NewBlockchainStateDTORepo(
 	// 	cfg,
 	// 	logger)
-	// genesisBlockDataDTORepo := repo.NewGenesisBlockDataDTORepo(
-	// 	cfg,
-	// 	logger)
+
+	genesisBlockDataDTORepoConfig := auth_repo.NewGenesisBlockDataDTOConfigurationProvider(flagAuthorityAddress)
+	genesisBlockDataDTORepo := auth_repo.NewGenesisBlockDataDTORepo(
+		genesisBlockDataDTORepoConfig,
+		logger)
+
 	// blockDataRepo := repo.NewBlockDataRepo(
 	// 	cfg,
 	// 	logger,
@@ -88,49 +98,47 @@ func doRunBlockchainSyncCmd() error {
 	// 	cfg,
 	// 	logger,
 	// 	blockchainStateDTORepo)
-	//
-	// // Genesis Block Data DTO
-	// getGenesisBlockDataFromCentralAuthorityByChainIDUseCase := usecase.NewGetGenesisBlockDataFromCentralAuthorityByChainIDUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	genesisBlockDataDTORepo)
-	//
+
+	// Genesis Block Data DTO
+	getGenesisBlockDataDTOFromCentralAuthorityUseCase := auth_usecase.NewGetGenesisBlockDataDTOFromBlockchainAuthorityUseCase(
+		logger,
+		genesisBlockDataDTORepo)
+
 	// // Genesis Block Data
-	// upsertGenesisBlockDataUseCase := usecase.NewUpsertGenesisBlockDataUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	genesisBlockDataRepo)
-	// getGenesisBlockDataUseCase := usecase.NewGetGenesisBlockDataUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	genesisBlockDataRepo)
-	//
+	upsertGenesisBlockDataUseCase := usecase.NewUpsertGenesisBlockDataUseCase(
+		logger,
+		genesisBlockDataRepo)
+	getGenesisBlockDataUseCase := usecase.NewGetGenesisBlockDataUseCase(
+		logger,
+		genesisBlockDataRepo)
+
 	// // Block Data DTO
 	// getBlockDataFromCentralAuthorityByBlockNumberUseCase := usecase.NewGetBlockDataFromCentralAuthorityByBlockNumberUseCase(
 	// 	cfg,
 	// 	logger,
 	// 	blockDataDTORepo)
 	//
-	// // ------------ Service ------------
-	// localBlockchainSyncService := service.NewLocalBlockchainSyncWithCentralAuthorityService(
-	// 	cfg,
-	// 	logger,
-	// 	getBlockchainStateUseCase,
-	// 	getBlockchainStateFromCentralAuthorityByChainIDUseCase,
-	// 	upsertBlockchainStateUseCase,
-	// 	getGenesisBlockDataUseCase,
-	// 	getGenesisBlockDataFromCentralAuthorityByChainIDUseCase,
-	// 	upsertGenesisBlockDataUseCase,
-	// 	getBlockDataFromCentralAuthorityByBlockNumberUseCase,
-	// )
-	//
-	// ctx := context.Background()
-	//
-	// if err := localBlockchainSyncService.Execute(ctx); err != nil {
-	// 	log.Fatalf("Failed to sync local blockchain: %v\n", err)
-	// }
+	// ------------ Service ------------
+	genesisBlockDataGetService := service.NewGenesisBlockDataGetService(
+		logger,
+		getGenesisBlockDataUseCase,
+		upsertGenesisBlockDataUseCase,
+		getGenesisBlockDataDTOFromCentralAuthorityUseCase,
+	)
+
+	blockchainSyncService := service.NewBlockchainSyncWithBlockchainAuthorityService(
+		logger,
+		genesisBlockDataGetService,
+	)
 
 	// ------------ Execute ------------
+
+	ctx := context.Background()
+
+	if err := blockchainSyncService.Execute(ctx, flagChainID); err != nil {
+		log.Fatalf("Failed to sync blockchain: %v\n", err)
+	}
+
 	logger.Info("Finished syncing blockchain",
 		slog.Any("authority_address", flagAuthorityAddress))
 	return nil
