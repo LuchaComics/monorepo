@@ -53,8 +53,6 @@ func doRunNewAccountCmd() error {
 		slog.Any("wallet_label", flagLabel),
 	)
 
-	// cfg := &config.Config{}
-	//
 	// ------ Common ------
 	keystore := keystore.NewAdapter()
 	walletDB := disk.NewDiskStorage(flagDataDirectory, "wallet", logger)
@@ -120,7 +118,7 @@ func doRunNewAccountCmd() error {
 	_ = getWalletUseCase
 	_ = listAllWalletUseCase
 
-	// Execute
+	// ------ Execute ------
 	ctx := context.Background()
 	account, err := createAccountService.Execute(ctx, flagPassword, flagPasswordRepeated, flagLabel)
 	if err != nil {
@@ -129,7 +127,7 @@ func doRunNewAccountCmd() error {
 	if account == nil {
 		log.Fatal("Account does not exist.")
 	}
-	logger.Debug("Account created",
+	logger.Info("Account created",
 		slog.Any("nonce", account.GetNonce()),
 		slog.Uint64("balance", account.Balance),
 		slog.String("address", account.Address.Hex()),

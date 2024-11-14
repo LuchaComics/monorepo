@@ -26,6 +26,7 @@ func AccountCmd() *cobra.Command {
 
 	// // // Attach our sub-commands for `account`
 	cmd.AddCommand(NewAccountCmd())
+	cmd.AddCommand(GetAccountCmd())
 
 	return cmd
 }
