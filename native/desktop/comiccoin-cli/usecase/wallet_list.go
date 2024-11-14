@@ -1,22 +1,21 @@
 package usecase
 
 import (
+	"context"
 	"log/slog"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/domain"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 )
 
 type ListAllWalletUseCase struct {
-	config *config.Config
 	logger *slog.Logger
 	repo   domain.WalletRepository
 }
 
-func NewListAllWalletUseCase(config *config.Config, logger *slog.Logger, repo domain.WalletRepository) *ListAllWalletUseCase {
-	return &ListAllWalletUseCase{config, logger, repo}
+func NewListAllWalletUseCase(logger *slog.Logger, repo domain.WalletRepository) *ListAllWalletUseCase {
+	return &ListAllWalletUseCase{logger, repo}
 }
 
-func (uc *ListAllWalletUseCase) Execute() ([]*domain.Wallet, error) {
-	return uc.repo.ListAll()
+func (uc *ListAllWalletUseCase) Execute(ctx context.Context) ([]*domain.Wallet, error) {
+	return uc.repo.ListAll(ctx)
 }

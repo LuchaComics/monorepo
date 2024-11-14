@@ -1,35 +1,39 @@
 package usecase
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/domain"
-	pkgkeystore "github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/common/blockchain/keystore"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/common/httperror"
+	pkgkeystore "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/blockchain/keystore"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 )
 
 type AccountDecryptKeyUseCase struct {
-	config *config.Config
-	logger *slog.Logger
-	repo   domain.AccountRepository
+	logger   *slog.Logger
+	keystore pkgkeystore.KeystoreAdapter
+	repo     domain.AccountRepository
 }
 
-func NewAccountDecryptKeyUseCase(config *config.Config, logger *slog.Logger, repo domain.AccountRepository) *AccountDecryptKeyUseCase {
-	return &AccountDecryptKeyUseCase{config, logger, repo}
+func NewAccountDecryptKeyUseCase(
+	logger *slog.Logger,
+	keystore pkgkeystore.KeystoreAdapter,
+	repo domain.AccountRepository,
+) *AccountDecryptKeyUseCase {
+	return &AccountDecryptKeyUseCase{logger, keystore, repo}
 }
 
-func (uc *AccountDecryptKeyUseCase) Execute(walletFilepath string, walletPassword string) (*keystore.Key, error) {
+func (uc *AccountDecryptKeyUseCase) Execute(ctx context.Context, walletKeystoreBytes []byte, walletPassword string) (*keystore.Key, error) {
 	//
 	// STEP 1: Validation.
 	//
 
 	e := make(map[string]string)
-	if walletFilepath == "" {
-		e["wallet_filepath"] = "missing value"
+	if walletKeystoreBytes == nil {
+		e["wallet_keystore_bytes"] = "missing value"
 	}
 	if walletPassword == "" {
 		e["wallet_password"] = "missing value"
@@ -44,7 +48,7 @@ func (uc *AccountDecryptKeyUseCase) Execute(walletFilepath string, walletPasswor
 	// STEP 2: Decrypt key
 	//
 
-	key, err := pkgkeystore.GetKeyAfterDecryptingWalletAtFilepath(walletFilepath, walletPassword)
+	key, err := uc.keystore.OpenWallet(walletKeystoreBytes, walletPassword)
 	if err != nil {
 		uc.logger.Warn("Failed getting account",
 			slog.Any("error", err))

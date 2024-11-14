@@ -1,12 +1,19 @@
 package account
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/spf13/cobra"
 
-// HTTP endpoints
-const (
-	accountsURL      = "/v1/api/accounts"
-	accountDetailURL = "/v1/api/account/${ACCOUNT_ADDRESS}"
+	pref "github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/common/preferences"
 )
+
+var (
+	preferences *pref.Preferences
+)
+
+// Initialize function will be called when every command gets called.
+func init() {
+	preferences = pref.PreferencesInstance()
+}
 
 func AccountCmd() *cobra.Command {
 	var cmd = &cobra.Command{

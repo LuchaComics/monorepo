@@ -9,7 +9,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/filter"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/common/storage"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/storage"
 )
 
 // storageImpl implements the db.Database interface.

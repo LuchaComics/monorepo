@@ -1,29 +1,28 @@
 package repo
 
 import (
+	"context"
 	"log/slog"
 	"sort"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/common/blockchain/signature"
-	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/common/storage"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/domain"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/blockchain/signature"
+	disk "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/storage"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 )
 
 type AccountRepo struct {
-	config   *config.Config
 	logger   *slog.Logger
 	dbClient disk.Storage
 }
 
-func NewAccountRepo(cfg *config.Config, logger *slog.Logger, db disk.Storage) *AccountRepo {
-	return &AccountRepo{cfg, logger, db}
+func NewAccountRepo(logger *slog.Logger, db disk.Storage) *AccountRepo {
+	return &AccountRepo{logger, db}
 }
 
-func (r *AccountRepo) Upsert(account *domain.Account) error {
+func (r *AccountRepo) Upsert(ctx context.Context, account *domain.Account) error {
 	bBytes, err := account.Serialize()
 	if err != nil {
 		return err
@@ -34,7 +33,7 @@ func (r *AccountRepo) Upsert(account *domain.Account) error {
 	return nil
 }
 
-func (r *AccountRepo) GetByAddress(addr *common.Address) (*domain.Account, error) {
+func (r *AccountRepo) GetByAddress(ctx context.Context, addr *common.Address) (*domain.Account, error) {
 	bBytes, err := r.dbClient.Get(strings.ToLower(addr.String()))
 	if err != nil {
 		return nil, err
@@ -50,7 +49,7 @@ func (r *AccountRepo) GetByAddress(addr *common.Address) (*domain.Account, error
 	return b, nil
 }
 
-func (r *AccountRepo) ListAll() ([]*domain.Account, error) {
+func (r *AccountRepo) ListAll(ctx context.Context) ([]*domain.Account, error) {
 	res := make([]*domain.Account, 0)
 	err := r.dbClient.Iterate(func(key, value []byte) error {
 		account, err := domain.NewAccountFromDeserialize(value)
@@ -71,7 +70,7 @@ func (r *AccountRepo) ListAll() ([]*domain.Account, error) {
 	return res, err
 }
 
-func (r *AccountRepo) DeleteByAddress(addr *common.Address) error {
+func (r *AccountRepo) DeleteByAddress(ctx context.Context, addr *common.Address) error {
 	err := r.dbClient.Delete(strings.ToLower(addr.String()))
 	if err != nil {
 		return err
@@ -79,8 +78,8 @@ func (r *AccountRepo) DeleteByAddress(addr *common.Address) error {
 	return nil
 }
 
-func (r *AccountRepo) HashState() (string, error) {
-	accounts, err := r.ListAll()
+func (r *AccountRepo) HashState(ctx context.Context) (string, error) {
+	accounts, err := r.ListAll(ctx)
 	if err != nil {
 		return "", err
 	}

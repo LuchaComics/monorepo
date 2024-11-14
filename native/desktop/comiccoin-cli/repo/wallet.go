@@ -1,26 +1,25 @@
 package repo
 
 import (
+	"context"
 	"log/slog"
 	"strings"
 
-	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/common/storage"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/domain"
+	disk "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/storage"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 	"github.com/ethereum/go-ethereum/common"
 )
 
 type WalletRepo struct {
-	config   *config.Config
 	logger   *slog.Logger
 	dbClient disk.Storage
 }
 
-func NewWalletRepo(cfg *config.Config, logger *slog.Logger, db disk.Storage) *WalletRepo {
-	return &WalletRepo{cfg, logger, db}
+func NewWalletRepo(logger *slog.Logger, db disk.Storage) *WalletRepo {
+	return &WalletRepo{logger, db}
 }
 
-func (r *WalletRepo) Upsert(wallet *domain.Wallet) error {
+func (r *WalletRepo) Upsert(ctx context.Context, wallet *domain.Wallet) error {
 	bBytes, err := wallet.Serialize()
 	if err != nil {
 		return err
@@ -34,7 +33,7 @@ func (r *WalletRepo) Upsert(wallet *domain.Wallet) error {
 	return nil
 }
 
-func (r *WalletRepo) GetByAddress(address *common.Address) (*domain.Wallet, error) {
+func (r *WalletRepo) GetByAddress(ctx context.Context, address *common.Address) (*domain.Wallet, error) {
 	// First attempt.
 	addr := strings.ToLower(address.String())
 	r.logger.Debug("getting by address...",
@@ -73,7 +72,7 @@ func (r *WalletRepo) GetByAddress(address *common.Address) (*domain.Wallet, erro
 	return b, nil
 }
 
-func (r *WalletRepo) ListAll() ([]*domain.Wallet, error) {
+func (r *WalletRepo) ListAll(ctx context.Context) ([]*domain.Wallet, error) {
 	res := make([]*domain.Wallet, 0)
 	err := r.dbClient.Iterate(func(key, value []byte) error {
 		wallet, err := domain.NewWalletFromDeserialize(value)
@@ -94,7 +93,7 @@ func (r *WalletRepo) ListAll() ([]*domain.Wallet, error) {
 	return res, err
 }
 
-func (r *WalletRepo) DeleteByAddress(address *common.Address) error {
+func (r *WalletRepo) DeleteByAddress(ctx context.Context, address *common.Address) error {
 	err := r.dbClient.Delete(strings.ToLower(address.String()))
 	if err != nil {
 		return err

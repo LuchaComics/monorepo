@@ -1,4 +1,4 @@
-package main
+package preferences
 
 import (
 	"encoding/json"
@@ -28,10 +28,10 @@ type Preferences struct {
 	// by the user.
 	DefaultWalletAddress string `json:"default_wallet_address"`
 
-	// NFTStoreRemoteAddress variable holds the full address to the location
+	// NFTStorageAddress variable holds the full address to the location
 	// of the NFTStore on the network. Example: https://example.com or
 	// http://127.0.0.1:8080.
-	NFTStoreRemoteAddress string `json:"nft_store_remote_address"`
+	NFTStorageAddress string `json:"nft_storage_address"`
 }
 
 var (
@@ -49,6 +49,8 @@ func PreferencesInstance() *Preferences {
 		}
 
 		var preferences Preferences
+		preferences.DataDirectory = "./data/ComicCoin"
+		preferences.NFTStorageAddress = "https://comiccoinnftstorage.com"
 		err = json.NewDecoder(file).Decode(&preferences)
 		file.Close() // Close the file after you're done with it
 		if err != nil && err != io.ErrUnexpectedEOF && err != io.EOF {
@@ -86,8 +88,8 @@ func (pref *Preferences) SetDefaultWalletAddress(newAdrs string) error {
 	return ioutil.WriteFile(FilePathPreferences, data, 0666)
 }
 
-func (pref *Preferences) SetNFTStoreRemoteAddress(remoteAddress string) error {
-	pref.NFTStoreRemoteAddress = remoteAddress
+func (pref *Preferences) SetNFTStorageAddress(remoteAddress string) error {
+	pref.NFTStorageAddress = remoteAddress
 	data, err := json.MarshalIndent(pref, "", "\t")
 	if err != nil {
 		return err

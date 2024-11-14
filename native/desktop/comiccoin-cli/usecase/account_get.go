@@ -1,25 +1,24 @@
 package usecase
 
 import (
+	"context"
 	"log/slog"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/domain"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/common/httperror"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 	"github.com/ethereum/go-ethereum/common"
 )
 
 type GetAccountUseCase struct {
-	config *config.Config
 	logger *slog.Logger
 	repo   domain.AccountRepository
 }
 
-func NewGetAccountUseCase(config *config.Config, logger *slog.Logger, repo domain.AccountRepository) *GetAccountUseCase {
-	return &GetAccountUseCase{config, logger, repo}
+func NewGetAccountUseCase(logger *slog.Logger, repo domain.AccountRepository) *GetAccountUseCase {
+	return &GetAccountUseCase{logger, repo}
 }
 
-func (uc *GetAccountUseCase) Execute(address *common.Address) (*domain.Account, error) {
+func (uc *GetAccountUseCase) Execute(ctx context.Context, address *common.Address) (*domain.Account, error) {
 	//
 	// STEP 1: Validation.
 	//
@@ -38,5 +37,5 @@ func (uc *GetAccountUseCase) Execute(address *common.Address) (*domain.Account, 
 	// STEP 2: Insert into database.
 	//
 
-	return uc.repo.GetByAddress(address)
+	return uc.repo.GetByAddress(ctx, address)
 }

@@ -1,25 +1,25 @@
 package usecase
 
 import (
+	"context"
 	"log/slog"
+	"math/big"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/domain"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/common/httperror"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 	"github.com/ethereum/go-ethereum/common"
 )
 
 type UpsertAccountUseCase struct {
-	config *config.Config
 	logger *slog.Logger
 	repo   domain.AccountRepository
 }
 
-func NewUpsertAccountUseCase(config *config.Config, logger *slog.Logger, repo domain.AccountRepository) *UpsertAccountUseCase {
-	return &UpsertAccountUseCase{config, logger, repo}
+func NewUpsertAccountUseCase(logger *slog.Logger, repo domain.AccountRepository) *UpsertAccountUseCase {
+	return &UpsertAccountUseCase{logger, repo}
 }
 
-func (uc *UpsertAccountUseCase) Execute(address *common.Address, balance, nonce uint64) error {
+func (uc *UpsertAccountUseCase) Execute(ctx context.Context, address *common.Address, balance uint64, nonce *big.Int) error {
 	//
 	// STEP 1: Validation.
 	//
@@ -39,14 +39,14 @@ func (uc *UpsertAccountUseCase) Execute(address *common.Address, balance, nonce 
 	//
 
 	account := &domain.Account{
-		Address: address,
-		Nonce:   nonce,
-		Balance: balance,
+		Address:    address,
+		NonceBytes: nonce.Bytes(),
+		Balance:    balance,
 	}
 
 	//
 	// STEP 3: Insert into database.
 	//
 
-	return uc.repo.Upsert(account)
+	return uc.repo.Upsert(ctx, account)
 }

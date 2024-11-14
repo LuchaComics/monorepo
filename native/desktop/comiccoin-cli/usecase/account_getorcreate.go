@@ -1,25 +1,25 @@
 package usecase
 
 import (
+	"context"
 	"log/slog"
+	"math/big"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/domain"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/common/httperror"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 	"github.com/ethereum/go-ethereum/common"
 )
 
 type GetOrCreateAccountUseCase struct {
-	config *config.Config
 	logger *slog.Logger
 	repo   domain.AccountRepository
 }
 
-func NewGetOrCreateAccountUseCase(config *config.Config, logger *slog.Logger, repo domain.AccountRepository) *GetOrCreateAccountUseCase {
-	return &GetOrCreateAccountUseCase{config, logger, repo}
+func NewGetOrCreateAccountUseCase(logger *slog.Logger, repo domain.AccountRepository) *GetOrCreateAccountUseCase {
+	return &GetOrCreateAccountUseCase{logger, repo}
 }
 
-func (uc *GetOrCreateAccountUseCase) Execute(walletAddress *common.Address, balance, nonce uint64) error {
+func (uc *GetOrCreateAccountUseCase) Execute(ctx context.Context, walletAddress *common.Address, balance uint64, nonce *big.Int) error {
 	//
 	// STEP 1: Validation.
 	//
@@ -39,7 +39,7 @@ func (uc *GetOrCreateAccountUseCase) Execute(walletAddress *common.Address, bala
 	//
 
 	// Skip error handling
-	getAcc, _ := uc.repo.GetByAddress(walletAddress)
+	getAcc, _ := uc.repo.GetByAddress(ctx, walletAddress)
 	if getAcc != nil {
 		return nil
 	}
@@ -49,10 +49,10 @@ func (uc *GetOrCreateAccountUseCase) Execute(walletAddress *common.Address, bala
 	//
 
 	account := &domain.Account{
-		Address: walletAddress,
-		Nonce:   nonce,
-		Balance: balance,
+		Address:    walletAddress,
+		NonceBytes: nonce.Bytes(),
+		Balance:    balance,
 	}
 
-	return uc.repo.Upsert(account)
+	return uc.repo.Upsert(ctx, account)
 }
