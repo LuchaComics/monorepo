@@ -32,6 +32,13 @@ type Preferences struct {
 	// of the NFTStore on the network. Example: https://example.com or
 	// http://127.0.0.1:8080.
 	NFTStorageAddress string `json:"nft_storage_address"`
+
+	// ChainID variable keeps track which blockchain version we are using.
+	ChainID uint16 `json:"chain_id"`
+
+	// AuthorityAddress holds the address of the ComicCoin blockchain authority
+	// address that our client will communicate with.
+	AuthorityAddress string `json:"authority_address"`
 }
 
 var (
@@ -49,8 +56,10 @@ func PreferencesInstance() *Preferences {
 		}
 
 		var preferences Preferences
-		preferences.DataDirectory = "./data/ComicCoin"
-		preferences.NFTStorageAddress = "https://comiccoinnftstorage.com"
+		preferences.DataDirectory = ComicCoinDataDirectory
+		preferences.NFTStorageAddress = ComicCoinNFTStorageAddress
+		preferences.ChainID = ComicCoinChainID
+		preferences.AuthorityAddress = ComicCoinAuthorityAddress
 		err = json.NewDecoder(file).Decode(&preferences)
 		file.Close() // Close the file after you're done with it
 		if err != nil && err != io.ErrUnexpectedEOF && err != io.EOF {
