@@ -1,0 +1,156 @@
+package service
+
+import (
+	"context"
+	"log/slog"
+	"mime/multipart"
+	"time"
+
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/config/constants"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/domain"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/usecase"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
+)
+
+type IPFSPinAddService struct {
+	logger                 *slog.Logger
+	ipfsGetNodeIDUseCase   *usecase.IPFSGetNodeIDUseCase
+	ipfsPinAddUsecase      *usecase.IPFSPinAddUseCase
+	upsertPinObjectUseCase *usecase.UpsertPinObjectUseCase
+}
+
+func NewIPFSPinAddService(
+	logger *slog.Logger,
+	uc1 *usecase.IPFSGetNodeIDUseCase,
+	uc2 *usecase.IPFSPinAddUseCase,
+	uc3 *usecase.UpsertPinObjectUseCase,
+) *IPFSPinAddService {
+	return &IPFSPinAddService{logger, uc1, uc2, uc3}
+}
+
+type PinObjectCreateServiceRequestIDO struct {
+	Name    string
+	Origins []string          `bson:"origins" json:"origins"`
+	Meta    map[string]string `bson:"meta" json:"meta"`
+	File    multipart.File    // Outside of IPFS pinning spec.
+}
+
+// PinObjectCreateServiceResponseIDO represents `PinStatus` spec via https://ipfs.github.io/pinning-services-api-spec/#section/Schemas/Identifiers.
+type PinObjectCreateServiceResponseIDO struct {
+	RequestID uint64            `bson:"requestid" json:"requestid"`
+	Status    string            `bson:"status" json:"status"`
+	Created   time.Time         `bson:"created,omitempty" json:"created,omitempty"`
+	Delegates []string          `bson:"delegates" json:"delegates"`
+	Info      map[string]string `bson:"info" json:"info"`
+	CID       string            `bson:"cid" json:"cid"`
+	Name      string            `bson:"name" json:"name"`
+	Origins   []string          `bson:"origins" json:"origins"`
+	Meta      map[string]string `bson:"meta" json:"meta"`
+}
+
+func (uc *IPFSPinAddService) Execute(ctx context.Context, req *PinObjectCreateServiceRequestIDO) (*PinObjectCreateServiceResponseIDO, error) {
+	//
+	// STEP 1:
+	// Validation.
+	//
+
+	e := make(map[string]string)
+
+	if req.Meta == nil {
+		e["meta"] = "missing value"
+	} else {
+		if req.Meta["filename"] == "" {
+			e["meta"] = "missing `filename` value"
+		}
+		if req.Meta["content_type"] == "" {
+			e["meta"] = "missing `content_type` value"
+		}
+	}
+	if req.File == nil {
+		e["file"] = "missing value"
+	}
+	if len(e) != 0 {
+		return nil, httperror.NewForBadRequest(&e)
+	}
+
+	//
+	// STEP 2:
+	// Check to see if we are able to send to our IPFS node. If not abandon
+	// this execution immediately.
+	//
+
+	nodeID, err := uc.ipfsGetNodeIDUseCase.Execute()
+	if err != nil {
+		uc.logger.Error("Failed getting ID from the IPFS node we are using", slog.Any("error", err))
+		return nil, err
+	}
+
+	uc.logger.Debug("Submitting to IPFS", slog.Any("node_id", nodeID))
+
+	//
+	// STEP 3:
+	// Submit to IPFS and get CID.
+	//
+
+	cid, err := uc.ipfsPinAddUsecase.Execute(req.File)
+	if err != nil {
+		uc.logger.Error("Failed pin adding to IPFS.",
+			slog.Any("error", err))
+		return nil, err
+	}
+	uc.logger.Debug("Submitting to IPFS",
+		slog.Any("cid", cid))
+
+	//
+	// STEP 4:
+	// Define our object and save to our database.
+	//
+
+	ipAdress, _ := ctx.Value(constants.SessionIPAddress).(string)
+
+	// Create our meta record in the database.
+	pinobj := &domain.PinObject{
+		// Core fields required for a `pin` in IPFS.
+		Status:    domain.StatusPinned,
+		CID:       cid,
+		RequestID: uint64(time.Now().UnixMilli()),
+		Name:      req.Name,
+		Created:   time.Now(),
+		Origins:   req.Origins,
+		Meta:      req.Meta,
+		Delegates: make([]string, 0),
+		Info:      make(map[string]string, 0),
+
+		// Extension (a.k.a. not part of the IPFS spec).
+		Filename: req.Meta["filename"],
+		// ContentType:           req.Meta["content_type"],
+		CreatedFromIPAddress:  ipAdress,
+		ModifiedAt:            time.Now(),
+		ModifiedFromIPAddress: ipAdress,
+	}
+
+	// Save to database.
+	if err := uc.upsertPinObjectUseCase.Execute(ctx, pinobj); err != nil {
+		uc.logger.Error("database create error",
+			slog.Any("error", err))
+		return nil, err
+	}
+
+	//
+	// STEP 5:
+	// Return a response which is helpful for the IPFS gateway spec.
+	//
+
+	res := &PinObjectCreateServiceResponseIDO{
+		RequestID: pinobj.RequestID,
+		Status:    pinobj.Status,
+		Created:   pinobj.Created,
+		Delegates: pinobj.Delegates,
+		Info:      pinobj.Info,
+		CID:       pinobj.CID,
+		Name:      pinobj.Name,
+		Origins:   pinobj.Origins,
+		Meta:      pinobj.Meta,
+	}
+	return res, nil
+}

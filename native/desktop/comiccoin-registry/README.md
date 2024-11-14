@@ -1,19 +1,68 @@
-# README
+# 📚🪙 ComicCoin - Registry
 
-## About
+**Project still under active development - use at your own risk**
 
-This is the official Wails React template.
+The purpose of this GUI application is provide the ComicCoin authority the ability to create NFT metadata (along with the digital assets associated with the NFT) and submit it to the IPFS network to be shared; in addition, submit the NFT metadata/assets to [`comiccoin-nftassetstore`](../comiccoin-nftassetstore) server to provide exclusive hosting of the said assets.
 
-You can configure the project by editing `wails.json`. More information about the project settings can be found
-here: https://wails.io/docs/reference/project-config
+## 👐 Installation
 
-## Live Development
+Follow these steps to setup the project locally on your development machine.
 
-To run in live development mode, run `wails dev` in the project directory. This will run a Vite development
-server that will provide very fast hot reload of your frontend changes. If you want to develop in a browser
-and have access to your Go methods, there is also a dev server that runs on http://localhost:34115. Connect
-to this in your browser, and you can call your Go code from devtools.
+1. Go to your `$GOPATH` directory and clone our *monorepo*.
 
-## Building
+   ```shell
+   cd $GOPATH/src/github.com
+   mkdir LuchaComics
+   cd ./LuchaComics
+   git clone git@github.com:LuchaComics/monorepo.git
+   ```
 
-To build a redistributable, production mode package, use `wails build`.
+2. Go into our monorepo folder.
+
+   ```shell
+   cd ./LuchaComics/monorepo
+   ```
+
+3. Activate the golang workspace which is required.
+
+    ```shell
+    go work use ./native/desktop/comiccoin-nftassetstore
+    ```
+
+4. Go into our `comiccoin-nftassetstore` folder
+
+    ```shell
+    cd ./native/desktop/comiccoin-nftassetstore
+    ```
+
+5. Install our dependencies.
+
+   ```shell
+   go mod tidy
+   ```
+
+6. Start the GUI application (in developer mode). Please note that you will need the **Remote Address** and **API Key** of the [NFT Asset Store servers](../comiccoin-nftassetstore) you have concurrently running for this GUI application.
+
+   ```shell
+   wails dev
+   ```
+
+7. If the GUI application loads up then you have successfully started running the **ComicCoin Registry**. You may now populate the NFT metadata/assets of the ComicCoin blockchain network!
+
+## 🛠️ Building
+
+See **Build Instructions (TODO)** for more information on building **ComicCoin Registry** GUI application and working with the source code.
+
+## 🤝 Contributing
+
+Found a bug? Want a feature to improve the package? Please create an [issue](https://github.com/LuchaComics/monorepo/issues/new).
+
+## 📝 License
+
+This application is licensed under the [**GNU Affero General Public License v3.0**](https://opensource.org/license/agpl-v3). See [LICENSE](LICENSE) for more information.
+
+## ⚙️ Tech Stack
+
+**Client:** React, Bulma.css
+
+**Server:** Golang, Wails, IPFS, leveldb

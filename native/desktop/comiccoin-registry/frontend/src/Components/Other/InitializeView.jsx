@@ -4,7 +4,7 @@ import { Link, Navigate } from "react-router-dom";
 import PageLoadingContent from "../Reusable/PageLoadingContent";
 import {
     GetDataDirectoryFromPreferences,
-    GetNFTStoreSettingsFromPreferences
+    GetNFTStoreRemoteAddressFromPreferences
 } from "../../../wailsjs/go/main/App";
 
 
@@ -34,18 +34,12 @@ function InitializeView() {
                 if (dataDirResp === "") {
                     setForceURL("/pick-data-directory")
                 } else {
-                    GetNFTStoreSettingsFromPreferences().then((config)=>{
-                        console.log("config", config);
-                        if (config === undefined || config === null || config === "") {
-                             setForceURL("/config-nftstore");
+                    GetNFTStoreRemoteAddressFromPreferences().then((remoteAddressResp)=>{
+                        console.log("remoteAddressResp", remoteAddressResp);
+                        if (remoteAddressResp != "") {
+                            setForceURL("/startup");
                         } else {
-                            if (config.accessKeyId === "" || config.apiVersion === "" || config.endpoint === "" || config.region === "" || config.s3ForcePathStyle === "" || config.secretAccessKey === "") {
-                                console.log("config:", config);
-                                setForceURL("/config-nftstore");
-                            } else {
-                                console.log("config:", config);
-                                setForceURL("/startup");
-                            }
+                            setForceURL("/config-nftstore");
                         }
                     })
                 }

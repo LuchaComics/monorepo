@@ -6,9 +6,8 @@ use (
 	./cloud/archive/cps-nftstore-cli
 	./cloud/comiccoin-authority
 	./cloud/cps-backend
-	./native/desktop/archive/comiccoin
-	./native/desktop/archive/comiccoin-core
-	./native/desktop/archive/comiccoin-nftassetstore
+	./native/desktop/comiccoin
 	./native/desktop/comiccoin-cli
+	./native/desktop/comiccoin-nftstorage
 	./native/desktop/comiccoin-registry
 )

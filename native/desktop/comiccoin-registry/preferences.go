@@ -28,9 +28,14 @@ type Preferences struct {
 	// by the user.
 	DefaultWalletAddress string `json:"default_wallet_address"`
 
-	// NFTStoreSettings holds the configuration for connecting to
-	// our remote IPFS node which handles IPFS submission.
-	NFTStoreSettings map[string]string `json:"nft_store_settings"`
+	// NFTStoreAPIKey holds the API key necessary to make authenticated api
+	// calls such as posting.
+	NFTStoreAPIKey string `json:"nft_store_api_key"`
+
+	// NFTStoreRemoteAddress variable holds the full address to the location
+	// of the NFTStore on the network. Example: https://example.com or
+	// http://127.0.0.1:8080.
+	NFTStoreRemoteAddress string `json:"nft_store_remote_address"`
 }
 
 var (
@@ -85,19 +90,8 @@ func (pref *Preferences) SetDefaultWalletAddress(newAdrs string) error {
 	return ioutil.WriteFile(FilePathPreferences, data, 0666)
 }
 
-func (pref *Preferences) GetEmptyNFTStoreSettings() map[string]string {
-	remoteIPFSNodeConfiguration := map[string]string{}
-	remoteIPFSNodeConfiguration["apiVersion"] = ""
-	remoteIPFSNodeConfiguration["accessKeyId"] = ""
-	remoteIPFSNodeConfiguration["secretAccessKey"] = ""
-	remoteIPFSNodeConfiguration["endpoint"] = ""
-	remoteIPFSNodeConfiguration["region"] = ""
-	remoteIPFSNodeConfiguration["s3ForcePathStyle"] = "true"
-	return remoteIPFSNodeConfiguration
-}
-
-func (pref *Preferences) SetNFTStoreSettings(config map[string]string) error {
-	pref.NFTStoreSettings = config
+func (pref *Preferences) SetNFTStoreAPIKey(apiKey string) error {
+	pref.NFTStoreAPIKey = apiKey
 	data, err := json.MarshalIndent(pref, "", "\t")
 	if err != nil {
 		return err
@@ -105,21 +99,11 @@ func (pref *Preferences) SetNFTStoreSettings(config map[string]string) error {
 	return ioutil.WriteFile(FilePathPreferences, data, 0666)
 }
 
-//
-// func (pref *Preferences) SetNFTStoreAPIKey(apiKey string) error {
-// 	pref.NFTStoreAPIKey = apiKey
-// 	data, err := json.MarshalIndent(pref, "", "\t")
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return ioutil.WriteFile(FilePathPreferences, data, 0666)
-// }
-//
-// func (pref *Preferences) SetNFTStoreRemoteAddress(remoteAddress string) error {
-// 	pref.NFTStoreRemoteAddress = remoteAddress
-// 	data, err := json.MarshalIndent(pref, "", "\t")
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return ioutil.WriteFile(FilePathPreferences, data, 0666)
-// }
+func (pref *Preferences) SetNFTStoreRemoteAddress(remoteAddress string) error {
+	pref.NFTStoreRemoteAddress = remoteAddress
+	data, err := json.MarshalIndent(pref, "", "\t")
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(FilePathPreferences, data, 0666)
+}

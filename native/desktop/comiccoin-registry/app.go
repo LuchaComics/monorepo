@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/common/kmutexutil"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/common/logger"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/domain"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/kmutexutil"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/disk/leveldb"
+	pkgdomain "github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
+	pkgrepo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
+
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/repo"
 )
 
@@ -17,9 +19,15 @@ type App struct {
 
 	// Logger instance which provides detailed debugging information along
 	// with the console log messages.
-	logger       *slog.Logger
-	kmutex       kmutexutil.KMutexProvider
-	fileBaseRepo domain.FileBaseRepository
+	logger *slog.Logger
+
+	kmutex kmutexutil.KMutexProvider
+
+	tokenRepo *repo.TokenRepo
+
+	nftAssetRepo pkgdomain.NFTAssetRepository
+
+	latestTokenIDRepo *repo.LastestTokenIDRepo
 }
 
 // NewApp creates a new App application struct
@@ -27,9 +35,11 @@ func NewApp() *App {
 	logger := logger.NewProvider()
 	kmutex := kmutexutil.NewKMutexProvider()
 	return &App{
-		logger:       logger,
-		kmutex:       kmutex,
-		fileBaseRepo: nil,
+		logger:            logger,
+		kmutex:            kmutex,
+		tokenRepo:         nil,
+		nftAssetRepo:      nil,
+		latestTokenIDRepo: nil,
 	}
 }
 
@@ -55,26 +65,40 @@ func (a *App) startup(ctx context.Context) {
 		return
 	}
 
-	if a.fileBaseRepo == nil {
-		a.logger.Debug("Connecting to FileBase...")
-		newConfig := preferences.NFTStoreSettings
+	if a.tokenRepo == nil {
+		a.logger.Debug("Loading disk storage: token_by_id")
+		tokenByTokenIDDB := disk.NewDiskStorage(dataDir, "token_by_id", a.logger)
 
-		filebaseConfig := repo.NewFileBaseRepoConfigurationProvider(
-			newConfig["apiVersion"],
-			newConfig["accessKeyId"],
-			newConfig["secretAccessKey"],
-			newConfig["endpoint"],
-			newConfig["region"],
-			newConfig["s3ForcePathStyle"],
-		)
-		fileBaseRepo := repo.NewFileBaseRepo(filebaseConfig, a.logger)
-		a.fileBaseRepo = fileBaseRepo
-		a.logger.Debug("FileBase connected!")
+		a.logger.Debug("Loading disk storage: token_by_metadata_uri")
+		tokenByMetadataURIDB := disk.NewDiskStorage(dataDir, "token_by_metadata_uri", a.logger)
+
+		a.logger.Debug("Loading repo: tokenRepo")
+		tokenRepo := repo.NewTokenRepo(a.logger, tokenByTokenIDDB, tokenByMetadataURIDB)
+		a.tokenRepo = tokenRepo
 	}
 
-}
+	if a.nftAssetRepo == nil {
+		nftStoreRemoteAddress := preferences.NFTStoreRemoteAddress
+		nftStoreAPIKey := preferences.NFTStoreAPIKey
+		a.logger.Debug("Loading repo: NFT asset repo",
+			slog.Any("nftStoreRemoteAddress", nftStoreRemoteAddress),
+			slog.Any("nftStoreAPIKey", nftStoreAPIKey))
 
-// Greet returns a greeting for the given name
-func (a *App) Greet(name string) string {
-	return fmt.Sprintf("Hello %s, It's show time!", name)
+		nftAssetRepoConfig := pkgrepo.NewNFTAssetRepoConfigurationProvider(nftStoreRemoteAddress, nftStoreAPIKey)
+		nftAssetRepo := pkgrepo.NewNFTAssetRepo(nftAssetRepoConfig, a.logger)
+		a.nftAssetRepo = nftAssetRepo
+	}
+
+	if a.latestTokenIDRepo == nil {
+		a.logger.Debug("Loading disk storage: latest_token_id")
+		latestTokenIDDB := disk.NewDiskStorage(dataDir, "latest_token_id", a.logger)
+
+		a.logger.Debug("Loading repo: latestTokenIDRepo")
+		latestTokenIDRepo := repo.NewLastestTokenIDRepo(
+			a.logger,
+			latestTokenIDDB)
+		a.latestTokenIDRepo = latestTokenIDRepo
+	}
+
+	a.logger.Debug("startup: finished...")
 }
