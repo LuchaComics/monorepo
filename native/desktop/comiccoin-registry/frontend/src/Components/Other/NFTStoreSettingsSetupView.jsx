@@ -27,17 +27,16 @@ import FormTextareaField from "../Reusable/FormTextareaField";
 import FormRadioField from "../Reusable/FormRadioField";
 import FormInputField from "../Reusable/FormInputField";
 import FormInputFieldWithButton from "../Reusable/FormInputFieldWithButton";
+import FormCheckboxField from "../Reusable/FormCheckboxField";
 import {
-    GetNFTStoreRemoteAddressFromPreferences,
-    GetNFTStoreAPIKeyFromPreferences,
-    GetDataDirectoryFromDialog,
-    SaveNFTStoreConfigVariables,
+    GetNFTStoreSettingsFromPreferences,
+    SaveNFTStoreSettings,
     ShutdownApp
 } from "../../../wailsjs/go/main/App";
 import PageLoadingContent from "../Reusable/PageLoadingContent";
 
 
-function NFTSToreSetupView() {
+function NFTStoreSettingsSetupView() {
 
     ////
     //// Component states.
@@ -47,15 +46,19 @@ function NFTSToreSetupView() {
     const [isLoading, setIsLoading] = useState(false);
     const [useDefaultLocation, setUseDefaultLocation] = useState(1);
     const [forceURL, setForceURL] = useState("");
-    const [remoteAddress, setRemoteAddress] = useState("http://127.0.0.1:8080");
-    const [apiKey, setApiKey] = useState("");
+    const [apiVersion, setApiVersion] = useState("");
+    const [endpoint, setEndpoint] = useState("");
+    const [secretAccessKey, setSecretAccessKey] = useState("");
+    const [accessKeyId, setAccessKeyId] = useState("");
+    const [region, setRegion] = useState("");
+    const [s3ForcePathStyle, setS3ForcePathStyle] = useState(true);
     const [showCancelWarning, setShowCancelWarning] = useState(false);
 
     ////
     //// Event handling.
     ////
 
-    const setRemoteAddressCallback = (result) => setRemoteAddress(result);
+    const EndpointCallback = (result) => Endpoint(result);
 
     ////
     //// API.
@@ -66,8 +69,17 @@ function NFTSToreSetupView() {
         setErrors({});
         setIsLoading(true);
 
-        // Submit the `remoteAddress` value to our backend.
-        SaveNFTStoreConfigVariables(apiKey, remoteAddress).then( (result) => {
+        let config = {
+            apiVersion: apiVersion,
+            accessKeyId: accessKeyId,
+            secretAccessKey: secretAccessKey,
+            endpoint: endpoint,
+            region: region,
+            s3ForcePathStyle: s3ForcePathStyle ? "true" : "false",
+        };
+
+        // // Submit the `endpoint` value to our backend.
+        SaveNFTStoreSettings(config).then( (result) => {
             console.log("result:", result);
             setForceURL("/startup")
         }).catch((errorJsonString)=>{
@@ -76,11 +88,23 @@ function NFTSToreSetupView() {
             console.log("errorObject:", errorObject);
 
             let err = {};
-            if (errorObject.nftStoreRemoteAddress != "") {
-                err.remoteAddress = errorObject.nftStoreRemoteAddress;
+            if (errorObject.apiVersion != "") {
+                err.apiVersion = errorObject.apiVersion;
             }
-            if (errorObject.nftStoreAPIKey != "") {
-                err.apiKey = errorObject.nftStoreAPIKey;
+            if (errorObject.accessKeyId != "") {
+                err.accessKeyId = errorObject.accessKeyId;
+            }
+            if (errorObject.secretAccessKey != "") {
+                err.secretAccessKey = errorObject.secretAccessKey;
+            }
+            if (errorObject.endpoint != "") {
+                err.endpoint = errorObject.endpoint;
+            }
+            if (errorObject.region != "") {
+                err.region = errorObject.region;
+            }
+            if (errorObject.s3ForcePathStyle != "") {
+                err.s3ForcePathStyle = errorObject.s3ForcePathStyle;
             }
             setErrors(err);
 
@@ -102,15 +126,10 @@ function NFTSToreSetupView() {
       let mounted = true;
 
       if (mounted) {
-            window.scrollTo(0, 0); // Start the page at the top of the page.
-            GetNFTStoreRemoteAddressFromPreferences().then( (resp)=>{
-                console.log("OnStartup: RemoteAddress:", resp);
-                setRemoteAddress(resp);
-            })
-            GetNFTStoreAPIKeyFromPreferences().then( (resp)=>{
-                console.log("OnStartup: API Key:", resp);
-                setApiKey(resp);
-            })
+        window.scrollTo(0, 0); // Start the page at the top of the page.
+        GetNFTStoreSettingsFromPreferences().then( (resp)=>{
+            console.log("GetNFTStoreSettingsFromPreferences: resp:", resp);
+        });
       }
 
 
@@ -182,32 +201,80 @@ function NFTSToreSetupView() {
 
                 <FormErrorBox errors={errors} />
 
-                <p class="pb-4">Next you will need to configure how to connect to the <b>NFT Store</b>.</p>
+                <p class="pb-4">Next you will need to configure how to connect to the <b>FileBase</b>.</p>
                 <p class="pb-4">ComicCoin Registry requires the following fields to be filled out.</p>
 
                 <FormInputField
-                  label="Remote Address"
-                  name="remoteAddress"
-                  placeholder=""
-                  value={remoteAddress}
-                  errorText={errors && errors.remoteAddress}
-                  helpText="Please enter the address the NFT Store can be reached at."
-                  onChange={(e) => setRemoteAddress(e.target.value)}
+                  label="API Version"
+                  name="apiVersion"
+                  placeholder="2006-03-01"
+                  value={apiVersion}
+                  errorText={errors && errors.apiVersion}
+                  helpText=""
+                  onChange={(e) => setApiVersion(e.target.value)}
+                  isRequired={true}
+                  maxWidth="500px"
+                />
+
+
+                <FormInputField
+                  label="Access Key ID"
+                  name="accessKeyId"
+                  placeholder="Filebase-Access-Key"
+                  value={accessKeyId}
+                  errorText={errors && errors.accessKeyId}
+                  helpText=""
+                  onChange={(e) => setAccessKeyId(e.target.value)}
                   isRequired={true}
                   maxWidth="500px"
                 />
 
                 <FormTextareaField
-                  label="API Key"
-                  name="apiKey"
-                  placeholder=""
-                  value={apiKey}
-                  errorText={errors && errors.apiKey}
-                  helpText="Please keep this key safe!"
-                  onChange={(e) => setApiKey(e.target.value)}
+                  label="Secret Access Key"
+                  name="secretAccessKey"
+                  placeholder="Filebase-Secret-Key"
+                  value={secretAccessKey}
+                  errorText={errors && errors.secretAccessKey}
+                  helpText=""
+                  onChange={(e) => setSecretAccessKey(e.target.value)}
                   isRequired={true}
                   rows={5}
                 />
+
+                <FormInputField
+                  label="Endpoint"
+                  name="endpoint"
+                  placeholder="https://s3.filebase.com"
+                  value={endpoint}
+                  errorText={errors && errors.endpoint}
+                  helpText=""
+                  onChange={(e) => setEndpoint(e.target.value)}
+                  isRequired={true}
+                  maxWidth="500px"
+                />
+
+                <FormInputField
+                  label="Region"
+                  name="region"
+                  placeholder="us-east-1"
+                  value={region}
+                  errorText={errors && errors.region}
+                  helpText=""
+                  onChange={(e) => setRegion(e.target.value)}
+                  isRequired={true}
+                  maxWidth="500px"
+                />
+
+                <FormCheckboxField
+                  label="S3 Force Path Style"
+                  name="s3ForcePathStyle"
+                  checked={s3ForcePathStyle}
+                  errorText={errors && errors.s3ForcePathStyle}
+                  onChange={(e) => setS3ForcePathStyle(!s3ForcePathStyle)}
+                  maxWidth="180px"
+                />
+
+
 
                 <div class="columns pt-5" style={{alignSelf: "flex-start"}}>
                   <div class="column is-half ">
@@ -237,4 +304,4 @@ function NFTSToreSetupView() {
     )
 }
 
-export default NFTSToreSetupView
+export default NFTStoreSettingsSetupView

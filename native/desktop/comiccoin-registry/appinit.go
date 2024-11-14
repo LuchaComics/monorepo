@@ -6,6 +6,8 @@ import (
 	"log/slog"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/common/httperror"
 )
 
 func (a *App) GetDataDirectoryFromPreferences() string {
@@ -20,17 +22,11 @@ func (a *App) GetDefaultDataDirectory() string {
 	return defaultDataDir
 }
 
-// func (a *App) GetNFTStoreAPIKeyFromPreferences() string {
-// 	preferences := PreferencesInstance()
-// 	nftStoreAPIKey := preferences.NFTStoreAPIKey
-// 	return nftStoreAPIKey
-// }
-//
-// func (a *App) GetNFTStoreRemoteAddressFromPreferences() string {
-// 	preferences := PreferencesInstance()
-// 	nftStoreRemoteAddress := preferences.NFTStoreRemoteAddress
-// 	return nftStoreRemoteAddress
-// }
+func (a *App) GetNFTStoreSettingsFromPreferences() map[string]string {
+	preferences := PreferencesInstance()
+	nftStoreSettings := preferences.NFTStoreSettings
+	return nftStoreSettings
+}
 
 func (a *App) GetDataDirectoryFromDialog() string {
 	// Initialize Wails runtime
@@ -54,6 +50,51 @@ func (a *App) SaveDataDirectory(newDataDirectory string) error {
 	err := preferences.SetDataDirectory(newDataDirectory)
 	if err != nil {
 		a.logger.Error("Failed setting data directory",
+			slog.Any("error", err))
+		return err
+	}
+	return nil
+}
+
+func (a *App) SaveNFTStoreSettings(newConfig map[string]string) error {
+	a.logger.Debug("Saving NFT store settings...",
+		slog.Any("newConfig", newConfig))
+
+	// Defensive code
+	if newConfig == nil {
+		return fmt.Errorf("failed saving ipfs node config because: %v", "data directory is empty")
+	}
+
+	// Validation
+	e := make(map[string]string)
+	if newConfig["apiVersion"] == "" {
+		e["apiVersion"] = "missing value"
+	}
+	if newConfig["accessKeyId"] == "" {
+		e["accessKeyId"] = "missing value"
+	}
+	if newConfig["secretAccessKey"] == "" {
+		e["secretAccessKey"] = "missing value"
+	}
+	if newConfig["endpoint"] == "" {
+		e["endpoint"] = "missing value"
+	}
+	if newConfig["region"] == "" {
+		e["region"] = "missing value"
+	}
+	if newConfig["s3ForcePathStyle"] == "" {
+		e["s3ForcePathStyle"] = "missing value"
+	}
+	if len(e) != 0 {
+		a.logger.Warn("Validation failed",
+			slog.Any("error", e))
+		return httperror.NewForBadRequest(&e)
+	}
+
+	preferences := PreferencesInstance()
+	err := preferences.SetNFTStoreSettings(newConfig)
+	if err != nil {
+		a.logger.Error("Failed setting ipfs node configuration",
 			slog.Any("error", err))
 		return err
 	}

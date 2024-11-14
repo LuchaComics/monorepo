@@ -14,12 +14,20 @@ export function GetDefaultDataDirectory() {
   return window['go']['main']['App']['GetDefaultDataDirectory']();
 }
 
+export function GetNFTStoreSettingsFromPreferences() {
+  return window['go']['main']['App']['GetNFTStoreSettingsFromPreferences']();
+}
+
 export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
 }
 
 export function SaveDataDirectory(arg1) {
   return window['go']['main']['App']['SaveDataDirectory'](arg1);
+}
+
+export function SaveNFTStoreSettings(arg1) {
+  return window['go']['main']['App']['SaveNFTStoreSettings'](arg1);
 }
 
 export function ShutdownApp() {

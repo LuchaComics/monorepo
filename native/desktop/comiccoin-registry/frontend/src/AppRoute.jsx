@@ -13,8 +13,8 @@ import BottomTabBar  from "./Components/Menu/BottomBar";
 // CORE VIEWS
 import InitializeView from "./Components/Other/InitializeView";
 import NotFoundErrorView from "./Components/Other/NotFoundErrorView";
-// import PickDataDirectoryView from "./Components/Other/PickDataDirectoryView";
-// import NFTSToreSetupView from "./Components/Other/NFTSToreSetupView";
+import PickDataDirectoryView from "./Components/Other/PickDataDirectoryView";
+import NFTStoreSettingsSetupView from "./Components/Other/NFTStoreSettingsSetupView";
 // import StartupView from "./Components/Other/StartupView";
 // import DashboardView from "./Components/Dashboard/View";
 // import ListTokensView from "./Components/Tokens/ListView";
@@ -68,9 +68,9 @@ function AppRoute() {
                     <section class="main-content pt-6 is-fullheight">
                         <Routes>
                             <Route path="/" element={<InitializeView />} exact />
-                            {/*
                             <Route path="/pick-data-directory" element={<PickDataDirectoryView />} exact />
-                            <Route path="/config-nftstore" element={<NFTSToreSetupView />} exact />
+                            <Route path="/config-nftstore" element={<NFTStoreSettingsSetupView />} exact />
+                            {/*
                             <Route path="/startup" element={<StartupView />} exact />
                             <Route path="/dashboard" element={<DashboardView />} exact />
                             <Route path="/tokens" element={<ListTokensView />} exact />
