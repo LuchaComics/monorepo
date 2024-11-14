@@ -108,11 +108,25 @@ func NewIPFSRepo(cfg IPFSRepoConfigurationProvider, logger *slog.Logger) domain.
 		log.Fatalf("NewIPFSRepo: failed to create IPFS HTTP API client: %v", err)
 	}
 
-	return &IPFSRepo{
+	ipfsRepo := &IPFSRepo{
 		config: cfg,
 		logger: logger,
 		api:    api,
 	}
+
+	// Step 4: Attempt to verify connection with IPFS node by checking `ID()`.
+	peerID, err := ipfsRepo.ID()
+	if err != nil {
+		log.Fatalf("Failed getting IPFS Node ID() because of error: %v\n", err)
+	}
+	if peerID == "" {
+		log.Fatal("Failed getting IPFS Node ID() because of nothing was returned.\n")
+	}
+	logger.Debug("IPFS Repo successfully connected with remote IPFS node.",
+		slog.Any("address", ipfsAddress),
+	)
+
+	return ipfsRepo
 }
 
 // ID returns the IPFS node's identity information
