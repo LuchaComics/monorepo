@@ -1,0 +1,9 @@
+version: "3"
+
+tasks:
+  formatipfs:
+    desc: Unpin and remove all IPFS content from my machine
+    cmds:
+        # Special thanks: https://stackoverflow.com/a/43118023
+      - ipfs pin ls --type recursive | cut -d' ' -f1 | xargs -n1 ipfs pin rm
+      - ipfs repo gc
