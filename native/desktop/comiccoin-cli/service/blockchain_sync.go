@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 
@@ -154,12 +155,16 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) Execute(ctx context.Conte
 				slog.Any("error", err))
 			return err
 		}
+		s.logger.Debug("Local blockchain state set to genesis block data",
+			slog.Any("chain_id", chainID))
 	} else {
 		if localBlockchainState.LatestHash == globalBlockchainState.LatestHash {
-			s.logger.Debug("Local blockchain is up to date with global blockchain network",
+			s.logger.Debug("Local blockchain is in sync with global blockchain network",
 				slog.Any("chain_id", chainID))
 			return nil
 		}
+		s.logger.Debug("Local blockchain state is out of sync with global blockchain network",
+			slog.Any("chain_id", chainID))
 	}
 
 	//
@@ -168,7 +173,13 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) Execute(ctx context.Conte
 	// network so our local blockchain will be in-sync.
 	//
 
-	// TODO: IMPL.
+	if err := s.syncWithGlobalBlockchainNetwork(ctx, localBlockchainState, globalBlockchainState); err != nil {
+		if localBlockchainState.LatestHash == globalBlockchainState.LatestHash {
+			s.logger.Debug("Failed to sync with the global blockchain network",
+				slog.Any("chain_id", chainID))
+			return nil
+		}
+	}
 
 	//
 	// STEP 5:
@@ -177,5 +188,12 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) Execute(ctx context.Conte
 
 	// TODO: IMPL.
 
+	return nil
+}
+
+func (s *BlockchainSyncWithBlockchainAuthorityService) syncWithGlobalBlockchainNetwork(ctx context.Context, localBlockchainState, globalBlockchainState *domain.BlockchainState) error {
+	s.logger.Debug("Beginning to sync with global blockchain network...")
+	s.logger.Debug("Finished syncing with global blockchain network")
+	return errors.New("HALT BY PROGRAMMER")
 	return nil
 }

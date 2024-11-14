@@ -17,7 +17,7 @@ type BlockDataRepo struct {
 	dbClient disk.Storage
 }
 
-func NewBlockDataRepo(logger *slog.Logger, db disk.Storage) *BlockDataRepo {
+func NewBlockDataRepo(logger *slog.Logger, db disk.Storage) domain.BlockDataRepository {
 	return &BlockDataRepo{logger, db}
 }
 
