@@ -57,6 +57,9 @@ func doRunNewAccountCmd() error {
 	keystore := keystore.NewAdapter()
 	walletDB := disk.NewDiskStorage(flagDataDirectory, "wallet", logger)
 	accountDB := disk.NewDiskStorage(flagDataDirectory, "account", logger)
+	genesisBlockDataDB := disk.NewDiskStorage(flagDataDirectory, "genesis_block_data", logger)
+	blockchainStateDB := disk.NewDiskStorage(flagDataDirectory, "blockchain_state", logger)
+	blockDataDB := disk.NewDiskStorage(flagDataDirectory, "block_data", logger)
 
 	// ------ Repo ------
 	walletRepo := repo.NewWalletRepo(
@@ -65,6 +68,15 @@ func doRunNewAccountCmd() error {
 	accountRepo := repo.NewAccountRepo(
 		logger,
 		accountDB)
+	genesisBlockDataRepo := repo.NewGenesisBlockDataRepo(
+		logger,
+		genesisBlockDataDB)
+	blockchainStateRepo := repo.NewBlockchainStateRepo(
+		logger,
+		blockchainStateDB)
+	blockDataRepo := repo.NewBlockDataRepo(
+		logger,
+		blockDataDB)
 
 	// ------ Use-case ------
 
@@ -72,15 +84,24 @@ func doRunNewAccountCmd() error {
 	storageTransactionOpenUseCase := usecase.NewStorageTransactionOpenUseCase(
 		logger,
 		walletRepo,
-		accountRepo)
+		accountRepo,
+		genesisBlockDataRepo,
+		blockchainStateRepo,
+		blockDataRepo)
 	storageTransactionCommitUseCase := usecase.NewStorageTransactionCommitUseCase(
 		logger,
 		walletRepo,
-		accountRepo)
+		accountRepo,
+		genesisBlockDataRepo,
+		blockchainStateRepo,
+		blockDataRepo)
 	storageTransactionDiscardUseCase := usecase.NewStorageTransactionDiscardUseCase(
 		logger,
 		walletRepo,
-		accountRepo)
+		accountRepo,
+		genesisBlockDataRepo,
+		blockchainStateRepo,
+		blockDataRepo)
 
 	// Wallet
 	walletDecryptKeyUseCase := usecase.NewWalletDecryptKeyUseCase(
