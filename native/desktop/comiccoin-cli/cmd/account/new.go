@@ -1,17 +1,17 @@
 package account
 
 import (
+	"context"
 	"log"
 	"log/slog"
 
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/blockchain/keystore"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
 	disk "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/storage/disk/leveldb"
 	"github.com/spf13/cobra"
 
-	// "github.com/LuchaComics/monorepo/cloud/comiccoin-authority-cli/config"
-	// "github.com/LuchaComics/monorepo/cloud/comiccoin-authority-cli/service"
-
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/repo"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/service"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/usecase"
 )
 
@@ -56,7 +56,7 @@ func doRunNewAccountCmd() error {
 	// cfg := &config.Config{}
 	//
 	// ------ Common ------
-
+	keystore := keystore.NewAdapter()
 	walletDB := disk.NewDiskStorage(flagDataDirectory, "wallet", logger)
 	accountDB := disk.NewDiskStorage(flagDataDirectory, "account", logger)
 
@@ -72,76 +72,68 @@ func doRunNewAccountCmd() error {
 
 	// Wallet
 	walletDecryptKeyUseCase := usecase.NewWalletDecryptKeyUseCase(
-		cfg,
+		logger,
+		keystore,
+		walletRepo)
+	walletEncryptKeyUseCase := usecase.NewWalletEncryptKeyUseCase(
+		logger,
+		keystore,
+		walletRepo)
+	createWalletUseCase := usecase.NewCreateWalletUseCase(
 		logger,
 		walletRepo)
-	_ = walletDecryptKeyUseCase
-	// walletEncryptKeyUseCase := usecase.NewWalletEncryptKeyUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	walletRepo)
-	// createWalletUseCase := usecase.NewCreateWalletUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	walletRepo)
-	// getWalletUseCase := usecase.NewGetWalletUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	walletRepo)
-	// listAllWalletUseCase := usecase.NewListAllWalletUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	walletRepo)
-	//
-	// // Account
-	// createAccountUseCase := usecase.NewCreateAccountUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	accountRepo)
-	// getAccountUseCase := usecase.NewGetAccountUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	accountRepo)
-	// getAccountsHashStateUseCase := usecase.NewGetAccountsHashStateUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	accountRepo)
-	// upsertAccountUseCase := usecase.NewUpsertAccountUseCase(
-	// 	cfg,
-	// 	logger,
-	// 	accountRepo)
-	//
-	// // ------ Service ------
-	//
-	// createAccountService := service.NewCreateAccountService(
-	// 	logger,
-	// 	walletEncryptKeyUseCase,
-	// 	walletDecryptKeyUseCase,
-	// 	createWalletUseCase,
-	// 	createAccountUseCase,
-	// 	getAccountUseCase,
-	// )
-	//
-	// _ = getAccountsHashStateUseCase
-	// _ = upsertAccountUseCase
-	//
-	// _ = getWalletUseCase
-	// _ = listAllWalletUseCase
-	//
-	// // Execute
-	//
-	// account, err := createAccountService.Execute(flagDataDirectory, flagPassword, flagPasswordRepeated, flagLabel)
-	// if err != nil {
-	// 	log.Fatalf("Failed to encrypt wallet: %v", err)
-	// }
-	// if account == nil {
-	// 	log.Fatal("Account does not exist.")
-	// }
-	// logger.Debug("Account created",
-	// 	slog.Uint64("nonce", account.Nonce),
-	// 	slog.Uint64("balance", account.Balance),
-	// 	slog.String("address", account.Address.Hex()),
-	// )
+	getWalletUseCase := usecase.NewGetWalletUseCase(
+		logger,
+		walletRepo)
+	listAllWalletUseCase := usecase.NewListAllWalletUseCase(
+		logger,
+		walletRepo)
+
+	// Account
+	createAccountUseCase := usecase.NewCreateAccountUseCase(
+		logger,
+		accountRepo)
+	getAccountUseCase := usecase.NewGetAccountUseCase(
+		logger,
+		accountRepo)
+	getAccountsHashStateUseCase := usecase.NewGetAccountsHashStateUseCase(
+		logger,
+		accountRepo)
+	upsertAccountUseCase := usecase.NewUpsertAccountUseCase(
+		logger,
+		accountRepo)
+
+	// ------ Service ------
+
+	createAccountService := service.NewCreateAccountService(
+		logger,
+		walletEncryptKeyUseCase,
+		walletDecryptKeyUseCase,
+		createWalletUseCase,
+		createAccountUseCase,
+		getAccountUseCase,
+	)
+
+	_ = getAccountsHashStateUseCase
+	_ = upsertAccountUseCase
+
+	_ = getWalletUseCase
+	_ = listAllWalletUseCase
+
+	// Execute
+	ctx := context.Background()
+	account, err := createAccountService.Execute(ctx, flagPassword, flagPasswordRepeated, flagLabel)
+	if err != nil {
+		log.Fatalf("Failed to encrypt wallet: %v", err)
+	}
+	if account == nil {
+		log.Fatal("Account does not exist.")
+	}
+	logger.Debug("Account created",
+		slog.Any("nonce", account.GetNonce()),
+		slog.Uint64("balance", account.Balance),
+		slog.String("address", account.Address.Hex()),
+	)
 
 	return nil
 }

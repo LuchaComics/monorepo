@@ -20,8 +20,8 @@ type WalletDecryptKeyUseCase struct {
 
 func NewWalletDecryptKeyUseCase(
 	logger *slog.Logger,
-	repo domain.WalletRepository,
 	keystore pkgkeystore.KeystoreAdapter,
+	repo domain.WalletRepository,
 ) *WalletDecryptKeyUseCase {
 	return &WalletDecryptKeyUseCase{logger, keystore, repo}
 }
