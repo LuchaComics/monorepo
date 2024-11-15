@@ -110,6 +110,44 @@ func (impl *keyValueStorerImpl) Iterate(processFunc func(key, value []byte) erro
 	return nil
 }
 
+func (impl *keyValueStorerImpl) IterateWithFilterByKeys(ks []string, processFunc func(key, value []byte) error) error {
+	impl.lock.Lock()
+	defer impl.lock.Unlock()
+
+	if impl.txData != nil {
+		// Iterate over the key-value pairs in the database, starting from the starting point
+		for k, v := range impl.txData {
+			// Iterate over our keys to search by.
+			for _, searchK := range ks {
+				// If the item we currently have matches our keys then execute.
+				if k == searchK {
+					// Call the provided function for each pair
+					if err := processFunc([]byte(k), v.value); err != nil {
+						return err
+					}
+				}
+			}
+
+		}
+	} else {
+		// Iterate over the key-value pairs in the database, starting from the starting point
+		for k, v := range impl.data {
+			// Iterate over our keys to search by.
+			for _, searchK := range ks {
+				// If the item we currently have matches our keys then execute.
+				if k == searchK {
+					// Call the provided function for each pair
+					if err := processFunc([]byte(k), v.value); err != nil {
+						return err
+					}
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
 // Close closes the database.
 // It returns an error if the operation fails.
 func (impl *keyValueStorerImpl) Close() error {

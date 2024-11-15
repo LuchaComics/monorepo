@@ -91,6 +91,35 @@ func (r *WalletRepo) ListAll(ctx context.Context) ([]*domain.Wallet, error) {
 	return wallets, nil
 }
 
+func (r *WalletRepo) ListAllAddresses(ctx context.Context) ([]*common.Address, error) {
+	addressesArray := make([]*common.Address, 0)
+	projection := bson.M{
+		"_id":     0,
+		"address": 1,
+	}
+	opts := options.Find().SetProjection(projection)
+
+	cur, err := r.collection.Find(ctx, bson.D{}, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+	for cur.Next(ctx) {
+		var wallet struct {
+			Address *common.Address `bson:"address"`
+		}
+		err := cur.Decode(&wallet)
+		if err != nil {
+			return nil, err
+		}
+		addressesArray = append(addressesArray, wallet.Address)
+	}
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+	return addressesArray, nil
+}
+
 func (r *WalletRepo) DeleteByAddress(ctx context.Context, address *common.Address) error {
 	_, err := r.collection.DeleteOne(ctx, bson.M{"address": address})
 	return err

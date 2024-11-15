@@ -93,6 +93,27 @@ func (r *WalletRepo) ListAll(ctx context.Context) ([]*domain.Wallet, error) {
 	return res, err
 }
 
+func (r *WalletRepo) ListAllAddresses(ctx context.Context) ([]*common.Address, error) {
+	res := make([]*common.Address, 0)
+	err := r.dbClient.Iterate(func(key, value []byte) error {
+		wallet, err := domain.NewWalletFromDeserialize(value)
+		if err != nil {
+			r.logger.Error("failed to deserialize",
+				slog.String("key", string(key)),
+				slog.String("value", string(value)),
+				slog.Any("error", err))
+			return err
+		}
+
+		res = append(res, wallet.Address)
+
+		// Return nil to indicate success
+		return nil
+	})
+
+	return res, err
+}
+
 func (r *WalletRepo) DeleteByAddress(ctx context.Context, address *common.Address) error {
 	err := r.dbClient.Delete(strings.ToLower(address.String()))
 	if err != nil {

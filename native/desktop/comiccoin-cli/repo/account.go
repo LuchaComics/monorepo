@@ -70,6 +70,33 @@ func (r *AccountRepo) ListAll(ctx context.Context) ([]*domain.Account, error) {
 	return res, err
 }
 
+func (r *AccountRepo) ListWithFilterByAddresses(ctx context.Context, addrs []*common.Address) ([]*domain.Account, error) {
+	ks := make([]string, 0)
+	for _, addr := range addrs {
+		addrStr := addr.Hex()
+		ks = append(ks, addrStr)
+	}
+
+	res := make([]*domain.Account, 0)
+	err := r.dbClient.IterateWithFilterByKeys(ks, func(key, value []byte) error {
+		account, err := domain.NewAccountFromDeserialize(value)
+		if err != nil {
+			r.logger.Error("failed to deserialize",
+				slog.String("key", string(key)),
+				slog.String("value", string(value)),
+				slog.Any("error", err))
+			return err
+		}
+
+		res = append(res, account)
+
+		// Return nil to indicate success
+		return nil
+	})
+
+	return res, err
+}
+
 func (r *AccountRepo) DeleteByAddress(ctx context.Context, addr *common.Address) error {
 	err := r.dbClient.Delete(strings.ToLower(addr.String()))
 	if err != nil {

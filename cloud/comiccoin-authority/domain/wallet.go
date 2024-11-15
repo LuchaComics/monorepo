@@ -29,6 +29,9 @@ type WalletRepository interface {
 	// ListAll retrieves all wallets in the repository.
 	ListAll(ctx context.Context) ([]*Wallet, error)
 
+	// ListAllAddresses retrieves all wallet addresses in the repository.
+	ListAllAddresses(ctx context.Context) ([]*common.Address, error)
+
 	// DeleteByID deletes an wallet by its Address.
 	DeleteByAddress(ctx context.Context, address *common.Address) error
 

@@ -16,6 +16,8 @@ type Storage interface {
 	// The seekThenIterateKey parameter can be used to specify a key to seek to before starting the iteration.
 	Iterate(processFunc func(key, value []byte) error) error
 
+	IterateWithFilterByKeys(ks []string, processFunc func(key, value []byte) error) error
+
 	// Close closes the database, releasing any system resources it holds.
 	Close() error
 

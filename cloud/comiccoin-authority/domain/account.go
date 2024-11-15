@@ -71,6 +71,8 @@ type AccountRepository interface {
 	// ListAll retrieves all accounts in the repository.
 	ListAll(ctx context.Context) ([]*Account, error)
 
+	ListWithFilterByAddresses(ctx context.Context, addrs []*common.Address) ([]*Account, error)
+
 	// DeleteByID deletes an account by its ID.
 	DeleteByAddress(ctx context.Context, addr *common.Address) error
 

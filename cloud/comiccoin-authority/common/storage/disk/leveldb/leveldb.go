@@ -1,6 +1,7 @@
 package db
 
 import (
+	"bytes"
 	"log"
 	"log/slog"
 
@@ -113,6 +114,45 @@ func (impl *storageImpl) Iterate(processFunc func(key, value []byte) error) erro
 			if err != nil {
 				return err // Exit early if the processing function returns an error.
 			}
+		}
+		iter.Release()
+		return iter.Error()
+	}
+
+	iter := impl.transaction.NewIterator(nil, nil)
+	for ok := iter.First(); ok; ok = iter.Next() {
+		// Call the passed function for each key-value pair.
+		err := processFunc(iter.Key(), iter.Value())
+		if err == dberr.ErrNotFound {
+			return nil
+		}
+		if err != nil {
+			return err // Exit early if the processing function returns an error.
+		}
+	}
+	iter.Release()
+	return iter.Error()
+}
+
+func (impl *storageImpl) IterateWithFilterByKeys(ks []string, processFunc func(key, value []byte) error) error {
+	if impl.transaction == nil {
+		iter := impl.db.NewIterator(nil, nil)
+		for ok := iter.First(); ok; ok = iter.Next() {
+			// Iterate over our keys to search by.
+			for _, k := range ks {
+				// If the item we currently have matches our keys then execute.
+				if bytes.Equal([]byte(k), iter.Key()) {
+					// Call the passed function for each key-value pair.
+					err := processFunc(iter.Key(), iter.Value())
+					if err == dberr.ErrNotFound {
+						return nil
+					}
+					if err != nil {
+						return err // Exit early if the processing function returns an error.
+					}
+				}
+			}
+
 		}
 		iter.Release()
 		return iter.Error()

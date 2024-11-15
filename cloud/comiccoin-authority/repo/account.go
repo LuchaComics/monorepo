@@ -94,6 +94,32 @@ func (r *AccountRepo) ListAll(ctx context.Context) ([]*domain.Account, error) {
 	return accounts, nil
 }
 
+func (r *AccountRepo) ListWithFilterByAddresses(ctx context.Context, addrs []*common.Address) ([]*domain.Account, error) {
+	var accounts []*domain.Account
+	filter := bson.M{
+		"address": bson.M{
+			"$in": addrs,
+		},
+	}
+	cur, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+	for cur.Next(ctx) {
+		var account domain.Account
+		err := cur.Decode(&account)
+		if err != nil {
+			return nil, err
+		}
+		accounts = append(accounts, &account)
+	}
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+	return accounts, nil
+}
+
 func (r *AccountRepo) DeleteByAddress(ctx context.Context, address *common.Address) error {
 	_, err := r.collection.DeleteOne(ctx, bson.M{"address": address})
 	return err
