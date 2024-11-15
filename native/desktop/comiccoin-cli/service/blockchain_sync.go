@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
@@ -193,7 +194,61 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) Execute(ctx context.Conte
 
 func (s *BlockchainSyncWithBlockchainAuthorityService) syncWithGlobalBlockchainNetwork(ctx context.Context, localBlockchainState, globalBlockchainState *domain.BlockchainState) error {
 	s.logger.Debug("Beginning to sync with global blockchain network...")
+
+	// Variable holds the position of the block data we are looking at in
+	// the global blockchain network.
+	currentHashIterator := globalBlockchainState.LatestHash
+
+	// Variable used to trigger the sync operation.
+	var isSyncOperationRunning bool = true
+
+	// Continue to sync with global blockchain network until our
+	// sync operation finishes.
+	for !isSyncOperationRunning {
+
+		//
+		// STEP 1: Fetch from the global blockchain network.
+		//
+
+		blockDataDTO, err := s.getBlockDataDTOFromBlockchainAuthorityUseCase.Execute(ctx, currentHashIterator)
+		if err != nil {
+			s.logger.Debug("Failed to get block data from global blockchain network",
+				slog.Any("hash", currentHashIterator))
+			return err
+		}
+
+		// Artifical delay as to not overload the network resources.
+		time.Sleep(1 * time.Second)
+
+		blockData := authority_domain.BlockDataDTOToBlockData(blockDataDTO)
+
+		//
+		// STEP 2: Save it to the local database.
+		//
+
+		if err := s.upsertBlockDataUseCase.Execute(ctx, blockData.Hash, blockData.Header, blockData.HeaderSignatureBytes, blockData.Trans, blockData.Validator); err != nil {
+			s.logger.Debug("Failed to upsert block data ",
+				slog.Any("hash", currentHashIterator))
+			return err
+		}
+
+		//
+		// STEP 3:
+		// Process accounts from the recent download.
+		//
+
+		//
+		// STEP 4:
+		// Process tokens from the recent download.
+		//
+
+		//
+		// STEP 5:
+		// Check to see if we reached
+		//
+
+	}
 	s.logger.Debug("Finished syncing with global blockchain network")
-	return errors.New("HALT BY PROGRAMMER")
+	return errors.New("HALT BY PROGRAMMER") // TODO: IMPL.
 	return nil
 }

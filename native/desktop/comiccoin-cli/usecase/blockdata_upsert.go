@@ -17,7 +17,14 @@ func NewUpsertBlockDataUseCase(logger *slog.Logger, repo domain.BlockDataReposit
 	return &UpsertBlockDataUseCase{logger, repo}
 }
 
-func (uc *UpsertBlockDataUseCase) Execute(ctx context.Context, hash string, header *domain.BlockHeader, headerSignature []byte, trans []domain.BlockTransaction, validator *domain.Validator) error {
+func (uc *UpsertBlockDataUseCase) Execute(
+	ctx context.Context,
+	hash string,
+	header *domain.BlockHeader,
+	headerSignature []byte,
+	trans []domain.BlockTransaction,
+	validator *domain.Validator,
+) error {
 	//
 	// STEP 1: Validation.
 	// Note: `headerSignature` is optional since PoW algorithm does not require it
