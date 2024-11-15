@@ -407,7 +407,7 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) processAccountForCoinTran
 			return err
 		}
 
-		s.logger.Debug("New `From` account balance via censensus",
+		s.logger.Debug("New `From` account balance via blockchain authority",
 			slog.Any("account_address", acc.Address),
 			slog.Any("balance", acc.Balance),
 		)
@@ -448,7 +448,7 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) processAccountForCoinTran
 			return err
 		}
 
-		s.logger.Debug("New `To` account balance via censensus",
+		s.logger.Debug("New `To` account balance via blockchain authority",
 			slog.Any("account_address", acc.Address),
 			slog.Any("balance", acc.Balance),
 		)
