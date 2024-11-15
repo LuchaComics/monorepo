@@ -6,7 +6,6 @@ import (
 	"math/big"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -22,13 +21,12 @@ import (
 // transactions. We do this because the `token` database only shows the most
 // recent tokens and their current owners, not the history of ownership.
 type UpsertTokenIfPreviousTokenNonceGTEUseCase struct {
-	config *config.Configuration
 	logger *slog.Logger
 	repo   domain.TokenRepository
 }
 
-func NewUpsertTokenIfPreviousTokenNonceGTEUseCase(config *config.Configuration, logger *slog.Logger, repo domain.TokenRepository) *UpsertTokenIfPreviousTokenNonceGTEUseCase {
-	return &UpsertTokenIfPreviousTokenNonceGTEUseCase{config, logger, repo}
+func NewUpsertTokenIfPreviousTokenNonceGTEUseCase(logger *slog.Logger, repo domain.TokenRepository) *UpsertTokenIfPreviousTokenNonceGTEUseCase {
+	return &UpsertTokenIfPreviousTokenNonceGTEUseCase{logger, repo}
 }
 
 func (uc *UpsertTokenIfPreviousTokenNonceGTEUseCase) Execute(

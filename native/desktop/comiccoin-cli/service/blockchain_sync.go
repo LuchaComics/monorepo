@@ -29,6 +29,7 @@ type BlockchainSyncWithBlockchainAuthorityService struct {
 	getBlockDataDTOFromBlockchainAuthorityUseCase        *auth_usecase.GetBlockDataDTOFromBlockchainAuthorityUseCase
 	getAccountUseCase                                    *usecase.GetAccountUseCase
 	upsertAccountUseCase                                 *usecase.UpsertAccountUseCase
+	upsertTokenIfPreviousTokenNonceGTEUseCase            *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase
 }
 
 func NewBlockchainSyncWithBlockchainAuthorityService(
@@ -44,8 +45,9 @@ func NewBlockchainSyncWithBlockchainAuthorityService(
 	uc9 *auth_usecase.GetBlockDataDTOFromBlockchainAuthorityUseCase,
 	uc10 *usecase.GetAccountUseCase,
 	uc11 *usecase.UpsertAccountUseCase,
+	uc12 *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase,
 ) *BlockchainSyncWithBlockchainAuthorityService {
-	return &BlockchainSyncWithBlockchainAuthorityService{logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11}
+	return &BlockchainSyncWithBlockchainAuthorityService{logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12}
 }
 
 func (s *BlockchainSyncWithBlockchainAuthorityService) Execute(ctx context.Context, chainID uint16) error {
@@ -244,16 +246,41 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) syncWithGlobalBlockchainN
 		//
 
 		for _, blockTx := range blockData.Trans {
+
+			// STEP 4:
+			// Process accounts.
+			//
+
 			s.logger.Debug("Processing block transactions", slog.Any("block_tx", blockTx))
 			if err := s.processAccountForTransaction(ctx, &blockTx); err != nil {
 				s.logger.Error("Failed processing transaction",
 					slog.Any("error", err))
 				return err
 			}
+
+			//
+			// STEP 5:
+			// Process tokens.
+			//
+
+			// Save our token to the local database ONLY if this transaction
+			// is the most recent one. We track "most recent" transaction by
+			// the nonce value in the token.
+			err := s.upsertTokenIfPreviousTokenNonceGTEUseCase.Execute(
+				ctx,
+				blockTx.GetTokenID(),
+				blockTx.To,
+				blockTx.TokenMetadataURI,
+				blockTx.GetTokenNonce())
+			if err != nil {
+				s.logger.Error("Failed upserting (if previous token nonce GTE then current)",
+					slog.Any("error", err))
+				return err
+			}
 		}
 
 		//
-		// STEP 5:
+		// STEP 6:
 		// Check to see if we haven't reached the last block data we have
 		// in our local blockchain.
 		//

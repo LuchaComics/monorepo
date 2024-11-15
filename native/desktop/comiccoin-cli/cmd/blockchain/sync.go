@@ -168,11 +168,11 @@ func doRunBlockchainSyncCmd() error {
 		accountRepo,
 	)
 
-	// // Token
-	// upsertTokenIfPreviousTokenNonceGTEUseCase := usecase.NewupsertTokenIfPreviousTokenNonceGTEUseCase(
-	// 	logger,
-	// 	tokRepo,
-	// )
+	// Token
+	upsertTokenIfPreviousTokenNonceGTEUseCase := usecase.NewUpsertTokenIfPreviousTokenNonceGTEUseCase(
+		logger,
+		tokRepo,
+	)
 
 	// ------------ Service ------------
 
@@ -189,6 +189,7 @@ func doRunBlockchainSyncCmd() error {
 		getBlockDataDTOFromBlockchainAuthorityUseCase,
 		getAccountUseCase,
 		upsertAccountUseCase,
+		upsertTokenIfPreviousTokenNonceGTEUseCase,
 	)
 
 	// ------------ Execute ------------
