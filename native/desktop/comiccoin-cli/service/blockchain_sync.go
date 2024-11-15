@@ -106,17 +106,38 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) Execute(ctx context.Conte
 		}
 
 		// Process transactions for the genesis block.
-		genesisTx := genesis.Trans[0]
+		genesisCoinTx := genesis.Trans[0]
+		genesisTokenTx := genesis.Trans[1]
 
-		if err := s.upsertAccountUseCase.Execute(ctx, genesisTx.From, genesisTx.Value, big.NewInt(0)); err != nil {
+		if err := s.upsertAccountUseCase.Execute(ctx, genesisCoinTx.From, genesisCoinTx.Value, big.NewInt(0)); err != nil {
 			s.logger.Error("Failed upserting coinbase account.",
 				slog.Any("error", err))
 			return err
 		}
 
+		// Save our token to the local database ONLY if this transaction
+		// is the most recent one. We track "most recent" transaction by
+		// the nonce value in the token.
+		upsertTokenErr := s.upsertTokenIfPreviousTokenNonceGTEUseCase.Execute(
+			ctx,
+			genesisTokenTx.GetTokenID(),
+			genesisTokenTx.To,
+			genesisTokenTx.TokenMetadataURI,
+			genesisTokenTx.GetTokenNonce())
+		if upsertTokenErr != nil {
+			s.logger.Error("Failed upserting genesis block token",
+				slog.Any("type", genesisTokenTx.Type),
+				slog.Any("token_id", genesisTokenTx.GetTokenID()),
+				slog.Any("owner", genesisTokenTx.To),
+				slog.Any("metadataURI", genesisTokenTx.TokenMetadataURI),
+				slog.Any("nonce", genesisTokenTx.GetTokenNonce()),
+				slog.Any("error", upsertTokenErr))
+			return upsertTokenErr
+		}
+
 		s.logger.Debug("Genesis block saved to local database from global blockchain network",
 			slog.Any("chain_id", chainID),
-			slog.Any("coinbase_address", genesisTx.From.Hex()))
+			slog.Any("coinbase_address", genesisCoinTx.From.Hex()))
 	}
 
 	//
@@ -204,7 +225,15 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) Execute(ctx context.Conte
 	// Update our blockchain state to match the global blockchain network's state.
 	//
 
-	// TODO: IMPL.
+	if err := s.upsertBlockchainStateUseCase.Execute(ctx, globalBlockchainState); err != nil {
+		s.logger.Error("Failed upserting global blockchain state.",
+			slog.Any("chain_id", chainID),
+			slog.Any("error", err))
+		return err
+	}
+
+	s.logger.Debug("Local blockchain was synced successfully with the global blockchain network",
+		slog.Any("chain_id", chainID))
 
 	return nil
 }
