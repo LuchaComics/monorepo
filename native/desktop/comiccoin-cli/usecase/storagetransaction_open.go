@@ -13,6 +13,7 @@ type StorageTransactionOpenUseCase struct {
 	genesisBlockDataRepo domain.GenesisBlockDataRepository
 	blockchainStateRepo  domain.BlockchainStateRepository
 	blockDataRepo        domain.BlockDataRepository
+	tokenRepo            domain.TokenRepository
 }
 
 func NewStorageTransactionOpenUseCase(
@@ -22,8 +23,9 @@ func NewStorageTransactionOpenUseCase(
 	r3 domain.GenesisBlockDataRepository,
 	r4 domain.BlockchainStateRepository,
 	r5 domain.BlockDataRepository,
+	r6 domain.TokenRepository,
 ) *StorageTransactionOpenUseCase {
-	return &StorageTransactionOpenUseCase{logger, r1, r2, r3, r4, r5}
+	return &StorageTransactionOpenUseCase{logger, r1, r2, r3, r4, r5, r6}
 }
 
 func (uc *StorageTransactionOpenUseCase) Execute() error {
@@ -49,6 +51,11 @@ func (uc *StorageTransactionOpenUseCase) Execute() error {
 	}
 	if err := uc.blockDataRepo.OpenTransaction(); err != nil {
 		uc.logger.Error("Failed opening transaction for block data",
+			slog.Any("error", err))
+		return err
+	}
+	if err := uc.tokenRepo.OpenTransaction(); err != nil {
+		uc.logger.Error("Failed opening transaction for token",
 			slog.Any("error", err))
 		return err
 	}

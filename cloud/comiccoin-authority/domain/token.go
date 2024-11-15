@@ -38,6 +38,10 @@ type TokenRepository interface {
 	// HashState returns a hash based on the contents of the tokens and
 	// their metadata. This is added to each block and checked by peers.
 	HashState(ctx context.Context) (string, error)
+
+	OpenTransaction() error
+	CommitTransaction() error
+	DiscardTransaction()
 }
 
 func (tok *Token) GetID() *big.Int {

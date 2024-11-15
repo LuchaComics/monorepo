@@ -100,7 +100,8 @@ func doRunBlockchainSyncCmd() error {
 		accountRepo,
 		genesisBlockDataRepo,
 		blockchainStateRepo,
-		blockDataRepo)
+		blockDataRepo,
+		tokRepo)
 	storageTransactionCommitUseCase := usecase.NewStorageTransactionCommitUseCase(
 		logger,
 		walletRepo,
@@ -165,11 +166,11 @@ func doRunBlockchainSyncCmd() error {
 		accountRepo,
 	)
 
-	// Token
-	upsertTokenIfPreviousTokenNonceGTEUseCase := usecase.NewupsertTokenIfPreviousTokenNonceGTEUseCase(
-		logger,
-		tokRepo,
-	)
+	// // Token
+	// upsertTokenIfPreviousTokenNonceGTEUseCase := usecase.NewupsertTokenIfPreviousTokenNonceGTEUseCase(
+	// 	logger,
+	// 	tokRepo,
+	// )
 
 	// ------------ Service ------------
 

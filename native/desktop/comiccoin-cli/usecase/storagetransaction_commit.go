@@ -13,6 +13,7 @@ type StorageTransactionCommitUseCase struct {
 	genesisBlockDataRepo domain.GenesisBlockDataRepository
 	blockchainStateRepo  domain.BlockchainStateRepository
 	blockDataRepo        domain.BlockDataRepository
+	tokenRepo            domain.TokenRepository
 }
 
 func NewStorageTransactionCommitUseCase(
@@ -22,8 +23,9 @@ func NewStorageTransactionCommitUseCase(
 	r3 domain.GenesisBlockDataRepository,
 	r4 domain.BlockchainStateRepository,
 	r5 domain.BlockDataRepository,
+	r6 domain.TokenRepository,
 ) *StorageTransactionCommitUseCase {
-	return &StorageTransactionCommitUseCase{logger, r1, r2, r3, r4, r5}
+	return &StorageTransactionCommitUseCase{logger, r1, r2, r3, r4, r5, r6}
 }
 
 func (uc *StorageTransactionCommitUseCase) Execute() error {
@@ -49,6 +51,11 @@ func (uc *StorageTransactionCommitUseCase) Execute() error {
 	}
 	if err := uc.blockDataRepo.CommitTransaction(); err != nil {
 		uc.logger.Error("Failed committing transaction for block data",
+			slog.Any("error", err))
+		return err
+	}
+	if err := uc.tokenRepo.CommitTransaction(); err != nil {
+		uc.logger.Error("Failed committing transaction for token",
 			slog.Any("error", err))
 		return err
 	}

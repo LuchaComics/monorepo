@@ -163,6 +163,20 @@ func (r *TokenRepo) HashState(ctx context.Context) (string, error) {
 	return signature.Hash(tokensBytes), nil
 }
 
+func (r *TokenRepo) OpenTransaction() error {
+	defer log.Fatal("Unsupported feature in the `comiccoin-authority` repository.")
+	return nil
+}
+
+func (r *TokenRepo) CommitTransaction() error {
+	defer log.Fatal("Unsupported feature in the `comiccoin-authority` repository.")
+	return nil
+}
+
+func (r *TokenRepo) DiscardTransaction() {
+	log.Fatal("Unsupported feature in the `comiccoin-authority` repository.")
+}
+
 // =============================================================================
 
 // byToken provides sorting support by the token id value.

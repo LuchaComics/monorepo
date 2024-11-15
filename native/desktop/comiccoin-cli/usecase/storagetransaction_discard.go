@@ -13,6 +13,7 @@ type StorageTransactionDiscardUseCase struct {
 	genesisBlockDataRepo domain.GenesisBlockDataRepository
 	blockchainStateRepo  domain.BlockchainStateRepository
 	blockDataRepo        domain.BlockDataRepository
+	tokenRepo            domain.TokenRepository
 }
 
 func NewStorageTransactionDiscardUseCase(
@@ -22,8 +23,9 @@ func NewStorageTransactionDiscardUseCase(
 	r3 domain.GenesisBlockDataRepository,
 	r4 domain.BlockchainStateRepository,
 	r5 domain.BlockDataRepository,
+	r6 domain.TokenRepository,
 ) *StorageTransactionDiscardUseCase {
-	return &StorageTransactionDiscardUseCase{logger, r1, r2, r3, r4, r5}
+	return &StorageTransactionDiscardUseCase{logger, r1, r2, r3, r4, r5, r6}
 }
 
 func (uc *StorageTransactionDiscardUseCase) Execute() {
@@ -32,4 +34,5 @@ func (uc *StorageTransactionDiscardUseCase) Execute() {
 	uc.genesisBlockDataRepo.DiscardTransaction()
 	uc.blockchainStateRepo.DiscardTransaction()
 	uc.blockDataRepo.DiscardTransaction()
+	uc.tokenRepo.DiscardTransaction()
 }
