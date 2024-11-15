@@ -20,27 +20,12 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/usecase"
 )
 
-// Command line argument flags
-var (
-	flagSenderAccountAddress          string
-	flagSenderAccountPassword         string
-	flagSenderAccountPasswordRepeated string
-	flagRecipientAddress              string
-	flagQuantity                      uint64
-	flagData                          string
-
-	flagDataDirectory     string
-	flagChainID           uint16
-	flagAuthorityAddress  string
-	flagNFTStorageAddress string
-)
-
-func TransferTokensCmd() *cobra.Command {
+func BurnTokensCmd() *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "transfer",
+		Use:   "burn",
 		Short: "Submit a (pending) transaction to the ComicCoin blockchain network to transfer tokens from your account to another account",
 		Run: func(cmd *cobra.Command, args []string) {
-			doRunTransferTokensCommand()
+			doRunBurnTokensCommand()
 		},
 	}
 
@@ -58,13 +43,10 @@ func TransferTokensCmd() *cobra.Command {
 	cmd.Flags().StringVar(&flagTokenID, "token-id", "", "The unique token identification to use to lookup the token")
 	cmd.MarkFlagRequired("token-id")
 
-	cmd.Flags().StringVar(&flagRecipientAddress, "recipient-address", "", "The address of the account whom will receive this token")
-	cmd.MarkFlagRequired("recipient-address")
-
 	return cmd
 }
 
-func doRunTransferTokensCommand() {
+func doRunBurnTokensCommand() {
 	// ------ Common ------
 	logger := logger.NewProvider()
 	keystore := keystore.NewAdapter()
@@ -180,7 +162,7 @@ func doRunTransferTokensCommand() {
 
 	// ------ Service ------
 
-	tokenTransferService := service.NewTokenTransferService(
+	tokenBurnService := service.NewTokenBurnService(
 		logger,
 		getAccountUseCase,
 		getWalletUseCase,
@@ -191,7 +173,6 @@ func doRunTransferTokensCommand() {
 
 	// ------ Execute ------
 	ctx := context.Background()
-	recAddr := common.HexToAddress(strings.ToLower(flagRecipientAddress))
 	sendAddr := common.HexToAddress(strings.ToLower(flagSenderAccountAddress))
 	tokenID, ok := new(big.Int).SetString(flagTokenID, 10)
 	if !ok {
@@ -206,17 +187,16 @@ func doRunTransferTokensCommand() {
 		log.Fatalf("Failed to open storage transaction: %v\n", err)
 	}
 
-	tokenTransferServiceErr := tokenTransferService.Execute(
+	tokenBurnServiceErr := tokenBurnService.Execute(
 		ctx,
 		flagChainID,
 		&sendAddr,
 		flagSenderAccountPassword,
-		&recAddr,
 		tokenID,
 	)
-	if tokenTransferServiceErr != nil {
+	if tokenBurnServiceErr != nil {
 		storageTransactionDiscardUseCase.Execute()
-		log.Fatalf("Failed execute token transfer service: %v", tokenTransferServiceErr)
+		log.Fatalf("Failed execute token transfer service: %v", tokenBurnServiceErr)
 	}
 
 	if err := storageTransactionCommitUseCase.Execute(); err != nil {
@@ -224,14 +204,13 @@ func doRunTransferTokensCommand() {
 		log.Fatalf("Failed to open storage transaction: %v\n", err)
 	}
 
-	logger.Info("Finished transfering token to another account",
+	logger.Info("Finished burning token",
 		slog.Any("data-director", flagDataDirectory),
 		slog.Any("chain-id", flagChainID),
 		slog.Any("nftstorage-address", flagNFTStorageAddress),
 		slog.Any("sender-account-address", flagSenderAccountAddress),
 		slog.Any("sender-account-password", flagSenderAccountPassword),
-		slog.Any("value", flagQuantity),
-		slog.Any("data", flagData),
+		slog.Any("token-id", flagTokenID),
 		slog.Any("recipient-address", flagRecipientAddress),
 		slog.Any("authority-address", flagAuthorityAddress))
 }
