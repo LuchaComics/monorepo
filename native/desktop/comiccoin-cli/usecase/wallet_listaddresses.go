@@ -25,7 +25,7 @@ func (uc *ListAllAddressesWalletUseCase) Execute(ctx context.Context) ([]*common
 			slog.Any("error", err))
 		return nil, err
 	}
-	uc.logger.Error("Addresses listed",
+	uc.logger.Debug("Addresses listed",
 		slog.Any("addresses", addresses))
 	return addresses, nil
 }

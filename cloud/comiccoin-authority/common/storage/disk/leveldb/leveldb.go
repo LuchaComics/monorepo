@@ -1,9 +1,9 @@
 package db
 
 import (
-	"bytes"
 	"log"
 	"log/slog"
+	"strings"
 
 	"github.com/syndtr/goleveldb/leveldb"
 	dberr "github.com/syndtr/goleveldb/leveldb/errors"
@@ -140,8 +140,11 @@ func (impl *storageImpl) IterateWithFilterByKeys(ks []string, processFunc func(k
 		for ok := iter.First(); ok; ok = iter.Next() {
 			// Iterate over our keys to search by.
 			for _, k := range ks {
+				searchKey := strings.ToLower(k)
+				targetKey := strings.ToLower(string(iter.Key()))
+
 				// If the item we currently have matches our keys then execute.
-				if bytes.Equal([]byte(k), iter.Key()) {
+				if searchKey == targetKey {
 					// Call the passed function for each key-value pair.
 					err := processFunc(iter.Key(), iter.Value())
 					if err == dberr.ErrNotFound {
@@ -152,7 +155,6 @@ func (impl *storageImpl) IterateWithFilterByKeys(ks []string, processFunc func(k
 					}
 				}
 			}
-
 		}
 		iter.Release()
 		return iter.Error()

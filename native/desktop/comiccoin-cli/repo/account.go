@@ -94,6 +94,10 @@ func (r *AccountRepo) ListWithFilterByAddresses(ctx context.Context, addrs []*co
 		return nil
 	})
 
+	r.logger.Debug("Finished",
+		slog.Any("ks", ks),
+		slog.Any("res", res))
+
 	return res, err
 }
 
