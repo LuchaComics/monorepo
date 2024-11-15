@@ -54,7 +54,7 @@ var (
 func TransferCoinsCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "transfer",
-		Short: "Submit a (pending) transaction to the ComicCoin blockchain network to transfer coins from coinbase account to another account",
+		Short: "Submit a (pending) transaction to the ComicCoin blockchain network to transfer coins from your account to another account",
 		Run: func(cmd *cobra.Command, args []string) {
 			doRunTransferCoinsCommand()
 		},
@@ -83,9 +83,8 @@ func TransferCoinsCmd() *cobra.Command {
 }
 
 func doRunTransferCoinsCommand() {
-	logger := logger.NewProvider()
-
 	// ------ Common ------
+	logger := logger.NewProvider()
 	keystore := keystore.NewAdapter()
 	walletDB := disk.NewDiskStorage(flagDataDirectory, "wallet", logger)
 	accountDB := disk.NewDiskStorage(flagDataDirectory, "account", logger)
