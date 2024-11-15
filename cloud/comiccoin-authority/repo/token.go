@@ -24,7 +24,7 @@ type TokenRepo struct {
 	collection *mongo.Collection
 }
 
-func NewTokenRepo(cfg *config.Configuration, logger *slog.Logger, client *mongo.Client) *TokenRepo {
+func NewTokenRepo(cfg *config.Configuration, logger *slog.Logger, client *mongo.Client) domain.TokenRepository {
 	// ctx := context.Background()
 	uc := client.Database(cfg.DB.Name).Collection("tokens")
 
