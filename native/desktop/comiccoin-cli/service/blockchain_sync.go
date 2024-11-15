@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"math/big"
@@ -106,8 +105,18 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) Execute(ctx context.Conte
 			return err
 		}
 
+		// Process transactions for the genesis block.
+		genesisTx := genesis.Trans[0]
+
+		if err := s.upsertAccountUseCase.Execute(ctx, genesisTx.From, genesisTx.Value, big.NewInt(0)); err != nil {
+			s.logger.Error("Failed upserting coinbase account.",
+				slog.Any("error", err))
+			return err
+		}
+
 		s.logger.Debug("Genesis block saved to local database from global blockchain network",
-			slog.Any("chain_id", chainID))
+			slog.Any("chain_id", chainID),
+			slog.Any("coinbase_address", genesisTx.From.Hex()))
 	}
 
 	//
@@ -212,11 +221,14 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) syncWithGlobalBlockchainN
 
 	// Continue to sync with global blockchain network until our
 	// sync operation finishes.
-	for !isSyncOperationRunning {
+	for isSyncOperationRunning {
 
 		//
 		// STEP 1: Fetch from the global blockchain network.
 		//
+
+		s.logger.Debug("Fetching block data from global blockchain network...",
+			slog.Any("hash", currentHashIterator))
 
 		blockDataDTO, err := s.getBlockDataDTOFromBlockchainAuthorityUseCase.Execute(ctx, currentHashIterator)
 		if err != nil {
@@ -233,6 +245,9 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) syncWithGlobalBlockchainN
 		//
 		// STEP 2: Save it to the local database.
 		//
+
+		s.logger.Debug("Downloaded block data from global blockchain network and saving to local database...",
+			slog.Any("hash", currentHashIterator))
 
 		if err := s.upsertBlockDataUseCase.Execute(ctx, blockData.Hash, blockData.Header, blockData.HeaderSignatureBytes, blockData.Trans, blockData.Validator); err != nil {
 			s.logger.Debug("Failed to upsert block data ",
@@ -251,7 +266,10 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) syncWithGlobalBlockchainN
 			// Process accounts.
 			//
 
-			s.logger.Debug("Processing block transactions", slog.Any("block_tx", blockTx))
+			s.logger.Debug("Processing block tx...",
+				slog.Any("type", blockTx.Type),
+				slog.Any("nonce", blockTx.GetNonce()),
+				slog.Any("timestamp", blockTx.TimeStamp))
 			if err := s.processAccountForTransaction(ctx, &blockTx); err != nil {
 				s.logger.Error("Failed processing transaction",
 					slog.Any("error", err))
@@ -262,21 +280,32 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) syncWithGlobalBlockchainN
 			// STEP 5:
 			// Process tokens.
 			//
-
-			// Save our token to the local database ONLY if this transaction
-			// is the most recent one. We track "most recent" transaction by
-			// the nonce value in the token.
-			err := s.upsertTokenIfPreviousTokenNonceGTEUseCase.Execute(
-				ctx,
-				blockTx.GetTokenID(),
-				blockTx.To,
-				blockTx.TokenMetadataURI,
-				blockTx.GetTokenNonce())
-			if err != nil {
-				s.logger.Error("Failed upserting (if previous token nonce GTE then current)",
-					slog.Any("error", err))
-				return err
+			if blockTx.Type == domain.TransactionTypeToken {
+				// Save our token to the local database ONLY if this transaction
+				// is the most recent one. We track "most recent" transaction by
+				// the nonce value in the token.
+				err := s.upsertTokenIfPreviousTokenNonceGTEUseCase.Execute(
+					ctx,
+					blockTx.GetTokenID(),
+					blockTx.To,
+					blockTx.TokenMetadataURI,
+					blockTx.GetTokenNonce())
+				if err != nil {
+					s.logger.Error("Failed upserting (if previous token nonce GTE then current)",
+						slog.Any("type", blockTx.Type),
+						slog.Any("token_id", blockTx.GetTokenID()),
+						slog.Any("owner", blockTx.To),
+						slog.Any("metadataURI", blockTx.TokenMetadataURI),
+						slog.Any("nonce", blockTx.GetTokenNonce()),
+						slog.Any("error", err))
+					return err
+				}
 			}
+
+			s.logger.Debug("Finished processing block tx",
+				slog.Any("type", blockTx.Type),
+				slog.Any("nonce", blockTx.GetNonce()),
+				slog.Any("timestamp", blockTx.TimeStamp))
 		}
 
 		//
@@ -288,27 +317,30 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) syncWithGlobalBlockchainN
 		currentHashIterator = blockData.Header.PrevBlockHash
 		isSyncOperationRunning = localBlockchainState.LatestHash != currentHashIterator
 		isSyncOperationRunning = isSyncOperationRunning && (currentHashIterator != signature.ZeroHash) // consensus mechanism reached genesis block data, sync completed
+
+		s.logger.Debug("Processed block data",
+			slog.String("currentHashIterator", currentHashIterator),
+			slog.Bool("isSyncOperationRunning", isSyncOperationRunning))
 	}
 	s.logger.Debug("Finished syncing with global blockchain network")
-	return errors.New("HALT BY PROGRAMMER") // TODO: IMPL.
 	return nil
 }
 
 func (s *BlockchainSyncWithBlockchainAuthorityService) processAccountForTransaction(ctx context.Context, blockTx *domain.BlockTransaction) error {
 	//
-	// CASE 1 OF 2: Coin Transaction
-	//
-
-	if blockTx.Type == domain.TransactionTypeCoin {
-		return s.processAccountForCoinTransaction(ctx, blockTx)
-	}
-
-	//
-	// CASE 2 OF 2: Token Transaction
+	// CASE 1 OF 2: Token Transaction
 	//
 
 	if blockTx.Type == domain.TransactionTypeToken {
 		return s.processAccountForTokenTransaction(ctx, blockTx)
+	}
+
+	//
+	// CASE 2 OF 2: Coin Transaction
+	//
+
+	if blockTx.Type == domain.TransactionTypeCoin {
+		return s.processAccountForCoinTransaction(ctx, blockTx)
 	}
 
 	return nil
@@ -403,8 +435,6 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) processAccountForTokenTra
 	//
 
 	if blockTx.From != nil {
-		// DEVELOPERS NOTE:
-		// We already *should* have a `From` account in our database, so we can
 		acc, _ := s.getAccountUseCase.Execute(ctx, blockTx.From)
 		if acc == nil {
 			if err := s.upsertAccountUseCase.Execute(ctx, blockTx.To, 0, big.NewInt(0)); err != nil {

@@ -50,6 +50,10 @@ func (uc *UpsertTokenIfPreviousTokenNonceGTEUseCase) Execute(
 	}
 	if len(e) != 0 {
 		uc.logger.Warn("Validation failed for upsert",
+			slog.Any("id", id),
+			slog.Any("owner", owner),
+			slog.Any("metadataURI", metadataURI),
+			slog.Any("nonce", nonce),
 			slog.Any("error", e))
 		return httperror.NewForBadRequest(&e)
 	}
@@ -76,6 +80,8 @@ func (uc *UpsertTokenIfPreviousTokenNonceGTEUseCase) Execute(
 			MetadataURI: metadataURI,
 			NonceBytes:  nonce.Bytes(),
 		}
+		uc.logger.Debug("Creating new token...",
+			slog.Any("id", id))
 		return uc.repo.Upsert(ctx, token)
 	}
 
@@ -106,5 +112,7 @@ func (uc *UpsertTokenIfPreviousTokenNonceGTEUseCase) Execute(
 		MetadataURI: metadataURI,
 		NonceBytes:  nonce.Bytes(),
 	}
+	uc.logger.Debug("Updating existing token...",
+		slog.Any("id", id))
 	return uc.repo.Upsert(ctx, token)
 }
