@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"math/big"
 	"time"
 
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/blockchain/signature"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 	authority_domain "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
@@ -25,6 +27,8 @@ type BlockchainSyncWithBlockchainAuthorityService struct {
 	getBlockDataUseCase                                  *usecase.GetBlockDataUseCase
 	upsertBlockDataUseCase                               *usecase.UpsertBlockDataUseCase
 	getBlockDataDTOFromBlockchainAuthorityUseCase        *auth_usecase.GetBlockDataDTOFromBlockchainAuthorityUseCase
+	getAccountUseCase                                    *usecase.GetAccountUseCase
+	upsertAccountUseCase                                 *usecase.UpsertAccountUseCase
 }
 
 func NewBlockchainSyncWithBlockchainAuthorityService(
@@ -38,8 +42,10 @@ func NewBlockchainSyncWithBlockchainAuthorityService(
 	uc7 *usecase.GetBlockDataUseCase,
 	uc8 *usecase.UpsertBlockDataUseCase,
 	uc9 *auth_usecase.GetBlockDataDTOFromBlockchainAuthorityUseCase,
+	uc10 *usecase.GetAccountUseCase,
+	uc11 *usecase.UpsertAccountUseCase,
 ) *BlockchainSyncWithBlockchainAuthorityService {
-	return &BlockchainSyncWithBlockchainAuthorityService{logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9}
+	return &BlockchainSyncWithBlockchainAuthorityService{logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11}
 }
 
 func (s *BlockchainSyncWithBlockchainAuthorityService) Execute(ctx context.Context, chainID uint16) error {
@@ -234,21 +240,198 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) syncWithGlobalBlockchainN
 
 		//
 		// STEP 3:
-		// Process accounts from the recent download.
+		// Process account coins and tokens from the transactions.
 		//
 
-		//
-		// STEP 4:
-		// Process tokens from the recent download.
-		//
+		for _, blockTx := range blockData.Trans {
+			s.logger.Debug("Processing block transactions", slog.Any("block_tx", blockTx))
+			if err := s.processAccountForTransaction(ctx, &blockTx); err != nil {
+				s.logger.Error("Failed processing transaction",
+					slog.Any("error", err))
+				return err
+			}
+		}
 
 		//
 		// STEP 5:
-		// Check to see if we reached
+		// Check to see if we haven't reached the last block data we have
+		// in our local blockchain.
 		//
 
+		currentHashIterator = blockData.Header.PrevBlockHash
+		isSyncOperationRunning = localBlockchainState.LatestHash != currentHashIterator
+		isSyncOperationRunning = isSyncOperationRunning && (currentHashIterator != signature.ZeroHash) // consensus mechanism reached genesis block data, sync completed
 	}
 	s.logger.Debug("Finished syncing with global blockchain network")
 	return errors.New("HALT BY PROGRAMMER") // TODO: IMPL.
+	return nil
+}
+
+func (s *BlockchainSyncWithBlockchainAuthorityService) processAccountForTransaction(ctx context.Context, blockTx *domain.BlockTransaction) error {
+	//
+	// CASE 1 OF 2: Coin Transaction
+	//
+
+	if blockTx.Type == domain.TransactionTypeCoin {
+		return s.processAccountForCoinTransaction(ctx, blockTx)
+	}
+
+	//
+	// CASE 2 OF 2: Token Transaction
+	//
+
+	if blockTx.Type == domain.TransactionTypeToken {
+		return s.processAccountForTokenTransaction(ctx, blockTx)
+	}
+
+	return nil
+}
+
+func (s *BlockchainSyncWithBlockchainAuthorityService) processAccountForCoinTransaction(ctx context.Context, blockTx *domain.BlockTransaction) error {
+	//
+	// STEP 1
+	//
+
+	if blockTx.From != nil {
+		// DEVELOPERS NOTE:
+		// We already *should* have a `From` account in our database, so we can
+		acc, _ := s.getAccountUseCase.Execute(ctx, blockTx.From)
+		if acc == nil {
+			s.logger.Error("The `From` account does not exist in our database.",
+				slog.Any("hash", blockTx.From))
+			return fmt.Errorf("The `From` account does not exist in our database for hash: %v", blockTx.From.String())
+		}
+
+		acc.Balance -= blockTx.Value
+
+		// Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
+		noince := acc.GetNonce()
+		noince.Add(noince, big.NewInt(1))
+		acc.NonceBytes = noince.Bytes()
+
+		// DEVELOPERS NOTE:
+		// Do not update this accounts `Nonce`, we need to only update the
+		// `Nonce` to the receiving account, i.e. the `To` account.
+
+		if err := s.upsertAccountUseCase.Execute(ctx, acc.Address, acc.Balance, acc.GetNonce()); err != nil {
+			s.logger.Error("Failed upserting account.",
+				slog.Any("error", err))
+			return err
+		}
+
+		s.logger.Debug("New `From` account balance via censensus",
+			slog.Any("account_address", acc.Address),
+			slog.Any("balance", acc.Balance),
+		)
+	}
+
+	//
+	// STEP 2
+	//
+
+	if blockTx.To != nil {
+		acc, _ := s.getAccountUseCase.Execute(ctx, blockTx.To)
+		if acc == nil {
+			if err := s.upsertAccountUseCase.Execute(ctx, blockTx.To, 0, big.NewInt(0)); err != nil {
+				s.logger.Error("Failed creating account.",
+					slog.Any("error", err))
+				return err
+			}
+			acc = &domain.Account{
+				Address: blockTx.To,
+
+				// Always start by zero, increment by 1 after mining successful.
+				NonceBytes: big.NewInt(0).Bytes(),
+
+				Balance: blockTx.Value,
+			}
+		} else {
+			acc.Balance += blockTx.Value
+
+			// Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
+			noince := acc.GetNonce()
+			noince.Add(noince, big.NewInt(1))
+			acc.NonceBytes = noince.Bytes()
+		}
+
+		if err := s.upsertAccountUseCase.Execute(ctx, acc.Address, acc.Balance, acc.GetNonce()); err != nil {
+			s.logger.Error("Failed upserting account.",
+				slog.Any("error", err))
+			return err
+		}
+
+		s.logger.Debug("New `To` account balance via censensus",
+			slog.Any("account_address", acc.Address),
+			slog.Any("balance", acc.Balance),
+		)
+	}
+	return nil
+}
+
+func (s *BlockchainSyncWithBlockchainAuthorityService) processAccountForTokenTransaction(ctx context.Context, blockTx *domain.BlockTransaction) error {
+	//
+	// STEP 1:
+	// Check to see if we have an account for this particular token, if not
+	// then create it. Do thise from the `From` side of the transaction.
+	//
+
+	if blockTx.From != nil {
+		// DEVELOPERS NOTE:
+		// We already *should* have a `From` account in our database, so we can
+		acc, _ := s.getAccountUseCase.Execute(ctx, blockTx.From)
+		if acc == nil {
+			if err := s.upsertAccountUseCase.Execute(ctx, blockTx.To, 0, big.NewInt(0)); err != nil {
+				s.logger.Error("Failed creating account.",
+					slog.Any("error", err))
+				return err
+			}
+			acc = &domain.Account{
+				Address:    blockTx.To,
+				NonceBytes: big.NewInt(0).Bytes(), // Always start by zero, increment by 1 after mining successful.
+				Balance:    0,
+			}
+			if err := s.upsertAccountUseCase.Execute(ctx, acc.Address, acc.Balance, acc.GetNonce()); err != nil {
+				s.logger.Error("Failed upserting account.",
+					slog.Any("error", err))
+				return err
+			}
+			s.logger.Debug("New `From` account balance via validator b/c of token",
+				slog.Any("account_address", acc.Address),
+				slog.Any("balance", acc.Balance),
+			)
+		}
+	}
+
+	//
+	// STEP 2:
+	// Check to see if we have an account for this particular token, if not
+	// then create it.  Do thise from the `To` side of the transaction.
+	//
+
+	if blockTx.To != nil {
+		acc, _ := s.getAccountUseCase.Execute(ctx, blockTx.To)
+		if acc == nil {
+			if err := s.upsertAccountUseCase.Execute(ctx, blockTx.To, 0, big.NewInt(0)); err != nil {
+				s.logger.Error("Failed creating account.",
+					slog.Any("error", err))
+				return err
+			}
+			acc = &domain.Account{
+				Address:    blockTx.To,
+				NonceBytes: big.NewInt(0).Bytes(), // Always start by zero, increment by 1 after mining successful.
+				Balance:    0,
+			}
+			if err := s.upsertAccountUseCase.Execute(ctx, acc.Address, acc.Balance, acc.GetNonce()); err != nil {
+				s.logger.Error("Failed upserting account.",
+					slog.Any("error", err))
+				return err
+			}
+
+			s.logger.Debug("New `To` account via validator b/c of token",
+				slog.Any("account_address", acc.Address),
+				slog.Any("balance", acc.Balance),
+			)
+		}
+	}
 	return nil
 }

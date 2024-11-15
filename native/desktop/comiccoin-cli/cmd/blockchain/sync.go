@@ -56,6 +56,7 @@ func doRunBlockchainSyncCmd() error {
 	genesisBlockDataDB := disk.NewDiskStorage(flagDataDirectory, "genesis_block_data", logger)
 	blockchainStateDB := disk.NewDiskStorage(flagDataDirectory, "blockchain_state", logger)
 	blockDataDB := disk.NewDiskStorage(flagDataDirectory, "block_data", logger)
+	tokenRepo := disk.NewDiskStorage(flagDataDirectory, "token", logger)
 
 	// ------------ Repo ------------
 
@@ -86,6 +87,9 @@ func doRunBlockchainSyncCmd() error {
 	blockDataDTORepo := auth_repo.NewBlockDataDTORepo(
 		blockDataDTORepoConfig,
 		logger)
+	tokRepo := repo.NewTokenRepo(
+		logger,
+		tokenRepo)
 
 	// ------------ Use-Case ------------
 
@@ -151,6 +155,22 @@ func doRunBlockchainSyncCmd() error {
 		logger,
 		blockDataDTORepo)
 
+	// Account
+	getAccountUseCase := usecase.NewGetAccountUseCase(
+		logger,
+		accountRepo,
+	)
+	upsertAccountUseCase := usecase.NewUpsertAccountUseCase(
+		logger,
+		accountRepo,
+	)
+
+	// Token
+	upsertTokenIfPreviousTokenNonceGTEUseCase := usecase.NewupsertTokenIfPreviousTokenNonceGTEUseCase(
+		logger,
+		tokRepo,
+	)
+
 	// ------------ Service ------------
 
 	blockchainSyncService := service.NewBlockchainSyncWithBlockchainAuthorityService(
@@ -164,6 +184,8 @@ func doRunBlockchainSyncCmd() error {
 		getBlockDataUseCase,
 		upsertBlockDataUseCase,
 		getBlockDataDTOFromBlockchainAuthorityUseCase,
+		getAccountUseCase,
+		upsertAccountUseCase,
 	)
 
 	// ------------ Execute ------------
