@@ -42,6 +42,7 @@ type httpServerImpl struct {
 	listBlockDataFilteredInHashesHTTPHandler                     *handler.ListBlockDataFilteredInHashesHTTPHandler
 	listBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler *handler.ListBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler
 	signedTransactionSubmissionHTTPHandler                       *handler.SignedTransactionSubmissionHTTPHandler
+	mempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler    *handler.MempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler
 }
 
 // NewHTTPServer creates a new HTTP server instance.
@@ -58,6 +59,7 @@ func NewHTTPServer(
 	http7 *handler.ListBlockDataFilteredInHashesHTTPHandler,
 	http8 *handler.ListBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler,
 	http9 *handler.SignedTransactionSubmissionHTTPHandler,
+	http10 *handler.MempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.IP == "" {
@@ -93,6 +95,7 @@ func NewHTTPServer(
 		listBlockDataFilteredInHashesHTTPHandler:                     http7,
 		listBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler: http8,
 		signedTransactionSubmissionHTTPHandler:                       http9,
+		mempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler:    http10,
 	}
 
 	// Attach the HTTP server controller to the ServeMux.
@@ -159,6 +162,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		port.listAllBlockDataOrderedHashesHTTPHandler.Execute(w, r)
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "blockdata" && p[3] == "hashes" && r.Method == http.MethodGet:
 		port.listAllBlockDataUnorderedHashesHTTPHandler.Execute(w, r)
+	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "mempool-transactions" && r.Method == http.MethodPost:
+		port.mempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler.Execute(w, r)
 	// --- CATCH ALL: D.N.E. ---
 	default:
 		// Log a message to indicate that the request is not found.

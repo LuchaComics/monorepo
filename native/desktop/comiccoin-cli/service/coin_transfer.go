@@ -7,37 +7,36 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
+	auth_usecase "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase"
 	"github.com/ethereum/go-ethereum/common"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config"
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/usecase"
 )
 
 type CoinTransferService struct {
-	config                          *config.Configuration
-	logger                          *slog.Logger
-	getAccountUseCase               *usecase.GetAccountUseCase
-	getWalletUseCase                *usecase.GetWalletUseCase
-	walletDecryptKeyUseCase         *usecase.WalletDecryptKeyUseCase
-	mempoolTransactionCreateUseCase *usecase.MempoolTransactionCreateUseCase
+	logger                                                  *slog.Logger
+	getAccountUseCase                                       *usecase.GetAccountUseCase
+	getWalletUseCase                                        *usecase.GetWalletUseCase
+	walletDecryptKeyUseCase                                 *usecase.WalletDecryptKeyUseCase
+	submitMempoolTransactionDTOToBlockchainAuthorityUseCase *auth_usecase.SubmitMempoolTransactionDTOToBlockchainAuthorityUseCase
 }
 
 func NewCoinTransferService(
-	cfg *config.Configuration,
 	logger *slog.Logger,
 	uc1 *usecase.GetAccountUseCase,
 	uc2 *usecase.GetWalletUseCase,
 	uc3 *usecase.WalletDecryptKeyUseCase,
-	uc4 *usecase.MempoolTransactionCreateUseCase,
+	uc4 *auth_usecase.SubmitMempoolTransactionDTOToBlockchainAuthorityUseCase,
 ) *CoinTransferService {
-	return &CoinTransferService{cfg, logger, uc1, uc2, uc3, uc4}
+	return &CoinTransferService{logger, uc1, uc2, uc3, uc4}
 }
 
 func (s *CoinTransferService) Execute(
 	ctx context.Context,
+	chainID uint16,
 	fromAccountAddress *common.Address,
 	accountWalletPassword string,
 	to *common.Address,
@@ -45,6 +44,7 @@ func (s *CoinTransferService) Execute(
 	data []byte,
 ) error {
 	s.logger.Debug("Validating...",
+		slog.Any("chain_id", chainID),
 		slog.Any("from_account_address", fromAccountAddress),
 		slog.Any("account_wallet_password", accountWalletPassword),
 		slog.Any("to", to),
@@ -133,7 +133,7 @@ func (s *CoinTransferService) Execute(
 	//
 
 	tx := &domain.Transaction{
-		ChainID:    s.config.Blockchain.ChainID,
+		ChainID:    chainID,
 		NonceBytes: big.NewInt(time.Now().Unix()).Bytes(),
 		From:       wallet.Address,
 		To:         to,
@@ -150,7 +150,7 @@ func (s *CoinTransferService) Execute(
 	}
 
 	// Defensive Coding.
-	if err := stx.Validate(s.config.Blockchain.ChainID, true); err != nil {
+	if err := stx.Validate(chainID, true); err != nil {
 		s.logger.Debug("Failed to validate signature of the signed transaction",
 			slog.Any("error", signingErr))
 		return signingErr
@@ -178,7 +178,7 @@ func (s *CoinTransferService) Execute(
 	}
 
 	// Defensive Coding.
-	if err := mempoolTx.Validate(s.config.Blockchain.ChainID, true); err != nil {
+	if err := mempoolTx.Validate(chainID, true); err != nil {
 		s.logger.Debug("Failed to validate signature of mempool transaction",
 			slog.Any("error", signingErr))
 		return signingErr
@@ -196,13 +196,15 @@ func (s *CoinTransferService) Execute(
 	// in a queue to be processed.
 	//
 
-	if err := s.mempoolTransactionCreateUseCase.Execute(ctx, mempoolTx); err != nil {
-		s.logger.Error("Failed to broadcast to the blockchain network",
+	dto := mempoolTx.ToDTO()
+
+	if err := s.submitMempoolTransactionDTOToBlockchainAuthorityUseCase.Execute(ctx, dto); err != nil {
+		s.logger.Error("Failed to broadcast to the blockchain authority",
 			slog.Any("error", err))
 		return err
 	}
 
-	s.logger.Info("Pending signed transaction for coin transfer submitted to the authority",
+	s.logger.Info("Pending signed transaction for coin transfer submitted to the blockchain authority",
 		slog.Any("tx_nonce", stx.GetNonce()))
 
 	return nil

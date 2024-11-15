@@ -8,6 +8,7 @@ import (
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/cmd/account"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/cmd/blockchain"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/cmd/coins"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/cmd/version"
 	pref "github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/common/preferences"
 )
@@ -35,6 +36,7 @@ func Execute() {
 	rootCmd.AddCommand(version.VersionCmd())
 	rootCmd.AddCommand(account.AccountCmd())
 	rootCmd.AddCommand(blockchain.BlockchainCmd())
+	rootCmd.AddCommand(coins.CoinsCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)

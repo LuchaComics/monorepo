@@ -165,6 +165,11 @@ func doRunDaemon() {
 	)
 
 	// Mempool Transaction
+	mempoolTransactionCreateUseCase := usecase.NewMempoolTransactionCreateUseCase(
+		cfg,
+		logger,
+		mempoolTxRepo,
+	)
 	mempoolTransactionListByChainIDUseCase := usecase.NewMempoolTransactionListByChainIDUseCase(
 		cfg,
 		logger,
@@ -241,6 +246,13 @@ func doRunDaemon() {
 		logger,
 	)
 
+	// MempoolTransaction
+	mempoolTransactionReceiveDTOFromNetworkService := service.NewMempoolTransactionReceiveDTOFromNetworkService(
+		cfg,
+		logger,
+		mempoolTransactionCreateUseCase,
+	)
+
 	// Proof of Authority Consensus Mechanism
 	getProofOfAuthorityPrivateKeyService := service.NewGetProofOfAuthorityPrivateKeyService(
 		cfg,
@@ -313,6 +325,9 @@ func doRunDaemon() {
 	signedTransactionSubmissionHTTPHandler := httphandler.NewSignedTransactionSubmissionHTTPHandler(
 		logger,
 		signedTransactionSubmissionService)
+	mempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler := httphandler.NewMempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler(
+		logger,
+		mempoolTransactionReceiveDTOFromNetworkService)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
 		blackp)
@@ -329,6 +344,7 @@ func doRunDaemon() {
 		listBlockDataFilteredInHashesHTTPHandler,
 		listBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler,
 		signedTransactionSubmissionHTTPHandler,
+		mempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler,
 	)
 
 	//
