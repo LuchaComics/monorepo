@@ -108,14 +108,16 @@ func doRunBlockchainSyncCmd() error {
 		accountRepo,
 		genesisBlockDataRepo,
 		blockchainStateRepo,
-		blockDataRepo)
+		blockDataRepo,
+		tokRepo)
 	storageTransactionDiscardUseCase := usecase.NewStorageTransactionDiscardUseCase(
 		logger,
 		walletRepo,
 		accountRepo,
 		genesisBlockDataRepo,
 		blockchainStateRepo,
-		blockDataRepo)
+		blockDataRepo,
+		tokRepo)
 
 	// Blockchain State
 	upsertBlockchainStateUseCase := usecase.NewUpsertBlockchainStateUseCase(

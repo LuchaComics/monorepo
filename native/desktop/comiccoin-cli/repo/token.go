@@ -19,7 +19,7 @@ type TokenRepo struct {
 	dbClient disk.Storage
 }
 
-func NewTokenRepo(logger *slog.Logger, db disk.Storage) *TokenRepo {
+func NewTokenRepo(logger *slog.Logger, db disk.Storage) domain.TokenRepository {
 	return &TokenRepo{logger, db}
 }
 
@@ -93,7 +93,7 @@ func (r *TokenRepo) ListByOwner(ctx context.Context, owner *common.Address) ([]*
 
 	return res, err
 }
-func (r *TokenRepo) DeleteByID(ctx context.Context, id uint64) error {
+func (r *TokenRepo) DeleteByID(ctx context.Context, id *big.Int) error {
 	err := r.dbClient.Delete(fmt.Sprintf("%v", id))
 	if err != nil {
 		return err
