@@ -90,6 +90,8 @@ func doRunGetTokenCommand() {
 	} else {
 		logger.Debug("Retrieved token",
 			slog.Any("token_id", tokenID),
-			slog.Any("metadata_uri", tok.MetadataURI))
+			slog.Any("owner", tok.Owner),
+			slog.Any("metadata_uri", tok.MetadataURI),
+			slog.Any("nonce", tok.GetNonce()))
 	}
 }
