@@ -39,7 +39,7 @@ func init() {
 func DaemonCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "daemon",
-		Short: "Runs a full node on your machine.",
+		Short: "Runs a full node on your machine which will automatically synchronize the local blockchain with the Global Blockchain Network on any new changes.",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Load up our operating system interaction handlers, more specifically
 			// signals. The OS sends our application various signals based on the

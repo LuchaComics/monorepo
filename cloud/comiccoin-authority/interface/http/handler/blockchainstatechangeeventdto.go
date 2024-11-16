@@ -2,9 +2,10 @@ package handler
 
 import (
 	"fmt"
+	"log"
 	"log/slog"
 	"net/http"
-	"time"
+	"strconv"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase"
 )
@@ -22,6 +23,7 @@ func NewBlockchainStateChangeEventDTOHTTPHandler(
 }
 
 func (h *BlockchainStateChangeEventDTOHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 
 	// Set CORS headers to allow all origins. You may want to restrict this to specific origins in a production environment.
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -36,27 +38,39 @@ func (h *BlockchainStateChangeEventDTOHTTPHandler) Execute(w http.ResponseWriter
 		http.Error(w, "Invalid chain_id parameter", http.StatusBadRequest)
 		return
 	}
+	var chainID uint16
 
-	h.logger.Debug("Blockchain state requested", slog.Any("chain_id", chainIDStr))
-
-	ticker := time.NewTicker(30 * time.Second)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			if chainIDStr == "1" {
-				fmt.Fprintf(w, "data: %v", 1)
-			} else if chainIDStr == "1" {
-				fmt.Fprintf(w, "data: %v", 2)
-			} else {
-				fmt.Fprintf(w, "data: %v", 3)
-			}
-			w.(http.Flusher).Flush()
+	if len(chainIDStr) > 0 {
+		var err error
+		chainIDInt64, err := strconv.ParseUint(chainIDStr, 10, 16)
+		if err != nil {
+			log.Println(err)
 		}
+		chainID = uint16(chainIDInt64)
 	}
 
-	// // Simulate closing the connection
-	// closeNotify := w.(http.CloseNotifier).CloseNotify()
-	// <-closeNotify
+	h.logger.Debug("Blockchain state change events requested",
+		slog.Any("chain_id", chainIDStr))
+
+	defer func() {
+		// Simulate closing the connection
+		closeNotify := w.(http.CloseNotifier).CloseNotify()
+		<-closeNotify
+	}()
+
+	for {
+		updatedBlockchainState, err := h.usecase.Execute(ctx)
+		if err != nil {
+			h.logger.Error("Failed detecting blockchain state changes",
+				slog.Any("error", err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if updatedBlockchainState.ChainID == chainID {
+			fmt.Fprintf(w, "data: %v", chainID)
+		}
+		w.(http.Flusher).Flush()
+	}
+
 }

@@ -27,7 +27,7 @@ var (
 func BlockchainSyncCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "sync",
-		Short: "Execute command to synchronize the local blockchain with the Blockchain network.",
+		Short: "Execute command to manually synchronize the local blockchain with the Blockchain network.",
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := doRunBlockchainSyncCmd(); err != nil {
 				log.Fatalf("Failed to sync blockchain: %v\n", err)

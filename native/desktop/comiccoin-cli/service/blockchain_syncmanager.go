@@ -77,7 +77,8 @@ func (s *BlockchainSyncManagerService) Execute(ctx context.Context, chainID uint
 	// changes with the global blockchain network.
 	//
 
-	s.logger.Debug("Waiting to receive global blockchain state changes...")
+	s.logger.Debug("Waiting to receive from the global blockchain network...",
+		slog.Any("chain_id", chainID))
 
 	// Subscribe to the Blockchain Authority to receive `server sent events`
 	// when the blockchain changes globally to our local machine.
@@ -91,7 +92,8 @@ func (s *BlockchainSyncManagerService) Execute(ctx context.Context, chainID uint
 
 	// Consume data from the channel
 	for value := range ch {
-		fmt.Printf("Received update on Blockchain with Chain ID: %d\n", value)
+		fmt.Printf("Received update from chain ID: %d\n", value)
+
 		if err := s.storageTransactionOpenUseCase.Execute(); err != nil {
 			s.storageTransactionDiscardUseCase.Execute()
 			log.Fatalf("Failed to open storage transaction: %v\n", err)
@@ -106,6 +108,13 @@ func (s *BlockchainSyncManagerService) Execute(ctx context.Context, chainID uint
 			s.storageTransactionDiscardUseCase.Execute()
 			log.Fatalf("Failed to open storage transaction: %v\n", err)
 		}
+
+		// DEVELOPERS NOTE:
+		// Before we finish this runtime loop, and for debugging purposes, let
+		// us print this helpful message to communicate to the user that we
+		// are waiting for the next request.
+		s.logger.Debug("Waiting to receive from the global blockchain network...",
+			slog.Any("chain_id", chainID))
 	}
 	fmt.Println("Subscription to blockchain authority closed")
 
