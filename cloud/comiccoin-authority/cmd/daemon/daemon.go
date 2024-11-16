@@ -84,6 +84,15 @@ func doRunDaemon() {
 		logger,
 		bcStateRepo,
 	)
+	blockchainStateUpdateDetectorUseCase := usecase.NewBlockchainStateUpdateDetectorUseCase(
+		cfg,
+		logger,
+		bcStateRepo,
+	)
+	defer func() {
+		// When we are done, we will need to terminate our access to this resource.
+		blockchainStateUpdateDetectorUseCase.Terminate()
+	}()
 
 	// Block Data
 	listAllBlockNumberByHashArrayUseCase := usecase.NewListAllBlockNumberByHashArrayUseCase(
@@ -310,6 +319,9 @@ func doRunDaemon() {
 	getBlockchainStateHTTPHandler := httphandler.NewGetBlockchainStateHTTPHandler(
 		logger,
 		getBlockchainStateService)
+	blockchainStateChangeEventsHTTPHandler := httphandler.NewBlockchainStateChangeEventDTOHTTPHandler(
+		logger,
+		blockchainStateUpdateDetectorUseCase)
 	listAllBlockDataOrderedHashesHTTPHandler := httphandler.NewListAllBlockDataOrderedHashesHTTPHandler(
 		logger,
 		blockDataListAllOrderedHashesService)
@@ -338,6 +350,7 @@ func doRunDaemon() {
 		getVersionHTTPHandler,
 		getGenesisBlockDataHTTPHandler,
 		getBlockchainStateHTTPHandler,
+		blockchainStateChangeEventsHTTPHandler,
 		listAllBlockDataOrderedHashesHTTPHandler,
 		listAllBlockDataUnorderedHashesHTTPHandler,
 		getBlockDataHTTPHandler,

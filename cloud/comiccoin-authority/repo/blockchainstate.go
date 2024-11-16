@@ -116,3 +116,59 @@ func (r *BlockchainStateRepo) CommitTransaction() error {
 func (r *BlockchainStateRepo) DiscardTransaction() {
 	log.Fatal("Unsupported feature in the `comiccoin-authority` repository.")
 }
+
+func (r *BlockchainStateRepo) getUpdateChangeStream(ctx context.Context) (*mongo.ChangeStream, error) {
+	pipeline := mongo.Pipeline{bson.D{{"$match", bson.D{{"$or",
+		bson.A{
+			bson.D{{"operationType", "update"}}}}},
+	}}}
+
+	changeStream, err := r.collection.Watch(ctx, pipeline, options.ChangeStream().SetFullDocument(options.UpdateLookup))
+	if err != nil {
+		return nil, err
+	}
+
+	return changeStream, nil
+}
+
+func (r *BlockchainStateRepo) GetUpdateChangeStreamChannel(ctx context.Context) (<-chan domain.BlockchainState, chan struct{}, error) {
+	changeStream, err := r.getUpdateChangeStream(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	dataChan := make(chan domain.BlockchainState)
+	quitChan := make(chan struct{})
+	go func() {
+		defer close(dataChan)
+		for changeStream.Next(ctx) {
+			// r.logger.Debug("Running next...")
+			select {
+			case <-quitChan:
+				// r.logger.Debug("Quit chan!")
+				changeStream.Close(ctx)
+				return
+			default:
+				// r.logger.Debug("OK...")
+			}
+
+			// SPECIAL THANKS: https://stackoverflow.com/a/74519310
+			var event struct {
+				Doc domain.BlockchainState `bson:"fullDocument"`
+			}
+
+			if err := changeStream.Decode(&event); err != nil {
+				r.logger.Error("Failed to decode event",
+					slog.Any("error", err))
+				continue
+			}
+
+			// r.logger.Debug("Ready to send...",
+			// 	slog.Any("dataChan", event.Doc))
+
+			dataChan <- event.Doc
+		}
+		changeStream.Close(ctx)
+	}()
+	return dataChan, quitChan, nil
+}

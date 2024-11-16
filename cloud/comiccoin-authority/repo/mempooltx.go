@@ -122,7 +122,7 @@ func (r *MempoolTransactionRepo) DeleteByID(ctx context.Context, id primitive.Ob
 
 // -----------------------------------------------------------------------------
 
-func (r *MempoolTransactionRepo) GetInsertionChangeStream(ctx context.Context) (*mongo.ChangeStream, error) {
+func (r *MempoolTransactionRepo) getInsertionChangeStream(ctx context.Context) (*mongo.ChangeStream, error) {
 	pipeline := mongo.Pipeline{bson.D{{"$match", bson.D{{"$or",
 		bson.A{
 			bson.D{{"operationType", "insert"}}}}},
@@ -137,7 +137,7 @@ func (r *MempoolTransactionRepo) GetInsertionChangeStream(ctx context.Context) (
 }
 
 func (r *MempoolTransactionRepo) GetInsertionChangeStreamChannel(ctx context.Context) (<-chan domain.MempoolTransaction, chan struct{}, error) {
-	changeStream, err := r.GetInsertionChangeStream(ctx)
+	changeStream, err := r.getInsertionChangeStream(ctx)
 	if err != nil {
 		return nil, nil, err
 	}

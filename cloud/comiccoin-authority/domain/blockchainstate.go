@@ -67,6 +67,8 @@ type BlockchainStateRepository interface {
 	// DeleteByChainID deletes an blockchain state by its chain ID.
 	DeleteByChainID(ctx context.Context, chainID uint16) error
 
+	GetUpdateChangeStreamChannel(ctx context.Context) (<-chan BlockchainState, chan struct{}, error)
+
 	OpenTransaction() error
 	CommitTransaction() error
 	DiscardTransaction()

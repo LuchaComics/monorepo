@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"fmt"
+	"log"
 	"log/slog"
 
 	disk "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/storage"
@@ -80,6 +81,11 @@ func (r *BlockchainStateRepo) ListAll(ctx context.Context) ([]*domain.Blockchain
 	})
 
 	return res, err
+}
+
+func (r *BlockchainStateRepo) GetUpdateChangeStreamChannel(context.Context) (<-chan domain.BlockchainState, chan struct{}, error) {
+	defer log.Fatal("Unsupported feature - only supported in `comiccoin-authority` application.")
+	return nil, nil, nil
 }
 
 func (r *BlockchainStateRepo) OpenTransaction() error {

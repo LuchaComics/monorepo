@@ -43,6 +43,7 @@ type httpServerImpl struct {
 	listBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler *handler.ListBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler
 	signedTransactionSubmissionHTTPHandler                       *handler.SignedTransactionSubmissionHTTPHandler
 	mempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler    *handler.MempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler
+	blockchainStateChangeEventDTOHTTPHandler                     *handler.BlockchainStateChangeEventDTOHTTPHandler
 }
 
 // NewHTTPServer creates a new HTTP server instance.
@@ -53,13 +54,14 @@ func NewHTTPServer(
 	http1 *handler.GetVersionHTTPHandler,
 	http2 *handler.GetGenesisBlockDataHTTPHandler,
 	http3 *handler.GetBlockchainStateHTTPHandler,
-	http4 *handler.ListAllBlockDataOrderedHashesHTTPHandler,
-	http5 *handler.ListAllBlockDataUnorderedHashesHTTPHandler,
-	http6 *handler.GetBlockDataHTTPHandler,
-	http7 *handler.ListBlockDataFilteredInHashesHTTPHandler,
-	http8 *handler.ListBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler,
-	http9 *handler.SignedTransactionSubmissionHTTPHandler,
-	http10 *handler.MempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler,
+	http4 *handler.BlockchainStateChangeEventDTOHTTPHandler,
+	http5 *handler.ListAllBlockDataOrderedHashesHTTPHandler,
+	http6 *handler.ListAllBlockDataUnorderedHashesHTTPHandler,
+	http7 *handler.GetBlockDataHTTPHandler,
+	http8 *handler.ListBlockDataFilteredInHashesHTTPHandler,
+	http9 *handler.ListBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler,
+	http10 *handler.SignedTransactionSubmissionHTTPHandler,
+	http11 *handler.MempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.IP == "" {
@@ -89,13 +91,14 @@ func NewHTTPServer(
 		getVersionHTTPHandler:                    http1,
 		getGenesisBlockDataHTTPHandler:           http2,
 		getBlockchainStateHTTPHandler:            http3,
-		listAllBlockDataOrderedHashesHTTPHandler: http4,
-		listAllBlockDataUnorderedHashesHTTPHandler:                   http5,
-		getBlockDataHTTPHandler:                                      http6,
-		listBlockDataFilteredInHashesHTTPHandler:                     http7,
-		listBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler: http8,
-		signedTransactionSubmissionHTTPHandler:                       http9,
-		mempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler:    http10,
+		blockchainStateChangeEventDTOHTTPHandler: http4,
+		listAllBlockDataOrderedHashesHTTPHandler: http5,
+		listAllBlockDataUnorderedHashesHTTPHandler:                   http6,
+		getBlockDataHTTPHandler:                                      http7,
+		listBlockDataFilteredInHashesHTTPHandler:                     http8,
+		listBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler: http9,
+		signedTransactionSubmissionHTTPHandler:                       http10,
+		mempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler:    http11,
 	}
 
 	// Attach the HTTP server controller to the ServeMux.
@@ -150,6 +153,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		port.getGenesisBlockDataHTTPHandler.Execute(w, r)
 	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "blockchain-state" && r.Method == http.MethodGet:
 		port.getBlockchainStateHTTPHandler.Execute(w, r)
+	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "blockchain-state" && p[3] == "changes" && r.Method == http.MethodGet:
+		port.blockchainStateChangeEventDTOHTTPHandler.Execute(w, r)
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "blockdata" && r.Method == http.MethodGet:
 		port.getBlockDataHTTPHandler.Execute(w, r, p[3])
 	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "blockdata-in" && r.Method == http.MethodGet:
