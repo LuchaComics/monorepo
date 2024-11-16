@@ -39,7 +39,7 @@ func (h *BlockchainStateChangeEventDTOHTTPHandler) Execute(w http.ResponseWriter
 
 	h.logger.Debug("Blockchain state requested", slog.Any("chain_id", chainIDStr))
 
-	ticker := time.NewTicker(2 * time.Second)
+	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
 
 	for {

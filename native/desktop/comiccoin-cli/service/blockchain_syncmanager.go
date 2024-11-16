@@ -3,23 +3,33 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"log/slog"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
-
 	auth_usecase "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase"
+
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-cli/usecase"
 )
 
 type BlockchainSyncManagerService struct {
 	logger                                                               *slog.Logger
+	blockchainSyncWithBlockchainAuthorityService                         *BlockchainSyncWithBlockchainAuthorityService
+	storageTransactionOpenUseCase                                        *usecase.StorageTransactionOpenUseCase
+	storageTransactionCommitUseCase                                      *usecase.StorageTransactionCommitUseCase
+	storageTransactionDiscardUseCase                                     *usecase.StorageTransactionDiscardUseCase
 	subscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase *auth_usecase.SubscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase
 }
 
 func NewBlockchainSyncManagerService(
 	logger *slog.Logger,
-	uc1 *auth_usecase.SubscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase,
+	s1 *BlockchainSyncWithBlockchainAuthorityService,
+	uc1 *usecase.StorageTransactionOpenUseCase,
+	uc2 *usecase.StorageTransactionCommitUseCase,
+	uc3 *usecase.StorageTransactionDiscardUseCase,
+	uc4 *auth_usecase.SubscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase,
 ) *BlockchainSyncManagerService {
-	return &BlockchainSyncManagerService{logger, uc1}
+	return &BlockchainSyncManagerService{logger, s1, uc1, uc2, uc3, uc4}
 }
 
 func (s *BlockchainSyncManagerService) Execute(ctx context.Context, chainID uint16) error {
@@ -38,8 +48,36 @@ func (s *BlockchainSyncManagerService) Execute(ctx context.Context, chainID uint
 	}
 
 	//
-	// STEP 2: Get our account from our in-memory database if it exists.
+	// STEP 2:
+	// On startup sync with Blockchain Authority.
 	//
+
+	s.logger.Debug("Syncing on startup...")
+
+	if err := s.storageTransactionOpenUseCase.Execute(); err != nil {
+		s.storageTransactionDiscardUseCase.Execute()
+		log.Fatalf("Failed to open storage transaction: %v\n", err)
+	}
+
+	if err := s.blockchainSyncWithBlockchainAuthorityService.Execute(ctx, chainID); err != nil {
+		s.storageTransactionDiscardUseCase.Execute()
+		log.Fatalf("Failed to sync blockchain: %v\n", err)
+	}
+
+	if err := s.storageTransactionCommitUseCase.Execute(); err != nil {
+		s.storageTransactionDiscardUseCase.Execute()
+		log.Fatalf("Failed to open storage transaction: %v\n", err)
+	}
+	s.logger.Debug("Syncing finished")
+
+	//
+	// STEP 3:
+	// Once startup sync has been completed, subscribe to the `server sent
+	// events` of the Blockchain Authority to get the latest updates about
+	// changes with the global blockchain network.
+	//
+
+	s.logger.Debug("Waiting to receive global blockchain state changes...")
 
 	// Subscribe to the Blockchain Authority to receive `server sent events`
 	// when the blockchain changes globally to our local machine.
@@ -53,9 +91,23 @@ func (s *BlockchainSyncManagerService) Execute(ctx context.Context, chainID uint
 
 	// Consume data from the channel
 	for value := range ch {
-		fmt.Printf("Received update: %d\n", value)
+		fmt.Printf("Received update on Blockchain with Chain ID: %d\n", value)
+		if err := s.storageTransactionOpenUseCase.Execute(); err != nil {
+			s.storageTransactionDiscardUseCase.Execute()
+			log.Fatalf("Failed to open storage transaction: %v\n", err)
+		}
+
+		if err := s.blockchainSyncWithBlockchainAuthorityService.Execute(ctx, chainID); err != nil {
+			s.storageTransactionDiscardUseCase.Execute()
+			log.Fatalf("Failed to sync blockchain: %v\n", err)
+		}
+
+		if err := s.storageTransactionCommitUseCase.Execute(); err != nil {
+			s.storageTransactionDiscardUseCase.Execute()
+			log.Fatalf("Failed to open storage transaction: %v\n", err)
+		}
 	}
-	fmt.Println("Subscription closed")
+	fmt.Println("Subscription to blockchain authority closed")
 
 	return nil
 }
