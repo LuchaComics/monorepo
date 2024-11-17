@@ -1,18 +1,18 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/blockchain/signature"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/blockchain/signature"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
+
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
 )
 
 type CreateAccountService struct {
-	config                  *config.Config
 	logger                  *slog.Logger
 	walletEncryptKeyUseCase *usecase.WalletEncryptKeyUseCase
 	walletDecryptKeyUseCase *usecase.WalletDecryptKeyUseCase
@@ -22,7 +22,6 @@ type CreateAccountService struct {
 }
 
 func NewCreateAccountService(
-	cfg *config.Config,
 	logger *slog.Logger,
 	uc1 *usecase.WalletEncryptKeyUseCase,
 	uc2 *usecase.WalletDecryptKeyUseCase,
@@ -30,18 +29,15 @@ func NewCreateAccountService(
 	uc4 *usecase.CreateAccountUseCase,
 	uc5 *usecase.GetAccountUseCase,
 ) *CreateAccountService {
-	return &CreateAccountService{cfg, logger, uc1, uc2, uc3, uc4, uc5}
+	return &CreateAccountService{logger, uc1, uc2, uc3, uc4, uc5}
 }
 
-func (s *CreateAccountService) Execute(dataDir, walletPassword string, walletPasswordRepeated string, walletLabel string) (*domain.Account, error) {
+func (s *CreateAccountService) Execute(ctx context.Context, walletPassword string, walletPasswordRepeated string, walletLabel string) (*domain.Account, error) {
 	//
 	// STEP 1: Validation.
 	//
 
 	e := make(map[string]string)
-	if dataDir == "" {
-		e["data_dir"] = "missing value"
-	}
 	if walletPassword == "" {
 		e["wallet_password"] = "missing value"
 	}
@@ -63,10 +59,9 @@ func (s *CreateAccountService) Execute(dataDir, walletPassword string, walletPas
 	// Create the encryted physical wallet on file.
 	//
 
-	walletAddress, walletFilepath, err := s.walletEncryptKeyUseCase.Execute(dataDir, walletPassword)
+	walletAddress, walletFilepath, err := s.walletEncryptKeyUseCase.Execute(ctx, walletPassword)
 	if err != nil {
 		s.logger.Error("failed creating new keystore",
-			slog.Any("data_dir", dataDir),
 			slog.Any("error", err))
 		return nil, fmt.Errorf("failed creating new keystore: %s", err)
 	}
@@ -80,10 +75,9 @@ func (s *CreateAccountService) Execute(dataDir, walletPassword string, walletPas
 	// Decrypt the wallet so we can extract data from it.
 	//
 
-	walletKey, err := s.walletDecryptKeyUseCase.Execute(walletFilepath, walletPassword)
+	walletKey, err := s.walletDecryptKeyUseCase.Execute(ctx, walletFilepath, walletPassword)
 	if err != nil {
 		s.logger.Error("failed getting wallet key",
-			slog.Any("data_dir", dataDir),
 			slog.Any("error", err))
 		return nil, fmt.Errorf("failed getting wallet key: %s", err)
 	}
@@ -105,8 +99,7 @@ func (s *CreateAccountService) Execute(dataDir, walletPassword string, walletPas
 	if walletAddress.Hex() != addressFromSig {
 		s.logger.Error("address from signature does not match the wallet address",
 			slog.Any("addressFromSig", addressFromSig),
-			slog.Any("walletAddress", walletAddress.Hex()),
-			slog.Any("data_dir", dataDir))
+			slog.Any("walletAddress", walletAddress.Hex()))
 		return nil, fmt.Errorf("address from signature at %v does not match the wallet address of %v", addressFromSig, walletAddress.Hex())
 	}
 
@@ -128,9 +121,8 @@ func (s *CreateAccountService) Execute(dataDir, walletPassword string, walletPas
 	// Save wallet to our database.
 	//
 
-	if err := s.createWalletUseCase.Execute(walletAddress, walletFilepath, walletLabel); err != nil {
+	if err := s.createWalletUseCase.Execute(ctx, walletAddress, walletFilepath, walletLabel); err != nil {
 		s.logger.Error("failed saving to database",
-			slog.Any("data_dir", dataDir),
 			slog.Any("error", err))
 		return nil, fmt.Errorf("failed saving to database: %s", err)
 	}
@@ -139,9 +131,8 @@ func (s *CreateAccountService) Execute(dataDir, walletPassword string, walletPas
 	// STEP 4: Create the account.
 	//
 
-	if err := s.createAccountUseCase.Execute(walletAddress); err != nil {
+	if err := s.createAccountUseCase.Execute(ctx, walletAddress); err != nil {
 		s.logger.Error("failed saving to database",
-			slog.Any("data_dir", dataDir),
 			slog.Any("error", err))
 		return nil, fmt.Errorf("failed saving to database: %s", err)
 	}
@@ -150,5 +141,5 @@ func (s *CreateAccountService) Execute(dataDir, walletPassword string, walletPas
 	// STEP 5: Return the saved account.
 	//
 
-	return s.getAccountUseCase.Execute(walletAddress)
+	return s.getAccountUseCase.Execute(ctx, walletAddress)
 }

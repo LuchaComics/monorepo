@@ -1,26 +1,27 @@
 package usecase
 
 import (
+	"context"
 	"log/slog"
 
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 )
 
 type CountTokensByOwnerUseCase struct {
-	config *config.Config
+	config *config.Configuration
 	logger *slog.Logger
 	repo   domain.TokenRepository
 }
 
-func NewCountTokensByOwnerUseCase(config *config.Config, logger *slog.Logger, repo domain.TokenRepository) *CountTokensByOwnerUseCase {
+func NewCountTokensByOwnerUseCase(config *config.Configuration, logger *slog.Logger, repo domain.TokenRepository) *CountTokensByOwnerUseCase {
 	return &CountTokensByOwnerUseCase{config, logger, repo}
 }
 
-func (uc *CountTokensByOwnerUseCase) Execute(owner *common.Address) (int, error) {
-	toks, err := uc.repo.ListByOwner(owner)
+func (uc *CountTokensByOwnerUseCase) Execute(ctx context.Context, owner *common.Address) (int, error) {
+	toks, err := uc.repo.ListByOwner(ctx, owner)
 	if err != nil {
 		return 0, err
 	}

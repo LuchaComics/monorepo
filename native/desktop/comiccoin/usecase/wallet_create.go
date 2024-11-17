@@ -1,26 +1,25 @@
 package usecase
 
 import (
+	"context"
 	"log/slog"
 
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 )
 
 type CreateWalletUseCase struct {
-	config *config.Config
 	logger *slog.Logger
 	repo   domain.WalletRepository
 }
 
-func NewCreateWalletUseCase(config *config.Config, logger *slog.Logger, repo domain.WalletRepository) *CreateWalletUseCase {
-	return &CreateWalletUseCase{config, logger, repo}
+func NewCreateWalletUseCase(logger *slog.Logger, repo domain.WalletRepository) *CreateWalletUseCase {
+	return &CreateWalletUseCase{logger, repo}
 }
 
-func (uc *CreateWalletUseCase) Execute(address *common.Address, filepath string, label string) error {
+func (uc *CreateWalletUseCase) Execute(ctx context.Context, address *common.Address, keystoreBytes []byte, label string) error {
 	//
 	// STEP 1: Validation.
 	//
@@ -29,8 +28,8 @@ func (uc *CreateWalletUseCase) Execute(address *common.Address, filepath string,
 	if address == nil {
 		e["address"] = "missing value"
 	}
-	if filepath == "" {
-		e["filepath"] = "missing value"
+	if keystoreBytes == nil {
+		e["keystore_bytes"] = "missing value"
 	}
 	if len(e) != 0 {
 		uc.logger.Warn("Failed creating new wallet",
@@ -43,14 +42,14 @@ func (uc *CreateWalletUseCase) Execute(address *common.Address, filepath string,
 	//
 
 	wallet := &domain.Wallet{
-		Address:  address,
-		Filepath: filepath,
-		Label:    label,
+		Address:       address,
+		KeystoreBytes: keystoreBytes,
+		Label:         label,
 	}
 
 	//
 	// STEP 3: Insert into database.
 	//
 
-	return uc.repo.Upsert(wallet)
+	return uc.repo.Upsert(ctx, wallet)
 }

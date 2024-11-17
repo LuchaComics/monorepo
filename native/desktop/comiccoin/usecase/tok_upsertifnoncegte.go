@@ -1,11 +1,12 @@
 package usecase
 
 import (
+	"context"
 	"log/slog"
+	"math/big"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -20,20 +21,20 @@ import (
 // transactions. We do this because the `token` database only shows the most
 // recent tokens and their current owners, not the history of ownership.
 type UpsertTokenIfPreviousTokenNonceGTEUseCase struct {
-	config *config.Config
 	logger *slog.Logger
 	repo   domain.TokenRepository
 }
 
-func NewUpsertTokenIfPreviousTokenNonceGTEUseCase(config *config.Config, logger *slog.Logger, repo domain.TokenRepository) *UpsertTokenIfPreviousTokenNonceGTEUseCase {
-	return &UpsertTokenIfPreviousTokenNonceGTEUseCase{config, logger, repo}
+func NewUpsertTokenIfPreviousTokenNonceGTEUseCase(logger *slog.Logger, repo domain.TokenRepository) *UpsertTokenIfPreviousTokenNonceGTEUseCase {
+	return &UpsertTokenIfPreviousTokenNonceGTEUseCase{logger, repo}
 }
 
 func (uc *UpsertTokenIfPreviousTokenNonceGTEUseCase) Execute(
-	id uint64,
+	ctx context.Context,
+	id *big.Int,
 	owner *common.Address,
 	metadataURI string,
-	nonce uint64,
+	nonce *big.Int,
 ) error {
 	//
 	// STEP 1:
@@ -49,6 +50,10 @@ func (uc *UpsertTokenIfPreviousTokenNonceGTEUseCase) Execute(
 	}
 	if len(e) != 0 {
 		uc.logger.Warn("Validation failed for upsert",
+			slog.Any("id", id),
+			slog.Any("owner", owner),
+			slog.Any("metadataURI", metadataURI),
+			slog.Any("nonce", nonce),
 			slog.Any("error", e))
 		return httperror.NewForBadRequest(&e)
 	}
@@ -58,7 +63,7 @@ func (uc *UpsertTokenIfPreviousTokenNonceGTEUseCase) Execute(
 	// Lookup previous record.
 	//
 
-	previousToken, err := uc.repo.GetByID(id)
+	previousToken, err := uc.repo.GetByID(ctx, id)
 	if err != nil {
 		uc.logger.Error("Failed getting token by id", slog.Any("error", err))
 		return err
@@ -70,12 +75,14 @@ func (uc *UpsertTokenIfPreviousTokenNonceGTEUseCase) Execute(
 	//
 	if previousToken == nil {
 		token := &domain.Token{
-			ID:          id,
+			IDBytes:     id.Bytes(),
 			Owner:       owner,
 			MetadataURI: metadataURI,
-			Nonce:       nonce,
+			NonceBytes:  nonce.Bytes(),
 		}
-		return uc.repo.Upsert(token)
+		uc.logger.Debug("Creating new token...",
+			slog.Any("id", id))
+		return uc.repo.Upsert(ctx, token)
 	}
 
 	//
@@ -88,7 +95,7 @@ func (uc *UpsertTokenIfPreviousTokenNonceGTEUseCase) Execute(
 	// Compare `nonce` values and if nonce is not GTE then exit this function.
 	//
 
-	isGTE := nonce >= previousToken.Nonce
+	isGTE := nonce.Cmp(previousToken.GetNonce()) >= 0
 
 	if !isGTE {
 		return nil
@@ -100,10 +107,12 @@ func (uc *UpsertTokenIfPreviousTokenNonceGTEUseCase) Execute(
 	//
 
 	token := &domain.Token{
-		ID:          id,
+		IDBytes:     id.Bytes(),
 		Owner:       owner,
 		MetadataURI: metadataURI,
-		Nonce:       nonce,
+		NonceBytes:  nonce.Bytes(),
 	}
-	return uc.repo.Upsert(token)
+	uc.logger.Debug("Updating existing token...",
+		slog.Any("id", id))
+	return uc.repo.Upsert(ctx, token)
 }

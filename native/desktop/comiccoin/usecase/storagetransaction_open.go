@@ -3,42 +3,29 @@ package usecase
 import (
 	"log/slog"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 )
 
 type StorageTransactionOpenUseCase struct {
-	config                      *config.Config
-	logger                      *slog.Logger
-	accountRepo                 domain.AccountRepository
-	tokenRepo                   domain.TokenRepository
-	latestHashRepo              domain.BlockchainLastestHashRepository
-	latestTokenIDRepo           domain.BlockchainLastestTokenIDRepository
-	blockDataRepo               domain.BlockDataRepository
-	identityKeyRepo             domain.IdentityKeyRepository
-	mempoolTransactionRepo      domain.MempoolTransactionRepository
-	pendingBlockTransactionRepo domain.PendingBlockTransactionRepository
-	walletRepo                  domain.WalletRepository
-	// signedTransactionRepo       domain.SignedTransactionRepository
-	nftokenRepo domain.NonFungibleTokenRepository
+	logger               *slog.Logger
+	walletRepo           domain.WalletRepository
+	accountRepo          domain.AccountRepository
+	genesisBlockDataRepo domain.GenesisBlockDataRepository
+	blockchainStateRepo  domain.BlockchainStateRepository
+	blockDataRepo        domain.BlockDataRepository
+	tokenRepo            domain.TokenRepository
 }
 
 func NewStorageTransactionOpenUseCase(
-	config *config.Config,
 	logger *slog.Logger,
-	r1 domain.AccountRepository,
-	r2 domain.TokenRepository,
-	r3 domain.BlockchainLastestHashRepository,
-	r4 domain.BlockchainLastestTokenIDRepository,
+	r1 domain.WalletRepository,
+	r2 domain.AccountRepository,
+	r3 domain.GenesisBlockDataRepository,
+	r4 domain.BlockchainStateRepository,
 	r5 domain.BlockDataRepository,
-	r6 domain.IdentityKeyRepository,
-	r7 domain.MempoolTransactionRepository,
-	r8 domain.PendingBlockTransactionRepository,
-	r9 domain.WalletRepository,
-	// r10 domain.SignedTransactionRepository,
-	r10 domain.NonFungibleTokenRepository,
+	r6 domain.TokenRepository,
 ) *StorageTransactionOpenUseCase {
-	return &StorageTransactionOpenUseCase{config, logger, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10}
+	return &StorageTransactionOpenUseCase{logger, r1, r2, r3, r4, r5, r6}
 }
 
 func (uc *StorageTransactionOpenUseCase) Execute() error {
@@ -47,18 +34,18 @@ func (uc *StorageTransactionOpenUseCase) Execute() error {
 			slog.Any("error", err))
 		return err
 	}
-	if err := uc.tokenRepo.OpenTransaction(); err != nil {
-		uc.logger.Error("Failed opening transaction for tokens",
+	if err := uc.walletRepo.OpenTransaction(); err != nil {
+		uc.logger.Error("Failed opening transaction for wallet",
 			slog.Any("error", err))
 		return err
 	}
-	if err := uc.latestHashRepo.OpenTransaction(); err != nil {
-		uc.logger.Error("Failed opening transaction for latest hash",
+	if err := uc.genesisBlockDataRepo.OpenTransaction(); err != nil {
+		uc.logger.Error("Failed opening transaction for genesis block data",
 			slog.Any("error", err))
 		return err
 	}
-	if err := uc.latestTokenIDRepo.OpenTransaction(); err != nil {
-		uc.logger.Error("Failed opening transaction for token id",
+	if err := uc.blockchainStateRepo.OpenTransaction(); err != nil {
+		uc.logger.Error("Failed opening transaction for blockchain state",
 			slog.Any("error", err))
 		return err
 	}
@@ -67,31 +54,8 @@ func (uc *StorageTransactionOpenUseCase) Execute() error {
 			slog.Any("error", err))
 		return err
 	}
-	if err := uc.identityKeyRepo.OpenTransaction(); err != nil {
-		uc.logger.Error("Failed opening transaction for identity key",
-			slog.Any("error", err))
-		return err
-	}
-	if err := uc.mempoolTransactionRepo.OpenTransaction(); err != nil {
-		uc.logger.Error("Failed opening transaction for mempool transaction",
-			slog.Any("error", err))
-		return err
-	}
-	if err := uc.pendingBlockTransactionRepo.OpenTransaction(); err != nil {
-		uc.logger.Error("Failed opening transaction for pending block transaction",
-			slog.Any("error", err))
-		return err
-	}
-	if err := uc.walletRepo.OpenTransaction(); err != nil {
-		uc.logger.Error("Failed opening transaction for wallet",
-			slog.Any("error", err))
-		return err
-	}
-	// if err := uc.signedTransactionRepo.OpenTransaction(); err != nil {
-	// 	return err
-	// }
-	if err := uc.nftokenRepo.OpenTransaction(); err != nil {
-		uc.logger.Error("Failed opening transaction for non-fungible token",
+	if err := uc.tokenRepo.OpenTransaction(); err != nil {
+		uc.logger.Error("Failed opening transaction for token",
 			slog.Any("error", err))
 		return err
 	}

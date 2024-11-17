@@ -1,24 +1,23 @@
 package usecase
 
 import (
+	"context"
 	"log/slog"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 )
 
 type GetBlockDataUseCase struct {
-	config *config.Config
 	logger *slog.Logger
 	repo   domain.BlockDataRepository
 }
 
-func NewGetBlockDataUseCase(config *config.Config, logger *slog.Logger, repo domain.BlockDataRepository) *GetBlockDataUseCase {
-	return &GetBlockDataUseCase{config, logger, repo}
+func NewGetBlockDataUseCase(logger *slog.Logger, repo domain.BlockDataRepository) *GetBlockDataUseCase {
+	return &GetBlockDataUseCase{logger, repo}
 }
 
-func (uc *GetBlockDataUseCase) Execute(hash string) (*domain.BlockData, error) {
+func (uc *GetBlockDataUseCase) Execute(ctx context.Context, hash string) (*domain.BlockData, error) {
 	//
 	// STEP 1: Validation.
 	//
@@ -37,5 +36,5 @@ func (uc *GetBlockDataUseCase) Execute(hash string) (*domain.BlockData, error) {
 	// STEP 2: Insert into database.
 	//
 
-	return uc.repo.GetByHash(hash)
+	return uc.repo.GetByHash(ctx, hash)
 }

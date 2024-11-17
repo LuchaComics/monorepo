@@ -1,22 +1,23 @@
 package usecase
 
 import (
+	"context"
 	"log/slog"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 )
 
 type GetTokensHashStateUseCase struct {
-	config *config.Config
+	config *config.Configuration
 	logger *slog.Logger
 	repo   domain.TokenRepository
 }
 
-func NewGetTokensHashStateUseCase(config *config.Config, logger *slog.Logger, repo domain.TokenRepository) *GetTokensHashStateUseCase {
+func NewGetTokensHashStateUseCase(config *config.Configuration, logger *slog.Logger, repo domain.TokenRepository) *GetTokensHashStateUseCase {
 	return &GetTokensHashStateUseCase{config, logger, repo}
 }
 
-func (uc *GetTokensHashStateUseCase) Execute() (string, error) {
-	return uc.repo.HashState()
+func (uc *GetTokensHashStateUseCase) Execute(ctx context.Context) (string, error) {
+	return uc.repo.HashState(ctx)
 }

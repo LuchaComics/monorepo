@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"math/big"
+	"strings"
 	"time"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
@@ -16,40 +17,38 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
 )
 
-type CoinTransferService struct {
+type TokenBurnService struct {
 	logger                                                  *slog.Logger
 	getAccountUseCase                                       *usecase.GetAccountUseCase
 	getWalletUseCase                                        *usecase.GetWalletUseCase
 	walletDecryptKeyUseCase                                 *usecase.WalletDecryptKeyUseCase
+	getTokenUseCase                                         *usecase.GetTokenUseCase
 	submitMempoolTransactionDTOToBlockchainAuthorityUseCase *auth_usecase.SubmitMempoolTransactionDTOToBlockchainAuthorityUseCase
 }
 
-func NewCoinTransferService(
+func NewTokenBurnService(
 	logger *slog.Logger,
 	uc1 *usecase.GetAccountUseCase,
 	uc2 *usecase.GetWalletUseCase,
 	uc3 *usecase.WalletDecryptKeyUseCase,
-	uc4 *auth_usecase.SubmitMempoolTransactionDTOToBlockchainAuthorityUseCase,
-) *CoinTransferService {
-	return &CoinTransferService{logger, uc1, uc2, uc3, uc4}
+	uc4 *usecase.GetTokenUseCase,
+	uc5 *auth_usecase.SubmitMempoolTransactionDTOToBlockchainAuthorityUseCase,
+) *TokenBurnService {
+	return &TokenBurnService{logger, uc1, uc2, uc3, uc4, uc5}
 }
 
-func (s *CoinTransferService) Execute(
+func (s *TokenBurnService) Execute(
 	ctx context.Context,
 	chainID uint16,
 	fromAccountAddress *common.Address,
 	accountWalletPassword string,
-	to *common.Address,
-	value uint64,
-	data []byte,
+	tokenID *big.Int,
 ) error {
 	s.logger.Debug("Validating...",
 		slog.Any("chain_id", chainID),
 		slog.Any("from_account_address", fromAccountAddress),
 		slog.Any("account_wallet_password", accountWalletPassword),
-		slog.Any("to", to),
-		slog.Any("value", value),
-		slog.Any("data", data),
+		slog.Any("tokenID", tokenID),
 	)
 
 	//
@@ -63,11 +62,8 @@ func (s *CoinTransferService) Execute(
 	if accountWalletPassword == "" {
 		e["account_wallet_password"] = "missing value"
 	}
-	if to == nil {
-		e["to"] = "missing value"
-	}
-	if value == 0 {
-		e["value"] = "missing value"
+	if tokenID == nil {
+		e["token_id"] = "missing value"
 	}
 	if len(e) != 0 {
 		s.logger.Warn("Failed validating create transaction parameters",
@@ -76,7 +72,8 @@ func (s *CoinTransferService) Execute(
 	}
 
 	//
-	// STEP 2: Get the account and extract the wallet private/public key.
+	// STEP 2:
+	// Get related records.
 	//
 
 	wallet, err := s.getWalletUseCase.Execute(ctx, fromAccountAddress)
@@ -104,9 +101,23 @@ func (s *CoinTransferService) Execute(
 		return fmt.Errorf("failed getting key: %s", "d.n.e.")
 	}
 
+	tok, err := s.getTokenUseCase.Execute(ctx, tokenID)
+	if err != nil {
+		s.logger.Error("failed getting token from database",
+			slog.Any("from_account_address", fromAccountAddress),
+			slog.Any("error", err))
+		return fmt.Errorf("failed getting token from database: %s", err)
+	}
+	if tok == nil {
+		s.logger.Error("failed getting token from database",
+			slog.Any("from_account_address", fromAccountAddress),
+			slog.Any("error", "d.n.e."))
+		return fmt.Errorf("failed getting token from database: %s", "token d.n.e.")
+	}
+
 	//
 	// STEP 3:
-	// Verify the account has enough balance before proceeding.
+	// Verify the account owns the token
 	//
 
 	account, err := s.getAccountUseCase.Execute(ctx, fromAccountAddress)
@@ -119,12 +130,11 @@ func (s *CoinTransferService) Execute(
 	if account == nil {
 		return fmt.Errorf("failed getting account: %s", "d.n.e.")
 	}
-	if account.Balance < value {
-		s.logger.Warn("insufficient balance in account",
-			slog.Any("account_addr", fromAccountAddress),
-			slog.Any("account_balance", account.Balance),
-			slog.Any("value", value))
-		return fmt.Errorf("insufficient balance: %d", account.Balance)
+	if strings.ToLower(account.Address.Hex()) != strings.ToLower(tok.Owner.Hex()) {
+		s.logger.Warn("you do not own this token",
+			slog.Any("account_addr", strings.ToLower(account.Address.Hex())),
+			slog.Any("token_addr", strings.ToLower(tok.Owner.Hex())))
+		return fmt.Errorf("you do not own the token: %v", strings.ToLower(tok.Owner.Hex()))
 	}
 
 	//
@@ -132,14 +142,20 @@ func (s *CoinTransferService) Execute(
 	// Create our pending transaction and sign it with the accounts private key.
 	//
 
+	// Burn an NFT by setting its owner to the burn address
+	burnAddress := common.HexToAddress("0x0000000000000000000000000000000000000000")
+
 	tx := &domain.Transaction{
-		ChainID:    chainID,
-		NonceBytes: big.NewInt(time.Now().Unix()).Bytes(),
-		From:       wallet.Address,
-		To:         to,
-		Value:      value,
-		Data:       data,
-		Type:       domain.TransactionTypeCoin,
+		ChainID:          chainID,
+		NonceBytes:       big.NewInt(time.Now().Unix()).Bytes(),
+		From:             wallet.Address,
+		To:               &burnAddress,
+		Value:            0,
+		Data:             []byte{},
+		Type:             domain.TransactionTypeToken,
+		TokenIDBytes:     tok.IDBytes,
+		TokenMetadataURI: tok.MetadataURI,
+		TokenNonceBytes:  tok.NonceBytes,
 	}
 
 	stx, signingErr := tx.Sign(key.PrivateKey)
@@ -204,7 +220,7 @@ func (s *CoinTransferService) Execute(
 		return err
 	}
 
-	s.logger.Info("Pending signed transaction for coin transfer submitted to the blockchain authority",
+	s.logger.Info("Pending signed transaction for token burn submitted to the blockchain authority",
 		slog.Any("tx_nonce", stx.GetNonce()))
 
 	return nil

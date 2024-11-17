@@ -1,7 +1,0 @@
-version: '3'
-
-tasks:
-  startdev:
-    desc: Start a blockchain network in developer mode.
-    cmds:
-      - docker-compose -p comiccoin_dev -f dev.docker-compose.yml up --remove-orphans

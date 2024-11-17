@@ -1,11 +1,9 @@
-package daemon
+package blockchain
 
 import (
 	"context"
 	"log"
-	"os"
-	"os/signal"
-	"syscall"
+	"log/slog"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
 	disk "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/storage/disk/leveldb"
@@ -13,14 +11,9 @@ import (
 	auth_usecase "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase"
 	"github.com/spf13/cobra"
 
-	pref "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/preferences"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
-)
-
-var (
-	preferences *pref.Preferences
 )
 
 // Command line argument flags
@@ -31,27 +24,17 @@ var (
 	flagNFTStorageAddress string
 )
 
-// Initialize function will be called when every command gets called.
-func init() {
-	preferences = pref.PreferencesInstance()
-}
-
-func DaemonCmd() *cobra.Command {
+func BlockchainSyncCmd() *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "daemon",
-		Short: "Runs a full node on your machine which will automatically synchronize the local blockchain with the Global Blockchain Network on any new changes.",
+		Use:   "sync",
+		Short: "Execute command to manually synchronize the local blockchain with the Blockchain network.",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Load up our operating system interaction handlers, more specifically
-			// signals. The OS sends our application various signals based on the
-			// OS's state, we want to listen into the termination signals.
-			done := make(chan os.Signal, 1)
-			signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL, syscall.SIGUSR1)
-
-			go doRunDaemonCmd()
-
-			<-done
+			if err := doRunBlockchainSyncCmd(); err != nil {
+				log.Fatalf("Failed to sync blockchain: %v\n", err)
+			}
 		},
 	}
+
 	cmd.Flags().StringVar(&flagDataDirectory, "data-directory", preferences.DataDirectory, "The data directory to save to")
 	cmd.Flags().Uint16Var(&flagChainID, "chain-id", preferences.ChainID, "The blockchain to sync with")
 	cmd.Flags().StringVar(&flagAuthorityAddress, "authority-address", preferences.AuthorityAddress, "The BlockChain authority address to connect to")
@@ -60,10 +43,14 @@ func DaemonCmd() *cobra.Command {
 	return cmd
 }
 
-func doRunDaemonCmd() {
+func doRunBlockchainSyncCmd() error {
 	// ------ Common ------
 
 	logger := logger.NewProvider()
+	logger.Info("Syncing blockchain...",
+		slog.Any("authority_address", flagAuthorityAddress))
+
+	// ------ Database -----
 	walletDB := disk.NewDiskStorage(flagDataDirectory, "wallet", logger)
 	accountDB := disk.NewDiskStorage(flagDataDirectory, "account", logger)
 	genesisBlockDataDB := disk.NewDiskStorage(flagDataDirectory, "genesis_block_data", logger)
@@ -103,10 +90,6 @@ func doRunDaemonCmd() {
 	tokRepo := repo.NewTokenRepo(
 		logger,
 		tokenRepo)
-	blockchainStateChangeEventDTOConfigurationProvider := auth_repo.NewBlockchainStateChangeEventDTOConfigurationProvider(flagAuthorityAddress)
-	blockchainStateChangeEventDTORepo := auth_repo.NewBlockchainStateChangeEventDTORepo(
-		blockchainStateChangeEventDTOConfigurationProvider,
-		logger)
 
 	// ------------ Use-Case ------------
 
@@ -191,11 +174,6 @@ func doRunDaemonCmd() {
 		tokRepo,
 	)
 
-	// Blockchain State DTO
-	subscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase := auth_usecase.NewSubscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase(
-		logger,
-		blockchainStateChangeEventDTORepo)
-
 	// ------------ Service ------------
 
 	blockchainSyncService := service.NewBlockchainSyncWithBlockchainAuthorityService(
@@ -214,25 +192,25 @@ func doRunDaemonCmd() {
 		upsertTokenIfPreviousTokenNonceGTEUseCase,
 	)
 
-	blockchainSyncManagerService := service.NewBlockchainSyncManagerService(
-		logger,
-		blockchainSyncService,
-		storageTransactionOpenUseCase,
-		storageTransactionCommitUseCase,
-		storageTransactionDiscardUseCase,
-		subscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase,
-	)
+	// ------------ Execute ------------
 
-	//
-	// Execute.
-	//
+	ctx := context.Background()
+	if err := storageTransactionOpenUseCase.Execute(); err != nil {
+		storageTransactionDiscardUseCase.Execute()
+		log.Fatalf("Failed to open storage transaction: %v\n", err)
+	}
 
-	go func() {
-		ctx := context.Background()
-		if err := blockchainSyncManagerService.Execute(ctx, flagChainID); err != nil {
-			log.Fatalf("Failed to manage syncing: %v\n", err)
-		}
-	}()
+	if err := blockchainSyncService.Execute(ctx, flagChainID); err != nil {
+		storageTransactionDiscardUseCase.Execute()
+		log.Fatalf("Failed to sync blockchain: %v\n", err)
+	}
 
-	logger.Info("ComicCoin CLI daemon is running.")
+	if err := storageTransactionCommitUseCase.Execute(); err != nil {
+		storageTransactionDiscardUseCase.Execute()
+		log.Fatalf("Failed to open storage transaction: %v\n", err)
+	}
+
+	logger.Info("Finished syncing blockchain",
+		slog.Any("authority_address", flagAuthorityAddress))
+	return nil
 }

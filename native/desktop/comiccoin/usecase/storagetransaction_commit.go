@@ -3,42 +3,29 @@ package usecase
 import (
 	"log/slog"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 )
 
 type StorageTransactionCommitUseCase struct {
-	config                      *config.Config
-	logger                      *slog.Logger
-	accountRepo                 domain.AccountRepository
-	tokenRepo                   domain.TokenRepository
-	latestHashRepo              domain.BlockchainLastestHashRepository
-	latestTokenIDRepo           domain.BlockchainLastestTokenIDRepository
-	blockDataRepo               domain.BlockDataRepository
-	identityKeyRepo             domain.IdentityKeyRepository
-	mempoolTransactionRepo      domain.MempoolTransactionRepository
-	pendingBlockTransactionRepo domain.PendingBlockTransactionRepository
-	walletRepo                  domain.WalletRepository
-	// signedTransactionRepo       domain.SignedTransactionRepository
-	nftokenRepo domain.NonFungibleTokenRepository
+	logger               *slog.Logger
+	walletRepo           domain.WalletRepository
+	accountRepo          domain.AccountRepository
+	genesisBlockDataRepo domain.GenesisBlockDataRepository
+	blockchainStateRepo  domain.BlockchainStateRepository
+	blockDataRepo        domain.BlockDataRepository
+	tokenRepo            domain.TokenRepository
 }
 
 func NewStorageTransactionCommitUseCase(
-	config *config.Config,
 	logger *slog.Logger,
-	r1 domain.AccountRepository,
-	r2 domain.TokenRepository,
-	r3 domain.BlockchainLastestHashRepository,
-	r4 domain.BlockchainLastestTokenIDRepository,
+	r1 domain.WalletRepository,
+	r2 domain.AccountRepository,
+	r3 domain.GenesisBlockDataRepository,
+	r4 domain.BlockchainStateRepository,
 	r5 domain.BlockDataRepository,
-	r6 domain.IdentityKeyRepository,
-	r7 domain.MempoolTransactionRepository,
-	r8 domain.PendingBlockTransactionRepository,
-	r9 domain.WalletRepository,
-	// r9 domain.SignedTransactionRepository,
-	r10 domain.NonFungibleTokenRepository,
+	r6 domain.TokenRepository,
 ) *StorageTransactionCommitUseCase {
-	return &StorageTransactionCommitUseCase{config, logger, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10}
+	return &StorageTransactionCommitUseCase{logger, r1, r2, r3, r4, r5, r6}
 }
 
 func (uc *StorageTransactionCommitUseCase) Execute() error {
@@ -47,18 +34,18 @@ func (uc *StorageTransactionCommitUseCase) Execute() error {
 			slog.Any("error", err))
 		return err
 	}
-	if err := uc.tokenRepo.CommitTransaction(); err != nil {
-		uc.logger.Error("Failed committing transaction for tokens",
+	if err := uc.walletRepo.CommitTransaction(); err != nil {
+		uc.logger.Error("Failed committing transaction for wallet",
 			slog.Any("error", err))
 		return err
 	}
-	if err := uc.latestHashRepo.CommitTransaction(); err != nil {
-		uc.logger.Error("Failed committing transaction for latest hash",
+	if err := uc.genesisBlockDataRepo.CommitTransaction(); err != nil {
+		uc.logger.Error("Failed committing transaction for genesis block data",
 			slog.Any("error", err))
 		return err
 	}
-	if err := uc.latestTokenIDRepo.CommitTransaction(); err != nil {
-		uc.logger.Error("Failed committing transaction for latest token id",
+	if err := uc.blockchainStateRepo.CommitTransaction(); err != nil {
+		uc.logger.Error("Failed committing transaction for blockchain state",
 			slog.Any("error", err))
 		return err
 	}
@@ -67,28 +54,8 @@ func (uc *StorageTransactionCommitUseCase) Execute() error {
 			slog.Any("error", err))
 		return err
 	}
-	if err := uc.identityKeyRepo.CommitTransaction(); err != nil {
-		uc.logger.Error("Failed committing transaction for identity key",
-			slog.Any("error", err))
-		return err
-	}
-	if err := uc.mempoolTransactionRepo.CommitTransaction(); err != nil {
-		uc.logger.Error("Failed committing transaction for mempool transaction",
-			slog.Any("error", err))
-		return err
-	}
-	if err := uc.pendingBlockTransactionRepo.CommitTransaction(); err != nil {
-		uc.logger.Error("Failed committing transaction for pending block transaction",
-			slog.Any("error", err))
-		return err
-	}
-	if err := uc.walletRepo.CommitTransaction(); err != nil {
-		uc.logger.Error("Failed committing transaction for wallet",
-			slog.Any("error", err))
-		return err
-	}
-	if err := uc.nftokenRepo.CommitTransaction(); err != nil {
-		uc.logger.Error("Failed opening transaction for non-fungible token",
+	if err := uc.tokenRepo.CommitTransaction(); err != nil {
+		uc.logger.Error("Failed committing transaction for token",
 			slog.Any("error", err))
 		return err
 	}

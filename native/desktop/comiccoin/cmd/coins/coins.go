@@ -1,9 +1,14 @@
-package blockchain
+package coins
 
 import (
 	"github.com/spf13/cobra"
 
 	pref "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/preferences"
+)
+
+// HTTP endpoints
+const (
+	coinsTransferURL = "/v1/api/coins-transfer"
 )
 
 var (
@@ -15,17 +20,17 @@ func init() {
 	preferences = pref.PreferencesInstance()
 }
 
-func BlockchainCmd() *cobra.Command {
+func CoinsCmd() *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "blockchain",
-		Short: "Commands related to blockchain operations (Create Account, Submit Payment, etc)",
+		Use:   "coins",
+		Short: "Execute commands related to coins",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Do nothing...
 		},
 	}
 
-	// Attach our sub-commands
-	cmd.AddCommand(BlockchainSyncCmd())
+	// // Attach our sub-commands for `account`
+	cmd.AddCommand(TransferCoinsCmd())
 
 	return cmd
 }
