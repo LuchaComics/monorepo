@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"strings"
 
-	pkgdomain "github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/domain"
 )
 
 func (a *App) GetIsNFTAssetStoreRunning() bool {
@@ -17,7 +17,7 @@ func (a *App) GetIsNFTAssetStoreRunning() bool {
 	return version == "1.0"
 }
 
-func (a *App) GetFileViaIPFS(ipfsPath string) (*pkgdomain.NFTAsset, error) {
+func (a *App) GetFileViaIPFS(ipfsPath string) (*domain.NFTAsset, error) {
 	cid := strings.Replace(ipfsPath, "ipfs://", "", -1)
 	resp, err := a.nftAssetRepo.Get(a.ctx, cid)
 	if err != nil {

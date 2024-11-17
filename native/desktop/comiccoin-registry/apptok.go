@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/domain"

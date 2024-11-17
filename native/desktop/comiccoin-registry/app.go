@@ -4,12 +4,11 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/kmutexutil"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
-	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/disk/leveldb"
-	pkgdomain "github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
-	pkgrepo "github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/kmutexutil"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
+	disk "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/storage/disk/leveldb"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-registry/repo"
 )
 
@@ -25,7 +24,7 @@ type App struct {
 
 	tokenRepo *repo.TokenRepo
 
-	nftAssetRepo pkgdomain.NFTAssetRepository
+	nftAssetRepo domain.NFTAssetRepository
 
 	latestTokenIDRepo *repo.LastestTokenIDRepo
 }
@@ -84,8 +83,8 @@ func (a *App) startup(ctx context.Context) {
 			slog.Any("nftStoreRemoteAddress", nftStoreRemoteAddress),
 			slog.Any("nftStoreAPIKey", nftStoreAPIKey))
 
-		nftAssetRepoConfig := pkgrepo.NewNFTAssetRepoConfigurationProvider(nftStoreRemoteAddress, nftStoreAPIKey)
-		nftAssetRepo := pkgrepo.NewNFTAssetRepo(nftAssetRepoConfig, a.logger)
+		nftAssetRepoConfig := repo.NewNFTAssetRepoConfigurationProvider(nftStoreRemoteAddress, nftStoreAPIKey)
+		nftAssetRepo := repo.NewNFTAssetRepo(nftAssetRepoConfig, a.logger)
 		a.nftAssetRepo = nftAssetRepo
 	}
 
