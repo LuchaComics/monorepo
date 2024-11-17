@@ -8,8 +8,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
+
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/service"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 )
 
 type IPFSGatewayHTTPHandler struct {

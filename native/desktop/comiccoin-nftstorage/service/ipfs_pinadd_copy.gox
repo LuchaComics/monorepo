@@ -6,10 +6,11 @@ import (
 	"mime/multipart"
 	"time"
 
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
+	
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/config/constants"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/usecase"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 )
 
 type IPFSPinAddService struct {

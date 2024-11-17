@@ -12,7 +12,7 @@ import (
 	"os"
 	pkgfilepath "path/filepath"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/config"

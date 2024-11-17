@@ -9,7 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
 	"github.com/spf13/cobra"
 
 	httphandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/interface/http/handler"

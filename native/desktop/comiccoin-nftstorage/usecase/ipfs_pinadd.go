@@ -3,7 +3,7 @@ package usecase
 import (
 	"log/slog"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
 
 	domain "github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/domain"
 )

@@ -6,8 +6,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
-	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/storage/disk/leveldb"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
+	disk "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/storage/disk/leveldb"
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/security/blacklist"

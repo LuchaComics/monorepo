@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
-	pkgconsts "github.com/LuchaComics/monorepo/native/desktop/comiccoin/config/constants"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
+	pkgconsts "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config/constants"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/security/jwt"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/security/password"

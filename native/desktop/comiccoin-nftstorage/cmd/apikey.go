@@ -4,8 +4,8 @@ import (
 	"log"
 	"log/slog"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config/constants"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config/constants"
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/security/jwt"

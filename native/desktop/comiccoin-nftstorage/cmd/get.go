@@ -11,7 +11,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/logger"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
 	"github.com/spf13/cobra"
 )
 

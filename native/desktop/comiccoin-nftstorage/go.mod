@@ -3,7 +3,7 @@ module github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage
 go 1.23.0
 
 require (
-	github.com/LuchaComics/monorepo/native/desktop/comiccoin v0.0.0-00010101000000-000000000000
+	github.com/LuchaComics/monorepo/cloud/comiccoin-authority v0.0.0-00010101000000-000000000000
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/ethereum/go-ethereum v1.14.11
 	github.com/fxamacker/cbor/v2 v2.7.0
@@ -64,6 +64,7 @@ require (
 	github.com/libp2p/go-libp2p-asn-util v0.4.1 // indirect
 	github.com/libp2p/go-libp2p-kad-dht v0.27.0 // indirect
 	github.com/libp2p/go-libp2p-kbucket v0.6.4 // indirect
+	github.com/libp2p/go-libp2p-pubsub v0.12.0 // indirect
 	github.com/libp2p/go-libp2p-record v0.2.0 // indirect
 	github.com/libp2p/go-libp2p-routing-helpers v0.7.4 // indirect
 	github.com/libp2p/go-msgio v0.3.0 // indirect
@@ -122,3 +123,5 @@ require (
 )
 
 replace github.com/LuchaComics/monorepo/native/desktop/comiccoin => ../comiccoin
+
+replace github.com/LuchaComics/monorepo/cloud/comiccoin-authority => ../../../cloud/comiccoin-authority

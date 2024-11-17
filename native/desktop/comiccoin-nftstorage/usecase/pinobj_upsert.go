@@ -4,8 +4,9 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
+
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/domain"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
 )
 
 type UpsertPinObjectUseCase struct {
