@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 
 	pref "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/preferences"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/interface/rpc"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
@@ -196,6 +197,10 @@ func doRunDaemonCmd() {
 		logger,
 		blockchainStateChangeEventDTORepo)
 
+	// ------------ Interfaces ------------
+
+	rpcServer := rpc.NewRPCServer(logger)
+
 	// ------------ Service ------------
 
 	blockchainSyncService := service.NewBlockchainSyncWithBlockchainAuthorityService(
@@ -232,6 +237,11 @@ func doRunDaemonCmd() {
 		if err := blockchainSyncManagerService.Execute(ctx, flagChainID); err != nil {
 			log.Fatalf("Failed to manage syncing: %v\n", err)
 		}
+	}()
+
+	go func() {
+		rpcServer.Run("localhost", "2233")
+		defer rpcServer.Shutdown()
 	}()
 
 	logger.Info("ComicCoin CLI daemon is running.")
