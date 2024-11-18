@@ -310,6 +310,8 @@ func doRunDaemon() {
 	// --- HTTP --- //
 	getVersionHTTPHandler := httphandler.NewGetVersionHTTPHandler(
 		logger)
+	getHealthCheckHTTPHandler := httphandler.NewGetHealthCheckHTTPHandler(
+		logger)
 	getGenesisBlockDataHTTPHandler := httphandler.NewGetGenesisBlockDataHTTPHandler(
 		logger,
 		getGenesisBlockDataService)
@@ -348,6 +350,7 @@ func doRunDaemon() {
 		logger,
 		httpMiddleware,
 		getVersionHTTPHandler,
+		getHealthCheckHTTPHandler,
 		getGenesisBlockDataHTTPHandler,
 		getBlockchainStateHTTPHandler,
 		blockchainStateChangeEventsHTTPHandler,

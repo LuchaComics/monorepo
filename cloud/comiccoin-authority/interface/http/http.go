@@ -34,6 +34,7 @@ type httpServerImpl struct {
 	server *http.Server
 
 	getVersionHTTPHandler                                        *handler.GetVersionHTTPHandler
+	getHealthCheckHTTPHandler                                    *handler.GetHealthCheckHTTPHandler
 	getGenesisBlockDataHTTPHandler                               *handler.GetGenesisBlockDataHTTPHandler
 	getBlockchainStateHTTPHandler                                *handler.GetBlockchainStateHTTPHandler
 	listAllBlockDataOrderedHashesHTTPHandler                     *handler.ListAllBlockDataOrderedHashesHTTPHandler
@@ -52,16 +53,17 @@ func NewHTTPServer(
 	logger *slog.Logger,
 	mid mid.Middleware,
 	http1 *handler.GetVersionHTTPHandler,
-	http2 *handler.GetGenesisBlockDataHTTPHandler,
-	http3 *handler.GetBlockchainStateHTTPHandler,
-	http4 *handler.BlockchainStateChangeEventDTOHTTPHandler,
-	http5 *handler.ListAllBlockDataOrderedHashesHTTPHandler,
-	http6 *handler.ListAllBlockDataUnorderedHashesHTTPHandler,
-	http7 *handler.GetBlockDataHTTPHandler,
-	http8 *handler.ListBlockDataFilteredInHashesHTTPHandler,
-	http9 *handler.ListBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler,
-	http10 *handler.SignedTransactionSubmissionHTTPHandler,
-	http11 *handler.MempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler,
+	http2 *handler.GetHealthCheckHTTPHandler,
+	http3 *handler.GetGenesisBlockDataHTTPHandler,
+	http4 *handler.GetBlockchainStateHTTPHandler,
+	http5 *handler.BlockchainStateChangeEventDTOHTTPHandler,
+	http6 *handler.ListAllBlockDataOrderedHashesHTTPHandler,
+	http7 *handler.ListAllBlockDataUnorderedHashesHTTPHandler,
+	http8 *handler.GetBlockDataHTTPHandler,
+	http9 *handler.ListBlockDataFilteredInHashesHTTPHandler,
+	http10 *handler.ListBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler,
+	http11 *handler.SignedTransactionSubmissionHTTPHandler,
+	http12 *handler.MempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.IP == "" {
@@ -89,16 +91,17 @@ func NewHTTPServer(
 		logger:                                   logger,
 		server:                                   srv,
 		getVersionHTTPHandler:                    http1,
-		getGenesisBlockDataHTTPHandler:           http2,
-		getBlockchainStateHTTPHandler:            http3,
-		blockchainStateChangeEventDTOHTTPHandler: http4,
-		listAllBlockDataOrderedHashesHTTPHandler: http5,
-		listAllBlockDataUnorderedHashesHTTPHandler:                   http6,
-		getBlockDataHTTPHandler:                                      http7,
-		listBlockDataFilteredInHashesHTTPHandler:                     http8,
-		listBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler: http9,
-		signedTransactionSubmissionHTTPHandler:                       http10,
-		mempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler:    http11,
+		getHealthCheckHTTPHandler:                http2,
+		getGenesisBlockDataHTTPHandler:           http3,
+		getBlockchainStateHTTPHandler:            http4,
+		blockchainStateChangeEventDTOHTTPHandler: http5,
+		listAllBlockDataOrderedHashesHTTPHandler: http6,
+		listAllBlockDataUnorderedHashesHTTPHandler:                   http7,
+		getBlockDataHTTPHandler:                                      http8,
+		listBlockDataFilteredInHashesHTTPHandler:                     http9,
+		listBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler: http10,
+		signedTransactionSubmissionHTTPHandler:                       http11,
+		mempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler:    http12,
 	}
 
 	// Attach the HTTP server controller to the ServeMux.
@@ -149,6 +152,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 	switch {
 	case n == 1 && p[0] == "version" && r.Method == http.MethodGet:
 		port.getVersionHTTPHandler.Execute(w, r)
+	case n == 1 && p[0] == "health-check" && r.Method == http.MethodGet:
+		port.getHealthCheckHTTPHandler.Execute(w, r)
 	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "genesis" && r.Method == http.MethodGet:
 		port.getGenesisBlockDataHTTPHandler.Execute(w, r)
 	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "blockchain-state" && r.Method == http.MethodGet:

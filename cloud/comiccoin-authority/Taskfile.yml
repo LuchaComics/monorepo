@@ -15,3 +15,27 @@ tasks:
     desc: Open console in (developer mode) running backend
     cmds:
       - docker exec -it comiccoin_authority bash
+
+  dockerlogin:
+    desc: (DevOps only) Command will log in your developer's machine with the private docker registry.
+    cmds:
+      -  docker login registry.digitalocean.com
+
+  dockerlogout:
+    desc: (DevOps only) Command will log out of the private docker registry. (Important step if you are using other private docker registries)
+    cmds:
+      - docker logout registry.digitalocean.com
+
+  dockerdeployprod:
+    desc: (DevOps only) Command will build the production container of this project and deploy to the private docker registry.
+    cmds:
+      - docker build -f Dockerfile --rm -t registry.digitalocean.com/ssp/comiccoin-authority:prod --platform linux/amd64 .
+      - docker tag registry.digitalocean.com/ssp/comiccoin-authority:prod registry.digitalocean.com/ssp/comiccoin-authority:prod
+      - docker push registry.digitalocean.com/ssp/comiccoin-authority:prod
+
+  dockerdeployqa:
+    desc: (DevOps only) Command will build the quality assurance (QA) container of this project and deploy to the private docker registry.
+    cmds:
+      - docker build -f Dockerfile --rm -t registry.digitalocean.com/ssp/comiccoin-authority:qa --platform linux/amd64 .
+      - docker tag registry.digitalocean.com/ssp/comiccoin-authority:qa registry.digitalocean.com/ssp/comiccoin-authority:qa
+      - docker push registry.digitalocean.com/ssp/comiccoin-authority:qa

@@ -2,8 +2,10 @@ package tokens
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"log/slog"
+	"math/big"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
 	"github.com/spf13/cobra"
@@ -37,13 +39,23 @@ func DownloadTokenCmd() *cobra.Command {
 func doRunDownloadTokenCommand() {
 
 	logger := logger.NewProvider()
-	rpcClient := repo.NewComicCoincRPCClientRepo(logger)
+	comicCoincRPCClientRepoConfigurationProvider := repo.NewComicCoincRPCClientRepoConfigurationProvider("localhost", "2233")
+	rpcClient := repo.NewComicCoincRPCClientRepo(comicCoincRPCClientRepoConfigurationProvider, logger)
 
 	ctx := context.Background()
-	sTime, err := rpcClient.GetTimestamp(ctx)
-	if err != nil {
-		log.Fatalf("Get time error: %v\n", err)
+
+	tokID, ok := new(big.Int).SetString(flagTokenID, 10)
+	if !ok {
+		log.Fatal("Failed convert `token_id` to big.Int")
 	}
-	logger.Debug("Responded",
-		slog.Any("time", sTime))
+
+	nftok, err := rpcClient.GetNonFungibleToken(ctx, tokID, flagDataDirectory)
+	if err != nil {
+		log.Fatalf("Failed downloading non-fungible tokens: %v\n", err)
+	}
+	logger.Debug(fmt.Sprintf("NFT contents found at path: %v", flagDataDirectory),
+		slog.Any("token_id", nftok.TokenID),
+		slog.Any("metadata_uri", nftok.MetadataURI),
+		slog.Any("metadata", nftok.Metadata),
+	)
 }

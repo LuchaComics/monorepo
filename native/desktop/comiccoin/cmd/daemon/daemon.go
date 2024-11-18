@@ -70,7 +70,8 @@ func doRunDaemonCmd() {
 	genesisBlockDataDB := disk.NewDiskStorage(flagDataDirectory, "genesis_block_data", logger)
 	blockchainStateDB := disk.NewDiskStorage(flagDataDirectory, "blockchain_state", logger)
 	blockDataDB := disk.NewDiskStorage(flagDataDirectory, "block_data", logger)
-	tokenRepo := disk.NewDiskStorage(flagDataDirectory, "token", logger)
+	tokDB := disk.NewDiskStorage(flagDataDirectory, "token", logger)
+	nftokDB := disk.NewDiskStorage(flagDataDirectory, "non_fungible_token", logger)
 
 	// ------------ Repo ------------
 
@@ -103,11 +104,14 @@ func doRunDaemonCmd() {
 		logger)
 	tokRepo := repo.NewTokenRepo(
 		logger,
-		tokenRepo)
+		tokDB)
 	blockchainStateChangeEventDTOConfigurationProvider := auth_repo.NewBlockchainStateChangeEventDTOConfigurationProvider(flagAuthorityAddress)
 	blockchainStateChangeEventDTORepo := auth_repo.NewBlockchainStateChangeEventDTORepo(
 		blockchainStateChangeEventDTOConfigurationProvider,
 		logger)
+	nftokenRepo := repo.NewNonFungibleTokenRepo(logger, nftokDB)
+	nftAssetRepoConfig := repo.NewNFTAssetRepoConfigurationProvider(flagNFTStorageAddress, "")
+	nftAssetRepo := repo.NewNFTAssetRepo(nftAssetRepoConfig, logger)
 
 	// ------------ Use-Case ------------
 
@@ -197,9 +201,24 @@ func doRunDaemonCmd() {
 		logger,
 		blockchainStateChangeEventDTORepo)
 
-	// ------------ Interfaces ------------
+	// Token
+	getTokUseCase := usecase.NewGetTokenUseCase(
+		logger,
+		tokRepo)
 
-	rpcServer := rpc.NewRPCServer(logger)
+	// Non-Fungible Token
+	getNFTokUseCase := usecase.NewGetNonFungibleTokenUseCase(
+		logger,
+		nftokenRepo)
+	downloadNFTokMetadataUsecase := usecase.NewDownloadMetadataNonFungibleTokenUseCase(
+		logger,
+		nftAssetRepo)
+	downloadNFTokAssetUsecase := usecase.NewDownloadNonFungibleTokenAssetUseCase(
+		logger,
+		nftAssetRepo)
+	upsertNFTokUseCase := usecase.NewUpsertNonFungibleTokenUseCase(
+		logger,
+		nftokenRepo)
 
 	// ------------ Service ------------
 
@@ -226,6 +245,23 @@ func doRunDaemonCmd() {
 		storageTransactionCommitUseCase,
 		storageTransactionDiscardUseCase,
 		subscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase,
+	)
+
+	getOrDownloadNonFungibleTokenService := service.NewGetOrDownloadNonFungibleTokenService(
+		logger,
+		getNFTokUseCase,
+		getTokUseCase,
+		downloadNFTokMetadataUsecase,
+		downloadNFTokAssetUsecase,
+		upsertNFTokUseCase)
+
+	// ------------ Interfaces ------------
+
+	rpcServerConfigurationProvider := rpc.NewRPCServerConfigurationProvider("localhost", "2233")
+	rpcServer := rpc.NewRPCServer(
+		rpcServerConfigurationProvider,
+		logger,
+		getOrDownloadNonFungibleTokenService,
 	)
 
 	//

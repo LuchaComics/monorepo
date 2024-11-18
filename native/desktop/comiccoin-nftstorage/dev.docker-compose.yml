@@ -1,0 +1,79 @@
+#############
+# HOW TO USE:
+#############
+# The purpose of this docker-compose is to setup our application which is
+# dependent on the `IPFS` database cluster running concurrently with this
+# server for developer purposes. This configuration has hot-reloading activated.
+# This is docker-compose is used for developers only.
+#
+# ------------------------------------------------------------------------------
+# $ docker-compose -p comiccoin_nftstorage -f dev.docker-compose.yml up   #
+# ------------------------------------------------------------------------------
+#
+
+services:
+  ipfs-node:
+    container_name: comiccoin_nftstorage_ipfs_node
+    image: ipfs/kubo:master-latest
+    restart: unless-stopped
+    volumes:
+      - ./data/ipfs:/data/ipfs
+      - ./data/ipfs:/ipfs
+      - ./data/ipfs:/ipns
+    environment:
+      - IPFS_PROFILE=server
+      - IPFS_PATH=/data/ipfs
+    ports:
+      - "4001:4001" # default libp2p swarm port - should be open to public for all nodes if possible
+     # - "5001:5001" # API port - provides write/admin access to the node, shouldn't be exposed at all
+     # - "8080:8080" # Gateway + read only API subset - quite safe to expose, but operating public gateway may still be a risk in some ways
+
+      # The following ports only listen on the loopback interface, so are not remotely reachable by default.
+      # If you want to override these or add more ports, see https://docs.docker.com/compose/extends/ .
+
+      # API port, which includes admin operations, so you probably don't want this remotely accessible.
+      - 127.0.0.1:5001:5001
+
+      # HTTP Gateway
+      - 127.0.0.1:8080:8080
+
+  # The main application.
+  app:
+    container_name: comiccoin_nftstorage
+    stdin_open: true
+    environment:
+      COMICCOIN_NFTSTORAGE_APP_DATA_DIRECTORY: ${COMICCOIN_NFTSTORAGE_APP_DATA_DIRECTORY}
+      COMICCOIN_NFTSTORAGE_DB_URI: mongodb://db1:27017,db2:27018,db3:27019/?replicaSet=rs0 # This is dependent on the configuration in our docker-compose file (see above).
+      COMICCOIN_NFTSTORAGE_DB_NAME: ${COMICCOIN_NFTSTORAGE_DB_NAME}
+      COMICCOIN_NFTSTORAGE_IP: 0.0.0.0
+      COMICCOIN_NFTSTORAGE_PORT: 8000
+      COMICCOIN_NFTSTORAGE_APP_HMAC_SECRET: ${COMICCOIN_NFTSTORAGE_APP_HMAC_SECRET}
+      COMICCOIN_NFTSTORAGE_APP_AUTH_SECRET: ${COMICCOIN_NFTSTORAGE_APP_AUTH_SECRET}
+      COMICCOIN_NFTSTORAGE_APP_API_KEY: ${COMICCOIN_NFTSTORAGE_APP_API_KEY}
+      COMICCOIN_NFTSTORAGE_BLOCKCHAIN_CHAIN_ID: ${COMICCOIN_NFTSTORAGE_BLOCKCHAIN_CHAIN_ID}
+      COMICCOIN_NFTSTORAGE_BLOCKCHAIN_TRANS_PER_BLOCK: ${COMICCOIN_NFTSTORAGE_BLOCKCHAIN_TRANS_PER_BLOCK}
+      COMICCOIN_NFTSTORAGE_BLOCKCHAIN_DIFFICULTY: ${COMICCOIN_NFTSTORAGE_BLOCKCHAIN_DIFFICULTY}
+      COMICCOIN_NFTSTORAGE_BLOCKCHAIN_MINING_REWARD: ${COMICCOIN_NFTSTORAGE_BLOCKCHAIN_MINING_REWARD}
+      COMICCOIN_NFTSTORAGE_BLOCKCHAIN_GAS_PRICE: ${COMICCOIN_NFTSTORAGE_BLOCKCHAIN_GAS_PRICE}
+      COMICCOIN_NFTSTORAGE_BLOCKCHAIN_UNITS_OF_GAS: ${COMICCOIN_NFTSTORAGE_BLOCKCHAIN_UNITS_OF_GAS}
+      COMICCOIN_NFTSTORAGE_BLOCKCHAIN_PROOF_OF_NFTSTORAGE_ACCOUNT_ADDRESS: ${COMICCOIN_NFTSTORAGE_BLOCKCHAIN_PROOF_OF_NFTSTORAGE_ACCOUNT_ADDRESS}
+      COMICCOIN_NFTSTORAGE_BLOCKCHAIN_PROOF_OF_NFTSTORAGE_WALLET_PASSWORD: ${COMICCOIN_NFTSTORAGE_BLOCKCHAIN_PROOF_OF_NFTSTORAGE_WALLET_PASSWORD}
+    build:
+      context: .
+      dockerfile: ./dev.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    depends_on:
+      - ipfs-node
+    links:
+      - ipfs-node
+    volumes: # Connect the local filesystem with the docker filesystem. DO NOT REMOVE.
+      - ./:/go/src/github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage # IMPORTANT: Required for hotreload via `CompileDaemon`.
+    cap_add: # See: https://github.com/AdguardTeam/AdGuardHome/issues/5903
+      - NET_ADMIN
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  ipfs_data:

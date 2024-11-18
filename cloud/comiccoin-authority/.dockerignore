@@ -6,23 +6,23 @@ Dockerfile
 .dockerignore
 .gitignore
 README.md
-private.md
-private.txt
 docker-compose.yml
 
 # Project artificats we don't want include.
-private_prod.md
-private.md
-private.txt
 .DS_Store
 docs
 data
 .env
 .env.production
+.env.prod
 .env.qa
 
-# Do not share some templates
-static/Pedigree.pdf
+# Do not share developer's private notebook
+private.txt
+private_prod.md
+private.md
+private_*.md
+todo.txt
 
 # Do not store the keystore
 static/keystore

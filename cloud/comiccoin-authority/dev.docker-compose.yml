@@ -1,9 +1,14 @@
+#############
 # HOW TO USE:
+#############
 # The purpose of this docker-compose is to setup our application which is
 # dependent on the `MongoDB` database cluster running concurrently with this
 # server for developer purposes. This configuration has hot-reloading activated.
+# This is docker-compose is used for developers only.
 #
+# ------------------------------------------------------------------------------
 # $ docker-compose -p comiccoin_authority -f dev.docker-compose.yml up   #
+# ------------------------------------------------------------------------------
 #
 
 services:
