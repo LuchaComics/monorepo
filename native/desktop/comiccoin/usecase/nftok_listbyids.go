@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"log/slog"
+	"math/big"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 )
@@ -15,6 +16,6 @@ func NewListNonFungibleTokensWithFilterByTokenIDsyUseCase(logger *slog.Logger, r
 	return &ListNonFungibleTokensWithFilterByTokenIDsyUseCase{logger, repo}
 }
 
-func (uc *ListNonFungibleTokensWithFilterByTokenIDsyUseCase) Execute(tokIDs []uint64) ([]*domain.NonFungibleToken, error) {
+func (uc *ListNonFungibleTokensWithFilterByTokenIDsyUseCase) Execute(tokIDs []*big.Int) ([]*domain.NonFungibleToken, error) {
 	return uc.repo.ListWithFilterByTokenIDs(tokIDs)
 }

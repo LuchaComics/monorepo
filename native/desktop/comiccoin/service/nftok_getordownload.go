@@ -1,17 +1,19 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
+	"math/big"
 	"strings"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
+	auth_domain "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
+
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
 )
 
 type GetOrDownloadNonFungibleTokenService struct {
-	config                       *config.Config
 	logger                       *slog.Logger
 	getNFTokUseCase              *usecase.GetNonFungibleTokenUseCase
 	getTokUseCase                *usecase.GetTokenUseCase
@@ -21,7 +23,6 @@ type GetOrDownloadNonFungibleTokenService struct {
 }
 
 func NewGetOrDownloadNonFungibleTokenService(
-	cfg *config.Config,
 	logger *slog.Logger,
 	uc1 *usecase.GetNonFungibleTokenUseCase,
 	uc2 *usecase.GetTokenUseCase,
@@ -29,16 +30,16 @@ func NewGetOrDownloadNonFungibleTokenService(
 	uc4 *usecase.DownloadNonFungibleTokenAssetUseCase,
 	uc5 *usecase.UpsertNonFungibleTokenUseCase,
 ) *GetOrDownloadNonFungibleTokenService {
-	return &GetOrDownloadNonFungibleTokenService{cfg, logger, uc1, uc2, uc3, uc4, uc5}
+	return &GetOrDownloadNonFungibleTokenService{logger, uc1, uc2, uc3, uc4, uc5}
 }
 
-func (s *GetOrDownloadNonFungibleTokenService) Execute(tokenID uint64) (*domain.NonFungibleToken, error) {
+func (s *GetOrDownloadNonFungibleTokenService) Execute(ctx context.Context, tokenID *big.Int, dirPath string) (*domain.NonFungibleToken, error) {
 	//
 	// STEP 1
 	// Lookup our `token id` in our NFT db and if it exists we can return value.
 	//
 
-	nftok, err := s.getNFTokUseCase.Execute(tokenID)
+	nftok, err := s.getNFTokUseCase.Execute(ctx, tokenID)
 	if err != nil {
 		s.logger.Error("Failed getting non-fungible token.",
 			slog.Any("tokenID", tokenID),
@@ -56,7 +57,7 @@ func (s *GetOrDownloadNonFungibleTokenService) Execute(tokenID uint64) (*domain.
 	// the decentralized storage service (IPFS).
 	//
 
-	tok, err := s.getTokUseCase.Execute(tokenID)
+	tok, err := s.getTokUseCase.Execute(ctx, tokenID)
 	if err != nil {
 		s.logger.Error("Failed getting token",
 			slog.Any("tokenID", tokenID),
@@ -71,9 +72,9 @@ func (s *GetOrDownloadNonFungibleTokenService) Execute(tokenID uint64) (*domain.
 
 	// Confirm URI is using protocol our app supports.
 	if strings.Contains(tok.MetadataURI, "ipfs://") == true {
-		return s.getOrDownload(tok)
+		return s.getOrDownload(ctx, tok, dirPath)
 	} else if strings.Contains(tok.MetadataURI, "https://") == true {
-		return s.getOrDownload(tok)
+		return s.getOrDownload(ctx, tok, dirPath)
 	}
 
 	s.logger.Error("Token metadata URI contains protocol we do not support:",
@@ -83,13 +84,13 @@ func (s *GetOrDownloadNonFungibleTokenService) Execute(tokenID uint64) (*domain.
 	return nil, fmt.Errorf("Token metadata URI contains protocol we do not support: %v\n", tok.MetadataURI)
 }
 
-func (s *GetOrDownloadNonFungibleTokenService) getOrDownload(tok *domain.Token) (*domain.NonFungibleToken, error) {
+func (s *GetOrDownloadNonFungibleTokenService) getOrDownload(ctx context.Context, tok *auth_domain.Token, dirPath string) (*domain.NonFungibleToken, error) {
 	metadataURI := tok.MetadataURI
 
-	metadata, metadataFilepath, err := s.downloadNFTokMetadataUsecase.Execute(tok.ID, metadataURI)
+	metadata, metadataFilepath, err := s.downloadNFTokMetadataUsecase.Execute(tok.GetID(), metadataURI, dirPath)
 	if err != nil {
 		s.logger.Error("Failed downloading nft metadata.",
-			slog.Any("tokenID", tok.ID))
+			slog.Any("tokenID", tok.GetID()))
 		return nil, fmt.Errorf("Failed downloading nft metadata: %v\n", err)
 	}
 
@@ -102,7 +103,7 @@ func (s *GetOrDownloadNonFungibleTokenService) getOrDownload(tok *domain.Token) 
 	//
 
 	nftok := &domain.NonFungibleToken{
-		TokenID:     tok.ID,
+		TokenID:     tok.GetID(),
 		MetadataURI: metadataURI,
 		Metadata:    metadata,
 		State:       domain.NonFungibleTokenStateNotReady,
@@ -110,7 +111,7 @@ func (s *GetOrDownloadNonFungibleTokenService) getOrDownload(tok *domain.Token) 
 
 	if err := s.upsertNFTokUseCase.Execute(nftok); err != nil {
 		s.logger.Error("Failed creating nft token.",
-			slog.Any("tokenID", tok.ID))
+			slog.Any("tokenID", tok.GetID()))
 		return nil, fmt.Errorf("Failed creating nft token: %v\n", err)
 	}
 
@@ -119,10 +120,10 @@ func (s *GetOrDownloadNonFungibleTokenService) getOrDownload(tok *domain.Token) 
 	// Download the image file from IPFS and save locally.
 	//
 
-	imageFilepath, err := s.downloadNFTokAssetUsecase.Execute(tok.ID, metadata.Image)
+	imageFilepath, err := s.downloadNFTokAssetUsecase.Execute(tok.GetID(), metadata.Image, dirPath)
 	if err != nil {
 		s.logger.Error("Failed downloading nft image asset.",
-			slog.Any("tokenID", tok.ID),
+			slog.Any("tokenID", tok.GetID()),
 			slog.Any("Image", metadata.Image),
 			slog.Any("err", err))
 		return nil, fmt.Errorf("Failed downloading nft image asset: %v\n", err)
@@ -136,10 +137,10 @@ func (s *GetOrDownloadNonFungibleTokenService) getOrDownload(tok *domain.Token) 
 	// Download the animation file from IPFS and save locally.
 	//
 
-	animationFilepath, err := s.downloadNFTokAssetUsecase.Execute(tok.ID, metadata.AnimationURL)
+	animationFilepath, err := s.downloadNFTokAssetUsecase.Execute(tok.GetID(), metadata.AnimationURL, dirPath)
 	if err != nil {
 		s.logger.Error("Failed downloading nft animation asset.",
-			slog.Any("tokenID", tok.ID),
+			slog.Any("tokenID", tok.GetID()),
 			slog.Any("AnimationURL", metadata.AnimationURL),
 			slog.Any("err", err))
 		return nil, fmt.Errorf("Failed downloading nft animation asset: %v\n", err)
@@ -154,7 +155,7 @@ func (s *GetOrDownloadNonFungibleTokenService) getOrDownload(tok *domain.Token) 
 	//
 
 	nftok = &domain.NonFungibleToken{
-		TokenID:     tok.ID,
+		TokenID:     tok.GetID(),
 		MetadataURI: metadataURI,
 		Metadata:    metadata,
 		State:       domain.NonFungibleTokenStateReady,
@@ -162,7 +163,7 @@ func (s *GetOrDownloadNonFungibleTokenService) getOrDownload(tok *domain.Token) 
 
 	if err := s.upsertNFTokUseCase.Execute(nftok); err != nil {
 		s.logger.Error("Failed creating nft token.",
-			slog.Any("tokenID", tok.ID))
+			slog.Any("tokenID", tok.GetID()))
 		return nil, fmt.Errorf("Failed creating nft token: %v\n", err)
 	}
 

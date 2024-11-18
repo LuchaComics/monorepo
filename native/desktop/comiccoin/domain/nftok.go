@@ -2,12 +2,13 @@ package domain
 
 import (
 	"fmt"
+	"math/big"
 
 	"github.com/fxamacker/cbor/v2"
 )
 
 type NonFungibleToken struct {
-	TokenID     uint64                    `json:"token_id"`
+	TokenID     *big.Int                  `json:"token_id"`
 	MetadataURI string                    `json:"metadata_uri"`
 	Metadata    *NonFungibleTokenMetadata `json:"metadata"`
 	State       string                    `bson:"state" json:"state"`
@@ -40,16 +41,16 @@ type NonFungibleTokenRepository interface {
 	Upsert(acc *NonFungibleToken) error
 
 	// GetByID retrieves an nft by its token id.
-	GetByTokenID(tokenID uint64) (*NonFungibleToken, error)
+	GetByTokenID(tokenID *big.Int) (*NonFungibleToken, error)
 
 	// ListAll retrieves all nfts in the repository.
 	ListAll() ([]*NonFungibleToken, error)
 
 	// ListByTokenIDs retrieves nfts that have the token is in the parameter
-	ListWithFilterByTokenIDs(tokIDs []uint64) ([]*NonFungibleToken, error)
+	ListWithFilterByTokenIDs(tokIDs []*big.Int) ([]*NonFungibleToken, error)
 
 	// DeleteByID deletes an nft by its token id.
-	DeleteByTokenID(tokenID uint64) error
+	DeleteByTokenID(tokenID *big.Int) error
 
 	OpenTransaction() error
 
@@ -89,8 +90,8 @@ func NewNonFungibleTokenFromDeserialize(data []byte) (*NonFungibleToken, error) 
 	return wallet, nil
 }
 
-func ToNonFungibleTokenIDsArray(nftoks []*NonFungibleToken) []uint64 {
-	nftokIDs := make([]uint64, len(nftoks))
+func ToNonFungibleTokenIDsArray(nftoks []*NonFungibleToken) []*big.Int {
+	nftokIDs := make([]*big.Int, len(nftoks))
 	for _, nftok := range nftoks {
 		nftokIDs = append(nftokIDs, nftok.TokenID)
 	}

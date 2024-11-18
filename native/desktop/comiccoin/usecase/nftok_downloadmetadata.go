@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"log/slog"
+	"math/big"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -26,7 +27,7 @@ func NewDownloadMetadataNonFungibleTokenUseCase(logger *slog.Logger, r domain.NF
 	return &DownloadMetadataNonFungibleTokenUseCase{logger, r}
 }
 
-func (uc *DownloadMetadataNonFungibleTokenUseCase) Execute(tokenID uint64, metadataURI string, dirPath string) (*domain.NonFungibleTokenMetadata, string, error) {
+func (uc *DownloadMetadataNonFungibleTokenUseCase) Execute(tokenID *big.Int, metadataURI string, dirPath string) (*domain.NonFungibleTokenMetadata, string, error) {
 	// Confirm URI is using protocol our app supports.
 	if strings.Contains(metadataURI, "ipfs://") {
 		uc.logger.Debug("Downloading metadata via ipfs...",
@@ -47,7 +48,7 @@ func (uc *DownloadMetadataNonFungibleTokenUseCase) Execute(tokenID uint64, metad
 	return nil, "", fmt.Errorf("Token metadata URI contains protocol we do not support: %v\n", metadataURI)
 }
 
-func (uc *DownloadMetadataNonFungibleTokenUseCase) executeForIPFS(tokenID uint64, ipfsPath string, dirPath string) (*domain.NonFungibleTokenMetadata, string, error) {
+func (uc *DownloadMetadataNonFungibleTokenUseCase) executeForIPFS(tokenID *big.Int, ipfsPath string, dirPath string) (*domain.NonFungibleTokenMetadata, string, error) {
 	cid := strings.Replace(ipfsPath, "ipfs://", "", -1)
 	nftAsset, err := uc.repo.Get(context.Background(), cid)
 	if err != nil {
@@ -73,7 +74,7 @@ func (uc *DownloadMetadataNonFungibleTokenUseCase) executeForIPFS(tokenID uint64
 	return metadata, metadataFilepath, nil
 }
 
-func (uc *DownloadMetadataNonFungibleTokenUseCase) executeForHTTPS(tokenID uint64, url string, dirPath string) (*domain.NonFungibleTokenMetadata, string, error) {
+func (uc *DownloadMetadataNonFungibleTokenUseCase) executeForHTTPS(tokenID *big.Int, url string, dirPath string) (*domain.NonFungibleTokenMetadata, string, error) {
 	r, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Fatalf("failed to setup get request: %v", err)

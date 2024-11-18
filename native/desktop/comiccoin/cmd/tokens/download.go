@@ -2,10 +2,10 @@ package tokens
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"log/slog"
 	"math/big"
-	"strings"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
 	disk "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/storage/disk/leveldb"
@@ -44,64 +44,81 @@ func doRunDownloadTokenCommand() {
 
 	logger := logger.NewProvider()
 	tokenDB := disk.NewDiskStorage(flagDataDirectory, "token", logger)
+	nftokDB := disk.NewDiskStorage(flagDataDirectory, "non_fungible_token", logger)
 
 	// ------ Repo ------
 
 	tokenRepo := repo.NewTokenRepo(
 		logger,
 		tokenDB)
-
+	nftokenRepo := repo.NewNonFungibleTokenRepo(logger, nftokDB)
 	nftAssetRepoConfig := repo.NewNFTAssetRepoConfigurationProvider(flagNFTStorageAddress, "")
 	nftAssetRepo := repo.NewNFTAssetRepo(nftAssetRepoConfig, logger)
 
 	// ------ Use-case ------
 
-	getTokenUseCase := usecase.NewGetTokenUseCase(
+	getTokUseCase := usecase.NewGetTokenUseCase(
 		logger,
-		tokenRepo,
-	)
+		tokenRepo)
+	getNFTokUseCase := usecase.NewGetNonFungibleTokenUseCase(
+		logger,
+		nftokenRepo)
+	downloadNFTokMetadataUsecase := usecase.NewDownloadMetadataNonFungibleTokenUseCase(
+		logger,
+		nftAssetRepo)
+	downloadNFTokAssetUsecase := usecase.NewDownloadNonFungibleTokenAssetUseCase(
+		logger,
+		nftAssetRepo)
+	upsertNFTokUseCase := usecase.NewUpsertNonFungibleTokenUseCase(
+		logger,
+		nftokenRepo)
 
 	// ------ Service ------
 
-	ctx := context.Background()
-	tokenGetService := service.NewTokenGetService(
+	_ = getNFTokUseCase
+
+	getOrDownloadNonFungibleTokenService := service.NewGetOrDownloadNonFungibleTokenService(
 		logger,
-		getTokenUseCase,
-	)
+		getNFTokUseCase,
+		getTokUseCase,
+		downloadNFTokMetadataUsecase,
+		downloadNFTokAssetUsecase,
+		upsertNFTokUseCase)
 
 	// ------ Execute ------
 
-	tokenID, ok := new(big.Int).SetString(flagTokenID, 10)
+	ctx := context.Background()
+
+	//
+	// STEP 2
+	// Check if we can connect with IPFS node.
+	//
+
+	version, err := nftAssetRepo.Version(ctx)
+	if err != nil {
+		log.Fatalf("Failed connecting to NFT assets store, you are not connected.")
+	}
+	fmt.Printf("NFT Assets Store Version: %s\n", version)
+
+	//
+	// STEP 3
+	// Lookup our `token id` in our NFT db and if it exists we can
+	// exit this command as we've already downloaded the data.
+	//
+
+	tokID, ok := new(big.Int).SetString(flagTokenID, 10)
 	if !ok {
 		log.Fatal("Failed convert `token_id` to big.Int")
 	}
 
-	logger.Debug("Token retrieving...",
-		slog.Any("token_id", tokenID))
+	nftok, err := getOrDownloadNonFungibleTokenService.Execute(ctx, tokID, flagDataDirectory)
+	if err != nil {
+		log.Fatalf("Failed downloading non-fungible tokens: %v\n", err)
+	}
 
-	tok, retrieveErr := tokenGetService.Execute(
-		ctx,
-		tokenID,
+	logger.Debug("Downloaded NFT successfully.",
+		slog.Any("token_id", nftok.TokenID),
+		slog.Any("metadata_uri", nftok.MetadataURI),
+		slog.Any("metadata", nftok.Metadata),
 	)
-	if retrieveErr != nil {
-		log.Fatalf("Failed execute get token: %v", retrieveErr)
-	}
-	if tok == nil {
-		logger.Warn("Token does not exist",
-			slog.Any("token_id", tokenID))
-	} else {
-		logger.Debug("Retrieved token",
-			slog.Any("token_id", tokenID),
-			slog.Any("owner", tok.Owner),
-			slog.Any("metadata_uri", tok.MetadataURI),
-			slog.Any("nonce", tok.GetNonce()))
-
-		ctx := context.Background()
-		metadataCid := strings.Replace(tok.MetadataURI, "ipfs://", "", -1)
-		metadata, err := nftAssetRepo.Get(ctx, metadataCid)
-		if err != nil {
-			log.Fatalf("Failed getting nft metadata: %v", err)
-		}
-		//TODO: IMPLEMENT
-	}
 }

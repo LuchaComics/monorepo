@@ -32,6 +32,7 @@ func TokensCmd() *cobra.Command {
 	// // Attach our sub-commands for `account`
 	cmd.AddCommand(TransferTokensCmd())
 	cmd.AddCommand(GetTokenCmd())
+	cmd.AddCommand(DownloadTokenCmd())
 	cmd.AddCommand(TransferTokensCmd())
 	cmd.AddCommand(BurnTokensCmd())
 

@@ -1,7 +1,9 @@
 package usecase
 
 import (
+	"context"
 	"log/slog"
+	"math/big"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 )
@@ -15,6 +17,6 @@ func NewGetNonFungibleTokenUseCase(logger *slog.Logger, repo domain.NonFungibleT
 	return &GetNonFungibleTokenUseCase{logger, repo}
 }
 
-func (uc *GetNonFungibleTokenUseCase) Execute(tokenID uint64) (*domain.NonFungibleToken, error) {
+func (uc *GetNonFungibleTokenUseCase) Execute(ctx context.Context, tokenID *big.Int) (*domain.NonFungibleToken, error) {
 	return uc.repo.GetByTokenID(tokenID)
 }

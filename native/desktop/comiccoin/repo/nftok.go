@@ -3,6 +3,7 @@ package repo
 import (
 	"fmt"
 	"log/slog"
+	"math/big"
 
 	disk "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/storage"
 
@@ -29,7 +30,7 @@ func (r *NonFungibleTokenRepo) Upsert(token *domain.NonFungibleToken) error {
 	return nil
 }
 
-func (r *NonFungibleTokenRepo) GetByTokenID(tokenID uint64) (*domain.NonFungibleToken, error) {
+func (r *NonFungibleTokenRepo) GetByTokenID(tokenID *big.Int) (*domain.NonFungibleToken, error) {
 	bBytes, err := r.dbClient.Get(fmt.Sprintf("%v", tokenID))
 	if err != nil {
 		return nil, err
@@ -66,7 +67,7 @@ func (r *NonFungibleTokenRepo) ListAll() ([]*domain.NonFungibleToken, error) {
 	return res, err
 }
 
-func (r *NonFungibleTokenRepo) ListWithFilterByTokenIDs(tokIDs []uint64) ([]*domain.NonFungibleToken, error) {
+func (r *NonFungibleTokenRepo) ListWithFilterByTokenIDs(tokIDs []*big.Int) ([]*domain.NonFungibleToken, error) {
 	res := make([]*domain.NonFungibleToken, 0)
 	err := r.dbClient.Iterate(func(key, value []byte) error {
 		token, err := domain.NewNonFungibleTokenFromDeserialize(value)
@@ -92,7 +93,7 @@ func (r *NonFungibleTokenRepo) ListWithFilterByTokenIDs(tokIDs []uint64) ([]*dom
 	return res, err
 }
 
-func (r *NonFungibleTokenRepo) DeleteByTokenID(tokenID uint64) error {
+func (r *NonFungibleTokenRepo) DeleteByTokenID(tokenID *big.Int) error {
 	if err := r.dbClient.Delete(fmt.Sprintf("%v", tokenID)); err != nil {
 		return err
 	}

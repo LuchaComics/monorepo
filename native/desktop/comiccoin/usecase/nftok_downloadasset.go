@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"log/slog"
+	"math/big"
 	"net/http"
 	"os"
 	"path"
@@ -26,7 +27,7 @@ func NewDownloadNonFungibleTokenAssetUseCase(logger *slog.Logger, r domain.NFTAs
 	return &DownloadNonFungibleTokenAssetUseCase{logger, r}
 }
 
-func (uc *DownloadNonFungibleTokenAssetUseCase) Execute(tokenID uint64, assetURI string, dirPath string) (string, error) {
+func (uc *DownloadNonFungibleTokenAssetUseCase) Execute(tokenID *big.Int, assetURI string, dirPath string) (string, error) {
 	if assetURI == "" {
 		uc.logger.Warn("No asset to download, skipping function...",
 			slog.Any("tokenID", tokenID),
@@ -55,7 +56,7 @@ func (uc *DownloadNonFungibleTokenAssetUseCase) Execute(tokenID uint64, assetURI
 	return "", fmt.Errorf("Token asset URI contains protocol we do not support: %v\n", assetURI)
 }
 
-func (uc *DownloadNonFungibleTokenAssetUseCase) executeForIPFS(tokenID uint64, assetIpfsPath string, dirPath string) (string, error) {
+func (uc *DownloadNonFungibleTokenAssetUseCase) executeForIPFS(tokenID *big.Int, assetIpfsPath string, dirPath string) (string, error) {
 	assetCID := strings.Replace(assetIpfsPath, "ipfs://", "", -1)
 	nftAsset, err := uc.repo.Get(context.Background(), assetCID)
 	if err != nil {
@@ -89,7 +90,7 @@ func (uc *DownloadNonFungibleTokenAssetUseCase) executeForIPFS(tokenID uint64, a
 	return assetFilepath, nil
 }
 
-func (uc *DownloadNonFungibleTokenAssetUseCase) executeForHTTP(tokenID uint64, url string, dirPath string) (string, error) {
+func (uc *DownloadNonFungibleTokenAssetUseCase) executeForHTTP(tokenID *big.Int, url string, dirPath string) (string, error) {
 	r, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Fatalf("failed to setup get request: %v", err)
