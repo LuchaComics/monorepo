@@ -11,6 +11,21 @@
 #
 
 services:
+  caddy:
+    container_name: comiccoin_nftstorage_caddy
+    image: 'caddy:2-alpine'
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - '$PWD/Caddyfile:/etc/caddy/Caddyfile'
+      - 'caddy_data:/data'
+      - 'caddy_config:/config'
+    networks:
+      - web
+      - internal
+
   ipfs-node:
     container_name: comiccoin_nftstorage_ipfs_node
     image: ipfs/kubo:master-latest
@@ -36,26 +51,28 @@ services:
       # HTTP Gateway
       - 127.0.0.1:8080:8080
       - 127.0.0.1:8081:8081
+    networks:
+      - internal
 
   # The main application.
   app:
     container_name: comiccoin_nftstorage
     stdin_open: true
     environment:
-      COMICCOIN_NFTSTORAGE_APP_DATA_DIRECTORY: ${COMICCOIN_NFTSTORAGE_APP_DATA_DIRECTORY}
-      COMICCOIN_NFTSTORAGE_APP_SECRET_KEY: ${COMICCOIN_NFTSTORAGE_APP_SECRET_KEY}
-      COMICCOIN_NFTSTORAGE_APP_HMAC_SECRET: ${COMICCOIN_NFTSTORAGE_APP_HMAC_SECRET}
-      COMICCOIN_NFTSTORAGE_APP_API_KEY: ${COMICCOIN_NFTSTORAGE_APP_API_KEY}
-      COMICCOIN_NFTSTORAGE_ADDRESS: ${COMICCOIN_NFTSTORAGE_ADDRESS}
-      COMICCOIN_NFTSTORAGE_IPFS_IP: ipfs-node
-      COMICCOIN_NFTSTORAGE_IPFS_PORT: 5001
-      COMICCOIN_NFTSTORAGE_IPFS_PUBLIC_GATEWAY: https://ipfs.io
+       COMICCOIN_NFTSTORAGE_APP_DATA_DIRECTORY: ${COMICCOIN_NFTSTORAGE_APP_DATA_DIRECTORY}
+       COMICCOIN_NFTSTORAGE_APP_SECRET_KEY: ${COMICCOIN_NFTSTORAGE_APP_SECRET_KEY}
+       COMICCOIN_NFTSTORAGE_APP_HMAC_SECRET: ${COMICCOIN_NFTSTORAGE_APP_HMAC_SECRET}
+       COMICCOIN_NFTSTORAGE_APP_API_KEY: ${COMICCOIN_NFTSTORAGE_APP_API_KEY}
+       COMICCOIN_NFTSTORAGE_ADDRESS: ${COMICCOIN_NFTSTORAGE_ADDRESS}
+       COMICCOIN_NFTSTORAGE_IPFS_IP: ipfs-node
+       COMICCOIN_NFTSTORAGE_IPFS_PORT: 5001
+       COMICCOIN_NFTSTORAGE_IPFS_PUBLIC_GATEWAY: https://ipfs.io
     build:
       context: .
       dockerfile: ./Dockerfile
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "9000:9000"
     depends_on:
       - ipfs-node
     links:
@@ -64,8 +81,17 @@ services:
       - ./:/go/src/github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage # IMPORTANT: Required for hotreload via `CompileDaemon`.
     cap_add: # See: https://github.com/AdguardTeam/AdGuardHome/issues/5903
       - NET_ADMIN
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    networks:
+      - internal
+
+networks:
+  web:
+    external: true
+  internal:
+    external: false
+    driver: bridge
 
 volumes:
   ipfs_data:
+  caddy_data:
+  caddy_config:
