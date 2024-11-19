@@ -1,0 +1,22 @@
+version: "3"
+
+tasks:
+  distlist:
+    desc: List of possible platforms and chipsets to build with.
+    cmds:
+      - go tool dist list
+
+  buildlinux:
+    desc: Build a linux executable.
+    cmds:
+      - GOOS=linux GOARCH=amd64 go build -o ./build/comiccoin-v1.0a-linux_amd64 .
+
+  buildmac:
+    desc: Build a Apple Mac executable.
+    cmds:
+      - GOOS=darwin GOARCH=arm64 go build -o ./build/comiccoin-v1.0a-mac .
+
+  buildwin:
+    desc: [NOT READY FOR USAGE] Build a Microsoft Winows executable.
+    cmds:
+      - GOOS=windows GOARCH=arm64 go build -o ./build/comiccoin-v1.0a-win_amd64 .
