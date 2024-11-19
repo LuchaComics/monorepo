@@ -54,7 +54,7 @@ func NewBlockchainStateDTORepo(
 
 func (repo *BlockchainStateDTORepo) GetFromBlockchainAuthorityByChainID(ctx context.Context, chainID uint16) (*domain.BlockchainStateDTO, error) {
 	modifiedURL := strings.ReplaceAll(blockchainStateURL, "${CHAIN_ID}", fmt.Sprintf("%v", chainID))
-	httpEndpoint := fmt.Sprintf("%s:%s", repo.config.GetAuthorityAddress(), modifiedURL)
+	httpEndpoint := fmt.Sprintf("%s%s", repo.config.GetAuthorityAddress(), modifiedURL)
 
 	r, err := http.NewRequest("GET", httpEndpoint, nil)
 	if err != nil {

@@ -54,7 +54,7 @@ func NewBlockDataDTORepo(
 
 func (repo *BlockDataDTORepo) GetFromBlockchainAuthorityByHash(ctx context.Context, hash string) (*domain.BlockDataDTO, error) {
 	modifiedURL := strings.ReplaceAll(blockDataURL, "${HASH}", hash)
-	httpEndpoint := fmt.Sprintf("%s:%s", repo.config.GetAuthorityAddress(), modifiedURL)
+	httpEndpoint := fmt.Sprintf("%s%s", repo.config.GetAuthorityAddress(), modifiedURL)
 
 	r, err := http.NewRequest("GET", httpEndpoint, nil)
 	if err != nil {

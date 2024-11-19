@@ -51,7 +51,7 @@ func NewBlockchainStateChangeEventDTORepo(
 
 func (repo *BlockchainStateChangeEventDTORepo) SubscribeToBlockchainAuthority(ctx context.Context, chainID uint16) (<-chan uint16, error) {
 	modifiedURL := strings.ReplaceAll(blockchainStateUpdateChangeEventsURL, "${CHAIN_ID}", fmt.Sprintf("%v", chainID))
-	httpEndpoint := fmt.Sprintf("%s:%s", repo.config.GetAuthorityAddress(), modifiedURL)
+	httpEndpoint := fmt.Sprintf("%s%s", repo.config.GetAuthorityAddress(), modifiedURL)
 
 	// Make the HTTP request
 	resp, err := http.Get(httpEndpoint)

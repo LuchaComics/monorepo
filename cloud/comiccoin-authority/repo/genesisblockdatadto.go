@@ -54,7 +54,7 @@ func NewGenesisBlockDataDTORepo(
 
 func (repo *GenesisBlockDataDTORepo) GetFromBlockchainAuthorityByChainID(ctx context.Context, chainID uint16) (*domain.GenesisBlockDataDTO, error) {
 	modifiedURL := strings.ReplaceAll(genesisBlockDataURL, "${CHAIN_ID}", fmt.Sprintf("%v", chainID))
-	httpEndpoint := fmt.Sprintf("%s:%s", repo.config.GetAuthorityAddress(), modifiedURL)
+	httpEndpoint := fmt.Sprintf("%s%s", repo.config.GetAuthorityAddress(), modifiedURL)
 
 	r, err := http.NewRequest("GET", httpEndpoint, nil)
 	if err != nil {

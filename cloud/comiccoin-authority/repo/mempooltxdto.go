@@ -51,7 +51,7 @@ func NewMempoolTransactionDTORepo(
 }
 
 func (repo *MempoolTransactionDTORepo) SubmitToBlockchainAuthority(ctx context.Context, dto *domain.MempoolTransactionDTO) error {
-	httpEndpoint := fmt.Sprintf("%s:%s", repo.config.GetAuthorityAddress(), mempoolTransactionURL)
+	httpEndpoint := fmt.Sprintf("%s%s", repo.config.GetAuthorityAddress(), mempoolTransactionURL)
 	jsonData, err := json.Marshal(dto)
 	if err != nil {
 		repo.logger.Error("Marshalling error",
