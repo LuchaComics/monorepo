@@ -23,14 +23,6 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/usecase"
 )
 
-// Command line argument flags
-var (
-	flagAppSecretKey            string
-	flagIPFSRemoteIP            string
-	flagIPFSRemotePort          string
-	flagIPFSRemotePublicGateway string
-)
-
 func DaemonCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "daemon",
@@ -53,7 +45,7 @@ func doDaemonCmd() {
 	dataDir := config.GetEnvString("COMICCOIN_NFTSTORAGE_APP_DATA_DIRECTORY", true)
 	listenHTTPAddress := config.GetEnvString("COMICCOIN_NFTSTORAGE_ADDRESS", true)
 	appSecretKey := config.GetEnvString("COMICCOIN_NFTSTORAGE_APP_SECRET_KEY", true)
-	hmacSecretKey := config.GetEnvBytes("COMICCOIN_NFTSTORAGE_HMAC_SECRET_KEY", true)
+	hmacSecretKey := config.GetEnvBytes("COMICCOIN_NFTSTORAGE_APP_HMAC_SECRET", true)
 	ipfsIP := config.GetEnvString("COMICCOIN_NFTSTORAGE_IPFS_IP", true)
 	ipfsPort := config.GetEnvString("COMICCOIN_NFTSTORAGE_IPFS_PORT", true)
 	ipfsPublicGatewayAddress := config.GetEnvString("COMICCOIN_NFTSTORAGE_IPFS_PUBLIC_GATEWAY", true)
@@ -140,6 +132,8 @@ func doDaemonCmd() {
 	// --- HTTP --- //
 	getVersionHTTPHandler := httphandler.NewGetVersionHTTPHandler(
 		logger)
+	getHealthCheckHTTPHandler := httphandler.NewGetHealthCheckHTTPHandler(
+		logger)
 	ipfsGatewayHTTPHandler := httphandler.NewIPFSGatewayHTTPHandler(
 		logger,
 		pinObjectGetByCIDService)
@@ -154,6 +148,7 @@ func doDaemonCmd() {
 		logger,
 		httpMiddleware,
 		getVersionHTTPHandler,
+		getHealthCheckHTTPHandler,
 		ipfsGatewayHTTPHandler,
 		ipfsPinAddHTTPHandler,
 	)

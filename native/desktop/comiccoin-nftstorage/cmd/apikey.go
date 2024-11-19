@@ -14,11 +14,6 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/usecase"
 )
 
-// Command line argument flags
-var (
-	flatHMACSecret string
-)
-
 func GenerateAPIKeyCmd() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "genapikey",
@@ -38,7 +33,7 @@ func doGenerateAPIKeyCmd() {
 	//
 
 	dataDir := config.GetEnvString("COMICCOIN_NFTSTORAGE_APP_DATA_DIRECTORY", true)
-	hmacSecretKey := config.GetEnvBytes("COMICCOIN_NFTSTORAGE_HMAC_SECRET_KEY", true)
+	hmacSecretKey := config.GetEnvBytes("COMICCOIN_NFTSTORAGE_APP_HMAC_SECRET", true)
 
 	// Developers Note:
 	// To create a `` then run the following in your console:

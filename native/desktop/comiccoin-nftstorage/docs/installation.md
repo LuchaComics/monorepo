@@ -44,13 +44,13 @@ Follow these steps to setup the project locally on your development machine.
 7. For convenience take the output from the `openssl` command and create an environment variable by replacing the `...` value.
 
     ```shell
-    export COMICCOIN_NFTSTORAGE_HMAC_SECRET_KEY='...';
+    export COMICCOIN_NFTSTORAGE_APP_HMAC_SECRET='...';
     ```
 
 8. Generate an API key.
 
     ```shell
-    go run main.go genapikey --hmac-secret=$COMICCOIN_NFTSTORAGE_HMAC_SECRET_KEY
+    go run main.go genapikey --hmac-secret=$COMICCOIN_NFTSTORAGE_APP_HMAC_SECRET
     ```
 
 9. Great! Now take the console outputs and create the environment variables by replacing the `...` values below:

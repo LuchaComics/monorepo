@@ -117,7 +117,7 @@ func NewIPFSRepo(cfg IPFSRepoConfigurationProvider, logger *slog.Logger) domain.
 	// Step 4: Attempt to verify connection with IPFS node by checking `ID()`.
 	// (Do this with a few tries before erroring...)
 	var maxRetries = 3
-	var sleepDuration time.Duration = 500 * time.Millisecond // initial delay
+	var sleepDuration time.Duration = 2 * time.Second // initial delay
 
 	var peerID peer.ID
 	for attempt := 0; attempt <= maxRetries; attempt++ {

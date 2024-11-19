@@ -9,10 +9,6 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/cmd/version"
 )
 
-var (
-	flagDataDir string // Location of the database directory
-)
-
 // Initialize function will be called when every command gets called.
 func init() {
 

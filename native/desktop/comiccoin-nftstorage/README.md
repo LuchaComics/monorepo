@@ -20,7 +20,7 @@ See [Installation Instructions](./docs/installation.md) for more information on 
 
 To run this project, you will need to add the following environment variables to your .env file.
 
-`COMICCOIN_NFTSTORAGE_HMAC_SECRET_KEY` - This is the applications HMAC secret after running the following in your console: `openssl rand -hex 64`.
+`COMICCOIN_NFTSTORAGE_APP_HMAC_SECRET` - This is the applications HMAC secret after running the following in your console: `openssl rand -hex 64`.
 
 `COMICCOIN_NFTSTORAGE_APP_SECRET_KEY` - This is the application secret that you generated after running `go run main.go apikey` in your console.
 

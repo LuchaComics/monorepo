@@ -34,6 +34,8 @@ type httpServerImpl struct {
 
 	getVersionHTTPHandler *handler.GetVersionHTTPHandler
 
+	getHealthCheckHTTPHandler *handler.GetHealthCheckHTTPHandler
+
 	ipfsGatewayHTTPHandler *handler.IPFSGatewayHTTPHandler
 
 	ipfsPinAddHTTPHandler *handler.IPFSPinAddHTTPHandler
@@ -45,6 +47,7 @@ func NewHTTPServer(
 	logger *slog.Logger,
 	mid mid.Middleware,
 	getVersionHTTPHandler *handler.GetVersionHTTPHandler,
+	getHealthCheckHTTPHandler *handler.GetHealthCheckHTTPHandler,
 	ipfsGatewayHTTPHandler *handler.IPFSGatewayHTTPHandler,
 	ipfsPinAddHTTPHandler *handler.IPFSPinAddHTTPHandler,
 ) HTTPServer {
@@ -67,12 +70,13 @@ func NewHTTPServer(
 
 	// Create a new HTTP server instance.
 	port := &httpServerImpl{
-		cfg:                    cfg,
-		logger:                 logger,
-		server:                 srv,
-		getVersionHTTPHandler:  getVersionHTTPHandler,
-		ipfsGatewayHTTPHandler: ipfsGatewayHTTPHandler,
-		ipfsPinAddHTTPHandler:  ipfsPinAddHTTPHandler,
+		cfg:                       cfg,
+		logger:                    logger,
+		server:                    srv,
+		getVersionHTTPHandler:     getVersionHTTPHandler,
+		getHealthCheckHTTPHandler: getHealthCheckHTTPHandler,
+		ipfsGatewayHTTPHandler:    ipfsGatewayHTTPHandler,
+		ipfsPinAddHTTPHandler:     ipfsPinAddHTTPHandler,
 	}
 
 	// Attach the HTTP server controller to the ServeMux.
@@ -114,15 +118,20 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 	n := len(p)
 
 	// Log a message to indicate that a request has been received.
-	port.logger.Info("",
-		slog.Any("method", r.Method),
-		slog.Any("url_tokens", p),
-		slog.Int("url_token_count", n))
+	// But only do this if client is attempting to access our API endpoints.
+	if n > 2 {
+		port.logger.Debug("",
+			slog.Any("method", r.Method),
+			slog.Any("url_tokens", p),
+			slog.Int("url_token_count", n))
+	}
 
 	// Handle the request based on the URL path tokens.
 	switch {
 	case n == 1 && p[0] == "version" && r.Method == http.MethodGet:
 		port.getVersionHTTPHandler.Execute(w, r)
+	case n == 1 && p[0] == "health-check" && r.Method == http.MethodGet:
+		port.getHealthCheckHTTPHandler.Execute(w, r)
 	case n == 2 && p[0] == "ipfs" && r.Method == http.MethodGet:
 		port.ipfsGatewayHTTPHandler.Execute(w, r, p[1])
 	case n == 2 && p[0] == "ipfs" && p[1] == "pin-add" && r.Method == http.MethodPost:
