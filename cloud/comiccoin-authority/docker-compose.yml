@@ -1,0 +1,131 @@
+#############
+# HOW TO USE:
+#############
+# The purpose of this docker-compose is to setup our application which is
+# dependent on the `MongoDB` database cluster running concurrently with this
+# server for user-acceptance testing purposes. 
+#
+# ------------------------------------------------------------------------------
+# $ docker-compose -p comiccoin_authority -f docker-compose.yml up   #
+# ------------------------------------------------------------------------------
+#
+
+services:
+  db1:
+    container_name: comiccoin_authority_db1
+    image: mongo:8
+    command:
+      [
+        "--replSet",
+        "rs0",
+        "--bind_ip_all",
+        "--port",
+        "27017",
+        "--quiet",
+        "--logpath",
+        "/dev/null",
+      ]
+    ports:
+      - 27017:27017
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'host.docker.internal:27017',priority:1},{_id:1,host:'host.docker.internal:27018',priority:0.5},{_id:2,host:'host.docker.internal:27019',priority:0.5}]}) }" | mongosh --port 27017 --quiet
+      interval: 5s
+      timeout: 30s
+      start_period: 0s
+      start_interval: 1s
+      retries: 30
+    volumes:
+      - "db1_data:/data/db"
+      - "db1_config:/data/configdb"
+
+  db2:
+    container_name: comiccoin_authority_db2
+    image: mongo:8
+    command:
+      [
+        "--replSet",
+        "rs0",
+        "--bind_ip_all",
+        "--port",
+        "27018",
+        "--quiet",
+        "--logpath",
+        "/dev/null",
+      ]
+    ports:
+      - 27018:27018
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - "db2_data:/data/db"
+      - "db2_config:/data/configdb"
+
+  db3:
+    container_name: comiccoin_authority_db3
+    image: mongo:8
+    command:
+      [
+        "--replSet",
+        "rs0",
+        "--bind_ip_all",
+        "--port",
+        "27019",
+        "--quiet",
+        "--logpath",
+        "/dev/null",
+      ]
+    ports:
+      - 27019:27019
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - "db3_data:/data/db"
+      - "db3_config:/data/configdb"
+
+  # The main application.
+  app:
+    container_name: comiccoin_authority
+    stdin_open: true
+    environment:
+      COMICCOIN_AUTHORITY_APP_DATA_DIRECTORY: ${COMICCOIN_AUTHORITY_APP_DATA_DIRECTORY}
+      COMICCOIN_AUTHORITY_DB_URI: mongodb://db1:27017,db2:27018,db3:27019/?replicaSet=rs0 # This is dependent on the configuration in our docker-compose file (see above).
+      COMICCOIN_AUTHORITY_DB_NAME: ${COMICCOIN_AUTHORITY_DB_NAME}
+      COMICCOIN_AUTHORITY_IP: 0.0.0.0
+      COMICCOIN_AUTHORITY_PORT: 8000
+      COMICCOIN_AUTHORITY_APP_HMAC_SECRET: ${COMICCOIN_AUTHORITY_APP_HMAC_SECRET}
+      COMICCOIN_AUTHORITY_APP_AUTH_SECRET: ${COMICCOIN_AUTHORITY_APP_AUTH_SECRET}
+      COMICCOIN_AUTHORITY_APP_API_KEY: ${COMICCOIN_AUTHORITY_APP_API_KEY}
+      COMICCOIN_AUTHORITY_BLOCKCHAIN_CHAIN_ID: ${COMICCOIN_AUTHORITY_BLOCKCHAIN_CHAIN_ID}
+      COMICCOIN_AUTHORITY_BLOCKCHAIN_TRANS_PER_BLOCK: ${COMICCOIN_AUTHORITY_BLOCKCHAIN_TRANS_PER_BLOCK}
+      COMICCOIN_AUTHORITY_BLOCKCHAIN_DIFFICULTY: ${COMICCOIN_AUTHORITY_BLOCKCHAIN_DIFFICULTY}
+      COMICCOIN_AUTHORITY_BLOCKCHAIN_MINING_REWARD: ${COMICCOIN_AUTHORITY_BLOCKCHAIN_MINING_REWARD}
+      COMICCOIN_AUTHORITY_BLOCKCHAIN_GAS_PRICE: ${COMICCOIN_AUTHORITY_BLOCKCHAIN_GAS_PRICE}
+      COMICCOIN_AUTHORITY_BLOCKCHAIN_UNITS_OF_GAS: ${COMICCOIN_AUTHORITY_BLOCKCHAIN_UNITS_OF_GAS}
+      COMICCOIN_AUTHORITY_BLOCKCHAIN_PROOF_OF_AUTHORITY_ACCOUNT_ADDRESS: ${COMICCOIN_AUTHORITY_BLOCKCHAIN_PROOF_OF_AUTHORITY_ACCOUNT_ADDRESS}
+      COMICCOIN_AUTHORITY_BLOCKCHAIN_PROOF_OF_AUTHORITY_WALLET_PASSWORD: ${COMICCOIN_AUTHORITY_BLOCKCHAIN_PROOF_OF_AUTHORITY_WALLET_PASSWORD}
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db1
+      - db2
+      - db3
+    links:
+      - db1
+      - db2
+      - db3
+    volumes: # Connect the local filesystem with the docker filesystem. DO NOT REMOVE.
+      - ./:/go/src/github.com/LuchaComics/monorepo/cloud/comiccoin-authority # IMPORTANT: Required for hotreload via `CompileDaemon`.
+
+volumes:
+  db1_data:
+  db2_data:
+  db3_data:
+  db1_config:
+  db2_config:
+  db3_config:

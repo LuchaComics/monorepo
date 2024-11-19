@@ -49,7 +49,7 @@ COPY --from=build-env /app/static ./static
 EXPOSE 8000
 
 # Run the server executable
-CMD [ "/comiccoin-authority" ]
+CMD [ "/comiccoin-authority", "daemon"]
 
 # BUILD
 # (Run following from project root directory!)

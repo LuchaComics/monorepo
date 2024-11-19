@@ -143,10 +143,13 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 	n := len(p)
 
 	// Log a message to indicate that a request has been received.
-	port.logger.Info("",
-		slog.Any("method", r.Method),
-		slog.Any("url_tokens", p),
-		slog.Int("url_token_count", n))
+	// But only do this if client is attempting to access our API endpoints.
+	if n > 2 {
+		port.logger.Debug("",
+			slog.Any("method", r.Method),
+			slog.Any("url_tokens", p),
+			slog.Int("url_token_count", n))
+	}
 
 	// Handle the request based on the URL path tokens.
 	switch {
