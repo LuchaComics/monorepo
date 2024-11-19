@@ -1,0 +1,12 @@
+version: "3"
+
+tasks:
+  distlist:
+    desc: List of possible platforms and chipsets to build with.
+    cmds:
+      - go tool dist list
+
+  buildmac:
+    desc: Build a Apple Mac executable.
+    cmds:
+      - wails build -platform darwin/arm64 -clean -o comiccoin-registry-v1.0-mac

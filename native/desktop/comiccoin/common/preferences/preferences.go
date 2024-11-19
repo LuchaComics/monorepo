@@ -56,14 +56,28 @@ func PreferencesInstance() *Preferences {
 		}
 
 		var preferences Preferences
-		preferences.DataDirectory = ComicCoinDataDirectory
-		preferences.NFTStorageAddress = ComicCoinNFTStorageAddress
-		preferences.ChainID = ComicCoinChainID
-		preferences.AuthorityAddress = ComicCoinAuthorityAddress
 		err = json.NewDecoder(file).Decode(&preferences)
 		file.Close() // Close the file after you're done with it
 		if err != nil && err != io.ErrUnexpectedEOF && err != io.EOF {
 			log.Fatalf("failed decode file: %v\n", err)
+		}
+
+		// Set preference defaults if we are opening for the very first time.
+		if preferences.DataDirectory == "" {
+			homeDir, err := os.UserHomeDir()
+			if err != nil {
+				log.Fatalf("failed get home dir: %v\n", err)
+			}
+			preferences.DataDirectory = filepath.Join(homeDir, "ComicCoin")
+		}
+		if preferences.NFTStorageAddress == "" {
+			preferences.NFTStorageAddress = ComicCoinNFTStorageAddress
+		}
+		if preferences.ChainID == 0 {
+			preferences.ChainID = ComicCoinChainID
+		}
+		if preferences.AuthorityAddress == "" {
+			preferences.NFTStorageAddress = ComicCoinAuthorityAddress
 		}
 
 		instance = &preferences
