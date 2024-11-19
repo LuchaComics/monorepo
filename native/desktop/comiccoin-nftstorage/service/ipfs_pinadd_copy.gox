@@ -6,7 +6,7 @@ import (
 	"mime/multipart"
 	"time"
 
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/httperror"
 	
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/config/constants"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/domain"

@@ -20,7 +20,8 @@ COPY *.go .
 RUN ["go", "get", "github.com/githubnemo/CompileDaemon"]
 RUN ["go", "install", "github.com/githubnemo/CompileDaemon"]
 
-ENTRYPOINT CompileDaemon -polling=true -log-prefix=false -build="go build ." -command="./comiccoin-nftstorage daemon" -directory="./"
+ENTRYPOINT CompileDaemon -polling=true -log-prefix=false -build="go build ." \
+-command="./comiccoin-nftstorage daemon" -directory="./"
 
 # BUILD
 # docker build --rm -t comiccoin-nftstorage -f dev.Dockerfile .

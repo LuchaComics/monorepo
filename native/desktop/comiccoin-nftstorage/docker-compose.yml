@@ -3,11 +3,10 @@
 #############
 # The purpose of this docker-compose is to setup our application which is
 # dependent on the `IPFS` database cluster running concurrently with this
-# server for developer purposes. This configuration has hot-reloading activated.
-# This is docker-compose is used for developers only.
+# server for user-acceptance testing purposes. 
 #
 # ------------------------------------------------------------------------------
-# $ docker-compose -p comiccoin_nftstorage -f dev.docker-compose.yml up   #
+# $ docker-compose -p comiccoin_nftstorage -f docker-compose.yml up   #
 # ------------------------------------------------------------------------------
 #
 
@@ -57,7 +56,7 @@ services:
       COMICCOIN_NFTSTORAGE_IPFS_PUBLIC_GATEWAY: https://ipfs.io
     build:
       context: .
-      dockerfile: ./dev.Dockerfile
+      dockerfile: ./Dockerfile
     restart: unless-stopped
     ports:
       - "8000:8000"

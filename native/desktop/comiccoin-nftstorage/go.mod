@@ -3,7 +3,6 @@ module github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage
 go 1.23.0
 
 require (
-	github.com/LuchaComics/monorepo/cloud/comiccoin-authority v0.0.0-00010101000000-000000000000
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/ethereum/go-ethereum v1.14.11
 	github.com/fxamacker/cbor/v2 v2.7.0
@@ -123,5 +122,3 @@ require (
 )
 
 replace github.com/LuchaComics/monorepo/native/desktop/comiccoin => ../comiccoin
-
-replace github.com/LuchaComics/monorepo/cloud/comiccoin-authority => ../../../cloud/comiccoin-authority

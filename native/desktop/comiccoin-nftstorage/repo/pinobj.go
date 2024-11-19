@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	disk "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/storage"
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/storage"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/domain"
 )

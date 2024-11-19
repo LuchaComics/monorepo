@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/httperror"
 
 	domain "github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/domain"
 )

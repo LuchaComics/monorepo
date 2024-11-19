@@ -7,3 +7,24 @@ tasks:
         # Special thanks: https://stackoverflow.com/a/43118023
       - ipfs pin ls --type recursive | cut -d' ' -f1 | xargs -n1 ipfs pin rm
       - ipfs repo gc
+
+  vendor:
+    desc: Save all the libraries into our code repository
+    cmds:
+      - go mod download
+      - go mod vendor
+
+    start:
+      desc: Start the backend in developer mode
+      cmds:
+        - docker-compose -p comiccoin_nfstorage -f dev.docker-compose.yml up
+
+    end:
+      desc: Stop the backend in developer mode
+      cmds:
+        - docker-compose -p comiccoin_nfstorage -f dev.docker-compose.yml down
+
+    console:
+      desc: Open console in (developer mode) running backend
+      cmds:
+        - docker exec -it comiccoin_nfstorage bash

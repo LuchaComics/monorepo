@@ -115,12 +115,39 @@ func NewIPFSRepo(cfg IPFSRepoConfigurationProvider, logger *slog.Logger) domain.
 	}
 
 	// Step 4: Attempt to verify connection with IPFS node by checking `ID()`.
-	peerID, err := ipfsRepo.ID()
-	if err != nil {
-		log.Fatalf("Failed getting IPFS Node ID() because of error: %v\n", err)
+	// (Do this with a few tries before erroring...)
+	var maxRetries = 3
+	var sleepDuration time.Duration = 500 * time.Millisecond // initial delay
+
+	var peerID peer.ID
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		peerID, err = ipfsRepo.ID()
+		if err == nil && peerID != "" {
+			logger.Debug("IPFS Repo successfully connected with remote IPFS node.",
+				slog.Any("address", ipfsAddress),
+			)
+			break
+		}
+
+		if err != nil {
+			logger.Error("Failed getting IPFS Node ID() because of error",
+				slog.Any("err", err),
+				slog.Int("attempt", attempt+1),
+			)
+		} else {
+			logger.Warn("Failed getting IPFS Node ID() because nothing was returned.",
+				slog.Int("attempt", attempt+1),
+			)
+		}
+
+		if attempt < maxRetries {
+			time.Sleep(sleepDuration)
+			sleepDuration *= 2 // exponential backoff
+		}
 	}
+
 	if peerID == "" {
-		log.Fatal("Failed getting IPFS Node ID() because of nothing was returned.\n")
+		log.Fatal("Failed getting IPFS Node ID() after all retries.\n")
 	}
 	logger.Debug("IPFS Repo successfully connected with remote IPFS node.",
 		slog.Any("address", ipfsAddress),

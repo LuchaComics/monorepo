@@ -7,9 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
-	pkgconsts "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config/constants"
-
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/httperror"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/security/jwt"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/security/password"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/config"
@@ -111,7 +109,7 @@ func (s *IPFSPinAddService) Execute(ctx context.Context, req *IPFSPinAddRequestI
 		return nil, httperror.NewForUnauthorizedWithSingleField("api_key", "corrupted payload: missing `secret`")
 	}
 	chainID := apiKeyPayload[0]
-	if chainID != fmt.Sprintf("%v", pkgconsts.ComicCoinChainID) {
+	if chainID != fmt.Sprintf("%v", constants.ComicCoinChainID) {
 		s.logger.Error("api_key - invalid: `chain_id` does not match mainnet value")
 		return nil, httperror.NewForUnauthorizedWithSingleField("api_key", "invalid: `chain_id` does not match mainnet value")
 	}

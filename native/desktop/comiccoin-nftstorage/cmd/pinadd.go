@@ -12,9 +12,9 @@ import (
 	"os"
 	pkgfilepath "path/filepath"
 
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
 	"github.com/spf13/cobra"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/logger"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/service"
 )
@@ -34,7 +34,6 @@ func PinAddCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&flagDataDir, "datadir", "./data", "Absolute path to your store's data dir where the assets will be/are stored")
 	cmd.Flags().StringVar(&flagFilepath, "filepath", "", "The path to the file you want to upload to the app")
 	cmd.MarkFlagRequired("filepath")
 	// cmd.Flags().StringVar(&flagAPIKey, "api-key", "", "The api-key to attach to the request")
@@ -50,6 +49,7 @@ func doPinAddCmd() {
 	//
 
 	// Environment variables.
+	// dataDir := config.GetEnvString("COMICCOIN_NFTSTORAGE_APP_DATA_DIRECTORY", true)
 	apiKey := config.GetEnvBytes("COMICCOIN_NFTSTORAGE_API_KEY", true)
 
 	// --- Common --- //

@@ -23,5 +23,6 @@ private.txt
 docs
 data
 .env
+.env.prod
 .env.production
 .env.qa

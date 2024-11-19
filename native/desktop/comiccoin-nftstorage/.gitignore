@@ -167,6 +167,7 @@ env
 env/pip-selfcheck.json
 *.csv#
 .env.production
+.env.prod
 .env.qa
 
 #—————————
@@ -217,6 +218,7 @@ tokenstore-backend
 cps-backend
 cps-tokenstore-backend
 comiccoin
+comiccoin-nftstorage
 
 # Blacklist - Don't share items we banned from the server.
 static/blacklist/ips.json

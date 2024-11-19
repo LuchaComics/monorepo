@@ -9,9 +9,10 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
 	"github.com/spf13/cobra"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/logger"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/config"
 	httphandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/interface/http/handler"
 )
 
@@ -39,8 +40,10 @@ func doRemoteVersionCmd() {
 	// Load up our dependencies and configuration
 	//
 
+	listenHTTPAddress := config.GetEnvString("COMICCOIN_NFTSTORAGE_ADDRESS", true)
+
 	logger := logger.NewProvider()
-	httpEndpoint := fmt.Sprintf("http://%s%s", flagListenHTTPAddress, versionURL)
+	httpEndpoint := fmt.Sprintf("http://%s%s", listenHTTPAddress, versionURL)
 
 	//
 	// STEP 2

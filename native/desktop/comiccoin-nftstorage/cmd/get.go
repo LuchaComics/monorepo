@@ -11,8 +11,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
 	"github.com/spf13/cobra"
+
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/logger"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/config"
 )
 
 // Command line argument flags
@@ -29,7 +31,6 @@ func GetCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&flagDataDir, "datadir", "./data", "Absolute path to your store's data dir where the assets will be/are stored")
 	cmd.Flags().StringVar(&flagCID, "cid", "", "The unique content ID of the file on the IPFS network")
 	cmd.MarkFlagRequired("cid")
 
@@ -46,9 +47,11 @@ func doGetCmd() {
 	// Load up our dependencies and configuration
 	//
 
+	listenHTTPAddress := config.GetEnvString("COMICCOIN_NFTSTORAGE_ADDRESS", true)
+
 	logger := logger.NewProvider()
 	modifiedIpfsGatewayURL := strings.ReplaceAll(ipfsGatewayURL, "${CID}", flagCID)
-	httpEndpoint := fmt.Sprintf("http://%s%s", flagListenHTTPAddress, modifiedIpfsGatewayURL)
+	httpEndpoint := fmt.Sprintf("http://%s%s", listenHTTPAddress, modifiedIpfsGatewayURL)
 
 	//
 	// STEP 2

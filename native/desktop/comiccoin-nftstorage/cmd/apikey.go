@@ -4,13 +4,13 @@ import (
 	"log"
 	"log/slog"
 
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config/constants"
 	"github.com/spf13/cobra"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/logger"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/security/jwt"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/security/password"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/config"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/config/constants"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/usecase"
 )
 
@@ -28,10 +28,6 @@ func GenerateAPIKeyCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&flagDataDir, "datadir", "./data", "Absolute path to your store's data dir where the assets will be/are stored")
-	cmd.Flags().StringVar(&flatHMACSecret, "hmac-secret", "", "The HMAC secret to apply in our app")
-	cmd.MarkFlagRequired("hmac-secret")
-
 	return cmd
 }
 
@@ -40,6 +36,9 @@ func doGenerateAPIKeyCmd() {
 	// STEP 1
 	// Load up our dependencies and configuration
 	//
+
+	dataDir := config.GetEnvString("COMICCOIN_NFTSTORAGE_APP_DATA_DIRECTORY", true)
+	hmacSecretKey := config.GetEnvBytes("COMICCOIN_NFTSTORAGE_HMAC_SECRET_KEY", true)
 
 	// Developers Note:
 	// To create a `` then run the following in your console:
@@ -51,9 +50,8 @@ func doGenerateAPIKeyCmd() {
 			ChainID: constants.ComicCoinChainID,
 		},
 		App: config.AppConfig{
-			DirPath:     flagDataDir,
-			HMACSecret:  []byte(flatHMACSecret),
-			HTTPAddress: flagListenHTTPAddress,
+			DirPath:    dataDir,
+			HMACSecret: hmacSecretKey,
 		},
 	}
 	logger := logger.NewProvider()

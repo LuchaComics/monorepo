@@ -1,20 +1,20 @@
 package cmd
 
 import (
-	"log/slog"
+	"log"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
-	disk "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/storage/disk/leveldb"
 	"github.com/spf13/cobra"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/logger"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/security/blacklist"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/security/jwt"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/security/password"
+	disk "github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/storage/disk/leveldb"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/config/constants"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/interface/http"
 	httphandler "github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/interface/http/handler"
 	httpmiddle "github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/interface/http/middleware"
@@ -25,7 +25,6 @@ import (
 
 // Command line argument flags
 var (
-	flagListenHTTPAddress       string
 	flagAppSecretKey            string
 	flagIPFSRemoteIP            string
 	flagIPFSRemotePort          string
@@ -41,12 +40,6 @@ func DaemonCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&flagDataDir, "datadir", "./data", "Absolute path to your store's data dir where the assets will be/are stored")
-	cmd.Flags().StringVar(&flagListenHTTPAddress, "listen-http-address", "127.0.0.1:8080", "The IP and port to run our IPFS HTTP gateway on")
-	cmd.Flags().StringVar(&flagIPFSRemoteIP, "ipfs-address", constants.ComicCoinIPFSRemoteIP, "The IP of our IPFS node")
-	cmd.Flags().StringVar(&flagIPFSRemotePort, "ipfs-port", constants.ComicCoinIPFSRemotePort, "The port of our IPFS node")
-	cmd.Flags().StringVar(&flagIPFSRemotePublicGateway, "ipfs-public-gateway", constants.ComicCoinIPFSPublicGatewayDomain, "The IPFS public gateway to access as an alternative to the IPFS node")
-
 	return cmd
 }
 
@@ -56,13 +49,28 @@ func doDaemonCmd() {
 	// Load up our dependencies and configuration
 	//
 
+	// Load up the environment variables.
+	dataDir := config.GetEnvString("COMICCOIN_NFTSTORAGE_APP_DATA_DIRECTORY", true)
+	listenHTTPAddress := config.GetEnvString("COMICCOIN_NFTSTORAGE_ADDRESS", true)
 	appSecretKey := config.GetEnvString("COMICCOIN_NFTSTORAGE_APP_SECRET_KEY", true)
 	hmacSecretKey := config.GetEnvBytes("COMICCOIN_NFTSTORAGE_HMAC_SECRET_KEY", true)
+	ipfsIP := config.GetEnvString("COMICCOIN_NFTSTORAGE_IPFS_IP", true)
+	ipfsPort := config.GetEnvString("COMICCOIN_NFTSTORAGE_IPFS_PORT", true)
+	ipfsPublicGatewayAddress := config.GetEnvString("COMICCOIN_NFTSTORAGE_IPFS_PUBLIC_GATEWAY", true)
+
+	// The following block of code will be used to resolve the dns of our
+	// other docker container to get the `ipfs-node` ip address.
+	ips, err := net.LookupIP(ipfsIP)
+	if err != nil {
+		log.Fatalf("failed to lookup dns record: %v", err)
+	}
+	for _, ip := range ips {
+		ipfsIP = ip.String()
+		break
+	}
 
 	logger := logger.NewProvider()
-	logger.Info("Starting daemon...",
-		slog.Any("flatHMACSecret", hmacSecretKey),
-		slog.Any("appSecretKey", appSecretKey))
+	logger.Info("Starting daemon...")
 
 	// Load up our operating system interaction handlers, more specifically
 	// signals. The OS sends our application various signals based on the
@@ -72,13 +80,13 @@ func doDaemonCmd() {
 
 	config := &config.Config{
 		App: config.AppConfig{
-			DirPath:     flagDataDir,
-			HTTPAddress: flagListenHTTPAddress,
+			DirPath:     dataDir,
+			HTTPAddress: listenHTTPAddress,
 			HMACSecret:  hmacSecretKey,
 			AppSecret:   appSecretKey,
 		},
 		DB: config.DBConfig{
-			DataDir: flagDataDir,
+			DataDir: dataDir,
 		},
 	}
 
@@ -93,9 +101,9 @@ func doDaemonCmd() {
 
 	// --- Repository --- //
 	ipfsRepoConfig := repo.NewIPFSRepoConfigurationProvider(
-		flagIPFSRemoteIP,
-		flagIPFSRemotePort,
-		flagIPFSRemotePublicGateway,
+		ipfsIP,
+		ipfsPort,
+		ipfsPublicGatewayAddress,
 	)
 	ipfsRepo := repo.NewIPFSRepo(ipfsRepoConfig, logger)
 	pinObjRepo := repo.NewPinObjectRepo(logger, pinObjsByCIDDB, pinObjsByRequestIDDB)
