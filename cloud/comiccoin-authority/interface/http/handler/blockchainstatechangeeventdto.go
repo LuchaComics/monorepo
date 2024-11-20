@@ -59,18 +59,23 @@ func (h *BlockchainStateChangeEventDTOHTTPHandler) Execute(w http.ResponseWriter
 	}()
 
 	for {
-		updatedBlockchainState, err := h.usecase.Execute(ctx)
-		if err != nil {
-			h.logger.Error("Failed detecting blockchain state changes",
-				slog.Any("error", err))
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+		select {
+		case <-ctx.Done():
+			h.logger.Debug("Context canceled. Stopping event stream.")
 			return
-		}
+		default:
+			updatedBlockchainState, err := h.usecase.Execute(ctx)
+			if err != nil {
+				h.logger.Error("Failed detecting blockchain state changes",
+					slog.Any("error", err))
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 
-		if updatedBlockchainState.ChainID == chainID {
-			fmt.Fprintf(w, "data: %v", chainID)
+			if updatedBlockchainState.ChainID == chainID {
+				fmt.Fprintf(w, "data: %v", chainID)
+			}
+			w.(http.Flusher).Flush()
 		}
-		w.(http.Flusher).Flush()
 	}
-
 }

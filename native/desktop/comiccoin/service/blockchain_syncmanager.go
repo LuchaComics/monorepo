@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"strings"
+	"time"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
 	auth_usecase "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase"
@@ -84,6 +86,14 @@ func (s *BlockchainSyncManagerService) Execute(ctx context.Context, chainID uint
 	// when the blockchain changes globally to our local machine.
 	ch, err := s.subscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase.Execute(ctx, chainID)
 	if err != nil {
+		if strings.Contains(err.Error(), "received non-OK HTTP status: 524") {
+			s.logger.Warn("failed subscribing because of timeout, will retry again in 30 seconds",
+				slog.Any("chainID", chainID),
+				slog.Any("error", err))
+			time.Sleep(30 * time.Second)
+			return nil
+		}
+
 		s.logger.Error("failed subscribing",
 			slog.Any("chainID", chainID),
 			slog.Any("error", err))
