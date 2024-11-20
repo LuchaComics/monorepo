@@ -45,6 +45,11 @@ func (s *CreateAccountService) Execute(ctx context.Context, walletPassword strin
 		e["wallet_password_repeated"] = "missing value"
 	}
 	if walletPassword != walletPasswordRepeated {
+		s.logger.Error("passwords do not match",
+			slog.String("wallet_password", walletPassword),
+			slog.String("wallet_password_repeated", walletPasswordRepeated),
+			slog.String("wallet_label", walletLabel),
+		)
 		e["wallet_password"] = "do not match"
 		e["wallet_password_repeated"] = "do not match"
 	}

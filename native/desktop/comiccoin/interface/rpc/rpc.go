@@ -68,13 +68,17 @@ type RPCServerImpl struct {
 func NewRPCServer(
 	config RPCServerConfigurationProvider,
 	logger *slog.Logger,
-	getOrDownloadNonFungibleTokenService *service.GetOrDownloadNonFungibleTokenService,
+	s1 *service.GetAccountService,
+	s2 *service.CreateAccountService,
+	s3 *service.AccountListingByLocalWalletsService,
+	s4 *service.CoinTransferService,
+	s5 *service.TokenGetService,
+	s6 *service.TokenTransferService,
+	s7 *service.TokenBurnService,
+	s8 *service.GetOrDownloadNonFungibleTokenService,
 ) RPCServer {
 	// Create a new RPC server
-	myServer := rpchandler.NewComicCoinRPCServer(
-		logger,
-		getOrDownloadNonFungibleTokenService,
-	)
+	myServer := rpchandler.NewComicCoinRPCServer(logger, s1, s2, s3, s4, s5, s6, s7, s8)
 
 	// Create a new RPC server instance.
 	port := &RPCServerImpl{

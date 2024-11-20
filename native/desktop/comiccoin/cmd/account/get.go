@@ -8,13 +8,10 @@ import (
 	"strings"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
-	disk "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/storage/disk/leveldb"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
 )
 
 var (
@@ -37,36 +34,20 @@ func GetAccountCmd() *cobra.Command {
 }
 
 func doRunGetAccount() {
-	// ------ Common ------
 	logger := logger.NewProvider()
-	accountDB := disk.NewDiskStorage(flagDataDirectory, "account", logger)
 
-	// ------ Repo ------
-	accountRepo := repo.NewAccountRepo(
-		logger,
-		accountDB)
+	comicCoincRPCClientRepoConfigurationProvider := repo.NewComicCoincRPCClientRepoConfigurationProvider("localhost", "2233")
+	rpcClient := repo.NewComicCoincRPCClientRepo(comicCoincRPCClientRepoConfigurationProvider, logger)
 
-	// ------ Use-case ------
-	getAccountUseCase := usecase.NewGetAccountUseCase(
-		logger,
-		accountRepo,
-	)
-
-	// ------ Service ------
-	getAccountService := service.NewGetAccountService(
-		logger,
-		getAccountUseCase,
-	)
-
-	// ------ Execute ------
 	ctx := context.Background()
 
 	accountAddress := common.HexToAddress(strings.ToLower(flagAccountAddress))
 
-	account, err := getAccountService.Execute(ctx, &accountAddress)
+	account, err := rpcClient.GetAccount(ctx, &accountAddress)
 	if err != nil {
 		log.Fatalf("Failed to get account: %v\n", err)
 	}
+
 	if account == nil {
 		err := errors.New("Account does not exist")
 		log.Fatalf("Failed to get account: %v\n", err)

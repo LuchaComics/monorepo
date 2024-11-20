@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/blockchain/keystore"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
 	disk "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/storage/disk/leveldb"
 	auth_repo "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/repo"
@@ -70,6 +71,7 @@ func doRunDaemonCmd() {
 	// ------ Common ------
 
 	logger := logger.NewProvider()
+	keystore := keystore.NewAdapter()
 	walletDB := disk.NewDiskStorage(flagDataDirectory, "wallet", logger)
 	accountDB := disk.NewDiskStorage(flagDataDirectory, "account", logger)
 	genesisBlockDataDB := disk.NewDiskStorage(flagDataDirectory, "genesis_block_data", logger)
@@ -117,6 +119,8 @@ func doRunDaemonCmd() {
 	nftokenRepo := repo.NewNonFungibleTokenRepo(logger, nftokDB)
 	nftAssetRepoConfig := repo.NewNFTAssetRepoConfigurationProvider(flagNFTStorageAddress, "")
 	nftAssetRepo := repo.NewNFTAssetRepo(nftAssetRepoConfig, logger)
+	mempoolTxDTORepoConfig := auth_repo.NewMempoolTransactionDTOConfigurationProvider(flagAuthorityAddress)
+	mempoolTxDTORepo := auth_repo.NewMempoolTransactionDTORepo(mempoolTxDTORepoConfig, logger)
 
 	// ------------ Use-Case ------------
 
@@ -145,6 +149,50 @@ func doRunDaemonCmd() {
 		blockchainStateRepo,
 		blockDataRepo,
 		tokRepo)
+
+	// Wallet
+	walletDecryptKeyUseCase := usecase.NewWalletDecryptKeyUseCase(
+		logger,
+		keystore,
+		walletRepo)
+	walletEncryptKeyUseCase := usecase.NewWalletEncryptKeyUseCase(
+		logger,
+		keystore,
+		walletRepo)
+	createWalletUseCase := usecase.NewCreateWalletUseCase(
+		logger,
+		walletRepo)
+	getWalletUseCase := usecase.NewGetWalletUseCase(
+		logger,
+		walletRepo)
+	listAllWalletUseCase := usecase.NewListAllWalletUseCase(
+		logger,
+		walletRepo)
+	listAllAddressesWalletUseCase := usecase.NewListAllAddressesWalletUseCase(
+		logger,
+		walletRepo,
+	)
+	_ = getWalletUseCase
+	_ = listAllWalletUseCase
+
+	// Account
+	createAccountUseCase := usecase.NewCreateAccountUseCase(
+		logger,
+		accountRepo)
+	getAccountUseCase := usecase.NewGetAccountUseCase(
+		logger,
+		accountRepo)
+	getAccountsHashStateUseCase := usecase.NewGetAccountsHashStateUseCase(
+		logger,
+		accountRepo)
+	upsertAccountUseCase := usecase.NewUpsertAccountUseCase(
+		logger,
+		accountRepo)
+	accountsFilterByAddressesUseCase := usecase.NewAccountsFilterByAddressesUseCase(
+		logger,
+		accountRepo,
+	)
+	_ = getAccountsHashStateUseCase
 
 	// Blockchain State
 	upsertBlockchainStateUseCase := usecase.NewUpsertBlockchainStateUseCase(
@@ -185,16 +233,6 @@ func doRunDaemonCmd() {
 		logger,
 		blockDataDTORepo)
 
-	// Account
-	getAccountUseCase := usecase.NewGetAccountUseCase(
-		logger,
-		accountRepo,
-	)
-	upsertAccountUseCase := usecase.NewUpsertAccountUseCase(
-		logger,
-		accountRepo,
-	)
-
 	// Token
 	upsertTokenIfPreviousTokenNonceGTEUseCase := usecase.NewUpsertTokenIfPreviousTokenNonceGTEUseCase(
 		logger,
@@ -225,8 +263,58 @@ func doRunDaemonCmd() {
 		logger,
 		nftokenRepo)
 
+	// Mempool Transaction DTO
+	submitMempoolTransactionDTOToBlockchainAuthorityUseCase := auth_usecase.NewSubmitMempoolTransactionDTOToBlockchainAuthorityUseCase(
+		logger,
+		mempoolTxDTORepo,
+	)
+
 	// ------------ Service ------------
 
+	getAccountService := service.NewGetAccountService(
+		logger,
+		getAccountUseCase,
+	)
+	createAccountService := service.NewCreateAccountService(
+		logger,
+		walletEncryptKeyUseCase,
+		walletDecryptKeyUseCase,
+		createWalletUseCase,
+		createAccountUseCase,
+		getAccountUseCase,
+	)
+	accountListingByLocalWalletsService := service.NewAccountListingByLocalWalletsService(
+		logger,
+		listAllAddressesWalletUseCase,
+		accountsFilterByAddressesUseCase,
+	)
+	coinTransferService := service.NewCoinTransferService(
+		logger,
+		getAccountUseCase,
+		getWalletUseCase,
+		walletDecryptKeyUseCase,
+		submitMempoolTransactionDTOToBlockchainAuthorityUseCase,
+	)
+	tokenGetService := service.NewTokenGetService(
+		logger,
+		getTokUseCase,
+	)
+	tokenTransferService := service.NewTokenTransferService(
+		logger,
+		getAccountUseCase,
+		getWalletUseCase,
+		walletDecryptKeyUseCase,
+		getTokUseCase,
+		submitMempoolTransactionDTOToBlockchainAuthorityUseCase,
+	)
+	tokenBurnService := service.NewTokenBurnService(
+		logger,
+		getAccountUseCase,
+		getWalletUseCase,
+		walletDecryptKeyUseCase,
+		getTokUseCase,
+		submitMempoolTransactionDTOToBlockchainAuthorityUseCase,
+	)
 	blockchainSyncService := service.NewBlockchainSyncWithBlockchainAuthorityService(
 		logger,
 		getGenesisBlockDataUseCase,
@@ -266,6 +354,13 @@ func doRunDaemonCmd() {
 	rpcServer := rpc.NewRPCServer(
 		rpcServerConfigurationProvider,
 		logger,
+		getAccountService,
+		createAccountService,
+		accountListingByLocalWalletsService,
+		coinTransferService,
+		tokenGetService,
+		tokenTransferService,
+		tokenBurnService,
 		getOrDownloadNonFungibleTokenService,
 	)
 

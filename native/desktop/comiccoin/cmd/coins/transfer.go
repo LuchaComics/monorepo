@@ -6,17 +6,11 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/blockchain/keystore"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
-	disk "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/storage/disk/leveldb"
-	auth_repo "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/repo"
-	auth_usecase "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
 )
 
 // Command line argument flags
@@ -83,134 +77,16 @@ func TransferCoinsCmd() *cobra.Command {
 }
 
 func doRunTransferCoinsCommand() {
-	// ------ Common ------
 	logger := logger.NewProvider()
-	keystore := keystore.NewAdapter()
-	walletDB := disk.NewDiskStorage(flagDataDirectory, "wallet", logger)
-	accountDB := disk.NewDiskStorage(flagDataDirectory, "account", logger)
-	genesisBlockDataDB := disk.NewDiskStorage(flagDataDirectory, "genesis_block_data", logger)
-	blockchainStateDB := disk.NewDiskStorage(flagDataDirectory, "blockchain_state", logger)
-	blockDataDB := disk.NewDiskStorage(flagDataDirectory, "block_data", logger)
-	tokenRepo := disk.NewDiskStorage(flagDataDirectory, "token", logger)
-
-	// ------ Repo ------
-	walletRepo := repo.NewWalletRepo(
-		logger,
-		walletDB)
-	accountRepo := repo.NewAccountRepo(
-		logger,
-		accountDB)
-	genesisBlockDataRepo := repo.NewGenesisBlockDataRepo(
-		logger,
-		genesisBlockDataDB)
-	blockchainStateRepo := repo.NewBlockchainStateRepo(
-		logger,
-		blockchainStateDB)
-	blockDataRepo := repo.NewBlockDataRepo(
-		logger,
-		blockDataDB)
-	tokRepo := repo.NewTokenRepo(
-		logger,
-		tokenRepo)
-	mempoolTxDTORepoConfig := auth_repo.NewMempoolTransactionDTOConfigurationProvider(flagAuthorityAddress)
-	mempoolTxDTORepo := auth_repo.NewMempoolTransactionDTORepo(mempoolTxDTORepoConfig, logger)
-
-	// ------ Use-case ------
-
-	// Storage Transaction
-	storageTransactionOpenUseCase := usecase.NewStorageTransactionOpenUseCase(
-		logger,
-		walletRepo,
-		accountRepo,
-		genesisBlockDataRepo,
-		blockchainStateRepo,
-		blockDataRepo,
-		tokRepo)
-	storageTransactionCommitUseCase := usecase.NewStorageTransactionCommitUseCase(
-		logger,
-		walletRepo,
-		accountRepo,
-		genesisBlockDataRepo,
-		blockchainStateRepo,
-		blockDataRepo,
-		tokRepo)
-	storageTransactionDiscardUseCase := usecase.NewStorageTransactionDiscardUseCase(
-		logger,
-		walletRepo,
-		accountRepo,
-		genesisBlockDataRepo,
-		blockchainStateRepo,
-		blockDataRepo,
-		tokRepo)
-
-	// Wallet
-	walletDecryptKeyUseCase := usecase.NewWalletDecryptKeyUseCase(
-		logger,
-		keystore,
-		walletRepo)
-	walletEncryptKeyUseCase := usecase.NewWalletEncryptKeyUseCase(
-		logger,
-		keystore,
-		walletRepo)
-	createWalletUseCase := usecase.NewCreateWalletUseCase(
-		logger,
-		walletRepo)
-	getWalletUseCase := usecase.NewGetWalletUseCase(
-		logger,
-		walletRepo)
-	listAllWalletUseCase := usecase.NewListAllWalletUseCase(
-		logger,
-		walletRepo)
-
-	// Account
-	createAccountUseCase := usecase.NewCreateAccountUseCase(
-		logger,
-		accountRepo)
-	getAccountUseCase := usecase.NewGetAccountUseCase(
-		logger,
-		accountRepo)
-	getAccountsHashStateUseCase := usecase.NewGetAccountsHashStateUseCase(
-		logger,
-		accountRepo)
-	upsertAccountUseCase := usecase.NewUpsertAccountUseCase(
-		logger,
-		accountRepo)
-
-	// Mempool Transaction DTO
-	submitMempoolTransactionDTOToBlockchainAuthorityUseCase := auth_usecase.NewSubmitMempoolTransactionDTOToBlockchainAuthorityUseCase(
-		logger,
-		mempoolTxDTORepo,
-	)
-
-	_ = walletEncryptKeyUseCase
-	_ = createWalletUseCase
-	_ = createWalletUseCase
-	_ = listAllWalletUseCase
-	_ = createAccountUseCase
-	_ = getAccountsHashStateUseCase
-	_ = upsertAccountUseCase
-
-	// ------ Service ------
-
-	coinTransferService := service.NewCoinTransferService(
-		logger,
-		getAccountUseCase,
-		getWalletUseCase,
-		walletDecryptKeyUseCase,
-		submitMempoolTransactionDTOToBlockchainAuthorityUseCase,
-	)
+	comicCoincRPCClientRepoConfigurationProvider := repo.NewComicCoincRPCClientRepoConfigurationProvider("localhost", "2233")
+	rpcClient := repo.NewComicCoincRPCClientRepo(comicCoincRPCClientRepoConfigurationProvider, logger)
 
 	// ------ Execute ------
 	ctx := context.Background()
 	recAddr := common.HexToAddress(strings.ToLower(flagRecipientAddress))
 	sendAddr := common.HexToAddress(strings.ToLower(flagSenderAccountAddress))
 
-	if err := storageTransactionOpenUseCase.Execute(); err != nil {
-		storageTransactionDiscardUseCase.Execute()
-		log.Fatalf("Failed to open storage transaction: %v\n", err)
-	}
-
-	coinTransferServiceErr := coinTransferService.Execute(
+	coinTransferServiceErr := rpcClient.CoinTransfer(
 		ctx,
 		flagChainID,
 		&sendAddr,
@@ -220,13 +96,7 @@ func doRunTransferCoinsCommand() {
 		[]byte(flagData),
 	)
 	if coinTransferServiceErr != nil {
-		storageTransactionDiscardUseCase.Execute()
 		log.Fatalf("Failed execute coin transfer service: %v", coinTransferServiceErr)
-	}
-
-	if err := storageTransactionCommitUseCase.Execute(); err != nil {
-		storageTransactionDiscardUseCase.Execute()
-		log.Fatalf("Failed to open storage transaction: %v\n", err)
 	}
 
 	logger.Info("Finished transfering coin(s) to another account",

@@ -7,6 +7,9 @@ import (
 	"math/big"
 	"net/rpc"
 
+	auth_domain "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
+	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 )
 
@@ -100,4 +103,227 @@ func (r *ComicCoincRPCClientRepo) GetNonFungibleToken(ctx context.Context, nftID
 	}
 
 	return reply.NonFungibleToken, nil
+}
+
+func (r *ComicCoincRPCClientRepo) GetAccount(ctx context.Context, accountAddress *common.Address) (*auth_domain.Account, error) {
+	// Define our request / response here by copy and pasting from the server codebase.
+	type GetAccountArgs struct {
+		AccountAddress *common.Address
+	}
+
+	type GetAccountReply struct {
+		Account *auth_domain.Account
+	}
+
+	// Construct our request / response.
+	args := GetAccountArgs{
+		AccountAddress: accountAddress,
+	}
+	var reply GetAccountReply
+
+	// Execute the remote procedure call.
+	callError := r.rpcClient.Call("ComicCoinRPCServer.GetAccount", args, &reply)
+	if callError != nil {
+		return nil, callError
+	}
+
+	return reply.Account, nil
+}
+
+func (r *ComicCoincRPCClientRepo) CreateAccount(
+	ctx context.Context,
+	password string,
+	passwordRepeated string,
+	label string,
+) (*auth_domain.Account, error) {
+	// Define our request / response here by copy and pasting from the server codebase.
+	type CreateAccountArgs struct {
+		Password         string
+		PasswordRepeated string
+		Label            string
+	}
+
+	type CreateAccountReply struct {
+		Account *auth_domain.Account
+	}
+
+	// Construct our request / response.
+	args := CreateAccountArgs{
+		Label:            label,
+		Password:         password,
+		PasswordRepeated: passwordRepeated,
+	}
+	var reply CreateAccountReply
+
+	// Execute the remote procedure call.
+	callError := r.rpcClient.Call("ComicCoinRPCServer.CreateAccount", args, &reply)
+	if callError != nil {
+		return nil, callError
+	}
+
+	return reply.Account, nil
+}
+
+func (r *ComicCoincRPCClientRepo) AccountListingByLocalWallets(ctx context.Context) ([]*auth_domain.Account, error) {
+	// Define our request / response here by copy and pasting from the server codebase.
+	type AccountListingByLocalWalletsArgs struct {
+	}
+
+	type AccountListingByLocalWalletsReply struct {
+		Accounts []*auth_domain.Account
+	}
+
+	// Construct our request / response.
+	args := AccountListingByLocalWalletsArgs{}
+	var reply AccountListingByLocalWalletsReply
+
+	// Execute the remote procedure call.
+	callError := r.rpcClient.Call("ComicCoinRPCServer.AccountListingByLocalWallets", args, &reply)
+	if callError != nil {
+		return nil, callError
+	}
+
+	return reply.Accounts, nil
+}
+
+func (r *ComicCoincRPCClientRepo) CoinTransfer(
+	ctx context.Context,
+	chainID uint16,
+	fromAccountAddress *common.Address,
+	accountWalletPassword string,
+	to *common.Address,
+	value uint64,
+	data []byte,
+) error {
+	// Define our request / response here by copy and pasting from the server codebase.
+	type CoinTransferArgs struct {
+		ChainID               uint16
+		FromAccountAddress    *common.Address
+		AccountWalletPassword string
+		To                    *common.Address
+		Value                 uint64
+		Data                  []byte
+	}
+
+	type CoinTransferReply struct {
+	}
+
+	// Construct our request / response.
+	args := CoinTransferArgs{
+		ChainID:               chainID,
+		FromAccountAddress:    fromAccountAddress,
+		AccountWalletPassword: accountWalletPassword,
+		To:                    to,
+		Value:                 value,
+		Data:                  data,
+	}
+	var reply CoinTransferReply
+
+	// Execute the remote procedure call.
+	callError := r.rpcClient.Call("ComicCoinRPCServer.CoinTransfer", args, &reply)
+	if callError != nil {
+		return callError
+	}
+
+	return nil
+}
+
+func (r *ComicCoincRPCClientRepo) GetToken(ctx context.Context, tokenID *big.Int) (*auth_domain.Token, error) {
+	// Define our request / response here by copy and pasting from the server codebase.
+	type GetTokenArgs struct {
+		TokenID *big.Int
+	}
+
+	type GetTokenReply struct {
+		Token *auth_domain.Token
+	}
+
+	// Construct our request / response.
+	args := GetTokenArgs{
+		TokenID: tokenID,
+	}
+	var reply GetTokenReply
+
+	// Execute the remote procedure call.
+	callError := r.rpcClient.Call("ComicCoinRPCServer.GetToken", args, &reply)
+	if callError != nil {
+		return nil, callError
+	}
+
+	return reply.Token, nil
+}
+
+func (r *ComicCoincRPCClientRepo) TokenTransfer(
+	ctx context.Context,
+	chainID uint16,
+	fromAccountAddress *common.Address,
+	accountWalletPassword string,
+	to *common.Address,
+	tokenID *big.Int,
+) error {
+	// Define our request / response here by copy and pasting from the server codebase.
+	type TokenTransferArgs struct {
+		ChainID               uint16
+		FromAccountAddress    *common.Address
+		AccountWalletPassword string
+		To                    *common.Address
+		TokenID               *big.Int
+	}
+
+	type TokenTransferReply struct {
+	}
+
+	// Construct our request / response.
+	args := TokenTransferArgs{
+		ChainID:               chainID,
+		FromAccountAddress:    fromAccountAddress,
+		AccountWalletPassword: accountWalletPassword,
+		To:                    to,
+		TokenID:               tokenID,
+	}
+	var reply TokenTransferReply
+
+	// Execute the remote procedure call.
+	callError := r.rpcClient.Call("ComicCoinRPCServer.TokenTransfer", args, &reply)
+	if callError != nil {
+		return callError
+	}
+
+	return nil
+}
+
+func (r *ComicCoincRPCClientRepo) TokenBurn(
+	ctx context.Context,
+	chainID uint16,
+	fromAccountAddress *common.Address,
+	accountWalletPassword string,
+	tokenID *big.Int,
+) error {
+	// Define our request / response here by copy and pasting from the server codebase.
+	type TokenBurnArgs struct {
+		ChainID               uint16
+		FromAccountAddress    *common.Address
+		AccountWalletPassword string
+		TokenID               *big.Int
+	}
+
+	type TokenBurnReply struct {
+	}
+
+	// Construct our request / response.
+	args := TokenBurnArgs{
+		ChainID:               chainID,
+		FromAccountAddress:    fromAccountAddress,
+		AccountWalletPassword: accountWalletPassword,
+		TokenID:               tokenID,
+	}
+	var reply TokenBurnReply
+
+	// Execute the remote procedure call.
+	callError := r.rpcClient.Call("ComicCoinRPCServer.TokenBurn", args, &reply)
+	if callError != nil {
+		return callError
+	}
+
+	return nil
 }

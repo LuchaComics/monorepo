@@ -7,12 +7,9 @@ import (
 	"math/big"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
-	disk "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/storage/disk/leveldb"
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
 )
 
 // Command line argument flags
@@ -41,34 +38,12 @@ func GetTokenCmd() *cobra.Command {
 }
 
 func doRunGetTokenCommand() {
-	// ------ Common ------
-
 	logger := logger.NewProvider()
-	tokenDB := disk.NewDiskStorage(flagDataDirectory, "token", logger)
 
-	// ------ Repo ------
-
-	tokenRepo := repo.NewTokenRepo(
-		logger,
-		tokenDB)
-
-	// ------ Use-case ------
-
-	getTokenUseCase := usecase.NewGetTokenUseCase(
-		logger,
-		tokenRepo,
-	)
-
-	// ------ Service ------
+	comicCoincRPCClientRepoConfigurationProvider := repo.NewComicCoincRPCClientRepoConfigurationProvider("localhost", "2233")
+	rpcClient := repo.NewComicCoincRPCClientRepo(comicCoincRPCClientRepoConfigurationProvider, logger)
 
 	ctx := context.Background()
-	tokenGetService := service.NewTokenGetService(
-		logger,
-		getTokenUseCase,
-	)
-
-	// ------ Execute ------
-
 	tokenID, ok := new(big.Int).SetString(flagTokenID, 10)
 	if !ok {
 		log.Fatal("Failed convert `token_id` to big.Int")
@@ -77,7 +52,7 @@ func doRunGetTokenCommand() {
 	logger.Debug("Token retrieving...",
 		slog.Any("token_id", tokenID))
 
-	tok, retrieveErr := tokenGetService.Execute(
+	tok, retrieveErr := rpcClient.GetToken(
 		ctx,
 		tokenID,
 	)

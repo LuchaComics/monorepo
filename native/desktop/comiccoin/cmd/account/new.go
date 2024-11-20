@@ -4,15 +4,12 @@ import (
 	"context"
 	"log"
 	"log/slog"
+	"strings"
 
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/blockchain/keystore"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
-	disk "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/storage/disk/leveldb"
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
 )
 
 var (
@@ -53,140 +50,19 @@ func doRunNewAccountCmd() error {
 		slog.Any("wallet_label", flagLabel),
 	)
 
-	// ------ Common ------
-	keystore := keystore.NewAdapter()
-	walletDB := disk.NewDiskStorage(flagDataDirectory, "wallet", logger)
-	accountDB := disk.NewDiskStorage(flagDataDirectory, "account", logger)
-	genesisBlockDataDB := disk.NewDiskStorage(flagDataDirectory, "genesis_block_data", logger)
-	blockchainStateDB := disk.NewDiskStorage(flagDataDirectory, "blockchain_state", logger)
-	blockDataDB := disk.NewDiskStorage(flagDataDirectory, "block_data", logger)
-	tokenRepo := disk.NewDiskStorage(flagDataDirectory, "token", logger)
+	comicCoincRPCClientRepoConfigurationProvider := repo.NewComicCoincRPCClientRepoConfigurationProvider("localhost", "2233")
+	rpcClient := repo.NewComicCoincRPCClientRepo(comicCoincRPCClientRepoConfigurationProvider, logger)
 
-	// ------ Repo ------
-	walletRepo := repo.NewWalletRepo(
-		logger,
-		walletDB)
-	accountRepo := repo.NewAccountRepo(
-		logger,
-		accountDB)
-	genesisBlockDataRepo := repo.NewGenesisBlockDataRepo(
-		logger,
-		genesisBlockDataDB)
-	blockchainStateRepo := repo.NewBlockchainStateRepo(
-		logger,
-		blockchainStateDB)
-	blockDataRepo := repo.NewBlockDataRepo(
-		logger,
-		blockDataDB)
-	tokRepo := repo.NewTokenRepo(
-		logger,
-		tokenRepo)
-
-	// ------ Use-case ------
-
-	// Storage Transaction
-	storageTransactionOpenUseCase := usecase.NewStorageTransactionOpenUseCase(
-		logger,
-		walletRepo,
-		accountRepo,
-		genesisBlockDataRepo,
-		blockchainStateRepo,
-		blockDataRepo,
-		tokRepo)
-	storageTransactionCommitUseCase := usecase.NewStorageTransactionCommitUseCase(
-		logger,
-		walletRepo,
-		accountRepo,
-		genesisBlockDataRepo,
-		blockchainStateRepo,
-		blockDataRepo,
-		tokRepo)
-	storageTransactionDiscardUseCase := usecase.NewStorageTransactionDiscardUseCase(
-		logger,
-		walletRepo,
-		accountRepo,
-		genesisBlockDataRepo,
-		blockchainStateRepo,
-		blockDataRepo,
-		tokRepo)
-
-	// Wallet
-	walletDecryptKeyUseCase := usecase.NewWalletDecryptKeyUseCase(
-		logger,
-		keystore,
-		walletRepo)
-	walletEncryptKeyUseCase := usecase.NewWalletEncryptKeyUseCase(
-		logger,
-		keystore,
-		walletRepo)
-	createWalletUseCase := usecase.NewCreateWalletUseCase(
-		logger,
-		walletRepo)
-	getWalletUseCase := usecase.NewGetWalletUseCase(
-		logger,
-		walletRepo)
-	listAllWalletUseCase := usecase.NewListAllWalletUseCase(
-		logger,
-		walletRepo)
-
-	// Account
-	createAccountUseCase := usecase.NewCreateAccountUseCase(
-		logger,
-		accountRepo)
-	getAccountUseCase := usecase.NewGetAccountUseCase(
-		logger,
-		accountRepo)
-	getAccountsHashStateUseCase := usecase.NewGetAccountsHashStateUseCase(
-		logger,
-		accountRepo)
-	upsertAccountUseCase := usecase.NewUpsertAccountUseCase(
-		logger,
-		accountRepo)
-
-	// ------ Service ------
-
-	createAccountService := service.NewCreateAccountService(
-		logger,
-		walletEncryptKeyUseCase,
-		walletDecryptKeyUseCase,
-		createWalletUseCase,
-		createAccountUseCase,
-		getAccountUseCase,
-	)
-
-	_ = getAccountsHashStateUseCase
-	_ = upsertAccountUseCase
-
-	_ = getWalletUseCase
-	_ = listAllWalletUseCase
-
-	// ------ Execute ------
 	ctx := context.Background()
 
-	if err := storageTransactionOpenUseCase.Execute(); err != nil {
-		storageTransactionDiscardUseCase.Execute()
-		log.Fatalf("Failed to open storage transaction: %v\n", err)
-	}
-
-	account, err := createAccountService.Execute(ctx, flagPassword, flagPasswordRepeated, flagLabel)
+	account, err := rpcClient.CreateAccount(ctx, flagPassword, flagPasswordRepeated, flagLabel)
 	if err != nil {
-		storageTransactionDiscardUseCase.Execute()
-		log.Fatalf("Failed to encrypt wallet: %v", err)
+		log.Fatalf("Failed creating account: %v\n", err)
 	}
-	if account == nil {
-		storageTransactionDiscardUseCase.Execute()
-		log.Fatal("Account does not exist.")
-	}
-
-	if err := storageTransactionCommitUseCase.Execute(); err != nil {
-		storageTransactionDiscardUseCase.Execute()
-		log.Fatalf("Failed to open storage transaction: %v\n", err)
-	}
-
 	logger.Info("Account created",
 		slog.Any("nonce", account.GetNonce()),
 		slog.Uint64("balance", account.Balance),
-		slog.String("address", account.Address.Hex()),
+		slog.String("address", strings.ToLower(account.Address.Hex())),
 	)
 
 	return nil
