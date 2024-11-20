@@ -70,14 +70,15 @@ func PreferencesInstance() *Preferences {
 			}
 			preferences.DataDirectory = filepath.Join(homeDir, "ComicCoin")
 		}
+
+		if preferences.AuthorityAddress == "" {
+			preferences.AuthorityAddress = ComicCoinAuthorityAddress
+		}
 		if preferences.NFTStorageAddress == "" {
 			preferences.NFTStorageAddress = ComicCoinNFTStorageAddress
 		}
 		if preferences.ChainID == 0 {
 			preferences.ChainID = ComicCoinChainID
-		}
-		if preferences.AuthorityAddress == "" {
-			preferences.NFTStorageAddress = ComicCoinAuthorityAddress
 		}
 
 		instance = &preferences
