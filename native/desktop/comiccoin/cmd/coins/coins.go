@@ -25,7 +25,10 @@ func CoinsCmd() *cobra.Command {
 		Use:   "coins",
 		Short: "Execute commands related to coins",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Do nothing...
+			// Developers Note:
+			// Before executing this command, check to ensure the user has
+			// configured our app before proceeding.
+			preferences.RunFatalIfHasAnyMissingFields()
 		},
 	}
 

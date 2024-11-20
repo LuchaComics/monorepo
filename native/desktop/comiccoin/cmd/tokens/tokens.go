@@ -25,7 +25,10 @@ func TokensCmd() *cobra.Command {
 		Use:   "tokens",
 		Short: "Execute commands related to tokens",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Do nothing...
+			// Developers Note:
+			// Before executing this command, check to ensure the user has
+			// configured our app before proceeding.
+			preferences.RunFatalIfHasAnyMissingFields()
 		},
 	}
 

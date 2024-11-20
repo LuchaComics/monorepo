@@ -10,6 +10,7 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/cmd/blockchain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/cmd/coins"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/cmd/daemon"
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/cmd/initialize"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/cmd/tokens"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/cmd/version"
 	pref "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/preferences"
@@ -35,6 +36,7 @@ var rootCmd = &cobra.Command{
 
 func Execute() {
 	// Attach sub-commands to our main root.
+	rootCmd.AddCommand(initialize.InitializeCmd())
 	rootCmd.AddCommand(version.VersionCmd())
 	rootCmd.AddCommand(account.AccountCmd())
 	rootCmd.AddCommand(blockchain.BlockchainCmd())

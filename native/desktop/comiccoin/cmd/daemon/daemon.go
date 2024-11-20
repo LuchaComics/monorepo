@@ -42,6 +42,11 @@ func DaemonCmd() *cobra.Command {
 		Use:   "daemon",
 		Short: "Runs a full node on your machine which will automatically synchronize the local blockchain with the Global Blockchain Network on any new changes.",
 		Run: func(cmd *cobra.Command, args []string) {
+			// Developers Note:
+			// Before executing this command, check to ensure the user has
+			// configured our app before proceeding.
+			preferences.RunFatalIfHasAnyMissingFields()
+
 			// Load up our operating system interaction handlers, more specifically
 			// signals. The OS sends our application various signals based on the
 			// OS's state, we want to listen into the termination signals.

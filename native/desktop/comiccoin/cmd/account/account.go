@@ -20,7 +20,10 @@ func AccountCmd() *cobra.Command {
 		Use:   "account",
 		Short: "Execute commands related to accounts",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Do nothing...
+			// Developers Note:
+			// Before executing this command, check to ensure the user has
+			// configured our app before proceeding.
+			preferences.RunFatalIfHasAnyMissingFields()
 		},
 	}
 

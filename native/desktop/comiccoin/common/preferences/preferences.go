@@ -61,37 +61,34 @@ func PreferencesInstance() *Preferences {
 		if err != nil && err != io.ErrUnexpectedEOF && err != io.EOF {
 			log.Fatalf("failed decode file: %v\n", err)
 		}
-
-		// Set preference defaults if we are opening for the very first time.
-		if preferences.DataDirectory == "" {
-			homeDir, err := os.UserHomeDir()
-			if err != nil {
-				log.Fatalf("failed get home dir: %v\n", err)
-			}
-			preferences.DataDirectory = filepath.Join(homeDir, "ComicCoin")
-		}
-
-		if preferences.AuthorityAddress == "" {
-			preferences.AuthorityAddress = ComicCoinAuthorityAddress
-		}
-		if preferences.NFTStorageAddress == "" {
-			preferences.NFTStorageAddress = ComicCoinNFTStorageAddress
-		}
-		if preferences.ChainID == 0 {
-			preferences.ChainID = ComicCoinChainID
-		}
-
 		instance = &preferences
 	})
 	return instance
 }
 
-func (pref *Preferences) GetDefaultDataDirectory() string {
+func GetDefaultDataDirectory() string {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		log.Fatalf("failed get home dir: %v\n", err)
 	}
 	return filepath.Join(homeDir, "ComicCoin")
+}
+
+// AbortOnValidationFailure method will check the preferences and if any field
+// was not set then trigger a failure.
+func (pref *Preferences) RunFatalIfHasAnyMissingFields() {
+	if pref.DataDirectory == "" {
+		log.Fatal("Missing configuration for ComicCoin: `DataDirectory` was not set. Please run in your console: `./comiccoin init`\n")
+	}
+	if pref.ChainID == 0 {
+		log.Fatal("You have already configured ComicCoin: `ChainID` was set. Please run in your console: `./comiccoin init`\n")
+	}
+	if pref.AuthorityAddress == "" {
+		log.Fatal("You have already configured ComicCoin: `AuthorityAddress` was set. Please run in your console: `./comiccoin init`\n")
+	}
+	if pref.NFTStorageAddress == "" {
+		log.Fatal("You have already configured ComicCoin: `NFTStorageAddress` was set. Please run in your console: `./comiccoin init`\n")
+	}
 }
 
 func (pref *Preferences) SetDataDirectory(dataDir string) error {
@@ -112,6 +109,24 @@ func (pref *Preferences) SetDefaultWalletAddress(newAdrs string) error {
 	return ioutil.WriteFile(FilePathPreferences, data, 0666)
 }
 
+func (pref *Preferences) SetChainID(chainID uint16) error {
+	pref.ChainID = chainID
+	data, err := json.MarshalIndent(pref, "", "\t")
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(FilePathPreferences, data, 0666)
+}
+
+func (pref *Preferences) SetAuthorityAddress(authorityAddress string) error {
+	pref.AuthorityAddress = authorityAddress
+	data, err := json.MarshalIndent(pref, "", "\t")
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(FilePathPreferences, data, 0666)
+}
+
 func (pref *Preferences) SetNFTStorageAddress(remoteAddress string) error {
 	pref.NFTStorageAddress = remoteAddress
 	data, err := json.MarshalIndent(pref, "", "\t")
@@ -119,4 +134,8 @@ func (pref *Preferences) SetNFTStorageAddress(remoteAddress string) error {
 		return err
 	}
 	return ioutil.WriteFile(FilePathPreferences, data, 0666)
+}
+
+func (pref *Preferences) GetFilePathOfPreferencesFile() string {
+	return FilePathPreferences
 }
