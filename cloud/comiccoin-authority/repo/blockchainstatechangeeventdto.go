@@ -91,7 +91,8 @@ func (repo *BlockchainStateChangeEventDTORepo) SubscribeToBlockchainAuthority(ct
 					if err.Error() == "EOF" {
 						repo.logger.Info("EOF reached, exiting")
 					} else {
-						repo.logger.Error("error reading response body", slog.Any("err", err))
+						repo.logger.Error("error reading response body",
+							slog.Any("err", err))
 					}
 					return
 				}

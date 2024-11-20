@@ -38,8 +38,8 @@ services:
       start_interval: 1s
       retries: 30
     volumes:
-      - "db1_data:/data/db"
-      - "db1_config:/data/configdb"
+      - "./data/db1/db:/data/db"
+      - "./data/db1/configdb:/data/configdb"
 
   db2:
     container_name: comiccoin_authority_db2
@@ -60,8 +60,8 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - "db2_data:/data/db"
-      - "db2_config:/data/configdb"
+      - "./data/db2/db:/data/db"
+      - "./data/db2/configdb:/data/configdb"
 
   db3:
     container_name: comiccoin_authority_db3
@@ -82,8 +82,8 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - "db3_data:/data/db"
-      - "db3_config:/data/configdb"
+      - "./data/db3/db:/data/db"
+      - "./data/db3/configdb:/data/configdb"
 
   mongo-express:
     container_name: comiccoin_authority_db_admin
@@ -141,11 +141,3 @@ services:
       - db3
     volumes: # Connect the local filesystem with the docker filesystem. DO NOT REMOVE.
       - ./:/go/src/github.com/LuchaComics/monorepo/cloud/comiccoin-authority # IMPORTANT: Required for hotreload via `CompileDaemon`.
-
-volumes:
-  db1_data:
-  db2_data:
-  db3_data:
-  db1_config:
-  db2_config:
-  db3_config:

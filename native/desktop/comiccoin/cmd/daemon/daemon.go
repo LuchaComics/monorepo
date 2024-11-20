@@ -369,9 +369,11 @@ func doRunDaemonCmd() {
 	//
 
 	go func() {
-		ctx := context.Background()
-		if err := blockchainSyncManagerService.Execute(ctx, flagChainID); err != nil {
-			log.Fatalf("Failed to manage syncing: %v\n", err)
+		for {
+			ctx := context.Background()
+			if err := blockchainSyncManagerService.Execute(ctx, flagChainID); err != nil {
+				log.Fatalf("Failed to manage syncing: %v\n", err)
+			}
 		}
 	}()
 

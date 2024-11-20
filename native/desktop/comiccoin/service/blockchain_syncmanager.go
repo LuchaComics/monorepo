@@ -54,7 +54,7 @@ func (s *BlockchainSyncManagerService) Execute(ctx context.Context, chainID uint
 	// On startup sync with Blockchain Authority.
 	//
 
-	s.logger.Debug("Syncing on startup...")
+	s.logger.Debug("Syncing...")
 
 	if err := s.storageTransactionOpenUseCase.Execute(); err != nil {
 		s.storageTransactionDiscardUseCase.Execute()
@@ -126,7 +126,9 @@ func (s *BlockchainSyncManagerService) Execute(ctx context.Context, chainID uint
 		s.logger.Debug("Waiting to receive from the global blockchain network...",
 			slog.Any("chain_id", chainID))
 	}
-	fmt.Println("Subscription to blockchain authority closed")
+
+	s.logger.Debug("Subscription to blockchain authority closed",
+		slog.Any("chain_id", chainID))
 
 	return nil
 }
