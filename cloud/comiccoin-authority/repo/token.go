@@ -82,9 +82,10 @@ func (r *TokenRepo) GetByID(ctx context.Context, id *big.Int) (*domain.Token, er
 	return &token, nil
 }
 
-func (r *TokenRepo) ListAll(ctx context.Context) ([]*domain.Token, error) {
+func (r *TokenRepo) ListByChainID(ctx context.Context, chainID uint16) ([]*domain.Token, error) {
 	var tokens []*domain.Token
-	cur, err := r.collection.Find(ctx, bson.D{})
+	filter := bson.M{"chain_id": chainID}
+	cur, err := r.collection.Find(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -130,8 +131,8 @@ func (r *TokenRepo) DeleteByID(ctx context.Context, id *big.Int) error {
 	return err
 }
 
-func (r *TokenRepo) HashState(ctx context.Context) (string, error) {
-	tokens, err := r.ListAll(ctx)
+func (r *TokenRepo) HashStateByChainID(ctx context.Context, chainID uint16) (string, error) {
+	tokens, err := r.ListByChainID(ctx, chainID)
 	if err != nil {
 		return "", err
 	}

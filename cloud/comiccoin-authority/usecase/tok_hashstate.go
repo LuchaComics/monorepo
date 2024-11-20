@@ -18,6 +18,6 @@ func NewGetTokensHashStateUseCase(config *config.Configuration, logger *slog.Log
 	return &GetTokensHashStateUseCase{config, logger, repo}
 }
 
-func (uc *GetTokensHashStateUseCase) Execute(ctx context.Context) (string, error) {
-	return uc.repo.HashState(ctx)
+func (uc *GetTokensHashStateUseCase) Execute(ctx context.Context, chainID uint16) (string, error) {
+	return uc.repo.HashStateByChainID(ctx, chainID)
 }

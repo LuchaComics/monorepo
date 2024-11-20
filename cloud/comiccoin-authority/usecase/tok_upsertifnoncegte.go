@@ -73,6 +73,7 @@ func (uc *UpsertTokenIfPreviousTokenNonceGTEUseCase) Execute(
 	//
 	if previousToken == nil {
 		token := &domain.Token{
+			ChainID:     uc.config.Blockchain.ChainID,
 			IDBytes:     id.Bytes(),
 			Owner:       owner,
 			MetadataURI: metadataURI,
@@ -103,6 +104,7 @@ func (uc *UpsertTokenIfPreviousTokenNonceGTEUseCase) Execute(
 	//
 
 	token := &domain.Token{
+		ChainID:     uc.config.Blockchain.ChainID,
 		IDBytes:     id.Bytes(),
 		Owner:       owner,
 		MetadataURI: metadataURI,

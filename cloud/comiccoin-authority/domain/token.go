@@ -10,6 +10,9 @@ import (
 )
 
 type Token struct {
+	// The unique identifier for this blockchain that we are managing the state for.
+	ChainID uint16 `bson:"chain_id" json:"chain_id"`
+
 	IDBytes     []byte          `bson:"id_bytes" json:"id_bytes"`
 	Owner       *common.Address `bson:"owner" json:"owner"`
 	MetadataURI string          `bson:"metadata_uri" json:"metadata_uri"` // ComicCoin: URI pointing to Token metadata file (if this transaciton is an Token).
@@ -25,8 +28,8 @@ type TokenRepository interface {
 	// GetByAddress retrieves an token by its ID.
 	GetByID(ctx context.Context, id *big.Int) (*Token, error)
 
-	// ListAll retrieves all tokens in the repository.
-	ListAll(ctx context.Context) ([]*Token, error)
+	// ListByChainID retrieves all accounts in the repository for the particular chain ID.
+	ListByChainID(ctx context.Context, chainID uint16) ([]*Token, error)
 
 	// ListByOwner retrieves all the tokens in the repository that belongs
 	// to the owner address.
@@ -35,9 +38,9 @@ type TokenRepository interface {
 	// DeleteByID deletes an token by its ID.
 	DeleteByID(ctx context.Context, id *big.Int) error
 
-	// HashState returns a hash based on the contents of the tokens and
+	// HashStateByChainID returns a hash based on the contents of the tokens and
 	// their metadata. This is added to each block and checked by peers.
-	HashState(ctx context.Context) (string, error)
+	HashStateByChainID(ctx context.Context, chainID uint16) (string, error)
 
 	OpenTransaction() error
 	CommitTransaction() error

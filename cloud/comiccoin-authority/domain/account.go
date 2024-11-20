@@ -23,6 +23,9 @@ import (
 // consistent across all the peer-to-peer nodes in the distributed network;
 // therefore, preventing fraud from occuring.
 type Account struct {
+	// The unique identifier for this blockchain that we are managing the state for.
+	ChainID uint16 `bson:"chain_id" json:"chain_id"`
+
 	// The public address of the account.
 	Address *common.Address `bson:"address" json:"address"`
 
@@ -68,17 +71,17 @@ type AccountRepository interface {
 	// GetByAddress retrieves an account by its ID.
 	GetByAddress(ctx context.Context, addr *common.Address) (*Account, error)
 
-	// ListAll retrieves all accounts in the repository.
-	ListAll(ctx context.Context) ([]*Account, error)
+	// ListByChainID retrieves all accounts in the repository for the particular chain ID.
+	ListByChainID(ctx context.Context, chainID uint16) ([]*Account, error)
 
 	ListWithFilterByAddresses(ctx context.Context, addrs []*common.Address) ([]*Account, error)
 
 	// DeleteByID deletes an account by its ID.
 	DeleteByAddress(ctx context.Context, addr *common.Address) error
 
-	// HashState returns a hash based on the contents of the accounts and
+	// HashStateByChainID returns a hash based on the contents of the accounts and
 	// their balances. This is added to each block and checked by peers.
-	HashState(ctx context.Context) (string, error)
+	HashStateByChainID(ctx context.Context, chainID uint16) (string, error)
 
 	OpenTransaction() error
 	CommitTransaction() error

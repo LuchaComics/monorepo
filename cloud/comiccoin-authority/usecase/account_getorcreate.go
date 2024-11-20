@@ -51,6 +51,7 @@ func (uc *GetOrCreateAccountUseCase) Execute(ctx context.Context, walletAddress 
 	//
 
 	account := &domain.Account{
+		ChainID:    uc.config.Blockchain.ChainID,
 		Address:    walletAddress,
 		NonceBytes: nonce.Bytes(),
 		Balance:    balance,

@@ -73,9 +73,10 @@ func (r *AccountRepo) GetByAddress(ctx context.Context, address *common.Address)
 	return &account, nil
 }
 
-func (r *AccountRepo) ListAll(ctx context.Context) ([]*domain.Account, error) {
+func (r *AccountRepo) ListByChainID(ctx context.Context, chainID uint16) ([]*domain.Account, error) {
 	var accounts []*domain.Account
-	cur, err := r.collection.Find(ctx, bson.D{})
+	filter := bson.M{"chain_id": chainID}
+	cur, err := r.collection.Find(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -125,8 +126,8 @@ func (r *AccountRepo) DeleteByAddress(ctx context.Context, address *common.Addre
 	return err
 }
 
-func (r *AccountRepo) HashState(ctx context.Context) (string, error) {
-	accounts, err := r.ListAll(ctx)
+func (r *AccountRepo) HashStateByChainID(ctx context.Context, chainID uint16) (string, error) {
+	accounts, err := r.ListByChainID(ctx, chainID)
 	if err != nil {
 		return "", err
 	}

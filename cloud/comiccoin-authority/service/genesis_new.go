@@ -247,7 +247,7 @@ func (s *CreateGenesisBlockDataService) Execute(sessCtx mongo.SessionContext) (*
 		return nil, fmt.Errorf("Failed to create merkle tree: %v", err)
 	}
 
-	stateRoot, err := s.getAccountsHashStateUseCase.Execute(sessCtx)
+	stateRoot, err := s.getAccountsHashStateUseCase.Execute(sessCtx, s.config.Blockchain.ChainID)
 	if err != nil {
 		s.logger.Error("Failed to get hash of all accounts",
 			slog.Any("error", err))
@@ -256,7 +256,7 @@ func (s *CreateGenesisBlockDataService) Execute(sessCtx mongo.SessionContext) (*
 
 	// Running this code get's a hash of all the tokens, thus making the
 	// tokens tamper proof.
-	tokensRoot, err := s.getTokensHashStateUseCase.Execute(sessCtx)
+	tokensRoot, err := s.getTokensHashStateUseCase.Execute(sessCtx, s.config.Blockchain.ChainID)
 	if err != nil {
 		s.logger.Error("Failed to get hash of all tokens",
 			slog.Any("error", err))

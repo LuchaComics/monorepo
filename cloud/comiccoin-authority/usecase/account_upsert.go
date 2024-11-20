@@ -41,6 +41,7 @@ func (uc *UpsertAccountUseCase) Execute(ctx context.Context, address *common.Add
 	//
 
 	account := &domain.Account{
+		ChainID:    uc.config.Blockchain.ChainID,
 		Address:    address,
 		NonceBytes: nonce.Bytes(),
 		Balance:    balance,

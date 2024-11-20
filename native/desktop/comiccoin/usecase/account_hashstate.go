@@ -16,6 +16,6 @@ func NewGetAccountsHashStateUseCase(logger *slog.Logger, repo domain.AccountRepo
 	return &GetAccountsHashStateUseCase{logger, repo}
 }
 
-func (uc *GetAccountsHashStateUseCase) Execute(ctx context.Context) (string, error) {
-	return uc.repo.HashState(ctx)
+func (uc *GetAccountsHashStateUseCase) Execute(ctx context.Context, chainID uint16) (string, error) {
+	return uc.repo.HashStateByChainID(ctx, chainID)
 }

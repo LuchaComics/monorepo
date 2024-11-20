@@ -46,6 +46,7 @@ func (uc *CreateAccountUseCase) Execute(ctx context.Context, address *common.Add
 	//
 
 	account := &domain.Account{
+		ChainID:    uc.config.Blockchain.ChainID,
 		Address:    address,
 		NonceBytes: big.NewInt(0).Bytes(),
 		Balance:    0,

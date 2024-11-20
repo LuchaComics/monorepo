@@ -294,7 +294,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		// SPECIAL THANKS TO:
 		// https://www.ardanlabs.com/blog/2022/05/blockchain-04-fraud-detection.html
 		//
-		stateRoot, err := s.getAccountsHashStateUseCase.Execute(sessCtx)
+		stateRoot, err := s.getAccountsHashStateUseCase.Execute(sessCtx, s.config.Blockchain.ChainID)
 		if err != nil {
 			s.logger.Error("Failed getting accounts hash state",
 				slog.Any("error", err))
@@ -302,7 +302,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		}
 
 		// Ensure tokens are not tampered with.
-		tokensRoot, err := s.getTokensHashStateUseCase.Execute(sessCtx)
+		tokensRoot, err := s.getTokensHashStateUseCase.Execute(sessCtx, s.config.Blockchain.ChainID)
 		if err != nil {
 			s.logger.Error("Failed getting tokens hash state",
 				slog.Any("error", err))

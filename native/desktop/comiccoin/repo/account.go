@@ -49,7 +49,7 @@ func (r *AccountRepo) GetByAddress(ctx context.Context, addr *common.Address) (*
 	return b, nil
 }
 
-func (r *AccountRepo) ListAll(ctx context.Context) ([]*domain.Account, error) {
+func (r *AccountRepo) ListByChainID(ctx context.Context, chainID uint16) ([]*domain.Account, error) {
 	res := make([]*domain.Account, 0)
 	err := r.dbClient.Iterate(func(key, value []byte) error {
 		account, err := domain.NewAccountFromDeserialize(value)
@@ -61,7 +61,9 @@ func (r *AccountRepo) ListAll(ctx context.Context) ([]*domain.Account, error) {
 			return err
 		}
 
-		res = append(res, account)
+		if account.ChainID == chainID {
+			res = append(res, account)
+		}
 
 		// Return nil to indicate success
 		return nil
@@ -109,8 +111,8 @@ func (r *AccountRepo) DeleteByAddress(ctx context.Context, addr *common.Address)
 	return nil
 }
 
-func (r *AccountRepo) HashState(ctx context.Context) (string, error) {
-	accounts, err := r.ListAll(ctx)
+func (r *AccountRepo) HashStateByChainID(ctx context.Context, chainID uint16) (string, error) {
+	accounts, err := r.ListByChainID(ctx, chainID)
 	if err != nil {
 		return "", err
 	}
@@ -121,7 +123,7 @@ func (r *AccountRepo) HashState(ctx context.Context) (string, error) {
 
 	// Iterate through all the accounts and only save the accounts with balance.
 	for _, account := range accounts {
-		if account.Balance > 0 {
+		if account.Balance > 0 && account.ChainID == chainID {
 			accountsWithBalance = append(accountsWithBalance, account)
 		}
 	}

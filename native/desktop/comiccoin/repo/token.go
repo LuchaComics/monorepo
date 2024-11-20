@@ -50,7 +50,7 @@ func (r *TokenRepo) GetByID(ctx context.Context, id *big.Int) (*domain.Token, er
 	return b, nil
 }
 
-func (r *TokenRepo) ListAll(ctx context.Context) ([]*domain.Token, error) {
+func (r *TokenRepo) ListByChainID(ctx context.Context, chainID uint16) ([]*domain.Token, error) {
 	res := make([]*domain.Token, 0)
 	err := r.dbClient.Iterate(func(key, value []byte) error {
 		token, err := domain.NewTokenFromDeserialize(value)
@@ -62,7 +62,9 @@ func (r *TokenRepo) ListAll(ctx context.Context) ([]*domain.Token, error) {
 			return err
 		}
 
-		res = append(res, token)
+		if token.ChainID == chainID {
+			res = append(res, token)
+		}
 
 		// Return nil to indicate success
 		return nil
@@ -101,8 +103,8 @@ func (r *TokenRepo) DeleteByID(ctx context.Context, id *big.Int) error {
 	return nil
 }
 
-func (r *TokenRepo) HashState(ctx context.Context) (string, error) {
-	tokens, err := r.ListAll(ctx)
+func (r *TokenRepo) HashStateByChainID(ctx context.Context, chainID uint16) (string, error) {
+	tokens, err := r.ListByChainID(ctx, chainID)
 	if err != nil {
 		return "", err
 	}
@@ -127,7 +129,11 @@ func (r *TokenRepo) HashState(ctx context.Context) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		tokensBytes = append(tokensBytes, tokBytes...)
+
+		// For defensive purposes, only append by chain ID.
+		if tok.ChainID == chainID {
+			tokensBytes = append(tokensBytes, tokBytes...)
+		}
 	}
 
 	// Hash the deterministic serialized tokens.
