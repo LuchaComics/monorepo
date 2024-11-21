@@ -18,6 +18,7 @@ type ComicCoinRPCServer struct {
 	getOrDownloadNonFungibleTokenService  *service.GetOrDownloadNonFungibleTokenService
 	listBlockTransactionsByAddressService *service.ListBlockTransactionsByAddressService
 	getByBlockTransactionTimestampService *service.GetByBlockTransactionTimestampService
+	blockDataGetByHashService             *service.BlockDataGetByHashService
 }
 
 func NewComicCoinRPCServer(
@@ -32,6 +33,7 @@ func NewComicCoinRPCServer(
 	s8 *service.GetOrDownloadNonFungibleTokenService,
 	s9 *service.ListBlockTransactionsByAddressService,
 	s10 *service.GetByBlockTransactionTimestampService,
+	s11 *service.BlockDataGetByHashService,
 ) *ComicCoinRPCServer {
 
 	// Create a new RPC server instance.
@@ -47,6 +49,7 @@ func NewComicCoinRPCServer(
 		getOrDownloadNonFungibleTokenService:  s8,
 		listBlockTransactionsByAddressService: s9,
 		getByBlockTransactionTimestampService: s10,
+		blockDataGetByHashService:             s11,
 	}
 
 	return port

@@ -356,3 +356,31 @@ func (r *ComicCoincRPCClientRepo) ListBlockTransactionsByAddress(
 
 	return reply.BlockTransactions, nil
 }
+
+func (r *ComicCoincRPCClientRepo) GetBlockDataByHash(
+	ctx context.Context,
+	hash string,
+) (*auth_domain.BlockData, error) {
+	// Define our request / response here by copy and pasting from the server codebase.
+	type BlockDataGetByHashArgs struct {
+		Hash string
+	}
+
+	type BlockDataGetByHashReply struct {
+		BlockData *auth_domain.BlockData
+	}
+
+	// Construct our request / response.
+	args := BlockDataGetByHashArgs{
+		Hash: hash,
+	}
+	var reply BlockDataGetByHashReply
+
+	// Execute the remote procedure call.
+	callError := r.rpcClient.Call("ComicCoinRPCServer.BlockDataGetByHash", args, &reply)
+	if callError != nil {
+		return nil, callError
+	}
+
+	return reply.BlockData, nil
+}

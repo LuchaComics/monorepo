@@ -362,6 +362,10 @@ func doRunDaemonCmd() {
 		logger,
 		getByBlockTransactionTimestampUseCase,
 	)
+	blockDataGetByHashService := service.NewBlockDataGetByHashService(
+		logger,
+		getBlockDataUseCase,
+	)
 
 	// ------------ Interfaces ------------
 
@@ -379,6 +383,7 @@ func doRunDaemonCmd() {
 		getOrDownloadNonFungibleTokenService,
 		listBlockTransactionsByAddressService,
 		getByBlockTransactionTimestampService,
+		blockDataGetByHashService,
 	)
 
 	//
