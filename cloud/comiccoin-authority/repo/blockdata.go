@@ -215,7 +215,7 @@ func (r *BlockDataRepo) ListUnorderedHashArrayForChainID(ctx context.Context, ch
 	return hashArray, nil
 }
 
-func (r *BlockDataRepo) ListAllBlockTransactionsByAddress(ctx context.Context, address *common.Address) ([]*domain.BlockTransaction, error) {
+func (r *BlockDataRepo) ListBlockTransactionsByAddress(ctx context.Context, address *common.Address) ([]*domain.BlockTransaction, error) {
 	var blockTransactions []*domain.BlockTransaction
 	cur, err := r.collection.Find(ctx, bson.M{
 		"$or": []bson.M{

@@ -105,6 +105,11 @@ func doRunDaemon() {
 		logger,
 		bdRepo,
 	)
+	listBlockTransactionsByAddressUseCase := usecase.NewListBlockTransactionsByAddressUseCase(
+		cfg,
+		logger,
+		bdRepo,
+	)
 
 	// Wallet
 	walletDecryptKeyUseCase := usecase.NewWalletDecryptKeyUseCase(
@@ -209,6 +214,13 @@ func doRunDaemon() {
 		getBlockDataUseCase,
 	)
 
+	// Block Transaction
+	listBlockTransactionsByAddressService := service.NewListBlockTransactionsByAddressService(
+		cfg,
+		logger,
+		listBlockTransactionsByAddressUseCase,
+	)
+
 	// Coins
 	signedTransactionSubmissionService := service.NewSignedTransactionSubmissionService(
 		cfg,
@@ -281,6 +293,10 @@ func doRunDaemon() {
 	getBlockchainStateHTTPHandler := httphandler.NewGetBlockchainStateHTTPHandler(
 		logger,
 		getBlockchainStateService)
+	listBlockTransactionsByAddressHTTPHandler := httphandler.NewListBlockTransactionsByAddressHTTPHandler(
+		logger,
+		listBlockTransactionsByAddressService,
+	)
 	blockchainStateChangeEventsHTTPHandler := httphandler.NewBlockchainStateChangeEventDTOHTTPHandler(
 		logger,
 		blockchainStateUpdateDetectorUseCase)
@@ -301,6 +317,7 @@ func doRunDaemon() {
 		getHealthCheckHTTPHandler,
 		getGenesisBlockDataHTTPHandler,
 		getBlockchainStateHTTPHandler,
+		listBlockTransactionsByAddressHTTPHandler,
 		blockchainStateChangeEventsHTTPHandler,
 		getBlockDataHTTPHandler,
 		signedTransactionSubmissionHTTPHandler,

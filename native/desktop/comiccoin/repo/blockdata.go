@@ -78,7 +78,7 @@ func (r *BlockDataRepo) DeleteByHash(ctx context.Context, hash string) error {
 	return nil
 }
 
-func (r *BlockDataRepo) ListAllBlockTransactionsByAddress(ctx context.Context, address *common.Address) ([]*domain.BlockTransaction, error) {
+func (r *BlockDataRepo) ListBlockTransactionsByAddress(ctx context.Context, address *common.Address) ([]*domain.BlockTransaction, error) {
 	res := make([]*domain.BlockTransaction, 0)
 	err := r.dbClient.Iterate(func(key, value []byte) error {
 		blockdata, err := domain.NewBlockDataFromDeserialize(value)

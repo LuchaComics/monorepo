@@ -53,7 +53,7 @@ type BlockDataRepository interface {
 	DeleteByHash(ctx context.Context, hash string) error
 
 	// ListBlockTransactionsByAddress lists all the transactions for a particular address.
-	ListAllBlockTransactionsByAddress(ctx context.Context, address *common.Address) ([]*BlockTransaction, error)
+	ListBlockTransactionsByAddress(ctx context.Context, address *common.Address) ([]*BlockTransaction, error)
 
 	GetByBlockTransactionTimestamp(ctx context.Context, timestamp uint64) (*BlockData, error)
 
