@@ -226,6 +226,9 @@ func doRunDaemonCmd() {
 	getBlockDataUseCase := usecase.NewGetBlockDataUseCase(
 		logger,
 		blockDataRepo)
+	getByBlockTransactionTimestampUseCase := usecase.NewGetByBlockTransactionTimestampUseCase(
+		logger,
+		blockDataRepo)
 
 	// Block Transactions
 	listBlockTransactionsByAddressUseCase := usecase.NewListBlockTransactionsByAddressUseCase(
@@ -355,6 +358,10 @@ func doRunDaemonCmd() {
 		logger,
 		listBlockTransactionsByAddressUseCase,
 	)
+	getByBlockTransactionTimestampService := service.NewGetByBlockTransactionTimestampService(
+		logger,
+		getByBlockTransactionTimestampUseCase,
+	)
 
 	// ------------ Interfaces ------------
 
@@ -371,6 +378,7 @@ func doRunDaemonCmd() {
 		tokenBurnService,
 		getOrDownloadNonFungibleTokenService,
 		listBlockTransactionsByAddressService,
+		getByBlockTransactionTimestampService,
 	)
 
 	//
