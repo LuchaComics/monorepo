@@ -95,27 +95,7 @@ func doRunDaemon() {
 	}()
 
 	// Block Data
-	listAllBlockNumberByHashArrayUseCase := usecase.NewListAllBlockNumberByHashArrayUseCase(
-		cfg,
-		logger,
-		bdRepo,
-	)
-	listBlockDataUnorderedHashArrayUseCase := usecase.NewListBlockDataUnorderedHashArrayUseCase(
-		cfg,
-		logger,
-		bdRepo,
-	)
 	getBlockDataUseCase := usecase.NewGetBlockDataUseCase(
-		cfg,
-		logger,
-		bdRepo,
-	)
-	listBlockDataFilteredInHashesUseCase := usecase.NewListBlockDataFilteredInHashesUseCase(
-		cfg,
-		logger,
-		bdRepo,
-	)
-	listBlockDataFilteredBetweenBlockNumbersUseCase := usecase.NewListBlockDataFilteredBetweenBlockNumbersUseCase(
 		cfg,
 		logger,
 		bdRepo,
@@ -228,26 +208,6 @@ func doRunDaemon() {
 		logger,
 		getBlockDataUseCase,
 	)
-	blockDataListAllOrderedHashesService := service.NewBlockDataListAllOrderedHashesService(
-		cfg,
-		logger,
-		listAllBlockNumberByHashArrayUseCase,
-	)
-	blockDataListAllUnorderedHashesService := service.NewBlockDataListAllUnorderedHashesService(
-		cfg,
-		logger,
-		listBlockDataUnorderedHashArrayUseCase,
-	)
-	listBlockDataFilteredInHashesService := service.NewListBlockDataFilteredInHashesService(
-		cfg,
-		logger,
-		listBlockDataFilteredInHashesUseCase,
-	)
-	listBlockDataFilteredBetweenBlockNumbersInChainIDService := service.NewListBlockDataFilteredBetweenBlockNumbersInChainIDService(
-		cfg,
-		logger,
-		listBlockDataFilteredBetweenBlockNumbersUseCase,
-	)
 
 	// Coins
 	signedTransactionSubmissionService := service.NewSignedTransactionSubmissionService(
@@ -324,18 +284,6 @@ func doRunDaemon() {
 	blockchainStateChangeEventsHTTPHandler := httphandler.NewBlockchainStateChangeEventDTOHTTPHandler(
 		logger,
 		blockchainStateUpdateDetectorUseCase)
-	listAllBlockDataOrderedHashesHTTPHandler := httphandler.NewListAllBlockDataOrderedHashesHTTPHandler(
-		logger,
-		blockDataListAllOrderedHashesService)
-	listAllBlockDataUnorderedHashesHTTPHandler := httphandler.NewListAllBlockDataUnorderedHashesHTTPHandler(
-		logger,
-		blockDataListAllUnorderedHashesService)
-	listBlockDataFilteredInHashesHTTPHandler := httphandler.NewListBlockDataFilteredInHashesHTTPHandler(
-		logger,
-		listBlockDataFilteredInHashesService)
-	listBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler := httphandler.NewListBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler(
-		logger,
-		listBlockDataFilteredBetweenBlockNumbersInChainIDService)
 	signedTransactionSubmissionHTTPHandler := httphandler.NewSignedTransactionSubmissionHTTPHandler(
 		logger,
 		signedTransactionSubmissionService)
@@ -354,11 +302,7 @@ func doRunDaemon() {
 		getGenesisBlockDataHTTPHandler,
 		getBlockchainStateHTTPHandler,
 		blockchainStateChangeEventsHTTPHandler,
-		listAllBlockDataOrderedHashesHTTPHandler,
-		listAllBlockDataUnorderedHashesHTTPHandler,
 		getBlockDataHTTPHandler,
-		listBlockDataFilteredInHashesHTTPHandler,
-		listBlockDataFilteredBetweenBlockNumbersInChainIDHTTPHandler,
 		signedTransactionSubmissionHTTPHandler,
 		mempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler,
 	)
