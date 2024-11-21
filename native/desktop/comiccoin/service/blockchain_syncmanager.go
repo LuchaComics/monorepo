@@ -87,14 +87,14 @@ func (s *BlockchainSyncManagerService) Execute(ctx context.Context, chainID uint
 	ch, err := s.subscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase.Execute(ctx, chainID)
 	if err != nil {
 		if strings.Contains(err.Error(), "received non-OK HTTP status: 524") {
-			s.logger.Warn("failed subscribing because of timeout, will retry again in 30 seconds",
+			s.logger.Warn("Failed subscribing because of timeout, will retry again in 10 seconds...",
 				slog.Any("chainID", chainID),
 				slog.Any("error", err))
-			time.Sleep(30 * time.Second)
+			time.Sleep(10 * time.Second)
 			return nil
 		}
 
-		s.logger.Error("failed subscribing",
+		s.logger.Error("Failed subscribing...",
 			slog.Any("chainID", chainID),
 			slog.Any("error", err))
 		return err
