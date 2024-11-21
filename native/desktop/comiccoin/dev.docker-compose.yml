@@ -1,0 +1,30 @@
+#############
+# HOW TO USE:
+#############
+# The purpose of this docker-compose is to setup our application.
+# This configuration has hot-reloading activated.
+# This is docker-compose is used for developers only.
+#
+# ------------------------------------------------------------------------------
+# $ docker-compose -p comiccoin_dev -f dev.docker-compose.yml up   #
+# ------------------------------------------------------------------------------
+#
+
+services:
+  # The main application.
+  app:
+    container_name: comiccoin
+    stdin_open: true
+    environment:
+      COMICCOIN_APP_DATA_DIRECTORY: ${COMICCOIN_APP_DATA_DIRECTORY}
+      COMICCOIN_BLOCKCHAIN_CHAIN_ID: ${COMICCOIN_BLOCKCHAIN_CHAIN_ID}
+      COMICCOIN_BLOCKCHAIN_AUTHORITY_ADDRESS: ${COMICCOIN_BLOCKCHAIN_AUTHORITY_ADDRESS}
+      COMICCOIN_BLOCKCHAIN_NFT_STORAGE_ADDRESS: ${COMICCOIN_BLOCKCHAIN_NFT_STORAGE_ADDRESS}
+    build:
+      context: .
+      dockerfile: ./dev.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes: # Connect the local filesystem with the docker filesystem. DO NOT REMOVE.
+      - ./:/go/src/github.com/LuchaComics/monorepo/native/desktop/comiccoin # IMPORTANT: Required for hotreload via `CompileDaemon`.

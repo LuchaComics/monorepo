@@ -172,7 +172,6 @@ func doRunDaemonCmd() {
 		logger,
 		walletRepo,
 	)
-	_ = getWalletUseCase
 	_ = listAllWalletUseCase
 
 	// Account
@@ -225,6 +224,11 @@ func doRunDaemonCmd() {
 		logger,
 		blockDataRepo)
 	getBlockDataUseCase := usecase.NewGetBlockDataUseCase(
+		logger,
+		blockDataRepo)
+
+	// Block Transactions
+	listBlockTransactionsByAddressUseCase := usecase.NewListBlockTransactionsByAddressUseCase(
 		logger,
 		blockDataRepo)
 
@@ -347,6 +351,10 @@ func doRunDaemonCmd() {
 		downloadNFTokMetadataUsecase,
 		downloadNFTokAssetUsecase,
 		upsertNFTokUseCase)
+	listBlockTransactionsByAddressService := service.NewListBlockTransactionsByAddressService(
+		logger,
+		listBlockTransactionsByAddressUseCase,
+	)
 
 	// ------------ Interfaces ------------
 
@@ -362,6 +370,7 @@ func doRunDaemonCmd() {
 		tokenTransferService,
 		tokenBurnService,
 		getOrDownloadNonFungibleTokenService,
+		listBlockTransactionsByAddressService,
 	)
 
 	//

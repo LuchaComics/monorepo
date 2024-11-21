@@ -327,3 +327,32 @@ func (r *ComicCoincRPCClientRepo) TokenBurn(
 
 	return nil
 }
+
+func (r *ComicCoincRPCClientRepo) ListBlockTransactionsByAddress(
+	ctx context.Context,
+	accountAddress *common.Address,
+) ([]*auth_domain.BlockTransaction, error) {
+	// Define our request / response here by copy and pasting from the server codebase.
+
+	type ListBlockTransactionsByAddressArgs struct {
+		AccountAddress *common.Address
+	}
+
+	type ListBlockTransactionsByAddressReply struct {
+		BlockTransactions []*auth_domain.BlockTransaction
+	}
+
+	// Construct our request / response.
+	args := ListBlockTransactionsByAddressArgs{
+		AccountAddress: accountAddress,
+	}
+	var reply ListBlockTransactionsByAddressReply
+
+	// Execute the remote procedure call.
+	callError := r.rpcClient.Call("ComicCoinRPCServer.ListBlockTransactionsByAddress", args, &reply)
+	if callError != nil {
+		return nil, callError
+	}
+
+	return reply.BlockTransactions, nil
+}

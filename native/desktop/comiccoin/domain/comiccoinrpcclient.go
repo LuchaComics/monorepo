@@ -49,4 +49,8 @@ type ComicCoincRPCClientRepository interface {
 		accountWalletPassword string,
 		tokenID *big.Int,
 	) error
+	ListBlockTransactionsByAddress(
+		ctx context.Context,
+		address *common.Address,
+	) ([]*auth_domain.BlockTransaction, error)
 }

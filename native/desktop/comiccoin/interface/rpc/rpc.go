@@ -76,9 +76,10 @@ func NewRPCServer(
 	s6 *service.TokenTransferService,
 	s7 *service.TokenBurnService,
 	s8 *service.GetOrDownloadNonFungibleTokenService,
+	s9 *service.ListBlockTransactionsByAddressService,
 ) RPCServer {
 	// Create a new RPC server
-	myServer := rpchandler.NewComicCoinRPCServer(logger, s1, s2, s3, s4, s5, s6, s7, s8)
+	myServer := rpchandler.NewComicCoinRPCServer(logger, s1, s2, s3, s4, s5, s6, s7, s8, s9)
 
 	// Create a new RPC server instance.
 	port := &RPCServerImpl{
