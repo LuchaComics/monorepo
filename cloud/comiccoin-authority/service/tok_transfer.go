@@ -14,6 +14,7 @@ import (
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/kmutexutil"
+	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/securestring"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase"
@@ -53,7 +54,7 @@ func (s *TokenTransferService) Execute(
 	ctx context.Context,
 	tokenID *big.Int,
 	tokenOwnerAddress *common.Address,
-	tokenOwnerWalletPassword string,
+	tokenOwnerWalletPassword *sstring.SecureString,
 	recipientAddress *common.Address) error {
 	// Lock the mining service until it has completed executing (or errored).
 	s.kmutex.Acquire("token-services")

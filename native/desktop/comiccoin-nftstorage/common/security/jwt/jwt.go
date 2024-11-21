@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/security/jwt_utils"
+	sbytes "github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/security/securebytes"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/config"
 )
 
@@ -15,7 +16,7 @@ type Provider interface {
 }
 
 type jwtProvider struct {
-	hmacSecret []byte
+	hmacSecret *sbytes.SecureBytes
 }
 
 // NewProvider Constructor that returns the JWT generator.
@@ -27,14 +28,14 @@ func NewProvider(cfg *config.Config) Provider {
 
 // GenerateJWTToken generates a single JWT token.
 func (p jwtProvider) GenerateJWTToken(uuid string, ad time.Duration) (string, time.Time, error) {
-	return jwt_utils.GenerateJWTToken(p.hmacSecret, uuid, ad)
+	return jwt_utils.GenerateJWTToken(p.hmacSecret.Bytes(), uuid, ad)
 }
 
 // GenerateJWTTokenPair Generate the `access token` and `refresh token` for the secret key.
 func (p jwtProvider) GenerateJWTTokenPair(uuid string, ad time.Duration, rd time.Duration) (string, time.Time, string, time.Time, error) {
-	return jwt_utils.GenerateJWTTokenPair(p.hmacSecret, uuid, ad, rd)
+	return jwt_utils.GenerateJWTTokenPair(p.hmacSecret.Bytes(), uuid, ad, rd)
 }
 
 func (p jwtProvider) ProcessJWTToken(reqToken string) (string, error) {
-	return jwt_utils.ProcessJWTToken(p.hmacSecret, reqToken)
+	return jwt_utils.ProcessJWTToken(p.hmacSecret.Bytes(), reqToken)
 }

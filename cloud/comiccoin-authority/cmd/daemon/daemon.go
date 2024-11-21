@@ -12,7 +12,6 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/kmutexutil"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/blacklist"
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/jwt"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/password"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/storage/database/mongodb"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config"
@@ -51,11 +50,9 @@ func doRunDaemon() {
 	dbClient := mongodb.NewProvider(cfg, logger)
 	keystore := keystore.NewAdapter()
 	passp := password.NewProvider()
-	jwtp := jwt.NewProvider(cfg)
 	blackp := blacklist.NewProvider()
 
 	_ = passp
-	_ = jwtp
 
 	// Repository
 	walletRepo := repo.NewWalletRepo(cfg, logger, dbClient)

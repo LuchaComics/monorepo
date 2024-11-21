@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
+	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/securestring"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 	auth_usecase "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase"
 	"github.com/ethereum/go-ethereum/common"
@@ -38,7 +39,7 @@ func (s *CoinTransferService) Execute(
 	ctx context.Context,
 	chainID uint16,
 	fromAccountAddress *common.Address,
-	accountWalletPassword string,
+	accountWalletPassword *sstring.SecureString,
 	to *common.Address,
 	value uint64,
 	data []byte,
@@ -60,7 +61,7 @@ func (s *CoinTransferService) Execute(
 	if fromAccountAddress == nil {
 		e["from_account_address"] = "missing value"
 	}
-	if accountWalletPassword == "" {
+	if accountWalletPassword == nil {
 		e["account_wallet_password"] = "missing value"
 	}
 	if to == nil {

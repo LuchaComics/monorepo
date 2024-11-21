@@ -11,6 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
+	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/securestring"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase"
@@ -39,7 +40,7 @@ func NewCoinTransferService(
 func (s *CoinTransferService) Execute(
 	ctx context.Context,
 	fromAccountAddress *common.Address,
-	accountWalletPassword string,
+	accountWalletPassword *sstring.SecureString,
 	to *common.Address,
 	value uint64,
 	data []byte,
@@ -60,7 +61,7 @@ func (s *CoinTransferService) Execute(
 	if fromAccountAddress == nil {
 		e["from_account_address"] = "missing value"
 	}
-	if accountWalletPassword == "" {
+	if accountWalletPassword == nil {
 		e["account_wallet_password"] = "missing value"
 	}
 	if to == nil {

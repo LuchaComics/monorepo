@@ -7,6 +7,7 @@ import (
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/blockchain/signature"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
+	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/securestring"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase"
@@ -34,19 +35,19 @@ func NewCreateAccountService(
 	return &CreateAccountService{cfg, logger, uc1, uc2, uc3, uc4, uc5}
 }
 
-func (s *CreateAccountService) Execute(ctx context.Context, walletPassword string, walletPasswordRepeated string, walletLabel string) (*domain.Account, error) {
+func (s *CreateAccountService) Execute(ctx context.Context, walletPassword *sstring.SecureString, walletPasswordRepeated *sstring.SecureString, walletLabel string) (*domain.Account, error) {
 	//
 	// STEP 1: Validation.
 	//
 
 	e := make(map[string]string)
-	if walletPassword == "" {
+	if walletPassword == nil {
 		e["wallet_password"] = "missing value"
 	}
-	if walletPasswordRepeated == "" {
+	if walletPasswordRepeated == nil {
 		e["wallet_password_repeated"] = "missing value"
 	}
-	if walletPassword != walletPasswordRepeated {
+	if walletPassword.String() != walletPasswordRepeated.String() {
 		e["wallet_password"] = "do not match"
 		e["wallet_password_repeated"] = "do not match"
 	}

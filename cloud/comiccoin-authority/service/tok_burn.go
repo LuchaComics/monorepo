@@ -14,6 +14,7 @@ import (
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/kmutexutil"
+	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/securestring"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase"
@@ -53,7 +54,7 @@ func (s *TokenBurnService) Execute(
 	ctx context.Context,
 	tokenID *big.Int,
 	tokenOwnerAddress *common.Address,
-	tokenOwnerWalletPassword string) error {
+	tokenOwnerWalletPassword *sstring.SecureString) error {
 	// Lock the mining service until it has completed executing (or errored).
 	s.kmutex.Acquire("token-services")
 	defer s.kmutex.Release("token-services")
@@ -69,7 +70,7 @@ func (s *TokenBurnService) Execute(
 	if tokenOwnerAddress == nil {
 		e["token_owner_address"] = "missing value"
 	}
-	if tokenOwnerWalletPassword == "" {
+	if tokenOwnerWalletPassword == nil {
 		e["token_owner_wallet_password"] = "missing value"
 	}
 	if len(e) != 0 {

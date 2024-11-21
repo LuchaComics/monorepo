@@ -37,7 +37,7 @@ func (s *GetProofOfAuthorityPrivateKeyService) Execute(ctx context.Context) (*ke
 	if s.config.Blockchain.ProofOfAuthorityAccountAddress == nil {
 		e["COMICCOIN_AUTHORITY_BLOCKCHAIN_PROOF_OF_AUTHORITY_WALLET_PASSWORD"] = "missing environment value"
 	}
-	if s.config.Blockchain.ProofOfAuthorityWalletPassword == "" {
+	if s.config.Blockchain.ProofOfAuthorityWalletPassword == nil {
 		e["COMICCOIN_AUTHORITY_BLOCKCHAIN_PROOF_OF_AUTHORITY_WALLET_PASSWORD"] = "missing environment value"
 	}
 	if len(e) != 0 {

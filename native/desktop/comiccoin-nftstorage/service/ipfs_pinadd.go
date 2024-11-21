@@ -115,7 +115,7 @@ func (s *IPFSPinAddService) Execute(ctx context.Context, req *IPFSPinAddRequestI
 	}
 
 	// Verify the api key secret and project hashed secret match.
-	passwordMatch, _ := s.passwordProvider.ComparePasswordAndHash(apiKeyPayload[1], s.config.App.AppSecret)
+	passwordMatch, _ := s.passwordProvider.ComparePasswordAndHash(apiKeyPayload[1], s.config.App.AppSecret.String())
 	if passwordMatch == false {
 		s.logger.Error("password - does not match")
 		return nil, httperror.NewForUnauthorizedWithSingleField("api_key", "unauthorized")

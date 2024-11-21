@@ -9,6 +9,7 @@ import (
 
 	pkgkeystore "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/blockchain/keystore"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
+	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/securestring"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 )
@@ -29,7 +30,7 @@ func NewAccountDecryptKeyUseCase(
 	return &AccountDecryptKeyUseCase{config, logger, keystore, repo}
 }
 
-func (uc *AccountDecryptKeyUseCase) Execute(ctx context.Context, walletKeystoreBytes []byte, walletPassword string) (*keystore.Key, error) {
+func (uc *AccountDecryptKeyUseCase) Execute(ctx context.Context, walletKeystoreBytes []byte, walletPassword *sstring.SecureString) (*keystore.Key, error) {
 	//
 	// STEP 1: Validation.
 	//
@@ -38,7 +39,7 @@ func (uc *AccountDecryptKeyUseCase) Execute(ctx context.Context, walletKeystoreB
 	if walletKeystoreBytes == nil {
 		e["wallet_keystore_bytes"] = "missing value"
 	}
-	if walletPassword == "" {
+	if walletPassword == nil {
 		e["wallet_password"] = "missing value"
 	}
 	if len(e) != 0 {

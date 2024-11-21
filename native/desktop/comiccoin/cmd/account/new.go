@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
+	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/securestring"
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
@@ -54,8 +55,16 @@ func doRunNewAccountCmd() error {
 	rpcClient := repo.NewComicCoincRPCClientRepo(comicCoincRPCClientRepoConfigurationProvider, logger)
 
 	ctx := context.Background()
+	pass, err := sstring.NewSecureString(flagPassword)
+	if err != nil {
+		log.Fatalf("Failed secure password: %v", err)
+	}
+	passRepeated, err := sstring.NewSecureString(flagPasswordRepeated)
+	if err != nil {
+		log.Fatalf("Failed secure password repeated: %v", err)
+	}
 
-	account, err := rpcClient.CreateAccount(ctx, flagPassword, flagPasswordRepeated, flagLabel)
+	account, err := rpcClient.CreateAccount(ctx, pass, passRepeated, flagLabel)
 	if err != nil {
 		log.Fatalf("Failed creating account: %v\n", err)
 	}

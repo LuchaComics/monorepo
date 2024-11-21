@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
+	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/securestring"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 
@@ -52,6 +53,10 @@ func doRunBurnTokensCommand() {
 	if !ok {
 		log.Fatal("Failed convert `token_id` to big.Int")
 	}
+	pass, err := sstring.NewSecureString(flagSenderAccountPassword)
+	if err != nil {
+		log.Fatalf("Failed secure password: %v", err)
+	}
 
 	logger.Debug("Transfering Token...",
 		slog.Any("token_id", tokenID))
@@ -60,7 +65,7 @@ func doRunBurnTokensCommand() {
 		ctx,
 		flagChainID,
 		&sendAddr,
-		flagSenderAccountPassword,
+		pass,
 		tokenID,
 	)
 	if tokenBurnServiceErr != nil {

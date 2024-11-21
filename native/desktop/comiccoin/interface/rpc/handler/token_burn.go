@@ -5,6 +5,8 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+
+	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/securestring"
 )
 
 type TokenBurnArgs struct {
@@ -18,11 +20,15 @@ type TokenBurnReply struct {
 }
 
 func (impl *ComicCoinRPCServer) TokenBurn(args *TokenBurnArgs, reply *TokenBurnReply) error {
+	pass, secureErr := sstring.NewSecureString(args.AccountWalletPassword)
+	if secureErr != nil {
+		return secureErr
+	}
 	err := impl.tokenBurnService.Execute(
 		context.Background(),
 		args.ChainID,
 		args.FromAccountAddress,
-		args.AccountWalletPassword,
+		pass,
 		args.TokenID,
 	)
 	if err != nil {

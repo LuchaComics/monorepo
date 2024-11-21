@@ -33,7 +33,7 @@ func doGenerateAPIKeyCmd() {
 	//
 
 	dataDir := config.GetEnvString("COMICCOIN_NFTSTORAGE_APP_DATA_DIRECTORY", true)
-	hmacSecretKey := config.GetEnvBytes("COMICCOIN_NFTSTORAGE_APP_HMAC_SECRET", true)
+	hmacSecretKey := config.GetSecureBytesEnv("COMICCOIN_NFTSTORAGE_APP_HMAC_SECRET", true)
 
 	// Developers Note:
 	// To create a `` then run the following in your console:

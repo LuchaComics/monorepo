@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"net/rpc"
 
+	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/securestring"
 	auth_domain "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -132,8 +133,8 @@ func (r *ComicCoincRPCClientRepo) GetAccount(ctx context.Context, accountAddress
 
 func (r *ComicCoincRPCClientRepo) CreateAccount(
 	ctx context.Context,
-	password string,
-	passwordRepeated string,
+	password *sstring.SecureString,
+	passwordRepeated *sstring.SecureString,
 	label string,
 ) (*auth_domain.Account, error) {
 	// Define our request / response here by copy and pasting from the server codebase.
@@ -150,8 +151,8 @@ func (r *ComicCoincRPCClientRepo) CreateAccount(
 	// Construct our request / response.
 	args := CreateAccountArgs{
 		Label:            label,
-		Password:         password,
-		PasswordRepeated: passwordRepeated,
+		Password:         password.String(),
+		PasswordRepeated: passwordRepeated.String(),
 	}
 	var reply CreateAccountReply
 
@@ -190,7 +191,7 @@ func (r *ComicCoincRPCClientRepo) CoinTransfer(
 	ctx context.Context,
 	chainID uint16,
 	fromAccountAddress *common.Address,
-	accountWalletPassword string,
+	accountWalletPassword *sstring.SecureString,
 	to *common.Address,
 	value uint64,
 	data []byte,
@@ -212,7 +213,7 @@ func (r *ComicCoincRPCClientRepo) CoinTransfer(
 	args := CoinTransferArgs{
 		ChainID:               chainID,
 		FromAccountAddress:    fromAccountAddress,
-		AccountWalletPassword: accountWalletPassword,
+		AccountWalletPassword: accountWalletPassword.String(),
 		To:                    to,
 		Value:                 value,
 		Data:                  data,
@@ -257,7 +258,7 @@ func (r *ComicCoincRPCClientRepo) TokenTransfer(
 	ctx context.Context,
 	chainID uint16,
 	fromAccountAddress *common.Address,
-	accountWalletPassword string,
+	accountWalletPassword *sstring.SecureString,
 	to *common.Address,
 	tokenID *big.Int,
 ) error {
@@ -277,7 +278,7 @@ func (r *ComicCoincRPCClientRepo) TokenTransfer(
 	args := TokenTransferArgs{
 		ChainID:               chainID,
 		FromAccountAddress:    fromAccountAddress,
-		AccountWalletPassword: accountWalletPassword,
+		AccountWalletPassword: accountWalletPassword.String(),
 		To:                    to,
 		TokenID:               tokenID,
 	}
@@ -296,7 +297,7 @@ func (r *ComicCoincRPCClientRepo) TokenBurn(
 	ctx context.Context,
 	chainID uint16,
 	fromAccountAddress *common.Address,
-	accountWalletPassword string,
+	accountWalletPassword *sstring.SecureString,
 	tokenID *big.Int,
 ) error {
 	// Define our request / response here by copy and pasting from the server codebase.
@@ -314,7 +315,7 @@ func (r *ComicCoincRPCClientRepo) TokenBurn(
 	args := TokenBurnArgs{
 		ChainID:               chainID,
 		FromAccountAddress:    fromAccountAddress,
-		AccountWalletPassword: accountWalletPassword,
+		AccountWalletPassword: accountWalletPassword.String(),
 		TokenID:               tokenID,
 	}
 	var reply TokenBurnReply

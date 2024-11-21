@@ -11,6 +11,7 @@ import (
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/blockchain/keystore"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
+	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/securestring"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/storage/database/mongodb"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
@@ -102,15 +103,24 @@ func doRunNewAccount() {
 	defer session.EndSession(ctx)
 
 	logger.Debug("Creating new account...",
-		slog.Any("wallet_password", flagPassword),
-		slog.Any("wallet_password_repeated", flagPasswordRepeated),
 		slog.Any("wallet_label", flagLabel),
 	)
 
 	// Define a transaction function with a series of operations
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
+		pass, err := sstring.NewSecureString(flagPassword)
+		if err != nil {
+			return nil, err
+		}
+		defer pass.Wipe()
+		passRepeated, err := sstring.NewSecureString(flagPasswordRepeated)
+		if err != nil {
+			return nil, err
+		}
+		defer passRepeated.Wipe()
+
 		// Execution
-		account, err := createAccountService.Execute(sessCtx, flagPassword, flagPasswordRepeated, flagLabel)
+		account, err := createAccountService.Execute(sessCtx, pass, passRepeated, flagLabel)
 		if err != nil {
 			return nil, err
 		}

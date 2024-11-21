@@ -6,6 +6,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
+	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/securestring"
 	auth_domain "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 )
 
@@ -22,8 +23,8 @@ type ComicCoincRPCClientRepository interface {
 
 	CreateAccount(
 		ctx context.Context,
-		password string,
-		passwordRepeated string,
+		password *sstring.SecureString,
+		passwordRepeated *sstring.SecureString,
 		label string,
 	) (*auth_domain.Account, error)
 	AccountListingByLocalWallets(ctx context.Context) ([]*auth_domain.Account, error)
@@ -32,7 +33,7 @@ type ComicCoincRPCClientRepository interface {
 		ctx context.Context,
 		chainID uint16,
 		fromAccountAddress *common.Address,
-		accountWalletPassword string,
+		accountWalletPassword *sstring.SecureString,
 		to *common.Address,
 		value uint64,
 		data []byte,
@@ -44,7 +45,7 @@ type ComicCoincRPCClientRepository interface {
 		ctx context.Context,
 		chainID uint16,
 		fromAccountAddress *common.Address,
-		accountWalletPassword string,
+		accountWalletPassword *sstring.SecureString,
 		to *common.Address,
 		tokenID *big.Int,
 	) error
@@ -53,7 +54,7 @@ type ComicCoincRPCClientRepository interface {
 		ctx context.Context,
 		chainID uint16,
 		fromAccountAddress *common.Address,
-		accountWalletPassword string,
+		accountWalletPassword *sstring.SecureString,
 		tokenID *big.Int,
 	) error
 

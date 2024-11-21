@@ -9,6 +9,7 @@ import (
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/blockchain/keystore"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
+	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/securestring"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 )
 
@@ -25,13 +26,13 @@ func NewWalletEncryptKeyUseCase(
 	return &WalletEncryptKeyUseCase{logger, keystore, repo}
 }
 
-func (uc *WalletEncryptKeyUseCase) Execute(ctx context.Context, password string) (*common.Address, []byte, error) {
+func (uc *WalletEncryptKeyUseCase) Execute(ctx context.Context, password *sstring.SecureString) (*common.Address, []byte, error) {
 	//
 	// STEP 1: Validation.
 	//
 
 	e := make(map[string]string)
-	if password == "" {
+	if password == nil {
 		e["password"] = "missing value"
 	}
 	if len(e) != 0 {

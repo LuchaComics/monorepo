@@ -1,8 +1,10 @@
 package config
 
 import (
-	"github.com/ethereum/go-ethereum/common"
 	maddr "github.com/multiformats/go-multiaddr"
+
+	sbytes "github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/security/securebytes"
+	sstring "github.com/LuchaComics/monorepo/native/desktop/comiccoin-nftstorage/common/security/securestring"
 )
 
 // Config represents the configuration for the application.
@@ -29,37 +31,6 @@ type Config struct {
 type BlockchainConfig struct {
 	// ChainID is the unique ID for this blockchain instance.
 	ChainID uint16 `json:"chain_id"`
-
-	// TransPerBlock is the maximum number of transactions that can be included in a block.
-	TransPerBlock uint16 `json:"trans_per_block"`
-
-	// Difficulty represents how difficult it should be to solve the work problem.
-	Difficulty uint16 `json:"difficulty"`
-
-	// MiningReward is the reward for mining a block.
-	MiningReward uint64 `json:"mining_reward"`
-
-	// GasPrice is the fee paid for each transaction included in a block.
-	GasPrice uint64 `json:"gas_price"`
-
-	// UnitsOfGas represents the units of gas for each transaction.
-	UnitsOfGas uint64 `json:"units_of_gas"`
-
-	// The delay time (in minutes) before this mode will poll the blockchain
-	// network to request a consensus as to what the latest block is.
-	ConsensusPollingDelayInMinutes int64 `json:"consensus_polling_delay_in_minutes"`
-
-	// Control whether to have the miner running in the background for this node.
-	EnableMiner bool `json:"enable_miner"`
-
-	// Used to set what protocol to for mining and coordinating latest blockchain.
-	ConsensusProtocol string `json:"consensus_protocol"`
-
-	// (Only set by PoA node)
-	ProofOfAuthorityAccountAddress *common.Address
-
-	// (Only set by PoA node)
-	ProofOfAuthorityWalletPassword string
 }
 
 // AppConfig represents the configuration for the application.
@@ -68,8 +39,8 @@ type AppConfig struct {
 	// DirPath is the path to the directory where all files for this application are saved.
 	DirPath string
 
-	HMACSecret []byte
-	AppSecret  string
+	HMACSecret *sbytes.SecureBytes
+	AppSecret  *sstring.SecureString
 
 	// HTTPAddress is the address and port that the HTTP JSON API server will listen on.
 	// Do not expose to the public!

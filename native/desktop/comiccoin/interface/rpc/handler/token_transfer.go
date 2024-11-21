@@ -5,6 +5,8 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+
+	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/securestring"
 )
 
 type TokenTransferArgs struct {
@@ -19,11 +21,15 @@ type TokenTransferReply struct {
 }
 
 func (impl *ComicCoinRPCServer) TokenTransfer(args *TokenTransferArgs, reply *TokenTransferReply) error {
+	pass, secureErr := sstring.NewSecureString(args.AccountWalletPassword)
+	if secureErr != nil {
+		return secureErr
+	}
 	err := impl.tokenTransferService.Execute(
 		context.Background(),
 		args.ChainID,
 		args.FromAccountAddress,
-		args.AccountWalletPassword,
+		pass,
 		args.To,
 		args.TokenID,
 	)

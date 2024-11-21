@@ -7,6 +7,7 @@ import (
 
 	pkgkeystore "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/blockchain/keystore"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
+	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/securestring"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -25,7 +26,7 @@ func NewAccountEncryptKeyUseCase(
 	return &AccountEncryptKeyUseCase{logger, keystore, repo}
 }
 
-func (uc *AccountEncryptKeyUseCase) Execute(ctx context.Context, dataDir string, walletPassword string) (*common.Address, []byte, error) {
+func (uc *AccountEncryptKeyUseCase) Execute(ctx context.Context, dataDir string, walletPassword *sstring.SecureString) (*common.Address, []byte, error) {
 	//
 	// STEP 1: Validation.
 	//
@@ -34,7 +35,7 @@ func (uc *AccountEncryptKeyUseCase) Execute(ctx context.Context, dataDir string,
 	if dataDir == "" {
 		e["data_dir"] = "missing value"
 	}
-	if walletPassword == "" {
+	if walletPassword == nil {
 		e["wallet_password"] = "missing value"
 	}
 	if len(e) != 0 {

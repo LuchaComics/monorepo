@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/ethereum/go-ethereum/common"
+
+	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/securestring"
 )
 
 type CoinTransferArgs struct {
@@ -19,11 +21,15 @@ type CoinTransferReply struct {
 }
 
 func (impl *ComicCoinRPCServer) CoinTransfer(args *CoinTransferArgs, reply *CoinTransferReply) error {
+	pass, secureErr := sstring.NewSecureString(args.AccountWalletPassword)
+	if secureErr != nil {
+		return secureErr
+	}
 	err := impl.coinTransferService.Execute(
 		context.Background(),
 		args.ChainID,
 		args.FromAccountAddress,
-		args.AccountWalletPassword,
+		pass,
 		args.To,
 		args.Value,
 		args.Data,

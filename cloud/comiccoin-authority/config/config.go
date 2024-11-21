@@ -6,6 +6,8 @@ import (
 	"strconv"
 
 	"github.com/ethereum/go-ethereum/common"
+
+	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/securestring"
 )
 
 type Configuration struct {
@@ -18,9 +20,6 @@ type serverConf struct {
 	DataDirectory string
 	Port          string
 	IP            string
-	HMACSecret    []byte
-	AuthSecret    []byte
-	APIKey        []byte
 }
 
 // BlockchainConfig represents the configuration for the blockchain.
@@ -48,7 +47,7 @@ type BlockchainConfig struct {
 	ProofOfAuthorityAccountAddress *common.Address
 
 	// (Only set by PoA node)
-	ProofOfAuthorityWalletPassword string
+	ProofOfAuthorityWalletPassword *sstring.SecureString
 }
 
 type dbConfig struct {
@@ -79,7 +78,7 @@ func NewProvider() *Configuration {
 		address := common.HexToAddress(proofOfAuthorityAccountAddress)
 		c.Blockchain.ProofOfAuthorityAccountAddress = &address
 	}
-	c.Blockchain.ProofOfAuthorityWalletPassword = getEnv("COMICCOIN_AUTHORITY_BLOCKCHAIN_PROOF_OF_AUTHORITY_WALLET_PASSWORD", false)
+	c.Blockchain.ProofOfAuthorityWalletPassword = getSecureStringEnv("COMICCOIN_AUTHORITY_BLOCKCHAIN_PROOF_OF_AUTHORITY_WALLET_PASSWORD", false)
 	// Database section.
 	c.DB.URI = getEnv("COMICCOIN_AUTHORITY_DB_URI", true)
 	c.DB.Name = getEnv("COMICCOIN_AUTHORITY_DB_NAME", true)
@@ -93,6 +92,18 @@ func getEnv(key string, required bool) string {
 		log.Fatalf("Environment variable not found: %s", key)
 	}
 	return value
+}
+
+func getSecureStringEnv(key string, required bool) *sstring.SecureString {
+	value := os.Getenv(key)
+	if required && value == "" {
+		log.Fatalf("Environment variable not found: %s", key)
+	}
+	ss, err := sstring.NewSecureString(value)
+	if err != nil {
+		log.Fatalf("Environment variable failed to secure: %v", err)
+	}
+	return ss
 }
 
 func getEnvBool(key string, required bool, defaultValue bool) bool {

@@ -44,8 +44,8 @@ func doDaemonCmd() {
 	// Load up the environment variables.
 	dataDir := config.GetEnvString("COMICCOIN_NFTSTORAGE_APP_DATA_DIRECTORY", true)
 	listenHTTPAddress := config.GetEnvString("COMICCOIN_NFTSTORAGE_ADDRESS", true)
-	appSecretKey := config.GetEnvString("COMICCOIN_NFTSTORAGE_APP_SECRET_KEY", true)
-	hmacSecretKey := config.GetEnvBytes("COMICCOIN_NFTSTORAGE_APP_HMAC_SECRET", true)
+	appSecretKey := config.GetSecureStringEnv("COMICCOIN_NFTSTORAGE_APP_SECRET_KEY", true)
+	hmacSecretKey := config.GetSecureBytesEnv("COMICCOIN_NFTSTORAGE_APP_HMAC_SECRET", true)
 	ipfsIP := config.GetEnvString("COMICCOIN_NFTSTORAGE_IPFS_IP", true)
 	ipfsPort := config.GetEnvString("COMICCOIN_NFTSTORAGE_IPFS_PORT", true)
 	ipfsPublicGatewayAddress := config.GetEnvString("COMICCOIN_NFTSTORAGE_IPFS_PUBLIC_GATEWAY", true)

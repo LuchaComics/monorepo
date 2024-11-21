@@ -20,6 +20,8 @@ require (
 
 require (
 	github.com/alecthomas/units v0.0.0-20240927000941-0f3dac36c52b // indirect
+	github.com/awnumar/memcall v0.2.0 // indirect
+	github.com/awnumar/memguard v0.22.5 // indirect
 	github.com/benbjohnson/clock v1.3.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect

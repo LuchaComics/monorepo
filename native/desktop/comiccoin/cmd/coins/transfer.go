@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
+	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/securestring"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/spf13/cobra"
 
@@ -85,12 +86,16 @@ func doRunTransferCoinsCommand() {
 	ctx := context.Background()
 	recAddr := common.HexToAddress(strings.ToLower(flagRecipientAddress))
 	sendAddr := common.HexToAddress(strings.ToLower(flagSenderAccountAddress))
+	pass, err := sstring.NewSecureString(flagSenderAccountPassword)
+	if err != nil {
+		log.Fatalf("Failed secure password: %v", err)
+	}
 
 	coinTransferServiceErr := rpcClient.CoinTransfer(
 		ctx,
 		flagChainID,
 		&sendAddr,
-		flagSenderAccountPassword,
+		pass,
 		&recAddr,
 		flagQuantity, // A.k.a. `value`.
 		[]byte(flagData),
