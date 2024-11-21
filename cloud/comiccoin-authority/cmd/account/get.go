@@ -70,11 +70,8 @@ func doRunGetAccount() {
 	}
 	defer session.EndSession(ctx)
 
-	logger.Debug("Creating new account...",
-		slog.Any("wallet_password", flagPassword),
-		slog.Any("wallet_password_repeated", flagPasswordRepeated),
-		slog.Any("wallet_label", flagLabel),
-	)
+	logger.Debug("Getting account...",
+		slog.Any("account_address", flagAccountAddress))
 
 	// Define a transaction function with a series of operations
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
@@ -97,7 +94,7 @@ func doRunGetAccount() {
 	if err != nil {
 		logger.Error("session failed error",
 			slog.Any("error", err))
-		log.Fatalf("Failed creating account: %v\n", err)
+		log.Fatalf("Failed getting account: %v\n", err)
 	}
 
 	account := res.(*domain.Account)
