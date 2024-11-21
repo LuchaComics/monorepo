@@ -13,6 +13,7 @@ require (
 	github.com/multiformats/go-multiaddr v0.14.0
 	github.com/rs/cors v1.11.1
 	github.com/spf13/cobra v1.8.1
+	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	go.uber.org/ratelimit v0.3.1
 	golang.org/x/crypto v0.28.0
 )
@@ -93,7 +94,6 @@ require (
 	github.com/samber/lo v1.47.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7 // indirect
 	github.com/whyrusleeping/base32 v0.0.0-20170828182744-c30ac30633cc // indirect
 	github.com/whyrusleeping/cbor v0.0.0-20171005072247-63513f603b11 // indirect
 	github.com/whyrusleeping/cbor-gen v0.1.2 // indirect
