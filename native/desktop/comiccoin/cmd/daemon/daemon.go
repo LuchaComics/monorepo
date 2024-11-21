@@ -245,6 +245,10 @@ func doRunDaemonCmd() {
 		logger,
 		tokRepo,
 	)
+	listTokensByOwnerUseCase := usecase.NewListTokensByOwnerUseCase(
+		logger,
+		tokRepo,
+	)
 
 	// Blockchain State DTO
 	subscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase := auth_usecase.NewSubscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase(
@@ -366,6 +370,10 @@ func doRunDaemonCmd() {
 		logger,
 		getBlockDataUseCase,
 	)
+	tokenListByOwnerService := service.NewTokenListByOwnerService(
+		logger,
+		listTokensByOwnerUseCase,
+	)
 
 	// ------------ Interfaces ------------
 
@@ -384,6 +392,7 @@ func doRunDaemonCmd() {
 		listBlockTransactionsByAddressService,
 		getByBlockTransactionTimestampService,
 		blockDataGetByHashService,
+		tokenListByOwnerService,
 	)
 
 	//

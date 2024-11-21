@@ -385,3 +385,31 @@ func (r *ComicCoincRPCClientRepo) GetBlockDataByHash(
 
 	return reply.BlockData, nil
 }
+
+func (r *ComicCoincRPCClientRepo) ListTokensByOwnerAddress(
+	ctx context.Context,
+	ownerAddress *common.Address,
+) ([]*auth_domain.Token, error) {
+	// Define our request / response here by copy and pasting from the server codebase.
+	type TokensListByOwnerAddressArgs struct {
+		OwnerAddress *common.Address
+	}
+
+	type TokensListByOwnerAddressReply struct {
+		Tokens []*auth_domain.Token
+	}
+
+	// Construct our request / response.
+	args := TokensListByOwnerAddressArgs{
+		OwnerAddress: ownerAddress,
+	}
+	var reply TokensListByOwnerAddressReply
+
+	// Execute the remote procedure call.
+	callError := r.rpcClient.Call("ComicCoinRPCServer.ListTokensByOwnerAddress", args, &reply)
+	if callError != nil {
+		return nil, callError
+	}
+
+	return reply.Tokens, nil
+}

@@ -1,31 +1,29 @@
 package service
 
 import (
+	"context"
 	"log/slog"
 
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
 )
 
-type ListByOwnerTokenService struct {
-	config                   *config.Config
+type TokenListByOwnerService struct {
 	logger                   *slog.Logger
 	listTokensByOwnerUseCase *usecase.ListTokensByOwnerUseCase
 }
 
-func NewListByOwnerTokenService(
-	cfg *config.Config,
+func NewTokenListByOwnerService(
 	logger *slog.Logger,
 	uc1 *usecase.ListTokensByOwnerUseCase,
-) *ListByOwnerTokenService {
-	return &ListByOwnerTokenService{cfg, logger, uc1}
+) *TokenListByOwnerService {
+	return &TokenListByOwnerService{logger, uc1}
 }
 
-func (s *ListByOwnerTokenService) Execute(address *common.Address, limit int) ([]*domain.Token, error) {
+func (s *TokenListByOwnerService) Execute(ctx context.Context, address *common.Address) ([]*domain.Token, error) {
 	//
 	// STEP 1: Validation.
 	//
@@ -44,5 +42,5 @@ func (s *ListByOwnerTokenService) Execute(address *common.Address, limit int) ([
 	// STEP 2: List the tokens by owner.
 	//
 
-	return s.listTokensByOwnerUseCase.Execute(address)
+	return s.listTokensByOwnerUseCase.Execute(ctx, address)
 }

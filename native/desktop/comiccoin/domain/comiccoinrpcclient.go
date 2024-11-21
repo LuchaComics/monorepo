@@ -64,4 +64,9 @@ type ComicCoincRPCClientRepository interface {
 	) ([]*auth_domain.BlockTransaction, error)
 
 	GetBlockDataByHash(ctx context.Context, hash string) (*auth_domain.BlockData, error)
+
+	ListTokensByOwnerAddress(
+		ctx context.Context,
+		ownerAddress *common.Address,
+	) ([]*auth_domain.Token, error)
 }

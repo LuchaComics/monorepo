@@ -38,6 +38,7 @@ func TokensCmd() *cobra.Command {
 	cmd.AddCommand(DownloadTokenCmd())
 	cmd.AddCommand(TransferTokensCmd())
 	cmd.AddCommand(BurnTokensCmd())
+	cmd.AddCommand(ListTokensCmd())
 
 	return cmd
 }

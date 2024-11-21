@@ -154,6 +154,11 @@ func doRunDaemon() {
 		logger,
 		tokenRepo,
 	)
+	listTokensByOwnerUseCase := usecase.NewListTokensByOwnerUseCase(
+		cfg,
+		logger,
+		tokenRepo,
+	)
 
 	// Mempool Transaction
 	mempoolTransactionCreateUseCase := usecase.NewMempoolTransactionCreateUseCase(
@@ -260,6 +265,12 @@ func doRunDaemon() {
 		upsertBlockDataUseCase,
 	)
 
+	// Tokens
+	tokenListByOwnerService := service.NewTokenListByOwnerService(
+		logger,
+		listTokensByOwnerUseCase,
+	)
+
 	//
 	// Interface.
 	//
@@ -303,6 +314,10 @@ func doRunDaemon() {
 	mempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler := httphandler.NewMempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler(
 		logger,
 		mempoolTransactionReceiveDTOFromNetworkService)
+	tokenListByOwnerHTTPHandler := httphandler.NewTokenListByOwnerHTTPHandler(
+		logger,
+		tokenListByOwnerService,
+	)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
 		blackp)
@@ -319,6 +334,7 @@ func doRunDaemon() {
 		getBlockDataHTTPHandler,
 		signedTransactionSubmissionHTTPHandler,
 		mempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler,
+		tokenListByOwnerHTTPHandler,
 	)
 
 	//

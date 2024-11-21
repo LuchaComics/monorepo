@@ -42,6 +42,7 @@ type httpServerImpl struct {
 	signedTransactionSubmissionHTTPHandler                    *handler.SignedTransactionSubmissionHTTPHandler
 	mempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler *handler.MempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler
 	blockchainStateChangeEventDTOHTTPHandler                  *handler.BlockchainStateChangeEventDTOHTTPHandler
+	tokenListByOwnerHTTPHandler                               *handler.TokenListByOwnerHTTPHandler
 }
 
 // NewHTTPServer creates a new HTTP server instance.
@@ -58,6 +59,7 @@ func NewHTTPServer(
 	http7 *handler.GetBlockDataHTTPHandler,
 	http8 *handler.SignedTransactionSubmissionHTTPHandler,
 	http9 *handler.MempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler,
+	http10 *handler.TokenListByOwnerHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.IP == "" {
@@ -93,6 +95,7 @@ func NewHTTPServer(
 		getBlockDataHTTPHandler:                                   http7,
 		signedTransactionSubmissionHTTPHandler:                    http8,
 		mempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler: http9,
+		tokenListByOwnerHTTPHandler:                               http10,
 	}
 
 	// Attach the HTTP server controller to the ServeMux.
@@ -170,14 +173,17 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "mempool-transactions" && r.Method == http.MethodPost:
 		port.mempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler.Execute(w, r)
 
+	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "tokens" && r.Method == http.MethodGet:
+		port.tokenListByOwnerHTTPHandler.Execute(w, r)
+
 	// --- CATCH ALL: D.N.E. ---
 	default:
 		// Log a message to indicate that the request is not found.
-		port.logger.Debug("404 request",
-			slog.Any("method", r.Method),
-			slog.Any("url_tokens", p),
-			slog.Int("url_token_count", n),
-		)
+		// port.logger.Debug("404 request",
+		// 	slog.Any("method", r.Method),
+		// 	slog.Any("url_tokens", p),
+		// 	slog.Int("url_token_count", n),
+		// )
 
 		// Return a 404 response.
 		http.NotFound(w, r)
