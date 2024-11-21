@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/cmd/account"
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/cmd/auth"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/cmd/coins"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/cmd/daemon"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/cmd/genesis"
@@ -34,7 +33,6 @@ func Execute() {
 	rootCmd.AddCommand(account.AccountCmd())
 	rootCmd.AddCommand(coins.CoinsCmd())
 	rootCmd.AddCommand(tokens.TokensCmd())
-	rootCmd.AddCommand(auth.AuthCmd())
 	rootCmd.AddCommand(genesis.GenesisCmd())
 	rootCmd.AddCommand(daemon.DaemonCmd())
 	rootCmd.AddCommand(version.VersionCmd())

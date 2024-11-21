@@ -63,9 +63,6 @@ func NewProvider() *Configuration {
 	c.App.DataDirectory = getEnv("COMICCOIN_AUTHORITY_APP_DATA_DIRECTORY", true)
 	c.App.Port = getEnv("COMICCOIN_AUTHORITY_PORT", true)
 	c.App.IP = getEnv("COMICCOIN_AUTHORITY_IP", false)
-	c.App.HMACSecret = []byte(getEnv("COMICCOIN_AUTHORITY_APP_HMAC_SECRET", false))
-	c.App.AuthSecret = []byte(getEnv("COMICCOIN_AUTHORITY_APP_AUTH_SECRET", false))
-	c.App.APIKey = []byte(getEnv("COMICCOIN_AUTHORITY_APP_API_KEY", false))
 
 	// Blockchain section.
 	chainID, _ := strconv.ParseUint(getEnv("COMICCOIN_AUTHORITY_BLOCKCHAIN_CHAIN_ID", true), 10, 16)
