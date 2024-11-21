@@ -219,8 +219,8 @@ func (r *BlockDataRepo) ListBlockTransactionsByAddress(ctx context.Context, addr
 	var blockTransactions []*domain.BlockTransaction
 	cur, err := r.collection.Find(ctx, bson.M{
 		"$or": []bson.M{
-			{"header.trans.from": address},
-			{"header.trans.to": address},
+			{"header.trans": bson.M{"$elemMatch": bson.M{"signed_transaction.from": address}}},
+			{"header.trans": bson.M{"$elemMatch": bson.M{"signed_transaction.to": address}}},
 		},
 	})
 	if err != nil {
@@ -234,7 +234,7 @@ func (r *BlockDataRepo) ListBlockTransactionsByAddress(ctx context.Context, addr
 			return nil, err
 		}
 		for _, trans := range blockData.Trans {
-			if trans.SignedTransaction.From == address || trans.SignedTransaction.To == address {
+			if *trans.SignedTransaction.From == *address || *trans.SignedTransaction.To == *address {
 				blockTransactions = append(blockTransactions, &trans)
 			}
 		}
@@ -244,7 +244,6 @@ func (r *BlockDataRepo) ListBlockTransactionsByAddress(ctx context.Context, addr
 	}
 	return blockTransactions, nil
 }
-
 func (r *BlockDataRepo) GetByBlockTransactionTimestamp(ctx context.Context, timestamp uint64) (*domain.BlockData, error) {
 	var blockData domain.BlockData
 	err := r.collection.FindOne(ctx, bson.M{"trans.timestamp": timestamp}).Decode(&blockData)
