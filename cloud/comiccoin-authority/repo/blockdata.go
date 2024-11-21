@@ -1,7 +1,10 @@
 package repo
 
 import (
+	"bytes"
 	"context"
+	"encoding/hex"
+	"fmt"
 	"log"
 	"log/slog"
 
@@ -216,37 +219,66 @@ func (r *BlockDataRepo) ListUnorderedHashArrayForChainID(ctx context.Context, ch
 }
 
 func (r *BlockDataRepo) ListBlockTransactionsByAddress(ctx context.Context, address *common.Address) ([]*domain.BlockTransaction, error) {
+	// Result slice
 	var blockTransactions []*domain.BlockTransaction
-	cur, err := r.collection.Find(ctx, bson.M{
-		"$or": []bson.M{
-			{"header.trans": bson.M{"$elemMatch": bson.M{"signed_transaction.from": address}}},
-			{"header.trans": bson.M{"$elemMatch": bson.M{"signed_transaction.to": address}}},
+
+	// Dereference the address pointer for the query
+	if address == nil {
+		return nil, fmt.Errorf("address cannot be nil")
+	}
+	// Decode the hex string (strip "0x" prefix)
+	addressBytes, err := hex.DecodeString(address.Hex()[2:])
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode address: %v", err)
+	}
+
+	// MongoDB filter
+	filter := bson.M{
+		"trans": bson.M{
+			"$elemMatch": bson.M{
+				"$or": []bson.M{
+					{"signedtransaction.transaction.from": addressBytes},
+					{"signedtransaction.transaction.to": addressBytes},
+				},
+			},
 		},
-	})
+	}
+
+	// Execute the query
+	cur, err := r.collection.Find(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
 	defer cur.Close(ctx)
+
+	// Iterate over the cursor
 	for cur.Next(ctx) {
 		var blockData domain.BlockData
-		err := cur.Decode(&blockData)
-		if err != nil {
+		if err := cur.Decode(&blockData); err != nil {
 			return nil, err
 		}
+
+		// Filter transactions by `from` or `to` address
 		for _, trans := range blockData.Trans {
-			if *trans.SignedTransaction.From == *address || *trans.SignedTransaction.To == *address {
+			if (trans.SignedTransaction.Transaction.From != nil && bytes.Equal(trans.SignedTransaction.Transaction.From.Bytes(), addressBytes)) ||
+				(trans.SignedTransaction.Transaction.To != nil && bytes.Equal(trans.SignedTransaction.Transaction.To.Bytes(), addressBytes)) {
 				blockTransactions = append(blockTransactions, &trans)
 			}
 		}
 	}
+
+	// Check for cursor errors
 	if err := cur.Err(); err != nil {
 		return nil, err
 	}
+
 	return blockTransactions, nil
 }
+
 func (r *BlockDataRepo) GetByBlockTransactionTimestamp(ctx context.Context, timestamp uint64) (*domain.BlockData, error) {
 	var blockData domain.BlockData
-	err := r.collection.FindOne(ctx, bson.M{"trans.timestamp": timestamp}).Decode(&blockData)
+	err := r.collection.FindOne(ctx, bson.M{"trans": bson.M{"$elemMatch": bson.M{"signed_transaction.timestamp": timestamp}}}).
+		Decode(&blockData)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, nil
