@@ -73,9 +73,10 @@ func (r *BlockDataRepo) GetByHash(ctx context.Context, hash string) (*domain.Blo
 	return &blockData, nil
 }
 
-func (r *BlockDataRepo) ListAll(ctx context.Context) ([]*domain.BlockData, error) {
+func (r *BlockDataRepo) ListByChainID(ctx context.Context, chainID uint16) ([]*domain.BlockData, error) {
 	blockDatas := make([]*domain.BlockData, 0)
-	cur, err := r.collection.Find(ctx, bson.D{})
+	filter := bson.M{"header.chain_id": chainID}
+	cur, err := r.collection.Find(ctx, filter)
 	if err != nil {
 		return nil, err
 	}

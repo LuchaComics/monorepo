@@ -2,7 +2,6 @@ package repo
 
 import (
 	"context"
-	"log"
 	"log/slog"
 	"strings"
 
@@ -48,7 +47,7 @@ func (r *BlockDataRepo) GetByHash(ctx context.Context, hash string) (*domain.Blo
 	return b, nil
 }
 
-func (r *BlockDataRepo) ListAll(ctx context.Context) ([]*domain.BlockData, error) {
+func (r *BlockDataRepo) ListByChainID(ctx context.Context, chainID uint16) ([]*domain.BlockData, error) {
 	res := make([]*domain.BlockData, 0)
 	err := r.dbClient.Iterate(func(key, value []byte) error {
 		blockdata, err := domain.NewBlockDataFromDeserialize(value)
@@ -60,7 +59,9 @@ func (r *BlockDataRepo) ListAll(ctx context.Context) ([]*domain.BlockData, error
 			return err
 		}
 
-		res = append(res, blockdata)
+		if blockdata.Header.ChainID == chainID {
+			res = append(res, blockdata)
+		}
 
 		// Return nil to indicate success
 		return nil
@@ -125,23 +126,6 @@ func (r *BlockDataRepo) GetByBlockTransactionTimestamp(ctx context.Context, time
 		return nil
 	})
 	return res, err
-}
-
-func (r *BlockDataRepo) ListInHashes(ctx context.Context, hashes []string) ([]*domain.BlockData, error) {
-	log.Fatal("TODO: ListInHashes")
-	return nil, nil
-}
-func (r *BlockDataRepo) ListInBetweenBlockNumbersForChainID(ctx context.Context, startBlockNumber, finishBlockNumber uint64, chainID uint16) ([]*domain.BlockData, error) {
-	log.Fatal("TODO: ListInBetweenBlockNumbersForChainID")
-	return nil, nil
-}
-func (r *BlockDataRepo) ListBlockNumberByHashArrayForChainID(ctx context.Context, chainID uint16) ([]domain.BlockNumberByHash, error) {
-	log.Fatal("TODO: ListBlockNumberByHashArrayForChainID")
-	return nil, nil
-}
-func (r *BlockDataRepo) ListUnorderedHashArrayForChainID(ctx context.Context, chainID uint16) ([]string, error) {
-	log.Fatal("TODO: ListUnorderedHashArrayForChainID")
-	return nil, nil
 }
 
 func (r *BlockDataRepo) OpenTransaction() error {

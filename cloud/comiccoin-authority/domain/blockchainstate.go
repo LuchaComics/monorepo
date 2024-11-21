@@ -55,12 +55,6 @@ type BlockchainStateRepository interface {
 	// GetByChainID retrieves an blockchain state by its chain ID.
 	GetByChainID(ctx context.Context, chainID uint16) (*BlockchainState, error)
 
-	// GetForMainNet retrieves an blockchain state by the MainNet chain.
-	GetForMainNet(ctx context.Context) (*BlockchainState, error)
-
-	// GetForTestNet retrieves an blockchain state by the TestNet chain.
-	GetForTestNet(ctx context.Context) (*BlockchainState, error)
-
 	// ListAll retrieves all blockchain states in the repository.
 	ListAll(ctx context.Context) ([]*BlockchainState, error)
 

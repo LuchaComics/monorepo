@@ -3,7 +3,7 @@
 #############
 # The purpose of this docker-compose is to setup our application which is
 # dependent on the `MongoDB` database cluster running concurrently with this
-# server for user-acceptance testing purposes. 
+# server for user-acceptance testing purposes.
 #
 # ------------------------------------------------------------------------------
 # $ docker-compose -p comiccoin_authority -f docker-compose.yml up   #
@@ -37,8 +37,8 @@ services:
       start_interval: 1s
       retries: 30
     volumes:
-      - "db1_data:/data/db"
-      - "db1_config:/data/configdb"
+      - "./data/db1/db:/data/db"
+      - "./data/db1/configdb:/data/configdb"
 
   db2:
     container_name: comiccoin_authority_db2
@@ -59,8 +59,8 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - "db2_data:/data/db"
-      - "db2_config:/data/configdb"
+      - "./data/db2/db:/data/db"
+      - "./data/db2/configdb:/data/configdb"
 
   db3:
     container_name: comiccoin_authority_db3
@@ -81,8 +81,8 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - "db3_data:/data/db"
-      - "db3_config:/data/configdb"
+      - "./data/db3/db:/data/db"
+      - "./data/db3/configdb:/data/configdb"
 
   # The main application.
   app:
@@ -94,9 +94,6 @@ services:
       COMICCOIN_AUTHORITY_DB_NAME: ${COMICCOIN_AUTHORITY_DB_NAME}
       COMICCOIN_AUTHORITY_IP: 0.0.0.0
       COMICCOIN_AUTHORITY_PORT: 8000
-      COMICCOIN_AUTHORITY_APP_HMAC_SECRET: ${COMICCOIN_AUTHORITY_APP_HMAC_SECRET}
-      COMICCOIN_AUTHORITY_APP_AUTH_SECRET: ${COMICCOIN_AUTHORITY_APP_AUTH_SECRET}
-      COMICCOIN_AUTHORITY_APP_API_KEY: ${COMICCOIN_AUTHORITY_APP_API_KEY}
       COMICCOIN_AUTHORITY_BLOCKCHAIN_CHAIN_ID: ${COMICCOIN_AUTHORITY_BLOCKCHAIN_CHAIN_ID}
       COMICCOIN_AUTHORITY_BLOCKCHAIN_TRANS_PER_BLOCK: ${COMICCOIN_AUTHORITY_BLOCKCHAIN_TRANS_PER_BLOCK}
       COMICCOIN_AUTHORITY_BLOCKCHAIN_DIFFICULTY: ${COMICCOIN_AUTHORITY_BLOCKCHAIN_DIFFICULTY}
@@ -121,11 +118,3 @@ services:
       - db3
     volumes: # Connect the local filesystem with the docker filesystem. DO NOT REMOVE.
       - ./:/go/src/github.com/LuchaComics/monorepo/cloud/comiccoin-authority # IMPORTANT: Required for hotreload via `CompileDaemon`.
-
-volumes:
-  db1_data:
-  db2_data:
-  db3_data:
-  db1_config:
-  db2_config:
-  db3_config:

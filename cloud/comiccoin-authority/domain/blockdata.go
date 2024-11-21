@@ -45,17 +45,8 @@ type BlockDataRepository interface {
 	// It takes a hash and returns the block data and an error if one occurs.
 	GetByHash(ctx context.Context, hash string) (*BlockData, error)
 
-	// ListAll lists all block data in the repository.
-	// It returns a list of block data and an error if one occurs.
-	ListAll(ctx context.Context) ([]*BlockData, error)
-
-	ListInHashes(ctx context.Context, hashes []string) ([]*BlockData, error)
-
-	ListInBetweenBlockNumbersForChainID(ctx context.Context, startBlockNumber, finishBlockNumber uint64, chainID uint16) ([]*BlockData, error)
-
-	ListBlockNumberByHashArrayForChainID(ctx context.Context, chainID uint16) ([]BlockNumberByHash, error)
-
-	ListUnorderedHashArrayForChainID(ctx context.Context, chainID uint16) ([]string, error)
+	// ListByChainID lists all block data in the repository for the particular chain.
+	ListByChainID(ctx context.Context, chainID uint16) ([]*BlockData, error)
 
 	// DeleteByHash deletes a block data by its hash.
 	// It takes a hash and returns an error if one occurs.

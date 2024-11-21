@@ -46,14 +46,6 @@ func (r *BlockchainStateRepo) GetByChainID(ctx context.Context, chainID uint16) 
 	return b, nil
 }
 
-func (r *BlockchainStateRepo) GetForMainNet(ctx context.Context) (*domain.BlockchainState, error) {
-	return r.GetByChainID(ctx, 1)
-}
-
-func (r *BlockchainStateRepo) GetForTestNet(ctx context.Context) (*domain.BlockchainState, error) {
-	return r.GetByChainID(ctx, 2)
-}
-
 func (r *BlockchainStateRepo) DeleteByChainID(ctx context.Context, chainID uint16) error {
 	err := r.dbClient.Delete(fmt.Sprintf("%v", chainID))
 	if err != nil {
