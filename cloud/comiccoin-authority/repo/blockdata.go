@@ -219,8 +219,8 @@ func (r *BlockDataRepo) ListBlockTransactionsByAddress(ctx context.Context, addr
 	var blockTransactions []*domain.BlockTransaction
 	cur, err := r.collection.Find(ctx, bson.M{
 		"$or": []bson.M{
-			{"trans.signedtransaction.from": address},
-			{"trans.signedtransaction.to": address},
+			{"header.trans.from": address},
+			{"header.trans.to": address},
 		},
 	})
 	if err != nil {
