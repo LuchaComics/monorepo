@@ -30,8 +30,8 @@ export function GetIsBlockhainNodeRunning() {
   return window['go']['main']['App']['GetIsBlockhainNodeRunning']();
 }
 
-export function GetNFTStoreRemoteAddressFromPreferences() {
-  return window['go']['main']['App']['GetNFTStoreRemoteAddressFromPreferences']();
+export function GetNFTStorageAddressFromPreferences() {
+  return window['go']['main']['App']['GetNFTStorageAddressFromPreferences']();
 }
 
 export function GetNonFungibleToken(arg1) {
@@ -70,12 +70,12 @@ export function SaveDataDirectory(arg1) {
   return window['go']['main']['App']['SaveDataDirectory'](arg1);
 }
 
-export function SaveNFTStoreRemoteAddress(arg1) {
-  return window['go']['main']['App']['SaveNFTStoreRemoteAddress'](arg1);
-}
-
 export function SetDefaultWalletAddress(arg1) {
   return window['go']['main']['App']['SetDefaultWalletAddress'](arg1);
+}
+
+export function SetNFTStorageAddress(arg1) {
+  return window['go']['main']['App']['SetNFTStorageAddress'](arg1);
 }
 
 export function ShutdownApp() {

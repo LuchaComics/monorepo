@@ -20,7 +20,7 @@ func (a *App) GetDefaultDataDirectory() string {
 	return pref.GetDefaultDataDirectory()
 }
 
-func (a *App) GetNFTStoreRemoteAddressFromPreferences() string { //TODO: Refactor `GetNFTStoreRemoteAddressFromPreferences` to `GetNFTStorageAddressFromPreferences`.
+func (a *App) GetNFTStorageAddressFromPreferences() string {
 	preferences := pref.PreferencesInstance()
 	nftStoreRemoteAddress := preferences.NFTStorageAddress
 	return nftStoreRemoteAddress
@@ -61,7 +61,7 @@ func (a *App) SaveDataDirectory(newDataDirectory string) error {
 	return nil
 }
 
-func (a *App) SaveNFTStoreRemoteAddress(nftStorageAddress string) error { //TODO: Refactor `SaveNFTStoreRemoteAddress` to `SetNFTStorageAddress`.
+func (a *App) SetNFTStorageAddress(nftStorageAddress string) error {
 	// Defensive code
 	if nftStorageAddress == "" {
 		return fmt.Errorf("failed saving nft storage address because: %v", "value is empty")
