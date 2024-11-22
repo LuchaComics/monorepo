@@ -16,9 +16,8 @@ func (a *App) DefaultWalletAddress() string {
 	return preferences.DefaultWalletAddress
 }
 
-func (a *App) ListWallets() ([]*domain.Wallet, error) { //TODO FINISH BELOW
-	// return a.walletListService.Execute()
-	return make([]*domain.Wallet, 0), nil //TODO: REPAIR ABOVE.
+func (a *App) ListWallets() ([]*domain.Wallet, error) {
+	return a.walletsFilterByLocalService.Execute(a.ctx)
 }
 
 func (a *App) CreateWallet(walletPassword, walletPasswordRepeated, walletLabel string) (string, error) {

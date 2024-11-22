@@ -44,6 +44,7 @@ type App struct {
 	tokenListByOwnerService               *service.TokenListByOwnerService
 	blockchainSyncService                 *service.BlockchainSyncWithBlockchainAuthorityService
 	blockchainSyncManagerService          *service.BlockchainSyncManagerService
+	walletsFilterByLocalService           *service.WalletsFilterByLocalService
 }
 
 // NewApp creates a new App application struct
@@ -195,7 +196,6 @@ func (a *App) startup(ctx context.Context) {
 		logger,
 		walletRepo,
 	)
-	_ = listAllWalletUseCase
 
 	// Account
 	createAccountUseCase := usecase.NewCreateAccountUseCase(
@@ -398,6 +398,10 @@ func (a *App) startup(ctx context.Context) {
 		logger,
 		listTokensByOwnerUseCase,
 	)
+	walletsFilterByLocalService := service.NewWalletsFilterByLocalService(
+		logger,
+		listAllWalletUseCase,
+	)
 
 	// ------------ Interfaces ------------
 
@@ -415,6 +419,7 @@ func (a *App) startup(ctx context.Context) {
 	a.getByBlockTransactionTimestampService = getByBlockTransactionTimestampService
 	a.blockDataGetByHashService = blockDataGetByHashService
 	a.tokenListByOwnerService = tokenListByOwnerService
+	a.walletsFilterByLocalService = walletsFilterByLocalService
 
 	//
 	// Execute.
