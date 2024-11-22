@@ -102,6 +102,36 @@ func (r *BlockDataRepo) ListBlockTransactionsByAddress(ctx context.Context, addr
 	return res, err
 }
 
+func (r *BlockDataRepo) ListWithLimitForBlockTransactionsByAddress(ctx context.Context, address *common.Address, limit int64) ([]*domain.BlockTransaction, error) {
+	res := make([]*domain.BlockTransaction, 0)
+	var counter int64
+	err := r.dbClient.Iterate(func(key, value []byte) error {
+		blockdata, err := domain.NewBlockDataFromDeserialize(value)
+		if err != nil {
+			r.logger.Error("failed to deserialize",
+				slog.String("key", string(key)),
+				slog.String("value", string(value)),
+				slog.Any("error", err))
+			return err
+		}
+
+		for _, tx := range blockdata.Trans {
+			if strings.ToLower(tx.To.String()) == strings.ToLower(address.String()) || strings.ToLower(tx.From.String()) == strings.ToLower(address.String()) {
+				res = append(res, &tx)
+				counter++
+			}
+			if counter > limit {
+				// Return nil to indicate success because non-nil's indicate error.
+				return nil
+			}
+		}
+
+		// Return nil to indicate success because non-nil's indicate error.
+		return nil
+	})
+	return res, err
+}
+
 func (r *BlockDataRepo) GetByBlockTransactionTimestamp(ctx context.Context, timestamp uint64) (*domain.BlockData, error) {
 	var res *domain.BlockData
 	err := r.dbClient.Iterate(func(key, value []byte) error {

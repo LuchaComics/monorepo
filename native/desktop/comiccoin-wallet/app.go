@@ -30,22 +30,23 @@ type App struct {
 
 	kmutex kmutexutil.KMutexProvider
 
-	getAccountService                     *service.GetAccountService
-	createAccountService                  *service.CreateAccountService
-	accountListingByLocalWalletsService   *service.AccountListingByLocalWalletsService
-	coinTransferService                   *service.CoinTransferService
-	tokenGetService                       *service.TokenGetService
-	tokenTransferService                  *service.TokenTransferService
-	tokenBurnService                      *service.TokenBurnService
-	getOrDownloadNonFungibleTokenService  *service.GetOrDownloadNonFungibleTokenService
-	listBlockTransactionsByAddressService *service.ListBlockTransactionsByAddressService
-	getByBlockTransactionTimestampService *service.GetByBlockTransactionTimestampService
-	blockDataGetByHashService             *service.BlockDataGetByHashService
-	tokenListByOwnerService               *service.TokenListByOwnerService
-	tokenCountByOwnerService              *service.TokenCountByOwnerService
-	blockchainSyncService                 *service.BlockchainSyncWithBlockchainAuthorityService
-	blockchainSyncManagerService          *service.BlockchainSyncManagerService
-	walletsFilterByLocalService           *service.WalletsFilterByLocalService
+	getAccountService                                   *service.GetAccountService
+	createAccountService                                *service.CreateAccountService
+	accountListingByLocalWalletsService                 *service.AccountListingByLocalWalletsService
+	coinTransferService                                 *service.CoinTransferService
+	tokenGetService                                     *service.TokenGetService
+	tokenTransferService                                *service.TokenTransferService
+	tokenBurnService                                    *service.TokenBurnService
+	getOrDownloadNonFungibleTokenService                *service.GetOrDownloadNonFungibleTokenService
+	listBlockTransactionsByAddressService               *service.ListBlockTransactionsByAddressService
+	listBlockTransactionsByLatestForOwnerAddressService *service.ListBlockTransactionsByLatestForOwnerAddressService
+	getByBlockTransactionTimestampService               *service.GetByBlockTransactionTimestampService
+	blockDataGetByHashService                           *service.BlockDataGetByHashService
+	tokenListByOwnerService                             *service.TokenListByOwnerService
+	tokenCountByOwnerService                            *service.TokenCountByOwnerService
+	blockchainSyncService                               *service.BlockchainSyncWithBlockchainAuthorityService
+	blockchainSyncManagerService                        *service.BlockchainSyncManagerService
+	walletsFilterByLocalService                         *service.WalletsFilterByLocalService
 }
 
 // NewApp creates a new App application struct
@@ -258,6 +259,9 @@ func (a *App) startup(ctx context.Context) {
 	listBlockTransactionsByAddressUseCase := usecase.NewListBlockTransactionsByAddressUseCase(
 		logger,
 		blockDataRepo)
+	listBlockTransactionsByLatestUseCase := usecase.NewListBlockTransactionsByLatestUseCase(
+		logger,
+		blockDataRepo)
 
 	// Block Data DTO
 	getBlockDataDTOFromBlockchainAuthorityUseCase := auth_usecase.NewGetBlockDataDTOFromBlockchainAuthorityUseCase(
@@ -391,6 +395,10 @@ func (a *App) startup(ctx context.Context) {
 		logger,
 		listBlockTransactionsByAddressUseCase,
 	)
+	listBlockTransactionsByLatestForOwnerAddressService := service.NewListBlockTransactionsByLatestForOwnerAddressService(
+		logger,
+		listBlockTransactionsByLatestUseCase,
+	)
 	getByBlockTransactionTimestampService := service.NewGetByBlockTransactionTimestampService(
 		logger,
 		getByBlockTransactionTimestampUseCase,
@@ -425,6 +433,7 @@ func (a *App) startup(ctx context.Context) {
 	a.blockchainSyncManagerService = blockchainSyncManagerService
 	a.getOrDownloadNonFungibleTokenService = getOrDownloadNonFungibleTokenService
 	a.listBlockTransactionsByAddressService = listBlockTransactionsByAddressService
+	a.listBlockTransactionsByLatestForOwnerAddressService = listBlockTransactionsByLatestForOwnerAddressService
 	a.getByBlockTransactionTimestampService = getByBlockTransactionTimestampService
 	a.blockDataGetByHashService = blockDataGetByHashService
 	a.tokenListByOwnerService = tokenListByOwnerService

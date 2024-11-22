@@ -98,6 +98,7 @@ func (r *BlockDataRepo) ListByChainID(ctx context.Context, chainID uint16) ([]*d
 	return blockDatas, nil
 }
 
+// ListInHashes method is deprecated.
 func (r *BlockDataRepo) ListInHashes(ctx context.Context, hashes []string) ([]*domain.BlockData, error) {
 	blockDatas := make([]*domain.BlockData, 0)
 	filter := bson.M{
@@ -124,6 +125,7 @@ func (r *BlockDataRepo) ListInHashes(ctx context.Context, hashes []string) ([]*d
 	return blockDatas, nil
 }
 
+// ListInBetweenBlockNumbersForChainID method is deprecated.
 func (r *BlockDataRepo) ListInBetweenBlockNumbersForChainID(ctx context.Context, startBlockNumber, finishBlockNumber uint64, chainID uint16) ([]*domain.BlockData, error) {
 	blockDatas := make([]*domain.BlockData, 0)
 	filter := bson.M{
@@ -157,6 +159,7 @@ func (r *BlockDataRepo) DeleteByHash(ctx context.Context, hash string) error {
 	return err
 }
 
+// ListBlockNumberByHashArrayForChainID method is deprecated.
 func (r *BlockDataRepo) ListBlockNumberByHashArrayForChainID(ctx context.Context, chainID uint16) ([]domain.BlockNumberByHash, error) {
 	blockNumberByHashArray := make([]domain.BlockNumberByHash, 0)
 	projection := bson.M{
@@ -187,6 +190,7 @@ func (r *BlockDataRepo) ListBlockNumberByHashArrayForChainID(ctx context.Context
 	return blockNumberByHashArray, nil
 }
 
+// ListUnorderedHashArrayForChainID method is deprecated.
 func (r *BlockDataRepo) ListUnorderedHashArrayForChainID(ctx context.Context, chainID uint16) ([]string, error) {
 	hashArray := make([]string, 0)
 	projection := bson.M{
@@ -246,6 +250,65 @@ func (r *BlockDataRepo) ListBlockTransactionsByAddress(ctx context.Context, addr
 
 	// Execute the query
 	cur, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+
+	// Iterate over the cursor
+	for cur.Next(ctx) {
+		var blockData domain.BlockData
+		if err := cur.Decode(&blockData); err != nil {
+			return nil, err
+		}
+
+		// Filter transactions by `from` or `to` address
+		for _, trans := range blockData.Trans {
+			if (trans.SignedTransaction.Transaction.From != nil && bytes.Equal(trans.SignedTransaction.Transaction.From.Bytes(), addressBytes)) ||
+				(trans.SignedTransaction.Transaction.To != nil && bytes.Equal(trans.SignedTransaction.Transaction.To.Bytes(), addressBytes)) {
+				blockTransactions = append(blockTransactions, &trans)
+			}
+		}
+	}
+
+	// Check for cursor errors
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+
+	return blockTransactions, nil
+}
+
+func (r *BlockDataRepo) ListWithLimitForBlockTransactionsByAddress(ctx context.Context, address *common.Address, limit int64) ([]*domain.BlockTransaction, error) {
+	// Result slice
+	// Result slice
+	var blockTransactions []*domain.BlockTransaction
+
+	// Dereference the address pointer for the query
+	if address == nil {
+		return nil, fmt.Errorf("address cannot be nil")
+	}
+	// Decode the hex string (strip "0x" prefix)
+	addressBytes, err := hex.DecodeString(address.Hex()[2:])
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode address: %v", err)
+	}
+
+	// MongoDB filter
+	filter := bson.M{
+		"trans": bson.M{
+			"$elemMatch": bson.M{
+				"$or": []bson.M{
+					{"signedtransaction.transaction.from": addressBytes},
+					{"signedtransaction.transaction.to": addressBytes},
+				},
+			},
+		},
+	}
+	options := options.Find().SetLimit(limit)
+
+	// Execute the query
+	cur, err := r.collection.Find(ctx, filter, options)
 	if err != nil {
 		return nil, err
 	}

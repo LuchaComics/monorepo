@@ -53,19 +53,18 @@ func (a *App) GetTotalTokens(address string) (int64, error) {
 }
 
 func (a *App) GetRecentTransactions(address string) ([]*domain.BlockTransaction, error) { //TODO FINISH BELOW
-	// addr := common.HexToAddress(strings.ToLower(address))
-	//
-	// // Defensive code
-	// if address == "" {
-	// 	return make([]*domain.BlockTransaction, 0), fmt.Errorf("failed because: address is null: %v", address)
-	// }
-	//
-	// txs, err := a.listRecentBlockTransactionService.Execute(&addr, 5)
-	// if err != nil {
-	// 	a.logger.Error("Failed getting account balance", slog.Any("error", err))
-	// 	return nil, err
-	// }
-	//
-	// return txs, nil
-	return make([]*domain.BlockTransaction, 0), nil //TODO: REPAIR ABOVE.
+	addr := common.HexToAddress(strings.ToLower(address))
+
+	// Defensive code
+	if address == "" {
+		return make([]*domain.BlockTransaction, 0), fmt.Errorf("failed because: address is null: %v", address)
+	}
+
+	txs, err := a.listBlockTransactionsByLatestForOwnerAddressService.Execute(a.ctx, &addr, 5)
+	if err != nil {
+		a.logger.Error("Failed listing", slog.Any("error", err))
+		return nil, err
+	}
+
+	return txs, nil
 }

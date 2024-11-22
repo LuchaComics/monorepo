@@ -55,6 +55,9 @@ type BlockDataRepository interface {
 	// ListBlockTransactionsByAddress lists all the transactions for a particular address.
 	ListBlockTransactionsByAddress(ctx context.Context, address *common.Address) ([]*BlockTransaction, error)
 
+	// ListBlockTransactionsByAddress lists all the transactions for a particular address.
+	ListWithLimitForBlockTransactionsByAddress(ctx context.Context, address *common.Address, limit int64) ([]*BlockTransaction, error)
+
 	GetByBlockTransactionTimestamp(ctx context.Context, timestamp uint64) (*BlockData, error)
 
 	OpenTransaction() error
