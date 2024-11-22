@@ -20,13 +20,22 @@ func (a *App) GetTransactions(address string) ([]*domain.BlockTransaction, error
 
 	txs, err := a.listBlockTransactionsByAddressService.Execute(a.ctx, &addr)
 	if err != nil {
-		a.logger.Error("Failed getting account balance", slog.Any("error", err))
+		a.logger.Error("Failed listing block txs by address", slog.Any("error", err))
 		return nil, err
 	}
+	a.logger.Debug("Fetched transactions",
+		slog.Any("txs", txs))
 
 	return txs, nil
 }
 
 func (a *App) GetBlockDataByBlockTransactionTimestamp(blockDataBlockTransactionTimestamp uint64) (*domain.BlockData, error) {
-	return a.getByBlockTransactionTimestampService.Execute(a.ctx, blockDataBlockTransactionTimestamp)
+	bd, err := a.getByBlockTransactionTimestampService.Execute(a.ctx, blockDataBlockTransactionTimestamp)
+	if err != nil {
+		a.logger.Error("Failed getting block data by tx timestamp", slog.Any("error", err))
+		return nil, err
+	}
+	a.logger.Debug("Fetched a single transaction",
+		slog.Any("bd", bd))
+	return bd, nil
 }
