@@ -47,6 +47,7 @@ type App struct {
 	blockchainSyncService                          *service.BlockchainSyncWithBlockchainAuthorityService
 	blockchainSyncManagerService                   *service.BlockchainSyncManagerService
 	walletsFilterByLocalService                    *service.WalletsFilterByLocalService
+	listNonFungibleTokensByOwnerService            *service.ListNonFungibleTokensByOwnerService
 }
 
 // NewApp creates a new App application struct
@@ -305,6 +306,9 @@ func (a *App) startup(ctx context.Context) {
 	upsertNFTokUseCase := usecase.NewUpsertNonFungibleTokenUseCase(
 		logger,
 		nftokenRepo)
+	listNonFungibleTokensWithFilterByTokenIDsyUseCase := usecase.NewListNonFungibleTokensWithFilterByTokenIDsyUseCase(
+		logger,
+		nftokenRepo)
 
 	// Mempool Transaction DTO
 	submitMempoolTransactionDTOToBlockchainAuthorityUseCase := auth_usecase.NewSubmitMempoolTransactionDTOToBlockchainAuthorityUseCase(
@@ -419,6 +423,12 @@ func (a *App) startup(ctx context.Context) {
 		logger,
 		listAllWalletUseCase,
 	)
+	listNonFungibleTokensByOwnerService := service.NewListNonFungibleTokensByOwnerService(
+		logger,
+		listTokensByOwnerUseCase,
+		listNonFungibleTokensWithFilterByTokenIDsyUseCase,
+		getOrDownloadNonFungibleTokenService,
+	)
 
 	// ------------ Interfaces ------------
 
@@ -439,6 +449,7 @@ func (a *App) startup(ctx context.Context) {
 	a.tokenListByOwnerService = tokenListByOwnerService
 	a.tokenCountByOwnerService = tokenCountByOwnerService
 	a.walletsFilterByLocalService = walletsFilterByLocalService
+	a.listNonFungibleTokensByOwnerService = listNonFungibleTokensByOwnerService
 
 	//
 	// Execute.

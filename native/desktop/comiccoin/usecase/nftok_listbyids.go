@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"log/slog"
 	"math/big"
 
@@ -16,6 +17,6 @@ func NewListNonFungibleTokensWithFilterByTokenIDsyUseCase(logger *slog.Logger, r
 	return &ListNonFungibleTokensWithFilterByTokenIDsyUseCase{logger, repo}
 }
 
-func (uc *ListNonFungibleTokensWithFilterByTokenIDsyUseCase) Execute(tokIDs []*big.Int) ([]*domain.NonFungibleToken, error) {
+func (uc *ListNonFungibleTokensWithFilterByTokenIDsyUseCase) Execute(ctx context.Context, tokIDs []*big.Int) ([]*domain.NonFungibleToken, error) {
 	return uc.repo.ListWithFilterByTokenIDs(tokIDs)
 }

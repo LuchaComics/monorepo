@@ -12,6 +12,7 @@ require (
 )
 
 require (
+	github.com/bartmika/arraydiff v0.0.0-20241122202608-c7e5c23decba // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.4 // indirect
 	github.com/consensys/bavard v0.1.13 // indirect

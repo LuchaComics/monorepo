@@ -52,7 +52,7 @@ func (a *App) GetTotalTokens(address string) (int64, error) {
 	return tokCount, nil
 }
 
-func (a *App) GetRecentTransactions(address string) ([]*domain.BlockTransaction, error) { //TODO FINISH BELOW
+func (a *App) GetRecentTransactions(address string) ([]*domain.BlockTransaction, error) {
 	addr := common.HexToAddress(strings.ToLower(address))
 
 	// Defensive code

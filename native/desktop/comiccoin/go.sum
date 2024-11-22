@@ -4,6 +4,12 @@ github.com/StackExchange/wmi v1.2.1 h1:VIkavFPXSjcnS+O8yTq7NI32k0R5Aj+v39y29VYDO
 github.com/StackExchange/wmi v1.2.1/go.mod h1:rcmrprowKIVzvc+NUiLncP2uuArMWLCbu9SBzvHz7e8=
 github.com/VictoriaMetrics/fastcache v1.12.2 h1:N0y9ASrJ0F6h0QaC3o6uJb3NIZ9VKLjCM7NQbSmF7WI=
 github.com/VictoriaMetrics/fastcache v1.12.2/go.mod h1:AmC+Nzz1+3G2eCPapF6UcsnkThDcMsQicp4xDukwJYI=
+github.com/bartmika/arraydiff v0.0.0-20240829031130-b0225775fdfa h1:FaeLGD+9e1uB1lvNTvNQSD6YIIQBG6eI72PG4TdtQ3w=
+github.com/bartmika/arraydiff v0.0.0-20240829031130-b0225775fdfa/go.mod h1:8TKB5jAaeTwIHmJ7zp419wLR8cCIphZwg1J0lXyCf0k=
+github.com/bartmika/arraydiff v0.0.0-20241122200245-7c98407a7bf7 h1:q/Me9eG+qbp1a9P4JqX+N1h7KGDQdu6257beNANkaZw=
+github.com/bartmika/arraydiff v0.0.0-20241122200245-7c98407a7bf7/go.mod h1:8TKB5jAaeTwIHmJ7zp419wLR8cCIphZwg1J0lXyCf0k=
+github.com/bartmika/arraydiff v0.0.0-20241122202608-c7e5c23decba h1:8X1ZztbFbgLmHfLOPK3bRiEOFIwF7d6EiupoDs1WARs=
+github.com/bartmika/arraydiff v0.0.0-20241122202608-c7e5c23decba/go.mod h1:8TKB5jAaeTwIHmJ7zp419wLR8cCIphZwg1J0lXyCf0k=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/bits-and-blooms/bitset v1.13.0 h1:bAQ9OPNFYbGHV6Nez0tmNI0RiEu7/hxlYJRUA0wFAVE=
