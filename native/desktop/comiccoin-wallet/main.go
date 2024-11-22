@@ -2,21 +2,28 @@ package main
 
 import (
 	"embed"
+	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
-
-	pref "github.com/LuchaComics/monorepo/native/desktop/comiccoin-wallet/common/preferences"
 )
 
 var (
-	preferences *pref.Preferences
+	preferences *Preferences
 )
 
 // Initialize function will be called when every command gets called.
 func init() {
-	preferences = pref.PreferencesInstance()
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatalf("failed get home dir: %v\n", err)
+	}
+	FilePathPreferences = filepath.Join(homeDir, ".comiccoin")
+
+	preferences = PreferencesInstance()
 }
 
 //go:embed all:frontend/dist
@@ -28,7 +35,7 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:  "ComicCoin Wallet",
+		Title:  "comiccoin-wallet",
 		Width:  1024,
 		Height: 768,
 		AssetServer: &assetserver.Options{

@@ -7,12 +7,10 @@ import (
 
 	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/securestring"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
-
-	pref "github.com/LuchaComics/monorepo/native/desktop/comiccoin-wallet/common/preferences"
 )
 
 func (a *App) DefaultWalletAddress() string {
-	preferences := pref.PreferencesInstance()
+	preferences := PreferencesInstance()
 	return preferences.DefaultWalletAddress
 }
 
@@ -56,6 +54,6 @@ func (a *App) CreateWallet(walletPassword, walletPasswordRepeated, walletLabel s
 }
 
 func (a *App) SetDefaultWalletAddress(walletAddress string) {
-	preferences := pref.PreferencesInstance()
+	preferences := PreferencesInstance()
 	preferences.SetDefaultWalletAddress(strings.ToLower(walletAddress))
 }

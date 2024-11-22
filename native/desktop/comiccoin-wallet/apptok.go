@@ -10,10 +10,6 @@ import (
 	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/securestring"
 	comic_domain "github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 	"github.com/ethereum/go-ethereum/common"
-
-	// auth_domain "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
-
-	pref "github.com/LuchaComics/monorepo/native/desktop/comiccoin-wallet/common/preferences"
 )
 
 func (a *App) TransferToken(
@@ -81,7 +77,7 @@ func (a *App) GetNonFungibleTokensByOwnerAddress(address string) ([]*comic_domai
 	// `metadata_uri` fields - nothing else!
 	//
 
-	preferences := pref.PreferencesInstance()
+	preferences := PreferencesInstance()
 	dataDir := preferences.DataDirectory
 	if dataDir == "" {
 		dataDirDNEErr := errors.New("Data directory not set")
@@ -102,7 +98,7 @@ func (a *App) GetNonFungibleTokensByOwnerAddress(address string) ([]*comic_domai
 }
 
 func (a *App) GetNonFungibleToken(tokenID *big.Int) (*comic_domain.NonFungibleToken, error) {
-	preferences := pref.PreferencesInstance()
+	preferences := PreferencesInstance()
 	dataDir := preferences.DataDirectory
 	if dataDir == "" {
 		dataDirDNEErr := errors.New("Data directory not set")

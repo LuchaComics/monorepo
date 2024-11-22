@@ -1,4 +1,4 @@
-package preferences
+package main
 
 import (
 	"encoding/json"
@@ -9,14 +9,6 @@ import (
 	"path/filepath"
 	"sync"
 )
-
-func init() {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatalf("failed get home dir: %v\n", err)
-	}
-	FilePathPreferences = filepath.Join(homeDir, ".comiccoin")
-}
 
 type Preferences struct {
 	// DataDirectory variable holds the location of were the entire application
@@ -52,7 +44,7 @@ func PreferencesInstance() *Preferences {
 		// Either reads the file if the file exists or creates an empty.
 		file, err := os.OpenFile(FilePathPreferences, os.O_RDONLY|os.O_CREATE, 0666)
 		if err != nil {
-			log.Fatalf("failed open file: %v\n", err)
+			log.Fatalf("failed open file %v because of error: %v\n", FilePathPreferences, err)
 		}
 
 		var preferences Preferences

@@ -6,7 +6,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/securestring"
-	pref "github.com/LuchaComics/monorepo/native/desktop/comiccoin-wallet/common/preferences"
 )
 
 func (a *App) TransferCoin(
@@ -36,7 +35,7 @@ func (a *App) TransferCoin(
 		senderAccountAddr = &sender
 	}
 
-	preferences := pref.PreferencesInstance()
+	preferences := PreferencesInstance()
 
 	password, err := sstring.NewSecureString(senderAccountPassword)
 	if err != nil {

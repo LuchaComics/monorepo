@@ -1,4 +1,4 @@
-package preferences
+package main
 
 const (
 	ChainIDMainNet = 1

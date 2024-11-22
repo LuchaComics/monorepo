@@ -6,22 +6,20 @@ import (
 	"log/slog"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
-
-	pref "github.com/LuchaComics/monorepo/native/desktop/comiccoin-wallet/common/preferences"
 )
 
 func (a *App) GetDataDirectoryFromPreferences() string {
-	preferences := pref.PreferencesInstance()
+	preferences := PreferencesInstance()
 	dataDir := preferences.DataDirectory
 	return dataDir
 }
 
 func (a *App) GetDefaultDataDirectory() string {
-	return pref.GetDefaultDataDirectory()
+	return GetDefaultDataDirectory()
 }
 
 func (a *App) GetNFTStorageAddressFromPreferences() string {
-	preferences := pref.PreferencesInstance()
+	preferences := PreferencesInstance()
 	nftStoreRemoteAddress := preferences.NFTStorageAddress
 	return nftStoreRemoteAddress
 }
@@ -46,7 +44,7 @@ func (a *App) SaveDataDirectory(newDataDirectory string) error {
 	if newDataDirectory == "" {
 		return fmt.Errorf("failed saving data directory because: %v", "data directory is empty")
 	}
-	preferences := pref.PreferencesInstance()
+	preferences := PreferencesInstance()
 	err := preferences.SetDataDirectory(newDataDirectory)
 	if err != nil {
 		a.logger.Error("Failed setting data directory",
@@ -66,7 +64,7 @@ func (a *App) SetNFTStorageAddress(nftStorageAddress string) error {
 	if nftStorageAddress == "" {
 		return fmt.Errorf("failed saving nft storage address because: %v", "value is empty")
 	}
-	preferences := pref.PreferencesInstance()
+	preferences := PreferencesInstance()
 	err := preferences.SetNFTStorageAddress(nftStorageAddress)
 	if err != nil {
 		a.logger.Error("Failed setting nft storage address",

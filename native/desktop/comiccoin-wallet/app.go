@@ -16,8 +16,6 @@ import (
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/repo"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/service"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
-
-	pref "github.com/LuchaComics/monorepo/native/desktop/comiccoin-wallet/common/preferences"
 )
 
 // App struct
@@ -75,7 +73,7 @@ func (a *App) startup(ctx context.Context) {
 	// set for this application by the user, else stop the app startup
 	// proceedure. This is done on purpose because we need the user to specify
 	// the location they want to store instead of having one automatically set.
-	preferences := pref.PreferencesInstance()
+	preferences := PreferencesInstance()
 	dataDir := preferences.DataDirectory
 	if dataDir == "" {
 		return
@@ -480,7 +478,7 @@ func (a *App) shutdown(ctx context.Context) {
 	// set for this application by the user, else stop the app startup
 	// proceedure. This is done on purpose because we need the user to specify
 	// the location they want to store instead of having one automatically set.
-	preferences := pref.PreferencesInstance()
+	preferences := PreferencesInstance()
 	dataDir := preferences.DataDirectory
 	if dataDir == "" {
 		return
