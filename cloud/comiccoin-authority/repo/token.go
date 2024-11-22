@@ -125,6 +125,14 @@ func (r *TokenRepo) ListByOwner(ctx context.Context, owner *common.Address) ([]*
 	return tokens, nil
 }
 
+func (r *TokenRepo) CountByOwner(ctx context.Context, owner *common.Address) (int64, error) {
+	count, err := r.collection.CountDocuments(ctx, bson.M{"owner": owner})
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
 func (r *TokenRepo) DeleteByID(ctx context.Context, id *big.Int) error {
 	idBytes := id.Bytes()
 	_, err := r.collection.DeleteOne(ctx, bson.M{"id_bytes": idBytes})

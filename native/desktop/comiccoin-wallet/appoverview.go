@@ -35,23 +35,21 @@ func (a *App) GetTotalCoins(address string) (uint64, error) {
 	return account.Balance, nil
 }
 
-func (a *App) GetTotalTokens(address string) (int, error) { //TODO FINISH BELOW
-	// addr := common.HexToAddress(strings.ToLower(address))
-	//
-	// // Defensive code
-	// if address == "" {
-	// 	return 0, fmt.Errorf("failed because: address is null: %v", address)
-	// }
-	//
-	// tokCount, err := a.countByOwnerTokenService.Execute(a.ctx, &addr)
-	// if err != nil {
-	// 	a.logger.Error("Failed getting account balance", slog.Any("error", err))
-	// 	return 0, err
-	// }
-	//
-	// return tokCount, nil
+func (a *App) GetTotalTokens(address string) (int64, error) {
+	addr := common.HexToAddress(strings.ToLower(address))
 
-	return 0, nil //TODO: REPAIR ABOVE.
+	// Defensive code
+	if address == "" {
+		return 0, fmt.Errorf("failed because: address is null: %v", address)
+	}
+
+	tokCount, err := a.tokenCountByOwnerService.Execute(a.ctx, &addr)
+	if err != nil {
+		a.logger.Error("Failed getting tokens count by owner address", slog.Any("error", err))
+		return 0, err
+	}
+
+	return tokCount, nil
 }
 
 func (a *App) GetRecentTransactions(address string) ([]*domain.BlockTransaction, error) { //TODO FINISH BELOW

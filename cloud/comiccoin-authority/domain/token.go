@@ -35,6 +35,9 @@ type TokenRepository interface {
 	// to the owner address.
 	ListByOwner(ctx context.Context, owner *common.Address) ([]*Token, error)
 
+	// CountByOwner counts all the tokens owned by the owner.
+	CountByOwner(ctx context.Context, owner *common.Address) (int64, error)
+
 	// DeleteByID deletes an token by its ID.
 	DeleteByID(ctx context.Context, id *big.Int) error
 

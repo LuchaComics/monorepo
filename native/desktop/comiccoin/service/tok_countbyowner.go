@@ -1,30 +1,28 @@
 package service
 
 import (
+	"context"
 	"log/slog"
 
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/httperror"
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/config"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
 )
 
-type CountByOwnerTokenService struct {
-	config                    *config.Config
+type TokenCountByOwnerService struct {
 	logger                    *slog.Logger
 	countTokensByOwnerUseCase *usecase.CountTokensByOwnerUseCase
 }
 
-func NewCountByOwnerTokenService(
-	cfg *config.Config,
+func NewTokenCountByOwnerService(
 	logger *slog.Logger,
 	uc1 *usecase.CountTokensByOwnerUseCase,
-) *CountByOwnerTokenService {
-	return &CountByOwnerTokenService{cfg, logger, uc1}
+) *TokenCountByOwnerService {
+	return &TokenCountByOwnerService{logger, uc1}
 }
 
-func (s *CountByOwnerTokenService) Execute(address *common.Address) (int, error) {
+func (s *TokenCountByOwnerService) Execute(ctx context.Context, address *common.Address) (int64, error) {
 	//
 	// STEP 1: Validation.
 	//
@@ -43,5 +41,5 @@ func (s *CountByOwnerTokenService) Execute(address *common.Address) (int, error)
 	// STEP 2: Count the tokens by owner.
 	//
 
-	return s.countTokensByOwnerUseCase.Execute(address)
+	return s.countTokensByOwnerUseCase.Execute(ctx, address)
 }

@@ -95,6 +95,30 @@ func (r *TokenRepo) ListByOwner(ctx context.Context, owner *common.Address) ([]*
 
 	return res, err
 }
+
+func (r *TokenRepo) CountByOwner(ctx context.Context, owner *common.Address) (int64, error) {
+	var counter int64
+	err := r.dbClient.Iterate(func(key, value []byte) error {
+		token, err := domain.NewTokenFromDeserialize(value)
+		if err != nil {
+			r.logger.Error("failed to deserialize",
+				slog.String("key", string(key)),
+				slog.String("value", string(value)),
+				slog.Any("error", err))
+			return err
+		}
+
+		if strings.ToLower(token.Owner.Hex()) == strings.ToLower(owner.Hex()) {
+			counter++
+		}
+
+		// Return nil to indicate success
+		return nil
+	})
+
+	return counter, err
+}
+
 func (r *TokenRepo) DeleteByID(ctx context.Context, id *big.Int) error {
 	err := r.dbClient.Delete(fmt.Sprintf("%v", id))
 	if err != nil {

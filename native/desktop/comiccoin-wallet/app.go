@@ -42,6 +42,7 @@ type App struct {
 	getByBlockTransactionTimestampService *service.GetByBlockTransactionTimestampService
 	blockDataGetByHashService             *service.BlockDataGetByHashService
 	tokenListByOwnerService               *service.TokenListByOwnerService
+	tokenCountByOwnerService              *service.TokenCountByOwnerService
 	blockchainSyncService                 *service.BlockchainSyncWithBlockchainAuthorityService
 	blockchainSyncManagerService          *service.BlockchainSyncManagerService
 	walletsFilterByLocalService           *service.WalletsFilterByLocalService
@@ -272,6 +273,10 @@ func (a *App) startup(ctx context.Context) {
 		logger,
 		tokRepo,
 	)
+	countTokensByOwnerUseCase := usecase.NewCountTokensByOwnerUseCase(
+		logger,
+		tokRepo,
+	)
 
 	// Blockchain State DTO
 	subscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase := auth_usecase.NewSubscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase(
@@ -398,6 +403,10 @@ func (a *App) startup(ctx context.Context) {
 		logger,
 		listTokensByOwnerUseCase,
 	)
+	tokenCountByOwnerService := service.NewTokenCountByOwnerService(
+		logger,
+		countTokensByOwnerUseCase,
+	)
 	walletsFilterByLocalService := service.NewWalletsFilterByLocalService(
 		logger,
 		listAllWalletUseCase,
@@ -419,6 +428,7 @@ func (a *App) startup(ctx context.Context) {
 	a.getByBlockTransactionTimestampService = getByBlockTransactionTimestampService
 	a.blockDataGetByHashService = blockDataGetByHashService
 	a.tokenListByOwnerService = tokenListByOwnerService
+	a.tokenCountByOwnerService = tokenCountByOwnerService
 	a.walletsFilterByLocalService = walletsFilterByLocalService
 
 	//
