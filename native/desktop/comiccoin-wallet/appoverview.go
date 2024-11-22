@@ -60,7 +60,7 @@ func (a *App) GetRecentTransactions(address string) ([]*domain.BlockTransaction,
 		return make([]*domain.BlockTransaction, 0), fmt.Errorf("failed because: address is null: %v", address)
 	}
 
-	txs, err := a.listBlockTransactionsByLatestForOwnerAddressService.Execute(a.ctx, &addr, 5)
+	txs, err := a.listWithLimitBlockTransactionsByAddressService.Execute(a.ctx, &addr, 5)
 	if err != nil {
 		a.logger.Error("Failed listing", slog.Any("error", err))
 		return nil, err

@@ -9,16 +9,16 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-type ListBlockTransactionsByLatestUseCase struct {
+type ListWithLimitBlockTransactionsByAddressUseCase struct {
 	logger *slog.Logger
 	repo   domain.BlockDataRepository
 }
 
-func NewListBlockTransactionsByLatestUseCase(logger *slog.Logger, repo domain.BlockDataRepository) *ListBlockTransactionsByLatestUseCase {
-	return &ListBlockTransactionsByLatestUseCase{logger, repo}
+func NewListWithLimitBlockTransactionsByAddressUseCase(logger *slog.Logger, repo domain.BlockDataRepository) *ListWithLimitBlockTransactionsByAddressUseCase {
+	return &ListWithLimitBlockTransactionsByAddressUseCase{logger, repo}
 }
 
-func (uc *ListBlockTransactionsByLatestUseCase) Execute(ctx context.Context, address *common.Address, limit int64) ([]*domain.BlockTransaction, error) {
+func (uc *ListWithLimitBlockTransactionsByAddressUseCase) Execute(ctx context.Context, address *common.Address, limit int64) ([]*domain.BlockTransaction, error) {
 	//
 	// STEP 1: Validation.
 	//
