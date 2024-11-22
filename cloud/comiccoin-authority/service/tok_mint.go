@@ -76,6 +76,8 @@ func (s *TokenMintService) Execute(ctx context.Context, metadataURI string) (*bi
 
 	// Define a transaction function with a series of operations
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
+		s.logger.Debug("Transaction started")
+
 		//
 		// STEP 2:
 		// Get related records.
@@ -201,6 +203,14 @@ func (s *TokenMintService) Execute(ctx context.Context, metadataURI string) (*bi
 
 		s.logger.Info("Pending signed transaction for coin transfer submitted to the authority",
 			slog.Any("tx_nonce", stx.GetNonce()))
+
+		s.logger.Debug("Committing transaction")
+		if err := sessCtx.CommitTransaction(ctx); err != nil {
+			s.logger.Error("Failed comming transaction",
+				slog.Any("error", err))
+			return nil, err
+		}
+		s.logger.Debug("Transaction committed")
 
 		// return tok, nil
 		return latestTokenID, nil

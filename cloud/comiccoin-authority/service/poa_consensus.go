@@ -69,9 +69,59 @@ func NewProofOfAuthorityConsensusMechanismService(
 }
 
 func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context) error {
+	//
+	// STEP 1: Wait to receive new data...
+	//
+
+	s.logger.Debug("Memory pool waiting to receive transactions...")
+	mempoolTx, err := s.mempoolTransactionInsertionDetectorUseCase.Execute(ctx)
+	if err != nil {
+		s.logger.Error("Failed detecting insertion changes.",
+			slog.Any("error", err))
+		return err
+	}
+	s.logger.Debug("New memory pool transaction detected!",
+		slog.Any("chain_id", mempoolTx.ChainID),
+		slog.Any("nonce", mempoolTx.GetNonce()),
+		slog.Any("from", mempoolTx.From),
+		slog.Any("to", mempoolTx.To),
+		slog.Any("value", mempoolTx.Value),
+		slog.Any("data", mempoolTx.Data),
+		slog.Any("type", mempoolTx.Type),
+		slog.Any("token_id", mempoolTx.GetTokenID()),
+		slog.Any("token_metadata_uri", mempoolTx.TokenMetadataURI),
+		slog.Any("token_nonce", mempoolTx.GetTokenNonce()),
+		slog.Any("tx_sig_v_bytes", mempoolTx.VBytes),
+		slog.Any("tx_sig_r_bytes", mempoolTx.RBytes),
+		slog.Any("tx_sig_s_bytes", mempoolTx.SBytes))
+
+	if mempoolTx.VBytes == nil {
+		err := fmt.Errorf("Missing: %v", "v_bytes")
+		s.logger.Error("Failed validating memory pool transaction",
+			slog.Any("error", err))
+		return err
+	}
+	if mempoolTx.RBytes == nil {
+		err := fmt.Errorf("Missing: %v", "r_bytes")
+		s.logger.Error("Failed validating memory pool transaction",
+			slog.Any("error", err))
+		return err
+	}
+	if mempoolTx.SBytes == nil {
+		err := fmt.Errorf("Missing: %v", "s_bytes")
+		s.logger.Error("Failed validating memory pool transaction",
+			slog.Any("error", err))
+		return err
+	}
+	if mempoolTx.SignedTransaction.Transaction.Data != nil {
+		if len(mempoolTx.SignedTransaction.Transaction.Data) > 32 {
+			s.logger.Error("Data is too large.")
+			return fmt.Errorf("Data is too large")
+		}
+	}
 
 	//
-	// STEP 1:
+	// STEP 2:
 	// Start a transaction so we can discard all changes made to the database in
 	// this function if an error occurs.
 	//
@@ -86,56 +136,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 
 	// Define a transaction function with a series of operations
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
-		//
-		// STEP 2: Wait to receive new data...
-		//
-
-		s.logger.Debug("Memory pool waiting to receive transactions...")
-		mempoolTx, err := s.mempoolTransactionInsertionDetectorUseCase.Execute(sessCtx)
-		if err != nil {
-			s.logger.Error("Failed detecting insertion changes.",
-				slog.Any("error", err))
-			return nil, err
-		}
-		s.logger.Debug("New memory pool transaction detected!",
-			slog.Any("chain_id", mempoolTx.ChainID),
-			slog.Any("nonce", mempoolTx.GetNonce()),
-			slog.Any("from", mempoolTx.From),
-			slog.Any("to", mempoolTx.To),
-			slog.Any("value", mempoolTx.Value),
-			slog.Any("data", mempoolTx.Data),
-			slog.Any("type", mempoolTx.Type),
-			slog.Any("token_id", mempoolTx.GetTokenID()),
-			slog.Any("token_metadata_uri", mempoolTx.TokenMetadataURI),
-			slog.Any("token_nonce", mempoolTx.GetTokenNonce()),
-			slog.Any("tx_sig_v_bytes", mempoolTx.VBytes),
-			slog.Any("tx_sig_r_bytes", mempoolTx.RBytes),
-			slog.Any("tx_sig_s_bytes", mempoolTx.SBytes))
-
-		if mempoolTx.VBytes == nil {
-			err := fmt.Errorf("Missing: %v", "v_bytes")
-			s.logger.Error("Failed validating memory pool transaction",
-				slog.Any("error", err))
-			return nil, err
-		}
-		if mempoolTx.RBytes == nil {
-			err := fmt.Errorf("Missing: %v", "r_bytes")
-			s.logger.Error("Failed validating memory pool transaction",
-				slog.Any("error", err))
-			return nil, err
-		}
-		if mempoolTx.SBytes == nil {
-			err := fmt.Errorf("Missing: %v", "s_bytes")
-			s.logger.Error("Failed validating memory pool transaction",
-				slog.Any("error", err))
-			return nil, err
-		}
-		if mempoolTx.SignedTransaction.Transaction.Data != nil {
-			if len(mempoolTx.SignedTransaction.Transaction.Data) > 32 {
-				s.logger.Error("Data is too large.")
-				return nil, fmt.Errorf("Data is too large")
-			}
-		}
+		s.logger.Debug("Transaction started")
 
 		//
 		// STEP 3:
@@ -150,10 +151,12 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		if err != nil {
 			s.logger.Error("Failed getting blockchain state.",
 				slog.Any("error", err))
+			sessCtx.AbortTransaction(ctx)
 			return nil, err
 		}
 		if blockchainState == nil {
 			s.logger.Error("Blockchain state does not exist.")
+			sessCtx.AbortTransaction(ctx)
 			return nil, fmt.Errorf("Blockchain state does not exist")
 		}
 
@@ -161,10 +164,12 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		if err != nil {
 			s.logger.Error("Failed getting genesis block.",
 				slog.Any("error", err))
+			sessCtx.AbortTransaction(ctx)
 			return nil, err
 		}
 		if genesis == nil {
 			s.logger.Error("Genesis block does not exist.")
+			sessCtx.AbortTransaction(ctx)
 			return nil, fmt.Errorf("Genesis block does not exist")
 		}
 
@@ -172,10 +177,12 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		if err != nil {
 			s.logger.Error("Failed getting proof of authority private key.",
 				slog.Any("error", err))
+			sessCtx.AbortTransaction(ctx)
 			return nil, err
 		}
 		if proofOfAuthorityPrivateKey == nil {
 			s.logger.Error("Proof of authority private keydoes not exist.")
+			sessCtx.AbortTransaction(ctx)
 			return nil, fmt.Errorf("Proof of authority private keydoes not exist")
 		}
 
@@ -183,10 +190,12 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		if err != nil {
 			s.logger.Error("Failed getting latest block block.",
 				slog.Any("error", err))
+			sessCtx.AbortTransaction(ctx)
 			return nil, err
 		}
 		if recentBlockData == nil {
 			s.logger.Error("Latest block data does not exist.")
+			sessCtx.AbortTransaction(ctx)
 			return nil, fmt.Errorf("Latest block data does not exist")
 		}
 
@@ -207,6 +216,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		if err := s.verifyMempoolTransaction(sessCtx, mempoolTx); err != nil {
 			s.logger.Error("Failed verifying the mempool block transaction",
 				slog.Any("error", err))
+			sessCtx.AbortTransaction(ctx)
 			return nil, err
 		}
 
@@ -220,6 +230,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 			if err := s.processTokenForMempoolTransaction(sessCtx, mempoolTx, blockchainState); err != nil {
 				s.logger.Error("Failed processing token in mempool block transaction",
 					slog.Any("error", err))
+				sessCtx.AbortTransaction(ctx)
 				return nil, err
 			}
 
@@ -239,6 +250,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 			if err := s.processAccountForMempoolTransaction(sessCtx, mempoolTx); err != nil {
 				s.logger.Error("Failed processing account in pending block transaction",
 					slog.Any("error", err))
+				sessCtx.AbortTransaction(ctx)
 				return nil, err
 			}
 		}
@@ -258,6 +270,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		if err != nil {
 			s.logger.Error("Failed creating merkle tree",
 				slog.Any("error", err))
+			sessCtx.AbortTransaction(ctx)
 			return nil, err
 		}
 
@@ -298,6 +311,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		if err != nil {
 			s.logger.Error("Failed getting accounts hash state",
 				slog.Any("error", err))
+			sessCtx.AbortTransaction(ctx)
 			return nil, err
 		}
 
@@ -306,6 +320,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		if err != nil {
 			s.logger.Error("Failed getting tokens hash state",
 				slog.Any("error", err))
+			sessCtx.AbortTransaction(ctx)
 			return nil, err
 		}
 
@@ -340,6 +355,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		if powErr != nil {
 			s.logger.Error("Failed to mine block header",
 				slog.Any("error", err))
+			sessCtx.AbortTransaction(ctx)
 			return nil, err
 		}
 
@@ -358,6 +374,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		if err != nil {
 			s.logger.Error("Failed to sign block header",
 				slog.Any("error", err))
+			sessCtx.AbortTransaction(ctx)
 			return nil, err
 		}
 		blockData.HeaderSignatureBytes = blockDataHeaderSignatureBytes
@@ -387,6 +404,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		if err := s.mempoolTransactionDeleteByIDUseCase.Execute(sessCtx, mempoolTx.ID); err != nil {
 			s.logger.Error("Failed deleting all pending block transactions",
 				slog.Any("error", err))
+			sessCtx.AbortTransaction(ctx)
 			return nil, err
 		}
 
@@ -398,6 +416,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		if err := s.upsertBlockDataUseCase.Execute(sessCtx, blockData.Hash, blockData.Header, blockData.HeaderSignatureBytes, blockData.Trans, blockData.Validator); err != nil {
 			s.logger.Error("PoA mining service failed saving block data",
 				slog.Any("error", err))
+			sessCtx.AbortTransaction(ctx)
 			return nil, err
 		}
 
@@ -416,9 +435,17 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		if err := s.upsertBlockchainStateUseCase.Execute(sessCtx, blockchainState); err != nil {
 			s.logger.Error("Failed upserting blockchain state",
 				slog.Any("error", err))
+			sessCtx.AbortTransaction(ctx)
 			return nil, err
 		}
 
+		s.logger.Debug("Committing transaction")
+		if err := sessCtx.CommitTransaction(ctx); err != nil {
+			s.logger.Error("Failed comming transaction",
+				slog.Any("error", err))
+			return nil, err
+		}
+		s.logger.Debug("Transaction committed")
 		return nil, nil
 	}
 

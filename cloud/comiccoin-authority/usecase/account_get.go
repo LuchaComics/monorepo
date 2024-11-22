@@ -39,5 +39,8 @@ func (uc *GetAccountUseCase) Execute(ctx context.Context, address *common.Addres
 	// STEP 2: Insert into database.
 	//
 
+	// uc.logger.Debug("Getting account...",
+	// 	slog.Any("address", address))
+
 	return uc.repo.GetByAddress(ctx, address)
 }

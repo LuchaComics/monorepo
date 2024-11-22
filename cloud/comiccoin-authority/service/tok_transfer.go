@@ -94,6 +94,8 @@ func (s *TokenTransferService) Execute(
 
 	// Define a transaction function with a series of operations
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
+		s.logger.Debug("Transaction started")
+
 		//
 		// STEP 2:
 		// Get related records.
@@ -110,7 +112,7 @@ func (s *TokenTransferService) Execute(
 			return nil, fmt.Errorf("Blockchain state does not exist")
 		}
 
-		wallet, err := s.getWalletUseCase.Execute(ctx, tokenOwnerAddress)
+		wallet, err := s.getWalletUseCase.Execute(sessCtx, tokenOwnerAddress)
 		if err != nil {
 			s.logger.Error("failed getting wallet from database",
 				slog.Any("error", err))
@@ -120,7 +122,7 @@ func (s *TokenTransferService) Execute(
 			return nil, fmt.Errorf("failed getting wallet from database: %s", "d.n.e.")
 		}
 
-		key, err := s.walletDecryptKeyUseCase.Execute(ctx, wallet.KeystoreBytes, tokenOwnerWalletPassword)
+		key, err := s.walletDecryptKeyUseCase.Execute(sessCtx, wallet.KeystoreBytes, tokenOwnerWalletPassword)
 		if err != nil {
 			s.logger.Error("failed getting key",
 				slog.Any("error", err))
@@ -141,7 +143,7 @@ func (s *TokenTransferService) Execute(
 			return nil, fmt.Errorf("Latest block data does not exist")
 		}
 
-		token, err := s.getTokenUseCase.Execute(ctx, tokenID)
+		token, err := s.getTokenUseCase.Execute(sessCtx, tokenID)
 		if err != nil {
 			if !strings.Contains(err.Error(), "does not exist") {
 				s.logger.Error("failed getting token",
@@ -248,6 +250,14 @@ func (s *TokenTransferService) Execute(
 
 		s.logger.Info("Pending signed transaction for coin transfer submitted to the authority",
 			slog.Any("tx_nonce", stx.GetNonce()))
+
+		s.logger.Debug("Committing transaction")
+		if err := sessCtx.CommitTransaction(ctx); err != nil {
+			s.logger.Error("Failed comming transaction",
+				slog.Any("error", err))
+			return nil, err
+		}
+		s.logger.Debug("Transaction committed")
 
 		// return tok, nil
 		return nil, nil

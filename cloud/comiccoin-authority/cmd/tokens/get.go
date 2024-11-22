@@ -74,6 +74,7 @@ func doRunGetToken() {
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
 		tokenID, ok := new(big.Int).SetString(flagTokenID, 10)
 		if !ok {
+			sessCtx.AbortTransaction(ctx)
 			return nil, fmt.Errorf("Failed converting to big.Int: %v", flagTokenID)
 		}
 		logger.Debug("Getting token...",
@@ -82,12 +83,20 @@ func doRunGetToken() {
 
 		tok, err := tokenRetrieveService.Execute(sessCtx, tokenID)
 		if err != nil {
+			sessCtx.AbortTransaction(ctx)
 			return nil, err
 		}
 		if tok == nil {
 			err := errors.New("Token does not exist")
 			logger.Error("Failed getting token",
 				slog.Any("tokenID", tokenID.Uint64()),
+				slog.Any("error", err))
+			sessCtx.AbortTransaction(ctx)
+			return nil, err
+		}
+
+		if err := sessCtx.CommitTransaction(ctx); err != nil {
+			logger.Error("Failed comming transaction",
 				slog.Any("error", err))
 			return nil, err
 		}

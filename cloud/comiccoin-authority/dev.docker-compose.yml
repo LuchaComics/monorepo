@@ -14,7 +14,7 @@
 services:
   db1:
     container_name: comiccoin_authority_db1
-    image: mongo:8
+    image: mongo
     command:
       [
         "--replSet",
@@ -44,7 +44,7 @@ services:
 
   db2:
     container_name: comiccoin_authority_db2
-    image: mongo:8
+    image: mongo
     command:
       [
         "--replSet",
@@ -67,7 +67,7 @@ services:
 
   db3:
     container_name: comiccoin_authority_db3
-    image: mongo:8
+    image: mongo
     command:
       [
         "--replSet",

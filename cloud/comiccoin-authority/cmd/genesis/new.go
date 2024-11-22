@@ -182,17 +182,29 @@ func doRunNewAccount() {
 
 	// Define a transaction function with a series of operations
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
+		logger.Debug("Transaction started")
+
 		// Execution
 		blockchainState, err := createGenesisBlockDataService.Execute(sessCtx)
 		if err != nil {
 			logger.Error("Failed initializing new blockchain from new genesis block",
 				slog.Any("error", err))
+			sessCtx.AbortTransaction(ctx)
 			return nil, err
 		}
 		if blockchainState == nil {
 			err := errors.New("Blockchain state does not exist")
+			sessCtx.AbortTransaction(ctx)
 			return nil, err
 		}
+
+		logger.Debug("Committing transaction")
+		if err := sessCtx.CommitTransaction(ctx); err != nil {
+			logger.Error("Failed comming transaction",
+				slog.Any("error", err))
+			return nil, err
+		}
+		logger.Debug("Transaction committed")
 
 		return blockchainState, nil
 	}

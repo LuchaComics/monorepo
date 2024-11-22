@@ -49,12 +49,16 @@ func (uc *WalletEncryptKeyUseCase) Execute(ctx context.Context, password *sstrin
 	// STEP 2: Create the encryted physical wallet on file.
 	//
 
+	uc.logger.Debug("Creating wallet...")
+
 	walletAddress, walletKeystoreBytes, err := uc.keystore.CreateWallet(password)
 	if err != nil {
 		uc.logger.Error("failed creating new keystore",
 			slog.Any("error", err))
 		return nil, nil, fmt.Errorf("failed creating new keystore: %s", err)
 	}
+
+	uc.logger.Debug("New wallet created", slog.Any("address", walletAddress))
 
 	return &walletAddress, walletKeystoreBytes, nil
 }

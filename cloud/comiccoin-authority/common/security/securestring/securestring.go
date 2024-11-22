@@ -2,6 +2,7 @@ package securestring
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/awnumar/memguard"
 )
@@ -33,8 +34,9 @@ func (ss *SecureString) String() string {
 
 // Wipe removes the string from memory and makes it unrecoverable.
 func (ss *SecureString) Wipe() error {
+	fmt.Println("SecureString: Wipe(): Starting...")
 	ss.buffer.Wipe()
 	ss.buffer = nil // Make sure to set the buffer to nil after wiping.
-
+	fmt.Println("SecureString: Wipe(): Finished")
 	return nil
 }

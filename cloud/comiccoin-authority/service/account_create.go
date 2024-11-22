@@ -62,7 +62,7 @@ func (s *CreateAccountService) Execute(ctx context.Context, walletPassword *sstr
 	// Create the encryted physical wallet on file.
 	//
 
-	walletAddress, walletFilepath, err := s.walletEncryptKeyUseCase.Execute(ctx, walletPassword)
+	walletAddress, walletBytes, err := s.walletEncryptKeyUseCase.Execute(ctx, walletPassword)
 	if err != nil {
 		s.logger.Error("failed creating new keystore",
 			slog.Any("error", err))
@@ -71,14 +71,14 @@ func (s *CreateAccountService) Execute(ctx context.Context, walletPassword *sstr
 
 	s.logger.Debug("Created new wallet for account",
 		slog.Any("wallet_address", walletAddress),
-		slog.Any("wallet_filepath", walletFilepath))
+		slog.Any("wallet_bytes", walletBytes))
 
 	//
 	// STEP 3:
 	// Decrypt the wallet so we can extract data from it.
 	//
 
-	walletKey, err := s.walletDecryptKeyUseCase.Execute(ctx, walletFilepath, walletPassword)
+	walletKey, err := s.walletDecryptKeyUseCase.Execute(ctx, walletBytes, walletPassword)
 	if err != nil {
 		s.logger.Error("failed getting wallet key",
 			slog.Any("error", err))
@@ -124,25 +124,44 @@ func (s *CreateAccountService) Execute(ctx context.Context, walletPassword *sstr
 	// Save wallet to our database.
 	//
 
-	if err := s.createWalletUseCase.Execute(ctx, walletAddress, walletFilepath, walletLabel); err != nil {
+	s.logger.Debug("Saving new (encrypted) wallet to database",
+		slog.Any("wallet_address", walletAddress))
+
+	if err := s.createWalletUseCase.Execute(ctx, walletAddress, walletBytes, walletLabel); err != nil {
 		s.logger.Error("failed saving to database",
 			slog.Any("error", err))
-		return nil, fmt.Errorf("failed saving to database: %s", err)
+		return nil, fmt.Errorf("failed saving wallet to database: %s", err)
 	}
 
 	//
 	// STEP 4: Create the account.
 	//
 
+	s.logger.Debug("Saving new account to database for the (encrypted) wallet",
+		slog.Any("wallet_address", walletAddress))
+
 	if err := s.createAccountUseCase.Execute(ctx, walletAddress); err != nil {
 		s.logger.Error("failed saving to database",
 			slog.Any("error", err))
-		return nil, fmt.Errorf("failed saving to database: %s", err)
+		return nil, fmt.Errorf("failed saving account to database: %s", err)
 	}
 
 	//
 	// STEP 5: Return the saved account.
 	//
 
-	return s.getAccountUseCase.Execute(ctx, walletAddress)
+	s.logger.Debug("Finished creating new account",
+		slog.Any("address", walletAddress))
+
+	acc, err := s.getAccountUseCase.Execute(ctx, walletAddress)
+	if err != nil {
+		s.logger.Error("Failed getting newly created account from database",
+			slog.Any("error", err))
+		return nil, err
+	}
+
+	s.logger.Debug("Fetched newly created account",
+		slog.Any("acc", acc))
+
+	return acc, nil
 }

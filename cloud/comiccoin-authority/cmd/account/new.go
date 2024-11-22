@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"log/slog"
+	"time"
 
 	"github.com/spf13/cobra"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -89,10 +90,25 @@ func doRunNewAccount() {
 		getAccountUseCase,
 	)
 
+	// Minor formatting of input.
+	pass, err := sstring.NewSecureString(flagPassword)
+	if err != nil {
+		log.Fatalf("Failed securing: %v\n", err)
+	}
+	defer pass.Wipe() // Developers Note: Commented out b/c they are causing the hang in the program to exit?
+	passRepeated, err := sstring.NewSecureString(flagPasswordRepeated)
+	if err != nil {
+		log.Fatalf("Failed securing: %v\n", err)
+	}
+	defer passRepeated.Wipe() // Developers Note: Commented out b/c they are causing the hang in the program to exit?
+
 	////
 	//// Start the transaction.
 	////
-	ctx := context.Background()
+
+	// Create context with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
 
 	session, err := dbClient.StartSession()
 	if err != nil {
@@ -102,38 +118,34 @@ func doRunNewAccount() {
 	}
 	defer session.EndSession(ctx)
 
-	logger.Debug("Creating new account...",
-		slog.Any("wallet_label", flagLabel),
-	)
+	logger.Debug("Starting MongoDB transaction...")
 
 	// Define a transaction function with a series of operations
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
-		pass, err := sstring.NewSecureString(flagPassword)
-		if err != nil {
-			return nil, err
-		}
-		defer pass.Wipe()
-		passRepeated, err := sstring.NewSecureString(flagPasswordRepeated)
-		if err != nil {
-			return nil, err
-		}
-		defer passRepeated.Wipe()
+		logger.Debug("Transaction started")
 
 		// Execution
 		account, err := createAccountService.Execute(sessCtx, pass, passRepeated, flagLabel)
 		if err != nil {
+			sessCtx.AbortTransaction(ctx)
 			return nil, err
 		}
 		if account == nil {
 			err := errors.New("Account does not exist")
+			sessCtx.AbortTransaction(ctx)
 			return nil, err
 		}
 
+		logger.Debug("Committing transaction")
+		if err := sessCtx.CommitTransaction(ctx); err != nil {
+			return nil, err
+		}
+		logger.Debug("Transaction committed")
+
 		return account, nil
 	}
-
-	// Start a transaction
 	res, err := session.WithTransaction(ctx, transactionFunc)
+	logger.Debug("Finished mongodb transaction") //HELP: WHY DOES THE CODE NEVER GET HERE?
 	if err != nil {
 		logger.Error("session failed error",
 			slog.Any("error", err))
