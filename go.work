@@ -5,6 +5,7 @@ use (
 	./cloud/archive/cps-nftstore-backend
 	./cloud/archive/cps-nftstore-cli
 	./cloud/comiccoin-authority
+	./cloud/comiccoin-faucet
 	./cloud/cps-backend
 	./native/desktop/comiccoin
 	./native/desktop/comiccoin-nftstorage

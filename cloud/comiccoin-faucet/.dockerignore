@@ -1,0 +1,28 @@
+# Items that don't need to be in a Docker image.
+# Anything not used by the build system should go here.
+prod.Dockerfile
+dev.Dockerfile
+Dockerfile
+.dockerignore
+.gitignore
+README.md
+docker-compose.yml
+
+# Project artificats we don't want include.
+.DS_Store
+docs
+data
+.env
+.env.production
+.env.prod
+.env.qa
+
+# Do not share developer's private notebook
+private.txt
+private_prod.md
+private.md
+private_*.md
+todo.txt
+
+# Do not store the keystore
+static/keystore
