@@ -8,6 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/blockchain/keystore"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/logger"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/blacklist"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/storage/database/mongodb"
@@ -43,7 +44,7 @@ func doRunDaemon() {
 	// kmutex := kmutexutil.NewKMutexProvider()
 	cfg := config.NewProvider()
 	dbClient := mongodb.NewProvider(cfg, logger)
-	// keystore := keystore.NewAdapter()
+	keystore := keystore.NewAdapter()
 	// passp := password.NewProvider()
 	blackp := blacklist.NewProvider()
 
@@ -101,6 +102,21 @@ func doRunDaemon() {
 	// Use-case
 	//
 
+	// Wallet
+	walletDecryptKeyUseCase := usecase.NewWalletDecryptKeyUseCase(
+		cfg,
+		logger,
+		keystore,
+		walletRepo,
+	)
+	_ = walletDecryptKeyUseCase
+	getWalletUseCase := usecase.NewGetWalletUseCase(
+		cfg,
+		logger,
+		walletRepo,
+	)
+	_ = getWalletUseCase
+
 	// Account
 	createAccountUseCase := usecase.NewCreateAccountUseCase(
 		cfg,
@@ -125,70 +141,71 @@ func doRunDaemon() {
 		accountRepo,
 	)
 	_ = accountsFilterByAddressesUseCase
-	_ = getAccountsHashStateUseCase
+
+	// Genesis Block Data
+	getGenesisBlockDataUseCase := usecase.NewGetGenesisBlockDataUseCase(
+		cfg,
+		logger,
+		genesisBlockDataRepo,
+	)
+	_ = getGenesisBlockDataUseCase
+
+	// Blockchain State
+	getBlockchainStateUseCase := usecase.NewGetBlockchainStateUseCase(
+		cfg,
+		logger,
+		blockchainStateRepo,
+	)
+	_ = getBlockchainStateUseCase
+	upsertBlockchainStateUseCase := usecase.NewUpsertBlockchainStateUseCase(
+		cfg,
+		logger,
+		blockchainStateRepo,
+	)
+	_ = upsertBlockchainStateUseCase
+
+	// Block Data
+	getBlockDataUseCase := usecase.NewGetBlockDataUseCase(
+		cfg,
+		logger,
+		blockDataRepo,
+	)
+	_ = getBlockDataUseCase
+	upsertBlockDataUseCase := usecase.NewUpsertBlockDataUseCase(
+		cfg,
+		logger,
+		blockDataRepo,
+	)
+	_ = upsertBlockDataUseCase
+	listBlockTransactionsByAddressUseCase := usecase.NewListBlockTransactionsByAddressUseCase(
+		cfg,
+		logger,
+		blockDataRepo,
+	)
+	_ = listBlockTransactionsByAddressUseCase
 
 	// Token
+	getTokenUseCase := usecase.NewGetTokenUseCase(
+		logger,
+		tokRepo,
+	)
+	_ = getTokenUseCase
+	getTokensHashStateUseCase := usecase.NewGetTokensHashStateUseCase(
+		logger,
+		tokRepo,
+	)
+	_ = getTokensHashStateUseCase
 	upsertTokenIfPreviousTokenNonceGTEUseCase := usecase.NewUpsertTokenIfPreviousTokenNonceGTEUseCase(
 		cfg,
 		logger,
 		tokRepo,
 	)
 	_ = upsertTokenIfPreviousTokenNonceGTEUseCase
-	// listTokensByOwnerUseCase := usecase.NewListTokensByOwnerUseCase(
-	// 	logger,
-	// 	tokRepo,
-	// )
-	// countTokensByOwnerUseCase := usecase.NewCountTokensByOwnerUseCase(
-	// 	logger,
-	// 	tokRepo,
-	// )
-
-	// // Genesis Block Data
-	// upsertGenesisBlockDataUseCase := usecase.NewUpsertGenesisBlockDataUseCase(
-	// 	logger,
-	// 	genesisBlockDataRepo)
-	// getGenesisBlockDataUseCase := usecase.NewGetGenesisBlockDataUseCase(
-	// 	logger,
-	// 	genesisBlockDataRepo)
-
-	// // Genesis Block Data DTO
-	// getGenesisBlockDataDTOFromBlockchainAuthorityUseCase := auth_usecase.NewGetGenesisBlockDataDTOFromBlockchainAuthorityUseCase(
-	// 	logger,
-	// 	genesisBlockDataDTORepo)
-
-	// // Block Data
-	// upsertBlockDataUseCase := usecase.NewUpsertBlockDataUseCase(
-	// 	logger,
-	// 	blockDataRepo)
-	// getBlockDataUseCase := usecase.NewGetBlockDataUseCase(
-	// 	logger,
-	// 	blockDataRepo)
-
-	// // Block Data DTO
-	// getBlockDataDTOFromBlockchainAuthorityUseCase := auth_usecase.NewGetBlockDataDTOFromBlockchainAuthorityUseCase(
-	// 	logger,
-	// 	blockDataDTORepo)
-
-	// // Blockchain State
-	// upsertBlockchainStateUseCase := usecase.NewUpsertBlockchainStateUseCase(
-	// 	logger,
-	// 	blockchainStateRepo)
-	// getBlockchainStateUseCase := usecase.NewGetBlockchainStateUseCase(
-	// 	logger,
-	// 	blockchainStateRepo)
-
-	// // Blockchain State DTO
-	// getBlockchainStateDTOFromBlockchainAuthorityUseCase := auth_usecase.NewGetBlockchainStateDTOFromBlockchainAuthorityUseCase(
-	// 	logger,
-	// 	blockchainStateDTORepo)
-
-	// // Blockchain State
-	// upsertBlockchainStateUseCase := usecase.NewUpsertBlockchainStateUseCase(
-	// 	logger,
-	// 	blockchainStateRepo)
-	// getBlockchainStateUseCase := usecase.NewGetBlockchainStateUseCase(
-	// 	logger,
-	// 	blockchainStateRepo)
+	listTokensByOwnerUseCase := usecase.NewListTokensByOwnerUseCase(
+		logger,
+		tokRepo,
+	)
+	_ = listTokensByOwnerUseCase
 
 	// Blockchain State DTO
 	subscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase := usecase.NewSubscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase(
