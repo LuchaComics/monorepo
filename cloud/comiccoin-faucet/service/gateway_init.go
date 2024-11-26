@@ -17,13 +17,18 @@ import (
 )
 
 type GatewayInitService struct {
-	config                 *config.Configuration
-	logger                 *slog.Logger
-	passwordProvider       password.Provider
-	tenantGetByNameUseCase *usecase.TenantGetByNameUseCase
-	tenantCreate           *usecase.TenantCreateUseCase
-	userGet                *usecase.UserGetByEmailUseCase
-	userCreate             *usecase.UserCreateUseCase
+	config                  *config.Configuration
+	logger                  *slog.Logger
+	passwordProvider        password.Provider
+	tenantGetByNameUseCase  *usecase.TenantGetByNameUseCase
+	tenantCreate            *usecase.TenantCreateUseCase
+	walletEncryptKeyUseCase *usecase.WalletEncryptKeyUseCase
+	walletDecryptKeyUseCase *usecase.WalletDecryptKeyUseCase
+	createWalletUseCase     *usecase.CreateWalletUseCase
+	userGet                 *usecase.UserGetByEmailUseCase
+	userCreate              *usecase.UserCreateUseCase
+	createAccountUseCase    *usecase.CreateAccountUseCase
+	getAccountUseCase       *usecase.GetAccountUseCase
 }
 
 func NewGatewayInitService(
@@ -32,10 +37,15 @@ func NewGatewayInitService(
 	pp password.Provider,
 	uc1 *usecase.TenantGetByNameUseCase,
 	uc2 *usecase.TenantCreateUseCase,
-	uc3 *usecase.UserGetByEmailUseCase,
-	uc4 *usecase.UserCreateUseCase,
+	uc3 *usecase.WalletEncryptKeyUseCase,
+	uc4 *usecase.WalletDecryptKeyUseCase,
+	uc5 *usecase.CreateWalletUseCase,
+	uc6 *usecase.UserGetByEmailUseCase,
+	uc7 *usecase.UserCreateUseCase,
+	uc8 *usecase.CreateAccountUseCase,
+	uc9 *usecase.GetAccountUseCase,
 ) *GatewayInitService {
-	return &GatewayInitService{config, logger, pp, uc1, uc2, uc3, uc4}
+	return &GatewayInitService{config, logger, pp, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9}
 }
 
 func (s *GatewayInitService) Execute(

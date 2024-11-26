@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"go.mongodb.org/mongo-driver/mongo"
 
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/blockchain/keystore"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/logger"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/password"
 	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/securestring"
@@ -38,7 +39,7 @@ func InitCmd() *cobra.Command {
 	cmd.MarkFlagRequired("tenant-name")
 	cmd.Flags().Uint16Var(&flagChainID, "chain-id", 0, "The blockchain unique id")
 	cmd.MarkFlagRequired("chain-id")
-	cmd.Flags().StringVar(&flagTenantName, "email", "", "The email of the administrator")
+	cmd.Flags().StringVar(&flagEmail, "email", "", "The email of the administrator")
 	cmd.MarkFlagRequired("email")
 	cmd.Flags().StringVar(&flagPassword, "wallet-password", "", "The password to encrypt the new wallet with")
 	cmd.MarkFlagRequired("wallet-password")
@@ -57,7 +58,7 @@ func doRunGatewayInit() {
 	// kmutex := kmutexutil.NewKMutexProvider()
 	cfg := config.NewProvider()
 	dbClient := mongodb.NewProvider(cfg, logger)
-	// keystore := keystore.NewAdapter()
+	keystore := keystore.NewAdapter()
 	passp := password.NewProvider()
 	// blackp := blacklist.NewProvider()
 
@@ -67,11 +68,39 @@ func doRunGatewayInit() {
 
 	tenantRepo := repo.NewTenantRepository(cfg, logger, dbClient)
 	userRepo := repo.NewUserRepository(cfg, logger, dbClient)
+	walletRepo := repo.NewWalletRepo(cfg, logger, dbClient)
+	accountRepo := repo.NewAccountRepo(cfg, logger, dbClient)
 
 	//
 	// Use-case
 	//
 
+	// Wallet
+	walletDecryptKeyUseCase := usecase.NewWalletDecryptKeyUseCase(
+		cfg,
+		logger,
+		keystore,
+		walletRepo,
+	)
+	walletEncryptKeyUseCase := usecase.NewWalletEncryptKeyUseCase(
+		cfg,
+		logger,
+		keystore,
+		walletRepo,
+	)
+	getWalletUseCase := usecase.NewGetWalletUseCase(
+		cfg,
+		logger,
+		walletRepo,
+	)
+	_ = getWalletUseCase
+	createWalletUseCase := usecase.NewCreateWalletUseCase(
+		cfg,
+		logger,
+		walletRepo,
+	)
+
+	// Tenant
 	tenantGetByNameUseCase := usecase.NewTenantGetByNameUseCase(
 		cfg,
 		logger,
@@ -83,15 +112,28 @@ func doRunGatewayInit() {
 		tenantRepo,
 	)
 
+	// User
 	userGetByEmailUseCase := usecase.NewUserGetByEmailUseCase(
 		cfg,
 		logger,
 		userRepo,
 	)
-	userCreate := usecase.NewUserCreateUseCase(
+	userCreateUseCase := usecase.NewUserCreateUseCase(
 		cfg,
 		logger,
 		userRepo,
+	)
+
+	// Account
+	getAccountUseCase := usecase.NewGetAccountUseCase(
+		cfg,
+		logger,
+		accountRepo,
+	)
+	createAccountUseCase := usecase.NewCreateAccountUseCase(
+		cfg,
+		logger,
+		accountRepo,
 	)
 
 	//
@@ -104,8 +146,13 @@ func doRunGatewayInit() {
 		passp,
 		tenantGetByNameUseCase,
 		tenantCreate,
+		walletEncryptKeyUseCase,
+		walletDecryptKeyUseCase,
+		createWalletUseCase,
 		userGetByEmailUseCase,
-		userCreate,
+		userCreateUseCase,
+		createAccountUseCase,
+		getAccountUseCase,
 	)
 
 	//
