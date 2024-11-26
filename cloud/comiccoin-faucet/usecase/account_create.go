@@ -12,6 +12,10 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/domain"
 )
 
+//
+// Copied from `github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase`
+//
+
 type CreateAccountUseCase struct {
 	config *config.Configuration
 	logger *slog.Logger

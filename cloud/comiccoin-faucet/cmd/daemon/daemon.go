@@ -51,10 +51,14 @@ func doRunDaemon() {
 	// Repository
 	//
 
+	walletRepo := repo.NewWalletRepo(cfg, logger, dbClient)
+	_ = walletRepo
+	accountRepo := repo.NewAccountRepo(cfg, logger, dbClient)
 	tenantRepo := repo.NewTenantRepository(cfg, logger, dbClient)
 	_ = tenantRepo
 	userRepo := repo.NewUserRepository(cfg, logger, dbClient)
 	_ = userRepo
+	tokRepo := repo.NewTokenRepository(cfg, logger, dbClient)
 
 	blockchainStateChangeEventDTOConfigurationProvider := repo.NewBlockchainStateChangeEventDTOConfigurationProvider(cfg.App.AuthorityHTTPAddress)
 	blockchainStateChangeEventDTORepo := repo.NewBlockchainStateChangeEventDTORepo(
@@ -64,6 +68,95 @@ func doRunDaemon() {
 	//
 	// Use-case
 	//
+
+	// Account
+	createAccountUseCase := usecase.NewCreateAccountUseCase(
+		cfg,
+		logger,
+		accountRepo)
+	_ = createAccountUseCase
+	getAccountUseCase := usecase.NewGetAccountUseCase(
+		logger,
+		accountRepo)
+	_ = getAccountUseCase
+	getAccountsHashStateUseCase := usecase.NewGetAccountsHashStateUseCase(
+		logger,
+		accountRepo)
+	_ = getAccountsHashStateUseCase
+	upsertAccountUseCase := usecase.NewUpsertAccountUseCase(
+		cfg,
+		logger,
+		accountRepo)
+	_ = upsertAccountUseCase
+	accountsFilterByAddressesUseCase := usecase.NewAccountsFilterByAddressesUseCase(
+		logger,
+		accountRepo,
+	)
+	_ = accountsFilterByAddressesUseCase
+	_ = getAccountsHashStateUseCase
+
+	// Token
+	upsertTokenIfPreviousTokenNonceGTEUseCase := usecase.NewUpsertTokenIfPreviousTokenNonceGTEUseCase(
+		cfg,
+		logger,
+		tokRepo,
+	)
+	_ = upsertTokenIfPreviousTokenNonceGTEUseCase
+	// listTokensByOwnerUseCase := usecase.NewListTokensByOwnerUseCase(
+	// 	logger,
+	// 	tokRepo,
+	// )
+	// countTokensByOwnerUseCase := usecase.NewCountTokensByOwnerUseCase(
+	// 	logger,
+	// 	tokRepo,
+	// )
+
+	// // Genesis Block Data
+	// upsertGenesisBlockDataUseCase := usecase.NewUpsertGenesisBlockDataUseCase(
+	// 	logger,
+	// 	genesisBlockDataRepo)
+	// getGenesisBlockDataUseCase := usecase.NewGetGenesisBlockDataUseCase(
+	// 	logger,
+	// 	genesisBlockDataRepo)
+
+	// // Genesis Block Data DTO
+	// getGenesisBlockDataDTOFromBlockchainAuthorityUseCase := auth_usecase.NewGetGenesisBlockDataDTOFromBlockchainAuthorityUseCase(
+	// 	logger,
+	// 	genesisBlockDataDTORepo)
+
+	// // Block Data
+	// upsertBlockDataUseCase := usecase.NewUpsertBlockDataUseCase(
+	// 	logger,
+	// 	blockDataRepo)
+	// getBlockDataUseCase := usecase.NewGetBlockDataUseCase(
+	// 	logger,
+	// 	blockDataRepo)
+
+	// // Block Data DTO
+	// getBlockDataDTOFromBlockchainAuthorityUseCase := auth_usecase.NewGetBlockDataDTOFromBlockchainAuthorityUseCase(
+	// 	logger,
+	// 	blockDataDTORepo)
+
+	// // Blockchain State
+	// upsertBlockchainStateUseCase := usecase.NewUpsertBlockchainStateUseCase(
+	// 	logger,
+	// 	blockchainStateRepo)
+	// getBlockchainStateUseCase := usecase.NewGetBlockchainStateUseCase(
+	// 	logger,
+	// 	blockchainStateRepo)
+
+	// // Blockchain State DTO
+	// getBlockchainStateDTOFromBlockchainAuthorityUseCase := auth_usecase.NewGetBlockchainStateDTOFromBlockchainAuthorityUseCase(
+	// 	logger,
+	// 	blockchainStateDTORepo)
+
+	// // Blockchain State
+	// upsertBlockchainStateUseCase := usecase.NewUpsertBlockchainStateUseCase(
+	// 	logger,
+	// 	blockchainStateRepo)
+	// getBlockchainStateUseCase := usecase.NewGetBlockchainStateUseCase(
+	// 	logger,
+	// 	blockchainStateRepo)
 
 	// Blockchain State DTO
 	subscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase := usecase.NewSubscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase(

@@ -5,19 +5,21 @@ import (
 	"log/slog"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/httperror"
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/domain"
 	"github.com/ethereum/go-ethereum/common"
 )
 
+//
+// Copied from `github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase`
+//
+
 type GetAccountUseCase struct {
-	config *config.Configuration
 	logger *slog.Logger
 	repo   domain.AccountRepository
 }
 
-func NewGetAccountUseCase(config *config.Configuration, logger *slog.Logger, repo domain.AccountRepository) *GetAccountUseCase {
-	return &GetAccountUseCase{config, logger, repo}
+func NewGetAccountUseCase(logger *slog.Logger, repo domain.AccountRepository) *GetAccountUseCase {
+	return &GetAccountUseCase{logger, repo}
 }
 
 func (uc *GetAccountUseCase) Execute(ctx context.Context, address *common.Address) (*domain.Account, error) {

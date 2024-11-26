@@ -11,6 +11,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+//
+// Copied from `github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase`
+//
+
 type UpsertAccountUseCase struct {
 	config *config.Configuration
 	logger *slog.Logger

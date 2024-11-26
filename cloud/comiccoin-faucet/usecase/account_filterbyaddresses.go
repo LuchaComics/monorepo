@@ -10,6 +10,10 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/domain"
 )
 
+//
+// Copied from `github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase`
+//
+
 type AccountsFilterByAddressesUseCase struct {
 	logger *slog.Logger
 	repo   domain.AccountRepository
