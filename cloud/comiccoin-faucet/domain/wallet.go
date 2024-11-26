@@ -8,6 +8,7 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
+// Copied from `github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain`
 type Wallet struct {
 	// The (Optional) description for this wallet.
 	Label string `bson:"label" json:"label"`

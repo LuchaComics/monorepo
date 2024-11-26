@@ -21,10 +21,11 @@ import (
 )
 
 var (
-	flagTenantName string
-	flagChainID    uint16
-	flagEmail      string
-	flagPassword   string
+	flagTenantName       string
+	flagChainID          uint16
+	flagEmail            string
+	flagPassword         string
+	flagPasswordRepeated string
 )
 
 func InitCmd() *cobra.Command {
@@ -43,6 +44,8 @@ func InitCmd() *cobra.Command {
 	cmd.MarkFlagRequired("email")
 	cmd.Flags().StringVar(&flagPassword, "wallet-password", "", "The password to encrypt the new wallet with")
 	cmd.MarkFlagRequired("wallet-password")
+	cmd.Flags().StringVar(&flagPasswordRepeated, "wallet-password-repeated", "", "The password repeated to verify your password is correct")
+	cmd.MarkFlagRequired("wallet-password-repeated")
 
 	return cmd
 }
@@ -140,24 +143,31 @@ func doRunGatewayInit() {
 	// Service
 	//
 
+	createAccountService := service.NewCreateAccountService(
+		logger,
+		walletEncryptKeyUseCase,
+		walletDecryptKeyUseCase,
+		createWalletUseCase,
+		createAccountUseCase,
+		getAccountUseCase,
+	)
+
 	initService := service.NewGatewayInitService(
 		cfg,
 		logger,
 		passp,
+		createAccountService,
 		tenantGetByNameUseCase,
 		tenantCreate,
-		walletEncryptKeyUseCase,
-		walletDecryptKeyUseCase,
-		createWalletUseCase,
 		userGetByEmailUseCase,
 		userCreateUseCase,
-		createAccountUseCase,
-		getAccountUseCase,
 	)
 
 	//
 	// Interface.
 	//
+
+	// (Nothing...)
 
 	//
 	// Execute.
@@ -166,8 +176,14 @@ func doRunGatewayInit() {
 	// Minor formatting of input.
 	pass, err := sstring.NewSecureString(flagPassword)
 	if err != nil {
-		log.Fatalf("Failed securing: %v\n", err)
+		log.Fatalf("Failed securing flagPassword: %v\n", err)
 	}
+	// defer pass.Wipe() // Developers Note: Commented out b/c they are causing the hang in the program to exit?
+	passRepeated, err := sstring.NewSecureString(flagPasswordRepeated)
+	if err != nil {
+		log.Fatalf("Failed securing flagPasswordRepeated: %v\n", err)
+	}
+	// defer passRepeated.Wipe() // Developers Note: Commented out b/c they are causing the hang in the program to exit?
 
 	////
 	//// Start the transaction.
@@ -188,10 +204,17 @@ func doRunGatewayInit() {
 	// Define a transaction function with a series of operations
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
 		logger.Debug("Transaction started")
-		err := initService.Execute(sessCtx, flagTenantName, flagChainID, flagEmail, pass)
+		err := initService.Execute(sessCtx, flagTenantName, flagChainID, flagEmail, pass, passRepeated)
 		if err != nil {
 			return nil, err
 		}
+
+		logger.Debug("Committing transaction")
+		if err := sessCtx.CommitTransaction(ctx); err != nil {
+			return nil, err
+		}
+		logger.Debug("Transaction committed")
+
 		return nil, nil
 	}
 

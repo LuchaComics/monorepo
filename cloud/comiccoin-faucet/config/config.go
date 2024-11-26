@@ -76,12 +76,12 @@ func NewProvider() *Configuration {
 	c.Blockchain.MiningReward, _ = strconv.ParseUint(getEnv("COMICCOIN_FAUCET_BLOCKCHAIN_MINING_REWARD", false), 10, 64)
 	c.Blockchain.GasPrice, _ = strconv.ParseUint(getEnv("COMICCOIN_FAUCET_BLOCKCHAIN_GAS_PRICE", false), 10, 64)
 	c.Blockchain.UnitsOfGas, _ = strconv.ParseUint(getEnv("COMICCOIN_FAUCET_BLOCKCHAIN_UNITS_OF_GAS", false), 10, 64)
-	proofOfAuthorityAccountAddress := getEnv("COMICCOIN_FAUCET_BLOCKCHAIN_PROOF_OF_FAUCET_ACCOUNT_ADDRESS", false)
+	proofOfAuthorityAccountAddress := getEnv("COMICCOIN_FAUCET_ACCOUNT_ADDRESS", false)
 	if proofOfAuthorityAccountAddress != "" {
 		address := common.HexToAddress(proofOfAuthorityAccountAddress)
 		c.Blockchain.ProofOfAuthorityAccountAddress = &address
 	}
-	c.Blockchain.ProofOfAuthorityWalletPassword = getSecureStringEnv("COMICCOIN_FAUCET_BLOCKCHAIN_PROOF_OF_FAUCET_WALLET_PASSWORD", false)
+	c.Blockchain.ProofOfAuthorityWalletPassword = getSecureStringEnv("COMICCOIN_FAUCET_WALLET_PASSWORD", false)
 	// Database section.
 	c.DB.URI = getEnv("COMICCOIN_FAUCET_DB_URI", true)
 	c.DB.Name = getEnv("COMICCOIN_FAUCET_DB_NAME", true)
@@ -104,7 +104,7 @@ func getSecureStringEnv(key string, required bool) *sstring.SecureString {
 	}
 	ss, err := sstring.NewSecureString(value)
 	if err != nil {
-		log.Fatalf("Environment variable failed to secure: %v", err)
+		log.Fatalf("Environment variable `%v` failed to secure: %v", key, err)
 	}
 	return ss
 }

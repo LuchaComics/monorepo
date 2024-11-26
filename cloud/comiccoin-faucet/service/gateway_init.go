@@ -17,35 +17,27 @@ import (
 )
 
 type GatewayInitService struct {
-	config                  *config.Configuration
-	logger                  *slog.Logger
-	passwordProvider        password.Provider
-	tenantGetByNameUseCase  *usecase.TenantGetByNameUseCase
-	tenantCreate            *usecase.TenantCreateUseCase
-	walletEncryptKeyUseCase *usecase.WalletEncryptKeyUseCase
-	walletDecryptKeyUseCase *usecase.WalletDecryptKeyUseCase
-	createWalletUseCase     *usecase.CreateWalletUseCase
-	userGet                 *usecase.UserGetByEmailUseCase
-	userCreate              *usecase.UserCreateUseCase
-	createAccountUseCase    *usecase.CreateAccountUseCase
-	getAccountUseCase       *usecase.GetAccountUseCase
+	config                 *config.Configuration
+	logger                 *slog.Logger
+	passwordProvider       password.Provider
+	createAccountService   *CreateAccountService
+	tenantGetByNameUseCase *usecase.TenantGetByNameUseCase
+	tenantCreate           *usecase.TenantCreateUseCase
+	userGet                *usecase.UserGetByEmailUseCase
+	userCreate             *usecase.UserCreateUseCase
 }
 
 func NewGatewayInitService(
 	config *config.Configuration,
 	logger *slog.Logger,
 	pp password.Provider,
+	s1 *CreateAccountService,
 	uc1 *usecase.TenantGetByNameUseCase,
 	uc2 *usecase.TenantCreateUseCase,
-	uc3 *usecase.WalletEncryptKeyUseCase,
-	uc4 *usecase.WalletDecryptKeyUseCase,
-	uc5 *usecase.CreateWalletUseCase,
-	uc6 *usecase.UserGetByEmailUseCase,
-	uc7 *usecase.UserCreateUseCase,
-	uc8 *usecase.CreateAccountUseCase,
-	uc9 *usecase.GetAccountUseCase,
+	uc3 *usecase.UserGetByEmailUseCase,
+	uc4 *usecase.UserCreateUseCase,
 ) *GatewayInitService {
-	return &GatewayInitService{config, logger, pp, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9}
+	return &GatewayInitService{config, logger, pp, s1, uc1, uc2, uc3, uc4}
 }
 
 func (s *GatewayInitService) Execute(
@@ -53,7 +45,8 @@ func (s *GatewayInitService) Execute(
 	tenantName string,
 	chainID uint16,
 	email string,
-	pass *sstring.SecureString,
+	walletPassword *sstring.SecureString,
+	walletPasswordRepeated *sstring.SecureString,
 ) error {
 	//
 	// STEP 1: Validation.
@@ -80,7 +73,14 @@ func (s *GatewayInitService) Execute(
 	if email == "" {
 		e["email"] = "missing value"
 	} else {
-
+		//TODO
+	}
+	if walletPasswordRepeated == nil {
+		e["wallet_password_repeated"] = "missing value"
+	}
+	if walletPassword.String() != walletPasswordRepeated.String() {
+		e["wallet_password"] = "do not match"
+		e["wallet_password_repeated"] = "do not match"
 	}
 	if len(e) != 0 {
 		s.logger.Warn("Validation failed for upsert",
@@ -89,31 +89,56 @@ func (s *GatewayInitService) Execute(
 	}
 
 	//
-	// STEP 2: Create our tenant
+	// STEP 2: Setup our unique identifiers
 	//
 
-	tenant := &domain.Tenant{
-		ID:         primitive.NewObjectID(),
-		Name:       tenantName,
-		ChainID:    chainID,
-		Status:     domain.TenantActiveStatus,
-		CreatedAt:  time.Now(),
-		ModifiedAt: time.Now(),
-	}
+	tenantID := primitive.NewObjectID()
+	userID := primitive.NewObjectID()
 
-	err := s.tenantCreate.Execute(sessCtx, tenant)
+	//
+	// STEP 3:
+	// Create the encryted physical wallet on file and our account.
+	//
+
+	account, err := s.createAccountService.Execute(sessCtx, walletPassword, walletPasswordRepeated, tenantID.Hex())
 	if err != nil {
-		s.logger.Error("Failed creating tenant",
+		s.logger.Error("Failed creating account",
+			slog.Any("error", err))
+		return err
+	}
+	if account == nil {
+		err := fmt.Errorf("Account was not returned for tenant: %v", tenantID.Hex())
+		s.logger.Error("Failed creating account",
 			slog.Any("error", err))
 		return err
 	}
 
 	//
-	// STEP 3: Create our administrator
+	// STEP 4: Create our tenant.
+	//
+
+	tenant := &domain.Tenant{
+		ID:         tenantID,
+		Name:       tenantName,
+		ChainID:    chainID,
+		Status:     domain.TenantActiveStatus,
+		CreatedAt:  time.Now(),
+		ModifiedAt: time.Now(),
+		Account:    account,
+	}
+
+	if createTenantErr := s.tenantCreate.Execute(sessCtx, tenant); createTenantErr != nil {
+		s.logger.Error("Failed creating tenant",
+			slog.Any("error", createTenantErr))
+		return createTenantErr
+	}
+
+	//
+	// STEP 5: Create our administrator user account.
 	//
 
 	user := &domain.User{
-		ID:          primitive.NewObjectID(),
+		ID:          userID,
 		TenantID:    tenant.ID,
 		TenantName:  tenantName,
 		FirstName:   "System",
@@ -123,12 +148,19 @@ func (s *GatewayInitService) Execute(
 		Email:       email,
 	}
 
-	if err := s.userCreate.Execute(sessCtx, user); err != nil {
+	if createUserErr := s.userCreate.Execute(sessCtx, user); err != nil {
 		s.logger.Error("Failed creating user",
-			slog.Any("error", err))
-		return err
+			slog.Any("error", createUserErr))
+		return createUserErr
 	}
 
-	// return uc.repo.Create(sessCtx, user)
+	//
+	// Step 6: For debugging puprposes only.
+	//
+	s.logger.Info("Gateway initialized",
+		slog.Any("tenant_id", tenantID.Hex()),
+		slog.Any("user_id", userID.Hex()),
+		slog.Any("account_address", account.Address))
+
 	return nil
 }

@@ -35,6 +35,7 @@ type Tenant struct {
 	Status     int8               `bson:"status" json:"status"`
 	ModifiedAt time.Time          `bson:"modified_at,omitempty" json:"modified_at,omitempty"`
 	CreatedAt  time.Time          `bson:"created_at,omitempty" json:"created_at,omitempty"`
+	Account    *Account           `bson:"account" json:"account"`
 }
 
 type TenantComment struct {

@@ -95,12 +95,12 @@ func doRunNewAccount() {
 	if err != nil {
 		log.Fatalf("Failed securing: %v\n", err)
 	}
-	defer pass.Wipe() // Developers Note: Commented out b/c they are causing the hang in the program to exit?
+	// defer pass.Wipe() // Developers Note: Commented out b/c they are causing the hang in the program to exit?
 	passRepeated, err := sstring.NewSecureString(flagPasswordRepeated)
 	if err != nil {
 		log.Fatalf("Failed securing: %v\n", err)
 	}
-	defer passRepeated.Wipe() // Developers Note: Commented out b/c they are causing the hang in the program to exit?
+	// defer passRepeated.Wipe() // Developers Note: Commented out b/c they are causing the hang in the program to exit?
 
 	////
 	//// Start the transaction.
