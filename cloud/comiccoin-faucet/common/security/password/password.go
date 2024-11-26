@@ -21,7 +21,7 @@ var (
 
 type Provider interface {
 	GenerateHashFromPassword(password *sstring.SecureString) (string, error)
-	ComparePasswordAndHash(password, hash *sstring.SecureString) (bool, error)
+	ComparePasswordAndHash(password *sstring.SecureString, hash string) (bool, error)
 	AlgorithmName() string
 	GenerateSecureRandomBytes(length int) ([]byte, error)
 	GenerateSecureRandomString(length int) (string, error)
@@ -73,13 +73,13 @@ func (p *passwordProvider) GenerateHashFromPassword(password *sstring.SecureStri
 
 // CheckPasswordHash function checks the plaintext string and hash string and returns either true
 // or false depending.
-func (p *passwordProvider) ComparePasswordAndHash(password, encodedHash *sstring.SecureString) (match bool, err error) {
+func (p *passwordProvider) ComparePasswordAndHash(password *sstring.SecureString, encodedHash string) (match bool, err error) {
 	// DEVELOPERS NOTE:
 	// The following code was copy and pasted from: "How to Hash and Verify Passwords With Argon2 in Go" via https://www.alexedwards.net/blog/how-to-hash-and-verify-passwords-with-argon2-in-go
 
 	// Extract the parameters, salt and derived key from the encoded password
 	// hash.
-	p, salt, hash, err := decodeHash(encodedHash.String())
+	p, salt, hash, err := decodeHash(encodedHash)
 	if err != nil {
 		return false, err
 	}

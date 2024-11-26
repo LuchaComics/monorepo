@@ -8,6 +8,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
+	sbytes "github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/securebytes"
 	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/securestring"
 )
 
@@ -26,6 +27,7 @@ type serverConf struct {
 	WalletPassword        *sstring.SecureString
 	AuthorityHTTPAddress  string
 	NFTStorageHTTPAddress string
+	HMACSecret            *sbytes.SecureBytes
 }
 
 // BlockchainConfig represents the configuration for the blockchain.
@@ -71,6 +73,7 @@ func NewProvider() *Configuration {
 	c.App.WalletPassword = getSecureStringEnv("COMICCOIN_FAUCET_WALLET_PASSWORD", false)
 	c.App.AuthorityHTTPAddress = getEnv("COMICCOIN_FAUCET_AUTHORITY_HTTP_ADDRESS", true)
 	c.App.NFTStorageHTTPAddress = getEnv("COMICCOIN_FAUCET_NFTSTORAGE_HTTP_ADDRESS", true)
+	c.App.HMACSecret = getSecureBytesEnv("COMICCOIN_FAUCET_HMAC_SECRET", true)
 
 	// Blockchain section.
 	chainID, _ := strconv.ParseUint(getEnv("COMICCOIN_FAUCET_BLOCKCHAIN_CHAIN_ID", true), 10, 16)
@@ -98,6 +101,14 @@ func getEnv(key string, required bool) string {
 	return value
 }
 
+func getBytesEnv(key string, required bool) []byte {
+	value := os.Getenv(key)
+	if required && value == "" {
+		log.Fatalf("Environment variable not found: %s", key)
+	}
+	return []byte(value)
+}
+
 func getSecureStringEnv(key string, required bool) *sstring.SecureString {
 	value := os.Getenv(key)
 	if required && value == "" {
@@ -108,6 +119,15 @@ func getSecureStringEnv(key string, required bool) *sstring.SecureString {
 		log.Fatalf("Environment variable `%v` failed to secure: %v", key, err)
 	}
 	return ss
+}
+
+func getSecureBytesEnv(key string, required bool) *sbytes.SecureBytes {
+	value := getBytesEnv(key, required)
+	sb, err := sbytes.NewSecureBytes(value)
+	if err != nil {
+		log.Fatalf("Environment variable `%v` failed to secure: %v", key, err)
+	}
+	return sb
 }
 
 func getEnvBool(key string, required bool, defaultValue bool) bool {
