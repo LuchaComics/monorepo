@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -9,6 +8,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/httperror"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/jwt"
@@ -41,7 +41,7 @@ func NewGatewayLoginService(
 	return &GatewayLoginService{logger, pp, cach, jwtp, uc1, uc2, uc3}
 }
 
-func (s *GatewayLoginService) Execute(ctx context.Context, email string, password *sstring.SecureString) (*LoginResponseIDO, error) {
+func (s *GatewayLoginService) Execute(sessCtx mongo.SessionContext, email string, password *sstring.SecureString) (*LoginResponseIDO, error) {
 	//
 	// STEP 1: Sanization of input.
 	//
@@ -84,7 +84,7 @@ func (s *GatewayLoginService) Execute(ctx context.Context, email string, passwor
 	//
 
 	// Lookup the user in our database, else return a `400 Bad Request` error.
-	u, err := s.userGetByEmailUseCase.Execute(ctx, email)
+	u, err := s.userGetByEmailUseCase.Execute(sessCtx, email)
 	if err != nil {
 		s.logger.Error("database error", slog.Any("err", err))
 		return nil, err
@@ -95,7 +95,7 @@ func (s *GatewayLoginService) Execute(ctx context.Context, email string, passwor
 	}
 
 	// Lookup the store and check to see if it's active or not, if not active then return the specific requests.
-	t, err := s.tenantGetByIDUseCase.Execute(ctx, u.TenantID)
+	t, err := s.tenantGetByIDUseCase.Execute(sessCtx, u.TenantID)
 	if err != nil {
 		s.logger.Error("database error", slog.Any("err", err))
 		return nil, err
@@ -125,14 +125,14 @@ func (s *GatewayLoginService) Execute(ctx context.Context, email string, passwor
 		// the user to use their `totp authenticator` application.
 		u.OTPValidated = false
 		u.ModifiedAt = time.Now()
-		if err := s.userUpdateUseCase.Execute(ctx, u); err != nil {
+		if err := s.userUpdateUseCase.Execute(sessCtx, u); err != nil {
 			s.logger.Error("failed updating user during login",
 				slog.Any("err", err))
 			return nil, err
 		}
 	}
 
-	return s.loginWithUser(ctx, u)
+	return s.loginWithUser(sessCtx, u)
 }
 
 type LoginResponseIDO struct {
@@ -143,7 +143,7 @@ type LoginResponseIDO struct {
 	RefreshTokenExpiryTime time.Time    `json:"refresh_token_expiry_time"`
 }
 
-func (s *GatewayLoginService) loginWithUser(ctx context.Context, u *domain.User) (*LoginResponseIDO, error) {
+func (s *GatewayLoginService) loginWithUser(sessCtx mongo.SessionContext, u *domain.User) (*LoginResponseIDO, error) {
 	uBin, err := json.Marshal(u)
 	if err != nil {
 		s.logger.Error("marshalling error", slog.Any("err", err))
@@ -157,7 +157,7 @@ func (s *GatewayLoginService) loginWithUser(ctx context.Context, u *domain.User)
 	// Start our session using an access and refresh token.
 	sessionUUID := primitive.NewObjectID().Hex()
 
-	err = s.cache.SetWithExpiry(ctx, sessionUUID, uBin, rtExpiry)
+	err = s.cache.SetWithExpiry(sessCtx, sessionUUID, uBin, rtExpiry)
 	if err != nil {
 		s.logger.Error("cache set with expiry error", slog.Any("err", err))
 		return nil, err
