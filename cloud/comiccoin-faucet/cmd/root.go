@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/cmd/daemon"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/cmd/initialize"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/cmd/version"
 )
 
@@ -28,6 +29,7 @@ func Execute() {
 	// Attach sub-commands to our main root.
 	rootCmd.AddCommand(daemon.DaemonCmd())
 	rootCmd.AddCommand(version.VersionCmd())
+	rootCmd.AddCommand(initialize.InitCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)

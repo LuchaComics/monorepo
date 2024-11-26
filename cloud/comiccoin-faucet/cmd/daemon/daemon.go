@@ -10,11 +10,13 @@ import (
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/logger"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/blacklist"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/storage/database/mongodb"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/interface/http"
 	httphandler "github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/interface/http/handler"
 	httpmiddle "github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/interface/http/middleware"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/interface/task"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/repo"
 )
 
 func DaemonCmd() *cobra.Command {
@@ -39,7 +41,7 @@ func doRunDaemon() {
 	logger := logger.NewProvider()
 	// kmutex := kmutexutil.NewKMutexProvider()
 	cfg := config.NewProvider()
-	// dbClient := mongodb.NewProvider(cfg, logger)
+	dbClient := mongodb.NewProvider(cfg, logger)
 	// keystore := keystore.NewAdapter()
 	// passp := password.NewProvider()
 	blackp := blacklist.NewProvider()
@@ -47,6 +49,11 @@ func doRunDaemon() {
 	//
 	// Repository
 	//
+
+	tenantRepo := repo.NewTenantRepository(cfg, logger, dbClient)
+	_ = tenantRepo
+	userRepo := repo.NewUserRepository(cfg, logger, dbClient)
+	_ = userRepo
 
 	//
 	// Use-case
