@@ -10,6 +10,8 @@ import (
 	"strings"
 
 	"golang.org/x/crypto/argon2"
+
+	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/securestring"
 )
 
 var (
@@ -18,8 +20,8 @@ var (
 )
 
 type Provider interface {
-	GenerateHashFromPassword(password string) (string, error)
-	ComparePasswordAndHash(password, hash string) (bool, error)
+	GenerateHashFromPassword(password *sstring.SecureString) (string, error)
+	ComparePasswordAndHash(password, hash *sstring.SecureString) (bool, error)
 	AlgorithmName() string
 	GenerateSecureRandomBytes(length int) ([]byte, error)
 	GenerateSecureRandomString(length int) (string, error)
@@ -48,7 +50,7 @@ func NewProvider() Provider {
 }
 
 // GenerateHashFromPassword function takes the plaintext string and returns an Argon2 hashed string.
-func (p *passwordProvider) GenerateHashFromPassword(password string) (string, error) {
+func (p *passwordProvider) GenerateHashFromPassword(password *sstring.SecureString) (string, error) {
 	// DEVELOPERS NOTE:
 	// The following code was copy and pasted from: "How to Hash and Verify Passwords With Argon2 in Go" via https://www.alexedwards.net/blog/how-to-hash-and-verify-passwords-with-argon2-in-go
 
@@ -57,7 +59,7 @@ func (p *passwordProvider) GenerateHashFromPassword(password string) (string, er
 		return "", err
 	}
 
-	hash := argon2.IDKey([]byte(password), salt, p.iterations, p.memory, p.parallelism, p.keyLength)
+	hash := argon2.IDKey(password.Bytes(), salt, p.iterations, p.memory, p.parallelism, p.keyLength)
 
 	// Base64 encode the salt and hashed password.
 	b64Salt := base64.RawStdEncoding.EncodeToString(salt)
@@ -71,19 +73,19 @@ func (p *passwordProvider) GenerateHashFromPassword(password string) (string, er
 
 // CheckPasswordHash function checks the plaintext string and hash string and returns either true
 // or false depending.
-func (p *passwordProvider) ComparePasswordAndHash(password, encodedHash string) (match bool, err error) {
+func (p *passwordProvider) ComparePasswordAndHash(password, encodedHash *sstring.SecureString) (match bool, err error) {
 	// DEVELOPERS NOTE:
 	// The following code was copy and pasted from: "How to Hash and Verify Passwords With Argon2 in Go" via https://www.alexedwards.net/blog/how-to-hash-and-verify-passwords-with-argon2-in-go
 
 	// Extract the parameters, salt and derived key from the encoded password
 	// hash.
-	p, salt, hash, err := decodeHash(encodedHash)
+	p, salt, hash, err := decodeHash(encodedHash.String())
 	if err != nil {
 		return false, err
 	}
 
 	// Derive the key from the other password using the same parameters.
-	otherHash := argon2.IDKey([]byte(password), salt, p.iterations, p.memory, p.parallelism, p.keyLength)
+	otherHash := argon2.IDKey(password.Bytes(), salt, p.iterations, p.memory, p.parallelism, p.keyLength)
 
 	// Check that the contents of the hashed passwords are identical. Note
 	// that we are using the subtle.ConstantTimeCompare() function for this

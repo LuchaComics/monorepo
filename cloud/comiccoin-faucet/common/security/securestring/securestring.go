@@ -32,6 +32,11 @@ func (ss *SecureString) String() string {
 	return string(ss.buffer.Bytes())
 }
 
+// String returns the securely stored string.
+func (ss *SecureString) Bytes() []byte {
+	return ss.buffer.Bytes()
+}
+
 // Wipe removes the string from memory and makes it unrecoverable.
 func (ss *SecureString) Wipe() error {
 	fmt.Println("SecureString: Wipe(): Starting...")

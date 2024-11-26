@@ -137,15 +137,29 @@ func (s *GatewayInitService) Execute(
 	// STEP 5: Create our administrator user account.
 	//
 
+	passwordHash, err := s.passwordProvider.GenerateHashFromPassword(walletPassword)
+	if err != nil {
+		s.logger.Error("Failed hashing password",
+			slog.Any("error", err))
+		return err
+	}
+
 	user := &domain.User{
-		ID:          userID,
-		TenantID:    tenant.ID,
-		TenantName:  tenantName,
-		FirstName:   "System",
-		LastName:    "Administrator",
-		Name:        "System Administrator",
-		LexicalName: "Administrator, System",
-		Email:       email,
+		ID:                    userID,
+		TenantID:              tenant.ID,
+		TenantName:            tenantName,
+		FirstName:             "System",
+		LastName:              "Administrator",
+		Name:                  "System Administrator",
+		LexicalName:           "Administrator, System",
+		Email:                 email,
+		Status:                domain.UserStatusActive,
+		PasswordHash:          passwordHash,
+		PasswordHashAlgorithm: s.passwordProvider.AlgorithmName(),
+		Role:                  domain.UserRoleRoot,
+		WasEmailVerified:      true,
+		CreatedAt:             time.Now(),
+		ModifiedAt:            time.Now(),
 	}
 
 	if createUserErr := s.userCreate.Execute(sessCtx, user); err != nil {
