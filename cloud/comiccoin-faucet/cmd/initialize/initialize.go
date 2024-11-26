@@ -129,7 +129,6 @@ func doRunGatewayInit() {
 
 	// Account
 	getAccountUseCase := usecase.NewGetAccountUseCase(
-		cfg,
 		logger,
 		accountRepo,
 	)

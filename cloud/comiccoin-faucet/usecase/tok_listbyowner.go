@@ -6,7 +6,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/domain"
 )
 
 //

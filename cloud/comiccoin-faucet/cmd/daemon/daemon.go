@@ -59,11 +59,43 @@ func doRunDaemon() {
 	userRepo := repo.NewUserRepository(cfg, logger, dbClient)
 	_ = userRepo
 	tokRepo := repo.NewTokenRepository(cfg, logger, dbClient)
+	blockchainStateRepo := repo.NewBlockchainStateRepository(cfg, logger, dbClient)
+	_ = blockchainStateRepo
 
 	blockchainStateChangeEventDTOConfigurationProvider := repo.NewBlockchainStateChangeEventDTOConfigurationProvider(cfg.App.AuthorityHTTPAddress)
 	blockchainStateChangeEventDTORepo := repo.NewBlockchainStateChangeEventDTORepo(
 		blockchainStateChangeEventDTOConfigurationProvider,
 		logger)
+
+	blockchainStateDTOConfigurationProvider := repo.NewBlockchainStateDTOConfigurationProvider(cfg.App.AuthorityHTTPAddress)
+	blockchainStateDTORepo := repo.NewBlockchainStateDTORepo(
+		blockchainStateDTOConfigurationProvider,
+		logger)
+	_ = blockchainStateDTORepo
+
+	blockDataRepo := repo.NewBlockDataRepository(
+		cfg,
+		logger,
+		dbClient)
+	_ = blockDataRepo
+
+	blockDataDTOConfigurationProvider := repo.NewBlockDataDTOConfigurationProvider(cfg.App.AuthorityHTTPAddress)
+	blockDataDTORepo := repo.NewBlockDataDTORepository(
+		blockDataDTOConfigurationProvider,
+		logger)
+	_ = blockDataDTORepo
+
+	genesisBlockDataRepo := repo.NewGenesisBlockDataRepository(
+		cfg,
+		logger,
+		dbClient)
+	_ = genesisBlockDataRepo
+
+	genesisBlockDataDTOConfigurationProvider := repo.NewGenesisBlockDataDTOConfigurationProvider(cfg.App.AuthorityHTTPAddress)
+	genesisBlockDataDTORepo := repo.NewGenesisBlockDataDTORepository(
+		genesisBlockDataDTOConfigurationProvider,
+		logger)
+	_ = genesisBlockDataDTORepo
 
 	//
 	// Use-case
