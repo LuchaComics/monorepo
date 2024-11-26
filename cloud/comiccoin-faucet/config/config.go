@@ -18,10 +18,14 @@ type Configuration struct {
 }
 
 type serverConf struct {
-	DataDirectory string
-	Port          string
-	IP            string
-	HTTPAddress   string
+	DataDirectory         string
+	Port                  string
+	IP                    string
+	HTTPAddress           string
+	WalletAddress         *common.Address
+	WalletPassword        *sstring.SecureString
+	AuthorityHTTPAddress  string
+	NFTStorageHTTPAddress string
 }
 
 // BlockchainConfig represents the configuration for the blockchain.
@@ -44,12 +48,6 @@ type BlockchainConfig struct {
 
 	// UnitsOfGas represents the units of gas for each transaction.
 	UnitsOfGas uint64 `json:"units_of_gas"`
-
-	// (Only set by PoA node)
-	ProofOfAuthorityAccountAddress *common.Address
-
-	// (Only set by PoA node)
-	ProofOfAuthorityWalletPassword *sstring.SecureString
 }
 
 type dbConfig struct {
@@ -65,6 +63,14 @@ func NewProvider() *Configuration {
 	c.App.Port = getEnv("COMICCOIN_FAUCET_PORT", true)
 	c.App.IP = getEnv("COMICCOIN_FAUCET_IP", false)
 	c.App.HTTPAddress = fmt.Sprintf("%v:%v", c.App.IP, c.App.Port)
+	walletAddress := getEnv("COMICCOIN_FAUCET_WALLET_ADDRESS", false)
+	if walletAddress != "" {
+		address := common.HexToAddress(walletAddress)
+		c.App.WalletAddress = &address
+	}
+	c.App.WalletPassword = getSecureStringEnv("COMICCOIN_FAUCET_WALLET_PASSWORD", false)
+	c.App.AuthorityHTTPAddress = getEnv("COMICCOIN_FAUCET_AUTHORITY_HTTP_ADDRESS", true)
+	c.App.NFTStorageHTTPAddress = getEnv("COMICCOIN_FAUCET_NFTSTORAGE_HTTP_ADDRESS", true)
 
 	// Blockchain section.
 	chainID, _ := strconv.ParseUint(getEnv("COMICCOIN_FAUCET_BLOCKCHAIN_CHAIN_ID", true), 10, 16)
@@ -76,12 +82,7 @@ func NewProvider() *Configuration {
 	c.Blockchain.MiningReward, _ = strconv.ParseUint(getEnv("COMICCOIN_FAUCET_BLOCKCHAIN_MINING_REWARD", false), 10, 64)
 	c.Blockchain.GasPrice, _ = strconv.ParseUint(getEnv("COMICCOIN_FAUCET_BLOCKCHAIN_GAS_PRICE", false), 10, 64)
 	c.Blockchain.UnitsOfGas, _ = strconv.ParseUint(getEnv("COMICCOIN_FAUCET_BLOCKCHAIN_UNITS_OF_GAS", false), 10, 64)
-	proofOfAuthorityAccountAddress := getEnv("COMICCOIN_FAUCET_ACCOUNT_ADDRESS", false)
-	if proofOfAuthorityAccountAddress != "" {
-		address := common.HexToAddress(proofOfAuthorityAccountAddress)
-		c.Blockchain.ProofOfAuthorityAccountAddress = &address
-	}
-	c.Blockchain.ProofOfAuthorityWalletPassword = getSecureStringEnv("COMICCOIN_FAUCET_WALLET_PASSWORD", false)
+
 	// Database section.
 	c.DB.URI = getEnv("COMICCOIN_FAUCET_DB_URI", true)
 	c.DB.Name = getEnv("COMICCOIN_FAUCET_DB_NAME", true)

@@ -17,6 +17,7 @@ import (
 	httpmiddle "github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/interface/http/middleware"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/interface/task"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/repo"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/usecase"
 )
 
 func DaemonCmd() *cobra.Command {
@@ -55,13 +56,47 @@ func doRunDaemon() {
 	userRepo := repo.NewUserRepository(cfg, logger, dbClient)
 	_ = userRepo
 
+	blockchainStateChangeEventDTOConfigurationProvider := repo.NewBlockchainStateChangeEventDTOConfigurationProvider(cfg.App.AuthorityHTTPAddress)
+	blockchainStateChangeEventDTORepo := repo.NewBlockchainStateChangeEventDTORepo(
+		blockchainStateChangeEventDTOConfigurationProvider,
+		logger)
+
 	//
 	// Use-case
 	//
 
+	// Blockchain State DTO
+	subscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase := usecase.NewSubscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase(
+		logger,
+		blockchainStateChangeEventDTORepo)
+
+	_ = subscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase
+
 	//
 	// Service
 	//
+
+	// blockchainSyncService := service.NewBlockchainSyncWithBlockchainAuthorityService(
+	// 	logger,
+	// 	getGenesisBlockDataUseCase,
+	// 	upsertGenesisBlockDataUseCase,
+	// 	getGenesisBlockDataDTOFromBlockchainAuthorityUseCase,
+	// 	getBlockchainStateUseCase,
+	// 	upsertBlockchainStateUseCase,
+	// 	getBlockchainStateDTOFromBlockchainAuthorityUseCase,
+	// 	getBlockDataUseCase,
+	// 	upsertBlockDataUseCase,
+	// 	getBlockDataDTOFromBlockchainAuthorityUseCase,
+	// 	getAccountUseCase,
+	// 	upsertAccountUseCase,
+	// 	upsertTokenIfPreviousTokenNonceGTEUseCase,
+	// )
+
+	// blockchainSyncManagerService := service.NewBlockchainSyncManagerService(
+	// 	logger,
+	// 	blockchainSyncService,
+	// 	subscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase,
+	// )
 
 	//
 	// Interface.
