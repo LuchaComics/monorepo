@@ -1,6 +1,7 @@
 package daemon
 
 import (
+	"context"
 	"log"
 	"os"
 	"os/signal"
@@ -18,6 +19,7 @@ import (
 	httpmiddle "github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/interface/http/middleware"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/interface/task"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/repo"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/service"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/usecase"
 )
 
@@ -96,7 +98,6 @@ func doRunDaemon() {
 	genesisBlockDataDTORepo := repo.NewGenesisBlockDataDTORepository(
 		genesisBlockDataDTOConfigurationProvider,
 		logger)
-	_ = genesisBlockDataDTORepo
 
 	//
 	// Use-case
@@ -126,7 +127,6 @@ func doRunDaemon() {
 	getAccountUseCase := usecase.NewGetAccountUseCase(
 		logger,
 		accountRepo)
-	_ = getAccountUseCase
 	getAccountsHashStateUseCase := usecase.NewGetAccountsHashStateUseCase(
 		logger,
 		accountRepo)
@@ -135,7 +135,6 @@ func doRunDaemon() {
 		cfg,
 		logger,
 		accountRepo)
-	_ = upsertAccountUseCase
 	accountsFilterByAddressesUseCase := usecase.NewAccountsFilterByAddressesUseCase(
 		logger,
 		accountRepo,
@@ -148,7 +147,15 @@ func doRunDaemon() {
 		logger,
 		genesisBlockDataRepo,
 	)
-	_ = getGenesisBlockDataUseCase
+	upsertGenesisBlockDataUseCase := usecase.NewUpsertGenesisBlockDataUseCase(
+		logger,
+		genesisBlockDataRepo,
+	)
+
+	// Genesis Block Data DTO
+	getGenesisBlockDataDTOFromBlockchainAuthorityUseCase := usecase.NewGetGenesisBlockDataDTOFromBlockchainAuthorityUseCase(
+		logger,
+		genesisBlockDataDTORepo)
 
 	// Blockchain State
 	getBlockchainStateUseCase := usecase.NewGetBlockchainStateUseCase(
@@ -156,7 +163,6 @@ func doRunDaemon() {
 		logger,
 		blockchainStateRepo,
 	)
-	_ = getBlockchainStateUseCase
 	upsertBlockchainStateUseCase := usecase.NewUpsertBlockchainStateUseCase(
 		cfg,
 		logger,
@@ -170,19 +176,22 @@ func doRunDaemon() {
 		logger,
 		blockDataRepo,
 	)
-	_ = getBlockDataUseCase
 	upsertBlockDataUseCase := usecase.NewUpsertBlockDataUseCase(
 		cfg,
 		logger,
 		blockDataRepo,
 	)
-	_ = upsertBlockDataUseCase
 	listBlockTransactionsByAddressUseCase := usecase.NewListBlockTransactionsByAddressUseCase(
 		cfg,
 		logger,
 		blockDataRepo,
 	)
 	_ = listBlockTransactionsByAddressUseCase
+
+	// Block Data DTO
+	getBlockDataDTOFromBlockchainAuthorityUseCase := usecase.NewGetBlockDataDTOFromBlockchainAuthorityUseCase(
+		logger,
+		blockDataDTORepo)
 
 	// Token
 	getTokenUseCase := usecase.NewGetTokenUseCase(
@@ -200,7 +209,6 @@ func doRunDaemon() {
 		logger,
 		tokRepo,
 	)
-	_ = upsertTokenIfPreviousTokenNonceGTEUseCase
 	listTokensByOwnerUseCase := usecase.NewListTokensByOwnerUseCase(
 		logger,
 		tokRepo,
@@ -214,31 +222,36 @@ func doRunDaemon() {
 
 	_ = subscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase
 
+	// Blockchain State DTO
+	getBlockchainStateDTOFromBlockchainAuthorityUseCase := usecase.NewGetBlockchainStateDTOFromBlockchainAuthorityUseCase(
+		logger,
+		blockchainStateDTORepo)
+
 	//
 	// Service
 	//
 
-	// blockchainSyncService := service.NewBlockchainSyncWithBlockchainAuthorityService(
-	// 	logger,
-	// 	getGenesisBlockDataUseCase,
-	// 	upsertGenesisBlockDataUseCase,
-	// 	getGenesisBlockDataDTOFromBlockchainAuthorityUseCase,
-	// 	getBlockchainStateUseCase,
-	// 	upsertBlockchainStateUseCase,
-	// 	getBlockchainStateDTOFromBlockchainAuthorityUseCase,
-	// 	getBlockDataUseCase,
-	// 	upsertBlockDataUseCase,
-	// 	getBlockDataDTOFromBlockchainAuthorityUseCase,
-	// 	getAccountUseCase,
-	// 	upsertAccountUseCase,
-	// 	upsertTokenIfPreviousTokenNonceGTEUseCase,
-	// )
+	blockchainSyncService := service.NewBlockchainSyncWithBlockchainAuthorityService(
+		logger,
+		getGenesisBlockDataUseCase,
+		upsertGenesisBlockDataUseCase,
+		getGenesisBlockDataDTOFromBlockchainAuthorityUseCase,
+		getBlockchainStateUseCase,
+		upsertBlockchainStateUseCase,
+		getBlockchainStateDTOFromBlockchainAuthorityUseCase,
+		getBlockDataUseCase,
+		upsertBlockDataUseCase,
+		getBlockDataDTOFromBlockchainAuthorityUseCase,
+		getAccountUseCase,
+		upsertAccountUseCase,
+		upsertTokenIfPreviousTokenNonceGTEUseCase,
+	)
 
-	// blockchainSyncManagerService := service.NewBlockchainSyncManagerService(
-	// 	logger,
-	// 	blockchainSyncService,
-	// 	subscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase,
-	// )
+	blockchainSyncManagerService := service.NewBlockchainSyncManagerService(
+		logger,
+		blockchainSyncService,
+		subscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase,
+	)
 
 	//
 	// Interface.
@@ -283,6 +296,14 @@ func doRunDaemon() {
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL, syscall.SIGUSR1)
 
 	// Run in background
+	go func() {
+		for {
+			ctx := context.Background()
+			if err := blockchainSyncManagerService.Execute(ctx, cfg.Blockchain.ChainID); err != nil {
+				log.Fatalf("Failed to manage syncing: %v\n", err)
+			}
+		}
+	}()
 	go httpServ.Run()
 	defer httpServ.Shutdown()
 	go taskManager.Run()

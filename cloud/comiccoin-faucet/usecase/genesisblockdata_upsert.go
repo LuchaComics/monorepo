@@ -5,7 +5,6 @@ import (
 	"log/slog"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/httperror"
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/domain"
 )
 
@@ -14,13 +13,12 @@ import (
 //
 
 type UpsertGenesisBlockDataUseCase struct {
-	config *config.Configuration
 	logger *slog.Logger
 	repo   domain.GenesisBlockDataRepository
 }
 
-func NewUpsertGenesisBlockDataUseCase(config *config.Configuration, logger *slog.Logger, repo domain.GenesisBlockDataRepository) *UpsertGenesisBlockDataUseCase {
-	return &UpsertGenesisBlockDataUseCase{config, logger, repo}
+func NewUpsertGenesisBlockDataUseCase(logger *slog.Logger, repo domain.GenesisBlockDataRepository) *UpsertGenesisBlockDataUseCase {
+	return &UpsertGenesisBlockDataUseCase{logger, repo}
 }
 
 func (uc *UpsertGenesisBlockDataUseCase) Execute(ctx context.Context, hash string, header *domain.BlockHeader, headerSignature []byte, trans []domain.BlockTransaction, validator *domain.Validator) error {

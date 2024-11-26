@@ -330,6 +330,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		// Construct the block.
 		block := domain.Block{
 			Header: &domain.BlockHeader{
+				ChainID:            s.config.Blockchain.ChainID,
 				NumberBytes:        newBlockNumber.Bytes(),
 				PrevBlockHash:      string(blockchainState.LatestHash),
 				TimeStamp:          uint64(time.Now().UTC().UnixMilli()),
