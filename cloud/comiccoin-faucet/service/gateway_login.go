@@ -41,35 +41,29 @@ func NewGatewayLoginService(
 	return &GatewayLoginService{logger, pp, cach, jwtp, uc1, uc2, uc3}
 }
 
-func (s *GatewayLoginService) Execute(sessCtx mongo.SessionContext, email string, password *sstring.SecureString) (*LoginResponseIDO, error) {
+func (s *GatewayLoginService) Execute(sessCtx mongo.SessionContext, req *GatewayLoginRequestIDO) (*GatewayLoginResponseIDO, error) {
 	//
 	// STEP 1: Sanization of input.
 	//
 
 	// Defensive Code: For security purposes we need to perform some sanitization on the inputs.
-	email = strings.ToLower(email)
-	email = strings.ReplaceAll(email, " ", "")
-	email = strings.ReplaceAll(email, "\t", "")
-	email = strings.TrimSpace(email)
-	unsecurePassword := password.String()
-	unsecurePassword = strings.ReplaceAll(unsecurePassword, " ", "")
-	unsecurePassword = strings.ReplaceAll(unsecurePassword, "\t", "")
-	unsecurePassword = strings.TrimSpace(unsecurePassword)
-	password, err := sstring.NewSecureString(unsecurePassword)
-	if err != nil {
-		s.logger.Error("secure string error", slog.Any("err", err))
-		return nil, err
-	}
+	req.Email = strings.ToLower(req.Email)
+	req.Email = strings.ReplaceAll(req.Email, " ", "")
+	req.Email = strings.ReplaceAll(req.Email, "\t", "")
+	req.Email = strings.TrimSpace(req.Email)
+	req.Password = strings.ReplaceAll(req.Password, " ", "")
+	req.Password = strings.ReplaceAll(req.Password, "\t", "")
+	req.Password = strings.TrimSpace(req.Password)
 
 	//
 	// STEP 2: Validation of input.
 	//
 
 	e := make(map[string]string)
-	if email == "" {
+	if req.Email == "" {
 		e["email"] = "missing value"
 	}
-	if password == nil {
+	if req.Password == "" {
 		e["password"] = "missing value"
 	}
 
@@ -84,7 +78,7 @@ func (s *GatewayLoginService) Execute(sessCtx mongo.SessionContext, email string
 	//
 
 	// Lookup the user in our database, else return a `400 Bad Request` error.
-	u, err := s.userGetByEmailUseCase.Execute(sessCtx, email)
+	u, err := s.userGetByEmailUseCase.Execute(sessCtx, req.Email)
 	if err != nil {
 		s.logger.Error("database error", slog.Any("err", err))
 		return nil, err
@@ -106,8 +100,14 @@ func (s *GatewayLoginService) Execute(sessCtx mongo.SessionContext, email string
 		return nil, err
 	}
 
+	securePassword, err := sstring.NewSecureString(req.Password)
+	if err != nil {
+		s.logger.Error("database error", slog.Any("err", err))
+		return nil, err
+	}
+
 	// Verify the inputted password and hashed password match.
-	passwordMatch, _ := s.passwordProvider.ComparePasswordAndHash(password, u.PasswordHash)
+	passwordMatch, _ := s.passwordProvider.ComparePasswordAndHash(securePassword, u.PasswordHash)
 	if passwordMatch == false {
 		s.logger.Warn("password check validation error")
 		return nil, httperror.NewForBadRequestWithSingleField("password", "password do not match with record")
@@ -135,7 +135,12 @@ func (s *GatewayLoginService) Execute(sessCtx mongo.SessionContext, email string
 	return s.loginWithUser(sessCtx, u)
 }
 
-type LoginResponseIDO struct {
+type GatewayLoginRequestIDO struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type GatewayLoginResponseIDO struct {
 	User                   *domain.User `json:"user"`
 	AccessToken            string       `json:"access_token"`
 	AccessTokenExpiryTime  time.Time    `json:"access_token_expiry_time"`
@@ -143,7 +148,7 @@ type LoginResponseIDO struct {
 	RefreshTokenExpiryTime time.Time    `json:"refresh_token_expiry_time"`
 }
 
-func (s *GatewayLoginService) loginWithUser(sessCtx mongo.SessionContext, u *domain.User) (*LoginResponseIDO, error) {
+func (s *GatewayLoginService) loginWithUser(sessCtx mongo.SessionContext, u *domain.User) (*GatewayLoginResponseIDO, error) {
 	uBin, err := json.Marshal(u)
 	if err != nil {
 		s.logger.Error("marshalling error", slog.Any("err", err))
@@ -171,7 +176,7 @@ func (s *GatewayLoginService) loginWithUser(sessCtx mongo.SessionContext, u *dom
 	}
 
 	// Return our auth keys.
-	return &LoginResponseIDO{
+	return &GatewayLoginResponseIDO{
 		User:                   u,
 		AccessToken:            accessToken,
 		AccessTokenExpiryTime:  accessTokenExpiry,

@@ -37,6 +37,8 @@ type httpServerImpl struct {
 	getHealthCheckHTTPHandler *handler.GetHealthCheckHTTPHandler
 
 	gatewayRegisterCustomerHTTPHandler *handler.GatewayRegisterCustomerHTTPHandler
+
+	gatewayLoginHTTPHandler *handler.GatewayLoginHTTPHandler
 }
 
 // NewHTTPServer creates a new HTTP server instance.
@@ -47,6 +49,7 @@ func NewHTTPServer(
 	h1 *handler.GetVersionHTTPHandler,
 	h2 *handler.GetHealthCheckHTTPHandler,
 	h3 *handler.GatewayRegisterCustomerHTTPHandler,
+	h4 *handler.GatewayLoginHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.HTTPAddress == "" {
@@ -73,6 +76,7 @@ func NewHTTPServer(
 		getVersionHTTPHandler:              h1,
 		getHealthCheckHTTPHandler:          h2,
 		gatewayRegisterCustomerHTTPHandler: h3,
+		gatewayLoginHTTPHandler:            h4,
 	}
 	// Attach the HTTP server controller to the ServeMux.
 	mux.HandleFunc("/", mid.Attach(port.HandleRequests))
@@ -129,6 +133,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		port.getHealthCheckHTTPHandler.Execute(w, r)
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "register" && p[3] == "customer" && r.Method == http.MethodPost:
 		port.gatewayRegisterCustomerHTTPHandler.Execute(w, r)
+	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "login" && r.Method == http.MethodPost:
+		port.gatewayLoginHTTPHandler.Execute(w, r)
 	// --- CATCH ALL: D.N.E. ---
 	default:
 		// Log a message to indicate that the request is not found.

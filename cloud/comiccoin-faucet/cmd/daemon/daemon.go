@@ -70,45 +70,31 @@ func doRunDaemon() {
 	//
 
 	walletRepo := repo.NewWalletRepo(cfg, logger, dbClient)
-	_ = walletRepo
 	accountRepo := repo.NewAccountRepo(cfg, logger, dbClient)
 	tenantRepo := repo.NewTenantRepository(cfg, logger, dbClient)
-	_ = tenantRepo
 	userRepo := repo.NewUserRepository(cfg, logger, dbClient)
-	_ = userRepo
 	tokRepo := repo.NewTokenRepository(cfg, logger, dbClient)
 	blockchainStateRepo := repo.NewBlockchainStateRepository(cfg, logger, dbClient)
-	_ = blockchainStateRepo
-
 	blockchainStateChangeEventDTOConfigurationProvider := repo.NewBlockchainStateChangeEventDTOConfigurationProvider(cfg.App.AuthorityHTTPAddress)
 	blockchainStateChangeEventDTORepo := repo.NewBlockchainStateChangeEventDTORepo(
 		blockchainStateChangeEventDTOConfigurationProvider,
 		logger)
-
 	blockchainStateDTOConfigurationProvider := repo.NewBlockchainStateDTOConfigurationProvider(cfg.App.AuthorityHTTPAddress)
 	blockchainStateDTORepo := repo.NewBlockchainStateDTORepo(
 		blockchainStateDTOConfigurationProvider,
 		logger)
-	_ = blockchainStateDTORepo
-
 	blockDataRepo := repo.NewBlockDataRepository(
 		cfg,
 		logger,
 		dbClient)
-	_ = blockDataRepo
-
 	blockDataDTOConfigurationProvider := repo.NewBlockDataDTOConfigurationProvider(cfg.App.AuthorityHTTPAddress)
 	blockDataDTORepo := repo.NewBlockDataDTORepository(
 		blockDataDTOConfigurationProvider,
 		logger)
-	_ = blockDataDTORepo
-
 	genesisBlockDataRepo := repo.NewGenesisBlockDataRepository(
 		cfg,
 		logger,
 		dbClient)
-	_ = genesisBlockDataRepo
-
 	genesisBlockDataDTOConfigurationProvider := repo.NewGenesisBlockDataDTOConfigurationProvider(cfg.App.AuthorityHTTPAddress)
 	genesisBlockDataDTORepo := repo.NewGenesisBlockDataDTORepository(
 		genesisBlockDataDTOConfigurationProvider,
@@ -279,6 +265,16 @@ func doRunDaemon() {
 		userUpdateUseCase,
 	)
 
+	gatewayLoginService := service.NewGatewayLoginService(
+		logger,
+		passp,
+		cache,
+		jwtp,
+		tenantGetByIDUseCase,
+		userGetByEmailUseCase,
+		userUpdateUseCase,
+	)
+
 	blockchainSyncService := service.NewBlockchainSyncWithBlockchainAuthorityService(
 		logger,
 		getGenesisBlockDataUseCase,
@@ -326,6 +322,11 @@ func doRunDaemon() {
 		dbClient,
 		gatewayRegisterCustomerService,
 	)
+	gatewayLoginHTTPHandler := httphandler.NewGatewayLoginHTTPHandler(
+		logger,
+		dbClient,
+		gatewayLoginService,
+	)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
 		blackp)
@@ -336,6 +337,7 @@ func doRunDaemon() {
 		getVersionHTTPHandler,
 		getHealthCheckHTTPHandler,
 		gatewayRegisterCustomerHTTPHandler,
+		gatewayLoginHTTPHandler,
 	)
 
 	//
