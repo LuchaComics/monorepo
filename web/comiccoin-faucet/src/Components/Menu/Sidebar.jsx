@@ -138,262 +138,7 @@ export default (props) => {
           </footer>
         </div>
       </div>
-      {/*
-        -----
-        STAFF
-        -----
-      */}
-      {currentUser.role === USER_ROLE_ROOT && (
-        <div
-          className={`column is-one-fifth has-background-black ${onHamburgerClicked ? "" : "is-hidden"}`}
-        >
-          <nav class="level is-hidden-mobile">
-            <div class="level-item has-text-centered">
-              <figure class="image">
-                <img
-                  src="/static/COMICCOIN_FAUCET logo 2023 GR.webp"
-                  style={{ maxWidth: "200px" }}
-                />
-              </figure>
-            </div>
-          </nav>
-          <aside class="menu p-4">
-            <p class="menu-label has-text-grey-light">System Administrator</p>
-            <ul class="menu-list">
-              <li>
-                <Link
-                  onClick={onLinkClickCloseHamburgerMenuIfMobile}
-                  to="/admin/dashboard"
-                  class={`has-text-grey-light ${location.pathname.includes("dashboard") && "is-active"}`}
-                >
-                  <FontAwesomeIcon className="fas" icon={faTachometer} />
-                  &nbsp;Dashboard
-                </Link>
-              </li>
-              <li>
-                <Link
-                  onClick={onLinkClickCloseHamburgerMenuIfMobile}
-                  to="/admin/stores"
-                  class={`has-text-grey-light ${location.pathname.includes("store") && "is-active"}`}
-                >
-                  <FontAwesomeIcon className="fas" icon={faBuilding} />
-                  &nbsp;Stores
-                </Link>
-              </li>
-              <li>
-                <Link
-                  onClick={onLinkClickCloseHamburgerMenuIfMobile}
-                  to="/admin/users"
-                  class={`has-text-grey-light ${location.pathname.includes("user") && "is-active"}`}
-                >
-                  <FontAwesomeIcon className="fas" icon={faUsers} />
-                  &nbsp;All Users
-                </Link>
-              </li>
-              <li>
-                <Link
-                  onClick={onLinkClickCloseHamburgerMenuIfMobile}
-                  class={`has-text-grey-light`}
-                >
-                  <FontAwesomeIcon className="fas" icon={faTasks} />
-                  &nbsp;Online Submissions
-                </Link>
-                <ul>
-                  <li>
-                    <Link
-                      onClick={onLinkClickCloseHamburgerMenuIfMobile}
-                      to="/admin/submissions/comics"
-                      class={`has-text-grey-light ${location.pathname.includes("submissions/comic") && "is-active"}`}
-                    >
-                      <FontAwesomeIcon className="fas" icon={faBook} />
-                      &nbsp;Comics
-                    </Link>
-                  </li>
-                  {/*
-                                    <li>
-                                        <Link to="/admin/submissions/cards" class={`has-text-grey-light ${location.pathname.includes("card") && "is-active"}`}>
-                                            <FontAwesomeIcon className="fas" icon={faTachometer} />&nbsp;Cards
-                                        </Link>
-                                    </li>
-                                    */}
-                </ul>
-              </li>
-            </ul>
-
-            <p class="menu-label has-text-grey-light">System</p>
-            <ul class="menu-list">
-              <li>
-                <Link
-                  onClick={onLinkClickCloseHamburgerMenuIfMobile}
-                  to="/admin/registry"
-                  class={`has-text-grey-light ${location.pathname.includes("registry") && "is-active"}`}
-                >
-                  <FontAwesomeIcon className="fas" icon={faBarcode} />
-                  &nbsp;Registry
-                </Link>
-              </li>
-              <li>
-                <Link
-                  onClick={onLinkClickCloseHamburgerMenuIfMobile}
-                  to={`/admin/offers`}
-                  class={`has-text-grey-light ${location.pathname.includes("offer") && "is-active"}`}
-                >
-                  <FontAwesomeIcon className="fas" icon={faHandHolding} />
-                  &nbsp;Offers
-                </Link>
-              </li>
-            </ul>
-
-            <p class="menu-label has-text-grey-light">Account</p>
-            <ul class="menu-list">
-              <li>
-                <Link
-                  to={`/account`}
-                  class={`has-text-grey-light ${location.pathname.includes("account") && "is-active"}`}
-                >
-                  <FontAwesomeIcon className="fas" icon={faUserCircle} />
-                  &nbsp;Account
-                </Link>
-              </li>
-              <li>
-                <Link
-                  onClick={onLinkClickCloseHamburgerMenuIfMobile}
-                  onClick={(e) => setShowLogoutWarning(true)}
-                  class={`has-text-grey-light ${location.pathname.includes("logout") && "is-active"}`}
-                >
-                  <FontAwesomeIcon className="fas" icon={faSignOut} />
-                  &nbsp;Sign Off
-                </Link>
-              </li>
-            </ul>
-          </aside>
-        </div>
-      )}
-      {/*
-        --------
-        RETAILER
-        --------
-      */}
-      {currentUser.role === USER_ROLE_RETAILER && (
-        <div
-          className={`column is-one-fifth has-background-black ${onHamburgerClicked ? "" : "is-hidden"}`}
-        >
-          <nav class="level is-hidden-mobile">
-            <div class="level-item has-text-centered">
-              <figure class="image">
-                <img
-                  src="/static/COMICCOIN_FAUCET logo 2023 GR.webp"
-                  style={{ maxWidth: "200px" }}
-                />
-              </figure>
-            </div>
-          </nav>
-          <aside class="menu p-4">
-            <p class="menu-label has-text-grey-light">Store Owner/Manager</p>
-            <ul class="menu-list">
-              <li>
-                <Link
-                  onClick={onLinkClickCloseHamburgerMenuIfMobile}
-                  to="/dashboard"
-                  class={`has-text-grey-light ${location.pathname.includes("dashboard") && "is-active"}`}
-                >
-                  <FontAwesomeIcon className="fas" icon={faTachometer} />
-                  &nbsp;Dashboard
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  onClick={onLinkClickCloseHamburgerMenuIfMobile}
-                  to="/customers"
-                  class={`has-text-grey-light ${location.pathname.includes("customer") && "is-active"}`}
-                >
-                  <FontAwesomeIcon className="fas" icon={faUsers} />
-                  &nbsp;Customers
-                </Link>
-              </li>
-              <li>
-                <Link
-                  onClick={onLinkClickCloseHamburgerMenuIfMobile}
-                  to="/submissions"
-                  class={`has-text-grey-light ${location.pathname.includes("submissions") && !location.pathname.includes("comic") && !location.pathname.includes("card") && "is-active"}`}
-                >
-                  <FontAwesomeIcon className="fas" icon={faTasks} />
-                  &nbsp;Online Submissions
-                </Link>
-                <ul>
-                  <li>
-                    <Link
-                      onClick={onLinkClickCloseHamburgerMenuIfMobile}
-                      to="/submissions/comics"
-                      class={`has-text-grey-light ${location.pathname.includes("submissions/comic") && "is-active"}`}
-                    >
-                      <FontAwesomeIcon className="fas" icon={faBook} />
-                      &nbsp;Comics
-                    </Link>
-                  </li>
-                  {/*
-                                    <li>
-                                        <Link to="/submissions/cards" class={`has-text-grey-light ${location.pathname.includes("card") && "is-active"}`}>
-                                            <FontAwesomeIcon className="fas" icon={faTachometer} />&nbsp;Cards
-                                        </Link>
-                                    </li>
-                                    */}
-                </ul>
-              </li>
-            </ul>
-
-            <p class="menu-label has-text-grey-light">System</p>
-            <ul class="menu-list">
-              <li>
-                <Link
-                  onClick={onLinkClickCloseHamburgerMenuIfMobile}
-                  to="/registry"
-                  class={`has-text-grey-light ${location.pathname.includes("registry") && "is-active"}`}
-                >
-                  <FontAwesomeIcon className="fas" icon={faBarcode} />
-                  &nbsp;Registry
-                </Link>
-              </li>
-            </ul>
-
-            <p class="menu-label has-text-grey-light">Account</p>
-            <ul class="menu-list">
-              <li>
-                <Link
-                  onClick={onLinkClickCloseHamburgerMenuIfMobile}
-                  to={`/account`}
-                  class={`has-text-grey-light ${location.pathname.includes("account") && "is-active"}`}
-                >
-                  <FontAwesomeIcon className="fas" icon={faUserCircle} />
-                  &nbsp;Account
-                </Link>
-              </li>
-              <li>
-                <Link
-                  onClick={onLinkClickCloseHamburgerMenuIfMobile}
-                  to={`/store`}
-                  class={`has-text-grey-light ${location.pathname.includes("store") && "is-active"}`}
-                >
-                  <FontAwesomeIcon className="fas" icon={faBuilding} />
-                  &nbsp;My Store
-                </Link>
-              </li>
-              <li>
-                <Link
-                  onClick={onLinkClickCloseHamburgerMenuIfMobile}
-                  onClick={(e) => setShowLogoutWarning(true)}
-                  class={`has-text-grey-light ${location.pathname.includes("logout") && "is-active"}`}
-                >
-                  <FontAwesomeIcon className="fas" icon={faSignOut} />
-                  &nbsp;Sign Off
-                </Link>
-              </li>
-            </ul>
-          </aside>
-        </div>
-      )}
-      {/*
+       {/*
         --------
         CUSTOMER
         --------
@@ -406,14 +151,14 @@ export default (props) => {
             <div class="level-item has-text-centered">
               <figure class="image">
                 <img
-                  src="/static/COMICCOIN_FAUCET logo 2023 GR.webp"
+                  src="/static/CPS logo 2023 GR.webp"
                   style={{ maxWidth: "200px" }}
                 />
               </figure>
             </div>
           </nav>
           <aside class="menu p-4">
-            <p class="menu-label has-text-grey-light">Regular User</p>
+            <p class="menu-label has-text-grey-light">MENU</p>
             <ul class="menu-list">
               <li>
                 <Link
@@ -425,6 +170,8 @@ export default (props) => {
                   &nbsp;Dashboard
                 </Link>
               </li>
+
+              {/*
               <li>
                 <Link
                   onClick={onLinkClickCloseHamburgerMenuIfMobile}
@@ -445,17 +192,18 @@ export default (props) => {
                       &nbsp;Comics
                     </Link>
                   </li>
-                  {/*
+
                     <li>
                         <Link to="/submissions/cards" class={`has-text-grey-light ${location.pathname.includes("card") && "is-active"}`}>
                             <FontAwesomeIcon className="fas" icon={faTachometer} />&nbsp;Cards
                         </Link>
                     </li>
-                    */}
                 </ul>
               </li>
+              */}
             </ul>
 
+{/*
             <p class="menu-label has-text-grey-light">System</p>
             <ul class="menu-list">
               <li>
@@ -469,6 +217,7 @@ export default (props) => {
                 </Link>
               </li>
             </ul>
+*/}
 
             <p class="menu-label has-text-grey-light">Account</p>
             <ul class="menu-list">

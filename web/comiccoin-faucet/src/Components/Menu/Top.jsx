@@ -110,7 +110,7 @@ function Topbar() {
               style={{ color: "white" }}
             >
               <img
-                src="/static/COMICCOIN_FAUCET logo 2023 square.webp"
+                src="/static/CPS logo 2023 square.webp"
                 width={28}
                 height={28}
                 alt="Logo Image"
@@ -125,7 +125,7 @@ function Topbar() {
               style={{ color: "white" }}
             >
               <img
-                src="/static/COMICCOIN_FAUCET logo 2023 square.webp"
+                src="/static/CPS logo 2023 square.webp"
                 width={28}
                 height={28}
                 alt="Logo Image"
@@ -140,7 +140,7 @@ function Topbar() {
               style={{ color: "white" }}
             >
               <img
-                src="/static/COMICCOIN_FAUCET logo 2023 square.webp"
+                src="/static/CPS logo 2023 square.webp"
                 width={28}
                 height={28}
                 alt="Logo Image"
