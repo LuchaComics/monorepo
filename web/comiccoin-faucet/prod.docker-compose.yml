@@ -1,0 +1,18 @@
+# docker-compose -p comiccoin_faucet -f prod.docker-compose.yml up
+version: '3.8'
+services:
+  staticsite:
+    stdin_open: true
+    container_name: comiccoin_faucet_app
+    restart: unless-stopped
+    build:
+        context: .
+        dockerfile: prod.Dockerfile
+        args:
+          - REACT_APP_API_HOST=https://cpsdata.ca
+          - REACT_APP_API_DOMAIN=cpsdata.ca
+          - REACT_APP_API_PROTOCOL=https
+          - REACT_APP_WWW_DOMAIN=cpsapp.ca
+          - REACT_APP_WWW_PROTOCOL=https
+    ports:
+        - '3000:3000'

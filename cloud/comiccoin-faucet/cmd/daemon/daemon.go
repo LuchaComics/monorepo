@@ -12,7 +12,10 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/blockchain/keystore"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/logger"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/blacklist"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/jwt"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/password"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/storage/database/mongodb"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/storage/database/mongodbcache"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/interface/http"
 	httphandler "github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/interface/http/handler"
@@ -47,8 +50,10 @@ func doRunDaemon() {
 	cfg := config.NewProvider()
 	dbClient := mongodb.NewProvider(cfg, logger)
 	keystore := keystore.NewAdapter()
-	// passp := password.NewProvider()
+	passp := password.NewProvider()
 	blackp := blacklist.NewProvider()
+	jwtp := jwt.NewProvider(cfg)
+	cache := mongodbcache.NewCache(cfg, logger, dbClient)
 
 	//
 	// Repository
@@ -227,9 +232,41 @@ func doRunDaemon() {
 		logger,
 		blockchainStateDTORepo)
 
+	// Tenant
+	tenantGetByIDUseCase := usecase.NewTenantGetByIDUseCase(
+		cfg,
+		logger,
+		tenantRepo)
+
+	// User
+	userGetByEmailUseCase := usecase.NewUserGetByEmailUseCase(
+		cfg,
+		logger,
+		userRepo)
+	userCreateUseCase := usecase.NewUserCreateUseCase(
+		cfg,
+		logger,
+		userRepo)
+	userUpdateUseCase := usecase.NewUserUpdateUseCase(
+		cfg,
+		logger,
+		userRepo)
+
 	//
 	// Service
 	//
+
+	gatewayRegisterCustomerService := service.NewGatewayRegisterCustomerService(
+		cfg,
+		logger,
+		passp,
+		cache,
+		jwtp,
+		tenantGetByIDUseCase,
+		userGetByEmailUseCase,
+		userCreateUseCase,
+		userUpdateUseCase,
+	)
 
 	blockchainSyncService := service.NewBlockchainSyncWithBlockchainAuthorityService(
 		logger,
@@ -273,6 +310,11 @@ func doRunDaemon() {
 		logger)
 	getHealthCheckHTTPHandler := httphandler.NewGetHealthCheckHTTPHandler(
 		logger)
+	gatewayRegisterCustomerHTTPHandler := httphandler.NewGatewayRegisterCustomerHTTPHandler(
+		logger,
+		dbClient,
+		gatewayRegisterCustomerService,
+	)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
 		blackp)
@@ -282,6 +324,7 @@ func doRunDaemon() {
 		httpMiddleware,
 		getVersionHTTPHandler,
 		getHealthCheckHTTPHandler,
+		gatewayRegisterCustomerHTTPHandler,
 	)
 
 	//

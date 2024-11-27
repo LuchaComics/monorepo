@@ -1,0 +1,34 @@
+version: "3"
+
+tasks:
+  desc: "start the project (for web-development only)"
+  start:
+    cmds:
+      - npm run start:dev
+
+  # Note: Only executed by devops team.
+  buildprod:
+    desc: "build the production version of the project"
+    cmds:
+      - npm run build:prod
+      - # The following code will do as follows: (1) Checkout a branch called `prod` and if it doesn't exist then create it. (2) Execute this git command in the other folder where the repository lives.
+      - git -C ../../../comiccoin-faucet-static checkout -B prod
+      - cp -Rf ./build/* ../../../comiccoin-faucet-static
+      - rm -Rf ./build
+      - git -C ../../../comiccoin-faucet-static add --all
+      - git -C ../../../comiccoin-faucet-static commit -m 'Latest production deployment.'
+      - git -C ../../../comiccoin-faucet-static push origin prod
+
+
+  # Note: Only executed by devops team.
+  buildqa:
+    desc: "build the quality assurance version of the project"
+    cmds:
+      - npm run build:qa
+      - # The following code will do as follows: (1) Checkout a branch called `qa` and if it doesn't exist then create it. (2) Execute this git command in the other folder where the repository lives.
+      - git -C ../../../comiccoin-faucet-static checkout -B qa
+      - cp -Rf ./build/* ../../../comiccoin-faucet-static
+      - rm -Rf ./build
+      - git -C ../../../comiccoin-faucet-static add --all
+      - git -C ../../../comiccoin-faucet-static commit -m 'Latest quality assurance deployment.'
+      - git -C ../../../comiccoin-faucet-static push origin qa

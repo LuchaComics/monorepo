@@ -28,6 +28,7 @@ type GatewayRegisterCustomerService struct {
 	jwtProvider           jwt.Provider
 	tenantGetByIDUseCase  *usecase.TenantGetByIDUseCase
 	userGetByEmailUseCase *usecase.UserGetByEmailUseCase
+	userCreateUseCase     *usecase.UserCreateUseCase
 	userUpdateUseCase     *usecase.UserUpdateUseCase
 }
 
@@ -39,9 +40,10 @@ func NewGatewayRegisterCustomerService(
 	jwtp jwt.Provider,
 	uc1 *usecase.TenantGetByIDUseCase,
 	uc2 *usecase.UserGetByEmailUseCase,
-	uc3 *usecase.UserUpdateUseCase,
+	uc3 *usecase.UserCreateUseCase,
+	uc4 *usecase.UserUpdateUseCase,
 ) *GatewayRegisterCustomerService {
-	return &GatewayRegisterCustomerService{cfg, logger, pp, cach, jwtp, uc1, uc2, uc3}
+	return &GatewayRegisterCustomerService{cfg, logger, pp, cach, jwtp, uc1, uc2, uc3, uc4}
 }
 
 type RegisterCustomerRequestIDO struct {
@@ -257,37 +259,18 @@ func (s *GatewayRegisterCustomerService) Execute(
 		return nil, err
 	}
 
-	password, err := sstring.NewSecureString(req.Password)
+	// Create our user.
+	u, err = s.createCustomerUserForRequest(sessCtx, req)
 	if err != nil {
-		s.logger.Error("password securing error", slog.Any("err", err))
+		s.logger.Error("failed creating customer user error", slog.Any("err", err))
 		return nil, err
 	}
 
-	// Verify the inputted password and hashed password match.
-	passwordMatch, _ := s.passwordProvider.ComparePasswordAndHash(password, u.PasswordHash)
-	if passwordMatch == false {
-		s.logger.Warn("password check validation error")
-		return nil, httperror.NewForBadRequestWithSingleField("password", "password do not match with record")
-	}
-
-	// Enforce the verification code of the email.
-	if u.WasEmailVerified == false {
-		s.logger.Warn("email verification validation error", slog.Any("u", u))
-		return nil, httperror.NewForBadRequestWithSingleField("email", "was not verified")
-	}
-
-	// // Enforce 2FA if enabled.
-	if u.OTPEnabled {
-		// We need to reset the `otp_validated` status to be false to force
-		// the user to use their `totp authenticator` application.
-		u.OTPValidated = false
-		u.ModifiedAt = time.Now()
-		if err := s.userUpdateUseCase.Execute(sessCtx, u); err != nil {
-			s.logger.Error("failed updating user during register",
-				slog.Any("err", err))
-			return nil, err
-		}
-	}
+	// // Send our verification email.
+	// if err := impl.TemplatedEmailer.SendCustomerVerificationEmail(u.Email, u.EmailVerificationCode, u.FirstName); err != nil {
+	// 	impl.Logger.Error("failed sending verification email with error", slog.Any("err", err))
+	// 	return nil, err
+	// }
 
 	return s.registerWithUser(sessCtx, u)
 }
@@ -327,4 +310,83 @@ func (s *GatewayRegisterCustomerService) registerWithUser(sessCtx mongo.SessionC
 		RefreshToken:           refreshToken,
 		RefreshTokenExpiryTime: refreshTokenExpiry,
 	}, nil
+}
+
+func (s *GatewayRegisterCustomerService) createCustomerUserForRequest(sessCtx mongo.SessionContext, req *RegisterCustomerRequestIDO) (*domain.User, error) {
+	password, err := sstring.NewSecureString(req.Password)
+	if err != nil {
+		s.logger.Error("password securing error", slog.Any("err", err))
+		return nil, err
+	}
+
+	passwordHash, err := s.passwordProvider.GenerateHashFromPassword(password)
+	if err != nil {
+		s.logger.Error("hashing error", slog.Any("error", err))
+		return nil, err
+	}
+
+	userID := primitive.NewObjectID()
+	u := &domain.User{
+		ID:                                    userID,
+		FirstName:                             req.FirstName,
+		LastName:                              req.LastName,
+		Name:                                  fmt.Sprintf("%s %s", req.FirstName, req.LastName),
+		LexicalName:                           fmt.Sprintf("%s, %s", req.LastName, req.FirstName),
+		Email:                                 req.Email,
+		PasswordHash:                          passwordHash,
+		PasswordHashAlgorithm:                 s.passwordProvider.AlgorithmName(),
+		Role:                                  domain.UserRoleCustomer,
+		Phone:                                 req.Phone,
+		Country:                               req.Country,
+		Region:                                req.Region,
+		City:                                  req.City,
+		PostalCode:                            req.PostalCode,
+		AddressLine1:                          req.AddressLine1,
+		AddressLine2:                          req.AddressLine2,
+		AgreeTOS:                              req.AgreeTOS,
+		AgreePromotionsEmail:                  req.AgreePromotionsEmail,
+		CreatedByUserID:                       userID,
+		CreatedAt:                             time.Now(),
+		CreatedByName:                         fmt.Sprintf("%s %s", req.FirstName, req.LastName),
+		ModifiedByUserID:                      userID,
+		ModifiedAt:                            time.Now(),
+		ModifiedByName:                        fmt.Sprintf("%s %s", req.FirstName, req.LastName),
+		WasEmailVerified:                      false,
+		EmailVerificationCode:                 primitive.NewObjectID().Hex(),
+		EmailVerificationExpiry:               time.Now().Add(72 * time.Hour),
+		Status:                                domain.UserStatusActive,
+		HasShippingAddress:                    req.HasShippingAddress,
+		ShippingName:                          req.ShippingName,
+		ShippingPhone:                         req.ShippingPhone,
+		ShippingCountry:                       req.ShippingCountry,
+		ShippingRegion:                        req.ShippingRegion,
+		ShippingCity:                          req.ShippingCity,
+		ShippingPostalCode:                    req.ShippingPostalCode,
+		ShippingAddressLine1:                  req.ShippingAddressLine1,
+		ShippingAddressLine2:                  req.ShippingAddressLine2,
+		PaymentProcessorName:                  "",
+		PaymentProcessorCustomerID:            "",
+		HowDidYouHearAboutUs:                  req.HowDidYouHearAboutUs,
+		HowDidYouHearAboutUsOther:             req.HowDidYouHearAboutUsOther,
+		HowLongCollectingComicBooksForGrading: req.HowLongCollectingComicBooksForGrading,
+		HasPreviouslySubmittedComicBookForGrading:       req.HasPreviouslySubmittedComicBookForGrading,
+		HasOwnedGradedComicBooks:                        req.HasOwnedGradedComicBooks,
+		HasRegularComicBookShop:                         req.HasRegularComicBookShop,
+		HasPreviouslyPurchasedFromAuctionSite:           req.HasPreviouslyPurchasedFromAuctionSite,
+		HasPreviouslyPurchasedFromFacebookMarketplace:   req.HasPreviouslyPurchasedFromFacebookMarketplace,
+		HasRegularlyAttendedComicConsOrCollectibleShows: req.HasRegularlyAttendedComicConsOrCollectibleShows,
+	}
+	err = s.userCreateUseCase.Execute(sessCtx, u)
+	if err != nil {
+		s.logger.Error("database create error", slog.Any("error", err))
+		return nil, err
+	}
+	s.logger.Info("Customer user created.",
+		slog.Any("_id", u.ID),
+		slog.String("full_name", u.Name),
+		slog.String("email", u.Email),
+		slog.String("password_hash_algorithm", u.PasswordHashAlgorithm),
+		slog.String("password_hash", u.PasswordHash))
+
+	return u, nil
 }

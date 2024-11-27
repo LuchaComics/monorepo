@@ -67,7 +67,7 @@ func NewProvider() *Configuration {
 	c.App.Port = getEnv("COMICCOIN_FAUCET_PORT", true)
 	c.App.IP = getEnv("COMICCOIN_FAUCET_IP", false)
 	c.App.HTTPAddress = fmt.Sprintf("%v:%v", c.App.IP, c.App.Port)
-	tenantIDHex := getEnv("COMICCOIN_FAUCET_TENANT_ID", false)
+	tenantIDHex := getEnv("COMICCOIN_FAUCET_TENANT_ID", true)
 	tenantID, err := primitive.ObjectIDFromHex(tenantIDHex)
 	if err != nil {
 		log.Fatalf("Failed to convert `tenant_id` to ObjectID from hex with value: %v\n.", tenantIDHex)

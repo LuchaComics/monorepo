@@ -1,0 +1,31 @@
+
+version: '3.8'
+services:
+  app:
+    stdin_open: true
+    container_name: dev_comiccoin_faucet_frontend
+    restart: unless-stopped
+    build:
+        context: .
+        dockerfile: dev.Dockerfile
+        args:
+          - REACT_APP_API_HOST=http://host.docker.internal:8000
+          - REACT_APP_API_DOMAIN=host.docker.internal # See: https://docs.docker.com/desktop/networking/#i-want-to-connect-from-a-container-to-a-service-on-the-host
+          - REACT_APP_API_PROTOCOL=http
+          - REACT_APP_WWW_DOMAIN=localhost:3000
+          - REACT_APP_WWW_PROTOCOL=http
+    ports:
+        - '3000:3000'
+    environment:
+        CHOKIDAR_USEPOLLING: "true"
+    volumes:
+        - ./:/app
+
+## Usage:
+##   docker-compose -p dev_comiccoin_faucet -f dev.docker-compose.yml up
+##
+## Go to in your browser:
+##   http://localhost:3000/
+
+
+# https://medium.com/@marvels0098/how-to-include-reactjs-app-in-docker-container-2e73068ce2d5
