@@ -12,19 +12,19 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/usecase"
 )
 
-type GatewayProfileService struct {
+type GatewayProfileGetService struct {
 	logger             *slog.Logger
 	userGetByIDUseCase *usecase.UserGetByIDUseCase
 }
 
-func NewGatewayProfileService(
+func NewGatewayProfileGetService(
 	logger *slog.Logger,
 	uc1 *usecase.UserGetByIDUseCase,
-) *GatewayProfileService {
-	return &GatewayProfileService{logger, uc1}
+) *GatewayProfileGetService {
+	return &GatewayProfileGetService{logger, uc1}
 }
 
-func (s *GatewayProfileService) Execute(sessCtx mongo.SessionContext) (*domain.User, error) {
+func (s *GatewayProfileGetService) Execute(sessCtx mongo.SessionContext) (*domain.User, error) {
 	// Extract from our session the following data.
 	userID := sessCtx.Value(constants.SessionUserID).(primitive.ObjectID)
 
