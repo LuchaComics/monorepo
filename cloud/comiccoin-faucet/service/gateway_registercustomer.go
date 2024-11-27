@@ -247,18 +247,6 @@ func (s *GatewayRegisterCustomerService) Execute(
 		return nil, httperror.NewForBadRequestWithSingleField("email", "already exists")
 	}
 
-	// Lookup the store and check to see if it's active or not, if not active then return the specific requests.
-	t, err := s.tenantGetByIDUseCase.Execute(sessCtx, s.config.App.TenantID)
-	if err != nil {
-		s.logger.Error("database error", slog.Any("err", err))
-		return nil, err
-	}
-	if t == nil {
-		err := fmt.Errorf("Tenant does not exist for ID: %v", u.TenantID.Hex())
-		s.logger.Error("database error", slog.Any("err", err))
-		return nil, err
-	}
-
 	// Create our user.
 	u, err = s.createCustomerUserForRequest(sessCtx, req)
 	if err != nil {
@@ -313,6 +301,18 @@ func (s *GatewayRegisterCustomerService) registerWithUser(sessCtx mongo.SessionC
 }
 
 func (s *GatewayRegisterCustomerService) createCustomerUserForRequest(sessCtx mongo.SessionContext, req *RegisterCustomerRequestIDO) (*domain.User, error) {
+	// Lookup the store and check to see if it's active or not, if not active then return the specific requests.
+	t, err := s.tenantGetByIDUseCase.Execute(sessCtx, s.config.App.TenantID)
+	if err != nil {
+		s.logger.Error("database error", slog.Any("err", err))
+		return nil, err
+	}
+	if t == nil {
+		err := fmt.Errorf("Tenant does not exist for ID: %v", s.config.App.TenantID)
+		s.logger.Error("database error", slog.Any("err", err))
+		return nil, err
+	}
+
 	password, err := sstring.NewSecureString(req.Password)
 	if err != nil {
 		s.logger.Error("password securing error", slog.Any("err", err))
@@ -327,6 +327,8 @@ func (s *GatewayRegisterCustomerService) createCustomerUserForRequest(sessCtx mo
 
 	userID := primitive.NewObjectID()
 	u := &domain.User{
+		TenantID:                              t.ID,
+		TenantName:                            t.Name,
 		ID:                                    userID,
 		FirstName:                             req.FirstName,
 		LastName:                              req.LastName,
