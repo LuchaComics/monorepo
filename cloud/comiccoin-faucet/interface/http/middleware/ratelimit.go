@@ -21,7 +21,7 @@ func (mid *middleware) RateLimitMiddleware(fn http.HandlerFunc) http.HandlerFunc
 
 		host, _, err := net.SplitHostPort(r.RemoteAddr)
 		if err != nil {
-			mid.Logger.Error("invalid RemoteAddr", slog.Any("err", err), slog.Any("middleware", "RateLimitMiddleware"))
+			mid.logger.Error("invalid RemoteAddr", slog.Any("err", err), slog.Any("middleware", "RateLimitMiddleware"))
 			http.Error(w, fmt.Sprintf("invalid RemoteAddr: %s", err), http.StatusInternalServerError)
 			return
 		}
@@ -33,7 +33,7 @@ func (mid *middleware) RateLimitMiddleware(fn http.HandlerFunc) http.HandlerFunc
 
 		lm, ok := lif.(ratelimit.Limiter)
 		if !ok {
-			mid.Logger.Error("internal middleware error: typecast failed", slog.Any("middleware", "RateLimitMiddleware"))
+			mid.logger.Error("internal middleware error: typecast failed", slog.Any("middleware", "RateLimitMiddleware"))
 			http.Error(w, "internal middleware error: typecast failed", http.StatusInternalServerError)
 			return
 		}

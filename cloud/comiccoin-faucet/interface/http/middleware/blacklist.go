@@ -18,7 +18,7 @@ func (mid *middleware) EnforceBlacklistMiddleware(next http.HandlerFunc) http.Ha
 		proxies, _ := ctx.Value(constants.SessionProxies).(string)
 
 		// Case 1 of 2: Check banned IP addresses.
-		if mid.Blacklist.IsBannedIPAddress(ipAddress) {
+		if mid.blacklist.IsBannedIPAddress(ipAddress) {
 
 			// If the client IP address is banned, check to see if the client
 			// is making a call to a URL which is not banned, and if the URL
@@ -26,8 +26,8 @@ func (mid *middleware) EnforceBlacklistMiddleware(next http.HandlerFunc) http.Ha
 			// the console logs for future analysis. Else if the URL is banned
 			// then don't bother printing to console. The purpose of this code
 			// is to not clog the console log with warnings.
-			if !mid.Blacklist.IsBannedURL(r.URL.Path) {
-				mid.Logger.Warn("rejected request by ip",
+			if !mid.blacklist.IsBannedURL(r.URL.Path) {
+				mid.logger.Warn("rejected request by ip",
 					slog.Any("url", r.URL.Path),
 					slog.String("ip_address", ipAddress),
 					slog.String("proxies", proxies),
@@ -38,15 +38,15 @@ func (mid *middleware) EnforceBlacklistMiddleware(next http.HandlerFunc) http.Ha
 		}
 
 		// Case 2 of 2: Check banned URL.
-		if mid.Blacklist.IsBannedURL(r.URL.Path) {
+		if mid.blacklist.IsBannedURL(r.URL.Path) {
 
 			// If the URL is banned, check to see if the client IP address is
 			// banned, and if the client has not been banned before then print
 			// to console the new offending client ip. Else do not print if
 			// the offending client IP address has been banned before. The
 			// purpose of this code is to not clog the console log with warnings.
-			if !mid.Blacklist.IsBannedIPAddress(ipAddress) {
-				mid.Logger.Warn("rejected request by url",
+			if !mid.blacklist.IsBannedIPAddress(ipAddress) {
+				mid.logger.Warn("rejected request by url",
 					slog.Any("url", r.URL.Path),
 					slog.String("ip_address", ipAddress),
 					slog.String("proxies", proxies),
