@@ -1,0 +1,68 @@
+package middleware
+
+import (
+	"log/slog"
+	"net/http"
+
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config/constants"
+)
+
+// ProtectedURLsMiddleware The purpose of this middleware is to return a `401 unauthorized` error if
+// the user is not authorized when visiting a protected URL.
+func (mid *middleware) ProtectedURLsMiddleware(fn http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		// Skip this middleware if user is on a whitelisted URL path.
+		skipAuthorization, ok := ctx.Value(constants.SessionSkipAuthorization).(bool)
+		if ok && skipAuthorization {
+			// mid.Logger.Warn("Skipping authorization")
+			fn(w, r.WithContext(ctx)) // Flow to the next middleware.
+			return
+		}
+
+		// The following code will lookup the URL path in a whitelist and
+		// if the visited path matches then we will skip URL protection.
+		// We do this because a majority of API endpoints are protected
+		// by authorization.
+
+		urlSplit := ctx.Value("url_split").([]string)
+		skipPath := map[string]bool{
+			"health-check":    true,
+			"version":         true,
+			"greeting":        true,
+			"login":           true,
+			"refresh-token":   true,
+			"verify":          true,
+			"forgot-password": true,
+			"password-reset":  true,
+			"cpsrn":           true,
+			"select-options":  true,
+			"public":          true,
+		}
+
+		// DEVELOPERS NOTE:
+		// If the URL cannot be split into the size we want then skip running
+		// this middleware.
+		if len(urlSplit) < 3 {
+			fn(w, r.WithContext(ctx)) // Flow to the next middleware.
+			return
+		}
+
+		if skipPath[urlSplit[2]] {
+			fn(w, r.WithContext(ctx)) // Flow to the next middleware.
+		} else {
+			// Get our authorization information.
+			isAuthorized, ok := ctx.Value(constants.SessionIsAuthorized).(bool)
+
+			// Either accept continuing execution or return 401 error.
+			if ok && isAuthorized {
+				fn(w, r.WithContext(ctx)) // Flow to the next middleware.
+			} else {
+				mid.logger.Warn("unauthorized api call", slog.Any("url", urlSplit), slog.Any("middleware", "ProtectedURLsMiddleware"))
+				http.Error(w, "attempting to access a protected endpoint", http.StatusUnauthorized)
+				return
+			}
+		}
+	}
+}
