@@ -10,12 +10,14 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/blockchain/keystore"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/emailer/mailgun"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/logger"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/blacklist"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/jwt"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/password"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/storage/database/mongodb"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/storage/database/mongodbcache"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/templatedemailer"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/interface/http"
 	httphandler "github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/interface/http/handler"
@@ -54,6 +56,14 @@ func doRunDaemon() {
 	blackp := blacklist.NewProvider()
 	jwtp := jwt.NewProvider(cfg)
 	cache := mongodbcache.NewCache(cfg, logger, dbClient)
+	emailer := mailgun.NewEmailer(
+		cfg,
+		logger,
+	)
+	templatedEmailer := templatedemailer.NewTemplatedEmailer(
+		logger,
+		emailer,
+	)
 
 	//
 	// Repository
@@ -262,6 +272,7 @@ func doRunDaemon() {
 		passp,
 		cache,
 		jwtp,
+		templatedEmailer,
 		tenantGetByIDUseCase,
 		userGetByEmailUseCase,
 		userCreateUseCase,

@@ -17,10 +17,13 @@ type Configuration struct {
 	App        serverConf
 	Blockchain BlockchainConfig
 	DB         dbConfig
+	Emailer    mailgunConfig
 }
 
 type serverConf struct {
 	DataDirectory         string
+	FrontendDomain        string
+	BackendDomain         string
 	Port                  string
 	IP                    string
 	HTTPAddress           string
@@ -59,11 +62,21 @@ type dbConfig struct {
 	Name string
 }
 
+type mailgunConfig struct {
+	APIKey           string
+	Domain           string
+	APIBase          string
+	SenderEmail      string
+	MaintenanceEmail string
+}
+
 func NewProvider() *Configuration {
 	var c Configuration
 
 	// Application section.
 	c.App.DataDirectory = getEnv("COMICCOIN_FAUCET_APP_DATA_DIRECTORY", true)
+	c.App.FrontendDomain = getEnv("COMICCOIN_FAUCET_APP_FRONTEND_DOMAIN", true)
+	c.App.BackendDomain = getEnv("COMICCOIN_FAUCET_APP_BACKEND_DOMAIN", true)
 	c.App.Port = getEnv("COMICCOIN_FAUCET_PORT", true)
 	c.App.IP = getEnv("COMICCOIN_FAUCET_IP", false)
 	c.App.HTTPAddress = fmt.Sprintf("%v:%v", c.App.IP, c.App.Port)

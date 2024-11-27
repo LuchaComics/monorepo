@@ -15,6 +15,7 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/password"
 	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/securestring"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/storage/database/mongodbcache"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/templatedemailer"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/domain"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/usecase"
@@ -26,6 +27,7 @@ type GatewayRegisterCustomerService struct {
 	passwordProvider      password.Provider
 	cache                 mongodbcache.Cacher
 	jwtProvider           jwt.Provider
+	templatedEmailer      templatedemailer.TemplatedEmailer
 	tenantGetByIDUseCase  *usecase.TenantGetByIDUseCase
 	userGetByEmailUseCase *usecase.UserGetByEmailUseCase
 	userCreateUseCase     *usecase.UserCreateUseCase
@@ -38,12 +40,13 @@ func NewGatewayRegisterCustomerService(
 	pp password.Provider,
 	cach mongodbcache.Cacher,
 	jwtp jwt.Provider,
+	temailer templatedemailer.TemplatedEmailer,
 	uc1 *usecase.TenantGetByIDUseCase,
 	uc2 *usecase.UserGetByEmailUseCase,
 	uc3 *usecase.UserCreateUseCase,
 	uc4 *usecase.UserUpdateUseCase,
 ) *GatewayRegisterCustomerService {
-	return &GatewayRegisterCustomerService{cfg, logger, pp, cach, jwtp, uc1, uc2, uc3, uc4}
+	return &GatewayRegisterCustomerService{cfg, logger, pp, cach, jwtp, temailer, uc1, uc2, uc3, uc4}
 }
 
 type RegisterCustomerRequestIDO struct {
@@ -254,11 +257,13 @@ func (s *GatewayRegisterCustomerService) Execute(
 		return nil, err
 	}
 
-	// // Send our verification email.
-	// if err := impl.TemplatedEmailer.SendCustomerVerificationEmail(u.Email, u.EmailVerificationCode, u.FirstName); err != nil {
-	// 	impl.Logger.Error("failed sending verification email with error", slog.Any("err", err))
-	// 	return nil, err
-	// }
+	// Send our verification email.
+	if err := s.templatedEmailer.SendCustomerVerificationEmail(u.Email, u.EmailVerificationCode, u.FirstName); err != nil {
+		// s.logger.Error("failed sending verification email with error", slog.Any("err", err))
+		// return nil, err
+
+		// Skip any error handling...
+	}
 
 	return s.registerWithUser(sessCtx, u)
 }
