@@ -279,6 +279,11 @@ func doRunDaemon() {
 		userUpdateUseCase,
 	)
 
+	gatewayLogoutService := service.NewGatewayLogoutService(
+		logger,
+		cache,
+	)
+
 	blockchainSyncService := service.NewBlockchainSyncWithBlockchainAuthorityService(
 		logger,
 		getGenesisBlockDataUseCase,
@@ -331,6 +336,11 @@ func doRunDaemon() {
 		dbClient,
 		gatewayLoginService,
 	)
+	gatewayLogoutHTTPHandler := httphandler.NewGatewayLogoutHTTPHandler(
+		logger,
+		dbClient,
+		gatewayLogoutService,
+	)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
 		blackp,
@@ -345,6 +355,7 @@ func doRunDaemon() {
 		getHealthCheckHTTPHandler,
 		gatewayRegisterCustomerHTTPHandler,
 		gatewayLoginHTTPHandler,
+		gatewayLogoutHTTPHandler,
 	)
 
 	//

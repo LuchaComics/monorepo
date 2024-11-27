@@ -1,9 +1,8 @@
 package service
 
 import (
+	"context"
 	"log/slog"
-
-	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/storage/database/mongodbcache"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config/constants"
@@ -21,11 +20,11 @@ func NewGatewayLogoutService(
 	return &GatewayLogoutService{logger, cach}
 }
 
-func (s *GatewayLogoutService) Execute(sessCtx mongo.SessionContext) error {
+func (s *GatewayLogoutService) Execute(ctx context.Context) error {
 	// Extract from our session the following data.
-	sessionID := sessCtx.Value(constants.SessionID).(string)
+	sessionID := ctx.Value(constants.SessionID).(string)
 
-	if err := s.cache.Delete(sessCtx, sessionID); err != nil {
+	if err := s.cache.Delete(ctx, sessionID); err != nil {
 		s.logger.Error("cache delete error", slog.Any("err", err))
 		return err
 	}
