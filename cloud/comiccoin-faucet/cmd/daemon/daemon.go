@@ -247,6 +247,10 @@ func doRunDaemon() {
 		cfg,
 		logger,
 		userRepo)
+	userGetBySessionIDUseCase := usecase.NewUserGetBySessionIDUseCase(
+		cfg,
+		logger,
+		cache)
 
 	//
 	// Service
@@ -329,7 +333,10 @@ func doRunDaemon() {
 	)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
-		blackp)
+		blackp,
+		jwtp,
+		userGetBySessionIDUseCase,
+	)
 	httpServ := http.NewHTTPServer(
 		cfg,
 		logger,

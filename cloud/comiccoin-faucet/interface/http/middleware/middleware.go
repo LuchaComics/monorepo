@@ -6,6 +6,7 @@ import (
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/blacklist"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/jwt"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/usecase"
 )
 
 type Middleware interface {
@@ -13,20 +14,23 @@ type Middleware interface {
 }
 
 type middleware struct {
-	logger    *slog.Logger
-	blacklist blacklist.Provider
-	jwt       jwt.Provider
+	logger                    *slog.Logger
+	blacklist                 blacklist.Provider
+	jwt                       jwt.Provider
+	userGetBySessionIDUseCase *usecase.UserGetBySessionIDUseCase
 }
 
 func NewMiddleware(
 	loggerp *slog.Logger,
 	blp blacklist.Provider,
 	jwtp jwt.Provider,
+	uc1 *usecase.UserGetBySessionIDUseCase,
 ) Middleware {
 	return &middleware{
-		logger:    loggerp,
-		blacklist: blp,
-		jwt:       jwtp,
+		logger:                    loggerp,
+		blacklist:                 blp,
+		jwt:                       jwtp,
+		userGetBySessionIDUseCase: uc1,
 	}
 }
 
