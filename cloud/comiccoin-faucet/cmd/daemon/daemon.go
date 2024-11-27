@@ -251,6 +251,10 @@ func doRunDaemon() {
 		cfg,
 		logger,
 		cache)
+	userGetByIDUseCase := usecase.NewUserGetByIDUseCase(
+		cfg,
+		logger,
+		userRepo)
 
 	//
 	// Service
@@ -289,6 +293,11 @@ func doRunDaemon() {
 		cache,
 		jwtp,
 		userGetByEmailUseCase,
+	)
+
+	gatewayProfileGetService := service.NewGatewayProfileGetService(
+		logger,
+		userGetByIDUseCase,
 	)
 
 	blockchainSyncService := service.NewBlockchainSyncWithBlockchainAuthorityService(
@@ -353,6 +362,11 @@ func doRunDaemon() {
 		dbClient,
 		gatewayRefreshTokenService,
 	)
+	gatewayProfileDetailHTTPHandler := httphandler.NewGatewayProfileDetailHTTPHandler(
+		logger,
+		dbClient,
+		gatewayProfileGetService,
+	)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
 		blackp,
@@ -369,6 +383,7 @@ func doRunDaemon() {
 		gatewayLoginHTTPHandler,
 		gatewayLogoutHTTPHandler,
 		gatewayRefreshTokenHTTPHandler,
+		gatewayProfileDetailHTTPHandler,
 	)
 
 	//
