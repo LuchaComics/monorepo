@@ -41,6 +41,8 @@ type httpServerImpl struct {
 	gatewayLoginHTTPHandler *handler.GatewayLoginHTTPHandler
 
 	gatewayLogoutHTTPHandler *handler.GatewayLogoutHTTPHandler
+
+	gatewayRefreshTokenHTTPHandler *handler.GatewayRefreshTokenHTTPHandler
 }
 
 // NewHTTPServer creates a new HTTP server instance.
@@ -53,6 +55,7 @@ func NewHTTPServer(
 	h3 *handler.GatewayRegisterCustomerHTTPHandler,
 	h4 *handler.GatewayLoginHTTPHandler,
 	h5 *handler.GatewayLogoutHTTPHandler,
+	h6 *handler.GatewayRefreshTokenHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.HTTPAddress == "" {
@@ -81,6 +84,7 @@ func NewHTTPServer(
 		gatewayRegisterCustomerHTTPHandler: h3,
 		gatewayLoginHTTPHandler:            h4,
 		gatewayLogoutHTTPHandler:           h5,
+		gatewayRefreshTokenHTTPHandler:     h6,
 	}
 	// Attach the HTTP server controller to the ServeMux.
 	mux.HandleFunc("/", mid.Attach(port.HandleRequests))
@@ -141,6 +145,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		port.gatewayLoginHTTPHandler.Execute(w, r)
 	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "logout" && r.Method == http.MethodPost:
 		port.gatewayLogoutHTTPHandler.Execute(w, r)
+	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "refresh-token" && r.Method == http.MethodPost:
+		port.gatewayRefreshTokenHTTPHandler.Execute(w, r)
 	// --- CATCH ALL: D.N.E. ---
 	default:
 		// Log a message to indicate that the request is not found.

@@ -284,6 +284,13 @@ func doRunDaemon() {
 		cache,
 	)
 
+	gatewayRefreshTokenService := service.NewGatewayRefreshTokenService(
+		logger,
+		cache,
+		jwtp,
+		userGetByEmailUseCase,
+	)
+
 	blockchainSyncService := service.NewBlockchainSyncWithBlockchainAuthorityService(
 		logger,
 		getGenesisBlockDataUseCase,
@@ -341,6 +348,11 @@ func doRunDaemon() {
 		dbClient,
 		gatewayLogoutService,
 	)
+	gatewayRefreshTokenHTTPHandler := httphandler.NewGatewayRefreshTokenHTTPHandler(
+		logger,
+		dbClient,
+		gatewayRefreshTokenService,
+	)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
 		blackp,
@@ -356,6 +368,7 @@ func doRunDaemon() {
 		gatewayRegisterCustomerHTTPHandler,
 		gatewayLoginHTTPHandler,
 		gatewayLogoutHTTPHandler,
+		gatewayRefreshTokenHTTPHandler,
 	)
 
 	//
