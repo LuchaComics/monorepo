@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/ethereum/go-ethereum/common"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	sbytes "github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/securebytes"
 	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/securestring"
@@ -23,6 +24,7 @@ type serverConf struct {
 	Port                  string
 	IP                    string
 	HTTPAddress           string
+	TenantID              primitive.ObjectID
 	WalletAddress         *common.Address
 	WalletPassword        *sstring.SecureString
 	AuthorityHTTPAddress  string
@@ -65,6 +67,12 @@ func NewProvider() *Configuration {
 	c.App.Port = getEnv("COMICCOIN_FAUCET_PORT", true)
 	c.App.IP = getEnv("COMICCOIN_FAUCET_IP", false)
 	c.App.HTTPAddress = fmt.Sprintf("%v:%v", c.App.IP, c.App.Port)
+	tenantIDHex := getEnv("COMICCOIN_FAUCET_TENANT_ID", false)
+	tenantID, err := primitive.ObjectIDFromHex(tenantIDHex)
+	if err != nil {
+		log.Fatalf("Failed to convert `tenant_id` to ObjectID from hex with value: %v\n.", tenantIDHex)
+	}
+	c.App.TenantID = tenantID
 	walletAddress := getEnv("COMICCOIN_FAUCET_WALLET_ADDRESS", false)
 	if walletAddress != "" {
 		address := common.HexToAddress(walletAddress)
