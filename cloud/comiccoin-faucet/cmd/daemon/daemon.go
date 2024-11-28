@@ -100,6 +100,8 @@ func doRunDaemon() {
 	genesisBlockDataDTORepo := repo.NewGenesisBlockDataDTORepository(
 		genesisBlockDataDTOConfigurationProvider,
 		logger)
+	mempoolTransactionDTOConfigurationProvider := repo.NewMempoolTransactionDTOConfigurationProvider(cfg.App.AuthorityHTTPAddress)
+	mempoolTxDTORepo := repo.NewMempoolTransactionDTORepo(mempoolTransactionDTOConfigurationProvider, logger)
 
 	//
 	// Use-case
@@ -229,6 +231,12 @@ func doRunDaemon() {
 		logger,
 		blockchainStateDTORepo)
 
+	// Mempooltx DTO
+	submitMempoolTransactionDTOToBlockchainAuthorityUseCase := usecase.NewSubmitMempoolTransactionDTOToBlockchainAuthorityUseCase(
+		logger,
+		mempoolTxDTORepo,
+	)
+
 	// Tenant
 	tenantGetByIDUseCase := usecase.NewTenantGetByIDUseCase(
 		cfg,
@@ -268,6 +276,19 @@ func doRunDaemon() {
 	//
 	// Service
 	//
+
+	faucetCoinTransferService := service.NewFaucetCoinTransferService(
+		logger,
+		kmutex,
+		tenantGetByIDUseCase,
+		tenantUpdateUseCase,
+		getAccountUseCase,
+		upsertAccountUseCase,
+		getWalletUseCase,
+		walletDecryptKeyUseCase,
+		submitMempoolTransactionDTOToBlockchainAuthorityUseCase,
+	)
+	_ = faucetCoinTransferService //TODO: INTEGRATE WITH PROJECT.
 
 	gatewayRegisterCustomerService := service.NewGatewayRegisterCustomerService(
 		cfg,
