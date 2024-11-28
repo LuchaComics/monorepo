@@ -3,37 +3,48 @@ package service
 import (
 	"fmt"
 	"log/slog"
+	"strings"
+	"time"
 
+	"github.com/ethereum/go-ethereum/common"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/httperror"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config/constants"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/domain"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/usecase"
 )
 
 type GatewayAddWalletAddressToFaucetService struct {
-	logger               *slog.Logger
-	tenantGetByIDUseCase *usecase.TenantGetByIDUseCase
-	userGetByIDUseCase   *usecase.UserGetByIDUseCase
-	userUpdateUseCase    *usecase.UserUpdateUseCase
+	config                    *config.Configuration
+	logger                    *slog.Logger
+	tenantGetByIDUseCase      *usecase.TenantGetByIDUseCase
+	userGetByIDUseCase        *usecase.UserGetByIDUseCase
+	userUpdateUseCase         *usecase.UserUpdateUseCase
+	faucetCoinTransferService *FaucetCoinTransferService
 }
 
 func NewGatewayAddWalletAddressToFaucetService(
+	cfg *config.Configuration,
 	logger *slog.Logger,
 	uc1 *usecase.TenantGetByIDUseCase,
 	uc2 *usecase.UserGetByIDUseCase,
 	uc3 *usecase.UserUpdateUseCase,
+	s1 *FaucetCoinTransferService,
 ) *GatewayAddWalletAddressToFaucetService {
-	return &GatewayAddWalletAddressToFaucetService{logger, uc1, uc2, uc3}
+	return &GatewayAddWalletAddressToFaucetService{cfg, logger, uc1, uc2, uc3, s1}
 }
 
 type GatewayProfileWalletAddressRequestIDO struct {
 	WalletAddress string `bson:"wallet_address" json:"wallet_address"`
 }
 
-func (s *GatewayAddWalletAddressToFaucetService) Execute(sessCtx mongo.SessionContext, req *GatewayProfileWalletAddressRequestIDO) (*domain.User, error) {
+func (s *GatewayAddWalletAddressToFaucetService) Execute(
+	sessCtx mongo.SessionContext,
+	req *GatewayProfileWalletAddressRequestIDO,
+) (*domain.User, error) {
 	//
 	// STEP 1: Get from session and related records.
 	//
@@ -91,22 +102,44 @@ func (s *GatewayAddWalletAddressToFaucetService) Execute(sessCtx mongo.SessionCo
 	}
 
 	//
-	// STEP 3: Set wallet address.
+	// STEP 3: Transfer coins into new wallet address.
 	//
 
-	// walletAddress := common.HexToAddress(strings.ToLower(req.WalletAddress))
-	// ou.WalletAddress = &walletAddress
-	//
-	// if err := s.userUpdateUseCase.Execute(sessCtx, ou); err != nil {
-	// 	s.logger.Error("user update by id error", slog.Any("error", err))
-	// 	return nil, err
-	// }
+	walletAddress := common.HexToAddress(strings.ToLower(req.WalletAddress))
+	idoReq := &FaucetCoinTransferRequestIDO{
+		ChainID:               s.config.Blockchain.ChainID,
+		FromAccountAddress:    s.config.App.WalletAddress,
+		AccountWalletPassword: s.config.App.WalletPassword,
+		To:                    &walletAddress,
+		Value:                 10,
+		Data:                  make([]byte, 0),
+	}
+	if err := s.faucetCoinTransferService.Execute(sessCtx, idoReq); err != nil {
+		s.logger.Error("Failed transfering coins to address",
+			slog.Any("error", err))
+		return nil, err
+	}
+
+	s.logger.Info("ComicCoin Faucet submitted coins to wallet address successfully",
+		slog.String("user_id", ou.ID.Hex()),
+		slog.String("address", req.WalletAddress),
+	)
 
 	//
-	// STEP 4: Transfer coins into new wallet address.
+	// STEP 4: Set wallet address.
 	//
 
-	//TODO: IMPL.
+	ou.WalletAddress = &walletAddress
+	ou.LastCoinsDepositAt = time.Now()
+	if err := s.userUpdateUseCase.Execute(sessCtx, ou); err != nil {
+		s.logger.Error("user update by id error", slog.Any("error", err))
+		return nil, err
+	}
+
+	s.logger.Info("ComicCoin Faucet collected wallet address of user",
+		slog.String("user_id", ou.ID.Hex()),
+		slog.String("address", req.WalletAddress),
+	)
 
 	return ou, nil
 }

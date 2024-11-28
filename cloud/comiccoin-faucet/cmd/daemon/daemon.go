@@ -288,7 +288,6 @@ func doRunDaemon() {
 		walletDecryptKeyUseCase,
 		submitMempoolTransactionDTOToBlockchainAuthorityUseCase,
 	)
-	_ = faucetCoinTransferService //TODO: INTEGRATE WITH PROJECT.
 
 	gatewayRegisterCustomerService := service.NewGatewayRegisterCustomerService(
 		cfg,
@@ -361,10 +360,12 @@ func doRunDaemon() {
 		userUpdateUseCase,
 	)
 	gatewayAddWalletAddressToFaucetService := service.NewGatewayAddWalletAddressToFaucetService(
+		cfg,
 		logger,
 		tenantGetByIDUseCase,
 		userGetByIDUseCase,
 		userUpdateUseCase,
+		faucetCoinTransferService,
 	)
 
 	blockchainSyncService := service.NewBlockchainSyncWithBlockchainAuthorityService(
