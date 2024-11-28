@@ -193,7 +193,7 @@ function CustomerAddWalletToFaucetSuccess() {
                   <div class="hero-body">
                     <p class="title">
                       <FontAwesomeIcon className="fas" icon={faCheckCircle} />
-                      &nbsp;Coins set
+                      &nbsp;Coins sent
                     </p>
                     <p class="subtitle">
                       Your wallet was sent <b>10 ComicCoins</b>. Please check your wallet, transactions take up to 5 minutes to carry through the network.

@@ -158,7 +158,7 @@ function CustomerAddWalletToFaucet() {
   //// Component rendering.
   ////
 
-  if (forceURL !== "") {  
+  if (forceURL !== "") {
     return <Navigate to={forceURL} />;
   }
 
@@ -202,7 +202,7 @@ function CustomerAddWalletToFaucet() {
                   helpText=""
                   onChange={(e) => setWalletAddress(e.target.value)}
                   isRequired={true}
-                  maxWidth="380px"
+                  maxWidth="425px"
                 />
                 <div class="columns pt-5">
                     <div class="column is-half">
