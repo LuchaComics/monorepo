@@ -43,6 +43,9 @@ type httpServerImpl struct {
 	gatewayProfileDetailHTTPHandler    *handler.GatewayProfileDetailHTTPHandler
 	gatewayProfileUpdateHTTPHandler    *handler.GatewayProfileUpdateHTTPHandler
 	gatewayVerifyHTTPHandler           *handler.GatewayVerifyHTTPHandler
+	gatewayChangePasswordHTTPHandler   *handler.GatewayChangePasswordHTTPHandler
+	gatewayForgotPasswordHTTPHandler   *handler.GatewayForgotPasswordHTTPHandler
+	gatewayResetPasswordHTTPHandler    *handler.GatewayResetPasswordHTTPHandler
 }
 
 // NewHTTPServer creates a new HTTP server instance.
@@ -59,6 +62,9 @@ func NewHTTPServer(
 	h7 *handler.GatewayProfileDetailHTTPHandler,
 	h8 *handler.GatewayProfileUpdateHTTPHandler,
 	h9 *handler.GatewayVerifyHTTPHandler,
+	h10 *handler.GatewayChangePasswordHTTPHandler,
+	h11 *handler.GatewayForgotPasswordHTTPHandler,
+	h12 *handler.GatewayResetPasswordHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.HTTPAddress == "" {
@@ -91,6 +97,9 @@ func NewHTTPServer(
 		gatewayProfileDetailHTTPHandler:    h7,
 		gatewayProfileUpdateHTTPHandler:    h8,
 		gatewayVerifyHTTPHandler:           h9,
+		gatewayChangePasswordHTTPHandler:   h10,
+		gatewayForgotPasswordHTTPHandler:   h11,
+		gatewayResetPasswordHTTPHandler:    h12,
 	}
 	// Attach the HTTP server controller to the ServeMux.
 	mux.HandleFunc("/", mid.Attach(port.HandleRequests))
@@ -159,8 +168,12 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		port.gatewayProfileUpdateHTTPHandler.Execute(w, r)
 	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "verify" && r.Method == http.MethodPost:
 		port.gatewayVerifyHTTPHandler.Execute(w, r)
-	// case n == 4 && p[1] == "v1" && p[2] == "profile" && p[3] == "change-password" && r.Method == http.MethodPut:
-	// 	port.Gateway.ProfileChangePassword(w, r)
+	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "profile" && p[3] == "change-password" && r.Method == http.MethodPut:
+		port.gatewayChangePasswordHTTPHandler.Execute(w, r)
+	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "forgot-password" && r.Method == http.MethodPost:
+		port.gatewayForgotPasswordHTTPHandler.Execute(w, r)
+	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "password-reset" && r.Method == http.MethodPost:
+		port.gatewayResetPasswordHTTPHandler.Execute(w, r)
 	// --- CATCH ALL: D.N.E. ---
 	default:
 		// Log a message to indicate that the request is not found.
