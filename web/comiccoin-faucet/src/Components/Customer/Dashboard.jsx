@@ -10,6 +10,7 @@ import {
   faQuestionCircle,
   faWallet,
   faDonate,
+  faHand,
 } from "@fortawesome/free-solid-svg-icons";
 import { useRecoilState } from "recoil";
 
@@ -101,82 +102,24 @@ function CustomerDashboard() {
             </ul>
           </nav>
           <nav class="box">
+             <section class="hero is-medium is-success">
+               <div class="hero-body">
+                 <p class="title">
+                   <FontAwesomeIcon className="fas" icon={faHand} />
+                   &nbsp;Welcome to ComicCoin Faucet
+                 </p>
+                 <p class="subtitle">
+                   Do you have a question or concern? Contact us below.
+                   <br />
+                   <br />
+                   <Link to={"/help"}>
+                     Go to Help&nbsp;
+                     <FontAwesomeIcon className="fas" icon={faArrowRight} />
+                   </Link>
+                 </p>
+               </div>
+             </section>
 
-
-            {currentUser && <>
-                {currentUser.walletAddress ? <>
-                    <div class="columns">
-                      <div class="column">
-                        <h1 class="title is-4">
-                          <FontAwesomeIcon className="fas" icon={faGauge} />
-                          &nbsp;Dashboard
-                        </h1>
-                      </div>
-                    </div>
-                    <section class="hero is-medium is-link">
-                      <div class="hero-body">
-                        <p class="title">
-                          <FontAwesomeIcon className="fas" icon={faTasks} />
-                          &nbsp;My Submissions
-                        </p>
-                        <p class="subtitle">
-                          Submit a request to encapsulate your collectible or view existing collectibles by clicking
-                          below:
-                          <br />
-                          <br />
-                          <Link to={"/c/submissions/comics"}>
-                            View Online Comic Submissions&nbsp;
-                            <FontAwesomeIcon className="fas" icon={faArrowRight} />
-                          </Link>
-                          <br />
-                          <br />
-                          <Link to={"/c/submissions/pick-type-for-add"}>
-                            Add&nbsp;
-                            <FontAwesomeIcon className="fas" icon={faArrowRight} />
-                          </Link>
-                        </p>
-                      </div>
-                    </section>
-                </> : <>
-                    <div class="columns">
-                      <div class="column">
-                        <h1 class="title is-4">
-                          <FontAwesomeIcon className="fas" icon={faDonate} />
-                          &nbsp;Get ComicCoins
-                        </h1>
-                      </div>
-                    </div>
-                    Welcome to the <b>ComicCoin Faucet</b>! To begin, please download the latest <b>ComicCoin Wallet</b> and set your wallet address below:
-                    <br />
-                    <br />
-                    <FormInputField
-                      label="Wallet Address"
-                      name="walletAddress"
-                      placeholder="Text input"
-                      value={walletAddress}
-                      errorText={errors && errors.walletAddress}
-                      helpText=""
-                      onChange={(e) => setWalletAddress(e.target.value)}
-                      isRequired={true}
-                      maxWidth="380px"
-                    />
-                    <div class="columns pt-5">
-                        <div class="column is-half">
-                            <button
-                              class="button is-medium is-block is-fullwidth is-primary"
-                              type="button"
-                              onClick={onSubmitClick}
-                            >
-                              Submit&nbsp;
-                              <FontAwesomeIcon icon={faArrowRight} />
-                            </button>
-                        </div>
-                        <div class="column is-half has-text-right">
-
-                        </div>
-                    </div>
-                </>}
-            </>}
 
           </nav>
         </section>

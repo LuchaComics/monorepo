@@ -193,15 +193,14 @@ function CustomerAddWalletToFaucetSuccess() {
                   <div class="hero-body">
                     <p class="title">
                       <FontAwesomeIcon className="fas" icon={faCheckCircle} />
-                      &nbsp;Address set
+                      &nbsp;Coins set
                     </p>
                     <p class="subtitle">
-                      Your wallet was set and <b>10 ComicCoins</b> have been sent.
+                      Your wallet was sent <b>10 ComicCoins</b>. Please check your wallet, transactions take up to 5 minutes to carry through the network.
                       <br />
                       <br />
                       <Link to={"/c/dashboard"}>
-                        Go to Dashboard&nbsp;
-                        <FontAwesomeIcon className="fas" icon={faArrowRight} />
+                        Go to Dashboard&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} />
                       </Link>
                     </p>
                   </div>
