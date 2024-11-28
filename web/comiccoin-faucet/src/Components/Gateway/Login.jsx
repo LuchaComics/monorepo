@@ -18,7 +18,11 @@ import { postLoginAPI } from "../../API/Gateway";
 import { onHamburgerClickedState, currentUserState } from "../../AppState";
 import LoginDesktop from "./LoginDesktop";
 import LoginMobile from "./LoginMobile";
-import { USER_ROLE_ROOT, USER_ROLE_RETAILER, USER_ROLE_CUSTOMER } from "../../Constants/App";
+import {
+    USER_ROLE_ROOT,
+    USER_ROLE_RETAILER,
+    USER_ROLE_CUSTOMER
+} from "../../Constants/App";
 
 
 function Login() {

@@ -41,6 +41,19 @@ func NewGatewayLoginService(
 	return &GatewayLoginService{logger, pp, cach, jwtp, uc1, uc2, uc3}
 }
 
+type GatewayLoginRequestIDO struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type GatewayLoginResponseIDO struct {
+	User                   *domain.User `json:"user"`
+	AccessToken            string       `json:"access_token"`
+	AccessTokenExpiryTime  time.Time    `json:"access_token_expiry_time"`
+	RefreshToken           string       `json:"refresh_token"`
+	RefreshTokenExpiryTime time.Time    `json:"refresh_token_expiry_time"`
+}
+
 func (s *GatewayLoginService) Execute(sessCtx mongo.SessionContext, req *GatewayLoginRequestIDO) (*GatewayLoginResponseIDO, error) {
 	//
 	// STEP 1: Sanization of input.
@@ -133,19 +146,6 @@ func (s *GatewayLoginService) Execute(sessCtx mongo.SessionContext, req *Gateway
 	}
 
 	return s.loginWithUser(sessCtx, u)
-}
-
-type GatewayLoginRequestIDO struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type GatewayLoginResponseIDO struct {
-	User                   *domain.User `json:"user"`
-	AccessToken            string       `json:"access_token"`
-	AccessTokenExpiryTime  time.Time    `json:"access_token_expiry_time"`
-	RefreshToken           string       `json:"refresh_token"`
-	RefreshTokenExpiryTime time.Time    `json:"refresh_token_expiry_time"`
 }
 
 func (s *GatewayLoginService) loginWithUser(sessCtx mongo.SessionContext, u *domain.User) (*GatewayLoginResponseIDO, error) {
