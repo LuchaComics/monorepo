@@ -27,7 +27,33 @@ func NewGatewayProfileUpdateService(
 	return &GatewayProfileUpdateService{logger, uc1, uc2}
 }
 
-func (s *GatewayProfileUpdateService) Execute(sessCtx mongo.SessionContext, nu *domain.User) error {
+type GatewayProfileUpdateRequestIDO struct {
+	FirstName                 string `bson:"first_name" json:"first_name"`
+	LastName                  string `bson:"last_name" json:"last_name"`
+	Email                     string `bson:"email" json:"email"`
+	Phone                     string `bson:"phone" json:"phone,omitempty"`
+	Country                   string `bson:"country" json:"country,omitempty"`
+	Region                    string `bson:"region" json:"region,omitempty"`
+	City                      string `bson:"city" json:"city,omitempty"`
+	PostalCode                string `bson:"postal_code" json:"postal_code,omitempty"`
+	AddressLine1              string `bson:"address_line1" json:"address_line1,omitempty"`
+	AddressLine2              string `bson:"address_line2" json:"address_line2,omitempty"`
+	HasShippingAddress        bool   `bson:"has_shipping_address" json:"has_shipping_address,omitempty"`
+	ShippingName              string `bson:"shipping_name" json:"shipping_name,omitempty"`
+	ShippingPhone             string `bson:"shipping_phone" json:"shipping_phone,omitempty"`
+	ShippingCountry           string `bson:"shipping_country" json:"shipping_country,omitempty"`
+	ShippingRegion            string `bson:"shipping_region" json:"shipping_region,omitempty"`
+	ShippingCity              string `bson:"shipping_city" json:"shipping_city,omitempty"`
+	ShippingPostalCode        string `bson:"shipping_postal_code" json:"shipping_postal_code,omitempty"`
+	ShippingAddressLine1      string `bson:"shipping_address_line1" json:"shipping_address_line1,omitempty"`
+	ShippingAddressLine2      string `bson:"shipping_address_line2" json:"shipping_address_line2,omitempty"`
+	HowDidYouHearAboutUs      int8   `bson:"how_did_you_hear_about_us" json:"how_did_you_hear_about_us,omitempty"`
+	HowDidYouHearAboutUsOther string `bson:"how_did_you_hear_about_us_other" json:"how_did_you_hear_about_us_other,omitempty"`
+	AgreePromotionsEmail      bool   `bson:"agree_promotions_email" json:"agree_promotions_email,omitempty"`
+	AgreeTOS                  bool   `bson:"agree_tos" json:"agree_tos,omitempty"`
+}
+
+func (s *GatewayProfileUpdateService) Execute(sessCtx mongo.SessionContext, nu *GatewayProfileUpdateRequestIDO) (*domain.User, error) {
 	// Extract from our session the following data.
 	userID := sessCtx.Value(constants.SessionUserID).(primitive.ObjectID)
 
@@ -35,11 +61,11 @@ func (s *GatewayProfileUpdateService) Execute(sessCtx mongo.SessionContext, nu *
 	ou, err := s.userGetByIDUseCase.Execute(sessCtx, userID)
 	if err != nil {
 		s.logger.Error("database error", slog.Any("err", err))
-		return err
+		return nil, err
 	}
 	if ou == nil {
 		s.logger.Warn("user does not exist validation error")
-		return httperror.NewForBadRequestWithSingleField("id", "does not exist")
+		return nil, httperror.NewForBadRequestWithSingleField("id", "does not exist")
 	}
 
 	ou.FirstName = nu.FirstName
@@ -69,8 +95,8 @@ func (s *GatewayProfileUpdateService) Execute(sessCtx mongo.SessionContext, nu *
 
 	if err := s.userUpdateUseCase.Execute(sessCtx, ou); err != nil {
 		s.logger.Error("user update by id error", slog.Any("error", err))
-		return err
+		return nil, err
 	}
 
-	return nil
+	return ou, nil
 }

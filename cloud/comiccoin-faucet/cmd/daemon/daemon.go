@@ -299,6 +299,11 @@ func doRunDaemon() {
 		logger,
 		userGetByIDUseCase,
 	)
+	gatewayProfileUpdateService := service.NewGatewayProfileUpdateService(
+		logger,
+		userGetByIDUseCase,
+		userUpdateUseCase,
+	)
 
 	blockchainSyncService := service.NewBlockchainSyncWithBlockchainAuthorityService(
 		logger,
@@ -367,6 +372,11 @@ func doRunDaemon() {
 		dbClient,
 		gatewayProfileGetService,
 	)
+	gatewayProfileUpdateHTTPHandler := httphandler.NewGatewayProfileUpdateHTTPHandler(
+		logger,
+		dbClient,
+		gatewayProfileUpdateService,
+	)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
 		blackp,
@@ -384,6 +394,7 @@ func doRunDaemon() {
 		gatewayLogoutHTTPHandler,
 		gatewayRefreshTokenHTTPHandler,
 		gatewayProfileDetailHTTPHandler,
+		gatewayProfileUpdateHTTPHandler,
 	)
 
 	//
