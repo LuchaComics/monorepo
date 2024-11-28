@@ -8,7 +8,6 @@ import (
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/httperror"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/kmutexutil"
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/storage/database/mongodbcache"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/domain"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/usecase"
 )
@@ -16,7 +15,6 @@ import (
 type GatewayVerifyService struct {
 	logger                           *slog.Logger
 	kmutex                           kmutexutil.KMutexProvider
-	cache                            mongodbcache.Cacher
 	userGetByVerificationCodeUseCase *usecase.UserGetByVerificationCodeUseCase
 	userUpdateUseCase                *usecase.UserUpdateUseCase
 }
@@ -24,31 +22,34 @@ type GatewayVerifyService struct {
 func NewGatewayVerifyService(
 	logger *slog.Logger,
 	kmutex kmutexutil.KMutexProvider,
-	cach mongodbcache.Cacher,
 	uc1 *usecase.UserGetByVerificationCodeUseCase,
 	uc2 *usecase.UserUpdateUseCase,
 ) *GatewayVerifyService {
-	return &GatewayVerifyService{logger, kmutex, cach, uc1, uc2}
+	return &GatewayVerifyService{logger, kmutex, uc1, uc2}
 }
 
-type VerifyResponseIDO struct {
+type GatewayVerifyRequestIDO struct {
+	Code string `json:"code"`
+}
+
+type GatwayVerifyResponseIDO struct {
 	Message  string `json:"message"`
 	UserRole int8   `bson:"user_role" json:"user_role"`
 }
 
-func (s *GatewayVerifyService) Execute(sessCtx mongo.SessionContext, code string) (*VerifyResponseIDO, error) {
-	s.kmutex.Acquire(code)
+func (s *GatewayVerifyService) Execute(sessCtx mongo.SessionContext, req *GatewayVerifyRequestIDO) (*GatwayVerifyResponseIDO, error) {
+	s.kmutex.Acquire(req.Code)
 	defer func() {
-		s.kmutex.Release(code)
+		s.kmutex.Release(req.Code)
 	}()
 
 	// // Extract from our session the following data.
 	// sessionID := sessCtx.Value(constants.SessionID).(string)
 
-	res := &VerifyResponseIDO{}
+	res := &GatwayVerifyResponseIDO{}
 
 	// Lookup the user in our database, else return a `400 Bad Request` error.
-	u, err := s.userGetByVerificationCodeUseCase.Execute(sessCtx, code)
+	u, err := s.userGetByVerificationCodeUseCase.Execute(sessCtx, req.Code)
 	if err != nil {
 		s.logger.Error("database error", slog.Any("err", err))
 		return nil, err

@@ -11,6 +11,7 @@ import (
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/blockchain/keystore"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/emailer/mailgun"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/kmutexutil"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/logger"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/blacklist"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/jwt"
@@ -48,7 +49,7 @@ func doRunDaemon() {
 
 	// Common
 	logger := logger.NewProvider()
-	// kmutex := kmutexutil.NewKMutexProvider()
+	kmutex := kmutexutil.NewKMutexProvider()
 	cfg := config.NewProvider()
 	dbClient := mongodb.NewProvider(cfg, logger)
 	keystore := keystore.NewAdapter()
@@ -255,6 +256,10 @@ func doRunDaemon() {
 		cfg,
 		logger,
 		userRepo)
+	userGetByVerificationCodeUseCase := usecase.NewUserGetByVerificationCodeUseCase(
+		cfg,
+		logger,
+		userRepo)
 
 	//
 	// Service
@@ -302,6 +307,12 @@ func doRunDaemon() {
 	gatewayProfileUpdateService := service.NewGatewayProfileUpdateService(
 		logger,
 		userGetByIDUseCase,
+		userUpdateUseCase,
+	)
+	gatewayVerifyService := service.NewGatewayVerifyService(
+		logger,
+		kmutex,
+		userGetByVerificationCodeUseCase,
 		userUpdateUseCase,
 	)
 
@@ -377,6 +388,11 @@ func doRunDaemon() {
 		dbClient,
 		gatewayProfileUpdateService,
 	)
+	gatewayVerifyHTTPHandler := httphandler.NewGatewayVerifyHTTPHandler(
+		logger,
+		dbClient,
+		gatewayVerifyService,
+	)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
 		blackp,
@@ -395,6 +411,7 @@ func doRunDaemon() {
 		gatewayRefreshTokenHTTPHandler,
 		gatewayProfileDetailHTTPHandler,
 		gatewayProfileUpdateHTTPHandler,
+		gatewayVerifyHTTPHandler,
 	)
 
 	//

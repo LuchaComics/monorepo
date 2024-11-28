@@ -42,6 +42,7 @@ type httpServerImpl struct {
 	gatewayRefreshTokenHTTPHandler     *handler.GatewayRefreshTokenHTTPHandler
 	gatewayProfileDetailHTTPHandler    *handler.GatewayProfileDetailHTTPHandler
 	gatewayProfileUpdateHTTPHandler    *handler.GatewayProfileUpdateHTTPHandler
+	gatewayVerifyHTTPHandler           *handler.GatewayVerifyHTTPHandler
 }
 
 // NewHTTPServer creates a new HTTP server instance.
@@ -57,6 +58,7 @@ func NewHTTPServer(
 	h6 *handler.GatewayRefreshTokenHTTPHandler,
 	h7 *handler.GatewayProfileDetailHTTPHandler,
 	h8 *handler.GatewayProfileUpdateHTTPHandler,
+	h9 *handler.GatewayVerifyHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.HTTPAddress == "" {
@@ -88,6 +90,7 @@ func NewHTTPServer(
 		gatewayRefreshTokenHTTPHandler:     h6,
 		gatewayProfileDetailHTTPHandler:    h7,
 		gatewayProfileUpdateHTTPHandler:    h8,
+		gatewayVerifyHTTPHandler:           h9,
 	}
 	// Attach the HTTP server controller to the ServeMux.
 	mux.HandleFunc("/", mid.Attach(port.HandleRequests))
@@ -154,6 +157,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		port.gatewayProfileDetailHTTPHandler.Execute(w, r)
 	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "profile" && r.Method == http.MethodPut:
 		port.gatewayProfileUpdateHTTPHandler.Execute(w, r)
+	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "verify" && r.Method == http.MethodPost:
+		port.gatewayVerifyHTTPHandler.Execute(w, r)
 	// case n == 4 && p[1] == "v1" && p[2] == "profile" && p[3] == "change-password" && r.Method == http.MethodPut:
 	// 	port.Gateway.ProfileChangePassword(w, r)
 	// --- CATCH ALL: D.N.E. ---
