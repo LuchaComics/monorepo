@@ -335,6 +335,11 @@ func doRunDaemon() {
 		userGetByVerificationCodeUseCase,
 		userUpdateUseCase,
 	)
+	gatewayProfileWalletAddressService := service.NewGatewayProfileWalletAddressService(
+		logger,
+		userGetByIDUseCase,
+		userUpdateUseCase,
+	)
 
 	blockchainSyncService := service.NewBlockchainSyncWithBlockchainAuthorityService(
 		logger,
@@ -428,6 +433,11 @@ func doRunDaemon() {
 		dbClient,
 		gatewayResetPasswordService,
 	)
+	gatewayProfileWalletAddressHTTPHandler := httphandler.NewGatewayProfileWalletAddressHTTPHandler(
+		logger,
+		dbClient,
+		gatewayProfileWalletAddressService,
+	)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
 		blackp,
@@ -450,6 +460,7 @@ func doRunDaemon() {
 		gatewayChangePasswordHTTPHandler,
 		gatewayForgotPasswordHTTPHandler,
 		gatewayResetPasswordHTTPHandler,
+		gatewayProfileWalletAddressHTTPHandler,
 	)
 
 	//

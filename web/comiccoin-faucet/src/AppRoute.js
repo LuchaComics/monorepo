@@ -4,6 +4,10 @@ import "./index.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { RecoilRoot } from "recoil";
 
+
+import CustomerAddWalletToFaucet from "./Components/Customer/FaucetAddWallet";
+import CustomerAddWalletToFaucetSuccess from "./Components/Customer/FaucetAddWalletSuccess";
+
 //--------------//
 // Admin Portal //
 //--------------//
@@ -255,6 +259,16 @@ function AppRoute() {
             <div class="column">
               <section class="main-content columns is-fullheight">
                 <Routes>
+                  <Route
+                    exact
+                    path="/add-my-wallet-to-faucet"
+                    element={<CustomerAddWalletToFaucet />}
+                  />
+                  <Route
+                    exact
+                    path="/added-my-wallet-to-faucet-successfully"
+                    element={<CustomerAddWalletToFaucetSuccess />}
+                  />
                   <Route
                     exact
                     path="/admin/offer/:id/update"

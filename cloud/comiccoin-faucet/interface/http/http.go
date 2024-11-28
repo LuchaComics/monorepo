@@ -36,16 +36,17 @@ type httpServerImpl struct {
 
 	getHealthCheckHTTPHandler *handler.GetHealthCheckHTTPHandler
 
-	gatewayRegisterCustomerHTTPHandler *handler.GatewayRegisterCustomerHTTPHandler
-	gatewayLoginHTTPHandler            *handler.GatewayLoginHTTPHandler
-	gatewayLogoutHTTPHandler           *handler.GatewayLogoutHTTPHandler
-	gatewayRefreshTokenHTTPHandler     *handler.GatewayRefreshTokenHTTPHandler
-	gatewayProfileDetailHTTPHandler    *handler.GatewayProfileDetailHTTPHandler
-	gatewayProfileUpdateHTTPHandler    *handler.GatewayProfileUpdateHTTPHandler
-	gatewayVerifyHTTPHandler           *handler.GatewayVerifyHTTPHandler
-	gatewayChangePasswordHTTPHandler   *handler.GatewayChangePasswordHTTPHandler
-	gatewayForgotPasswordHTTPHandler   *handler.GatewayForgotPasswordHTTPHandler
-	gatewayResetPasswordHTTPHandler    *handler.GatewayResetPasswordHTTPHandler
+	gatewayRegisterCustomerHTTPHandler     *handler.GatewayRegisterCustomerHTTPHandler
+	gatewayLoginHTTPHandler                *handler.GatewayLoginHTTPHandler
+	gatewayLogoutHTTPHandler               *handler.GatewayLogoutHTTPHandler
+	gatewayRefreshTokenHTTPHandler         *handler.GatewayRefreshTokenHTTPHandler
+	gatewayProfileDetailHTTPHandler        *handler.GatewayProfileDetailHTTPHandler
+	gatewayProfileUpdateHTTPHandler        *handler.GatewayProfileUpdateHTTPHandler
+	gatewayVerifyHTTPHandler               *handler.GatewayVerifyHTTPHandler
+	gatewayChangePasswordHTTPHandler       *handler.GatewayChangePasswordHTTPHandler
+	gatewayForgotPasswordHTTPHandler       *handler.GatewayForgotPasswordHTTPHandler
+	gatewayResetPasswordHTTPHandler        *handler.GatewayResetPasswordHTTPHandler
+	gatewayProfileWalletAddressHTTPHandler *handler.GatewayProfileWalletAddressHTTPHandler
 }
 
 // NewHTTPServer creates a new HTTP server instance.
@@ -65,6 +66,7 @@ func NewHTTPServer(
 	h10 *handler.GatewayChangePasswordHTTPHandler,
 	h11 *handler.GatewayForgotPasswordHTTPHandler,
 	h12 *handler.GatewayResetPasswordHTTPHandler,
+	h13 *handler.GatewayProfileWalletAddressHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.HTTPAddress == "" {
@@ -85,21 +87,22 @@ func NewHTTPServer(
 
 	// Create a new HTTP server instance.
 	port := &httpServerImpl{
-		cfg:                                cfg,
-		logger:                             logger,
-		server:                             srv,
-		getVersionHTTPHandler:              h1,
-		getHealthCheckHTTPHandler:          h2,
-		gatewayRegisterCustomerHTTPHandler: h3,
-		gatewayLoginHTTPHandler:            h4,
-		gatewayLogoutHTTPHandler:           h5,
-		gatewayRefreshTokenHTTPHandler:     h6,
-		gatewayProfileDetailHTTPHandler:    h7,
-		gatewayProfileUpdateHTTPHandler:    h8,
-		gatewayVerifyHTTPHandler:           h9,
-		gatewayChangePasswordHTTPHandler:   h10,
-		gatewayForgotPasswordHTTPHandler:   h11,
-		gatewayResetPasswordHTTPHandler:    h12,
+		cfg:                                    cfg,
+		logger:                                 logger,
+		server:                                 srv,
+		getVersionHTTPHandler:                  h1,
+		getHealthCheckHTTPHandler:              h2,
+		gatewayRegisterCustomerHTTPHandler:     h3,
+		gatewayLoginHTTPHandler:                h4,
+		gatewayLogoutHTTPHandler:               h5,
+		gatewayRefreshTokenHTTPHandler:         h6,
+		gatewayProfileDetailHTTPHandler:        h7,
+		gatewayProfileUpdateHTTPHandler:        h8,
+		gatewayVerifyHTTPHandler:               h9,
+		gatewayChangePasswordHTTPHandler:       h10,
+		gatewayForgotPasswordHTTPHandler:       h11,
+		gatewayResetPasswordHTTPHandler:        h12,
+		gatewayProfileWalletAddressHTTPHandler: h13,
 	}
 	// Attach the HTTP server controller to the ServeMux.
 	mux.HandleFunc("/", mid.Attach(port.HandleRequests))
@@ -170,6 +173,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		port.gatewayVerifyHTTPHandler.Execute(w, r)
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "profile" && p[3] == "change-password" && r.Method == http.MethodPut:
 		port.gatewayChangePasswordHTTPHandler.Execute(w, r)
+	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "profile" && p[3] == "wallet-password" && r.Method == http.MethodPut:
+		port.gatewayProfileWalletAddressHTTPHandler.Execute(w, r)
 	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "forgot-password" && r.Method == http.MethodPost:
 		port.gatewayForgotPasswordHTTPHandler.Execute(w, r)
 	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "password-reset" && r.Method == http.MethodPost:

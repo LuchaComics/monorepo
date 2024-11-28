@@ -90,6 +90,12 @@ function Login() {
       // Store in persistance storage in the browser.
       setCurrentUser(response.user);
 
+      // Redirect brand new users to the wallet setting page.
+      if (response.walletAddress === undefined || response.walletAddress === null || response.walletAddress === "") {
+        setForceURL("/add-my-wallet-to-faucet");
+        return;
+      }
+
       if (response.user.otpEnabled === false) {
         console.log("onLoginSuccess | redirecting to dashboard");
         switch (response.user.role) {

@@ -67,6 +67,8 @@ export default (props) => {
   // will not render this component.
   const ignorePathsArr = [
     "/",
+    "/add-my-wallet-to-faucet",
+    "/added-my-wallet-to-faucet-successfully",
     "/register",
     "/register/user",
     "/register/store",
