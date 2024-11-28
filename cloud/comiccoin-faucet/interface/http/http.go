@@ -189,35 +189,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 }
 
 /*
-// --- GATEWAY & PROFILE & DASHBOARD --- //
-case n == 3 && p[1] == "v1" && p[2] == "health-check" && r.Method == http.MethodGet:
-	port.Gateway.HealthCheck(w, r)
-case n == 3 && p[1] == "v1" && p[2] == "version" && r.Method == http.MethodGet:
-	port.Gateway.Version(w, r)
-case n == 3 && p[1] == "v1" && p[2] == "greeting" && r.Method == http.MethodPost:
-	port.Gateway.Greet(w, r)
-case n == 3 && p[1] == "v1" && p[2] == "login" && r.Method == http.MethodPost:
-	port.Gateway.Login(w, r)
 case n == 4 && p[1] == "v1" && p[2] == "register" && p[3] == "business" && r.Method == http.MethodPost:
 	port.Gateway.RegisterBusiness(w, r)
-case n == 4 && p[1] == "v1" && p[2] == "register" && p[3] == "customer" && r.Method == http.MethodPost:
-	port.Gateway.RegisterCustomer(w, r)
-case n == 3 && p[1] == "v1" && p[2] == "refresh-token" && r.Method == http.MethodPost:
-	port.Gateway.RefreshToken(w, r)
-case n == 3 && p[1] == "v1" && p[2] == "verify" && r.Method == http.MethodPost:
-	port.Gateway.Verify(w, r)
-case n == 3 && p[1] == "v1" && p[2] == "logout" && r.Method == http.MethodPost:
-	port.Gateway.Logout(w, r)
-case n == 3 && p[1] == "v1" && p[2] == "profile" && r.Method == http.MethodGet:
-	port.Gateway.Profile(w, r)
-case n == 3 && p[1] == "v1" && p[2] == "profile" && r.Method == http.MethodPut:
-	port.Gateway.ProfileUpdate(w, r)
-case n == 4 && p[1] == "v1" && p[2] == "profile" && p[3] == "change-password" && r.Method == http.MethodPut:
-	port.Gateway.ProfileChangePassword(w, r)
-case n == 3 && p[1] == "v1" && p[2] == "forgot-password" && r.Method == http.MethodPost:
-	port.Gateway.ForgotPassword(w, r)
-case n == 3 && p[1] == "v1" && p[2] == "password-reset" && r.Method == http.MethodPost:
-	port.Gateway.PasswordReset(w, r)
 case n == 4 && p[1] == "v1" && p[2] == "otp" && p[3] == "generate" && r.Method == http.MethodPost:
 	port.Gateway.GenerateOTP(w, r)
 case n == 4 && p[1] == "v1" && p[2] == "otp" && p[3] == "generate-qr-code" && r.Method == http.MethodPost:

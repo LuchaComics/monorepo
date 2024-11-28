@@ -38,11 +38,7 @@ func (uc *UserGetByIDUseCase) Execute(ctx context.Context, id primitive.ObjectID
 	}
 
 	//
-	// STEP 2: Upsert our strucutre.
-	//
-
-	//
-	// STEP 3: Insert into database.
+	// STEP 2: Get from database.
 	//
 
 	return uc.repo.GetByID(ctx, id)
