@@ -234,6 +234,10 @@ func doRunDaemon() {
 		cfg,
 		logger,
 		tenantRepo)
+	tenantUpdateUseCase := usecase.NewTenantUpdateUseCase(
+		cfg,
+		logger,
+		tenantRepo)
 
 	// User
 	userGetByEmailUseCase := usecase.NewUserGetByEmailUseCase(
@@ -335,8 +339,9 @@ func doRunDaemon() {
 		userGetByVerificationCodeUseCase,
 		userUpdateUseCase,
 	)
-	gatewayProfileWalletAddressService := service.NewGatewayProfileWalletAddressService(
+	gatewayAddWalletAddressToFaucetService := service.NewGatewayAddWalletAddressToFaucetService(
 		logger,
+		tenantGetByIDUseCase,
 		userGetByIDUseCase,
 		userUpdateUseCase,
 	)
@@ -355,6 +360,8 @@ func doRunDaemon() {
 		getAccountUseCase,
 		upsertAccountUseCase,
 		upsertTokenIfPreviousTokenNonceGTEUseCase,
+		tenantGetByIDUseCase,
+		tenantUpdateUseCase,
 	)
 
 	blockchainSyncManagerService := service.NewBlockchainSyncManagerService(
@@ -436,7 +443,7 @@ func doRunDaemon() {
 	gatewayProfileWalletAddressHTTPHandler := httphandler.NewGatewayProfileWalletAddressHTTPHandler(
 		logger,
 		dbClient,
-		gatewayProfileWalletAddressService,
+		gatewayAddWalletAddressToFaucetService,
 	)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
@@ -478,7 +485,7 @@ func doRunDaemon() {
 	go func() {
 		for {
 			ctx := context.Background()
-			if err := blockchainSyncManagerService.Execute(ctx, cfg.Blockchain.ChainID); err != nil {
+			if err := blockchainSyncManagerService.Execute(ctx, cfg.Blockchain.ChainID, cfg.App.TenantID); err != nil {
 				log.Fatalf("Failed to manage syncing: %v\n", err)
 			}
 		}

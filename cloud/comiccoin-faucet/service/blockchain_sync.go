@@ -11,6 +11,7 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/httperror"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/domain"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/usecase"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type BlockchainSyncWithBlockchainAuthorityService struct {
@@ -27,6 +28,8 @@ type BlockchainSyncWithBlockchainAuthorityService struct {
 	getAccountUseCase                                    *usecase.GetAccountUseCase
 	upsertAccountUseCase                                 *usecase.UpsertAccountUseCase
 	upsertTokenIfPreviousTokenNonceGTEUseCase            *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase
+	tenantGetByIDUseCase                                 *usecase.TenantGetByIDUseCase
+	tenantUpdateUseCase                                  *usecase.TenantUpdateUseCase
 }
 
 func NewBlockchainSyncWithBlockchainAuthorityService(
@@ -43,11 +46,13 @@ func NewBlockchainSyncWithBlockchainAuthorityService(
 	uc10 *usecase.GetAccountUseCase,
 	uc11 *usecase.UpsertAccountUseCase,
 	uc12 *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase,
+	uc13 *usecase.TenantGetByIDUseCase,
+	uc14 *usecase.TenantUpdateUseCase,
 ) *BlockchainSyncWithBlockchainAuthorityService {
-	return &BlockchainSyncWithBlockchainAuthorityService{logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12}
+	return &BlockchainSyncWithBlockchainAuthorityService{logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12, uc13, uc14}
 }
 
-func (s *BlockchainSyncWithBlockchainAuthorityService) Execute(ctx context.Context, chainID uint16) error {
+func (s *BlockchainSyncWithBlockchainAuthorityService) Execute(ctx context.Context, chainID uint16, tenantID primitive.ObjectID) error {
 	//
 	// STEP 1: Validation.
 	//
@@ -232,6 +237,57 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) Execute(ctx context.Conte
 
 	s.logger.Debug("Local blockchain was synced successfully with the global blockchain network",
 		slog.Any("chain_id", chainID))
+
+	//
+	// STEP 6:
+	// Update our faucet.
+	//
+
+	tenant, err := s.tenantGetByIDUseCase.Execute(ctx, tenantID)
+	if err != nil {
+		s.logger.Error("Failed getting tenant",
+			slog.Any("chain_id", chainID),
+			slog.Any("tenant_id", tenantID),
+			slog.Any("error", err))
+		return err
+	}
+	if tenant == nil {
+		err := fmt.Errorf("Tenant does not exist at id: %v", tenantID)
+		s.logger.Error("Failed getting tenant",
+			slog.Any("chain_id", chainID),
+			slog.Any("tenant_id", tenantID),
+			slog.Any("error", err))
+		return err
+	}
+	recentTenantAccount, err := s.getAccountUseCase.Execute(ctx, tenant.Account.Address)
+	if err != nil {
+		s.logger.Error("Failed getting recent tenant address",
+			slog.Any("chain_id", chainID),
+			slog.Any("tenant_id", tenantID),
+			slog.Any("error", err))
+		return err
+	}
+	if recentTenantAccount == nil {
+		err := fmt.Errorf("Recent tenant address does not exist at address: %v", tenant.Account.Address)
+		s.logger.Error("Failed getting tenant address",
+			slog.Any("chain_id", chainID),
+			slog.Any("tenant_id", tenantID),
+			slog.Any("error", err))
+		return err
+	}
+	tenant.Account = recentTenantAccount
+	if err := s.tenantUpdateUseCase.Execute(ctx, tenant); err != nil {
+		s.logger.Error("Failed updating tenant",
+			slog.Any("chain_id", chainID),
+			slog.Any("tenant_id", tenantID),
+			slog.Any("error", err))
+		return err
+	}
+
+	s.logger.Debug("Tenant account balance updated",
+		slog.Any("chain_id", chainID),
+		slog.Any("tenant_id", tenantID),
+		slog.Any("balance", tenant.Account.Balance))
 
 	return nil
 }

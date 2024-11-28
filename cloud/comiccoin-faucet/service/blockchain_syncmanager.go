@@ -10,6 +10,7 @@ import (
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/httperror"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/usecase"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type BlockchainSyncManagerService struct {
@@ -26,7 +27,7 @@ func NewBlockchainSyncManagerService(
 	return &BlockchainSyncManagerService{logger, s1, uc1}
 }
 
-func (s *BlockchainSyncManagerService) Execute(ctx context.Context, chainID uint16) error {
+func (s *BlockchainSyncManagerService) Execute(ctx context.Context, chainID uint16, tenantID primitive.ObjectID) error {
 	//
 	// STEP 1: Validation.
 	//
@@ -34,6 +35,9 @@ func (s *BlockchainSyncManagerService) Execute(ctx context.Context, chainID uint
 	e := make(map[string]string)
 	if chainID == 0 {
 		e["chain_id"] = "missing value"
+	}
+	if tenantID.IsZero() {
+		e["tenant_id"] = "missing value"
 	}
 	if len(e) != 0 {
 		s.logger.Warn("Validation failed.",
@@ -48,7 +52,7 @@ func (s *BlockchainSyncManagerService) Execute(ctx context.Context, chainID uint
 
 	s.logger.Debug("Syncing...")
 
-	if err := s.blockchainSyncWithBlockchainAuthorityService.Execute(ctx, chainID); err != nil {
+	if err := s.blockchainSyncWithBlockchainAuthorityService.Execute(ctx, chainID, tenantID); err != nil {
 		log.Fatalf("Failed to sync blockchain: %v\n", err)
 	}
 
@@ -86,7 +90,7 @@ func (s *BlockchainSyncManagerService) Execute(ctx context.Context, chainID uint
 	for value := range ch {
 		fmt.Printf("Received update from chain ID: %d\n", value)
 
-		if err := s.blockchainSyncWithBlockchainAuthorityService.Execute(ctx, chainID); err != nil {
+		if err := s.blockchainSyncWithBlockchainAuthorityService.Execute(ctx, chainID, tenantID); err != nil {
 			log.Fatalf("Failed to sync blockchain: %v\n", err)
 		}
 
