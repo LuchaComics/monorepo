@@ -43,7 +43,7 @@ func (a *App) TransferCoin(
 			slog.Any("error", err))
 		return err
 	}
-	defer password.Wipe()
+	// defer password.Wipe()  Developers Note: Commented out b/c they are causing problems with our app.
 
 	coinTransferErr := a.coinTransferService.Execute(
 		a.ctx,

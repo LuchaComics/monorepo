@@ -25,14 +25,14 @@ func (a *App) CreateWallet(walletPassword, walletPasswordRepeated, walletLabel s
 			slog.Any("error", err))
 		return "", err
 	}
-	defer pass.Wipe()
+	// defer pass.Wipe() // Developers Note: Commented out b/c they are causing problems with our app.
 	passRepeated, err := sstring.NewSecureString(walletPasswordRepeated)
 	if err != nil {
 		a.logger.Error("Failed securing password repeated",
 			slog.Any("error", err))
 		return "", err
 	}
-	defer passRepeated.Wipe()
+	// defer passRepeated.Wipe() // Developers Note: Commented out b/c they are causing problems with our app.
 
 	account, err := a.createAccountService.Execute(a.ctx, pass, passRepeated, walletLabel)
 	if err != nil {

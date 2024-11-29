@@ -44,7 +44,7 @@ func (a *App) TransferToken(
 			slog.Any("error", err))
 		return err
 	}
-	defer password.Wipe()
+	// defer password.Wipe() // Developers Note: Commented out b/c they are causing problems with our app.
 
 	tokenTransferErr := a.tokenTransferService.Execute(
 		a.ctx,
