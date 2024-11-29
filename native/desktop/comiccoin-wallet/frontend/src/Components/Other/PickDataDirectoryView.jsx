@@ -147,13 +147,13 @@ function PickDataDirectoryView() {
               <nav class="box">
                 <p class="title is-2">
                   <FontAwesomeIcon className="fas" icon={faHandHoldingHeart} />
-                  &nbsp;Welcome to ComicCoin Core.
+                  &nbsp;Welcome to ComicCoin Wallet
                 </p>
 
                 <FormErrorBox errors={errors} />
 
-                <p class="pb-4">As this is the first time the program is launched, you can choose where ComicCoin Core will store its data</p>
-                <p class="pb-4">ComicCoin Core will download and store a copy of the ComicCoin block chain. Approximately 1 MB of data will be stored in this directory. The wallet will also be stored in this directory.</p>
+                <p class="pb-4">As this is the first time the program is launched, you can choose where ComicCoin Wallet will store its data</p>
+                <p class="pb-4">ComicCoin Wallet will download and store a copy of the ComicCoin block chain. Approximately 1 MB of data will be stored in this directory. The wallet will also be stored in this directory.</p>
 
                 <FormRadioField
                   label="Are you currently submitting to any other grading companies?"
@@ -192,9 +192,9 @@ function PickDataDirectoryView() {
                   }
                 />
 
-                <p class="pb-4">When you dick OK, ComicCoin Core will begin to download and process the full ComicCoin block chain (1 MB) starting with the earliest transactions in 2024 when ComicCoin initially launched.</p>
+                <p class="pb-4">When you click OK, ComicCoin Wallet will begin to download and process the full ComicCoin block chain (1 MB) starting with the earliest transactions in 2024 when ComicCoin initially launched.</p>
 
-                <p class="pb-4">This initial synchronisation is very demanding, and may expose hardware problems with your computer that had previously gone unnoticed. Each time you run ComicCoin Core, it will continue downloading where it left off.</p>
+                <p class="pb-4">This initial synchronisation is very demanding, and may expose hardware problems with your computer that had previously gone unnoticed. Each time you run ComicCoin Wallet, it will continue downloading where it left off.</p>
 
                 <div class="columns pt-5" style={{alignSelf: "flex-start"}}>
                   <div class="column is-half ">

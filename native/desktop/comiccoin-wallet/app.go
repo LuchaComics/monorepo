@@ -82,7 +82,7 @@ func (a *App) startup(ctx context.Context) {
 	// DEVELOPERS NOTE:
 	// Defensive code for programmer in case all the required environment
 	// variables are not set then abort this program.
-	preferences.RunFatalIfHasAnyMissingFields()
+	// preferences.RunFatalIfHasAnyMissingFields() // ONLY USE IN CLI, NOT GUI WALLET!
 
 	nftStorageAddress := preferences.NFTStorageAddress
 	chainID := preferences.ChainID

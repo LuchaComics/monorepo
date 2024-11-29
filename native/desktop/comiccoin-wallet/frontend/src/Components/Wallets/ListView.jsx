@@ -92,7 +92,7 @@ function ListWalletsView() {
                         <div class="container">
                           <div class="columns is-centered">
                             <div class="column is-6-tablet is-5-desktop is-4-widescreen">
-                              <h1 class="title is-2">Welcome to ComicCoin Core</h1>
+                              <h1 class="title is-2">Welcome to ComicCoin Wallet</h1>
                               <h2 class="subtitle is-4">To begin, please create your wallet to get started.</h2>
                               <div class="buttons">
                                 <Link class="button is-link is-medium" to="/wallet/add">Click here to create your wallet</Link>

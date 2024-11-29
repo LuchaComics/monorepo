@@ -24,7 +24,6 @@ func (a *App) GetNFTStorageAddressFromPreferences() string {
 	return nftStoreRemoteAddress
 }
 
-// Greet returns a greeting for the given name
 func (a *App) GetDataDirectoryFromDialog() string {
 	// Initialize Wails runtime
 	result, err := runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{
@@ -38,7 +37,6 @@ func (a *App) GetDataDirectoryFromDialog() string {
 	return result
 }
 
-// Greet returns a greeting for the given name
 func (a *App) SaveDataDirectory(newDataDirectory string) error {
 	// Defensive code
 	if newDataDirectory == "" {
@@ -55,6 +53,24 @@ func (a *App) SaveDataDirectory(newDataDirectory string) error {
 	// Re-attempt the startup now that we have the data directory set.
 	a.logger.Debug("Data directory was set by user",
 		slog.Any("data_directory", newDataDirectory))
+
+	// Add the remaining configuration settings.
+	if err := preferences.SetChainID(ComicCoinChainID); err != nil {
+		a.logger.Error("Failed setting chain ID",
+			slog.Any("error", err))
+		return err
+	}
+	if err := preferences.SetAuthorityAddress(ComicCoinAuthorityAddress); err != nil {
+		a.logger.Error("Failed setting authority address",
+			slog.Any("error", err))
+		return err
+	}
+	if err := preferences.SetNFTStorageAddress(ComicCoinNFTStorageAddress); err != nil {
+		a.logger.Error("Failed setting NFT storage address",
+			slog.Any("error", err))
+		return err
+	}
+
 	a.startup(a.ctx)
 	return nil
 }
