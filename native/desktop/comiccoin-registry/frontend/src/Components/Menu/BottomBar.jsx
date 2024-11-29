@@ -52,6 +52,7 @@ function BottomTabBar() {
   const ignorePathsArr = [
     "/",
     "/pick-data-directory",
+    "/config-nftstore",
     "/startup",
     "/wallets",
     "/wallet/add",

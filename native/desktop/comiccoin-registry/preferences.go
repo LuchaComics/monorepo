@@ -53,6 +53,7 @@ func PreferencesInstance() *Preferences {
 		}
 
 		var preferences Preferences
+		preferences.NFTStoreRemoteAddress = ComicCoinNFTStorageAddress // Set our default value.
 		err = json.NewDecoder(file).Decode(&preferences)
 		file.Close() // Close the file after you're done with it
 		if err != nil && err != io.ErrUnexpectedEOF && err != io.EOF {

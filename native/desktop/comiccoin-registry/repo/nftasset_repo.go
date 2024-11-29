@@ -52,7 +52,10 @@ type NFTAssetRepoConfigurationProviderImpl struct {
 func NewNFTAssetRepoConfigurationProvider(remoteAddress string, apiKey string) NFTAssetRepoConfigurationProvider {
 	// Defensive code: Enforce `remoteAddress` is set at minimum.
 	if remoteAddress == "" {
-		log.Fatal("Missing `remoteAddress` parameter.")
+		log.Fatal("NewNFTAssetRepoConfigurationProvider: Missing `remoteAddress` parameter.")
+	}
+	if apiKey == "" {
+		log.Fatal("NewNFTAssetRepoConfigurationProvider: Missing `apiKey` parameter.")
 	}
 	return &NFTAssetRepoConfigurationProviderImpl{
 		remoteAddress: remoteAddress,

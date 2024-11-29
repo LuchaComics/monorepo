@@ -51,7 +51,6 @@ function Topbar() {
   // will not render this component.
   const ignorePathsArr = [
     "/",
-    "/startup",
   ];
   const location = useLocation();
   var arrayLength = ignorePathsArr.length;
