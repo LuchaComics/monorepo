@@ -285,10 +285,10 @@ function CreateTokenView() {
                 <FormInputField
                   label="Background Color"
                   name="backgroundColor"
-                  placeholder=""
+                  placeholder="Ex: #FFFFFF"
                   value={backgroundColor}
                   errorText={errors && errors.backgroundColor}
-                  helpText=""
+                  helpText="Must be in a hexadecimal format"
                   onChange={(e) => setBackgroundColor(e.target.value)}
                   isRequired={true}
                   maxWidth="150px"

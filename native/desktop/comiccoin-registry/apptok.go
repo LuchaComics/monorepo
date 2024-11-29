@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"regexp"
 	"time"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
@@ -100,6 +101,13 @@ func (a *App) GetVideoFilePathFromDialog() string {
 	return result
 }
 
+func isValidHexColor(color string) bool {
+	// Regular expression pattern for HTML hex colors
+	pattern := `^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$`
+	match, _ := regexp.MatchString(pattern, color)
+	return match
+}
+
 // CreateToken creates a new Token with the given metadata and uploads it to IPFS.
 func (a *App) CreateToken(
 	name string,
@@ -142,6 +150,10 @@ func (a *App) CreateToken(
 	}
 	if backgroundColor == "" {
 		e["background_color"] = "missing value"
+	} else {
+		if !isValidHexColor(backgroundColor) {
+			e["background_color"] = "wrong formatting, must be HTML hex formatting"
+		}
 	}
 	if len(e) != 0 {
 		// If any fields are missing, log an error and return a bad request error.
