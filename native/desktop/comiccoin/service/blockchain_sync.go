@@ -29,6 +29,7 @@ type BlockchainSyncWithBlockchainAuthorityService struct {
 	getAccountUseCase                                    *usecase.GetAccountUseCase
 	upsertAccountUseCase                                 *usecase.UpsertAccountUseCase
 	upsertTokenIfPreviousTokenNonceGTEUseCase            *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase
+	deletePendingSignedTransactionUseCase                *usecase.DeletePendingSignedTransactionUseCase
 }
 
 func NewBlockchainSyncWithBlockchainAuthorityService(
@@ -45,8 +46,9 @@ func NewBlockchainSyncWithBlockchainAuthorityService(
 	uc10 *usecase.GetAccountUseCase,
 	uc11 *usecase.UpsertAccountUseCase,
 	uc12 *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase,
+	uc13 *usecase.DeletePendingSignedTransactionUseCase,
 ) *BlockchainSyncWithBlockchainAuthorityService {
-	return &BlockchainSyncWithBlockchainAuthorityService{logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12}
+	return &BlockchainSyncWithBlockchainAuthorityService{logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12, uc13}
 }
 
 func (s *BlockchainSyncWithBlockchainAuthorityService) Execute(ctx context.Context, chainID uint16) error {
@@ -335,10 +337,18 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) syncWithGlobalBlockchainN
 				slog.Any("type", blockTx.Type),
 				slog.Any("nonce", blockTx.GetNonce()),
 				slog.Any("timestamp", blockTx.TimeStamp))
+
+			//
+			// STEP 6:
+			// Delete any local pending signed transactions (if there are any).
+			//
+
+			// Note: Do not handle errors.
+			s.deletePendingSignedTransactionUseCase.Execute(ctx, blockTx.GetNonce())
 		}
 
 		//
-		// STEP 6:
+		// STEP 7:
 		// Check to see if we haven't reached the last block data we have
 		// in our local blockchain.
 		//

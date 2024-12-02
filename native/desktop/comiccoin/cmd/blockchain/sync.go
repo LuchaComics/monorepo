@@ -57,6 +57,7 @@ func doRunBlockchainSyncCmd() error {
 	blockchainStateDB := disk.NewDiskStorage(flagDataDirectory, "blockchain_state", logger)
 	blockDataDB := disk.NewDiskStorage(flagDataDirectory, "block_data", logger)
 	tokenRepo := disk.NewDiskStorage(flagDataDirectory, "token", logger)
+	pstxDB := disk.NewDiskStorage(flagDataDirectory, "pending_signed_transaction", logger)
 
 	// ------------ Repo ------------
 
@@ -90,6 +91,7 @@ func doRunBlockchainSyncCmd() error {
 	tokRepo := repo.NewTokenRepo(
 		logger,
 		tokenRepo)
+	pstxRepo := repo.NewPendingSignedTransactionRepo(logger, pstxDB)
 
 	// ------------ Use-Case ------------
 
@@ -174,6 +176,19 @@ func doRunBlockchainSyncCmd() error {
 		tokRepo,
 	)
 
+	// Pending Signed Transaction
+	upsertPendingSignedTransactionUseCase := usecase.NewUpsertPendingSignedTransactionUseCase(
+		logger,
+		pstxRepo)
+	_ = upsertPendingSignedTransactionUseCase
+	listPendingSignedTransactionUseCase := usecase.NewListPendingSignedTransactionUseCase(
+		logger,
+		pstxRepo)
+	_ = listPendingSignedTransactionUseCase
+	deletePendingSignedTransactionUseCase := usecase.NewDeletePendingSignedTransactionUseCase(
+		logger,
+		pstxRepo)
+
 	// ------------ Service ------------
 
 	blockchainSyncService := service.NewBlockchainSyncWithBlockchainAuthorityService(
@@ -190,6 +205,7 @@ func doRunBlockchainSyncCmd() error {
 		getAccountUseCase,
 		upsertAccountUseCase,
 		upsertTokenIfPreviousTokenNonceGTEUseCase,
+		deletePendingSignedTransactionUseCase,
 	)
 
 	// ------------ Execute ------------

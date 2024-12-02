@@ -104,6 +104,7 @@ func (a *App) startup(ctx context.Context) {
 	blockDataDB := disk.NewDiskStorage(dataDir, "block_data", logger)
 	tokDB := disk.NewDiskStorage(dataDir, "token", logger)
 	nftokDB := disk.NewDiskStorage(dataDir, "non_fungible_token", logger)
+	pstxDB := disk.NewDiskStorage(dataDir, "pending_signed_transaction", logger)
 
 	// ------------ Repo ------------
 
@@ -146,6 +147,7 @@ func (a *App) startup(ctx context.Context) {
 	nftAssetRepo := repo.NewNFTAssetRepo(nftAssetRepoConfig, logger)
 	mempoolTxDTORepoConfig := auth_repo.NewMempoolTransactionDTOConfigurationProvider(authorityAddress)
 	mempoolTxDTORepo := auth_repo.NewMempoolTransactionDTORepo(mempoolTxDTORepoConfig, logger)
+	pstxRepo := repo.NewPendingSignedTransactionRepo(logger, pstxDB)
 
 	// ------------ Use-Case ------------
 
@@ -314,6 +316,17 @@ func (a *App) startup(ctx context.Context) {
 		mempoolTxDTORepo,
 	)
 
+	// Pending Signed Transaction
+	upsertPendingSignedTransactionUseCase := usecase.NewUpsertPendingSignedTransactionUseCase(
+		logger,
+		pstxRepo)
+	listPendingSignedTransactionUseCase := usecase.NewListPendingSignedTransactionUseCase(
+		logger,
+		pstxRepo)
+	deletePendingSignedTransactionUseCase := usecase.NewDeletePendingSignedTransactionUseCase(
+		logger,
+		pstxRepo)
+
 	// ------------ Service ------------
 
 	getAccountService := service.NewGetAccountService(
@@ -335,6 +348,8 @@ func (a *App) startup(ctx context.Context) {
 	)
 	coinTransferService := service.NewCoinTransferService(
 		logger,
+		listPendingSignedTransactionUseCase,
+		upsertPendingSignedTransactionUseCase,
 		getAccountUseCase,
 		getWalletUseCase,
 		walletDecryptKeyUseCase,
@@ -374,6 +389,7 @@ func (a *App) startup(ctx context.Context) {
 		getAccountUseCase,
 		upsertAccountUseCase,
 		upsertTokenIfPreviousTokenNonceGTEUseCase,
+		deletePendingSignedTransactionUseCase,
 	)
 
 	blockchainSyncManagerService := service.NewBlockchainSyncManagerService(
@@ -455,7 +471,8 @@ func (a *App) startup(ctx context.Context) {
 
 	go func() {
 		for {
-			if err := blockchainSyncManagerService.Execute(ctx, chainID); err != nil {
+			backgroundCtx := context.Background()
+			if err := blockchainSyncManagerService.Execute(backgroundCtx, chainID); err != nil {
 				log.Fatalf("Failed to manage syncing: %v\n", err)
 			}
 		}

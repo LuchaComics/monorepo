@@ -79,6 +79,7 @@ func doRunDaemonCmd() {
 	blockDataDB := disk.NewDiskStorage(flagDataDirectory, "block_data", logger)
 	tokDB := disk.NewDiskStorage(flagDataDirectory, "token", logger)
 	nftokDB := disk.NewDiskStorage(flagDataDirectory, "non_fungible_token", logger)
+	pstxDB := disk.NewDiskStorage(flagDataDirectory, "pending_signed_transaction", logger)
 
 	// ------------ Repo ------------
 
@@ -121,6 +122,7 @@ func doRunDaemonCmd() {
 	nftAssetRepo := repo.NewNFTAssetRepo(nftAssetRepoConfig, logger)
 	mempoolTxDTORepoConfig := auth_repo.NewMempoolTransactionDTOConfigurationProvider(flagAuthorityAddress)
 	mempoolTxDTORepo := auth_repo.NewMempoolTransactionDTORepo(mempoolTxDTORepoConfig, logger)
+	pstxRepo := repo.NewPendingSignedTransactionRepo(logger, pstxDB)
 
 	// ------------ Use-Case ------------
 
@@ -280,6 +282,17 @@ func doRunDaemonCmd() {
 		mempoolTxDTORepo,
 	)
 
+	// Pending Signed Transaction
+	upsertPendingSignedTransactionUseCase := usecase.NewUpsertPendingSignedTransactionUseCase(
+		logger,
+		pstxRepo)
+	listPendingSignedTransactionUseCase := usecase.NewListPendingSignedTransactionUseCase(
+		logger,
+		pstxRepo)
+	deletePendingSignedTransactionUseCase := usecase.NewDeletePendingSignedTransactionUseCase(
+		logger,
+		pstxRepo)
+
 	// ------------ Service ------------
 
 	getAccountService := service.NewGetAccountService(
@@ -301,6 +314,8 @@ func doRunDaemonCmd() {
 	)
 	coinTransferService := service.NewCoinTransferService(
 		logger,
+		listPendingSignedTransactionUseCase,
+		upsertPendingSignedTransactionUseCase,
 		getAccountUseCase,
 		getWalletUseCase,
 		walletDecryptKeyUseCase,
@@ -340,6 +355,7 @@ func doRunDaemonCmd() {
 		getAccountUseCase,
 		upsertAccountUseCase,
 		upsertTokenIfPreviousTokenNonceGTEUseCase,
+		deletePendingSignedTransactionUseCase,
 	)
 
 	blockchainSyncManagerService := service.NewBlockchainSyncManagerService(

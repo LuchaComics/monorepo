@@ -9,16 +9,19 @@ import (
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
 	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/securestring"
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
+	auth_domain "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 	auth_usecase "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase"
 	"github.com/ethereum/go-ethereum/common"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
+	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/domain"
 	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/usecase"
 )
 
 type CoinTransferService struct {
 	logger                                                  *slog.Logger
+	listPendingSignedTransactionUseCase                     *usecase.ListPendingSignedTransactionUseCase
+	upsertPendingSignedTransactionUseCase                   *usecase.UpsertPendingSignedTransactionUseCase
 	getAccountUseCase                                       *usecase.GetAccountUseCase
 	getWalletUseCase                                        *usecase.GetWalletUseCase
 	walletDecryptKeyUseCase                                 *usecase.WalletDecryptKeyUseCase
@@ -27,12 +30,14 @@ type CoinTransferService struct {
 
 func NewCoinTransferService(
 	logger *slog.Logger,
-	uc1 *usecase.GetAccountUseCase,
-	uc2 *usecase.GetWalletUseCase,
-	uc3 *usecase.WalletDecryptKeyUseCase,
-	uc4 *auth_usecase.SubmitMempoolTransactionDTOToBlockchainAuthorityUseCase,
+	uc1 *usecase.ListPendingSignedTransactionUseCase,
+	uc2 *usecase.UpsertPendingSignedTransactionUseCase,
+	uc3 *usecase.GetAccountUseCase,
+	uc4 *usecase.GetWalletUseCase,
+	uc5 *usecase.WalletDecryptKeyUseCase,
+	uc6 *auth_usecase.SubmitMempoolTransactionDTOToBlockchainAuthorityUseCase,
 ) *CoinTransferService {
-	return &CoinTransferService{logger, uc1, uc2, uc3, uc4}
+	return &CoinTransferService{logger, uc1, uc2, uc3, uc4, uc5, uc6}
 }
 
 func (s *CoinTransferService) Execute(
@@ -70,6 +75,17 @@ func (s *CoinTransferService) Execute(
 	if value == 0 {
 		e["value"] = "missing value"
 	}
+	pstxs, err := s.listPendingSignedTransactionUseCase.Execute(ctx)
+	if err != nil {
+		s.logger.Debug("Failed listing pending signed transactions", slog.Any("error", err))
+		return err
+	}
+	if pstxs != nil {
+		if len(pstxs) > 0 {
+			e["message"] = "already has a pending transaction - please wait for authority to complete request"
+		}
+	}
+
 	if len(e) != 0 {
 		s.logger.Warn("Failed validating create transaction parameters",
 			slog.Any("error", e))
@@ -133,14 +149,14 @@ func (s *CoinTransferService) Execute(
 	// Create our pending transaction and sign it with the accounts private key.
 	//
 
-	tx := &domain.Transaction{
+	tx := &auth_domain.Transaction{
 		ChainID:    chainID,
 		NonceBytes: big.NewInt(time.Now().Unix()).Bytes(),
 		From:       wallet.Address,
 		To:         to,
 		Value:      value,
 		Data:       data,
-		Type:       domain.TransactionTypeCoin,
+		Type:       auth_domain.TransactionTypeCoin,
 	}
 
 	stx, signingErr := tx.Sign(key.PrivateKey)
@@ -173,7 +189,22 @@ func (s *CoinTransferService) Execute(
 		slog.Any("tx_sig_s_bytes", stx.SBytes),
 		slog.Any("tx_nonce", stx.GetNonce()))
 
-	mempoolTx := &domain.MempoolTransaction{
+	//
+	// STEP 5: Save as pending signed transaction to keep track of completion.
+	//
+
+	pstx := domain.SignedTransactionToPendingSignedTransaction(&stx)
+	if err := s.upsertPendingSignedTransactionUseCase.Execute(ctx, pstx); err != nil {
+		s.logger.Debug("Failed saving pending signed transaction",
+			slog.Any("error", signingErr))
+		return err
+	}
+
+	//
+	// STEP 6: Submit to ComicCoin Authority to execute
+	//
+
+	mempoolTx := &auth_domain.MempoolTransaction{
 		ID:                primitive.NewObjectID(),
 		SignedTransaction: stx,
 	}
