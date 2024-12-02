@@ -57,12 +57,15 @@ func (s *BlockchainStateChangeSubscriptionService) Execute(ctx context.Context) 
 }
 
 func (s *BlockchainStateChangeSubscriptionService) Terminate(ctx context.Context) error {
+	s.logger.Debug("Gracefully shutting down blockchain state change subscription service...")
 	if s.blockchainStateSubscriber != nil {
 		if err := s.blockchainStateSubscriber.Close(); err != nil {
 			s.logger.Error("failed to close blockchain state subscriber",
 				slog.Any("error", err))
 			return err
 		}
+		s.blockchainStateSubscriber = nil
+		s.logger.Debug("Successfully shut down blockchain state change subscription service.")
 	}
 	return nil
 }
