@@ -107,6 +107,19 @@ services:
       - db3
     restart: unless-stopped
 
+  cache:
+    # https://pimylifeup.com/redis-docker/
+    container_name: comiccoin_authority_cache
+    image: redis:alpine
+    command: 'redis-server --save 60 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81 --protected-mode yes'
+    ports:
+      - 6379:6379
+    stdin_open: true
+    restart: always
+    volumes:
+      - "./data/redis:/data"
+      # attach: false # Disable console logs here.
+
   # The main application.
   app:
     container_name: comiccoin_authority
@@ -125,6 +138,7 @@ services:
       COMICCOIN_AUTHORITY_BLOCKCHAIN_UNITS_OF_GAS: ${COMICCOIN_AUTHORITY_BLOCKCHAIN_UNITS_OF_GAS}
       COMICCOIN_AUTHORITY_BLOCKCHAIN_PROOF_OF_AUTHORITY_ACCOUNT_ADDRESS: ${COMICCOIN_AUTHORITY_BLOCKCHAIN_PROOF_OF_AUTHORITY_ACCOUNT_ADDRESS}
       COMICCOIN_AUTHORITY_BLOCKCHAIN_PROOF_OF_AUTHORITY_WALLET_PASSWORD: ${COMICCOIN_AUTHORITY_BLOCKCHAIN_PROOF_OF_AUTHORITY_WALLET_PASSWORD}
+      COMICCOIN_AUTHORITY_CACHE_URI: ${COMICCOIN_AUTHORITY_CACHE_URI}
     build:
       context: .
       dockerfile: ./dev.Dockerfile
@@ -135,9 +149,11 @@ services:
       - db1
       - db2
       - db3
+      - cache
     links:
       - db1
       - db2
       - db3
+      - cache
     volumes: # Connect the local filesystem with the docker filesystem. DO NOT REMOVE.
       - ./:/go/src/github.com/LuchaComics/monorepo/cloud/comiccoin-authority # IMPORTANT: Required for hotreload via `CompileDaemon`.

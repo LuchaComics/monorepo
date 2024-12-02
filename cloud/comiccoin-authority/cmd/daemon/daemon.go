@@ -1,6 +1,7 @@
 package daemon
 
 import (
+	"context"
 	"log"
 	"os"
 	"os/signal"
@@ -14,6 +15,7 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/blacklist"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/password"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/storage/database/mongodb"
+	cache "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/storage/memory/redis"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/interface/http"
 	httphandler "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/interface/http/handler"
@@ -51,6 +53,7 @@ func doRunDaemon() {
 	keystore := keystore.NewAdapter()
 	passp := password.NewProvider()
 	blackp := blacklist.NewProvider()
+	cachep := cache.NewCache(cfg, logger)
 
 	_ = passp
 
@@ -90,6 +93,14 @@ func doRunDaemon() {
 		// When we are done, we will need to terminate our access to this resource.
 		blockchainStateUpdateDetectorUseCase.Terminate()
 	}()
+	blockchainStatePublishUseCase := usecase.NewBlockchainStatePublishUseCase(
+		logger,
+		cachep,
+	)
+	blockchainStateSubscribeUseCase := usecase.NewBlockchainStateSubscribeUseCase(
+		logger,
+		cachep,
+	)
 
 	// Block Data
 	getBlockDataUseCase := usecase.NewGetBlockDataUseCase(
@@ -263,6 +274,7 @@ func doRunDaemon() {
 		upsertTokenIfPreviousTokenNonceGTEUseCase,
 		proofOfWorkUseCase,
 		upsertBlockDataUseCase,
+		blockchainStatePublishUseCase,
 	)
 
 	// Tokens
@@ -270,6 +282,17 @@ func doRunDaemon() {
 		logger,
 		listTokensByOwnerUseCase,
 	)
+
+	// Stream Latest Blockchain State Change
+
+	blockchainStateChangeSubscriptionService := service.NewBlockchainStateChangeSubscriptionService(
+		logger,
+		blockchainStateSubscribeUseCase,
+	)
+	defer func() {
+		// When we are done, we will need to terminate our access to this resource.
+		blockchainStateChangeSubscriptionService.Terminate(context.Background())
+	}()
 
 	//
 	// Interface.
@@ -307,7 +330,7 @@ func doRunDaemon() {
 	)
 	blockchainStateChangeEventsHTTPHandler := httphandler.NewBlockchainStateChangeEventDTOHTTPHandler(
 		logger,
-		blockchainStateUpdateDetectorUseCase)
+		blockchainStateChangeSubscriptionService)
 	signedTransactionSubmissionHTTPHandler := httphandler.NewSignedTransactionSubmissionHTTPHandler(
 		logger,
 		signedTransactionSubmissionService)

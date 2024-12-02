@@ -7,19 +7,19 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/service"
 )
 
 type BlockchainStateChangeEventDTOHTTPHandler struct {
 	logger  *slog.Logger
-	usecase *usecase.BlockchainStateUpdateDetectorUseCase
+	service *service.BlockchainStateChangeSubscriptionService
 }
 
 func NewBlockchainStateChangeEventDTOHTTPHandler(
 	logger *slog.Logger,
-	uc *usecase.BlockchainStateUpdateDetectorUseCase,
+	s *service.BlockchainStateChangeSubscriptionService,
 ) *BlockchainStateChangeEventDTOHTTPHandler {
-	return &BlockchainStateChangeEventDTOHTTPHandler{logger, uc}
+	return &BlockchainStateChangeEventDTOHTTPHandler{logger, s}
 }
 
 func (h *BlockchainStateChangeEventDTOHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
@@ -64,7 +64,7 @@ func (h *BlockchainStateChangeEventDTOHTTPHandler) Execute(w http.ResponseWriter
 			h.logger.Debug("Context canceled. Stopping event stream.")
 			return
 		default:
-			updatedBlockchainState, err := h.usecase.Execute(ctx)
+			updatedBlockchainState, err := h.service.Execute(ctx)
 			if err != nil {
 				h.logger.Error("Failed detecting blockchain state changes",
 					slog.Any("error", err))

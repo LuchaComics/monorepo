@@ -13,7 +13,12 @@ import (
 type Configuration struct {
 	App        serverConf
 	Blockchain BlockchainConfig
+	Cache      cacheConf
 	DB         dbConfig
+}
+
+type cacheConf struct {
+	URI string
 }
 
 type serverConf struct {
@@ -82,6 +87,9 @@ func NewProvider() *Configuration {
 	// Database section.
 	c.DB.URI = getEnv("COMICCOIN_AUTHORITY_DB_URI", true)
 	c.DB.Name = getEnv("COMICCOIN_AUTHORITY_DB_NAME", true)
+
+	// Cache
+	c.Cache.URI = getEnv("COMICCOIN_AUTHORITY_CACHE_URI", true)
 
 	return &c
 }

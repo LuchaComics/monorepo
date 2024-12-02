@@ -42,6 +42,7 @@ type ProofOfAuthorityConsensusMechanismService struct {
 	upsertTokenIfPreviousTokenNonceGTEUseCase  *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase
 	proofOfWorkUseCase                         *usecase.ProofOfWorkUseCase
 	upsertBlockDataUseCase                     *usecase.UpsertBlockDataUseCase
+	blockchainStatePublishUseCase              *usecase.BlockchainStatePublishUseCase
 }
 
 func NewProofOfAuthorityConsensusMechanismService(
@@ -64,8 +65,9 @@ func NewProofOfAuthorityConsensusMechanismService(
 	uc12 *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase,
 	uc13 *usecase.ProofOfWorkUseCase,
 	uc14 *usecase.UpsertBlockDataUseCase,
+	uc15 *usecase.BlockchainStatePublishUseCase,
 ) *ProofOfAuthorityConsensusMechanismService {
-	return &ProofOfAuthorityConsensusMechanismService{config, logger, kmutex, client, s1, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12, uc13, uc14}
+	return &ProofOfAuthorityConsensusMechanismService{config, logger, kmutex, client, s1, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12, uc13, uc14, uc15}
 }
 
 func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context) error {
@@ -435,6 +437,14 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		blockchainState.LatestTokenIDBytes = latestTokenID.Bytes()
 		if err := s.upsertBlockchainStateUseCase.Execute(sessCtx, blockchainState); err != nil {
 			s.logger.Error("Failed upserting blockchain state",
+				slog.Any("error", err))
+			sessCtx.AbortTransaction(ctx)
+			return nil, err
+		}
+
+		s.logger.Debug("Publishing to redis....")
+		if err := s.blockchainStatePublishUseCase.Execute(sessCtx, blockchainState); err != nil {
+			s.logger.Error("Failed publish to redis",
 				slog.Any("error", err))
 			sessCtx.AbortTransaction(ctx)
 			return nil, err
