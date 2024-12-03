@@ -27,8 +27,9 @@ func WalletCmd() *cobra.Command {
 		},
 	}
 
-	// // // Attach our sub-commands for `account`
+	// // // Attach our sub-commands for `wallet`
 	cmd.AddCommand(ExportWalletCmd())
+	cmd.AddCommand(ImportWalletCmd())
 
 	return cmd
 }

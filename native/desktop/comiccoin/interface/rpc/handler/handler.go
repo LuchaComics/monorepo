@@ -21,6 +21,7 @@ type ComicCoinRPCServer struct {
 	blockDataGetByHashService             *service.BlockDataGetByHashService
 	tokenListByOwnerService               *service.TokenListByOwnerService
 	exportWalletService                   *service.ExportWalletService
+	importWalletService                   *service.ImportWalletService
 }
 
 func NewComicCoinRPCServer(
@@ -38,6 +39,7 @@ func NewComicCoinRPCServer(
 	s11 *service.BlockDataGetByHashService,
 	s12 *service.TokenListByOwnerService,
 	s13 *service.ExportWalletService,
+	s14 *service.ImportWalletService,
 ) *ComicCoinRPCServer {
 
 	// Create a new RPC server instance.
@@ -56,6 +58,7 @@ func NewComicCoinRPCServer(
 		blockDataGetByHashService:             s11,
 		tokenListByOwnerService:               s12,
 		exportWalletService:                   s13,
+		importWalletService:                   s14,
 	}
 
 	return port

@@ -47,6 +47,7 @@ type App struct {
 	listNonFungibleTokensByOwnerService            *service.ListNonFungibleTokensByOwnerService
 	pendingSignedTransactionListService            *service.PendingSignedTransactionListService
 	exportWalletService                            *service.ExportWalletService
+	importWalletService                            *service.ImportWalletService
 }
 
 // NewApp creates a new App application struct
@@ -453,6 +454,13 @@ func (a *App) startup(ctx context.Context) {
 		getAccountUseCase,
 		getWalletUseCase,
 	)
+	importWalletService := service.NewImportWalletService(
+		logger,
+		getAccountUseCase,
+		getWalletUseCase,
+		upsertAccountUseCase,
+		createWalletUseCase,
+	)
 
 	// ------------ Interfaces ------------
 
@@ -476,6 +484,7 @@ func (a *App) startup(ctx context.Context) {
 	a.listNonFungibleTokensByOwnerService = listNonFungibleTokensByOwnerService
 	a.pendingSignedTransactionListService = pendingSignedTransactionListService
 	a.exportWalletService = exportWalletService
+	a.importWalletService = importWalletService
 
 	//
 	// Execute.

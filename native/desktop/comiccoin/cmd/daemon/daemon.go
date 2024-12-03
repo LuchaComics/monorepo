@@ -395,6 +395,13 @@ func doRunDaemonCmd() {
 		getAccountUseCase,
 		getWalletUseCase,
 	)
+	importWalletService := service.NewImportWalletService(
+		logger,
+		getAccountUseCase,
+		getWalletUseCase,
+		upsertAccountUseCase,
+		createWalletUseCase,
+	)
 
 	// ------------ Interfaces ------------
 
@@ -415,6 +422,7 @@ func doRunDaemonCmd() {
 		blockDataGetByHashService,
 		tokenListByOwnerService,
 		exportWalletService,
+		importWalletService,
 	)
 
 	//

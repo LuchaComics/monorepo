@@ -438,3 +438,26 @@ func (r *ComicCoincRPCClientRepo) ExportWallet(ctx context.Context, accountAddre
 
 	return nil
 }
+
+func (r *ComicCoincRPCClientRepo) ImportWallet(ctx context.Context, filepath string) error {
+	// Define our request / response here by copy and pasting from the server codebase.
+	type ImportWalletArgs struct {
+		FilePath string
+	}
+
+	type ImportWalletReply struct{}
+
+	// Construct our request / response.
+	args := ImportWalletArgs{
+		FilePath: filepath,
+	}
+	var reply ImportWalletReply
+
+	// Execute the remote procedure call.
+	callError := r.rpcClient.Call("ComicCoinRPCServer.ImportWallet", args, &reply)
+	if callError != nil {
+		return callError
+	}
+
+	return nil
+}
