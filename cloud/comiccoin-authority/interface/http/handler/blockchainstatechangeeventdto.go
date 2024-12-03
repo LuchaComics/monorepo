@@ -64,7 +64,7 @@ func (h *BlockchainStateChangeEventDTOHTTPHandler) Execute(w http.ResponseWriter
 	for {
 		select {
 		case <-ctx.Done():
-			h.logger.Debug("Context canceled. Stopping event stream.",
+			h.logger.Debug("Context canceled. Stopping server sent event stream.",
 				slog.Any("ip_address", ipAddress))
 			return
 		default:

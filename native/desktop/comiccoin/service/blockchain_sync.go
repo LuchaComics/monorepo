@@ -344,7 +344,9 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) syncWithGlobalBlockchainN
 			//
 
 			// Note: Do not handle errors.
-			s.deletePendingSignedTransactionUseCase.Execute(ctx, blockTx.GetNonce())
+			delErr := s.deletePendingSignedTransactionUseCase.Execute(ctx, blockTx.GetNonce())
+			s.logger.Debug("Delete pending signed transaction",
+				slog.Any("err", delErr))
 		}
 
 		//

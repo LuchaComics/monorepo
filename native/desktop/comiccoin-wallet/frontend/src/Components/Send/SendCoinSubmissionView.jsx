@@ -62,7 +62,7 @@ function SendCoinSubmissionView() {
 
         TransferCoin(payTo, parseInt(coin), message, currentOpenWalletAtAddress, walletPassword).then(()=>{
             console.log("onSubmitClick: Successful")
-            setForceURL("/send-success");
+            setForceURL("/send-processing");
         }).catch((errorJsonString)=>{
             console.log("onSubmitClick: errRes:", errorJsonString);
             const errorObject = JSON.parse(errorJsonString);

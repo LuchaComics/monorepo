@@ -19,6 +19,7 @@ import ListWalletsView from "./Components/Wallets/ListView";
 import CreateWalletView from "./Components/Wallets/CreateView";
 import DashboardView from "./Components/Dashboard/View";
 import SendCoinSubmissionView from "./Components/Send/SendCoinSubmissionView";
+import SendCoinProcessingView from "./Components/Send/SendCoinProcessingView";
 import SendCoinSuccessView from "./Components/Send/SendCoinSuccessView";
 import ReceiveView from "./Components/Receive/View";
 import MoreView from "./Components/More/View";
@@ -83,6 +84,7 @@ function AppRoute() {
                             <Route path="/wallet/add" element={<CreateWalletView />} exact />
                             <Route path="/dashboard" element={<DashboardView />} exact />
                             <Route path="/send" element={<SendCoinSubmissionView />} exact />
+                            <Route path="/send-processing" element={<SendCoinProcessingView />} exact />
                             <Route path="/send-success" element={<SendCoinSuccessView />} exact />
                             <Route path="/receive" element={<ReceiveView />} exact />
                             <Route path="/more" element={<MoreView />} exact />

@@ -2,7 +2,7 @@ package daemon
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -417,10 +417,11 @@ func doRunDaemonCmd() {
 
 	go func() {
 		for {
-			ctx := context.Background()
-			if err := blockchainSyncManagerService.Execute(ctx, flagChainID); err != nil {
-				log.Fatalf("Failed to manage syncing: %v\n", err)
+			logger.Debug("Starting sync-manager...")
+			if err := blockchainSyncManagerService.Execute(context.Background(), flagChainID); err != nil {
+				logger.Error("Failed to manage syncing", slog.Any("error", err))
 			}
+			logger.Debug("Sync-manager will restart again.")
 		}
 	}()
 

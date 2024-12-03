@@ -54,6 +54,8 @@ function BottomTabBar() {
     "/startup",
     "/wallets",
     "/wallet/add",
+    "/send-processing",
+    "/send-success",
   ];
   const location = useLocation();
   var arrayLength = ignorePathsArr.length;

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"log/slog"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/blockchain/keystore"
@@ -46,6 +45,7 @@ type App struct {
 	blockchainSyncManagerService                   *service.BlockchainSyncManagerService
 	walletsFilterByLocalService                    *service.WalletsFilterByLocalService
 	listNonFungibleTokensByOwnerService            *service.ListNonFungibleTokensByOwnerService
+	pendingSignedTransactionListService            *service.PendingSignedTransactionListService
 }
 
 // NewApp creates a new App application struct
@@ -443,6 +443,10 @@ func (a *App) startup(ctx context.Context) {
 		listNonFungibleTokensWithFilterByTokenIDsyUseCase,
 		getOrDownloadNonFungibleTokenService,
 	)
+	pendingSignedTransactionListService := service.NewPendingSignedTransactionListService(
+		logger,
+		listPendingSignedTransactionUseCase,
+	)
 
 	// ------------ Interfaces ------------
 
@@ -464,19 +468,21 @@ func (a *App) startup(ctx context.Context) {
 	a.tokenCountByOwnerService = tokenCountByOwnerService
 	a.walletsFilterByLocalService = walletsFilterByLocalService
 	a.listNonFungibleTokensByOwnerService = listNonFungibleTokensByOwnerService
+	a.pendingSignedTransactionListService = pendingSignedTransactionListService
 
 	//
 	// Execute.
 	//
 
-	go func() {
+	go func(ctx context.Context, cid uint16) {
 		for {
-			backgroundCtx := context.Background()
-			if err := blockchainSyncManagerService.Execute(backgroundCtx, chainID); err != nil {
-				log.Fatalf("Failed to manage syncing: %v\n", err)
+			a.logger.Debug("Starting sync-manager...")
+			if err := blockchainSyncManagerService.Execute(ctx, cid); err != nil {
+				a.logger.Error("Failed to manage syncing", slog.Any("error", err))
 			}
+			a.logger.Debug("Sync-manager will restart again.")
 		}
-	}()
+	}(a.ctx, chainID)
 
 	logger.Info("ComicCoin Wallet is running.")
 }

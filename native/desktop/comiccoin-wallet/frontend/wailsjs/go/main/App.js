@@ -62,6 +62,10 @@ export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
 }
 
+export function ListAllPendingSignedTransactions() {
+  return window['go']['main']['App']['ListAllPendingSignedTransactions']();
+}
+
 export function ListWallets() {
   return window['go']['main']['App']['ListWallets']();
 }
