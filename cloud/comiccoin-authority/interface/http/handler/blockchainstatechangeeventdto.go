@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config/constants"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/service"
 )
 
@@ -24,6 +25,7 @@ func NewBlockchainStateChangeEventDTOHTTPHandler(
 
 func (h *BlockchainStateChangeEventDTOHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	ipAddress, _ := ctx.Value(constants.SessionIPAddress).(string)
 
 	// Set CORS headers to allow all origins. You may want to restrict this to specific origins in a production environment.
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -50,7 +52,8 @@ func (h *BlockchainStateChangeEventDTOHTTPHandler) Execute(w http.ResponseWriter
 	}
 
 	h.logger.Debug("Blockchain state change events requested",
-		slog.Any("chain_id", chainIDStr))
+		slog.Any("chain_id", chainIDStr),
+		slog.Any("ip_address", ipAddress))
 
 	defer func() {
 		// Simulate closing the connection
@@ -61,13 +64,15 @@ func (h *BlockchainStateChangeEventDTOHTTPHandler) Execute(w http.ResponseWriter
 	for {
 		select {
 		case <-ctx.Done():
-			h.logger.Debug("Context canceled. Stopping event stream.")
+			h.logger.Debug("Context canceled. Stopping event stream.",
+				slog.Any("ip_address", ipAddress))
 			return
 		default:
 			updatedBlockchainState, err := h.service.Execute(ctx)
 			if err != nil {
 				h.logger.Error("Failed detecting blockchain state changes",
-					slog.Any("error", err))
+					slog.Any("error", err),
+					slog.Any("ip_address", ipAddress))
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
