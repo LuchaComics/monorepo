@@ -20,7 +20,10 @@ import {
 
 import PageLoadingContent from "../Reusable/PageLoadingContent";
 import { currentOpenWalletAtAddressState } from "../../AppState";
-import { ListWallets, SetDefaultWalletAddress } from "../../../wailsjs/go/main/App";
+import {
+    ListWallets,
+    SetDefaultWalletAddress
+} from "../../../wailsjs/go/main/App";
 
 
 function ListWalletsView() {
@@ -28,7 +31,7 @@ function ListWalletsView() {
     //// Global State
     ////
 
-    const [currentOpenWalletAtAddress] = useRecoilState(currentOpenWalletAtAddressState);
+    const [currentOpenWalletAtAddress, setCurrentOpenWalletAtAddress] = useRecoilState(currentOpenWalletAtAddressState);
 
     ////
     //// Component states.
@@ -44,7 +47,15 @@ function ListWalletsView() {
     ////
 
     const onClick = (walletAddress) => {
+        console.log("currentOpenWalletAtAddress: Old:", currentOpenWalletAtAddress);
         SetDefaultWalletAddress(walletAddress).then(()=>{
+            // STEP 1: Adjust the wallet which is open.
+            setCurrentOpenWalletAtAddress(walletAddress);
+
+            // STEP 2:
+            console.log("currentOpenWalletAtAddress: New:", walletAddress);
+
+            // STEP 3: Redirect to the dashboard page.
             setForceURL("/dashboard");
         });
     }
