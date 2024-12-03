@@ -35,6 +35,8 @@ export function GetTransactions(arg1:string):Promise<Array<domain.BlockTransacti
 
 export function Greet(arg1:string):Promise<string>;
 
+export function ImportWalletUsingDialog():Promise<void>;
+
 export function ListAllPendingSignedTransactions():Promise<Array<domain.PendingSignedTransaction>>;
 
 export function ListWallets():Promise<Array<domain.Wallet>>;

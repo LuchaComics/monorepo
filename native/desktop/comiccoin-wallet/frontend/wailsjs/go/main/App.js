@@ -66,6 +66,10 @@ export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
 }
 
+export function ImportWalletUsingDialog() {
+  return window['go']['main']['App']['ImportWalletUsingDialog']();
+}
+
 export function ListAllPendingSignedTransactions() {
   return window['go']['main']['App']['ListAllPendingSignedTransactions']();
 }

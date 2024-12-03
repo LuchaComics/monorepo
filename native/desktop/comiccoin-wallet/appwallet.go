@@ -80,3 +80,20 @@ func (a *App) ExportWalletUsingDialog(walletAddressStr string) error {
 	walletAddress := common.HexToAddress(strings.ToLower(walletAddressStr))
 	return a.exportWalletService.Execute(a.ctx, &walletAddress, filepath)
 }
+
+func (a *App) ImportWalletUsingDialog() error {
+	// Initialize Wails runtime
+	filepath, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
+		Title:           "Please select were to open the wallet",
+		DefaultFilename: "wallet.wal",
+	})
+	if err != nil {
+		a.logger.Error("Failed opening directory dialog",
+			slog.Any("error", err))
+		log.Fatalf("%v", err)
+	}
+	a.logger.Debug("User picked a filepath",
+		slog.Any("filepath", filepath))
+
+	return a.importWalletService.Execute(a.ctx, filepath)
+}

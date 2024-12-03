@@ -16,7 +16,9 @@ import {
   faChevronLeft,
   faLock,
   faHome,
-  faArrowUpRightFromSquare
+  faArrowUpRightFromSquare,
+  faUpload,
+  faDownload
 } from "@fortawesome/free-solid-svg-icons";
 
 import PageLoadingContent from "../Reusable/PageLoadingContent";
@@ -24,7 +26,8 @@ import { currentOpenWalletAtAddressState } from "../../AppState";
 import {
     ListWallets,
     SetDefaultWalletAddress,
-    ExportWalletUsingDialog
+    ExportWalletUsingDialog,
+    ImportWalletUsingDialog
 } from "../../../wailsjs/go/main/App";
 
 
@@ -76,6 +79,18 @@ function ListWalletsView() {
         });
     }
 
+    const onImportWalletClick = () => {
+        ImportWalletUsingDialog().then(()=>{
+            console.log("Successfully imported wallet");
+
+            // Fetch the wallets we have in our app.
+            ListWallets().then((walletsResponse) => {
+                console.log("onImportWalletClick: walletsResponse:", walletsResponse);
+                setWallets(walletsResponse);
+            })
+        });
+    }
+
     ////
     //// Misc.
     ////
@@ -87,9 +102,8 @@ function ListWalletsView() {
             window.scrollTo(0, 0); // Start the page at the top of the page.
 
             // Fetch the wallets we have in our app.
-            ListWallets().then((walletsResponse, errResponse) => {
-                console.log("walletsResponse:", walletsResponse);
-                console.log("errResponse:", errResponse);
+            ListWallets().then((walletsResponse) => {
+                console.log("useEffect: walletsResponse:", walletsResponse);
                 setWallets(walletsResponse);
             })
       }
@@ -122,7 +136,8 @@ function ListWalletsView() {
                               <h1 class="title is-2">Welcome to ComicCoin Wallet</h1>
                               <h2 class="subtitle is-4">To begin, please create your wallet to get started.</h2>
                               <div class="buttons">
-                                <Link class="button is-link is-medium" to="/wallet/add">Click here to create your wallet</Link>
+                                <Link class="button is-link is-medium" to="/wallet/add">Create your wallet</Link>&nbsp;
+                                <Link class="button is-success is-medium" onClick={(e)=>ImportWalletUsingDialog()}>Import your wallet</Link>
                               </div>
                             </div>
                           </div>
@@ -170,7 +185,7 @@ function ListWalletsView() {
                                     <tr key={wallet.filepath}>
                                       <td>{wallet.label}</td>
                                       <td>{wallet.address}</td>
-                                      <td><Link onClick={(e)=>onExportWalletClick(wallet.address)}>Export&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link></td>
+                                      <td><Link onClick={(e)=>onExportWalletClick(wallet.address)}><FontAwesomeIcon className="fas" icon={faDownload} />&nbsp;Export</Link></td>
                                       <td>
                                           <Link onClick={(e)=>onClick(wallet.address)}>Open&nbsp;<FontAwesomeIcon className="fas" icon={faChevronRight} /></Link>
                                       </td>
@@ -185,9 +200,12 @@ function ListWalletsView() {
                           <p className="is-size-7 has-text-grey"><b><FontAwesomeIcon className="fas" icon={faHome} />&nbsp;Local First</b>: Your wallet is stored exclusively on your computer and not in the cloud.</p>
                           <br />
                           <div className="has-text-right">
-                            <Link className="button is-primary is-fullwidth-mobile" to={`/wallet/add`}><FontAwesomeIcon className="fas" icon={faPlus} />&nbsp;New Wallet</Link>
+                              <Link className="button is-primary is-fullwidth-mobile" to={`/wallet/add`}><FontAwesomeIcon className="fas" icon={faPlus} />&nbsp;New Wallet</Link>
                           </div>
-                      </nav>
+                        </nav>
+                        <div className="has-text-right">
+                          <Link className="has-text-grey" onClick={(e)=>ImportWalletUsingDialog()}><FontAwesomeIcon className="fas" icon={faUpload} />&nbsp;Import Wallet from file</Link>
+                        </div>
                       </section>
                     </div>
                 </>}
