@@ -5,6 +5,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
 	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/securestring"
 )
 
@@ -15,6 +16,10 @@ func (a *App) TransferCoin(
 	senderAccountAddress string,
 	senderAccountPassword string,
 ) error {
+	//
+	// STEP 1: Validation.
+	//
+
 	a.logger.Debug("Transfering coin...",
 		slog.Any("toRecipientAddress", toRecipientAddress),
 		slog.Any("coins", coins),
@@ -22,6 +27,25 @@ func (a *App) TransferCoin(
 		slog.Any("senderAccountAddress", senderAccountAddress),
 		slog.Any("senderAccountPassword", senderAccountPassword),
 	)
+
+	e := make(map[string]string)
+	if toRecipientAddress == "" {
+		e["from_account_address"] = "missing value"
+	}
+	if senderAccountPassword == "" {
+		e["wallet_password"] = "missing value"
+	}
+	if toRecipientAddress == "" {
+		e["to"] = "missing value"
+	}
+	if coins == 0 {
+		e["value"] = "missing value"
+	}
+	if len(e) != 0 {
+		a.logger.Warn("Failed validating create transaction parameters",
+			slog.Any("error", e))
+		return httperror.NewForBadRequest(&e)
+	}
 
 	var toRecipientAddr *common.Address = nil
 	if toRecipientAddress != "" {
@@ -39,9 +63,11 @@ func (a *App) TransferCoin(
 
 	password, err := sstring.NewSecureString(senderAccountPassword)
 	if err != nil {
+		e := make(map[string]string)
+		e["senderAccountPassword"] = "missing value"
 		a.logger.Error("Failed securing password",
-			slog.Any("error", err))
-		return err
+			slog.Any("error", e))
+		return httperror.NewForBadRequest(&e)
 	}
 	// defer password.Wipe()  Developers Note: Commented out b/c they are causing problems with our app.
 

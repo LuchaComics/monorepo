@@ -61,11 +61,13 @@ function SendCoinSubmissionView() {
         setIsLoading(true);
 
         TransferCoin(payTo, parseInt(coin), message, currentOpenWalletAtAddress, walletPassword).then(()=>{
-            console.log("Successful")
+            console.log("onSubmitClick: Successful")
             setForceURL("/send-success");
         }).catch((errorJsonString)=>{
-            console.log("errRes:", errorJsonString);
+            console.log("onSubmitClick: errRes:", errorJsonString);
             const errorObject = JSON.parse(errorJsonString);
+            console.log("onSubmitClick: errorObject:", errorObject);
+
             let err = {};
             if (errorObject.to != "") {
                 err.payTo = errorObject.to;
@@ -79,9 +81,11 @@ function SendCoinSubmissionView() {
             if (errorObject.message != "") {
                 err.message = errorObject.message;
             }
-            if (errorObject.walletPassword != "") {
-                err.walletPassword = errorObject.account_wallet_password;
+            if (errorObject.wallet_password != "") {
+                err.walletPassword = errorObject.wallet_password;
             }
+            console.log("onSubmitClick: err:", err);
+            window.scrollTo(0, 0); // Start the page at the top of the page.
             setErrors(err);
         }).finally(() => {
             // Update the GUI to let user know that the operation is completed.
