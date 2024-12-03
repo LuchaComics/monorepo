@@ -390,6 +390,11 @@ func doRunDaemonCmd() {
 		logger,
 		listTokensByOwnerUseCase,
 	)
+	exportWalletService := service.NewExportWalletService(
+		logger,
+		getAccountUseCase,
+		getWalletUseCase,
+	)
 
 	// ------------ Interfaces ------------
 
@@ -409,6 +414,7 @@ func doRunDaemonCmd() {
 		getByBlockTransactionTimestampService,
 		blockDataGetByHashService,
 		tokenListByOwnerService,
+		exportWalletService,
 	)
 
 	//

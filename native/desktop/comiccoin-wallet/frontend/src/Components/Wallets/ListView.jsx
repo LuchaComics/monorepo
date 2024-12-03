@@ -15,14 +15,16 @@ import {
   faChevronRight,
   faChevronLeft,
   faLock,
-  faHome
+  faHome,
+  faArrowUpRightFromSquare
 } from "@fortawesome/free-solid-svg-icons";
 
 import PageLoadingContent from "../Reusable/PageLoadingContent";
 import { currentOpenWalletAtAddressState } from "../../AppState";
 import {
     ListWallets,
-    SetDefaultWalletAddress
+    SetDefaultWalletAddress,
+    ExportWalletUsingDialog
 } from "../../../wailsjs/go/main/App";
 
 
@@ -57,6 +59,20 @@ function ListWalletsView() {
 
             // STEP 3: Redirect to the dashboard page.
             setForceURL("/dashboard");
+        });
+    }
+
+    const onExportWalletClick = (walletAddress) => {
+        console.log("currentOpenWalletAtAddress: Old:", currentOpenWalletAtAddress);
+        ExportWalletUsingDialog(walletAddress).then(()=>{
+            // // STEP 1: Adjust the wallet which is open.
+            // setCurrentOpenWalletAtAddress(walletAddress);
+            //
+            // // STEP 2:
+            // console.log("currentOpenWalletAtAddress: New:", walletAddress);
+            //
+            // // STEP 3: Redirect to the dashboard page.
+            // setForceURL("/dashboard");
         });
     }
 
@@ -146,6 +162,7 @@ function ListWalletsView() {
                                     <th>Label</th>
                                     <th>Address</th>
                                     <th></th>
+                                    <th></th>
                                   </tr>
                                 </thead>
                                 <tbody>
@@ -153,8 +170,9 @@ function ListWalletsView() {
                                     <tr key={wallet.filepath}>
                                       <td>{wallet.label}</td>
                                       <td>{wallet.address}</td>
+                                      <td><Link onClick={(e)=>onExportWalletClick(wallet.address)}>Export&nbsp;<FontAwesomeIcon className="fas" icon={faArrowUpRightFromSquare} /></Link></td>
                                       <td>
-                                          <Link onClick={(e)=>onClick(wallet.address)}>Open Wallet&nbsp;<FontAwesomeIcon className="fas" icon={faChevronRight} /></Link>
+                                          <Link onClick={(e)=>onClick(wallet.address)}>Open&nbsp;<FontAwesomeIcon className="fas" icon={faChevronRight} /></Link>
                                       </td>
                                     </tr>
                                   ))}

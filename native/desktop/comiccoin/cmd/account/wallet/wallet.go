@@ -1,9 +1,8 @@
-package account
+package wallet
 
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/LuchaComics/monorepo/native/desktop/comiccoin/cmd/account/wallet"
 	pref "github.com/LuchaComics/monorepo/native/desktop/comiccoin/common/preferences"
 )
 
@@ -16,10 +15,10 @@ func init() {
 	preferences = pref.PreferencesInstance()
 }
 
-func AccountCmd() *cobra.Command {
+func WalletCmd() *cobra.Command {
 	var cmd = &cobra.Command{
-		Use:   "account",
-		Short: "Execute commands related to accounts",
+		Use:   "wallet",
+		Short: "Execute commands related to wallets",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Developers Note:
 			// Before executing this command, check to ensure the user has
@@ -29,11 +28,7 @@ func AccountCmd() *cobra.Command {
 	}
 
 	// // // Attach our sub-commands for `account`
-	cmd.AddCommand(NewAccountCmd())
-	cmd.AddCommand(GetAccountCmd())
-	cmd.AddCommand(ListAccountCmd())
-	cmd.AddCommand(ListBlockTransactionsCmd())
-	cmd.AddCommand(wallet.WalletCmd())
+	cmd.AddCommand(ExportWalletCmd())
 
 	return cmd
 }

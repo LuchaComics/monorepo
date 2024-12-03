@@ -69,4 +69,6 @@ type ComicCoincRPCClientRepository interface {
 		ctx context.Context,
 		ownerAddress *common.Address,
 	) ([]*auth_domain.Token, error)
+
+	ExportWallet(ctx context.Context, accountAddress *common.Address, filepath string) error
 }

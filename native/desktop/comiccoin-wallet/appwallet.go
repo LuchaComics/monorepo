@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"log/slog"
 	"strings"
 
 	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/securestring"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 func (a *App) DefaultWalletAddress() string {
@@ -56,4 +58,18 @@ func (a *App) CreateWallet(walletPassword, walletPasswordRepeated, walletLabel s
 func (a *App) SetDefaultWalletAddress(walletAddress string) {
 	preferences := PreferencesInstance()
 	preferences.SetDefaultWalletAddress(strings.ToLower(walletAddress))
+}
+
+func (a *App) ExportWalletUsingDialog(walletAddress string) error {
+	// Initialize Wails runtime
+	result, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
+		Title: "Please select were to save the blockchain",
+	})
+	if err != nil {
+		a.logger.Error("Failed opening directory dialog",
+			slog.Any("error", err))
+		log.Fatalf("%v", err)
+	}
+	a.logger.Debug("->", slog.Any("result", result))
+	return nil
 }

@@ -413,3 +413,28 @@ func (r *ComicCoincRPCClientRepo) ListTokensByOwnerAddress(
 
 	return reply.Tokens, nil
 }
+
+func (r *ComicCoincRPCClientRepo) ExportWallet(ctx context.Context, accountAddress *common.Address, filepath string) error {
+	// Define our request / response here by copy and pasting from the server codebase.
+	type ExportWalletArgs struct {
+		AccountAddress *common.Address
+		FilePath       string
+	}
+
+	type ExportWalletReply struct{}
+
+	// Construct our request / response.
+	args := ExportWalletArgs{
+		AccountAddress: accountAddress,
+		FilePath:       filepath,
+	}
+	var reply ExportWalletReply
+
+	// Execute the remote procedure call.
+	callError := r.rpcClient.Call("ComicCoinRPCServer.ExportWallet", args, &reply)
+	if callError != nil {
+		return callError
+	}
+
+	return nil
+}
