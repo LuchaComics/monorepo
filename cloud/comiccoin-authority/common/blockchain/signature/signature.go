@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -92,26 +91,26 @@ func VerifySignature(v, r, s *big.Int) error {
 
 // FromAddress extracts the address for the account that signed the data.
 func FromAddress(value any, v, r, s *big.Int) (string, error) {
-	log.Printf("signature.go -> FromAddress(): value: %v\n", value)
+	// log.Printf("signature.go -> FromAddress(): value: %v\n", value)
 
 	// Prepare the data for public key extraction.
 	data, err := stamp(value)
 	if err != nil {
-		log.Printf("signature.go -> FromAddress(): stamp error: %v\n", err)
+		// log.Printf("signature.go -> FromAddress(): stamp error: %v\n", err)
 		return "", err
 	}
 
-	log.Printf("signature.go -> FromAddress(): stamp data: %v\n", data)
+	// log.Printf("signature.go -> FromAddress(): stamp data: %v\n", data)
 
 	// Convert the [R|S|V] format into the original 65 bytes.
 	sig := ToSignatureBytes(v, r, s)
 
-	log.Printf("signature.go -> FromAddress(): ToSignatureBytes sig: %v\n", data)
+	// log.Printf("signature.go -> FromAddress(): ToSignatureBytes sig: %v\n", data)
 
 	// Capture the public key associated with this data and signature.
 	publicKey, err := crypto.SigToPub(data, sig)
 	if err != nil {
-		log.Printf("signature.go -> FromAddress(): crypto.SigToPub error: %v\n", err)
+		// log.Printf("signature.go -> FromAddress(): crypto.SigToPub error: %v\n", err)
 		return "", err
 	}
 

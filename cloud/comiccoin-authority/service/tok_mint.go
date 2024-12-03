@@ -183,11 +183,11 @@ func (s *TokenMintService) Execute(ctx context.Context, metadataURI string) (*bi
 			return nil, signingErr
 		}
 
-		s.logger.Debug("Mempool transaction ready for submission",
-			slog.Any("Transaction", stx.Transaction),
-			slog.Any("tx_sig_v_bytes", stx.VBytes),
-			slog.Any("tx_sig_r_bytes", stx.RBytes),
-			slog.Any("tx_sig_s_bytes", stx.SBytes))
+		// s.logger.Debug("Mempool transaction ready for submission",
+		// 	slog.Any("Transaction", stx.Transaction),
+		// 	slog.Any("tx_sig_v_bytes", stx.VBytes),
+		// 	slog.Any("tx_sig_r_bytes", stx.RBytes),
+		// 	slog.Any("tx_sig_s_bytes", stx.SBytes))
 
 		//
 		// STEP 3
