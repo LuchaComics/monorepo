@@ -39,14 +39,8 @@ type BlockchainConfig struct {
 	// Difficulty represents how difficult it should be to solve the work problem.
 	Difficulty uint16 `json:"difficulty"`
 
-	// MiningReward is the reward for mining a block.
-	MiningReward uint64 `json:"mining_reward"`
-
-	// GasPrice is the fee paid for each transaction included in a block.
-	GasPrice uint64 `json:"gas_price"`
-
-	// UnitsOfGas represents the units of gas for each transaction.
-	UnitsOfGas uint64 `json:"units_of_gas"`
+	// ComicCoin: Fee that must be paid for every transaction. This value is provided by the authority.
+	TransactionFee uint64 `bson:"transaction_fee" json:"transaction_fee"`
 
 	// (Only set by PoA node)
 	ProofOfAuthorityAccountAddress *common.Address
@@ -75,9 +69,7 @@ func NewProvider() *Configuration {
 	c.Blockchain.TransPerBlock = uint16(transPerBlock)
 	difficulty, _ := strconv.ParseUint(getEnv("COMICCOIN_AUTHORITY_BLOCKCHAIN_DIFFICULTY", true), 10, 16)
 	c.Blockchain.Difficulty = uint16(difficulty)
-	c.Blockchain.MiningReward, _ = strconv.ParseUint(getEnv("COMICCOIN_AUTHORITY_BLOCKCHAIN_MINING_REWARD", false), 10, 64)
-	c.Blockchain.GasPrice, _ = strconv.ParseUint(getEnv("COMICCOIN_AUTHORITY_BLOCKCHAIN_GAS_PRICE", false), 10, 64)
-	c.Blockchain.UnitsOfGas, _ = strconv.ParseUint(getEnv("COMICCOIN_AUTHORITY_BLOCKCHAIN_UNITS_OF_GAS", false), 10, 64)
+	c.Blockchain.TransactionFee, _ = strconv.ParseUint(getEnv("COMICCOIN_AUTHORITY_BLOCKCHAIN_TRANSACTION_FEE", true), 10, 64)
 	proofOfAuthorityAccountAddress := getEnv("COMICCOIN_AUTHORITY_BLOCKCHAIN_PROOF_OF_AUTHORITY_ACCOUNT_ADDRESS", false)
 	if proofOfAuthorityAccountAddress != "" {
 		address := common.HexToAddress(proofOfAuthorityAccountAddress)

@@ -145,8 +145,7 @@ func (s *TokenMintService) Execute(ctx context.Context, metadataURI string) (*bi
 			NonceBytes:       big.NewInt(time.Now().Unix()).Bytes(),
 			From:             s.config.Blockchain.ProofOfAuthorityAccountAddress,
 			To:               s.config.Blockchain.ProofOfAuthorityAccountAddress,
-			Value:            0, // Token have no value!
-			Tip:              0,
+			Value:            0, // Authority does not pay any fees!
 			Data:             make([]byte, 0),
 			Type:             domain.TransactionTypeToken,
 			TokenIDBytes:     latestTokenID.Bytes(),

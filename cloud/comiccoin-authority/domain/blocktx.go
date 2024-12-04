@@ -15,8 +15,7 @@ import (
 type BlockTransaction struct {
 	SignedTransaction
 	TimeStamp uint64 `bson:"timestamp" json:"timestamp"` // Ethereum: The time the transaction was received.
-	GasPrice  uint64 `bson:"gas_price" json:"gas_price"` // Ethereum: The price of one unit of gas to be paid for fees.
-	GasUnits  uint64 `bson:"gas_units" json:"gas_units"` // Ethereum: The number of units of gas used for this transaction.
+	Fee       uint64 `bson:"fee" json:"fee"`             // ComicCoin: Fee paid for this transaction to the ComicCoin authority.
 }
 
 func (dto *BlockTransaction) Serialize() ([]byte, error) {

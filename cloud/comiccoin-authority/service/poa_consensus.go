@@ -188,6 +188,19 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 			return nil, fmt.Errorf("Proof of authority private keydoes not exist")
 		}
 
+		proofOfAuthorityAccount, err := s.getAccountUseCase.Execute(ctx, s.config.Blockchain.ProofOfAuthorityAccountAddress)
+		if err != nil {
+			s.logger.Error("Failed getting proof of authority account.",
+				slog.Any("error", err))
+			sessCtx.AbortTransaction(ctx)
+			return nil, err
+		}
+		if proofOfAuthorityAccount == nil {
+			s.logger.Error("Proof of authority account does not exist")
+			sessCtx.AbortTransaction(ctx)
+			return nil, fmt.Errorf("Proof of authority account does not exist")
+		}
+
 		recentBlockData, err := s.getBlockDataUseCase.Execute(sessCtx, blockchainState.LatestHash)
 		if err != nil {
 			s.logger.Error("Failed getting latest block block.",
@@ -203,10 +216,6 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 
 		// We want to attach on-chain our identity.
 		poaValidator := recentBlockData.Validator
-
-		// Apply whatever fees we request by the authority...
-		gasPrice := uint64(s.config.Blockchain.GasPrice)
-		unitsOfGas := uint64(s.config.Blockchain.UnitsOfGas)
 
 		// Variable used to create the transactions to store on the blockchain.
 		trans := make([]domain.BlockTransaction, 0)
@@ -224,6 +233,18 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 
 		//
 		// STEP 5:
+		// Process 🪙 coin value + transaction fee.
+		//
+
+		if err := s.processAccountForMempoolTransaction(sessCtx, mempoolTx, proofOfAuthorityAccount); err != nil {
+			s.logger.Error("Failed processing account in pending block transaction",
+				slog.Any("error", err))
+			sessCtx.AbortTransaction(ctx)
+			return nil, err
+		}
+
+		//
+		// STEP 6:
 		// Process 🎟️ tokens.
 		//
 
@@ -243,26 +264,11 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 				slog.Any("latest_token_id", latestTokenID))
 		}
 
-		//
-		// STEP 6:
-		// Process 🪙 coins.
-		//
-
-		if mempoolTx.Type == domain.TransactionTypeCoin {
-			if err := s.processAccountForMempoolTransaction(sessCtx, mempoolTx); err != nil {
-				s.logger.Error("Failed processing account in pending block transaction",
-					slog.Any("error", err))
-				sessCtx.AbortTransaction(ctx)
-				return nil, err
-			}
-		}
-
 		// Create our block.
 		blockTx := domain.BlockTransaction{
 			SignedTransaction: mempoolTx.SignedTransaction,
 			TimeStamp:         uint64(time.Now().UTC().UnixMilli()),
-			GasPrice:          gasPrice,
-			GasUnits:          unitsOfGas,
+			Fee:               s.config.Blockchain.TransactionFee, // This is the fee that is applied by the authority to subtract from the value of the this transaction.
 		}
 		trans = append(trans, blockTx)
 
@@ -336,9 +342,9 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 				NumberBytes:        newBlockNumber.Bytes(),
 				PrevBlockHash:      string(blockchainState.LatestHash),
 				TimeStamp:          uint64(time.Now().UTC().UnixMilli()),
-				Beneficiary:        recentBlockData.Header.Beneficiary,
 				Difficulty:         s.config.Blockchain.Difficulty,
-				MiningReward:       s.config.Blockchain.MiningReward,
+				Beneficiary:        *s.config.Blockchain.ProofOfAuthorityAccountAddress,
+				TransactionFee:     s.config.Blockchain.TransactionFee, // This is what is applied by the authority.
 				StateRoot:          stateRoot,
 				TransRoot:          tree.RootHex(),        //
 				NonceBytes:         big.NewInt(0).Bytes(), // Will be identified by the PoW algorithm.
@@ -540,17 +546,17 @@ func (s *ProofOfAuthorityConsensusMechanismService) verifyMempoolTransaction(ses
 		return err
 	}
 
-	// STEP 3: Verify account has enough 🪙 coins (if tx is coin-based)
-	if mempoolTx.Type == domain.TransactionTypeCoin {
-		// If the account is sending, then we need to verify the user has
-		// enough coins in the balance.
-		if mempoolTx.Value > account.Balance {
-			err := fmt.Errorf("Insufficient balance in account: Have currently %v in account but transaction is requesting %v", account.Balance, mempoolTx.Value)
-			s.logger.Error("Failed validating account",
-				slog.Any("chain_id", s.config.Blockchain.ChainID),
-				slog.Any("error", err))
-			return err
-		}
+	// STEP 3: Verify account has enough 🪙 coins
+	// If the account is sending, then we need to verify the user has
+	// enough coins in the balance.
+	if (mempoolTx.Value + s.config.Blockchain.TransactionFee) > account.Balance {
+		err := fmt.Errorf("Insufficient balance in account: Have currently %v in account but transaction is requesting %v", account.Balance, mempoolTx.Value)
+		s.logger.Error("Failed validating account",
+			slog.Any("chain_id", s.config.Blockchain.ChainID),
+			slog.Any("value", mempoolTx.Value),
+			slog.Any("fee", s.config.Blockchain.TransactionFee),
+			slog.Any("error", err))
+		return err
 	}
 
 	// STEP 4: Verify account belongs to 🎟️ token (if tx is token-based)
@@ -694,17 +700,44 @@ func (s *ProofOfAuthorityConsensusMechanismService) processTokenForMempoolTransa
 	return nil
 }
 
-func (s *ProofOfAuthorityConsensusMechanismService) processAccountForMempoolTransaction(sessCtx mongo.SessionContext, mempoolTx *domain.MempoolTransaction) error {
-	// DEVELOPERS NOTE:
-	// Please remember that when this function executes, there already is an
-	// in-memory database of accounts populated and maintained by this node.
-	// Therefore the code in this function is executed on a ready database.
-
+func (s *ProofOfAuthorityConsensusMechanismService) processAccountForMempoolTransaction(sessCtx mongo.SessionContext, mempoolTx *domain.MempoolTransaction, proofOfAuthorityAccount *domain.Account) error {
 	//
 	// STEP 1
+	// Subtract the value and the transaction fee from the sender's account balance.
 	//
 
-	if mempoolTx.From != nil {
+	if *mempoolTx.From == *proofOfAuthorityAccount.Address {
+		//----
+		// CASE 1 OF 2:
+		// Authority transfered coins
+		//----
+
+		proofOfAuthorityAccount.Balance -= mempoolTx.Value
+
+		// Note: Proof of authority does not pay any transaction fees!
+
+		// Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
+		pofNonce := proofOfAuthorityAccount.GetNonce()
+		pofNonce.Add(pofNonce, big.NewInt(1))
+		proofOfAuthorityAccount.NonceBytes = pofNonce.Bytes()
+
+		if err := s.upsertAccountUseCase.Execute(sessCtx, proofOfAuthorityAccount.Address, proofOfAuthorityAccount.Balance, proofOfAuthorityAccount.GetNonce()); err != nil {
+			s.logger.Error("Failed upserting pof account.",
+				slog.Any("error", err))
+			return err
+		}
+
+		s.logger.Debug("New `From` pof account balance via validator",
+			slog.Any("account_address", proofOfAuthorityAccount.Address),
+			slog.Any("balance", proofOfAuthorityAccount.Balance),
+		)
+
+	} else {
+		//----
+		// CASE 2 OF 2:
+		// Non-authority transfered.
+		//----
+
 		// DEVELOPERS NOTE:
 		// We already *should* have a `From` account in our database, so we can
 		acc, _ := s.getAccountUseCase.Execute(sessCtx, mempoolTx.From)
@@ -714,6 +747,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) processAccountForMempoolTran
 			return fmt.Errorf("The `From` account does not exist in our database for hash: %v", mempoolTx.From.String())
 		}
 		acc.Balance -= mempoolTx.Value
+		acc.Balance -= s.config.Blockchain.TransactionFee
 
 		// Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
 		accNonce := acc.GetNonce()
@@ -730,10 +764,33 @@ func (s *ProofOfAuthorityConsensusMechanismService) processAccountForMempoolTran
 			slog.Any("account_address", acc.Address),
 			slog.Any("balance", acc.Balance),
 		)
+
+		//
+		// STEP 2:
+		// Deposit the transaction fee back to the coinbase to be recirculated.
+		//
+
+		// Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
+		pofNonce := proofOfAuthorityAccount.GetNonce()
+		pofNonce.Add(pofNonce, big.NewInt(1))
+		proofOfAuthorityAccount.NonceBytes = pofNonce.Bytes()
+
+		// Claim transaction fee
+		proofOfAuthorityAccount.Balance += s.config.Blockchain.TransactionFee
+		if err := s.upsertAccountUseCase.Execute(sessCtx, proofOfAuthorityAccount.Address, proofOfAuthorityAccount.Balance, proofOfAuthorityAccount.GetNonce()); err != nil {
+			s.logger.Error("Failed upserting account.",
+				slog.Any("error", err))
+			return err
+		}
+		s.logger.Debug("Authority claims transaction fee",
+			slog.Any("account_address", proofOfAuthorityAccount.Address),
+			slog.Any("balance", proofOfAuthorityAccount.Balance),
+		)
 	}
 
 	//
-	// STEP 2
+	// STEP 3:
+	// Depost the coins into the receipents account.
 	//
 
 	if mempoolTx.To != nil {

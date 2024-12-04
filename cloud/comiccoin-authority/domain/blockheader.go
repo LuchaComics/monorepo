@@ -19,13 +19,13 @@ import (
 
 // BlockHeader represents common information required for each block.
 type BlockHeader struct {
-	ChainID       uint16         `bson:"chain_id" json:"chain_id"`               // Keep track of which chain this block belongs to.
-	NumberBytes   []byte         `bson:"number_bytes" json:"number_bytes"`       // Ethereum: Block number in the chain.
-	PrevBlockHash string         `bson:"prev_block_hash" json:"prev_block_hash"` // Bitcoin: Hash of the previous block in the chain.
-	TimeStamp     uint64         `bson:"timestamp" json:"timestamp"`             // Bitcoin: Time the block was mined.
-	Beneficiary   common.Address `bson:"beneficiary" json:"beneficiary"`         // Ethereum: The account who is receiving fees and tips.
-	Difficulty    uint16         `bson:"difficulty" json:"difficulty"`           // Ethereum: Number of 0's needed to solve the hash solution.
-	MiningReward  uint64         `bson:"mining_reward" json:"mining_reward"`     // Ethereum: The reward for mining this block.
+	ChainID        uint16         `bson:"chain_id" json:"chain_id"`               // Keep track of which chain this block belongs to.
+	NumberBytes    []byte         `bson:"number_bytes" json:"number_bytes"`       // Ethereum: Block number in the chain.
+	PrevBlockHash  string         `bson:"prev_block_hash" json:"prev_block_hash"` // Bitcoin: Hash of the previous block in the chain.
+	TimeStamp      uint64         `bson:"timestamp" json:"timestamp"`             // Bitcoin: Time the block was mined.
+	Difficulty     uint16         `bson:"difficulty" json:"difficulty"`           // Ethereum: Number of 0's needed to solve the hash solution.
+	Beneficiary    common.Address `bson:"beneficiary" json:"beneficiary"`         // Ethereum: The account who is receiving fees .
+	TransactionFee uint64         `bson:"transaction_fee" json:"transaction_fee"` // ComicCoin: Fee that must be paid for every transaction. This value is provided by the authority.
 
 	// The StateRoot represents a hash of the in-memory account balance
 	// database. This field allows the blockchain to provide a guarantee that

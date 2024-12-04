@@ -25,7 +25,6 @@ type Transaction struct {
 	From             *common.Address `bson:"from" json:"from"`                             // Ethereum: Account sending the transaction. Will be checked against signature.
 	To               *common.Address `bson:"to" json:"to"`                                 // Ethereum: Account receiving the benefit of the transaction.
 	Value            uint64          `bson:"value" json:"value"`                           // Ethereum: Monetary value received from this transaction.
-	Tip              uint64          `bson:"tip" json:"tip"`                               // Ethereum: Tip offered by the sender as an incentive to mine this transaction.
 	Data             []byte          `bson:"data" json:"data"`                             // Ethereum: Extra data related to the transaction.
 	Type             string          `bson:"type" json:"type"`                             // ComicCoin: The type of transaction this is, either `coin` or `token`.
 	TokenIDBytes     []byte          `bson:"token_id_bytes" json:"token_id_bytes"`         // ComicCoin: Unique identifier for the Token (if this transaciton is an Token).

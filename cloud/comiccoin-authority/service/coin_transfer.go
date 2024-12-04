@@ -120,11 +120,13 @@ func (s *CoinTransferService) Execute(
 	if account == nil {
 		return fmt.Errorf("failed getting account: %s", "d.n.e.")
 	}
-	if account.Balance < value {
+	if account.Balance < (value + s.config.Blockchain.TransactionFee) {
 		s.logger.Warn("insufficient balance in account",
 			slog.Any("account_addr", fromAccountAddress),
 			slog.Any("account_balance", account.Balance),
-			slog.Any("value", value))
+			slog.Any("value", value),
+			slog.Any("fee", s.config.Blockchain.TransactionFee),
+			slog.Any("new_value", (value+s.config.Blockchain.TransactionFee)))
 		return fmt.Errorf("insufficient balance: %d", account.Balance)
 	}
 

@@ -146,7 +146,6 @@ func (s *CreateGenesisBlockDataService) Execute(sessCtx mongo.SessionContext) (*
 		From:       account.Address,
 		To:         account.Address,
 		Value:      initialSupply,
-		Tip:        0,
 		Data:       make([]byte, 0),
 		Type:       domain.TransactionTypeCoin,
 	}
@@ -167,7 +166,6 @@ func (s *CreateGenesisBlockDataService) Execute(sessCtx mongo.SessionContext) (*
 		From:             account.Address,
 		To:               account.Address,
 		Value:            0, //Note: Tokens don't have coin value.
-		Tip:              0,
 		Data:             make([]byte, 0),
 		Type:             domain.TransactionTypeToken,
 		TokenIDBytes:     big.NewInt(0).Bytes(), // The very first token in our entire blockchain starts at the value of zero.
@@ -222,19 +220,15 @@ func (s *CreateGenesisBlockDataService) Execute(sessCtx mongo.SessionContext) (*
 	// Note: Genesis block has no previous hash
 	prevBlockHash := signature.ZeroHash
 
-	gasPrice := uint64(s.config.Blockchain.GasPrice)
-	unitsOfGas := uint64(s.config.Blockchain.UnitsOfGas)
 	coinBlockTx := domain.BlockTransaction{
 		SignedTransaction: signedCoinTx,
 		TimeStamp:         uint64(time.Now().UTC().UnixMilli()),
-		GasPrice:          gasPrice,
-		GasUnits:          unitsOfGas,
+		Fee:               0, // Genesis block doesn't have a fee!
 	}
 	tokenBlockTx := domain.BlockTransaction{
 		SignedTransaction: signedTokenTx,
 		TimeStamp:         uint64(time.Now().UTC().UnixMilli()),
-		GasPrice:          gasPrice,
-		GasUnits:          unitsOfGas,
+		Fee:               0, // Genesis block doesn't have a fee!
 	}
 	trans := make([]domain.BlockTransaction, 0)
 	trans = append(trans, coinBlockTx)
@@ -270,9 +264,9 @@ func (s *CreateGenesisBlockDataService) Execute(sessCtx mongo.SessionContext) (*
 			NumberBytes:        big.NewInt(0).Bytes(), // Genesis always starts at zero
 			PrevBlockHash:      prevBlockHash,
 			TimeStamp:          uint64(time.Now().UTC().UnixMilli()),
-			Beneficiary:        *account.Address,
 			Difficulty:         s.config.Blockchain.Difficulty,
-			MiningReward:       s.config.Blockchain.MiningReward,
+			Beneficiary:        *account.Address,
+			TransactionFee:     s.config.Blockchain.TransactionFee, // This is what is applied by the authority.
 			StateRoot:          stateRoot,
 			TransRoot:          tree.RootHex(),        //
 			NonceBytes:         big.NewInt(0).Bytes(), // Will be identified by the POW algorithm.
