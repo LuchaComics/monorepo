@@ -1,103 +1,58 @@
-import {useState, useEffect} from 'react';
-import { Link, Navigate } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faTasks,
-  faGauge,
-  faArrowRight,
-  faUsers,
-  faBarcode,
-  faCubes,
-  faPaperPlane,
-  faTimesCircle,
-  faCheckCircle,
-} from "@fortawesome/free-solid-svg-icons";
-import { useRecoilState } from "recoil";
-
-import logo from '../../assets/images/CPS-logo-2023-square.webp';
-import FormErrorBox from "../Reusable/FormErrorBox";
-import FormInputField from "../Reusable/FormInputField";
-import FormRadioField from "../Reusable/FormRadioField";
-import FormTextareaField from "../Reusable/FormTextareaField";
-import { ListAllPendingSignedTransactions } from "../../../wailsjs/go/main/App";
-import { currentOpenWalletAtAddressState } from "../../AppState";
+import { useState, useEffect, useRef } from "react";
+import { Navigate } from "react-router-dom";
 import PageLoadingContent from "../Reusable/PageLoadingContent";
-
+import { ListAllPendingSignedTransactions } from "../../../wailsjs/go/main/App";
 
 function SendCoinProcessingView() {
-    ////
-    //// Global State
-    ////
-
     ////
     //// Component states.
     ////
 
-    // GUI States.
-    const [errors, setErrors] = useState({});
     const [forceURL, setForceURL] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
-    const [intervalId, setIntervalId] = useState(null);
+    const intervalRef = useRef(null); // Mutable reference to store interval ID.
 
     ////
     //// Event handling.
     ////
 
-    // Function will make a call to check to see if our node is running
-    // and if our backend says the node is running then we will redirect
-    // to another page.
-    const backgroundPollingTick = (e) => {
-        ListAllPendingSignedTransactions().then( (listResp)=>{
+    const backgroundPollingTick = () => {
+        ListAllPendingSignedTransactions().then((listResp) => {
             if (listResp.length > 0) {
-                console.log("SendCoinProcessingView: tick", count, new Date().getTime(), listResp);
+                console.log("SendCoinProcessingView: tick", new Date().getTime(), listResp);
             } else {
                 console.log("SendCoinProcessingView: tick: done");
-                clearInterval(intervalId);
-                setIntervalId(null);
-                setForceURL("/send-success");
+                if (intervalRef.current) {
+                    clearInterval(intervalRef.current); // Clear the interval.
+                    intervalRef.current = null; // Reset the ref.
+                }
+                setForceURL("/send-success"); // Redirect to success page.
             }
-        })
-    }
-
-    ////
-    //// API.
-    ////
-
-    const onSubmitClick = (e) => {
-        e.preventDefault();
-
-
-    }
+        });
+    };
 
     ////
     //// Misc.
     ////
 
     useEffect(() => {
-      let mounted = true;
+        // Start polling when the component mounts.
+        intervalRef.current = setInterval(backgroundPollingTick, 2000);
 
-      if (mounted) {
-          window.scrollTo(0, 0); // Start the page at the top of the page.
-
-          const interval = setInterval(() => backgroundPollingTick(), 2000);
-          setIntervalId(interval);
-      }
-
-      return () => {
-          mounted = false;
-      };
-    }, []);
-
-    ////
-    //// Component rendering.
-    ////
+        return () => {
+            // Clear the interval when the component unmounts.
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
+        };
+    }, []); // Empty dependency array ensures this effect runs only once on mount.
 
     ////
     //// Component rendering.
     ////
 
     if (forceURL !== "") {
-      return <Navigate to={forceURL} />;
+        return <Navigate to={forceURL} />;
     }
 
     return (
@@ -107,4 +62,4 @@ function SendCoinProcessingView() {
     );
 }
 
-export default SendCoinProcessingView
+export default SendCoinProcessingView;
