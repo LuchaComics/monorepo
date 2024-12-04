@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/blockchain/merkle"
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/kmutexutil"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/distributedmutex"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/usecase"
@@ -25,7 +25,7 @@ import (
 type ProofOfAuthorityConsensusMechanismService struct {
 	config                                     *config.Configuration
 	logger                                     *slog.Logger
-	kmutex                                     kmutexutil.KMutexProvider
+	dmutex                                     distributedmutex.Adapter
 	dbClient                                   *mongo.Client
 	getProofOfAuthorityPrivateKeyService       *GetProofOfAuthorityPrivateKeyService
 	mempoolTransactionInsertionDetectorUseCase *usecase.MempoolTransactionInsertionDetectorUseCase
@@ -48,7 +48,7 @@ type ProofOfAuthorityConsensusMechanismService struct {
 func NewProofOfAuthorityConsensusMechanismService(
 	config *config.Configuration,
 	logger *slog.Logger,
-	kmutex kmutexutil.KMutexProvider,
+	dmutex distributedmutex.Adapter,
 	client *mongo.Client,
 	s1 *GetProofOfAuthorityPrivateKeyService,
 	uc1 *usecase.MempoolTransactionInsertionDetectorUseCase,
@@ -67,10 +67,17 @@ func NewProofOfAuthorityConsensusMechanismService(
 	uc14 *usecase.UpsertBlockDataUseCase,
 	uc15 *usecase.BlockchainStatePublishUseCase,
 ) *ProofOfAuthorityConsensusMechanismService {
-	return &ProofOfAuthorityConsensusMechanismService{config, logger, kmutex, client, s1, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12, uc13, uc14, uc15}
+	return &ProofOfAuthorityConsensusMechanismService{config, logger, dmutex, client, s1, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12, uc13, uc14, uc15}
 }
 
 func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context) error {
+	// Protect our resource - this PoA consensus mechanism can only exist as
+	// a single instance any time. So if we have more then one authority nodes
+	// running on the network, coordinate view the distributed mutext, that
+	// only a single authority node can run the authority mechanism at a time.
+	s.dmutex.Acquire(ctx, "ProofOfAuthorityConsensusMechanism")
+	defer s.dmutex.Release(ctx, "ProofOfAuthorityConsensusMechanism")
+
 	//
 	// STEP 1: Wait to receive new data...
 	//
@@ -145,10 +152,6 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		// STEP 3:
 		// Fetch related records.
 		//
-
-		// Protect our resource.
-		s.kmutex.Acquire("ProofOfAuthorityConsensusMechanism")
-		defer s.kmutex.Release("ProofOfAuthorityConsensusMechanism")
 
 		blockchainState, err := s.getBlockchainStateUseCase.Execute(sessCtx, s.config.Blockchain.ChainID)
 		if err != nil {

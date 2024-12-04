@@ -21,6 +21,7 @@ type Cacher interface {
 	Delete(ctx context.Context, key string) error
 	Publish(ctx context.Context, channelName string, binary []byte) error
 	Subscribe(ctx context.Context, channelName string) RedisSubscriber
+	GetRedisClient() redis.UniversalClient
 }
 
 type cache struct {
@@ -60,6 +61,10 @@ func NewCache(cfg *c.Configuration, logger *slog.Logger) Cacher {
 		Client: rdb,
 		Logger: logger,
 	}
+}
+
+func (s *cache) GetRedisClient() redis.UniversalClient {
+	return s.Client
 }
 
 func (s *cache) Shutdown(ctx context.Context) {

@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/blockchain/keystore"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/distributedmutex"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/kmutexutil"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/logger"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/security/blacklist"
@@ -54,7 +55,9 @@ func doRunDaemon() {
 	passp := password.NewProvider()
 	blackp := blacklist.NewProvider()
 	cachep := cache.NewCache(cfg, logger)
+	dmutex := distributedmutex.NewAdapter(logger, cachep.GetRedisClient())
 
+	_ = kmutex
 	_ = passp
 
 	// Repository
@@ -257,7 +260,7 @@ func doRunDaemon() {
 	proofOfAuthorityConsensusMechanismService := service.NewProofOfAuthorityConsensusMechanismService(
 		cfg,
 		logger,
-		kmutex,
+		dmutex,
 		dbClient, // We do this so we can use MongoDB's "transactions"
 		getProofOfAuthorityPrivateKeyService,
 		mempoolTransactionInsertionDetectorUseCase,
