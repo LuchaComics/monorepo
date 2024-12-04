@@ -315,6 +315,7 @@ func doRunDaemonCmd() {
 	coinTransferService := service.NewCoinTransferService(
 		logger,
 		listPendingSignedTransactionUseCase,
+		getGenesisBlockDataUseCase,
 		upsertPendingSignedTransactionUseCase,
 		getAccountUseCase,
 		getWalletUseCase,

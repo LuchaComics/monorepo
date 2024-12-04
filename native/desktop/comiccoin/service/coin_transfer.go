@@ -21,6 +21,7 @@ import (
 type CoinTransferService struct {
 	logger                                                  *slog.Logger
 	listPendingSignedTransactionUseCase                     *usecase.ListPendingSignedTransactionUseCase
+	getGenesisBlockDataUseCase                              *usecase.GetGenesisBlockDataUseCase
 	upsertPendingSignedTransactionUseCase                   *usecase.UpsertPendingSignedTransactionUseCase
 	getAccountUseCase                                       *usecase.GetAccountUseCase
 	getWalletUseCase                                        *usecase.GetWalletUseCase
@@ -31,13 +32,14 @@ type CoinTransferService struct {
 func NewCoinTransferService(
 	logger *slog.Logger,
 	uc1 *usecase.ListPendingSignedTransactionUseCase,
-	uc2 *usecase.UpsertPendingSignedTransactionUseCase,
-	uc3 *usecase.GetAccountUseCase,
-	uc4 *usecase.GetWalletUseCase,
-	uc5 *usecase.WalletDecryptKeyUseCase,
-	uc6 *auth_usecase.SubmitMempoolTransactionDTOToBlockchainAuthorityUseCase,
+	uc2 *usecase.GetGenesisBlockDataUseCase,
+	uc3 *usecase.UpsertPendingSignedTransactionUseCase,
+	uc4 *usecase.GetAccountUseCase,
+	uc5 *usecase.GetWalletUseCase,
+	uc6 *usecase.WalletDecryptKeyUseCase,
+	uc7 *auth_usecase.SubmitMempoolTransactionDTOToBlockchainAuthorityUseCase,
 ) *CoinTransferService {
-	return &CoinTransferService{logger, uc1, uc2, uc3, uc4, uc5, uc6}
+	return &CoinTransferService{logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7}
 }
 
 func (s *CoinTransferService) Execute(
@@ -93,8 +95,23 @@ func (s *CoinTransferService) Execute(
 	}
 
 	//
-	// STEP 2: Get the account and extract the wallet private/public key.
+	// STEP 2: Get related records.
 	//
+
+	genesis, err := s.getGenesisBlockDataUseCase.Execute(ctx, chainID)
+	if err != nil {
+		s.logger.Error("failed getting genesis from database",
+			slog.Any("chain_id", chainID),
+			slog.Any("error", err))
+		return err
+	}
+	if genesis == nil {
+		s.logger.Error("failed getting genesis from database",
+			slog.Any("chain_id", chainID),
+			slog.Any("error", "d.n.e."))
+		return fmt.Errorf("failed getting genesis block from database: %s", "genesis d.n.e.")
+	}
+	txFee := genesis.Header.TransactionFee
 
 	wallet, err := s.getWalletUseCase.Execute(ctx, fromAccountAddress)
 	if err != nil {
@@ -110,6 +127,10 @@ func (s *CoinTransferService) Execute(
 		return fmt.Errorf("failed getting from database: %s", "wallet d.n.e.")
 	}
 
+	//
+	// STEP 3: Extract the wallet private/public key.
+	//
+
 	key, err := s.walletDecryptKeyUseCase.Execute(ctx, wallet.KeystoreBytes, accountWalletPassword)
 	if err != nil {
 		s.logger.Error("failed getting key",
@@ -122,7 +143,7 @@ func (s *CoinTransferService) Execute(
 	}
 
 	//
-	// STEP 3:
+	// STEP e:
 	// Verify the account has enough balance before proceeding.
 	//
 
@@ -136,11 +157,14 @@ func (s *CoinTransferService) Execute(
 	if account == nil {
 		return fmt.Errorf("failed getting account: %s", "d.n.e.")
 	}
-	if account.Balance < value {
+
+	if account.Balance < (value + txFee) {
 		s.logger.Warn("insufficient balance in account",
 			slog.Any("account_addr", fromAccountAddress),
 			slog.Any("account_balance", account.Balance),
-			slog.Any("value", value))
+			slog.Any("fee", txFee),
+			slog.Any("value", value),
+			slog.Any("total", value+txFee))
 		return fmt.Errorf("insufficient balance: %d", account.Balance)
 	}
 
@@ -154,7 +178,7 @@ func (s *CoinTransferService) Execute(
 		NonceBytes: big.NewInt(time.Now().Unix()).Bytes(),
 		From:       wallet.Address,
 		To:         to,
-		Value:      value,
+		Value:      (value + txFee),
 		Data:       data,
 		Type:       auth_domain.TransactionTypeCoin,
 	}

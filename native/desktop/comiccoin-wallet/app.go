@@ -351,6 +351,7 @@ func (a *App) startup(ctx context.Context) {
 	coinTransferService := service.NewCoinTransferService(
 		logger,
 		listPendingSignedTransactionUseCase,
+		getGenesisBlockDataUseCase,
 		upsertPendingSignedTransactionUseCase,
 		getAccountUseCase,
 		getWalletUseCase,
