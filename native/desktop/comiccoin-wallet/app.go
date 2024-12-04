@@ -161,7 +161,8 @@ func (a *App) startup(ctx context.Context) {
 		genesisBlockDataRepo,
 		blockchainStateRepo,
 		blockDataRepo,
-		tokRepo)
+		tokRepo,
+		pstxRepo)
 	storageTransactionCommitUseCase := usecase.NewStorageTransactionCommitUseCase(
 		logger,
 		walletRepo,
@@ -169,7 +170,8 @@ func (a *App) startup(ctx context.Context) {
 		genesisBlockDataRepo,
 		blockchainStateRepo,
 		blockDataRepo,
-		tokRepo)
+		tokRepo,
+		pstxRepo)
 	storageTransactionDiscardUseCase := usecase.NewStorageTransactionDiscardUseCase(
 		logger,
 		walletRepo,
@@ -177,7 +179,8 @@ func (a *App) startup(ctx context.Context) {
 		genesisBlockDataRepo,
 		blockchainStateRepo,
 		blockDataRepo,
-		tokRepo)
+		tokRepo,
+		pstxRepo)
 
 	// Wallet
 	walletDecryptKeyUseCase := usecase.NewWalletDecryptKeyUseCase(
@@ -350,6 +353,9 @@ func (a *App) startup(ctx context.Context) {
 	)
 	coinTransferService := service.NewCoinTransferService(
 		logger,
+		storageTransactionOpenUseCase,
+		storageTransactionCommitUseCase,
+		storageTransactionDiscardUseCase,
 		listPendingSignedTransactionUseCase,
 		getGenesisBlockDataUseCase,
 		upsertPendingSignedTransactionUseCase,
@@ -364,6 +370,9 @@ func (a *App) startup(ctx context.Context) {
 	)
 	tokenTransferService := service.NewTokenTransferService(
 		logger,
+		storageTransactionOpenUseCase,
+		storageTransactionCommitUseCase,
+		storageTransactionDiscardUseCase,
 		listPendingSignedTransactionUseCase,
 		getGenesisBlockDataUseCase,
 		upsertPendingSignedTransactionUseCase,
@@ -375,6 +384,9 @@ func (a *App) startup(ctx context.Context) {
 	)
 	tokenBurnService := service.NewTokenBurnService(
 		logger,
+		storageTransactionOpenUseCase,
+		storageTransactionCommitUseCase,
+		storageTransactionDiscardUseCase,
 		listPendingSignedTransactionUseCase,
 		getGenesisBlockDataUseCase,
 		upsertPendingSignedTransactionUseCase,

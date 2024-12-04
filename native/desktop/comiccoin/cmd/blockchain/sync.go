@@ -103,7 +103,8 @@ func doRunBlockchainSyncCmd() error {
 		genesisBlockDataRepo,
 		blockchainStateRepo,
 		blockDataRepo,
-		tokRepo)
+		tokRepo,
+		pstxRepo)
 	storageTransactionCommitUseCase := usecase.NewStorageTransactionCommitUseCase(
 		logger,
 		walletRepo,
@@ -111,7 +112,8 @@ func doRunBlockchainSyncCmd() error {
 		genesisBlockDataRepo,
 		blockchainStateRepo,
 		blockDataRepo,
-		tokRepo)
+		tokRepo,
+		pstxRepo)
 	storageTransactionDiscardUseCase := usecase.NewStorageTransactionDiscardUseCase(
 		logger,
 		walletRepo,
@@ -119,7 +121,8 @@ func doRunBlockchainSyncCmd() error {
 		genesisBlockDataRepo,
 		blockchainStateRepo,
 		blockDataRepo,
-		tokRepo)
+		tokRepo,
+		pstxRepo)
 
 	// Blockchain State
 	upsertBlockchainStateUseCase := usecase.NewUpsertBlockchainStateUseCase(

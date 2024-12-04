@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"log/slog"
 	"math/big"
 	"time"
@@ -20,6 +21,9 @@ import (
 
 type CoinTransferService struct {
 	logger                                                  *slog.Logger
+	storageTransactionOpenUseCase                           *usecase.StorageTransactionOpenUseCase
+	storageTransactionCommitUseCase                         *usecase.StorageTransactionCommitUseCase
+	storageTransactionDiscardUseCase                        *usecase.StorageTransactionDiscardUseCase
 	listPendingSignedTransactionUseCase                     *usecase.ListPendingSignedTransactionUseCase
 	getGenesisBlockDataUseCase                              *usecase.GetGenesisBlockDataUseCase
 	upsertPendingSignedTransactionUseCase                   *usecase.UpsertPendingSignedTransactionUseCase
@@ -31,15 +35,18 @@ type CoinTransferService struct {
 
 func NewCoinTransferService(
 	logger *slog.Logger,
-	uc1 *usecase.ListPendingSignedTransactionUseCase,
-	uc2 *usecase.GetGenesisBlockDataUseCase,
-	uc3 *usecase.UpsertPendingSignedTransactionUseCase,
-	uc4 *usecase.GetAccountUseCase,
-	uc5 *usecase.GetWalletUseCase,
-	uc6 *usecase.WalletDecryptKeyUseCase,
-	uc7 *auth_usecase.SubmitMempoolTransactionDTOToBlockchainAuthorityUseCase,
+	uc1 *usecase.StorageTransactionOpenUseCase,
+	uc2 *usecase.StorageTransactionCommitUseCase,
+	uc3 *usecase.StorageTransactionDiscardUseCase,
+	uc4 *usecase.ListPendingSignedTransactionUseCase,
+	uc5 *usecase.GetGenesisBlockDataUseCase,
+	uc6 *usecase.UpsertPendingSignedTransactionUseCase,
+	uc7 *usecase.GetAccountUseCase,
+	uc8 *usecase.GetWalletUseCase,
+	uc9 *usecase.WalletDecryptKeyUseCase,
+	uc10 *auth_usecase.SubmitMempoolTransactionDTOToBlockchainAuthorityUseCase,
 ) *CoinTransferService {
-	return &CoinTransferService{logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7}
+	return &CoinTransferService{logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10}
 }
 
 func (s *CoinTransferService) Execute(
@@ -98,17 +105,24 @@ func (s *CoinTransferService) Execute(
 	// STEP 2: Get related records.
 	//
 
+	if err := s.storageTransactionOpenUseCase.Execute(); err != nil {
+		s.storageTransactionDiscardUseCase.Execute()
+		log.Fatalf("Failed to open storage transaction: %v\n", err)
+	}
+
 	genesis, err := s.getGenesisBlockDataUseCase.Execute(ctx, chainID)
 	if err != nil {
 		s.logger.Error("failed getting genesis from database",
 			slog.Any("chain_id", chainID),
 			slog.Any("error", err))
+		s.storageTransactionDiscardUseCase.Execute()
 		return err
 	}
 	if genesis == nil {
 		s.logger.Error("failed getting genesis from database",
 			slog.Any("chain_id", chainID),
 			slog.Any("error", "d.n.e."))
+		s.storageTransactionDiscardUseCase.Execute()
 		return fmt.Errorf("failed getting genesis block from database: %s", "genesis d.n.e.")
 	}
 	txFee := genesis.Header.TransactionFee
@@ -118,12 +132,14 @@ func (s *CoinTransferService) Execute(
 		s.logger.Error("failed getting from database",
 			slog.Any("from_account_address", fromAccountAddress),
 			slog.Any("error", err))
+		s.storageTransactionDiscardUseCase.Execute()
 		return fmt.Errorf("failed getting from database: %s", err)
 	}
 	if wallet == nil {
 		s.logger.Error("failed getting from database",
 			slog.Any("from_account_address", fromAccountAddress),
 			slog.Any("error", "d.n.e."))
+		s.storageTransactionDiscardUseCase.Execute()
 		return fmt.Errorf("failed getting from database: %s", "wallet d.n.e.")
 	}
 
@@ -136,9 +152,11 @@ func (s *CoinTransferService) Execute(
 		s.logger.Error("failed getting key",
 			slog.Any("from_account_address", fromAccountAddress),
 			slog.Any("error", err))
+		s.storageTransactionDiscardUseCase.Execute()
 		return fmt.Errorf("failed getting key: %s", err)
 	}
 	if key == nil {
+		s.storageTransactionDiscardUseCase.Execute()
 		return fmt.Errorf("failed getting key: %s", "d.n.e.")
 	}
 
@@ -152,9 +170,11 @@ func (s *CoinTransferService) Execute(
 		s.logger.Error("failed getting account",
 			slog.Any("from_account_address", fromAccountAddress),
 			slog.Any("error", err))
+		s.storageTransactionDiscardUseCase.Execute()
 		return fmt.Errorf("failed getting account: %s", err)
 	}
 	if account == nil {
+		s.storageTransactionDiscardUseCase.Execute()
 		return fmt.Errorf("failed getting account: %s", "d.n.e.")
 	}
 
@@ -165,6 +185,7 @@ func (s *CoinTransferService) Execute(
 			slog.Any("fee", txFee),
 			slog.Any("value", value),
 			slog.Any("total", value+txFee))
+		s.storageTransactionDiscardUseCase.Execute()
 		return fmt.Errorf("insufficient balance: %d", account.Balance)
 	}
 
@@ -187,6 +208,7 @@ func (s *CoinTransferService) Execute(
 	if signingErr != nil {
 		s.logger.Debug("Failed to sign the transaction",
 			slog.Any("error", signingErr))
+		s.storageTransactionDiscardUseCase.Execute()
 		return signingErr
 	}
 
@@ -194,6 +216,7 @@ func (s *CoinTransferService) Execute(
 	if err := stx.Validate(chainID, true); err != nil {
 		s.logger.Debug("Failed to validate signature of the signed transaction",
 			slog.Any("error", signingErr))
+		s.storageTransactionDiscardUseCase.Execute()
 		return signingErr
 	}
 
@@ -221,6 +244,7 @@ func (s *CoinTransferService) Execute(
 	if err := s.upsertPendingSignedTransactionUseCase.Execute(ctx, pstx); err != nil {
 		s.logger.Debug("Failed saving pending signed transaction",
 			slog.Any("error", signingErr))
+		s.storageTransactionDiscardUseCase.Execute()
 		return err
 	}
 
@@ -237,6 +261,7 @@ func (s *CoinTransferService) Execute(
 	if err := mempoolTx.Validate(chainID, true); err != nil {
 		s.logger.Debug("Failed to validate signature of mempool transaction",
 			slog.Any("error", signingErr))
+		s.storageTransactionDiscardUseCase.Execute()
 		return signingErr
 	}
 
@@ -257,10 +282,19 @@ func (s *CoinTransferService) Execute(
 	if err := s.submitMempoolTransactionDTOToBlockchainAuthorityUseCase.Execute(ctx, dto); err != nil {
 		s.logger.Error("Failed to broadcast to the blockchain authority",
 			slog.Any("error", err))
+		s.storageTransactionDiscardUseCase.Execute()
 		return err
 	}
 
 	s.logger.Info("Pending signed transaction for coin transfer submitted to the blockchain authority",
+		slog.Any("tx_nonce", stx.GetNonce()))
+
+	if err := s.storageTransactionCommitUseCase.Execute(); err != nil {
+		s.storageTransactionDiscardUseCase.Execute()
+		log.Fatalf("Failed to open storage transaction: %v\n", err)
+	}
+
+	s.logger.Info("Pending signed transaction saved to local storage",
 		slog.Any("tx_nonce", stx.GetNonce()))
 
 	return nil

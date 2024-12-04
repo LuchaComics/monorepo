@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"log/slog"
 	"math/big"
 	"strings"
@@ -21,6 +22,9 @@ import (
 
 type TokenTransferService struct {
 	logger                                                  *slog.Logger
+	storageTransactionOpenUseCase                           *usecase.StorageTransactionOpenUseCase
+	storageTransactionCommitUseCase                         *usecase.StorageTransactionCommitUseCase
+	storageTransactionDiscardUseCase                        *usecase.StorageTransactionDiscardUseCase
 	listPendingSignedTransactionUseCase                     *usecase.ListPendingSignedTransactionUseCase
 	getGenesisBlockDataUseCase                              *usecase.GetGenesisBlockDataUseCase
 	upsertPendingSignedTransactionUseCase                   *usecase.UpsertPendingSignedTransactionUseCase
@@ -33,16 +37,19 @@ type TokenTransferService struct {
 
 func NewTokenTransferService(
 	logger *slog.Logger,
-	uc1 *usecase.ListPendingSignedTransactionUseCase,
-	uc2 *usecase.GetGenesisBlockDataUseCase,
-	uc3 *usecase.UpsertPendingSignedTransactionUseCase,
-	uc4 *usecase.GetAccountUseCase,
-	uc5 *usecase.GetWalletUseCase,
-	uc6 *usecase.WalletDecryptKeyUseCase,
-	uc7 *usecase.GetTokenUseCase,
-	uc8 *auth_usecase.SubmitMempoolTransactionDTOToBlockchainAuthorityUseCase,
+	uc1 *usecase.StorageTransactionOpenUseCase,
+	uc2 *usecase.StorageTransactionCommitUseCase,
+	uc3 *usecase.StorageTransactionDiscardUseCase,
+	uc4 *usecase.ListPendingSignedTransactionUseCase,
+	uc5 *usecase.GetGenesisBlockDataUseCase,
+	uc6 *usecase.UpsertPendingSignedTransactionUseCase,
+	uc7 *usecase.GetAccountUseCase,
+	uc8 *usecase.GetWalletUseCase,
+	uc9 *usecase.WalletDecryptKeyUseCase,
+	uc10 *usecase.GetTokenUseCase,
+	uc11 *auth_usecase.SubmitMempoolTransactionDTOToBlockchainAuthorityUseCase,
 ) *TokenTransferService {
-	return &TokenTransferService{logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8}
+	return &TokenTransferService{logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11}
 }
 
 func (s *TokenTransferService) Execute(
@@ -158,14 +165,21 @@ func (s *TokenTransferService) Execute(
 	// Verify the account owns the token and has enough balance before proceeding.
 	//
 
+	if err := s.storageTransactionOpenUseCase.Execute(); err != nil {
+		s.storageTransactionDiscardUseCase.Execute()
+		log.Fatalf("Failed to open storage transaction: %v\n", err)
+	}
+
 	account, err := s.getAccountUseCase.Execute(ctx, fromAccountAddress)
 	if err != nil {
 		s.logger.Error("failed getting account",
 			slog.Any("from_account_address", fromAccountAddress),
 			slog.Any("error", err))
+		s.storageTransactionDiscardUseCase.Execute()
 		return fmt.Errorf("failed getting account: %s", err)
 	}
 	if account == nil {
+		s.storageTransactionDiscardUseCase.Execute()
 		return fmt.Errorf("failed getting account: %s", "d.n.e.")
 	}
 
@@ -174,6 +188,7 @@ func (s *TokenTransferService) Execute(
 		s.logger.Warn("you do not own this token",
 			slog.Any("account_addr", strings.ToLower(account.Address.Hex())),
 			slog.Any("token_addr", strings.ToLower(tok.Owner.Hex())))
+		s.storageTransactionDiscardUseCase.Execute()
 		return fmt.Errorf("you do not own the token: %v", strings.ToLower(tok.Owner.Hex()))
 	}
 
@@ -185,6 +200,7 @@ func (s *TokenTransferService) Execute(
 			slog.Any("fee", txFee),
 			slog.Any("value", txFee),
 			slog.Any("total", txFee))
+		s.storageTransactionDiscardUseCase.Execute()
 		return fmt.Errorf("insufficient balance: %d", account.Balance)
 	}
 
@@ -210,6 +226,7 @@ func (s *TokenTransferService) Execute(
 	if signingErr != nil {
 		s.logger.Debug("Failed to sign the transaction",
 			slog.Any("error", signingErr))
+		s.storageTransactionDiscardUseCase.Execute()
 		return signingErr
 	}
 
@@ -217,6 +234,7 @@ func (s *TokenTransferService) Execute(
 	if err := stx.Validate(chainID, true); err != nil {
 		s.logger.Debug("Failed to validate signature of the signed transaction",
 			slog.Any("error", signingErr))
+		s.storageTransactionDiscardUseCase.Execute()
 		return signingErr
 	}
 
@@ -245,6 +263,7 @@ func (s *TokenTransferService) Execute(
 	if err := mempoolTx.Validate(chainID, true); err != nil {
 		s.logger.Debug("Failed to validate signature of mempool transaction",
 			slog.Any("error", signingErr))
+		s.storageTransactionDiscardUseCase.Execute()
 		return signingErr
 	}
 
@@ -262,6 +281,7 @@ func (s *TokenTransferService) Execute(
 	if err := s.upsertPendingSignedTransactionUseCase.Execute(ctx, pstx); err != nil {
 		s.logger.Debug("Failed saving pending signed transaction",
 			slog.Any("error", signingErr))
+		s.storageTransactionDiscardUseCase.Execute()
 		return err
 	}
 
@@ -276,10 +296,19 @@ func (s *TokenTransferService) Execute(
 	if err := s.submitMempoolTransactionDTOToBlockchainAuthorityUseCase.Execute(ctx, dto); err != nil {
 		s.logger.Error("Failed to broadcast to the blockchain authority",
 			slog.Any("error", err))
+		s.storageTransactionDiscardUseCase.Execute()
 		return err
 	}
 
 	s.logger.Info("Pending signed transaction for token transfer submitted to the blockchain authority",
+		slog.Any("tx_nonce", stx.GetNonce()))
+
+	if err := s.storageTransactionCommitUseCase.Execute(); err != nil {
+		s.storageTransactionDiscardUseCase.Execute()
+		log.Fatalf("Failed to open storage transaction: %v\n", err)
+	}
+
+	s.logger.Info("Pending signed transaction saved to local storage",
 		slog.Any("tx_nonce", stx.GetNonce()))
 
 	return nil

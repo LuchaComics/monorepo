@@ -461,15 +461,32 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 			slog.Any("transaction_fee", blockchainState.TransactionFee),
 		)
 
+		// DEVELOPERS NOTE:
+		// In case we failed to publish, attempt 3 retries and then finally
+		// terminate with error.
 		s.logger.Debug("Publishing to redis....")
-		if err := s.blockchainStatePublishUseCase.Execute(sessCtx, blockchainState); err != nil {
-			s.logger.Error("Failed publish to redis",
-				slog.Any("error", err))
+		retryCount := 0
+		var redisErr error
+		delay := time.Duration(500 * time.Millisecond) // initial delay: 0.5 seconds
+		maxDelay := time.Second * 30                   // maximum delay: 30 seconds
+		for retryCount < 4 {
+			if redisErr = s.blockchainStatePublishUseCase.Execute(sessCtx, blockchainState); redisErr == nil {
+				break
+			}
+			s.logger.Warn("Failed publish to redis",
+				slog.Any("error", redisErr))
+			retryCount++
+			time.Sleep(delay)
+			delay = time.Duration(min(float64(delay)*2, float64(maxDelay))) // exponential backoff
+		}
+		if redisErr != nil {
+			s.logger.Error("Failed publish to redis after retries",
+				slog.Any("error", redisErr))
 			sessCtx.AbortTransaction(ctx)
-			return nil, err
+			return nil, redisErr
 		}
 
-		s.logger.Debug("Committing transaction")
+		s.logger.Debug("Committing transaction...")
 		if err := sessCtx.CommitTransaction(ctx); err != nil {
 			s.logger.Error("Failed comming transaction",
 				slog.Any("error", err))

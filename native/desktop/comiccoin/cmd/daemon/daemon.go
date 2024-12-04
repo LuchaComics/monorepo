@@ -134,7 +134,8 @@ func doRunDaemonCmd() {
 		genesisBlockDataRepo,
 		blockchainStateRepo,
 		blockDataRepo,
-		tokRepo)
+		tokRepo,
+		pstxRepo)
 	storageTransactionCommitUseCase := usecase.NewStorageTransactionCommitUseCase(
 		logger,
 		walletRepo,
@@ -142,7 +143,8 @@ func doRunDaemonCmd() {
 		genesisBlockDataRepo,
 		blockchainStateRepo,
 		blockDataRepo,
-		tokRepo)
+		tokRepo,
+		pstxRepo)
 	storageTransactionDiscardUseCase := usecase.NewStorageTransactionDiscardUseCase(
 		logger,
 		walletRepo,
@@ -150,7 +152,8 @@ func doRunDaemonCmd() {
 		genesisBlockDataRepo,
 		blockchainStateRepo,
 		blockDataRepo,
-		tokRepo)
+		tokRepo,
+		pstxRepo)
 
 	// Wallet
 	walletDecryptKeyUseCase := usecase.NewWalletDecryptKeyUseCase(
@@ -314,6 +317,9 @@ func doRunDaemonCmd() {
 	)
 	coinTransferService := service.NewCoinTransferService(
 		logger,
+		storageTransactionOpenUseCase,
+		storageTransactionCommitUseCase,
+		storageTransactionDiscardUseCase,
 		listPendingSignedTransactionUseCase,
 		getGenesisBlockDataUseCase,
 		upsertPendingSignedTransactionUseCase,
@@ -328,6 +334,9 @@ func doRunDaemonCmd() {
 	)
 	tokenTransferService := service.NewTokenTransferService(
 		logger,
+		storageTransactionOpenUseCase,
+		storageTransactionCommitUseCase,
+		storageTransactionDiscardUseCase,
 		listPendingSignedTransactionUseCase,
 		getGenesisBlockDataUseCase,
 		upsertPendingSignedTransactionUseCase,
@@ -339,6 +348,9 @@ func doRunDaemonCmd() {
 	)
 	tokenBurnService := service.NewTokenBurnService(
 		logger,
+		storageTransactionOpenUseCase,
+		storageTransactionCommitUseCase,
+		storageTransactionDiscardUseCase,
 		listPendingSignedTransactionUseCase,
 		getGenesisBlockDataUseCase,
 		upsertPendingSignedTransactionUseCase,
