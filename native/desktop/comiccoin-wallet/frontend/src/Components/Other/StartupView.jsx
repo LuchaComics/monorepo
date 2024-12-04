@@ -1,86 +1,74 @@
-import {useState, useEffect} from 'react';
-import { Link, Navigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Navigate } from "react-router-dom";
 import { useRecoilState } from "recoil";
 
 import PageLoadingContent from "../Reusable/PageLoadingContent";
 import { GetIsBlockhainNodeRunning, DefaultWalletAddress } from "../../../wailsjs/go/main/App";
 import { currentOpenWalletAtAddressState } from "../../AppState";
 
-
 function StartupView() {
-    ////
-    //// Global State
-    ////
+  // Global State
+  const [currentOpenWalletAtAddress, setCurrentOpenWalletAtAddress] = useRecoilState(currentOpenWalletAtAddressState);
 
-    const [currentOpenWalletAtAddress, setCurrentOpenWalletAtAddress] = useRecoilState(currentOpenWalletAtAddressState);
+  // Component States
+  const [forceURL, setForceURL] = useState("");
 
-    ////
-    //// Component states.
-    ////
+   // Developers note:
+   // React `useRef` provides a way to persist a mutable reference across
+   // renders without triggering re-renders. You can use it to store the
+   // interval ID and reference it directly when calling `clearInterval`.
 
-    const [forceURL, setForceURL] = useState("");
-    const [intervalId, setIntervalId] = useState(null);
+  // Ref to store the interval ID
+  const intervalIdRef = useRef(null);
 
-    ////
-    //// Event handling.
-    ////
+  // Function to poll the blockchain node status
+  const backgroundPollingTick = () => {
+    GetIsBlockhainNodeRunning().then((isNodeRunningResponse) => {
+      console.log("tick", new Date().getTime(), isNodeRunningResponse);
 
-    // Function will make a call to check to see if our node is running
-    // and if our backend says the node is running then we will redirect
-    // to another page.
-    const backgroundPollingTick = (e) => {
-        GetIsBlockhainNodeRunning().then( (isNodeRunningResponse)=>{
-            console.log("tick", new Date().getTime(), isNodeRunningResponse);
-            if (isNodeRunningResponse) {
+      if (isNodeRunningResponse) {
+        console.log("tick: done");
 
-                console.log("tick: done");
-                clearInterval(intervalId);
+        // Stop the interval
+        if (intervalIdRef.current) {
+          clearInterval(intervalIdRef.current);
+          intervalIdRef.current = null; // Reset the ref to avoid unintended usage
+        }
 
-                // Check to see if we already have an address set, else
-                // the user needs to log in again.
-                DefaultWalletAddress().then((addressResponse)=>{
-                    console.log("default wallet address:", addressResponse);
-                    if (addressResponse !== undefined && addressResponse !== null && addressResponse !== "") {
-                        console.log("currentOpenWalletAtAddress:", currentOpenWalletAtAddress);
-                        setCurrentOpenWalletAtAddress(addressResponse);
-                        setForceURL("/dashboard");
-                    } else {
-                        setForceURL("/wallets");
-                    }
-                })
-            }
-        })
-    }
-
-    ////
-    //// Misc.
-    ////
-
-    useEffect(() => {
-      let mounted = true;
-
-      if (mounted) {
-            window.scrollTo(0, 0); // Start the page at the top of the page.
-            const interval = setInterval(() => backgroundPollingTick(), 1000);
-            setIntervalId(interval);
+        // Check default wallet address and redirect accordingly
+        DefaultWalletAddress().then((addressResponse) => {
+          console.log("default wallet address:", addressResponse);
+          if (addressResponse) {
+            console.log("currentOpenWalletAtAddress:", currentOpenWalletAtAddress);
+            setCurrentOpenWalletAtAddress(addressResponse);
+            setForceURL("/dashboard");
+          } else {
+            setForceURL("/wallets");
+          }
+        });
       }
+    });
+  };
 
-      return () => {
-        mounted = false;
-      };
-    }, []);
+  useEffect(() => {
+    // Start the interval when the component mounts
+    intervalIdRef.current = setInterval(() => backgroundPollingTick(), 1000);
 
-    ////
-    //// Component rendering.
-    ////
+    // Cleanup: Clear the interval when the component unmounts
+    return () => {
+      if (intervalIdRef.current) {
+        clearInterval(intervalIdRef.current);
+      }
+    };
+  }, []); // Empty dependency array ensures this runs only on mount
 
-    if (forceURL !== "") {
-      return <Navigate to={forceURL} />;
-    }
+  // Redirect if `forceURL` is set
+  if (forceURL !== "") {
+    return <Navigate to={forceURL} />;
+  }
 
-    return (
-        <PageLoadingContent displayMessage="Starting up..." />
-    )
+  // Render loading message
+  return <PageLoadingContent displayMessage="Starting up..." />;
 }
 
-export default StartupView
+export default StartupView;
