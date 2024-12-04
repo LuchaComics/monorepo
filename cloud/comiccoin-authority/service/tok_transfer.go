@@ -192,7 +192,7 @@ func (s *TokenTransferService) Execute(
 			NonceBytes:       big.NewInt(time.Now().Unix()).Bytes(),
 			From:             tokenOwnerAddress,
 			To:               recipientAddress,
-			Value:            0, // Authority does not have any transactional fees.
+			Value:            s.config.Blockchain.TransactionFee, // Note: This value gets reclaimed by the us, so it's fully recirculating when authority calls this.
 			Data:             make([]byte, 0),
 			Type:             domain.TransactionTypeToken,
 			TokenIDBytes:     token.IDBytes,

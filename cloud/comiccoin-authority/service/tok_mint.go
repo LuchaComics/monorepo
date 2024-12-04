@@ -43,7 +43,10 @@ func NewTokenMintService(
 	return &TokenMintService{cfg, logger, kmutex, client, s1, uc1, uc2, uc3, uc4}
 }
 
-func (s *TokenMintService) Execute(ctx context.Context, metadataURI string) (*big.Int, error) {
+func (s *TokenMintService) Execute(
+	ctx context.Context,
+	metadataURI string,
+) (*big.Int, error) {
 	// Lock the mining service until it has completed executing (or errored).
 	s.kmutex.Acquire("token-services")
 	defer s.kmutex.Release("token-services")
@@ -145,7 +148,7 @@ func (s *TokenMintService) Execute(ctx context.Context, metadataURI string) (*bi
 			NonceBytes:       big.NewInt(time.Now().Unix()).Bytes(),
 			From:             s.config.Blockchain.ProofOfAuthorityAccountAddress,
 			To:               s.config.Blockchain.ProofOfAuthorityAccountAddress,
-			Value:            0, // Authority does not have any transactional fees.
+			Value:            s.config.Blockchain.TransactionFee, // Note: This value gets reclaimed by the us, so it's fully recirculating when authority calls this.
 			Data:             make([]byte, 0),
 			Type:             domain.TransactionTypeToken,
 			TokenIDBytes:     latestTokenID.Bytes(),

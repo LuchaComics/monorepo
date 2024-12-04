@@ -140,7 +140,7 @@ func (s *CoinTransferService) Execute(
 		NonceBytes: big.NewInt(time.Now().Unix()).Bytes(),
 		From:       wallet.Address,
 		To:         to,
-		Value:      value,
+		Value:      value + s.config.Blockchain.TransactionFee, // Note: The transanction fee gets reclaimed by the us, so it's fully recirculating when authority calls this.
 		Data:       data,
 		Type:       domain.TransactionTypeCoin,
 	}
@@ -164,6 +164,7 @@ func (s *CoinTransferService) Execute(
 		slog.Any("nonce", stx.GetNonce()),
 		slog.Any("from", stx.From),
 		slog.Any("to", stx.To),
+		slog.Any("fee", s.config.Blockchain.TransactionFee),
 		slog.Any("value", stx.Value),
 		slog.Any("data", stx.Data),
 		slog.Any("type", stx.Type),
