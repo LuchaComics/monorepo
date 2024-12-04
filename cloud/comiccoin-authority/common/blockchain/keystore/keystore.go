@@ -67,7 +67,7 @@ func CreateWalletInMemory(password *sstring.SecureString) (common.Address, []byt
 
 // OpenWalletFromMemory decrypts the given key JSON in memory using the provided password.
 func OpenWalletFromMemory(binaryData []byte, password *sstring.SecureString) (*keystore.Key, error) {
-	log.Println("KeystoreAdapter: OpenWalletFromMemory: Starting ...")
+	// log.Println("KeystoreAdapter: OpenWalletFromMemory: Starting ...")
 
 	// Decrypt the key JSON with the password.
 	key, err := keystore.DecryptKey(binaryData, password.String())
@@ -76,6 +76,6 @@ func OpenWalletFromMemory(binaryData []byte, password *sstring.SecureString) (*k
 		return nil, fmt.Errorf("failed to decrypt key: %v", err)
 	}
 
-	log.Println("KeystoreAdapter: OpenWalletFromMemory: Success")
+	// log.Println("KeystoreAdapter: OpenWalletFromMemory: Success")
 	return key, nil
 }

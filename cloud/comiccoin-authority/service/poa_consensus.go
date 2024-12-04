@@ -93,9 +93,10 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		slog.Any("token_id", mempoolTx.GetTokenID()),
 		slog.Any("token_metadata_uri", mempoolTx.TokenMetadataURI),
 		slog.Any("token_nonce", mempoolTx.GetTokenNonce()),
-		slog.Any("tx_sig_v_bytes", mempoolTx.VBytes),
-		slog.Any("tx_sig_r_bytes", mempoolTx.RBytes),
-		slog.Any("tx_sig_s_bytes", mempoolTx.SBytes))
+		// slog.Any("tx_sig_v_bytes", mempoolTx.VBytes),
+		// slog.Any("tx_sig_r_bytes", mempoolTx.RBytes),
+		// slog.Any("tx_sig_s_bytes", mempoolTx.SBytes)
+	)
 
 	if mempoolTx.VBytes == nil {
 		err := fmt.Errorf("Missing: %v", "v_bytes")
@@ -403,7 +404,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		blockData.HeaderSignatureBytes = blockDataHeaderSignatureBytes
 		blockData.Validator = poaValidator
 
-		s.logger.Info("PoA mining completed",
+		s.logger.Info("Authority consensus mechanism completed",
 			slog.String("hash", blockData.Hash),
 			slog.Any("block_number", blockData.Header.GetNumber()),
 			slog.String("prev_block_hash", blockData.Header.PrevBlockHash),
@@ -437,13 +438,13 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		//
 
 		if err := s.upsertBlockDataUseCase.Execute(sessCtx, blockData.Hash, blockData.Header, blockData.HeaderSignatureBytes, blockData.Trans, blockData.Validator); err != nil {
-			s.logger.Error("PoA mining service failed saving block data",
+			s.logger.Error("Authority failed saving block data",
 				slog.Any("error", err))
 			sessCtx.AbortTransaction(ctx)
 			return nil, err
 		}
 
-		s.logger.Info("PoA mining service added new block to blockchain",
+		s.logger.Info("Authority added new block to blockchain",
 			slog.Any("hash", blockData.Hash),
 			slog.Any("block_number", blockData.Header.GetNumber()),
 			slog.String("state_root", blockData.Header.StateRoot),
@@ -501,9 +502,10 @@ func (s *ProofOfAuthorityConsensusMechanismService) verifyMempoolTransaction(ses
 		slog.Any("token_id", mempoolTx.GetTokenID()),
 		slog.Any("token_metadata_uri", mempoolTx.TokenMetadataURI),
 		slog.Any("token_nonce", mempoolTx.GetTokenNonce()),
-		slog.Any("tx_sig_v_bytes", mempoolTx.VBytes),
-		slog.Any("tx_sig_r_bytes", mempoolTx.RBytes),
-		slog.Any("tx_sig_s_bytes", mempoolTx.SBytes))
+		// slog.Any("tx_sig_v_bytes", mempoolTx.VBytes),
+		// slog.Any("tx_sig_r_bytes", mempoolTx.RBytes),
+		// slog.Any("tx_sig_s_bytes", mempoolTx.SBytes)
+	)
 
 	pk, err := mempoolTx.FromPublicKey()
 	if err != nil {
@@ -644,7 +646,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) processFeesInAccountForMempo
 			return err
 		}
 
-		s.logger.Debug("New `From` account balance via validator",
+		s.logger.Debug("New `From` account balance via Authority",
 			slog.Any("account_address", acc.Address),
 			slog.Any("balance", acc.Balance),
 		)
@@ -666,10 +668,13 @@ func (s *ProofOfAuthorityConsensusMechanismService) processFeesInAccountForMempo
 				slog.Any("error", err))
 			return err
 		}
-		s.logger.Debug("Authority claims transaction fee",
-			slog.Any("account_address", proofOfAuthorityAccount.Address),
-			slog.Any("balance", proofOfAuthorityAccount.Balance),
+		s.logger.Debug("Authority collected transaction fee",
+			slog.Any("authority_address", proofOfAuthorityAccount.Address),
+			slog.Any("collected_fee", s.config.Blockchain.TransactionFee),
+			slog.Any("new_balance", proofOfAuthorityAccount.Balance),
 		)
+	} else {
+		s.logger.Debug("Transaction by Authority detected, skipping collecting transaction fee")
 	}
 
 	return nil
@@ -702,7 +707,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) processAccountForCoinMempool
 			return err
 		}
 
-		s.logger.Debug("New `From` pof account balance via validator",
+		s.logger.Debug("New `From` pof account balance via Authority",
 			slog.Any("account_address", proofOfAuthorityAccount.Address),
 			slog.Any("balance", proofOfAuthorityAccount.Balance),
 		)
@@ -734,7 +739,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) processAccountForCoinMempool
 			return err
 		}
 
-		s.logger.Debug("New `From` account balance via validator",
+		s.logger.Debug("New `From` account balance via Authority",
 			slog.Any("account_address", acc.Address),
 			slog.Any("balance", acc.Balance),
 		)
@@ -779,7 +784,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) processAccountForCoinMempool
 			return err
 		}
 
-		s.logger.Debug("New `To` account balance via validator",
+		s.logger.Debug("New `To` account balance via Authority",
 			slog.Any("account_address", acc.Address),
 			slog.Any("balance", acc.Balance),
 		)
@@ -819,7 +824,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) processAccountForTokenMempoo
 					slog.Any("error", err))
 				return err
 			}
-			s.logger.Debug("New `From` account balance via validator b/c of token",
+			s.logger.Debug("New `From` account balance via Authority b/c of token",
 				slog.Any("account_address", acc.Address),
 				slog.Any("balance", acc.Balance),
 			)
@@ -855,7 +860,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) processAccountForTokenMempoo
 				return err
 			}
 
-			s.logger.Debug("New `To` account via validator b/c of token",
+			s.logger.Debug("New `To` account via Authority b/c of token",
 				slog.Any("account_address", acc.Address),
 				slog.Any("balance", acc.Balance),
 			)
