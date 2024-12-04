@@ -456,12 +456,19 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		blockchainState.LatestBlockNumberBytes = blockData.Header.NumberBytes
 		blockchainState.LatestHash = blockData.Hash
 		blockchainState.LatestTokenIDBytes = latestTokenID.Bytes()
+		blockchainState.TransactionFee = s.config.Blockchain.TransactionFee // This is what is applied by the authority.
 		if err := s.upsertBlockchainStateUseCase.Execute(sessCtx, blockchainState); err != nil {
 			s.logger.Error("Failed upserting blockchain state",
 				slog.Any("error", err))
 			sessCtx.AbortTransaction(ctx)
 			return nil, err
 		}
+
+		s.logger.Info("Blockchain state changed by Authority",
+			slog.Any("latest_hash", blockchainState.LatestHash),
+			slog.Any("latest_token_id", blockchainState.GetLatestTokenID()),
+			slog.Any("transaction_fee", blockchainState.TransactionFee),
+		)
 
 		s.logger.Debug("Publishing to redis....")
 		if err := s.blockchainStatePublishUseCase.Execute(sessCtx, blockchainState); err != nil {
