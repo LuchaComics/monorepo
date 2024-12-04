@@ -187,7 +187,9 @@ function TransactionDetailView() {
                         <FormRowText label="Type" value={transaction.from === toLower(currentOpenWalletAtAddress) ? "Sent" : "Received"} />
                         <FormRowText label="Timestamp" value={`${new Date(transaction.timestamp).toLocaleString()}`} />
                         {transaction.type === "coin" ? <>
-                            <FormRowText label="Value" value={transaction.value} />
+                            <FormRowText label={`${transaction.from === toLower(currentOpenWalletAtAddress) ? "Value sent to the Global Blockchain Network" : "Value received from the Global Blockchain Network"}`} value={transaction.value} />
+                            <FormRowText label="Transaction Fee Paid" value={transaction.fee} />
+                            <FormRowText label="Actual Value" value={transaction.value-transaction.fee} />
                         </> : <>
                             <FormRowText label="Token ID" value={transaction.token_id} />
                         </>}

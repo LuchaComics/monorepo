@@ -37,7 +37,6 @@ export namespace domain {
 	    from?: number[];
 	    to?: number[];
 	    value: number;
-	    tip: number;
 	    data: number[];
 	    type: string;
 	    token_id_bytes: number[];
@@ -47,8 +46,7 @@ export namespace domain {
 	    r_bytes: number[];
 	    s_bytes: number[];
 	    timestamp: number;
-	    gas_price: number;
-	    gas_units: number;
+	    fee: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new BlockTransaction(source);
@@ -61,7 +59,6 @@ export namespace domain {
 	        this.from = source["from"];
 	        this.to = source["to"];
 	        this.value = source["value"];
-	        this.tip = source["tip"];
 	        this.data = source["data"];
 	        this.type = source["type"];
 	        this.token_id_bytes = source["token_id_bytes"];
@@ -71,8 +68,7 @@ export namespace domain {
 	        this.r_bytes = source["r_bytes"];
 	        this.s_bytes = source["s_bytes"];
 	        this.timestamp = source["timestamp"];
-	        this.gas_price = source["gas_price"];
-	        this.gas_units = source["gas_units"];
+	        this.fee = source["fee"];
 	    }
 	}
 	export class BlockHeader {
@@ -80,9 +76,9 @@ export namespace domain {
 	    number_bytes: number[];
 	    prev_block_hash: string;
 	    timestamp: number;
-	    beneficiary: number[];
 	    difficulty: number;
-	    mining_reward: number;
+	    beneficiary: number[];
+	    transaction_fee: number;
 	    state_root: string;
 	    trans_root: string;
 	    nonce_bytes: number[];
@@ -99,9 +95,9 @@ export namespace domain {
 	        this.number_bytes = source["number_bytes"];
 	        this.prev_block_hash = source["prev_block_hash"];
 	        this.timestamp = source["timestamp"];
-	        this.beneficiary = source["beneficiary"];
 	        this.difficulty = source["difficulty"];
-	        this.mining_reward = source["mining_reward"];
+	        this.beneficiary = source["beneficiary"];
+	        this.transaction_fee = source["transaction_fee"];
 	        this.state_root = source["state_root"];
 	        this.trans_root = source["trans_root"];
 	        this.nonce_bytes = source["nonce_bytes"];
@@ -252,7 +248,6 @@ export namespace domain {
 	    from?: number[];
 	    to?: number[];
 	    value: number;
-	    tip: number;
 	    data: number[];
 	    type: string;
 	    token_id_bytes: number[];
@@ -273,7 +268,6 @@ export namespace domain {
 	        this.from = source["from"];
 	        this.to = source["to"];
 	        this.value = source["value"];
-	        this.tip = source["tip"];
 	        this.data = source["data"];
 	        this.type = source["type"];
 	        this.token_id_bytes = source["token_id_bytes"];
