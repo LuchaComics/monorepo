@@ -233,11 +233,11 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 
 		//
 		// STEP 5:
-		// Process 🪙 coin value + transaction fee.
+		// Process 🪙 transactional fee(s).
 		//
 
-		if err := s.processAccountForMempoolTransaction(sessCtx, mempoolTx, proofOfAuthorityAccount); err != nil {
-			s.logger.Error("Failed processing account in pending block transaction",
+		if err := s.processFeesInAccountForMempoolTransaction(sessCtx, mempoolTx, proofOfAuthorityAccount); err != nil {
+			s.logger.Error("Failed processing transaction fees in pending block transaction",
 				slog.Any("error", err))
 			sessCtx.AbortTransaction(ctx)
 			return nil, err
@@ -245,12 +245,26 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 
 		//
 		// STEP 6:
+		// Process 🪙 coin value
+		//
+
+		if mempoolTx.Type == domain.TransactionTypeCoin {
+			if err := s.processAccountForCoinMempoolTransaction(sessCtx, mempoolTx, proofOfAuthorityAccount); err != nil {
+				s.logger.Error("Failed processing account in pending block transaction",
+					slog.Any("error", err))
+				sessCtx.AbortTransaction(ctx)
+				return nil, err
+			}
+		}
+
+		//
+		// STEP 7:
 		// Process 🎟️ tokens.
 		//
 
 		latestTokenID := blockchainState.GetLatestTokenID()
 		if mempoolTx.Type == domain.TransactionTypeToken {
-			if err := s.processTokenForMempoolTransaction(sessCtx, mempoolTx, blockchainState); err != nil {
+			if err := s.processAccountForTokenMempoolTransaction(sessCtx, mempoolTx, blockchainState); err != nil {
 				s.logger.Error("Failed processing token in mempool block transaction",
 					slog.Any("error", err))
 				sessCtx.AbortTransaction(ctx)
@@ -356,7 +370,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		}
 
 		//
-		// STEP 7:
+		// STEP 8:
 		// Execute the proof of work to find our nonce to meet the hash difficulty.
 		//
 
@@ -374,7 +388,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		blockData := domain.NewBlockData(block)
 
 		//
-		// STEP 5
+		// STEP 9:
 		// Our proof-of-authority signs this block data's header.
 		//
 
@@ -406,7 +420,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		)
 
 		//
-		// STEP 6
+		// STEP 10:
 		// Delete mempool data as it has already been processed.
 		//
 
@@ -418,7 +432,7 @@ func (s *ProofOfAuthorityConsensusMechanismService) Execute(ctx context.Context)
 		}
 
 		//
-		// STEP 7:
+		// STEP 11:
 		// Save to (local) blockchain database
 		//
 
@@ -591,7 +605,190 @@ func (s *ProofOfAuthorityConsensusMechanismService) verifyMempoolTransaction(ses
 	return nil
 }
 
-func (s *ProofOfAuthorityConsensusMechanismService) processTokenForMempoolTransaction(
+func (s *ProofOfAuthorityConsensusMechanismService) processFeesInAccountForMempoolTransaction(sessCtx mongo.SessionContext, mempoolTx *domain.MempoolTransaction, proofOfAuthorityAccount *domain.Account) error {
+	// Develpoers Note:
+	// Proof of authority does not pay any transaction fees, hence all we are
+	// doing here is checking to see if the transaction came from the authority
+	// and if the transaction did not then we apply the fee.
+
+	if *mempoolTx.From != *proofOfAuthorityAccount.Address {
+		// DEVELOPERS NOTE:
+		// We already *should* have a `From` account in our database, so we can
+		// simply look it up and if the user does not exist then error.
+		acc, _ := s.getAccountUseCase.Execute(sessCtx, mempoolTx.From)
+		if acc == nil {
+			s.logger.Error("The `From` account does not exist in our database.",
+				slog.Any("hash", mempoolTx.From))
+			return fmt.Errorf("The `From` account does not exist in our database for hash: %v", mempoolTx.From.String())
+		}
+		acc.Balance -= s.config.Blockchain.TransactionFee
+
+		// DEVELOPERS NOTE:
+		// We do not need to change the `nonce` here, why? Because if we are
+		// handling a coin transaction and the `nonce` value change happens in
+		// another function called `processAccountForCoinMempoolTransaction`, so
+		// skip this.
+		//
+		// However the token transaction does not have handling of `nonce` value
+		// changes so then we will apply it here.
+		if mempoolTx.Type == domain.TransactionTypeToken {
+			// Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
+			accNonce := acc.GetNonce()
+			accNonce.Add(accNonce, big.NewInt(1))
+			acc.NonceBytes = accNonce.Bytes()
+		}
+
+		if err := s.upsertAccountUseCase.Execute(sessCtx, acc.Address, acc.Balance, acc.GetNonce()); err != nil {
+			s.logger.Error("Failed upserting account.",
+				slog.Any("error", err))
+			return err
+		}
+
+		s.logger.Debug("New `From` account balance via validator",
+			slog.Any("account_address", acc.Address),
+			slog.Any("balance", acc.Balance),
+		)
+
+		//
+		// STEP 2:
+		// Deposit the transaction fee back to the coinbase to be recirculated.
+		//
+
+		// Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
+		pofNonce := proofOfAuthorityAccount.GetNonce()
+		pofNonce.Add(pofNonce, big.NewInt(1))
+		proofOfAuthorityAccount.NonceBytes = pofNonce.Bytes()
+
+		// Claim transaction fee
+		proofOfAuthorityAccount.Balance += s.config.Blockchain.TransactionFee
+		if err := s.upsertAccountUseCase.Execute(sessCtx, proofOfAuthorityAccount.Address, proofOfAuthorityAccount.Balance, proofOfAuthorityAccount.GetNonce()); err != nil {
+			s.logger.Error("Failed upserting account.",
+				slog.Any("error", err))
+			return err
+		}
+		s.logger.Debug("Authority claims transaction fee",
+			slog.Any("account_address", proofOfAuthorityAccount.Address),
+			slog.Any("balance", proofOfAuthorityAccount.Balance),
+		)
+	}
+
+	return nil
+}
+
+func (s *ProofOfAuthorityConsensusMechanismService) processAccountForCoinMempoolTransaction(sessCtx mongo.SessionContext, mempoolTx *domain.MempoolTransaction, proofOfAuthorityAccount *domain.Account) error {
+	//
+	// STEP 1
+	// Subtract the value the from the sender's account balance.
+	//
+
+	if *mempoolTx.From == *proofOfAuthorityAccount.Address {
+		//----
+		// CASE 1 OF 2:
+		// Authority transfered coins
+		//----
+
+		proofOfAuthorityAccount.Balance -= mempoolTx.Value
+
+		// Note: Proof of authority does not pay any transaction fees!
+
+		// Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
+		pofNonce := proofOfAuthorityAccount.GetNonce()
+		pofNonce.Add(pofNonce, big.NewInt(1))
+		proofOfAuthorityAccount.NonceBytes = pofNonce.Bytes()
+
+		if err := s.upsertAccountUseCase.Execute(sessCtx, proofOfAuthorityAccount.Address, proofOfAuthorityAccount.Balance, proofOfAuthorityAccount.GetNonce()); err != nil {
+			s.logger.Error("Failed upserting pof account.",
+				slog.Any("error", err))
+			return err
+		}
+
+		s.logger.Debug("New `From` pof account balance via validator",
+			slog.Any("account_address", proofOfAuthorityAccount.Address),
+			slog.Any("balance", proofOfAuthorityAccount.Balance),
+		)
+
+	} else {
+		//----
+		// CASE 2 OF 2:
+		// Non-authority transfered.
+		//----
+
+		// DEVELOPERS NOTE:
+		// We already *should* have a `From` account in our database, so we can
+		acc, _ := s.getAccountUseCase.Execute(sessCtx, mempoolTx.From)
+		if acc == nil {
+			s.logger.Error("The `From` account does not exist in our database.",
+				slog.Any("hash", mempoolTx.From))
+			return fmt.Errorf("The `From` account does not exist in our database for hash: %v", mempoolTx.From.String())
+		}
+		acc.Balance -= mempoolTx.Value
+
+		// Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
+		accNonce := acc.GetNonce()
+		accNonce.Add(accNonce, big.NewInt(1))
+		acc.NonceBytes = accNonce.Bytes()
+
+		if err := s.upsertAccountUseCase.Execute(sessCtx, acc.Address, acc.Balance, acc.GetNonce()); err != nil {
+			s.logger.Error("Failed upserting account.",
+				slog.Any("error", err))
+			return err
+		}
+
+		s.logger.Debug("New `From` account balance via validator",
+			slog.Any("account_address", acc.Address),
+			slog.Any("balance", acc.Balance),
+		)
+	}
+
+	//
+	// STEP 3:
+	// Depost the coins into the receipents account.
+	//
+
+	if mempoolTx.To != nil {
+		// DEVELOPERS NOTE:
+		// It is perfectly normal that our account would possibly not exist
+		// so we would need to create a new Account record in our database.
+		acc, _ := s.getAccountUseCase.Execute(sessCtx, mempoolTx.To)
+		if acc == nil {
+			if err := s.upsertAccountUseCase.Execute(sessCtx, mempoolTx.To, 0, big.NewInt(0)); err != nil {
+				s.logger.Error("Failed creating account.",
+					slog.Any("error", err))
+				return err
+			}
+			acc = &domain.Account{
+				Address: mempoolTx.To,
+
+				// Always start by zero, increment by 1 after mining successful.
+				NonceBytes: big.NewInt(0).Bytes(),
+
+				Balance: mempoolTx.Value,
+			}
+		} else {
+			acc.Balance += mempoolTx.Value
+
+			// Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
+			accNonce := acc.GetNonce()
+			accNonce.Add(accNonce, big.NewInt(1))
+			acc.NonceBytes = accNonce.Bytes()
+		}
+
+		if err := s.upsertAccountUseCase.Execute(sessCtx, acc.Address, acc.Balance, acc.GetNonce()); err != nil {
+			s.logger.Error("Failed upserting account.",
+				slog.Any("error", err))
+			return err
+		}
+
+		s.logger.Debug("New `To` account balance via validator",
+			slog.Any("account_address", acc.Address),
+			slog.Any("balance", acc.Balance),
+		)
+	}
+
+	return nil
+}
+
+func (s *ProofOfAuthorityConsensusMechanismService) processAccountForTokenMempoolTransaction(
 	sessCtx mongo.SessionContext,
 	mempoolTx *domain.MempoolTransaction,
 	blockchainState *domain.BlockchainState,
@@ -695,143 +892,6 @@ func (s *ProofOfAuthorityConsensusMechanismService) processTokenForMempoolTransa
 				slog.Any("error", err))
 			return err
 		}
-	}
-
-	return nil
-}
-
-func (s *ProofOfAuthorityConsensusMechanismService) processAccountForMempoolTransaction(sessCtx mongo.SessionContext, mempoolTx *domain.MempoolTransaction, proofOfAuthorityAccount *domain.Account) error {
-	//
-	// STEP 1
-	// Subtract the value and the transaction fee from the sender's account balance.
-	//
-
-	if *mempoolTx.From == *proofOfAuthorityAccount.Address {
-		//----
-		// CASE 1 OF 2:
-		// Authority transfered coins
-		//----
-
-		proofOfAuthorityAccount.Balance -= mempoolTx.Value
-
-		// Note: Proof of authority does not pay any transaction fees!
-
-		// Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
-		pofNonce := proofOfAuthorityAccount.GetNonce()
-		pofNonce.Add(pofNonce, big.NewInt(1))
-		proofOfAuthorityAccount.NonceBytes = pofNonce.Bytes()
-
-		if err := s.upsertAccountUseCase.Execute(sessCtx, proofOfAuthorityAccount.Address, proofOfAuthorityAccount.Balance, proofOfAuthorityAccount.GetNonce()); err != nil {
-			s.logger.Error("Failed upserting pof account.",
-				slog.Any("error", err))
-			return err
-		}
-
-		s.logger.Debug("New `From` pof account balance via validator",
-			slog.Any("account_address", proofOfAuthorityAccount.Address),
-			slog.Any("balance", proofOfAuthorityAccount.Balance),
-		)
-
-	} else {
-		//----
-		// CASE 2 OF 2:
-		// Non-authority transfered.
-		//----
-
-		// DEVELOPERS NOTE:
-		// We already *should* have a `From` account in our database, so we can
-		acc, _ := s.getAccountUseCase.Execute(sessCtx, mempoolTx.From)
-		if acc == nil {
-			s.logger.Error("The `From` account does not exist in our database.",
-				slog.Any("hash", mempoolTx.From))
-			return fmt.Errorf("The `From` account does not exist in our database for hash: %v", mempoolTx.From.String())
-		}
-		acc.Balance -= mempoolTx.Value
-		acc.Balance -= s.config.Blockchain.TransactionFee
-
-		// Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
-		accNonce := acc.GetNonce()
-		accNonce.Add(accNonce, big.NewInt(1))
-		acc.NonceBytes = accNonce.Bytes()
-
-		if err := s.upsertAccountUseCase.Execute(sessCtx, acc.Address, acc.Balance, acc.GetNonce()); err != nil {
-			s.logger.Error("Failed upserting account.",
-				slog.Any("error", err))
-			return err
-		}
-
-		s.logger.Debug("New `From` account balance via validator",
-			slog.Any("account_address", acc.Address),
-			slog.Any("balance", acc.Balance),
-		)
-
-		//
-		// STEP 2:
-		// Deposit the transaction fee back to the coinbase to be recirculated.
-		//
-
-		// Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
-		pofNonce := proofOfAuthorityAccount.GetNonce()
-		pofNonce.Add(pofNonce, big.NewInt(1))
-		proofOfAuthorityAccount.NonceBytes = pofNonce.Bytes()
-
-		// Claim transaction fee
-		proofOfAuthorityAccount.Balance += s.config.Blockchain.TransactionFee
-		if err := s.upsertAccountUseCase.Execute(sessCtx, proofOfAuthorityAccount.Address, proofOfAuthorityAccount.Balance, proofOfAuthorityAccount.GetNonce()); err != nil {
-			s.logger.Error("Failed upserting account.",
-				slog.Any("error", err))
-			return err
-		}
-		s.logger.Debug("Authority claims transaction fee",
-			slog.Any("account_address", proofOfAuthorityAccount.Address),
-			slog.Any("balance", proofOfAuthorityAccount.Balance),
-		)
-	}
-
-	//
-	// STEP 3:
-	// Depost the coins into the receipents account.
-	//
-
-	if mempoolTx.To != nil {
-		// DEVELOPERS NOTE:
-		// It is perfectly normal that our account would possibly not exist
-		// so we would need to create a new Account record in our local
-		// in-memory database.
-		acc, _ := s.getAccountUseCase.Execute(sessCtx, mempoolTx.To)
-		if acc == nil {
-			if err := s.upsertAccountUseCase.Execute(sessCtx, mempoolTx.To, 0, big.NewInt(0)); err != nil {
-				s.logger.Error("Failed creating account.",
-					slog.Any("error", err))
-				return err
-			}
-			acc = &domain.Account{
-				Address: mempoolTx.To,
-
-				// Always start by zero, increment by 1 after mining successful.
-				NonceBytes: big.NewInt(0).Bytes(),
-
-				Balance: mempoolTx.Value,
-			}
-		} else {
-			acc.Balance += mempoolTx.Value
-
-			// Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
-			accNonce := acc.GetNonce()
-			accNonce.Add(accNonce, big.NewInt(1))
-			acc.NonceBytes = accNonce.Bytes()
-		}
-
-		if err := s.upsertAccountUseCase.Execute(sessCtx, acc.Address, acc.Balance, acc.GetNonce()); err != nil {
-			s.logger.Error("Failed upserting account.",
-				slog.Any("error", err))
-			return err
-		}
-
-		s.logger.Debug("New `To` account balance via validator",
-			slog.Any("account_address", acc.Address),
-			slog.Any("balance", acc.Balance),
-		)
 	}
 
 	return nil
