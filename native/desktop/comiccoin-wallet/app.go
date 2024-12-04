@@ -364,6 +364,9 @@ func (a *App) startup(ctx context.Context) {
 	)
 	tokenTransferService := service.NewTokenTransferService(
 		logger,
+		listPendingSignedTransactionUseCase,
+		getGenesisBlockDataUseCase,
+		upsertPendingSignedTransactionUseCase,
 		getAccountUseCase,
 		getWalletUseCase,
 		walletDecryptKeyUseCase,
@@ -372,6 +375,9 @@ func (a *App) startup(ctx context.Context) {
 	)
 	tokenBurnService := service.NewTokenBurnService(
 		logger,
+		listPendingSignedTransactionUseCase,
+		getGenesisBlockDataUseCase,
+		upsertPendingSignedTransactionUseCase,
 		getAccountUseCase,
 		getWalletUseCase,
 		walletDecryptKeyUseCase,

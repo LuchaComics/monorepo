@@ -328,6 +328,9 @@ func doRunDaemonCmd() {
 	)
 	tokenTransferService := service.NewTokenTransferService(
 		logger,
+		listPendingSignedTransactionUseCase,
+		getGenesisBlockDataUseCase,
+		upsertPendingSignedTransactionUseCase,
 		getAccountUseCase,
 		getWalletUseCase,
 		walletDecryptKeyUseCase,
@@ -336,6 +339,9 @@ func doRunDaemonCmd() {
 	)
 	tokenBurnService := service.NewTokenBurnService(
 		logger,
+		listPendingSignedTransactionUseCase,
+		getGenesisBlockDataUseCase,
+		upsertPendingSignedTransactionUseCase,
 		getAccountUseCase,
 		getWalletUseCase,
 		walletDecryptKeyUseCase,
