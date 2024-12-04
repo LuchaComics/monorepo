@@ -161,8 +161,8 @@ function SendCoinSubmissionView() {
                       placeholder="0"
                       value={coin}
                       errorText={errors && errors.coin}
-                      helpText=""
-                      onChange={(e) => setCoin(e.target.value)}
+                      helpText={<>Total coins that will be sent: {coin} + Transactional Fee = {parseInt(coin)+1}</>}
+                      onChange={(e) => setCoin(parseInt(e.target.value))}
                       isRequired={true}
                       maxWidth="300px"
                     />
@@ -209,7 +209,7 @@ function SendCoinSubmissionView() {
                           onClick={onSubmitClick}
                         >
                           <FontAwesomeIcon className="fas" icon={faCheckCircle} />
-                          &nbsp;Send
+                          &nbsp;Send {coin > 0 && <>{parseInt(coin)+1} ComicCoins</>}
                         </button>
                       </div>
                     </div>
