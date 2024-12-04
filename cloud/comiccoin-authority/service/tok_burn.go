@@ -194,7 +194,7 @@ func (s *TokenBurnService) Execute(
 			NonceBytes:       big.NewInt(time.Now().Unix()).Bytes(),
 			From:             tokenOwnerAddress,
 			To:               &burnAddress,
-			Value:            s.config.Blockchain.TransactionFee, // Must pay the transaction fee.
+			Value:            0, // Authority does not have any transactional fees.
 			Data:             make([]byte, 0),
 			Type:             domain.TransactionTypeToken,
 			TokenIDBytes:     token.IDBytes,
