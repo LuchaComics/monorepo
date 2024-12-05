@@ -4,9 +4,13 @@ go 1.23.0
 
 require (
 	github.com/awnumar/memguard v0.22.5
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/ethereum/go-ethereum v1.14.12
+	github.com/faabiosr/cachego v0.22.2
+	github.com/fxamacker/cbor/v2 v2.7.0
 	github.com/google/uuid v1.6.0
 	github.com/im7mortal/kmutex v1.0.2
+	github.com/mailgun/mailgun-go/v4 v4.18.5
 	github.com/rs/cors v1.11.1
 	github.com/segmentio/ksuid v1.0.4
 	github.com/spf13/cobra v1.8.1
@@ -28,12 +32,9 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/deckarep/golang-set/v2 v2.6.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/ethereum/c-kzg-4844 v1.0.0 // indirect
 	github.com/ethereum/go-verkle v0.1.1-0.20240829091221-dffa7562dbe9 // indirect
-	github.com/faabiosr/cachego v0.22.2 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
-	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
 	github.com/go-chi/chi/v5 v5.0.8 // indirect
 	github.com/golang/snappy v0.0.5-0.20220116011046-fa5810519dcb // indirect
 	github.com/holiman/uint256 v1.3.1 // indirect
@@ -41,7 +42,6 @@ require (
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/klauspost/compress v1.16.0 // indirect
 	github.com/mailgun/errors v0.3.0 // indirect
-	github.com/mailgun/mailgun-go/v4 v4.18.5 // indirect
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
 	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742 // indirect
