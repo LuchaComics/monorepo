@@ -43,10 +43,9 @@ function ReceiveView() {
     ////
 
     const [copied, setCopied] = useState(false);
-  const walletAddress = "cc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh";
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(walletAddress);
+    navigator.clipboard.writeText(currentOpenWalletAtAddress);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -137,7 +136,7 @@ function ReceiveView() {
                   <input
                     type="text"
                     readOnly
-                    value={walletAddress}
+                    value={currentOpenWalletAtAddress}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg font-mono text-gray-800"
                   />
                 </div>

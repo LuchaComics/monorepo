@@ -135,9 +135,30 @@ function DashboardView() {
  //   }
  // ];
 
- const handleTransactionClick = (txId) => {
-   console.log(`Navigate to transaction ${txId} details`);
+ const handleTransactionClick = (tx) => {
+   console.log(`Navigate to transaction ${tx}`);
+   setForceURL("/more/transaction/"+tx.timestamp);
  };
+
+ const formatAddress = (address) => {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+
+  const getTransactionTime = (timestamp) => {
+    const now = Date.now();
+    const diff = now - timestamp;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
+    if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    if (minutes > 0) return `${minutes} min ago`;
+    return 'Just now';
+  };
+
+
+  const isReceived = (tx) => tx.to.toLowerCase() === currentOpenWalletAtAddress.toLowerCase();
 
  return (
    <div>
@@ -235,49 +256,58 @@ function DashboardView() {
                   </div>
                 </div>
 
-                <div className="divide-y divide-gray-100">
-                  {transactions.map((tx, index) => (
-                    <button
-                      key={tx.id}
-                      onClick={() => handleTransactionClick(tx.id)}
-                      className="w-full p-4 hover:bg-slate-50 transition-colors flex items-center justify-between gap-4"
-                      aria-label={`${tx.type === 'Received' ? 'Received' : 'Sent'} ${tx.assetType}: ${tx.description}. ${tx.type === 'Received' ? 'From' : 'To'} ${tx.type === 'Received' ? tx.from : tx.to}, ${tx.timestamp}. Click for details.`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className={`p-3 rounded-xl ${
-                          tx.type === 'Received' ? 'bg-green-100' : 'bg-red-100'
+                {/* Recent Transactions */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+
+
+          <div className="divide-y divide-gray-100">
+            {transactions.map((tx) => {
+              const received = isReceived(tx);
+
+              return (
+                <button
+                  key={tx.timestamp}
+                  onClick={() => handleTransactionClick(tx)}
+                  className="w-full p-4 hover:bg-slate-50 transition-colors flex items-center justify-between gap-4"
+                  aria-label={`${received ? 'Received' : 'Sent'} ${tx.value} coins ${
+                    received ? 'from' : 'to'
+                  } ${received ? tx.from : tx.to}, ${getTransactionTime(tx.timestamp)}. Click for details.`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`p-3 rounded-xl ${
+                      received ? 'bg-green-100' : 'bg-red-100'
+                    }`}>
+                      {received ? (
+                        <ArrowDownLeft className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <ArrowUpRight className="w-5 h-5 text-red-600" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className={`font-semibold ${
+                          received ? 'text-green-600' : 'text-red-600'
                         }`}>
-                          {tx.type === 'Received' ? (
-                            <ArrowDownLeft className={`w-5 h-5 ${
-                              tx.type === 'Received' ? 'text-green-600' : 'text-red-600'
-                            }`} />
-                          ) : (
-                            <ArrowUpRight className={`w-5 h-5 ${
-                              tx.type === 'Received' ? 'text-green-600' : 'text-red-600'
-                            }`} />
-                          )}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className={`font-semibold ${
-                              tx.type === 'Received' ? 'text-green-600' : 'text-red-600'
-                            }`}>
-                              {tx.amount} {tx.assetType === 'Coin' ? 'CC' : ''}
-                            </p>
-                            <span className="px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-full">
-                              {tx.assetType}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-600 mt-1">{tx.description}</p>
-                        </div>
+                          {received ? '+' : '-'}{tx.value-1} CC
+                        </p>
+                        <span className="px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-full">
+                          {tx.type.toUpperCase()}
+                        </span>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm text-gray-500">{tx.timestamp}</span>
-                        <ArrowRight className="w-4 h-4 text-gray-400" />
-                      </div>
-                    </button>
-                  ))}
-                </div>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {received ? 'From: ' : 'To: '}{formatAddress(received ? tx.from : tx.to)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-gray-500">{getTransactionTime(tx.timestamp)}</span>
+                    <ArrowRight className="w-4 h-4 text-gray-400" />
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
             </>
         }
        </div>}
