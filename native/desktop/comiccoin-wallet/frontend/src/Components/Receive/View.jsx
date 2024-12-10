@@ -72,57 +72,8 @@ function ReceiveView() {
             {/* QR Code Placeholder */}
             <div className="flex justify-center">
               <div className="p-4 bg-white rounded-2xl border-2 border-gray-100">
-                <svg width="240" height="240" viewBox="0 0 240 240" className="bg-white">
-                  <rect x="0" y="0" width="240" height="240" fill="white" />
-
-                  {/* QR Code Corner Markers */}
-                  {/* Top Left */}
-                  <g>
-                    <rect x="20" y="20" width="60" height="60" fill="black" />
-                    <rect x="30" y="30" width="40" height="40" fill="white" />
-                    <rect x="40" y="40" width="20" height="20" fill="black" />
-                  </g>
-
-                  {/* Top Right */}
-                  <g>
-                    <rect x="160" y="20" width="60" height="60" fill="black" />
-                    <rect x="170" y="30" width="40" height="40" fill="white" />
-                    <rect x="180" y="40" width="20" height="20" fill="black" />
-                  </g>
-
-                  {/* Bottom Left */}
-                  <g>
-                    <rect x="20" y="160" width="60" height="60" fill="black" />
-                    <rect x="30" y="170" width="40" height="40" fill="white" />
-                    <rect x="40" y="180" width="20" height="20" fill="black" />
-                  </g>
-
-                  {/* QR Code Data Pattern (Simplified) */}
-                  {[...Array(10)].map((_, i) => (
-                    <rect
-                      key={i}
-                      x={90 + (i * 10)}
-                      y={90}
-                      width="8"
-                      height="8"
-                      fill={Math.random() > 0.5 ? "black" : "white"}
-                    />
-                  ))}
-
-                  {/* Additional random patterns */}
-                  {[...Array(8)].map((_, row) => (
-                    [...Array(8)].map((_, col) => (
-                      <rect
-                        key={`${row}-${col}`}
-                        x={90 + (col * 10)}
-                        y={110 + (row * 10)}
-                        width="8"
-                        height="8"
-                        fill={Math.random() > 0.5 ? "black" : "white"}
-                      />
-                    ))
-                  ))}
-                </svg>
+                {/* https://www.npmjs.com/package/qrcode.react */}
+                <QRCodeSVG value={currentOpenWalletAtAddress} size={240} />
               </div>
             </div>
 
