@@ -23,7 +23,7 @@ import ReceiveView from "./Components/Receive/View";
 import MoreView from "./Components/More/View";
 import ListWalletsView from "./Components/More/Wallets/ListView";
 import CreateWalletView from "./Components/More/Wallets/CreateView";
-// import ListTransactionsView from "./Components/Transactions/ListView";
+import ListTransactionsView from "./Components/More/Transactions/ListView";
 // import TransactionDetailView from "./Components/Transactions/DetailView";
 // import ListTokensView from "./Components/Tokens/ListView";
 // import TokenDetailView from "./Components/Tokens/DetailView";
@@ -55,8 +55,8 @@ function AppRoute() {
                         <Route path="/more" element={<MoreView />} exact />
                         <Route path="/more/wallets" element={<ListWalletsView />} exact />
                         <Route path="/more/wallets/add" element={<CreateWalletView />} exact />
-                        {/*
                         <Route path="/more/transactions" element={<ListTransactionsView />} exact />
+                        {/*
                         <Route path="/more/transaction/:timestamp" element={<TransactionDetailView />} exact />
                         <Route path="/more/tokens" element={<ListTokensView />} exact />
                         <Route path="/more/token/:tokenID" element={<TokenDetailView />} exact />
