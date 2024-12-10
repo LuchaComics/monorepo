@@ -1,27 +1,9 @@
 import {useState, useEffect} from 'react';
 import { Link, Navigate } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faTasks,
-  faGauge,
-  faArrowRight,
-  faUsers,
-  faBarcode,
-  faCubes,
-  faPaperPlane,
-  faTimesCircle,
-  faCheckCircle,
-} from "@fortawesome/free-solid-svg-icons";
+import { WalletMinimal, Send, QrCode, MoreHorizontal, Wallet, CheckCircle2, ArrowRight } from 'lucide-react';
 import { useRecoilState } from "recoil";
 
-import logo from '../../assets/images/CPS-logo-2023-square.webp';
-import FormErrorBox from "../Reusable/FormErrorBox";
-import FormInputField from "../Reusable/FormInputField";
-import FormRadioField from "../Reusable/FormRadioField";
-import FormTextareaField from "../Reusable/FormTextareaField";
-import {TransferCoin} from "../../../wailsjs/go/main/App";
 import { currentOpenWalletAtAddressState } from "../../AppState";
-import PageLoadingContent from "../Reusable/PageLoadingContent";
 
 
 function SendCoinSuccessView() {
@@ -41,11 +23,6 @@ function SendCoinSuccessView() {
     const [isLoading, setIsLoading] = useState(false);
 
     // Form Submission States.
-    const [payTo, setPayTo] = useState("");
-    const [coin, setCoin] = useState(0);
-    const [message, setMessage] = useState("");
-    const [walletPassword, setWalletPassword] = useState("");
-
     ////
     //// Event handling.
     ////
@@ -89,55 +66,33 @@ function SendCoinSuccessView() {
     }
 
     return (
-        <>
-          <div class="container">
-            <section class="section">
-              <nav class="box">
-                <div class="columns">
-                  <div class="column">
-                    <h1 class="title is-4">
-                      <FontAwesomeIcon className="fas" icon={faPaperPlane} />
-                      &nbsp;Send ComicCoins
-                    </h1>
-                  </div>
+        <div>
+            <main className="max-w-2xl mx-auto px-6 py-12 mb-24">
+                <div className="bg-white rounded-xl border-2 border-gray-100 overflow-hidden">
+                 <div className="p-12 text-center">
+                   <div className="flex justify-center mb-6">
+                     <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
+                       <CheckCircle2 className="w-12 h-12 text-green-600" />
+                     </div>
+                   </div>
+
+                   <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                     Transaction Submitted!
+                   </h2>
+
+                   <p className="text-gray-600 max-w-md mx-auto mb-8">
+                     Your coins have been successfully sent to the specified account. Please allow a few minutes for the transaction to be processed on the blockchain.
+                   </p>
+
+                   <Link className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors" to={`/dashboard`}>
+                     Return to Overview
+                     <ArrowRight className="w-4 h-4" />
+                   </Link>
+                 </div>
                 </div>
-
-                <section class="hero is-success is-halfheight">
-                  <div class="hero-body">
-                    <div class="">
-                      <p class="title"> <FontAwesomeIcon className="fas" icon={faCheckCircle} />&nbsp;Coins sent!</p>
-                      <p class="subtitle">You have successfully sent coin(s) to the specified account. Please wait a few minutes for the transaction to get processed on the blockchain.</p>
-                    </div>
-                  </div>
-                </section>
-
-                <div class="columns pt-5" style={{alignSelf: "flex-start"}}>
-                  <div class="column is-half">
-                    {/*
-                    <button
-                      class="button is-fullwidth-mobile"
-                      onClick={(e) => setShowCancelWarning(true)}
-                    >
-                      <FontAwesomeIcon className="fas" icon={faTimesCircle} />
-                      &nbsp;Clear
-                    </button>
-                    */}
-                  </div>
-                  <div class="column is-half has-text-right">
-                    <Link
-                      class="button is-primary is-fullwidth-mobile"
-                      to="/more/transactions"
-                    >
-                      Go to transactions&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} />
-                    </Link>
-                  </div>
-                </div>
-
-              </nav>
-            </section>
-          </div>
-        </>
+            </main>
+       </div>
     );
-}
+};
 
 export default SendCoinSuccessView

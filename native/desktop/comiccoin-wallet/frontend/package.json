@@ -13,7 +13,8 @@
     "@fortawesome/react-fontawesome": "^0.2.2",
     "bulma": "^1.0.2",
     "lodash": "^4.17.21",
-    "qrcode.react": "^4.0.1",
+    "lucide-react": "^0.468.0",
+    "qrcode.react": "^4.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.27.0",
@@ -24,6 +25,9 @@
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",
     "@vitejs/plugin-react": "^2.0.1",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.16",
     "vite": "^3.0.7"
   }
 }

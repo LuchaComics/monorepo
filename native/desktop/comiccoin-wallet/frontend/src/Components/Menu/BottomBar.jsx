@@ -1,32 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faBars,
-  faRightFromBracket,
-  faTachometer,
-  faTasks,
-  faSignOut,
-  faUserCircle,
-  faUsers,
-  faBuilding,
-  faGauge,
-  faPaperPlane,
-  faEllipsis,
-  faInbox
-} from "@fortawesome/free-solid-svg-icons";
-import { useRecoilState } from "recoil";
+import { WalletMinimal, Send, QrCode, MoreHorizontal, Clock, Coins, Wallet, ArrowRight, ArrowUpRight, ArrowDownLeft, Ticket } from 'lucide-react';
 
-import logo from '../../assets/images/CPS-logo-2023-square.webp';
-import { onHamburgerClickedState, currentUserState } from "../../AppState";
-import { USER_ROLE_ROOT, USER_ROLE_RETAILER, USER_ROLE_CUSTOMER } from "../../Constants/App";
 
 function BottomTabBar() {
   ////
   //// Global State
   ////
 
-
+  // Do nothing.
 
   ////
   //// Local State
@@ -52,6 +34,7 @@ function BottomTabBar() {
     "/",
     "/pick-data-directory",
     "/startup",
+    "/create-your-first-wallet",
     "/wallets",
     "/wallet/add",
     "/send-processing",
@@ -80,42 +63,43 @@ function BottomTabBar() {
 
   // Render the following component GUI
   return (
-    <nav className="tabs is-bottom is-fullwidth">
-        <ul>
-            <li className={`has-text-grey-light ${location.pathname.includes("dashboard") && "is-active"}`}>
-              <Link to="/dashboard">
-                <span className="icon is-small">
-                  <FontAwesomeIcon icon={faGauge} />
-                </span>
-                <span>Overview</span>
-              </Link>
-            </li>
-            <li className={`has-text-grey-light ${location.pathname.includes("send") && "is-active"}`}>
-              <Link to="/send">
-                <span className="icon is-small">
-                  <FontAwesomeIcon icon={faPaperPlane} />
-                </span>
-                <span>Send</span>
-              </Link>
-            </li>
-            <li className={`has-text-grey-light ${location.pathname.includes("receive") && "is-active"}`}>
-              <Link to="/receive">
-                <span className="icon is-small">
-                  <FontAwesomeIcon icon={faInbox} />
-                </span>
-                <span>Receive</span>
-              </Link>
-            </li>
-            <li className={`has-text-grey-light ${!location.pathname.includes("dashboard") && !location.pathname.includes("send") && !location.pathname.includes("receive") && "is-active"}`}>
-              <Link to="/more">
-                <span className="icon is-small">
-                  <FontAwesomeIcon icon={faEllipsis} />
-                </span>
-                <span>More</span>
-              </Link>
-            </li>
-        </ul>
-    </nav>
+      <nav className="fixed bottom-0 w-full bg-white border-t border-gray-200 shadow-lg" aria-label="Primary navigation">
+        <div className="grid grid-cols-4 h-20">
+          <Link
+            to="/dashboard"
+            className={`flex flex-col items-center justify-center space-y-2 ${location.pathname.includes("dashboard") && "bg-purple-50"}`}
+            aria-label="Overview tab, currently selected"
+            aria-current="page"
+          >
+            <Wallet className="w-7 h-7 text-purple-600" aria-hidden="true" />
+            <span className="text-sm text-purple-600">Overview</span>
+          </Link>
+          <Link
+            to="/send"
+            className={`flex flex-col items-center justify-center space-y-2 ${location.pathname.includes("send") && "bg-purple-50"}`}
+            aria-label="Send tab"
+          >
+            <Send className="w-7 h-7 text-gray-600" aria-hidden="true" />
+            <span className="text-sm text-gray-600">Send</span>
+          </Link>
+          <Link
+            to="/receive"
+            className={`flex flex-col items-center justify-center space-y-2 ${location.pathname.includes("receive") && "bg-purple-50"}`}
+            aria-label="Receive tab"
+          >
+            <QrCode className="w-7 h-7 text-gray-600" aria-hidden="true" />
+            <span className="text-sm text-gray-600">Receive</span>
+          </Link>
+          <Link
+            to="/more"
+            className={`flex flex-col items-center justify-center space-y-2 ${!location.pathname.includes("dashboard") && !location.pathname.includes("send") && !location.pathname.includes("receive") && "bg-purple-50"}`}
+            aria-label="More options tab"
+          >
+            <MoreHorizontal className="w-7 h-7 text-gray-600" aria-hidden="true" />
+            <span className="text-sm text-gray-600">More</span>
+          </Link>
+        </div>
+      </nav>
   );
 }
 

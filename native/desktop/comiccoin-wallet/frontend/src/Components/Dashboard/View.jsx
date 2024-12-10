@@ -1,17 +1,6 @@
 import {useState, useEffect} from 'react';
 import { Link, Navigate } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faTasks,
-  faGauge,
-  faArrowRight,
-  faUsers,
-  faBarcode,
-  faCubes,
-  faFileInvoiceDollar,
-  faCoins,
-  faChevronRight
-} from "@fortawesome/free-solid-svg-icons";
+import { WalletMinimal, Send, QrCode, MoreHorizontal, Clock, Coins, Wallet, ArrowRight, ArrowUpRight, ArrowDownLeft, Ticket } from 'lucide-react';
 import { useRecoilState } from "recoil";
 
 import logo from '../../assets/images/CPS-logo-2023-square.webp';
@@ -98,88 +87,203 @@ function DashboardView() {
         return <Navigate to={forceURL} />;
     }
 
-    return (
-        <>
-          <div class="container">
-            <section class="section">
-              <nav class="box">
-                <div class="columns">
-                  <div class="column">
-                    <h1 class="title is-4">
-                      <FontAwesomeIcon className="fas" icon={faGauge} />
-                      &nbsp;Overview
-                    </h1>
+ // const recentTransactions = [
+ //   {
+ //     id: 1,
+ //     type: 'Received',
+ //     assetType: 'Coin',
+ //     amount: '+50',
+ //     from: '0x1234...5678',
+ //     timestamp: '2 mins ago',
+ //     description: 'Payment received from friend'
+ //   },
+ //   {
+ //     id: 2,
+ //     type: 'Sent',
+ //     assetType: 'NFT',
+ //     amount: 'Hero #123',
+ //     to: '0x8765...4321',
+ //     timestamp: '1 hour ago',
+ //     description: 'Sent NFT to marketplace'
+ //   },
+ //   {
+ //     id: 3,
+ //     type: 'Received',
+ //     assetType: 'Coin',
+ //     amount: '+100',
+ //     from: '0x9876...5432',
+ //     timestamp: '3 hours ago',
+ //     description: 'Salary payment'
+ //   },
+ //   {
+ //     id: 4,
+ //     type: 'Sent',
+ //     assetType: 'Coin',
+ //     amount: '-10',
+ //     to: '0x2468...1357',
+ //     timestamp: '5 hours ago',
+ //     description: 'Coffee purchase'
+ //   },
+ //   {
+ //     id: 5,
+ //     type: 'Received',
+ //     assetType: 'NFT',
+ //     amount: 'Villain #456',
+ //     from: '0x1357...2468',
+ //     timestamp: 'Yesterday',
+ //     description: 'NFT reward received'
+ //   }
+ // ];
+
+ const handleTransactionClick = (txId) => {
+   console.log(`Navigate to transaction ${txId} details`);
+ };
+
+ return (
+   <div>
+     <main className="max-w-2xl mx-auto px-6 py-12 mb-24">
+       {/* Balance Cards */}
+       <div className="grid grid-cols-2 gap-6 mb-6">
+         {/* Coin Balance Card */}
+         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700 text-white p-1">
+           <div className="absolute top-0 right-0 w-32 h-32 transform translate-x-16 -translate-y-8">
+             <div className="w-full h-full rounded-full bg-purple-400 opacity-20"></div>
+           </div>
+           <div className="relative p-6 space-y-6">
+             <div className="flex items-center gap-3">
+               <div className="p-2 bg-white/20 rounded-lg">
+                 <Coins className="w-6 h-6" aria-hidden="true" />
+               </div>
+               <span className="text-sm font-medium">Total Coins</span>
+             </div>
+             <div className="space-y-1">
+               <p className="text-3xl font-bold" aria-label={`${totalCoins} ComicCoins`}>
+                 {totalCoins}
+               </p>
+               <p className="text-sm text-purple-200">Available Balance</p>
+             </div>
+           </div>
+         </div>
+
+         {/* NFT Balance Card */}
+         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white p-1">
+           <div className="absolute top-0 right-0 w-32 h-32 transform translate-x-16 -translate-y-8">
+             <div className="w-full h-full rounded-full bg-indigo-400 opacity-20"></div>
+           </div>
+           <div className="relative p-6 space-y-6">
+             <div className="flex items-center gap-3">
+               <div className="p-2 bg-white/20 rounded-lg">
+                 <Ticket className="w-6 h-6" aria-hidden="true" />
+               </div>
+               <span className="text-sm font-medium">Total NFTs</span>
+             </div>
+             <div className="space-y-1">
+               <p className="text-3xl font-bold" aria-label={`${totalTokens} NFTs`}>
+                 {totalTokens}
+               </p>
+               <p className="text-sm text-indigo-200">Collected Items</p>
+             </div>
+           </div>
+         </div>
+       </div>
+
+       {/* Recent Transactions */}
+       {transactions && <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+        {transactions.length <= 0 ?
+            <>
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+                 <div className="p-6 border-b border-gray-100">
+                   <div className="flex justify-between items-center">
+                     <div className="flex items-center gap-3">
+                       <div className="p-2 bg-purple-100 rounded-xl">
+                         <Clock className="w-5 h-5 text-purple-600" aria-hidden="true" />
+                       </div>
+                       <h2 className="text-xl font-bold text-gray-900">Recent Transactions</h2>
+                     </div>
+                   </div>
+                 </div>
+
+                 {/* Empty State Message */}
+                 <div className="py-16 px-6">
+                   <div className="text-center">
+                     <div className="w-16 h-16 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center">
+                       <Clock className="w-8 h-8 text-purple-600" aria-hidden="true" />
+                     </div>
+                     <h3 className="text-lg font-medium text-gray-900 mb-2">No Transactions Yet</h3>
+                     <p className="text-gray-500 max-w-sm mx-auto">
+                       Start your journey by sending or receiving ComicCoins or NFTs. Your transaction history will appear here.
+                     </p>
+                   </div>
+                 </div>
+               </div>
+            </> :
+            <>
+                <div className="p-6 border-b border-gray-100">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-purple-100 rounded-xl">
+                        <Clock className="w-5 h-5 text-purple-600" aria-hidden="true" />
+                      </div>
+                      <h2 className="text-xl font-bold text-gray-900">Recent Transactions</h2>
+                    </div>
+                    <button
+                      className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-800 transition-colors text-lg"
+                    >
+                      See More
+                      <ArrowRight className="w-5 h-5" />
+                    </button>
                   </div>
                 </div>
 
-                {isLoading
-                ? <>
-                    <PageLoadingContent displayMessage="Loading..." />
-
-                </> : <>
-                    <nav class="level">
-                  <div class="level-item has-text-centered">
-                    <div>
-                      <p class="heading">Coins</p>
-                      <p class="title">{totalCoins}</p>
-                    </div>
-                  </div>
-                  <div class="level-item has-text-centered">
-                    <div>
-                      <p class="heading">Tokens Count</p>
-                      <p class="title">{totalTokens}</p>
-                    </div>
-                  </div>
-
-                </nav>
-
-                <h1 className="subtitle is-4 pt-5"><FontAwesomeIcon className="fas" icon={faFileInvoiceDollar} />&nbsp;Recent Transactions</h1>
-                {transactions.length === 0 ? <>
-                    <section class="hero is-warning is-medium">
-                      <div class="hero-body">
-                        <p class="title"><FontAwesomeIcon className="fas" icon={faFileInvoiceDollar} />&nbsp;No recent transactions</p>
-                        <p class="subtitle">This wallet currently does not have any transactions.</p>
+                <div className="divide-y divide-gray-100">
+                  {transactions.map((tx, index) => (
+                    <button
+                      key={tx.id}
+                      onClick={() => handleTransactionClick(tx.id)}
+                      className="w-full p-4 hover:bg-slate-50 transition-colors flex items-center justify-between gap-4"
+                      aria-label={`${tx.type === 'Received' ? 'Received' : 'Sent'} ${tx.assetType}: ${tx.description}. ${tx.type === 'Received' ? 'From' : 'To'} ${tx.type === 'Received' ? tx.from : tx.to}, ${tx.timestamp}. Click for details.`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={`p-3 rounded-xl ${
+                          tx.type === 'Received' ? 'bg-green-100' : 'bg-red-100'
+                        }`}>
+                          {tx.type === 'Received' ? (
+                            <ArrowDownLeft className={`w-5 h-5 ${
+                              tx.type === 'Received' ? 'text-green-600' : 'text-red-600'
+                            }`} />
+                          ) : (
+                            <ArrowUpRight className={`w-5 h-5 ${
+                              tx.type === 'Received' ? 'text-green-600' : 'text-red-600'
+                            }`} />
+                          )}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className={`font-semibold ${
+                              tx.type === 'Received' ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {tx.amount} {tx.assetType === 'Coin' ? 'CC' : ''}
+                            </p>
+                            <span className="px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-full">
+                              {tx.assetType}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600 mt-1">{tx.description}</p>
+                        </div>
                       </div>
-                    </section>
-                </> : <>
-                    <table className="table is-fullwidth is-size-7">
-                      <thead>
-                        <tr>
-                          <th></th>
-                          <th>Date</th>
-                          <th>Type</th>
-                          <th>Coin(s)</th>
-                          <th>Sender</th>
-                          <th>Receiver</th>
-                          <th></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {transactions.map((transaction) => (
-                          <tr key={transaction.timestamp}>
-                            <td>{transaction.type === "coin" ? <><FontAwesomeIcon className="fas" icon={faCoins} /></> : <><FontAwesomeIcon className="fas" icon={faCubes} /></>}</td>
-                            <td>{`${new Date(transaction.timestamp).toLocaleString()}`}</td>
-                            <td>{transaction.from === toLower(currentOpenWalletAtAddress) ? "Sent" : "Received"}</td>
-                            <td>{transaction.type === "coin" ? <>{transaction.value - transaction.fee}</> : <>-</>}</td>
-                            <td>{transaction.from}</td>
-                            <td>{transaction.to}</td>
-                            <td><Link to={`/more/transaction/${transaction.timestamp}`}><FontAwesomeIcon className="fas" icon={faChevronRight} /></Link></td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    <div className="has-text-right">
-                        <Link to={`/more/transactions`}>See More&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} /></Link>
-                    </div>
-                </>}
-                </>}
-
-
-            </nav>
-            </section>
-          </div>
-        </>
-    )
-}
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-gray-500">{tx.timestamp}</span>
+                        <ArrowRight className="w-4 h-4 text-gray-400" />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+            </>
+        }
+       </div>}
+     </main>
+   </div>
+ );
+};
 
 export default DashboardView

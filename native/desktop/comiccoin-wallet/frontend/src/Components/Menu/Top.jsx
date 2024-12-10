@@ -1,37 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faBars,
-  faRightFromBracket,
-  faTachometer,
-  faTasks,
-  faSignOut,
-  faUserCircle,
-  faUsers,
-  faBuilding,
-} from "@fortawesome/free-solid-svg-icons";
-import { useRecoilState } from "recoil";
-
-import logo from '../../assets/images/CPS-logo-2023-square.webp';
-import { onHamburgerClickedState, currentUserState } from "../../AppState";
-import { USER_ROLE_ROOT, USER_ROLE_RETAILER, USER_ROLE_CUSTOMER } from "../../Constants/App";
+import { WalletMinimal } from 'lucide-react';
 
 function Topbar() {
   ////
   //// Global State
   ////
 
-  const [onHamburgerClicked, setOnHamburgerClicked] = useRecoilState(
-    onHamburgerClickedState,
-  );
-  const [currentUser] = useRecoilState(currentUserState);
+  // Do nothing.
 
   ////
   //// Local State
   ////
 
-  const [showLogoutWarning, setShowLogoutWarning] = useState(false);
+  // Do nothing.
 
   ////
   //// Events
@@ -49,10 +31,7 @@ function Topbar() {
 
   // Get the current location and if we are at specific URL paths then we
   // will not render this component.
-  const ignorePathsArr = [
-    "/",
-    "/startup",
-  ];
+  const ignorePathsArr = ["/",];
   const location = useLocation();
   var arrayLength = ignorePathsArr.length;
   for (var i = 0; i < arrayLength; i++) {
@@ -76,32 +55,12 @@ function Topbar() {
 
   // Render the following component GUI
   return (
-    <div className="">
-      <nav
-        class="navbar has-background-black is-fixed-top"
-        role="navigation"
-        aria-label="main navigation"
-      >
-        <div class="navbar-brand">
-         <Link
-              class="navbar-item"
-              href="/admin/dashboard"
-              style={{ color: "white" }}
-            >
-              <img
-                src={logo}
-                width={28}
-                height={28}
-                alt="Logo Image"
-              />
-              &nbsp;ComicCoin
-          </Link>
-
+      <header className="bg-gradient-to-r from-purple-700 to-indigo-800 px-8 py-6 text-white shadow-lg">
+        <div className="flex items-center justify-center gap-4">
+          <WalletMinimal className="w-8 h-8" aria-hidden="true" />
+          <h1 className="text-3xl font-bold">ComicCoin Wallet</h1>
         </div>
-
-      </nav>
-
-    </div>
+      </header>
   );
 }
 
