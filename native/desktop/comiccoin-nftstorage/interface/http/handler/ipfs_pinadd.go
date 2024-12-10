@@ -96,7 +96,9 @@ func (h *IPFSPinAddHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) 
 	}
 	resp, err := h.service.Execute(context.Background(), req)
 	if err != nil {
-		h.logger.Error("Failed executing ipfs pin-add", slog.Any("error", err))
+		h.logger.Error("Failed executing ipfs pin-add",
+			// slog.Any("apiKey", apiKey), // For debugging purposes only.
+			slog.Any("error", err))
 		httperror.ResponseError(w, err)
 		return
 	}

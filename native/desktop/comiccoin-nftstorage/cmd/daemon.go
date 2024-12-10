@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"log"
+	"log/slog"
 	"net"
 	"os"
 	"os/signal"
@@ -159,7 +160,15 @@ func doDaemonCmd() {
 	go httpServ.Run()
 	defer httpServ.Shutdown()
 
-	logger.Info("Node running.")
+	logger.Info("Node running.",
+		slog.Any("dataDir", dataDir),
+		slog.Any("listenHTTPAddress", listenHTTPAddress),
+		// slog.Any("hmacSecretKey", hmacSecretKey), // For debugging purposes only.
+		// slog.Any("appSecretKey", appSecretKey),   // For debugging purposes only.
+		slog.Any("ipfsIP", ipfsIP),
+		slog.Any("ipfsPort", ipfsPort),
+		slog.Any("ipfsPublicGatewayAddress", ipfsPublicGatewayAddress),
+	)
 
 	<-done
 }
