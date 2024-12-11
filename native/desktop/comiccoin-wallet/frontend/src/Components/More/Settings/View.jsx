@@ -1,87 +1,248 @@
-import {useState, useEffect} from 'react';
-import { Link } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faTasks,
-  faGauge,
-  faArrowRight,
-  faUsers,
-  faBarcode,
-  faCubes,
-  faPaperPlane,
-  faEllipsis,
-  faCogs
-} from "@fortawesome/free-solid-svg-icons";
-
-
+import { useState, useEffect } from "react";
+import { Settings, AlertCircle, Info, Save, RefreshCw } from "lucide-react";
 
 function SettingsView() {
+  useEffect(() => {
+    let mounted = true;
 
+    if (mounted) {
+      window.scrollTo(0, 0); // Start the page at the top of the page.
+    }
 
-    useEffect(() => {
-      let mounted = true;
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
-      if (mounted) {
-            window.scrollTo(0, 0); // Start the page at the top of the page.
-      }
+  const [formData, setFormData] = useState({
+    data_directory: "/Users/bart/Library/Application Support/ComicCoin",
+    default_wallet_address: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+    nft_storage_address: "https://ipfs.io/ipfs/",
+    chain_id: "1337",
+    authority_address: "https://blockchain.authority.com",
+  });
 
+  const [errors, setErrors] = useState({});
+  const [showErrorBox, setShowErrorBox] = useState(false);
 
-      return () => {
-        mounted = false;
-      };
-    }, []);
+  const validateForm = () => {
+    const newErrors = {};
 
+    if (!formData.nft_storage_address) {
+      newErrors.nft_storage_address = "NFT Storage Address is required";
+    } else if (!formData.nft_storage_address.startsWith("https://")) {
+      newErrors.nft_storage_address =
+        "NFT Storage Address must be a valid HTTPS URL";
+    }
 
+    if (!formData.authority_address) {
+      newErrors.authority_address = "Authority Address is required";
+    } else if (!formData.authority_address.startsWith("https://")) {
+      newErrors.authority_address =
+        "Authority Address must be a valid HTTPS URL";
+    }
 
-    return (
-        <>
-          <div class="container">
-            <section class="section">
-              <nav class="breadcrumb" aria-label="breadcrumbs">
-                <ul>
-                  <li>
-                    <Link to="/dashboard" aria-current="page">
-                      <FontAwesomeIcon className="fas" icon={faGauge} />
-                      &nbsp;Overview
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/more" aria-current="page">
-                      <FontAwesomeIcon className="fas" icon={faEllipsis} />
-                      &nbsp;More
-                    </Link>
-                  </li>
-                  <li class="is-active">
-                    <Link to="/settings" aria-current="page">
-                      <FontAwesomeIcon className="fas" icon={faCogs} />
-                      &nbsp;Settings
-                    </Link>
-                  </li>
-                </ul>
-              </nav>
+    setErrors(newErrors);
+    setShowErrorBox(Object.keys(newErrors).length > 0);
+    return Object.keys(newErrors).length === 0;
+  };
 
-              <nav class="box">
-                <div class="columns">
-                  <div class="column">
-                    <h1 class="title is-4">
-                      <FontAwesomeIcon className="fas" icon={faCogs} />
-                      &nbsp;Settings
-                    </h1>
-                  </div>
-                </div>
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+      setShowErrorBox(false);
+    }
+  };
 
-                <div className="section">
-                  <div className="container">
-                    <div className="columns is-multiline">
-                    </div>
-                  </div>
-                </div>
+  const handleSubmit = () => {
+    if (validateForm()) {
+      console.log("Settings saved");
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
-              </nav>
-            </section>
+  return (
+    <div>
+      <main className="max-w-2xl mx-auto px-6 py-12 mb-24">
+        {showErrorBox && (
+          <div className="mb-6 bg-red-50 border-l-4 border-red-500 rounded-r-lg p-4 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <div className="flex-grow">
+              <h3 className="font-semibold text-red-800">
+                Unable to Save Settings
+              </h3>
+              <div className="text-sm text-red-600 mt-1 space-y-1">
+                {Object.values(errors).map((error, index) => (
+                  <p key={index}>• {error}</p>
+                ))}
+              </div>
+            </div>
           </div>
-        </>
-    )
+        )}
+
+        <div className="bg-white rounded-xl border-2 border-gray-100">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-xl">
+                  <Settings
+                    className="w-5 h-5 text-blue-600"
+                    aria-hidden="true"
+                  />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900">Settings</h2>
+              </div>
+            </div>
+            <p className="text-sm text-gray-500">
+              Configure your wallet settings and connection parameters.
+            </p>
+          </div>
+
+          <div className="p-6 space-y-8">
+            <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 flex gap-3">
+              <RefreshCw className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-amber-800">
+                <p className="font-semibold mb-1">
+                  Application Restart Required
+                </p>
+                <p>
+                  The application will restart automatically after saving these
+                  settings to apply the changes.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              {/* Read-only Fields */}
+              <label className="block">
+                <span className="text-sm font-medium text-gray-700">
+                  Data Directory
+                </span>
+                <input
+                  type="text"
+                  value={formData.data_directory}
+                  className="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-500"
+                  readOnly
+                />
+              </label>
+
+              <label className="block">
+                <span className="text-sm font-medium text-gray-700">
+                  Default Wallet Address
+                </span>
+                <input
+                  type="text"
+                  value={formData.default_wallet_address}
+                  className="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-500"
+                  readOnly
+                />
+              </label>
+
+              <label className="block">
+                <span className="text-sm font-medium text-gray-700">
+                  Chain ID
+                </span>
+                <input
+                  type="text"
+                  value={formData.chain_id}
+                  className="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-500"
+                  readOnly
+                />
+              </label>
+
+              {/* Editable Fields */}
+              <label className="block">
+                <span className="text-sm font-medium text-gray-700">
+                  NFT Storage Address <span className="text-red-500">*</span>
+                </span>
+                <input
+                  type="text"
+                  name="nft_storage_address"
+                  value={formData.nft_storage_address}
+                  onChange={handleInputChange}
+                  className={`mt-1 block w-full px-4 py-3 bg-white border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                    errors.nft_storage_address
+                      ? "border-red-300 bg-red-50"
+                      : "border-gray-200"
+                  }`}
+                  placeholder="Enter IPFS gateway address"
+                />
+                {errors.nft_storage_address && (
+                  <p className="mt-2 text-sm text-red-600 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.nft_storage_address}
+                  </p>
+                )}
+                <p className="mt-2 text-sm text-gray-600 flex items-start gap-2">
+                  <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span>
+                    The IPFS gateway address is used to connect to the IPFS
+                    network for accessing NFT metadata and content.
+                  </span>
+                </p>
+              </label>
+
+              <label className="block">
+                <span className="text-sm font-medium text-gray-700">
+                  Authority Address <span className="text-red-500">*</span>
+                </span>
+                <input
+                  type="text"
+                  name="authority_address"
+                  value={formData.authority_address}
+                  onChange={handleInputChange}
+                  className={`mt-1 block w-full px-4 py-3 bg-white border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                    errors.authority_address
+                      ? "border-red-300 bg-red-50"
+                      : "border-gray-200"
+                  }`}
+                  placeholder="Enter blockchain authority address"
+                />
+                {errors.authority_address && (
+                  <p className="mt-2 text-sm text-red-600 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.authority_address}
+                  </p>
+                )}
+                <p className="mt-2 text-sm text-gray-600 flex items-start gap-2">
+                  <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span>
+                    The authority address is used to connect your wallet to the
+                    Blockchain Network Service Provider.
+                  </span>
+                </p>
+              </label>
+            </div>
+
+            <div className="flex justify-end pt-4">
+              <button
+                onClick={handleSubmit}
+                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center gap-2"
+              >
+                Save Settings
+                <Save className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Bottom Tab Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg">
+        <div className="flex justify-around items-center">
+          <div className="px-4 py-3 text-gray-500">Overview</div>
+          <div className="px-4 py-3 text-gray-500">Send</div>
+          <div className="px-4 py-3 text-gray-500">Receive</div>
+          <div className="px-4 py-3 text-blue-500 border-t-2 border-blue-500">
+            More
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-export default SettingsView
+export default SettingsView;

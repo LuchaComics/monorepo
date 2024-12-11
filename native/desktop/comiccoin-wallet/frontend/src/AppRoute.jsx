@@ -30,7 +30,7 @@ import TokenDetailView from "./Components/More/Tokens/DetailView";
 import TokenTransferView from "./Components/More/Tokens/TransferView";
 import TokenTransferSuccessView from "./Components/More/Tokens/TransferSuccessView";
 import TokenBurnView from "./Components/More/Tokens/BurnView";
-// import SettingsView from "./Components/Settings/View";
+import SettingsView from "./Components/More/Settings/View";
 
 function AppRoute() {
   return (
@@ -106,9 +106,7 @@ function AppRoute() {
               element={<TokenTransferSuccessView />}
               exact
             />
-            {/*
-                        <Route path="/settings" element={<SettingsView />} exact />
-                        */}
+            <Route path="/more/settings" element={<SettingsView />} exact />
             <Route path="*" element={<NotFoundErrorView />} />
           </Routes>
 
