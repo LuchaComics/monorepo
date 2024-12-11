@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"log/slog"
+	"sort"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -80,6 +81,7 @@ func (r *BlockDataRepo) DeleteByHash(ctx context.Context, hash string) error {
 
 func (r *BlockDataRepo) ListBlockTransactionsByAddress(ctx context.Context, address *common.Address) ([]*domain.BlockTransaction, error) {
 	res := make([]*domain.BlockTransaction, 0)
+	var counter int64
 	err := r.dbClient.Iterate(func(key, value []byte) error {
 		blockdata, err := domain.NewBlockDataFromDeserialize(value)
 		if err != nil {
@@ -93,12 +95,16 @@ func (r *BlockDataRepo) ListBlockTransactionsByAddress(ctx context.Context, addr
 		for _, tx := range blockdata.Trans {
 			if strings.ToLower(tx.To.String()) == strings.ToLower(address.String()) || strings.ToLower(tx.From.String()) == strings.ToLower(address.String()) {
 				res = append(res, &tx)
+				counter++
 			}
 		}
-
-		// Return nil to indicate success because non-nil's indicate error.
 		return nil
 	})
+
+	sort.Slice(res, func(i, j int) bool {
+		return res[i].TimeStamp >= res[j].TimeStamp
+	})
+
 	return res, err
 }
 
@@ -129,6 +135,12 @@ func (r *BlockDataRepo) ListWithLimitForBlockTransactionsByAddress(ctx context.C
 		// Return nil to indicate success because non-nil's indicate error.
 		return nil
 	})
+
+	// Sort the results by timestamp
+	sort.Slice(res, func(i, j int) bool {
+		return res[i].TimeStamp >= res[j].TimeStamp
+	})
+
 	return res, err
 }
 
