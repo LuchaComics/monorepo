@@ -341,8 +341,10 @@ function DashboardView() {
                                   {/* What's going on here? If we received coins/token then the transactional fee was paid by the sender, so remove fee. If we are sender then show the transactional fee we paid. */}
                                   {`${received ? tx.value - 1 : tx.value}`} CC
                                 </p>
-                                <span className="px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-full">
-                                  {tx.type.toUpperCase()}
+                                <span>
+                                  <span className="px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-full">
+                                    {tx.type.toUpperCase()}
+                                  </span>
                                 </span>
                               </div>
                               <p className="text-sm text-gray-600 mt-1">
