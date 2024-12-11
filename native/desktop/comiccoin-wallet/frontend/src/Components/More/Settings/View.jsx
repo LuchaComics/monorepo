@@ -1,5 +1,12 @@
 import { useState, useEffect } from "react";
-import { Settings, AlertCircle, Info, Save, RefreshCw } from "lucide-react";
+import {
+  Settings,
+  AlertCircle,
+  Info,
+  Save,
+  RefreshCw,
+  ArrowLeft,
+} from "lucide-react";
 
 function SettingsView() {
   useEffect(() => {
@@ -14,16 +21,25 @@ function SettingsView() {
     };
   }, []);
 
-  const [formData, setFormData] = useState({
+  const initialFormData = {
     data_directory: "/Users/bart/Library/Application Support/ComicCoin",
     default_wallet_address: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
     nft_storage_address: "https://ipfs.io/ipfs/",
     chain_id: "1337",
     authority_address: "https://blockchain.authority.com",
-  });
+  };
 
+  const [formData, setFormData] = useState(initialFormData);
   const [errors, setErrors] = useState({});
   const [showErrorBox, setShowErrorBox] = useState(false);
+
+  // Check if editable fields have been modified
+  const hasChanges = () => {
+    return (
+      formData.nft_storage_address !== initialFormData.nft_storage_address ||
+      formData.authority_address !== initialFormData.authority_address
+    );
+  };
 
   const validateForm = () => {
     const newErrors = {};
@@ -102,18 +118,21 @@ function SettingsView() {
           </div>
 
           <div className="p-6 space-y-8">
-            <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 flex gap-3">
-              <RefreshCw className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-amber-800">
-                <p className="font-semibold mb-1">
-                  Application Restart Required
-                </p>
-                <p>
-                  The application will restart automatically after saving these
-                  settings to apply the changes.
-                </p>
+            {/* Show restart notice only if there are changes */}
+            {hasChanges() && (
+              <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 flex gap-3">
+                <RefreshCw className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-amber-800">
+                  <p className="font-semibold mb-1">
+                    Application Restart Required
+                  </p>
+                  <p>
+                    The application will restart automatically after saving
+                    these settings to apply the changes.
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="space-y-6">
               {/* Read-only Fields */}
@@ -151,6 +170,12 @@ function SettingsView() {
                   className="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-500"
                   readOnly
                 />
+                <p className="mt-2 text-sm text-gray-600 flex items-start gap-2">
+                  <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span>
+                    This is the blockchain network your wallet is subscribed to.
+                  </span>
+                </p>
               </label>
 
               {/* Editable Fields */}
@@ -217,7 +242,14 @@ function SettingsView() {
               </label>
             </div>
 
-            <div className="flex justify-end pt-4">
+            <div className="flex justify-between pt-4">
+              <button
+                onClick={() => console.log("Back clicked")}
+                className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors inline-flex items-center gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back
+              </button>
               <button
                 onClick={handleSubmit}
                 className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center gap-2"
