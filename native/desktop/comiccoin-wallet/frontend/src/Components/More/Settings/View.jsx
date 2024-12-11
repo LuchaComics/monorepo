@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Navigate } from "react-router-dom";
 import {
   Settings,
   AlertCircle,
@@ -8,30 +9,48 @@ import {
   ArrowLeft,
 } from "lucide-react";
 
+import {
+  GetPreferences,
+  SavePreferences,
+} from "../../../../wailsjs/go/main/App";
+
 function SettingsView() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [initialFormData, setInitialFormData] = useState({});
+  const [formData, setFormData] = useState({});
+  const [errors, setErrors] = useState({});
+  const [showErrorBox, setShowErrorBox] = useState(false);
+  const [forceURL, setForceURL] = useState("");
+
   useEffect(() => {
     let mounted = true;
 
     if (mounted) {
-      window.scrollTo(0, 0); // Start the page at the top of the page.
+      window.scrollTo(0, 0);
+      setIsLoading(true);
+
+      GetPreferences()
+        .then((res) => {
+          console.log("GetPreferences: res:", res);
+          if (mounted) {
+            setInitialFormData(res);
+            setFormData(res);
+          }
+        })
+        .catch((errorRes) => {
+          console.log("GetPreferences: errors:", errorRes);
+        })
+        .finally(() => {
+          if (mounted) {
+            setIsLoading(false);
+          }
+        });
     }
 
     return () => {
       mounted = false;
     };
   }, []);
-
-  const initialFormData = {
-    data_directory: "/Users/bart/Library/Application Support/ComicCoin",
-    default_wallet_address: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
-    nft_storage_address: "https://ipfs.io/ipfs/",
-    chain_id: "1337",
-    authority_address: "https://blockchain.authority.com",
-  };
-
-  const [formData, setFormData] = useState(initialFormData);
-  const [errors, setErrors] = useState({});
-  const [showErrorBox, setShowErrorBox] = useState(false);
 
   // Check if editable fields have been modified
   const hasChanges = () => {
@@ -46,16 +65,16 @@ function SettingsView() {
 
     if (!formData.nft_storage_address) {
       newErrors.nft_storage_address = "NFT Storage Address is required";
-    } else if (!formData.nft_storage_address.startsWith("https://")) {
+    } else if (!formData.nft_storage_address.startsWith("http")) {
       newErrors.nft_storage_address =
-        "NFT Storage Address must be a valid HTTPS URL";
+        "NFT Storage Address must be a valid HTTP URL";
     }
 
     if (!formData.authority_address) {
       newErrors.authority_address = "Authority Address is required";
-    } else if (!formData.authority_address.startsWith("https://")) {
+    } else if (!formData.authority_address.startsWith("http")) {
       newErrors.authority_address =
-        "Authority Address must be a valid HTTPS URL";
+        "Authority Address must be a valid HTTP URL";
     }
 
     setErrors(newErrors);
@@ -75,10 +94,26 @@ function SettingsView() {
   const handleSubmit = () => {
     if (validateForm()) {
       console.log("Settings saved");
+      setIsLoading(true);
+      SavePreferences(formData)
+        .then((res) => {
+          console.log("SavePreferences: res:", res);
+          // setForceURL("/more");
+        })
+        .catch((errorRes) => {
+          console.log("SavePreferences: errors:", errorRes);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
     } else {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
+
+  if (forceURL !== "") {
+    return <Navigate to={forceURL} />;
+  }
 
   return (
     <div>
@@ -135,31 +170,6 @@ function SettingsView() {
             )}
 
             <div className="space-y-6">
-              {/* Read-only Fields */}
-              <label className="block">
-                <span className="text-sm font-medium text-gray-700">
-                  Data Directory
-                </span>
-                <input
-                  type="text"
-                  value={formData.data_directory}
-                  className="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-500"
-                  readOnly
-                />
-              </label>
-
-              <label className="block">
-                <span className="text-sm font-medium text-gray-700">
-                  Default Wallet Address
-                </span>
-                <input
-                  type="text"
-                  value={formData.default_wallet_address}
-                  className="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-500"
-                  readOnly
-                />
-              </label>
-
               <label className="block">
                 <span className="text-sm font-medium text-gray-700">
                   Chain ID
@@ -174,38 +184,6 @@ function SettingsView() {
                   <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
                   <span>
                     This is the blockchain network your wallet is subscribed to.
-                  </span>
-                </p>
-              </label>
-
-              {/* Editable Fields */}
-              <label className="block">
-                <span className="text-sm font-medium text-gray-700">
-                  NFT Storage Address <span className="text-red-500">*</span>
-                </span>
-                <input
-                  type="text"
-                  name="nft_storage_address"
-                  value={formData.nft_storage_address}
-                  onChange={handleInputChange}
-                  className={`mt-1 block w-full px-4 py-3 bg-white border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                    errors.nft_storage_address
-                      ? "border-red-300 bg-red-50"
-                      : "border-gray-200"
-                  }`}
-                  placeholder="Enter IPFS gateway address"
-                />
-                {errors.nft_storage_address && (
-                  <p className="mt-2 text-sm text-red-600 flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4" />
-                    {errors.nft_storage_address}
-                  </p>
-                )}
-                <p className="mt-2 text-sm text-gray-600 flex items-start gap-2">
-                  <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                  <span>
-                    The IPFS gateway address is used to connect to the IPFS
-                    network for accessing NFT metadata and content.
                   </span>
                 </p>
               </label>
@@ -240,11 +218,66 @@ function SettingsView() {
                   </span>
                 </p>
               </label>
+
+              <label className="block">
+                <span className="text-sm font-medium text-gray-700">
+                  Data Directory
+                </span>
+                <input
+                  type="text"
+                  value={formData.data_directory}
+                  className="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-500"
+                  readOnly
+                />
+              </label>
+
+              <label className="block">
+                <span className="text-sm font-medium text-gray-700">
+                  NFT Storage Address <span className="text-red-500">*</span>
+                </span>
+                <input
+                  type="text"
+                  name="nft_storage_address"
+                  value={formData.nft_storage_address}
+                  onChange={handleInputChange}
+                  className={`mt-1 block w-full px-4 py-3 bg-white border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                    errors.nft_storage_address
+                      ? "border-red-300 bg-red-50"
+                      : "border-gray-200"
+                  }`}
+                  placeholder="Enter IPFS gateway address"
+                />
+                {errors.nft_storage_address && (
+                  <p className="mt-2 text-sm text-red-600 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.nft_storage_address}
+                  </p>
+                )}
+                <p className="mt-2 text-sm text-gray-600 flex items-start gap-2">
+                  <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span>
+                    The IPFS gateway address is used to connect to the IPFS
+                    network for accessing NFT metadata and content.
+                  </span>
+                </p>
+              </label>
+
+              <label className="block">
+                <span className="text-sm font-medium text-gray-700">
+                  Default Wallet Address
+                </span>
+                <input
+                  type="text"
+                  value={formData.default_wallet_address}
+                  className="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-500"
+                  readOnly
+                />
+              </label>
             </div>
 
             <div className="flex justify-between pt-4">
               <button
-                onClick={() => console.log("Back clicked")}
+                onClick={() => setForceURL("/more")}
                 className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors inline-flex items-center gap-2"
               >
                 <ArrowLeft className="w-4 h-4" />
@@ -261,18 +294,6 @@ function SettingsView() {
           </div>
         </div>
       </main>
-
-      {/* Bottom Tab Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg">
-        <div className="flex justify-around items-center">
-          <div className="px-4 py-3 text-gray-500">Overview</div>
-          <div className="px-4 py-3 text-gray-500">Send</div>
-          <div className="px-4 py-3 text-gray-500">Receive</div>
-          <div className="px-4 py-3 text-blue-500 border-t-2 border-blue-500">
-            More
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

@@ -50,6 +50,10 @@ export function GetNonFungibleTokensByOwnerAddress(arg1) {
   return window['go']['main']['App']['GetNonFungibleTokensByOwnerAddress'](arg1);
 }
 
+export function GetPreferences() {
+  return window['go']['main']['App']['GetPreferences']();
+}
+
 export function GetRecentTransactions(arg1) {
   return window['go']['main']['App']['GetRecentTransactions'](arg1);
 }
@@ -84,6 +88,14 @@ export function ListWallets() {
 
 export function SaveDataDirectory(arg1) {
   return window['go']['main']['App']['SaveDataDirectory'](arg1);
+}
+
+export function SavePreferences(arg1) {
+  return window['go']['main']['App']['SavePreferences'](arg1);
+}
+
+export function SetAuthorityAddress(arg1) {
+  return window['go']['main']['App']['SetAuthorityAddress'](arg1);
 }
 
 export function SetDefaultWalletAddress(arg1) {

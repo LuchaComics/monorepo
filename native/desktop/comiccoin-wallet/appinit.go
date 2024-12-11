@@ -95,6 +95,26 @@ func (a *App) SetNFTStorageAddress(nftStorageAddress string) error {
 	return nil
 }
 
+func (a *App) SetAuthorityAddress(authorityAddress string) error {
+	// Defensive code
+	if authorityAddress == "" {
+		return fmt.Errorf("failed saving authority address because: %v", "value is empty")
+	}
+	preferences := PreferencesInstance()
+	err := preferences.SetAuthorityAddress(authorityAddress)
+	if err != nil {
+		a.logger.Error("Failed setting authority address",
+			slog.Any("authority_address", authorityAddress),
+			slog.Any("error", err))
+		return err
+	}
+
+	// Re-attempt the startup now that we have value set.
+	a.logger.Debug("Authority address was set by user",
+		slog.Any("authority_address", authorityAddress))
+	return nil
+}
+
 func (a *App) ShutdownApp() {
 	runtime.Quit(a.ctx)
 }

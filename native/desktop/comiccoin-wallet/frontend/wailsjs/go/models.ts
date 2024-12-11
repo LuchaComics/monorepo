@@ -298,3 +298,28 @@ export namespace domain {
 
 }
 
+export namespace main {
+	
+	export class Preferences {
+	    data_directory: string;
+	    default_wallet_address: string;
+	    nft_storage_address: string;
+	    chain_id: number;
+	    authority_address: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Preferences(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.data_directory = source["data_directory"];
+	        this.default_wallet_address = source["default_wallet_address"];
+	        this.nft_storage_address = source["nft_storage_address"];
+	        this.chain_id = source["chain_id"];
+	        this.authority_address = source["authority_address"];
+	    }
+	}
+
+}
+
