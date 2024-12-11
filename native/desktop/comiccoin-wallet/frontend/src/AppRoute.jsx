@@ -59,7 +59,6 @@ function AppRoute() {
                         <Route path="/more/transaction/:timestamp" element={<TransactionDetailView />} exact />
                         <Route path="/more/tokens" element={<ListTokensView />} exact />
                         {/*
-
                         <Route path="/more/token/:tokenID" element={<TokenDetailView />} exact />
                         <Route path="/more/token/:tokenID/transfer" element={<TransferConfirmView />} exact />
                         <Route path="/more/token/:tokenID/transfer-success" element={<TokenTransferSuccessView />} exact />
