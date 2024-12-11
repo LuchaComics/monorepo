@@ -95,12 +95,12 @@ function TokenDetailView() {
 
               {/* Action Buttons */}
               <div className="flex gap-4 mb-6">
-                <button className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600">
+                <Link className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600" to={`/more/token/${tokenID}/burn`}>
                   Burn
-                </button>
-                <button className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
+                </Link>
+                <Link className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600" to={`/more/token/${tokenID}/transfer`}>
                   Transfer to Another Address
-                </button>
+                </Link>
               </div>
 
               {/* External Links */}

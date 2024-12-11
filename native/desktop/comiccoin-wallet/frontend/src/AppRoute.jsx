@@ -27,9 +27,9 @@ import ListTransactionsView from "./Components/More/Transactions/ListView";
 import TransactionDetailView from "./Components/More/Transactions/DetailView";
 import ListTokensView from "./Components/More/Tokens/ListView";
 import TokenDetailView from "./Components/More/Tokens/DetailView";
-// import TransferConfirmView from "./Components/Tokens/TransferConfirmView";
-// import TokenTransferSuccessView from "./Components/Tokens/TransferSuccessView";
-// import TokenBurnView from "./Components/Tokens/BurnView";
+import TokenTransferConfirmView from "./Components/More/Tokens/TransferConfirmView";
+import TokenTransferSuccessView from "./Components/Tokens/TransferSuccessView";
+import TokenBurnView from "./Components/More/Tokens/BurnView";
 // import SettingsView from "./Components/Settings/View";
 
 function AppRoute() {
@@ -59,10 +59,10 @@ function AppRoute() {
                         <Route path="/more/transaction/:timestamp" element={<TransactionDetailView />} exact />
                         <Route path="/more/tokens" element={<ListTokensView />} exact />
                         <Route path="/more/token/:tokenID" element={<TokenDetailView />} exact />
-                        {/*
-                        <Route path="/more/token/:tokenID/transfer" element={<TransferConfirmView />} exact />
-                        <Route path="/more/token/:tokenID/transfer-success" element={<TokenTransferSuccessView />} exact />
                         <Route path="/more/token/:tokenID/burn" element={<TokenBurnView />} exact />
+                        <Route path="/more/token/:tokenID/transfer" element={<TokenTransferConfirmView />} exact />
+                        <Route path="/more/token/:tokenID/transfer-success" element={<TokenTransferSuccessView />} exact />
+                        {/*
                         <Route path="/settings" element={<SettingsView />} exact />
                         */}
                         <Route path="*" element={<NotFoundErrorView />} />
