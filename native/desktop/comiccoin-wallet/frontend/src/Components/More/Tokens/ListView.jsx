@@ -1,5 +1,5 @@
 import {useState, useEffect} from 'react';
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { WalletMinimal, Send, QrCode, MoreHorizontal, Clock, Coins, Wallet, ArrowRight, ArrowUpRight, ArrowDownLeft, Tickets } from 'lucide-react';
 
 import { useRecoilState } from "recoil";
@@ -30,6 +30,7 @@ function ListTokensView() {
 
     const handleTokenClick = (tokID) => {
         console.log("tokID->", tokID);
+        setForceURL("/more/token/"+tokID);
     }
 
     ////
