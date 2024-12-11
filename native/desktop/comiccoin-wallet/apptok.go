@@ -117,3 +117,45 @@ func (a *App) GetNonFungibleToken(tokenID *big.Int) (*comic_domain.NonFungibleTo
 
 	return nftok, nil
 }
+
+func (a *App) BurnToken(
+	tokenID *big.Int,
+	senderAccountAddress string,
+	senderAccountPassword string,
+) error {
+
+	a.logger.Debug("Burning token...",
+		slog.Any("tokenID", tokenID),
+		slog.Any("senderAccountAddress", senderAccountAddress),
+		slog.Any("senderAccountPassword", senderAccountPassword),
+	)
+
+	var senderAccountAddr *common.Address = nil
+	if senderAccountAddress != "" {
+		sender := common.HexToAddress(senderAccountAddress)
+		senderAccountAddr = &sender
+	}
+
+	password, err := sstring.NewSecureString(senderAccountPassword)
+	if err != nil {
+		a.logger.Error("Failed securing password",
+			slog.Any("error", err))
+		return err
+	}
+	// defer password.Wipe() // Developers Note: Commented out b/c they are causing problems with our app.
+
+	tokenBurnErr := a.tokenBurnService.Execute(
+		a.ctx,
+		preferences.ChainID,
+		senderAccountAddr,
+		password,
+		tokenID,
+	)
+	if tokenBurnErr != nil {
+		a.logger.Error("Failed burning token",
+			slog.Any("error", tokenBurnErr))
+		return tokenBurnErr
+	}
+
+	return nil
+}

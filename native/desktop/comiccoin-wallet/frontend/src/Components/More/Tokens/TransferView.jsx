@@ -2,21 +2,23 @@ import { useState, useEffect } from "react";
 import { Link, useParams, Navigate } from "react-router-dom";
 import { useRecoilState } from "recoil";
 import { toLower } from "lodash";
-import { AlertCircle, Info, Trash2, ArrowLeft } from "lucide-react";
+import { AlertCircle, Info, Send, ArrowLeft } from "lucide-react";
 
 import {
   GetNonFungibleToken,
-  BurnToken,
+  TransferToken,
 } from "../../../../wailsjs/go/main/App";
 import { currentOpenWalletAtAddressState } from "../../../AppState";
 
 /**
- * TokenBurnView component allows users to burn a specific non-fungible token (NFT).
- * It handles user input for wallet password, validates the form, and sends a burn request to the backend.
- * The component fetches NFT details, displays relevant information, and provides options to cancel or proceed with the burn operation.
- * Error handling and visual feedback are integrated to improve user experience.
+ * TokenTransferView component allows users to transfer a specific non-fungible token (NFT) to another wallet address.
+ *
+ * It fetches NFT details using the tokenID from the URL parameters and the currently open wallet address from Recoil state.
+ * The component handles form input validation, password-protected transaction authorization using TransferToken API call,
+ * and provides visual feedback during the transfer process (loading indicator, error messages).
+ * Success or failure is indicated through URL redirection.
  */
-function TokenBurnView() {
+function TokenTransferView() {
   ////
   //// URL Parameters.
   ////
@@ -39,10 +41,10 @@ function TokenBurnView() {
   const [forceURL, setForceURL] = useState("");
   const [token, setToken] = useState([]);
   const [errors, setErrors] = useState({});
-  const [showError, setShowError] = useState(false);
   const [showErrorBox, setShowErrorBox] = useState(false);
   const [formData, setFormData] = useState({
-    walletPassword: "",
+    transferTo: "",
+    password: "",
   });
   const currentBalance = 105.0;
 
@@ -52,6 +54,12 @@ function TokenBurnView() {
 
   const validateForm = () => {
     const newErrors = {};
+
+    if (!formData.transferTo.trim()) {
+      newErrors.transferTo = "Transfer address is required";
+    } else if (!/^[A-Za-z0-9]{42}$/.test(formData.transferTo)) {
+      newErrors.transferTo = "Invalid wallet address format";
+    }
 
     if (!formData.password) {
       newErrors.password = "Password is required to authorize transaction";
@@ -71,11 +79,8 @@ function TokenBurnView() {
     }
   };
 
-  /**
-   * Handles the form submission for burning a token.
-   * Validates the form data, then sends a burn request to the backend.
-   * Updates the UI to reflect loading and success/failure states.
-   */
+  // Handles the form submission. Validates the form data, then calls the TransferToken API to transfer the NFT.
+  // On success, redirects to a success page; on failure, displays errors.  Manages loading state and error handling.
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
@@ -84,14 +89,33 @@ function TokenBurnView() {
 
       // Update the GUI to let user know that the operation is under way.
       setIsLoading(true);
+      setShowErrorBox(false);
 
-      BurnToken(parseInt(tokenID), currentOpenWalletAtAddress, password)
+      TransferToken(
+        formData.transferTo,
+        parseInt(tokenID),
+        currentOpenWalletAtAddress,
+        formData.password,
+      )
         .then(() => {
-          console.log("BurnToken: Success");
-          setForceURL("/more/tokens");
+          console.log("TransferToken: Success");
+          setForceURL("/more/token/" + tokenID + "/transfer-success");
         })
-        .catch((errorRes) => {
-          console.log("GetNonFungibleToken: errorRes:", errorRes);
+        .catch((errorJsonString) => {
+          console.log("TransferToken: errorJsonString:", errorJsonString);
+
+          let err = {};
+          if (
+            errorJsonString
+              .toLowerCase()
+              .includes("could not decrypt key with given password")
+          ) {
+            err.password = "Wrong password";
+          }
+          console.log("TransferToken: err:", err);
+          window.scrollTo(0, 0); // Start the page at the top of the page.
+          setShowErrorBox(true);
+          setErrors(err);
         })
         .finally((errorRes) => {
           // Update the GUI to let user know that the operation is completed.
@@ -99,9 +123,9 @@ function TokenBurnView() {
         });
     } else {
       // Show error message
-      setShowError(true);
+      setShowErrorBox(true);
       // Auto-hide error after 5 seconds
-      setTimeout(() => setShowError(false), 5000);
+      setTimeout(() => setShowErrorBox(false), 5000);
     }
   };
 
@@ -150,6 +174,9 @@ function TokenBurnView() {
     return "------";
   }
 
+  console.log("showErrorBox:", showErrorBox);
+  console.log("errors:", errors);
+
   return (
     <div>
       <main className="max-w-2xl mx-auto px-6 py-12 mb-24">
@@ -158,7 +185,7 @@ function TokenBurnView() {
             <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
             <div className="flex-grow">
               <h3 className="font-semibold text-red-800">
-                Unable to Burn Token
+                Unable to Transfer Token
               </h3>
               <div className="text-sm text-red-600 mt-1 space-y-1">
                 {Object.values(errors).map((error, index) => (
@@ -173,14 +200,20 @@ function TokenBurnView() {
           <div className="p-6">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-red-100 rounded-xl">
-                  <Trash2 className="w-5 h-5 text-red-600" aria-hidden="true" />
+                <div className="p-2 bg-yellow-100 rounded-xl">
+                  <Send
+                    className="w-5 h-5 text-yellow-600"
+                    aria-hidden="true"
+                  />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900">Burn Token</h2>
+                <h2 className="text-xl font-bold text-gray-900">
+                  Transfer Token
+                </h2>
               </div>
             </div>
             <p className="text-sm text-gray-500">
-              Transfer NFT to burn address. Please fill in all required fields.
+              Transfer NFT to another address. Please fill in all required
+              fields.
             </p>
           </div>
 
@@ -191,12 +224,36 @@ function TokenBurnView() {
                 <p className="font-semibold mb-1">Important Notice</p>
                 <p>
                   All transactions are final and cannot be undone. Please verify
-                  all details before burning.
+                  all details before transfering.
                 </p>
               </div>
             </div>
 
             <div className="space-y-6">
+              <label className="block">
+                <span className="text-sm font-medium text-gray-700">
+                  Transfer To <span className="text-red-500">*</span>
+                </span>
+                <input
+                  type="text"
+                  name="transferTo"
+                  value={formData.transferTo}
+                  onChange={handleInputChange}
+                  className={`mt-1 block w-full px-4 py-3 bg-white border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors ${
+                    errors.transferTo
+                      ? "border-red-300 bg-red-50"
+                      : "border-gray-200"
+                  }`}
+                  placeholder="Enter other address"
+                />
+                {errors.transferTo && (
+                  <p className="mt-2 text-sm text-red-600 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.transferTo}
+                  </p>
+                )}
+              </label>
+
               <label className="block">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm font-medium text-gray-700">
@@ -252,10 +309,10 @@ function TokenBurnView() {
               </button>
               <button
                 onClick={handleSubmit}
-                className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors inline-flex items-center gap-2"
+                className="px-6 py-2.5 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors inline-flex items-center gap-2"
               >
-                Burn Token
-                <Trash2 className="w-4 h-4" />
+                Transfer Token
+                <Send className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -265,4 +322,4 @@ function TokenBurnView() {
   );
 }
 
-export default TokenBurnView;
+export default TokenTransferView;
