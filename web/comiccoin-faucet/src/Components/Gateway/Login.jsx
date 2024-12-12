@@ -1,10 +1,16 @@
 import React, { useState } from 'react';
 import { Coins, AlertCircle, ArrowLeft } from 'lucide-react';
 import { Navigate } from "react-router-dom";
+import { useRecoilState } from "recoil";
 
 import { postLoginAPI } from "../../API/Gateway";
+import { currentUserState } from "../../AppState";
 
 export default function LoginPage() {
+  // Variable controls the global state of the app.
+  const [currentUser, setCurrentUser] = useRecoilState(currentUserState);
+
+  // Variable controls the login form.
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -42,12 +48,28 @@ export default function LoginPage() {
     postLoginAPI(
       formData,
       (resp) => {
+        // SUCCESS HANDLER
+
         // For debugging purposes only.
         console.log("onLoginSuccess: Starting...");
         console.log(resp);
 
-        // Redirect the user to a new page.
-        setForceURL("/dashboard");
+        // Store in persistance storage in the browser.
+        setCurrentUser(resp.user);
+
+        if (resp.user.otpEnabled === false) {
+          console.log("onLoginSuccess | redirecting to dashboard");
+          setForceURL("/dashboard");
+        } else {
+          if (resp.user.otpVerified === false) {
+            console.log("onLoginSuccess | redirecting to 2fa setup wizard");
+            setForceURL("/login/2fa/step-1");
+          } else {
+            console.log("onLoginSuccess | redirecting to 2fa validation");
+            setForceURL("/login/2fa");
+          }
+        }
+        // end SUCCESS HANDLER
       },
       (apiErr) => {
         console.log("onLoginError: apiErr:", apiErr);

@@ -79,17 +79,17 @@ func (s *GatewayAddWalletAddressToFaucetService) Execute(
 
 	e := make(map[string]string)
 	if req.WalletAddress == "" {
-		e["wallet_address"] = "missing value"
+		e["wallet_address"] = "Wallet address is required"
 	}
 	if ou.WalletAddress != nil {
 		// If user has wallet address, make sure it's not the nil address.
 		if ou.WalletAddress.Hex() != "0x0000000000000000000000000000000000000000" {
-			e["wallet_address"] = fmt.Sprintf("already set: %v", ou.WalletAddress.Hex())
+			e["wallet_address"] = fmt.Sprintf("Wallet address already set: %v", ou.WalletAddress.Hex())
 		}
 		//TODO: LastCoinsDepositAt time.Time
 	}
 	if t.Account.Balance == 0 {
-		e["message"] = "Faucet has no coins in wallet"
+		e["message"] = "Faucet has no coins in wallet - please try again later"
 
 		s.logger.Error("Wallet has empty balance",
 			slog.String("address", t.Account.Address.Hex()))

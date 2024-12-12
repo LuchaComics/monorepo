@@ -22,7 +22,7 @@ import { topAlertMessageState, topAlertStatusState } from "../../AppState";
 import { currentUserState } from "../../AppState";
 import FormInputField from "../Reusable/FormInputField";
 
-function CustomerAddWalletToFaucetSuccess() {
+function UserAddWalletToFaucetSuccess() {
   ////
   //// URL Parameters.
   ////
@@ -51,7 +51,9 @@ function CustomerAddWalletToFaucetSuccess() {
   const [wasFaucetRecentlySet, setWasFaucetRecentlySet] = useState(false);
 
   // Form State.
-  const [walletAddress, setWalletAddress] = useState(currentUser ? currentUser.walletAddress : "");
+  const [walletAddress, setWalletAddress] = useState(
+    currentUser ? currentUser.walletAddress : "",
+  );
 
   ////
   //// API.
@@ -117,22 +119,21 @@ function CustomerAddWalletToFaucetSuccess() {
   ////
 
   const onSubmitClick = (e) => {
-      e.preventDefault();
-      console.log("onSubmitClick: Beginning...");
-      setIsFetching(true);
-      setErrors({});
-      const submission = {
-        wallet_address: walletAddress,
-      }
-      console.log("onSubmitClick, submission:", submission);
-      putProfileWalletAddressAPI(
-        submission,
-        onRegisterSuccess,
-        onRegisterError,
-        onRegisterDone,
-      );
-
-  }
+    e.preventDefault();
+    console.log("onSubmitClick: Beginning...");
+    setIsFetching(true);
+    setErrors({});
+    const submission = {
+      wallet_address: walletAddress,
+    };
+    console.log("onSubmitClick, submission:", submission);
+    putProfileWalletAddressAPI(
+      submission,
+      onRegisterSuccess,
+      onRegisterError,
+      onRegisterDone,
+    );
+  };
 
   ////
   //// Misc.
@@ -180,7 +181,8 @@ function CustomerAddWalletToFaucetSuccess() {
             </ul>
           </nav>
           <nav class="box">
-            {currentUser && <>
+            {currentUser && (
+              <>
                 <div class="columns">
                   <div class="column">
                     <h1 class="title is-4">
@@ -196,17 +198,20 @@ function CustomerAddWalletToFaucetSuccess() {
                       &nbsp;Coins sent
                     </p>
                     <p class="subtitle">
-                      Your wallet was sent <b>10 ComicCoins</b>. Please check your wallet, transactions take up to 5 minutes to carry through the network.
+                      Your wallet was sent <b>10 ComicCoins</b>. Please check
+                      your wallet, transactions take up to 5 minutes to carry
+                      through the network.
                       <br />
                       <br />
                       <Link to={"/c/dashboard"}>
-                        Go to Dashboard&nbsp;<FontAwesomeIcon className="fas" icon={faArrowRight} />
+                        Go to Dashboard&nbsp;
+                        <FontAwesomeIcon className="fas" icon={faArrowRight} />
                       </Link>
                     </p>
                   </div>
                 </section>
-            </>}
-
+              </>
+            )}
           </nav>
         </section>
       </div>
@@ -214,4 +219,4 @@ function CustomerAddWalletToFaucetSuccess() {
   );
 }
 
-export default CustomerAddWalletToFaucetSuccess;
+export default UserAddWalletToFaucetSuccess;

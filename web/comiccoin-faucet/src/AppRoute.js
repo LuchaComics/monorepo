@@ -2,9 +2,6 @@ import { React, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { RecoilRoot } from "recoil";
 
-// import CustomerAddWalletToFaucet from "./Components/Customer/FaucetAddWallet";
-// import CustomerAddWalletToFaucetSuccess from "./Components/Customer/FaucetAddWalletSuccess";
-
 // //--------------//
 // // Admin Portal //
 // //--------------//
@@ -161,11 +158,11 @@ import { RecoilRoot } from "recoil";
 import Register from "./Components/Gateway/Register";
 import RegisterSuccessful from "./Components/Gateway/RegisterSuccessful";
 import Login from "./Components/Gateway/Login";
-// import LogoutRedirector from "./Components/Gateway/LogoutRedirector";
+import LogoutRedirector from "./Components/Gateway/LogoutRedirector";
 // import RegisterLaunchpad from "./Components/Gateway/Register/Launchpad";
 // import RegisterAsStoreOwner from "./Components/Gateway/Register/StoreOwner";
 // import RegisterAsCustomer from "./Components/Gateway/Register/Customer";
-// import EmailVerification from "./Components/Gateway/EmailVerification";
+import EmailVerification from "./Components/Gateway/EmailVerification";
 // import ForgotPassword from "./Components/Gateway/ForgotPassword";
 // import PasswordReset from "./Components/Gateway/PasswordReset";
 
@@ -192,6 +189,7 @@ import Login from "./Components/Gateway/Login";
 // import AnonymousCurrentUserRedirector from "./Components/Misc/AnonymousCurrentUserRedirector";
 // import TwoFactorAuthenticationRedirector from "./Components/Misc/TwoFactorAuthenticationRedirector";
 // import ComicCoinFaucetRedirector from "./Components/Gateway/ComicCoinFaucetRedirector";
+import FaucetAddWalletRedirector from "./Components/Gateway/FaucetAddWalletRedirector";
 
 // // Public Registery
 // import PublicRegistrySearch from "./Components/Gateway/RegistrySearch";
@@ -199,11 +197,15 @@ import Login from "./Components/Gateway/Login";
 
 // Public Generic
 import Index from "./Components/Gateway/Index";
-// import Terms from "./Components/Gateway/Terms";
-// import Privacy from "./Components/Gateway/Privacy";
-// import NotImplementedError from "./Components/Misc/NotImplementedError";
+import Terms from "./Components/Gateway/Terms";
+import Privacy from "./Components/Gateway/Privacy";
+import NotImplementedError from "./Components/Misc/NotImplementedError";
 import NotFoundError from "./Components/Misc/NotFoundError";
 // import DashboardHelp from "./Components/Misc/DashboardHelp";
+
+// On first-time-use wizard.
+import UserAddWalletToFaucet from "./Components/Gateway/FaucetAddWallet";
+import UserAddWalletToFaucetSuccess from "./Components/Gateway/FaucetAddWalletSuccess";
 
 // //-----------------//
 // // Customer Portal //
@@ -245,19 +247,11 @@ function AppRoute() {
           <TwoFactorAuthenticationRedirector />
           <TopAlertBanner />
           <Topbar /> */}
+          <FaucetAddWalletRedirector />
           {/* <Sidebar /> */}
           <Routes>
             {/*
-              <Route
-                exact
-                path="/add-my-wallet-to-faucet"
-                element={<CustomerAddWalletToFaucet />}
-              />
-              <Route
-                exact
-                path="/added-my-wallet-to-faucet-successfully"
-                element={<CustomerAddWalletToFaucetSuccess />}
-              />
+
               <Route
                 exact
                 path="/admin/offer/:id/update"
@@ -924,10 +918,6 @@ function AppRoute() {
                 path="/login/2fa"
                 element={<TwoFactorAuthenticationValidateOnLogin />}
               />
-              <Route exact path="/logout" element={<LogoutRedirector />} />
-              <Route exact path="/verify" element={<EmailVerification />} />
-              <Route exact path="/terms" element={<Terms />} />
-              <Route exact path="/privacy" element={<Privacy />} />
               <Route
                 exact
                 path="/forgot-password"
@@ -1049,6 +1039,20 @@ function AppRoute() {
               element={<RegisterSuccessful />}
             />
             <Route exact path="/login" element={<Login />} />
+            <Route exact path="/logout" element={<LogoutRedirector />} />
+            <Route exact path="/verify" element={<EmailVerification />} />
+            <Route exact path="/terms" element={<Terms />} />
+            <Route exact path="/privacy" element={<Privacy />} />
+            <Route
+              exact
+              path="/add-my-wallet-to-faucet"
+              element={<UserAddWalletToFaucet />}
+            />
+            <Route
+              exact
+              path="/added-my-wallet-to-faucet-successfully"
+              element={<UserAddWalletToFaucetSuccess />}
+            />
             <Route exact path="/" element={<Index />} />
             <Route path="*" element={<NotFoundError />} />
           </Routes>
