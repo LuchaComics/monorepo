@@ -159,12 +159,12 @@ import { RecoilRoot } from "recoil";
 
 // Gateway
 import Register from "./Components/Gateway/Register";
+import RegisterSuccessful from "./Components/Gateway/RegisterSuccessful";
+import Login from "./Components/Gateway/Login";
 // import LogoutRedirector from "./Components/Gateway/LogoutRedirector";
-// import Login from "./Components/Gateway/Login";
 // import RegisterLaunchpad from "./Components/Gateway/Register/Launchpad";
 // import RegisterAsStoreOwner from "./Components/Gateway/Register/StoreOwner";
 // import RegisterAsCustomer from "./Components/Gateway/Register/Customer";
-// import RegisterSuccessful from "./Components/Gateway/RegisterSuccessful";
 // import EmailVerification from "./Components/Gateway/EmailVerification";
 // import ForgotPassword from "./Components/Gateway/ForgotPassword";
 // import PasswordReset from "./Components/Gateway/PasswordReset";
@@ -896,12 +896,6 @@ function AppRoute() {
               />
               <Route
                 exact
-                path="/register-successful"
-                element={<RegisterSuccessful />}
-              />
-              <Route exact path="/login" element={<Login />} />
-              <Route
-                exact
                 path="/login/2fa/step-1"
                 element={<TwoFactorAuthenticationWizardStep1 />}
               />
@@ -1049,6 +1043,12 @@ function AppRoute() {
               /> */}
 
             <Route exact path="/register" element={<Register />} />
+            <Route
+              exact
+              path="/register-successful"
+              element={<RegisterSuccessful />}
+            />
+            <Route exact path="/login" element={<Login />} />
             <Route exact path="/" element={<Index />} />
             <Route path="*" element={<NotFoundError />} />
           </Routes>

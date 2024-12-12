@@ -74,10 +74,10 @@ func (s *GatewayLoginService) Execute(sessCtx mongo.SessionContext, req *Gateway
 
 	e := make(map[string]string)
 	if req.Email == "" {
-		e["email"] = "missing value"
+		e["email"] = "Email address is required"
 	}
 	if req.Password == "" {
-		e["password"] = "missing value"
+		e["password"] = "Password is required"
 	}
 
 	if len(e) != 0 {
@@ -98,7 +98,7 @@ func (s *GatewayLoginService) Execute(sessCtx mongo.SessionContext, req *Gateway
 	}
 	if u == nil {
 		s.logger.Warn("user does not exist validation error")
-		return nil, httperror.NewForBadRequestWithSingleField("email", "does not exist")
+		return nil, httperror.NewForBadRequestWithSingleField("email", "Email address does not exist")
 	}
 
 	// Lookup the store and check to see if it's active or not, if not active then return the specific requests.
@@ -123,13 +123,13 @@ func (s *GatewayLoginService) Execute(sessCtx mongo.SessionContext, req *Gateway
 	passwordMatch, _ := s.passwordProvider.ComparePasswordAndHash(securePassword, u.PasswordHash)
 	if passwordMatch == false {
 		s.logger.Warn("password check validation error")
-		return nil, httperror.NewForBadRequestWithSingleField("password", "password do not match with record")
+		return nil, httperror.NewForBadRequestWithSingleField("password", "Password does not match with record")
 	}
 
 	// Enforce the verification code of the email.
 	if u.WasEmailVerified == false {
 		s.logger.Warn("email verification validation error", slog.Any("u", u))
-		return nil, httperror.NewForBadRequestWithSingleField("email", "was not verified")
+		return nil, httperror.NewForBadRequestWithSingleField("email", "Email address was not verified")
 	}
 
 	// // Enforce 2FA if enabled.

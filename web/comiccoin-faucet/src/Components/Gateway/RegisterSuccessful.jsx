@@ -1,106 +1,79 @@
-import React, { useState, useEffect } from "react";
-import { Link, Navigate } from "react-router-dom";
-import Scroll from "react-scroll";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faArrowRight,
-  faKey,
-  faEnvelope,
-} from "@fortawesome/free-solid-svg-icons";
-import FormErrorBox from "../Reusable/FormErrorBox";
-import useLocalStorage from "../../Hooks/useLocalStorage";
-import { postLoginAPI } from "../../API/Gateway";
+import React, { useState } from "react";
+import { Coins, Mail, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Navigate } from "react-router-dom";
 
-function RegisterSuccessful() {
-  ////
-  //// Component states.
-  ////
-
-  const [errors, setErrors] = useState({});
+export default function EmailConfirmationPage() {
   const [forceURL, setForceURL] = useState("");
-
-  ////
-  //// API.
-  ////
-
-  // Do nothing.
-
-  ////
-  //// Event handling.
-  ////
-
-  // Do nothing.
-
-  ////
-  //// Misc.
-  ////
-
-  useEffect(() => {
-    let mounted = true;
-
-    if (mounted) {
-      window.scrollTo(0, 0); // Start the page at the top of the page.
-    }
-
-    return () => (mounted = false);
-  }, []);
 
   if (forceURL !== "") {
     return <Navigate to={forceURL} />;
   }
 
-  ////
-  //// Component rendering.
-  ////
-
   return (
-    <>
-      <div class="column is-12 container">
-        <div class="section">
-          <section class="hero is-fullheight">
-            <div class="hero-body">
-              <div class="container">
-                <div class="columns is-centered p-7">
-                  <div class="is-rounded column is-two-third-tablet">
-                    <article class="message is-primary">
-                      <div class="message-body">
-                        <h1 className="title is-4 has-text-centered has-text-success">
-                          <FontAwesomeIcon className="fas" icon={faEnvelope} />
-                          &nbsp;Email Sent
-                        </h1>
-                        <FormErrorBox errors={errors} />
-                        <p>
-                          Thank you for registering - an <b>activation email</b>{" "}
-                          has bee sent to you. Please be sure to check your
-                          social, promotions and spam folders if it does not
-                          arrive within 5 minutes.
-                        </p>
-                        <p>
-                          <br />
-                          <Link to="/">
-                            <b>
-                              Back to index&nbsp;
-                              <FontAwesomeIcon
-                                className="fas"
-                                icon={faArrowRight}
-                              />
-                            </b>
-                          </Link>
-                        </p>
-                      </div>
-                    </article>
-                  </div>
-                  {/* End box */}
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-purple-100 to-white">
+      {/* Navigation */}
+      <nav className="bg-gradient-to-r from-purple-700 to-indigo-800 text-white p-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="flex items-center space-x-2">
+            <Coins className="h-8 w-8" />
+            <span className="text-2xl font-bold">ComicCoin Faucet</span>
+          </div>
+          <button onClick={(e)=>setForceURL("/")} className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors">
+            <ArrowLeft className="h-5 w-5" />
+            <span>Back to Home</span>
+          </button>
+        </div>
+      </nav>
+
+      {/* Main Content - Centered both vertically and horizontally */}
+      <main className="flex-grow flex items-center justify-center">
+        <div className="w-full max-w-2xl mx-4">
+          <div className="bg-white rounded-xl p-8 shadow-lg border-2 border-purple-200">
+            <div className="flex flex-col items-center space-y-6">
+              {/* Header */}
+              <div className="flex items-center space-x-2 text-purple-600">
+                <Mail className="h-8 w-8" />
+                <h1 className="text-2xl font-bold">Email Sent</h1>
+              </div>
+
+              {/* Message */}
+              <div className="text-center text-gray-700 space-y-6">
+                <p>
+                  Thank you for registering - an <span className="font-bold">activation email</span>{" "}
+                  has been sent to you. Please be sure to check your
+                  social, promotions and spam folders if it does not
+                  arrive within 5 minutes.
+                </p>
+
+                {/* Back to index link */}
+                <div>
+                  <button
+                    onClick={(e)=>setForceURL("/")}
+                    className="inline-flex items-center space-x-2 text-purple-600 hover:text-purple-700 font-medium"
+                  >
+                    <span>Back to index</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
-              {/* End container */}
             </div>
-            {/* End hero-body */}
-          </section>
+          </div>
         </div>
-      </div>
-    </>
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-gradient-to-r from-purple-700 to-indigo-800 text-white py-8">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <p className="mb-4">© 2024 ComicCoin Faucet. All rights reserved.</p>
+          <p>
+            <a href="#" className="underline hover:text-purple-200">Accessibility Statement</a>
+            {' | '}
+            <a href="#" className="underline hover:text-purple-200">Terms of Service</a>
+            {' | '}
+            <a href="#" className="underline hover:text-purple-200">Privacy Policy</a>
+          </p>
+        </div>
+      </footer>
+    </div>
   );
 }
-
-export default RegisterSuccessful;
