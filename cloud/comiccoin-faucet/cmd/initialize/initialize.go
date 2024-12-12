@@ -59,7 +59,7 @@ func doRunGatewayInit() {
 	// Common
 	logger := logger.NewProvider()
 	// kmutex := kmutexutil.NewKMutexProvider()
-	cfg := config.NewProvider()
+	cfg := config.NewProviderUsingEnvironmentVariables()
 	dbClient := mongodb.NewProvider(cfg, logger)
 	keystore := keystore.NewAdapter()
 	passp := password.NewProvider()

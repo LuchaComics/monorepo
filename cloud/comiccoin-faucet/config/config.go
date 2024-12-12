@@ -64,7 +64,7 @@ type mailgunConfig struct {
 	MaintenanceEmail string
 }
 
-func NewProvider() *Configuration {
+func NewProviderUsingEnvironmentVariables() *Configuration {
 	var c Configuration
 
 	// Application section.

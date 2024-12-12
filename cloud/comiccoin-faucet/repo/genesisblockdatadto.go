@@ -89,8 +89,10 @@ func (repo *GenesisBlockDataDTORepo) GetFromBlockchainAuthorityByChainID(ctx con
 		err := json.NewDecoder(teeReader).Decode(&jsonStr)
 		if err != nil {
 			repo.logger.Error("decoding string error",
-				slog.Any("err", err),
+				slog.Any("res.Body", res.Body),
+				slog.Any("res.StatusCode", res.StatusCode),
 				slog.String("json", rawJSON.String()),
+				slog.Any("err", err),
 			)
 			return nil, err
 		}
@@ -117,6 +119,7 @@ func (repo *GenesisBlockDataDTORepo) GetFromBlockchainAuthorityByChainID(ctx con
 	respPayload := &domain.GenesisBlockDataDTO{}
 	if err := json.NewDecoder(teeReader).Decode(&respPayload); err != nil {
 		repo.logger.Error("decoding string error",
+			slog.Any("httpEndpoint", httpEndpoint),
 			slog.Any("err", err),
 			slog.String("json", rawJSON.String()),
 		)
