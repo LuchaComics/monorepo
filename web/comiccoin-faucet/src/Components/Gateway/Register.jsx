@@ -338,7 +338,7 @@ const RegisterPage = () => {
               )}
             </div>
 
-            <div>
+            <div className="space-y-4">
               <label
                 htmlFor="passwordConfirm"
                 className="block text-sm font-medium text-gray-700 mb-1"
