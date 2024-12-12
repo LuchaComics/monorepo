@@ -5,7 +5,7 @@ import {
   COMICCOIN_FAUCET_LOGIN_API_ENDPOINT,
   COMICCOIN_FAUCET_VERSION_ENDPOINT,
   COMICCOIN_FAUCET_REGISTER_BUSINESS_API_ENDPOINT,
-  COMICCOIN_FAUCET_REGISTER_CUSTOMER_API_ENDPOINT,
+  COMICCOIN_FAUCET_REGISTER_USER_API_ENDPOINT,
   COMICCOIN_FAUCET_EMAIL_VERIFICATION_API_ENDPOINT,
   COMICCOIN_FAUCET_LOGOUT_API_ENDPOINT,
   COMICCOIN_FAUCET_FORGOT_PASSWORD_API_ENDPOINT,
@@ -166,7 +166,7 @@ export function postRegisterBusinessAPI(
     .then(onDoneCallback);
 }
 
-export function postRegisterCustomerAPI(
+export function postRegisterAPI(
   data,
   onSuccessCallback,
   onErrorCallback,
@@ -188,7 +188,7 @@ export function postRegisterCustomerAPI(
   decamelizedData.cps_partnership_reason = data.COMICCOIN_FAUCETPartnershipReason;
 
   customAxios
-    .post(COMICCOIN_FAUCET_REGISTER_CUSTOMER_API_ENDPOINT, decamelizedData)
+    .post(COMICCOIN_FAUCET_REGISTER_USER_API_ENDPOINT, decamelizedData)
     .then((successResponse) => {
       const responseData = successResponse.data;
 

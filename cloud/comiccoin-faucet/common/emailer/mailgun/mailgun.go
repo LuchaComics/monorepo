@@ -53,6 +53,9 @@ func NewEmailer(cfg *c.Configuration, logger *slog.Logger) Emailer {
 
 func (me *mailgunEmailer) Send(ctx context.Context, sender, subject, recipient, body string) error {
 	me.Logger.Debug("sent email",
+		slog.String("domain", me.GetDomainName()),
+		slog.String("frontend_domain", me.GetFrontendDomainName()),
+		slog.String("backend_domain", me.GetBackendDomainName()),
 		slog.String("sender", sender),
 		slog.String("subject", subject),
 		slog.String("recipient", recipient))
@@ -67,7 +70,11 @@ func (me *mailgunEmailer) Send(ctx context.Context, sender, subject, recipient, 
 	_, id, err := me.Mailgun.Send(ctx, message)
 
 	if err != nil {
-		me.Logger.Error("emailer failed sending", slog.Any("err", err))
+		me.Logger.Error("emailer failed sending",
+			slog.String("domain", me.GetDomainName()),
+			slog.String("frontend_domain", me.GetFrontendDomainName()),
+			slog.String("backend_domain", me.GetBackendDomainName()),
+			slog.Any("err", err))
 		return err
 	}
 

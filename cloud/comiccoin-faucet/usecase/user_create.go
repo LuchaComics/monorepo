@@ -35,13 +35,8 @@ func (uc *UserCreateUseCase) Execute(ctx context.Context, user *domain.User) err
 			slog.Any("error", e))
 		return httperror.NewForBadRequest(&e)
 	}
-
 	//
-	// STEP 2: Upsert our strucutre.
-	//
-
-	//
-	// STEP 3: Insert into database.
+	// STEP 2: Insert into database.
 	//
 
 	return uc.repo.Create(ctx, user)

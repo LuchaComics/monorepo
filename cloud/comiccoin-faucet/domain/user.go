@@ -55,8 +55,8 @@ type User struct {
 	TenantLogoFileURLExpiry   time.Time          `bson:"tenant_logo_file_url_expiry" json:"tenant_logo_file_url_expiry"` // (Optional, added by endpoint)
 	HowDidYouHearAboutUs      int8               `bson:"how_did_you_hear_about_us" json:"how_did_you_hear_about_us,omitempty"`
 	HowDidYouHearAboutUsOther string             `bson:"how_did_you_hear_about_us_other" json:"how_did_you_hear_about_us_other,omitempty"`
-	AgreeTOS                  bool               `bson:"agree_tos" json:"agree_tos,omitempty"`
-	AgreePromotionsEmail      bool               `bson:"agree_promotions_email" json:"agree_promotions_email,omitempty"`
+	AgreeTermsOfService       bool               `bson:"agree_terms_of_service" json:"agree_terms_of_service,omitempty"`
+	AgreePromotions           bool               `bson:"agree_promotions" json:"agree_promotions,omitempty"`
 	CreatedByUserID           primitive.ObjectID `bson:"created_by_user_id" json:"created_by_user_id"`
 	CreatedAt                 time.Time          `bson:"created_at" json:"created_at,omitempty"`
 	CreatedByName             string             `bson:"created_by_name" json:"created_by_name"`

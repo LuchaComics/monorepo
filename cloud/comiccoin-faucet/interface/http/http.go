@@ -36,7 +36,7 @@ type httpServerImpl struct {
 
 	getHealthCheckHTTPHandler *handler.GetHealthCheckHTTPHandler
 
-	gatewayRegisterCustomerHTTPHandler     *handler.GatewayRegisterCustomerHTTPHandler
+	gatewayUserRegisterHTTPHandler         *handler.GatewayUserRegisterHTTPHandler
 	gatewayLoginHTTPHandler                *handler.GatewayLoginHTTPHandler
 	gatewayLogoutHTTPHandler               *handler.GatewayLogoutHTTPHandler
 	gatewayRefreshTokenHTTPHandler         *handler.GatewayRefreshTokenHTTPHandler
@@ -56,7 +56,7 @@ func NewHTTPServer(
 	mid mid.Middleware,
 	h1 *handler.GetVersionHTTPHandler,
 	h2 *handler.GetHealthCheckHTTPHandler,
-	h3 *handler.GatewayRegisterCustomerHTTPHandler,
+	h3 *handler.GatewayUserRegisterHTTPHandler,
 	h4 *handler.GatewayLoginHTTPHandler,
 	h5 *handler.GatewayLogoutHTTPHandler,
 	h6 *handler.GatewayRefreshTokenHTTPHandler,
@@ -92,7 +92,7 @@ func NewHTTPServer(
 		server:                                 srv,
 		getVersionHTTPHandler:                  h1,
 		getHealthCheckHTTPHandler:              h2,
-		gatewayRegisterCustomerHTTPHandler:     h3,
+		gatewayUserRegisterHTTPHandler:         h3,
 		gatewayLoginHTTPHandler:                h4,
 		gatewayLogoutHTTPHandler:               h5,
 		gatewayRefreshTokenHTTPHandler:         h6,
@@ -157,8 +157,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		port.getVersionHTTPHandler.Execute(w, r)
 	case n == 1 && p[0] == "health-check" && r.Method == http.MethodGet:
 		port.getHealthCheckHTTPHandler.Execute(w, r)
-	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "register" && p[3] == "customer" && r.Method == http.MethodPost:
-		port.gatewayRegisterCustomerHTTPHandler.Execute(w, r)
+	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "register" && p[3] == "user" && r.Method == http.MethodPost:
+		port.gatewayUserRegisterHTTPHandler.Execute(w, r)
 	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "login" && r.Method == http.MethodPost:
 		port.gatewayLoginHTTPHandler.Execute(w, r)
 	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "logout" && r.Method == http.MethodPost:

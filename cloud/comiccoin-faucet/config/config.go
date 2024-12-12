@@ -103,6 +103,13 @@ func NewProviderUsingEnvironmentVariables() *Configuration {
 	c.DB.URI = getEnv("COMICCOIN_FAUCET_DB_URI", true)
 	c.DB.Name = getEnv("COMICCOIN_FAUCET_DB_NAME", true)
 
+	// Mailgun section.
+	c.Emailer.APIKey = getEnv("COMICCOIN_FAUCET_MAILGUN_API_KEY", true)
+	c.Emailer.Domain = getEnv("COMICCOIN_FAUCET_MAILGUN_DOMAIN", true)
+	c.Emailer.APIBase = getEnv("COMICCOIN_FAUCET_MAILGUN_API_BASE", true)
+	c.Emailer.SenderEmail = getEnv("COMICCOIN_FAUCET_MAILGUN_SENDER_EMAIL", true)
+	c.Emailer.MaintenanceEmail = getEnv("COMICCOIN_FAUCET_MAILGUN_MAINTENANCE_EMAIL", true)
+
 	return &c
 }
 

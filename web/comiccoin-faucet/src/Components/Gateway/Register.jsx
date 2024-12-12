@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import { Coins, AlertCircle, ArrowLeft } from "lucide-react";
+import { Navigate } from "react-router-dom";
+
+import { postRegisterAPI } from "../../API/Gateway";
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -10,7 +13,7 @@ const RegisterPage = () => {
     countryOther: "",
     password: "",
     passwordConfirm: "",
-    agreeTos: false,
+    agreeTermsOfService: false,
     agreePromotional: false,
   });
 
@@ -18,6 +21,8 @@ const RegisterPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [isFetching, setFetching] = useState(false);
+  const [forceURL, setForceURL] = useState("");
 
   const validateField = (name, value) => {
     switch (name) {
@@ -69,7 +74,7 @@ const RegisterPage = () => {
         if (value !== formData.password) return "Passwords do not match";
         return "";
 
-      case "agreeTos":
+      case "agreeTermsOfService":
         if (!value) return "You must agree to the Terms of Service";
         return "";
 
@@ -113,23 +118,43 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFetching(true);
+    const submission = {
+      Email: formData.email,
+      FirstName: formData.firstName,
+      LastName: formData.lastName,
+      Password: formData.password,
+      PasswordConfirm: formData.passwordConfirm,
+      Country: formData.country,
+      AgreeTermsOfService: formData.agreeTermsOfService,
+      AgreePromotional: formData.agreePromotional,
+    };
+
+    postRegisterAPI(
+      formData,
+      (resp) => {
+        // For debugging purposes only.
+        console.log("onRegisterSuccess: Starting...");
+        console.log(resp);
+
+        // Redirect the user to a new page.
+        setForceURL("/register-successful");
+      },
+      (apiErr) => {
+        console.log("onRegisterError: apiErr:", apiErr);
+        setErrors(apiErr);
+      },
+      () => {
+        console.log("onRegisterDone: Starting...");
+        setFetching(false);
+      },
+    );
     setHasSubmitted(true);
-    setIsSubmitting(true);
-
-    const newErrors = {};
-    Object.keys(formData).forEach((field) => {
-      if (field === "countryOther" && formData.country !== "Other") return;
-      const error = validateField(field, formData[field]);
-      if (error) newErrors[field] = error;
-    });
-    setErrors(newErrors);
-
-    if (Object.keys(newErrors).length === 0) {
-      console.log("Form submitted successfully:", formData);
-    }
-
-    setIsSubmitting(false);
   };
+
+  if (forceURL !== "") {
+    return <Navigate to={forceURL} />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-purple-100 to-white">
@@ -179,53 +204,56 @@ const RegisterPage = () => {
           onSubmit={handleSubmit}
           className="bg-white rounded-xl p-8 shadow-lg border-2 border-purple-200"
         >
-          {/* First Name and Last Name row */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <label
-                htmlFor="firstName"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                First Name *
-              </label>
-              <input
-                type="text"
-                id="firstName"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                className={`w-full h-11 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                  errors.firstName ? "border-red-500" : "border-gray-300"
-                }`}
-              />
-              {errors.firstName && (
-                <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
-              )}
+          <div className="space-y-6">
+            {/* Name fields */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  htmlFor="firstName"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  First Name *
+                </label>
+                <input
+                  type="text"
+                  id="firstName"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  className={`w-full h-11 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                    errors.firstName ? "border-red-500" : "border-gray-300"
+                  }`}
+                />
+                {errors.firstName && (
+                  <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="lastName"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Last Name *
+                </label>
+                <input
+                  type="text"
+                  id="lastName"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  className={`w-full h-11 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                    errors.lastName ? "border-red-500" : "border-gray-300"
+                  }`}
+                />
+                {errors.lastName && (
+                  <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
+                )}
+              </div>
             </div>
 
+            {/* Email field */}
             <div>
-              <label
-                htmlFor="lastName"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Last Name *
-              </label>
-              <input
-                type="text"
-                id="lastName"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                className={`w-full h-11 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                  errors.lastName ? "border-red-500" : "border-gray-300"
-                }`}
-              />
-              {errors.lastName && (
-                <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
-              )}
-            </div>
-
-            <div className="md:col-span-2">
               <label
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700 mb-1"
@@ -247,7 +275,8 @@ const RegisterPage = () => {
               )}
             </div>
 
-            <div className="md:col-span-2">
+            {/* Country selection */}
+            <div>
               <label
                 htmlFor="country"
                 className="block text-sm font-medium text-gray-700 mb-1"
@@ -274,8 +303,9 @@ const RegisterPage = () => {
               )}
             </div>
 
+            {/* Other country field */}
             {formData.country === "Other" && (
-              <div className="md:col-span-2">
+              <div>
                 <label
                   htmlFor="countryOther"
                   className="block text-sm font-medium text-gray-700 mb-1"
@@ -300,120 +330,122 @@ const RegisterPage = () => {
               </div>
             )}
 
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Password *
-              </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className={`w-full h-11 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                  errors.password ? "border-red-500" : "border-gray-300"
-                }`}
-              />
-              {passwordStrength > 0 && (
-                <div className="mt-2">
-                  <div className="h-2 bg-gray-200 rounded-full">
-                    <div
-                      className={`h-full rounded-full transition-all ${
-                        passwordStrength <= 40
-                          ? "bg-red-500"
-                          : passwordStrength <= 80
-                            ? "bg-yellow-500"
-                            : "bg-green-500"
-                      }`}
-                      style={{ width: `${passwordStrength}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-              )}
-            </div>
-
-            <div className="space-y-4">
-              <label
-                htmlFor="passwordConfirm"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Confirm Password *
-              </label>
-              <input
-                type="password"
-                id="passwordConfirm"
-                name="passwordConfirm"
-                value={formData.passwordConfirm}
-                onChange={handleChange}
-                className={`w-full h-11 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                  errors.passwordConfirm ? "border-red-500" : "border-gray-300"
-                }`}
-              />
-              {errors.passwordConfirm && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.passwordConfirm}
-                </p>
-              )}
-            </div>
-
-            {/* Rest of the form remains the same */}
-          </div>
-
-          {/* Add this inside the grid, after the password fields */}
-          <div className="md:col-span-2 space-y-4">
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="agreeTos"
-                name="agreeTos"
-                checked={formData.agreeTos}
-                onChange={handleChange}
-                className={`h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded ${
-                  errors.agreeTos ? "border-red-500" : ""
-                }`}
-              />
-              <label
-                htmlFor="agreeTos"
-                className="ml-2 block text-sm text-gray-700"
-              >
-                I agree to the{" "}
-                <a
-                  href="#"
-                  className="text-purple-600 hover:text-purple-500 underline"
+            {/* Password fields */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-700 mb-1"
                 >
-                  Terms of Service
-                </a>{" "}
-                *
-              </label>
-            </div>
-            {errors.agreeTos && (
-              <p className="mt-1 text-sm text-red-600">{errors.agreeTos}</p>
-            )}
+                  Password *
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={`w-full h-11 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                    errors.password ? "border-red-500" : "border-gray-300"
+                  }`}
+                />
+                {passwordStrength > 0 && (
+                  <div className="mt-2">
+                    <div className="h-2 bg-gray-200 rounded-full">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          passwordStrength <= 40
+                            ? "bg-red-500"
+                            : passwordStrength <= 80
+                              ? "bg-yellow-500"
+                              : "bg-green-500"
+                        }`}
+                        style={{ width: `${passwordStrength}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+                {errors.password && (
+                  <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                )}
+              </div>
 
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="agreePromotional"
-                name="agreePromotional"
-                checked={formData.agreePromotional}
-                onChange={handleChange}
-                className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-              />
-              <label
-                htmlFor="agreePromotional"
-                className="ml-2 block text-sm text-gray-700"
-              >
-                I would like to receive promotional emails
-              </label>
+              <div>
+                <label
+                  htmlFor="passwordConfirm"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Confirm Password *
+                </label>
+                <input
+                  type="password"
+                  id="passwordConfirm"
+                  name="passwordConfirm"
+                  value={formData.passwordConfirm}
+                  onChange={handleChange}
+                  className={`w-full h-11 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                    errors.passwordConfirm ? "border-red-500" : "border-gray-300"
+                  }`}
+                />
+                {errors.passwordConfirm && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.passwordConfirm}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Checkboxes */}
+            <div className="space-y-4">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="agreeTermsOfService"
+                  name="agreeTermsOfService"
+                  checked={formData.agreeTermsOfService}
+                  onChange={handleChange}
+                  className={`h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded ${
+                    errors.agreeTermsOfService ? "border-red-500" : ""
+                  }`}
+                />
+                <label
+                  htmlFor="agreeTermsOfService"
+                  className="ml-2 block text-sm text-gray-700"
+                >
+                  I agree to the{" "}
+                  <a
+                    href="#"
+                    className="text-purple-600 hover:text-purple-500 underline"
+                  >
+                    Terms of Service
+                  </a>{" "}
+                  *
+                </label>
+              </div>
+              {errors.agreeTermsOfService && (
+                <p className="mt-1 text-sm text-red-600">{errors.agreeTermsOfService}</p>
+              )}
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="agreePromotional"
+                  name="agreePromotional"
+                  checked={formData.agreePromotional}
+                  onChange={handleChange}
+                  className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                />
+                <label
+                  htmlFor="agreePromotional"
+                  className="ml-2 block text-sm text-gray-700"
+                >
+                  I would like to receive promotional emails
+                </label>
+              </div>
             </div>
           </div>
 
+          {/* Submit button and login link */}
           <div className="mt-8 space-y-4">
             <button
               type="submit"

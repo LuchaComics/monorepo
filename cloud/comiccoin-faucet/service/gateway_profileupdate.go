@@ -49,8 +49,8 @@ type GatewayProfileUpdateRequestIDO struct {
 	ShippingAddressLine2      string `bson:"shipping_address_line2" json:"shipping_address_line2,omitempty"`
 	HowDidYouHearAboutUs      int8   `bson:"how_did_you_hear_about_us" json:"how_did_you_hear_about_us,omitempty"`
 	HowDidYouHearAboutUsOther string `bson:"how_did_you_hear_about_us_other" json:"how_did_you_hear_about_us_other,omitempty"`
-	AgreePromotionsEmail      bool   `bson:"agree_promotions_email" json:"agree_promotions_email,omitempty"`
-	AgreeTOS                  bool   `bson:"agree_tos" json:"agree_tos,omitempty"`
+	AgreePromotions      bool   `bson:"agree_promotions_email" json:"agree_promotions_email,omitempty"`
+	agreeTermsOfService                  bool   `bson:"agree_terms_of_service" json:"agree_terms_of_service,omitempty"`
 }
 
 func (s *GatewayProfileUpdateService) Execute(sessCtx mongo.SessionContext, nu *GatewayProfileUpdateRequestIDO) (*domain.User, error) {
@@ -82,7 +82,7 @@ func (s *GatewayProfileUpdateService) Execute(sessCtx mongo.SessionContext, nu *
 	ou.AddressLine2 = nu.AddressLine2
 	ou.HowDidYouHearAboutUs = nu.HowDidYouHearAboutUs
 	ou.HowDidYouHearAboutUsOther = nu.HowDidYouHearAboutUsOther
-	ou.AgreePromotionsEmail = nu.AgreePromotionsEmail
+	ou.AgreePromotions = nu.AgreePromotions
 	ou.HasShippingAddress = nu.HasShippingAddress
 	ou.ShippingName = nu.ShippingName
 	ou.ShippingPhone = nu.ShippingPhone

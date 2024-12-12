@@ -107,6 +107,9 @@ func doRunDaemon() {
 	// Use-case
 	//
 
+	// Email
+	sendUserVerificationEmailUseCase := usecase.NewSendUserVerificationEmailUseCase(cfg, logger, templatedEmailer)
+
 	// Wallet
 	walletDecryptKeyUseCase := usecase.NewWalletDecryptKeyUseCase(
 		cfg,
@@ -289,17 +292,17 @@ func doRunDaemon() {
 		submitMempoolTransactionDTOToBlockchainAuthorityUseCase,
 	)
 
-	gatewayRegisterCustomerService := service.NewGatewayRegisterCustomerService(
+	gatewayUserRegisterService := service.NewGatewayUserRegisterService(
 		cfg,
 		logger,
 		passp,
 		cache,
 		jwtp,
-		templatedEmailer,
 		tenantGetByIDUseCase,
 		userGetByEmailUseCase,
 		userCreateUseCase,
 		userUpdateUseCase,
+		sendUserVerificationEmailUseCase,
 	)
 
 	gatewayLoginService := service.NewGatewayLoginService(
@@ -412,10 +415,10 @@ func doRunDaemon() {
 		logger)
 	getHealthCheckHTTPHandler := httphandler.NewGetHealthCheckHTTPHandler(
 		logger)
-	gatewayRegisterCustomerHTTPHandler := httphandler.NewGatewayRegisterCustomerHTTPHandler(
+	gatewayUserRegisterHTTPHandler := httphandler.NewGatewayUserRegisterHTTPHandler(
 		logger,
 		dbClient,
-		gatewayRegisterCustomerService,
+		gatewayUserRegisterService,
 	)
 	gatewayLoginHTTPHandler := httphandler.NewGatewayLoginHTTPHandler(
 		logger,
@@ -479,7 +482,7 @@ func doRunDaemon() {
 		httpMiddleware,
 		getVersionHTTPHandler,
 		getHealthCheckHTTPHandler,
-		gatewayRegisterCustomerHTTPHandler,
+		gatewayUserRegisterHTTPHandler,
 		gatewayLoginHTTPHandler,
 		gatewayLogoutHTTPHandler,
 		gatewayRefreshTokenHTTPHandler,

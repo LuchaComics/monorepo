@@ -16,25 +16,25 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/service"
 )
 
-type GatewayRegisterCustomerHTTPHandler struct {
+type GatewayUserRegisterHTTPHandler struct {
 	logger   *slog.Logger
 	dbClient *mongo.Client
-	service  *service.GatewayRegisterCustomerService
+	service  *service.GatewayUserRegisterService
 }
 
-func NewGatewayRegisterCustomerHTTPHandler(
+func NewGatewayUserRegisterHTTPHandler(
 	logger *slog.Logger,
 	dbClient *mongo.Client,
-	service *service.GatewayRegisterCustomerService,
-) *GatewayRegisterCustomerHTTPHandler {
-	return &GatewayRegisterCustomerHTTPHandler{
+	service *service.GatewayUserRegisterService,
+) *GatewayUserRegisterHTTPHandler {
+	return &GatewayUserRegisterHTTPHandler{
 		logger:   logger,
 		dbClient: dbClient,
 		service:  service,
 	}
 }
 
-func (h *GatewayRegisterCustomerHTTPHandler) unmarshalRegisterCustomerRequest(
+func (h *GatewayUserRegisterHTTPHandler) unmarshalRegisterCustomerRequest(
 	ctx context.Context,
 	r *http.Request,
 ) (*service.RegisterCustomerRequestIDO, error) {
@@ -64,7 +64,7 @@ func (h *GatewayRegisterCustomerHTTPHandler) unmarshalRegisterCustomerRequest(
 	return &requestData, nil
 }
 
-func (h *GatewayRegisterCustomerHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
+func (h *GatewayUserRegisterHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	data, err := h.unmarshalRegisterCustomerRequest(ctx, r)
