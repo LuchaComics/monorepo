@@ -109,6 +109,7 @@ export function putProfileWalletAddressAPI(
       onSuccessCallback(data);
     })
     .catch((exception) => {
+      console.log("putProfileWalletAddressAPI: exception:", exception);
       let errors = camelizeKeys(exception);
       onErrorCallback(errors);
     })

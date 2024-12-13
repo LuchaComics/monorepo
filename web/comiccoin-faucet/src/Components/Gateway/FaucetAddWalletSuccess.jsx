@@ -1,222 +1,82 @@
-import React, { useEffect, useState } from "react";
-import { Link, useSearchParams, Navigate } from "react-router-dom";
-import Scroll from "react-scroll";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faTasks,
-  faGauge,
-  faArrowRight,
-  faUsers,
-  faBarcode,
-  faQuestionCircle,
-  faWallet,
-  faDonate,
-  faCheckCircle,
-  faFaucet,
-} from "@fortawesome/free-solid-svg-icons";
+import React, { useState } from "react";
+import { Coins, AlertCircle, LogOut, CheckCircle2, ArrowRight } from "lucide-react";
+import { Navigate } from "react-router-dom";
 import { useRecoilState } from "recoil";
 
-import FormErrorBox from "../Reusable/FormErrorBox";
-import { putProfileWalletAddressAPI } from "../../API/Profile";
-import { topAlertMessageState, topAlertStatusState } from "../../AppState";
-import { currentUserState } from "../../AppState";
-import FormInputField from "../Reusable/FormInputField";
+export default function UserAddWalletToFaucetSuccess() {
+    const [forceURL, setForceURL] = useState("");
 
-function UserAddWalletToFaucetSuccess() {
-  ////
-  //// URL Parameters.
-  ////
-
-  const [searchParams] = useSearchParams(); // Special thanks via https://stackoverflow.com/a/65451140
-  const cpsrn = searchParams.get("cpsrn");
-
-  ////
-  //// Global state.
-  ////
-
-  const [topAlertMessage, setTopAlertMessage] =
-    useRecoilState(topAlertMessageState);
-  const [topAlertStatus, setTopAlertStatus] =
-    useRecoilState(topAlertStatusState);
-  const [currentUser, setCurrentUser] = useRecoilState(currentUserState);
-
-  ////
-  //// Component states.
-  ////
-
-  // GUI state.
-  const [errors, setErrors] = useState({});
-  const [isFetching, setIsFetching] = useState(false);
-  const [forceURL, setForceURL] = useState("");
-  const [wasFaucetRecentlySet, setWasFaucetRecentlySet] = useState(false);
-
-  // Form State.
-  const [walletAddress, setWalletAddress] = useState(
-    currentUser ? currentUser.walletAddress : "",
-  );
-
-  ////
-  //// API.
-  ////
-
-  function onRegisterSuccess(response) {
-    // For debugging purposes only.
-    console.log("onRegisterSuccess: Starting...");
-    console.log(response);
-
-    // Add a temporary banner message in the app and then clear itself after 2 seconds.
-    setTopAlertMessage("Submission created");
-    setTopAlertStatus("success");
-    setTimeout(() => {
-      console.log("onRegisterSuccess: Delayed for 2 seconds.");
-      console.log(
-        "onRegisterSuccess: topAlertMessage, topAlertStatus:",
-        topAlertMessage,
-        topAlertStatus,
-      );
-      setTopAlertMessage("");
-    }, 2000);
-
-    setWasFaucetRecentlySet(true);
-
-    setCurrentUser(response);
-
-    // // Redirect the user to a new page.
-    setForceURL("/added-my-wallet-to-faucet-successfully");
-  }
-
-  function onRegisterError(apiErr) {
-    console.log("onRegisterError: Starting...");
-    setErrors(apiErr);
-
-    // Add a temporary banner message in the app and then clear itself after 2 seconds.
-    setTopAlertMessage("Failed submitting");
-    setTopAlertStatus("danger");
-    setTimeout(() => {
-      console.log("onRegisterError: Delayed for 2 seconds.");
-      console.log(
-        "onRegisterError: topAlertMessage, topAlertStatus:",
-        topAlertMessage,
-        topAlertStatus,
-      );
-      setTopAlertMessage("");
-    }, 2000);
-
-    // The following code will cause the screen to scroll to the top of
-    // the page. Please see ``react-scroll`` for more information:
-    // https://github.com/fisshy/react-scroll
-    var scroll = Scroll.animateScroll;
-    scroll.scrollToTop();
-  }
-
-  function onRegisterDone() {
-    console.log("onRegisterDone: Starting...");
-    setIsFetching(false);
-  }
-
-  ////
-  //// Event handling.
-  ////
-
-  const onSubmitClick = (e) => {
-    e.preventDefault();
-    console.log("onSubmitClick: Beginning...");
-    setIsFetching(true);
-    setErrors({});
-    const submission = {
-      wallet_address: walletAddress,
-    };
-    console.log("onSubmitClick, submission:", submission);
-    putProfileWalletAddressAPI(
-      submission,
-      onRegisterSuccess,
-      onRegisterError,
-      onRegisterDone,
-    );
-  };
-
-  ////
-  //// Misc.
-  ////
-
-  ////
-  //// Misc.
-  ////
-
-  useEffect(() => {
-    let mounted = true;
-
-    if (mounted) {
-      window.scrollTo(0, 0); // Start the page at the top of the page.
+    if (forceURL !== "") {
+      return <Navigate to={forceURL} />;
     }
 
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  ////
-  //// Component rendering.
-  ////
-
-  if (forceURL !== "") {
-    return <Navigate to={forceURL} />;
-  }
-
-  console.log("currentUser: ", currentUser);
-  console.log("walletAddress: ", walletAddress);
-
   return (
-    <>
-      <div class="container">
-        <section class="section">
-          <nav class="breadcrumb" aria-label="breadcrumbs">
-            <ul>
-              <li class="is-active">
-                <Link to="/dashboard" aria-current="page">
-                  <FontAwesomeIcon className="fas" icon={faFaucet} />
-                  &nbsp;ComicCoin Faucet
-                </Link>
-              </li>
-            </ul>
-          </nav>
-          <nav class="box">
-            {currentUser && (
-              <>
-                <div class="columns">
-                  <div class="column">
-                    <h1 class="title is-4">
-                      <FontAwesomeIcon className="fas" icon={faDonate} />
-                      &nbsp;Get ComicCoins
-                    </h1>
-                  </div>
-                </div>
-                <section class="hero is-medium is-success">
-                  <div class="hero-body">
-                    <p class="title">
-                      <FontAwesomeIcon className="fas" icon={faCheckCircle} />
-                      &nbsp;Coins sent
-                    </p>
-                    <p class="subtitle">
-                      Your wallet was sent <b>10 ComicCoins</b>. Please check
-                      your wallet, transactions take up to 5 minutes to carry
-                      through the network.
-                      <br />
-                      <br />
-                      <Link to={"/c/dashboard"}>
-                        Go to Dashboard&nbsp;
-                        <FontAwesomeIcon className="fas" icon={faArrowRight} />
-                      </Link>
-                    </p>
-                  </div>
-                </section>
-              </>
-            )}
-          </nav>
-        </section>
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-purple-100 to-white">
+    <nav className="bg-gradient-to-r from-purple-700 to-indigo-800 text-white p-4">
+      <div className="max-w-7xl mx-auto flex justify-between items-center">
+        <div className="flex items-center space-x-2">
+          <Coins className="h-8 w-8" />
+          <span className="text-2xl font-bold">ComicCoin Faucet</span>
+        </div>
+        <button
+          onClick={(e) => setForceURL("/logout")}
+          className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
+        >
+          <LogOut className="h-5 w-5" />
+          <span>Logout</span>
+        </button>
       </div>
-    </>
+    </nav>
+
+      <main className="flex-grow flex items-center justify-center">
+        <div className="w-full max-w-2xl mx-4">
+          <div className="bg-white rounded-xl p-8 shadow-lg border-2 border-purple-200">
+            <div className="flex flex-col items-center space-y-6 text-center">
+              {/* Success Icon */}
+              <div className="rounded-full bg-green-100 p-3">
+                <CheckCircle2 className="h-12 w-12 text-green-600" />
+              </div>
+
+              {/* Success Title */}
+              <h1 className="text-3xl font-bold text-purple-800">
+                Wallet Successfully Set!
+              </h1>
+
+              {/* Success Message */}
+              <div className="space-y-4 text-gray-700">
+                <p className="text-lg">
+                  We've sent <span className="font-bold">10 ComicCoins</span> to your wallet!
+                </p>
+                <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r text-left">
+                  <p className="text-blue-800">
+                    Please check your wallet balance. Note that transactions may take up to 5 minutes
+                    to process through the network.
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <button onClick={(e) => setForceURL("/dashboard")} className="mt-8 flex items-center space-x-2 px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition-colors">
+                <span>Go to Dashboard</span>
+                <ArrowRight className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer className="bg-gradient-to-r from-purple-700 to-indigo-800 text-white py-8 mt-8">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <p className="mb-4">© 2024 ComicCoin Faucet. All rights reserved.</p>
+          <p>
+            <button className="underline hover:text-purple-200">Accessibility Statement</button>
+            {' | '}
+            <button className="underline hover:text-purple-200">Terms of Service</button>
+            {' | '}
+            <button className="underline hover:text-purple-200">Privacy Policy</button>
+          </p>
+        </div>
+      </footer>
+    </div>
   );
 }
-
-export default UserAddWalletToFaucetSuccess;

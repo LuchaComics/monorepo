@@ -1,11 +1,16 @@
 import React, { useState } from "react";
 import { Coins, AlertCircle, LogOut } from "lucide-react";
 import { Navigate } from "react-router-dom";
+import { useRecoilState } from "recoil";
 
 import { putProfileWalletAddressAPI } from "../../API/Profile";
-
+import { currentUserState } from "../../AppState";
 
 export default function UserAddWalletToFaucet() {
+  // Variable controls the global state of the app.
+  const [currentUser, setCurrentUser] = useRecoilState(currentUserState);
+
+  // Variable controls the login form.
   const [walletAddress, setWalletAddress] = useState("");
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,19 +28,25 @@ export default function UserAddWalletToFaucet() {
       formData,
       (resp) => {
         // SUCCESS HANDLER
+        // ---------------
 
         // For debugging purposes only.
         console.log("onLoginSuccess: Starting...");
         console.log(resp);
 
-        // // Store in persistance storage in the browser.
-        // setCurrentUser(resp.user);
+        // Store in persistance storage in the browser.
+        setCurrentUser(resp.user);
 
         setForceURL("/added-my-wallet-to-faucet-successfully");
+
+        // -------------------
         // end SUCCESS HANDLER
       },
       (apiErr) => {
         console.log("onLoginError: apiErr:", apiErr);
+        if (apiErr.walletAddress.includes("Wallet address already set")) {
+          setForceURL("/added-my-wallet-to-faucet-successfully");
+        }
         setErrors(apiErr);
       },
       () => {
@@ -57,7 +68,10 @@ export default function UserAddWalletToFaucet() {
             <Coins className="h-8 w-8" />
             <span className="text-2xl font-bold">ComicCoin Faucet</span>
           </div>
-          <button onClick={(e)=>setForceURL("/logout")} className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors">
+          <button
+            onClick={(e) => setForceURL("/logout")}
+            className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
+          >
             <LogOut className="h-5 w-5" />
             <span>Logout</span>
           </button>
