@@ -5,6 +5,9 @@ import {
   Menu, X, ChevronLeft, ChevronRight
 } from 'lucide-react';
 
+import Topbar from "../../../Components/Navigation/Topbar";
+
+
 const SubmissionsPage = () => {
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -234,77 +237,7 @@ const SubmissionsPage = () => {
 
   return (
     <div className="min-h-screen bg-purple-50">
-      {/* Navigation with full width gradient background */}
-      <nav className="bg-gradient-to-r from-purple-700 to-indigo-800 text-white">
-        {/* Navigation content container with responsive padding */}
-        <div className="max-w-[2000px] mx-auto px-4 md:px-8 lg:px-12 xl:px-24 2xl:px-32">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-2">
-              <Coins className="h-8 w-8" />
-              <span className="text-xl font-bold" style={{fontFamily: 'Comic Sans MS, cursive'}}>
-                ComicCoin
-              </span>
-            </div>
-
-            <div className="flex items-center lg:hidden">
-              <button
-                onClick={() => setIsNavOpen(!isNavOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-md text-white hover:bg-purple-600 focus:outline-none"
-              >
-                {isNavOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-              </button>
-            </div>
-
-            <div className="hidden lg:flex lg:items-center lg:space-x-4">
-              {navigation.map((item) => (
-                <a
-                  key={item.name}
-                  href="#"
-                  className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium ${
-                    item.current
-                      ? 'bg-purple-600 bg-opacity-50'
-                      : 'hover:bg-purple-600 hover:bg-opacity-25'
-                  }`}
-                >
-                  <item.icon className="h-4 w-4" />
-                  <span>{item.name}</span>
-                </a>
-              ))}
-            </div>
-
-            <div className="hidden lg:flex">
-              <button className="flex items-center space-x-1 px-3 py-2 rounded-md hover:bg-purple-600 hover:bg-opacity-25 text-purple-200 hover:text-white">
-                <LogOut className="h-4 w-4" />
-                <span>Logout</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile menu with matching padding */}
-        <div className={`lg:hidden ${isNavOpen ? 'block' : 'hidden'}`}>
-          <div className="max-w-[2000px] mx-auto px-4 md:px-8 lg:px-12 xl:px-24 2xl:px-32 pt-2 pb-3 space-y-1">
-            {navigation.map((item) => (
-              <a
-                key={item.name}
-                href="#"
-                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium ${
-                  item.current
-                    ? 'bg-purple-600 bg-opacity-50'
-                    : 'hover:bg-purple-600 hover:bg-opacity-25'
-                }`}
-              >
-                <item.icon className="h-5 w-5" />
-                <span>{item.name}</span>
-              </a>
-            ))}
-            <button className="w-full flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-purple-200 hover:text-white hover:bg-purple-600 hover:bg-opacity-25">
-              <LogOut className="h-5 w-5" />
-              <span>Logout</span>
-            </button>
-          </div>
-        </div>
-      </nav>
+      <Topbar currentPage="My Submissions" />
 
       {/* Main Content with responsive padding */}
       <main className="max-w-[2000px] mx-auto px-4 md:px-8 lg:px-12 xl:px-24 2xl:px-32 py-8">

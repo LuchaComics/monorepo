@@ -4,6 +4,9 @@ import {
   ArrowLeft, Camera, Info
 } from 'lucide-react';
 
+import Topbar from "../../../Components/Navigation/Topbar";
+
+
 const SubmitComicPage = () => {
   const [frontCover, setFrontCover] = useState(null);
   const [backCover, setBackCover] = useState(null);
@@ -22,6 +25,7 @@ const SubmitComicPage = () => {
 
   return (
     <div className="min-h-screen bg-purple-50">
+      <Topbar currentPage="Submit Comic" />
       <main className="p-4 lg:p-8 max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8">
