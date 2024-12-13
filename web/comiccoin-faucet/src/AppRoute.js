@@ -186,9 +186,8 @@ import EmailVerification from "./Components/Gateway/EmailVerification";
 // import Topbar from "./Components/Menu/Top";
 
 // // Redirectors.
-// import AnonymousCurrentUserRedirector from "./Components/Misc/AnonymousCurrentUserRedirector";
-// import TwoFactorAuthenticationRedirector from "./Components/Misc/TwoFactorAuthenticationRedirector";
-// import ComicCoinFaucetRedirector from "./Components/Gateway/ComicCoinFaucetRedirector";
+import AnonymousCurrentUserRedirector from "./Components/Misc/AnonymousCurrentUserRedirector";
+import TwoFactorAuthenticationRedirector from "./Components/Misc/TwoFactorAuthenticationRedirector";
 import FaucetAddWalletRedirector from "./Components/Gateway/FaucetAddWalletRedirector";
 
 // // Public Registery
@@ -207,12 +206,12 @@ import NotFoundError from "./Components/Misc/NotFoundError";
 import UserAddWalletToFaucet from "./Components/Gateway/FaucetAddWallet";
 import UserAddWalletToFaucetSuccess from "./Components/Gateway/FaucetAddWalletSuccess";
 
+// Dashboard
+import DashboardPage from "./Components/User/Dashboard";
+
 // //-----------------//
 // // Customer Portal //
 // //-----------------//
-
-// // Dashboard
-// import CustomerDashboard from "./Components/Customer/Dashboard";
 
 // // Registry
 // import CustomerRegistrySearch from "./Components/Customer/Registry/Search";
@@ -243,10 +242,11 @@ function AppRoute() {
     <div>
       <RecoilRoot>
         <Router>
-          {/* <AnonymousCurrentUserRedirector />
-          <TwoFactorAuthenticationRedirector />
+          {/*
           <TopAlertBanner />
           <Topbar /> */}
+          <AnonymousCurrentUserRedirector />
+          <TwoFactorAuthenticationRedirector />
           <FaucetAddWalletRedirector />
           {/* <Sidebar /> */}
           <Routes>
@@ -940,11 +940,6 @@ function AppRoute() {
               />
               <Route
                 exact
-                path="/c/dashboard"
-                element={<CustomerDashboard />}
-              />
-              <Route
-                exact
                 path="/c/registry"
                 element={<CustomerRegistrySearch />}
               />
@@ -1053,6 +1048,7 @@ function AppRoute() {
               path="/added-my-wallet-to-faucet-successfully"
               element={<UserAddWalletToFaucetSuccess />}
             />
+            <Route exact path="/dashboard" element={<DashboardPage />} />
             <Route exact path="/" element={<Index />} />
             <Route path="*" element={<NotFoundError />} />
           </Routes>
