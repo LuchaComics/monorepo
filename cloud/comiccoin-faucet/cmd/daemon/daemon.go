@@ -16,6 +16,7 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/blacklist"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/jwt"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/password"
+	cloudstorage "github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/storage/cloud/s3"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/storage/database/mongodb"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/storage/database/mongodbcache"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/templatedemailer"
@@ -57,14 +58,10 @@ func doRunDaemon() {
 	blackp := blacklist.NewProvider()
 	jwtp := jwt.NewProvider(cfg)
 	cache := mongodbcache.NewCache(cfg, logger, dbClient)
-	emailer := mailgun.NewEmailer(
-		cfg,
-		logger,
-	)
-	templatedEmailer := templatedemailer.NewTemplatedEmailer(
-		logger,
-		emailer,
-	)
+	emailer := mailgun.NewEmailer(cfg, logger)
+	templatedEmailer := templatedemailer.NewTemplatedEmailer(logger, emailer)
+	cloudstore := cloudstorage.NewCloudStorage(cfg, logger)
+	_ = cloudstore //TODO: Utilize in our app.
 
 	//
 	// Repository

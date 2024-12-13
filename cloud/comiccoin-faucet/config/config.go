@@ -15,6 +15,7 @@ import (
 
 type Configuration struct {
 	App        serverConf
+	AWS        awsConfig
 	Blockchain BlockchainConfig
 	DB         dbConfig
 	Emailer    mailgunConfig
@@ -33,6 +34,14 @@ type serverConf struct {
 	AuthorityHTTPAddress  string
 	NFTStorageHTTPAddress string
 	HMACSecret            *sbytes.SecureBytes
+}
+
+type awsConfig struct {
+	AccessKey  string
+	SecretKey  string
+	Endpoint   string
+	Region     string
+	BucketName string
 }
 
 // BlockchainConfig represents the configuration for the blockchain.
@@ -89,6 +98,13 @@ func NewProviderUsingEnvironmentVariables() *Configuration {
 	c.App.AuthorityHTTPAddress = getEnv("COMICCOIN_FAUCET_AUTHORITY_HTTP_ADDRESS", true)
 	c.App.NFTStorageHTTPAddress = getEnv("COMICCOIN_FAUCET_NFTSTORAGE_HTTP_ADDRESS", true)
 	c.App.HMACSecret = getSecureBytesEnv("COMICCOIN_FAUCET_HMAC_SECRET", true)
+
+	// Amazon Web-Services Technology
+	c.AWS.AccessKey = getEnv("COMICCOIN_FAUCET_AWS_ACCESS_KEY", true)
+	c.AWS.SecretKey = getEnv("COMICCOIN_FAUCET_AWS_SECRET_KEY", true)
+	c.AWS.Endpoint = getEnv("COMICCOIN_FAUCET_AWS_ENDPOINT", true)
+	c.AWS.Region = getEnv("COMICCOIN_FAUCET_AWS_REGION", true)
+	c.AWS.BucketName = getEnv("COMICCOIN_FAUCET_AWS_BUCKET_NAME", true)
 
 	// Blockchain section.
 	chainID, _ := strconv.ParseUint(getEnv("COMICCOIN_FAUCET_BLOCKCHAIN_CHAIN_ID", true), 10, 16)
