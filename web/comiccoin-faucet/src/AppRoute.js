@@ -206,8 +206,12 @@ import NotFoundError from "./Components/Misc/NotFoundError";
 import UserAddWalletToFaucet from "./Components/Gateway/FaucetAddWallet";
 import UserAddWalletToFaucetSuccess from "./Components/Gateway/FaucetAddWalletSuccess";
 
-// Dashboard
+// App
 import DashboardPage from "./Components/User/Dashboard";
+import SubmitComicPage from "./Components/User/Submission/Submit";
+import SubmissionsPage from "./Components/User/Submission/List";
+import MyWalletView from "./Components/User/MyWallet/View";
+import HelpView from "./Components/User/Help/View";
 
 // //-----------------//
 // // Customer Portal //
@@ -1049,6 +1053,10 @@ function AppRoute() {
               element={<UserAddWalletToFaucetSuccess />}
             />
             <Route exact path="/dashboard" element={<DashboardPage />} />
+            <Route exact path="/submit" element={<SubmitComicPage />} />
+            <Route exact path="/submissions" element={<SubmissionsPage />} />
+            <Route exact path="/my-wallet" element={<MyWalletView />} />
+            <Route exact path="/help" element={<HelpView />} />
             <Route exact path="/" element={<Index />} />
             <Route path="*" element={<NotFoundError />} />
           </Routes>
