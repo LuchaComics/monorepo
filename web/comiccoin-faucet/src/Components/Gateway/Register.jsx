@@ -164,15 +164,16 @@ const RegisterPage = () => {
             <Coins className="h-8 w-8" />
             <span className="text-2xl font-bold">ComicCoin Faucet</span>
           </div>
-          <button className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors">
+          <button onClick={(e)=>setForceURL("/")} className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors">
             <ArrowLeft className="h-5 w-5" />
             <span>Back to Home</span>
           </button>
         </div>
       </nav>
 
-      <main className="flex-grow container mx-auto px-4 py-8 max-w-2xl">
-        <h1 className="text-4xl font-bold mb-8 text-purple-800 text-center">
+      <main className="flex-grow flex items-center justify-center">
+        <div className="w-full max-w-md mx-4">
+          <h1 className="text-4xl font-bold mb-8 text-purple-800 text-center">
           Register for ComicCoin
         </h1>
 
@@ -470,6 +471,7 @@ const RegisterPage = () => {
             </div>
           </div>
         </form>
+        </div>
       </main>
 
       <footer className="bg-gradient-to-r from-purple-700 to-indigo-800 text-white py-8">
