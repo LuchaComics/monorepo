@@ -29,7 +29,7 @@ const DashboardPage = () => {
     },
     {
       id: 2,
-      title: "Batman: The Origin Story",
+      title: "Batman: Origins",
       coverImage: "/api/placeholder/120/160",
       submittedAt: "2024-12-12T09:45:00",
       status: "review",
