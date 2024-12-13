@@ -71,8 +71,8 @@ func doRunGatewayInit() {
 
 	tenantRepo := repo.NewTenantRepository(cfg, logger, dbClient)
 	userRepo := repo.NewUserRepository(cfg, logger, dbClient)
-	walletRepo := repo.NewWalletRepo(cfg, logger, dbClient)
-	accountRepo := repo.NewAccountRepo(cfg, logger, dbClient)
+	walletRepo := repo.NewWalletRepository(cfg, logger, dbClient)
+	accountRepo := repo.NewAccountRepository(cfg, logger, dbClient)
 
 	//
 	// Use-case

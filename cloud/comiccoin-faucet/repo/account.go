@@ -28,7 +28,7 @@ type AccountRepo struct {
 	collection *mongo.Collection
 }
 
-func NewAccountRepo(cfg *config.Configuration, logger *slog.Logger, client *mongo.Client) *AccountRepo {
+func NewAccountRepository(cfg *config.Configuration, logger *slog.Logger, client *mongo.Client) domain.AccountRepository {
 	// ctx := context.Background()
 	uc := client.Database(cfg.DB.Name).Collection("accounts")
 

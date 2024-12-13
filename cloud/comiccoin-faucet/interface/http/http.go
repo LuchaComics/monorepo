@@ -47,6 +47,8 @@ type httpServerImpl struct {
 	gatewayForgotPasswordHTTPHandler       *handler.GatewayForgotPasswordHTTPHandler
 	gatewayResetPasswordHTTPHandler        *handler.GatewayResetPasswordHTTPHandler
 	gatewayProfileWalletAddressHTTPHandler *handler.GatewayProfileWalletAddressHTTPHandler
+
+	uploadUnassignedAttachmentHTTPHandler *handler.UploadUnassignedAttachmentHTTPHandler
 }
 
 // NewHTTPServer creates a new HTTP server instance.
@@ -67,6 +69,7 @@ func NewHTTPServer(
 	h11 *handler.GatewayForgotPasswordHTTPHandler,
 	h12 *handler.GatewayResetPasswordHTTPHandler,
 	h13 *handler.GatewayProfileWalletAddressHTTPHandler,
+	h14 *handler.UploadUnassignedAttachmentHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.HTTPAddress == "" {
@@ -103,6 +106,7 @@ func NewHTTPServer(
 		gatewayForgotPasswordHTTPHandler:       h11,
 		gatewayResetPasswordHTTPHandler:        h12,
 		gatewayProfileWalletAddressHTTPHandler: h13,
+		uploadUnassignedAttachmentHTTPHandler:  h14,
 	}
 	// Attach the HTTP server controller to the ServeMux.
 	mux.HandleFunc("/", mid.Attach(port.HandleRequests))

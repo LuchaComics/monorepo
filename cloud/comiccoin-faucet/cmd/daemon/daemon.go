@@ -61,14 +61,13 @@ func doRunDaemon() {
 	emailer := mailgun.NewEmailer(cfg, logger)
 	templatedEmailer := templatedemailer.NewTemplatedEmailer(logger, emailer)
 	cloudstore := cloudstorage.NewCloudStorage(cfg, logger)
-	_ = cloudstore //TODO: Utilize in our app.
 
 	//
 	// Repository
 	//
 
-	walletRepo := repo.NewWalletRepo(cfg, logger, dbClient)
-	accountRepo := repo.NewAccountRepo(cfg, logger, dbClient)
+	walletRepo := repo.NewWalletRepository(cfg, logger, dbClient)
+	accountRepo := repo.NewAccountRepository(cfg, logger, dbClient)
 	tenantRepo := repo.NewTenantRepository(cfg, logger, dbClient)
 	userRepo := repo.NewUserRepository(cfg, logger, dbClient)
 	tokRepo := repo.NewTokenRepository(cfg, logger, dbClient)
@@ -99,13 +98,21 @@ func doRunDaemon() {
 		logger)
 	mempoolTransactionDTOConfigurationProvider := repo.NewMempoolTransactionDTOConfigurationProvider(cfg.App.AuthorityHTTPAddress)
 	mempoolTxDTORepo := repo.NewMempoolTransactionDTORepo(mempoolTransactionDTOConfigurationProvider, logger)
+	attachmentRepo := repo.NewAttachmentRepository(cfg, logger, dbClient)
 
 	//
 	// Use-case
 	//
 
+	// Cloud storage
+	cloudStorageUploadUseCase := usecase.NewCloudStorageUploadUseCase(cfg, logger, cloudstore)
+	cloudStoragePresignedURLUseCase := usecase.NewCloudStoragePresignedURLUseCase(cfg, logger, cloudstore)
+
 	// Email
 	sendUserVerificationEmailUseCase := usecase.NewSendUserVerificationEmailUseCase(cfg, logger, templatedEmailer)
+
+	// Attachment
+	createAttachmentUseCase := usecase.NewCreateAttachmentUseCase(cfg, logger, attachmentRepo)
 
 	// Wallet
 	walletDecryptKeyUseCase := usecase.NewWalletDecryptKeyUseCase(
@@ -392,6 +399,14 @@ func doRunDaemon() {
 		subscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase,
 	)
 
+	// Attachment
+	uploadUnassignedAttachmentService := service.NewUploadUnassignedAttachmentService(
+		logger,
+		cloudStorageUploadUseCase,
+		createAttachmentUseCase,
+		cloudStoragePresignedURLUseCase,
+	)
+
 	//
 	// Interface.
 	//
@@ -467,6 +482,11 @@ func doRunDaemon() {
 		dbClient,
 		gatewayAddWalletAddressToFaucetService,
 	)
+	uploadUnassignedAttachmentHTTPHandler := httphandler.NewUploadUnassignedAttachmentHTTPHandler(
+		logger,
+		dbClient,
+		uploadUnassignedAttachmentService,
+	)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
 		blackp,
@@ -490,6 +510,7 @@ func doRunDaemon() {
 		gatewayForgotPasswordHTTPHandler,
 		gatewayResetPasswordHTTPHandler,
 		gatewayProfileWalletAddressHTTPHandler,
+		uploadUnassignedAttachmentHTTPHandler,
 	)
 
 	//

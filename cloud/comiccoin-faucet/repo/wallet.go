@@ -25,7 +25,7 @@ type WalletRepo struct {
 	collection *mongo.Collection
 }
 
-func NewWalletRepo(cfg *config.Configuration, logger *slog.Logger, client *mongo.Client) *WalletRepo {
+func NewWalletRepository(cfg *config.Configuration, logger *slog.Logger, client *mongo.Client) domain.WalletRepository {
 	// ctx := context.Background()
 	uc := client.Database(cfg.DB.Name).Collection("wallets")
 
