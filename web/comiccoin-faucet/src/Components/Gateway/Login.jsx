@@ -95,7 +95,7 @@ export default function LoginPage() {
             <Coins className="h-8 w-8" />
             <span className="text-2xl font-bold">ComicCoin Faucet</span>
           </div>
-          <button className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors">
+          <button onClick={(e)=>setForceURL("/")} className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors">
             <ArrowLeft className="h-5 w-5" />
             <span>Back to Home</span>
           </button>
