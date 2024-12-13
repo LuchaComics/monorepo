@@ -7,7 +7,7 @@ import {
 
 import Topbar from "../../../Components/Navigation/Topbar";
 
-const MyWalletView = () => {
+const MyWalletPage = () => {
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -152,4 +152,4 @@ const MyWalletView = () => {
   );
 };
 
-export default MyWalletView;
+export default MyWalletPage;
