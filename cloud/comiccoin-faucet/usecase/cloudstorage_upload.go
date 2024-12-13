@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"log/slog"
-	"mime/multipart"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/httperror"
 	cloudinterface "github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/storage/cloud"
@@ -24,7 +23,7 @@ func NewCloudStorageUploadUseCase(
 	return &CloudStorageUploadUseCase{config, logger, cloudstorage}
 }
 
-func (uc *CloudStorageUploadUseCase) Execute(ctx context.Context, objectKey string, file multipart.File) error {
+func (uc *CloudStorageUploadUseCase) Execute(ctx context.Context, objectKey string, dataBytes []byte) error {
 	//
 	// STEP 1: Validation.
 	//
@@ -33,8 +32,8 @@ func (uc *CloudStorageUploadUseCase) Execute(ctx context.Context, objectKey stri
 	if objectKey == "" {
 		e["object_key"] = "Object key is required"
 	}
-	if file == nil {
-		e["file"] = "File is required"
+	if dataBytes == nil {
+		e["dataBytes"] = "Data is required"
 	}
 	if len(e) != 0 {
 		uc.logger.Warn("Failed validating",
@@ -45,9 +44,9 @@ func (uc *CloudStorageUploadUseCase) Execute(ctx context.Context, objectKey stri
 	//
 	// STEP 2: Upload file to cloud storage (in background).
 	//
-	go func(multipartfile multipart.File, objkey string) {
+	go func(dataBin []byte, objkey string) {
 		uc.logger.Debug("beginning private s3 image upload...")
-		if err := uc.cloudstorage.UploadContentFromMulipart(context.Background(), objkey, multipartfile); err != nil {
+		if err := uc.cloudstorage.UploadContentFromBytes(context.Background(), objkey, dataBin); err != nil {
 			uc.logger.Error("Cloud storage upload failure",
 				slog.Any("error", err))
 			// Do not return an error, simply continue this function as there might
@@ -55,7 +54,7 @@ func (uc *CloudStorageUploadUseCase) Execute(ctx context.Context, objectKey stri
 			// or some other reason.
 		}
 		uc.logger.Debug("Finished cloud storage upload with success")
-	}(file, objectKey)
+	}(dataBytes, objectKey)
 
 	return nil
 }

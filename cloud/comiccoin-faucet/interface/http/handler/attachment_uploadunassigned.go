@@ -16,25 +16,25 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/service"
 )
 
-type UploadUnassignedAttachmentHTTPHandler struct {
+type AttachmentCreateHTTPHandler struct {
 	logger   *slog.Logger
 	dbClient *mongo.Client
-	service  *service.UploadUnassignedAttachmentService
+	service  *service.AttachmentCreateService
 }
 
-func NewUploadUnassignedAttachmentHTTPHandler(
+func NewAttachmentCreateHTTPHandler(
 	logger *slog.Logger,
 	dbClient *mongo.Client,
-	service *service.UploadUnassignedAttachmentService,
-) *UploadUnassignedAttachmentHTTPHandler {
-	return &UploadUnassignedAttachmentHTTPHandler{
+	service *service.AttachmentCreateService,
+) *AttachmentCreateHTTPHandler {
+	return &AttachmentCreateHTTPHandler{
 		logger:   logger,
 		dbClient: dbClient,
 		service:  service,
 	}
 }
 
-func (h *UploadUnassignedAttachmentHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
+func (h *AttachmentCreateHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	////
@@ -50,6 +50,7 @@ func (h *UploadUnassignedAttachmentHTTPHandler) Execute(w http.ResponseWriter, r
 		httperror.ResponseError(w, httperror.NewForBadRequestWithSingleField("error", "missing `Content-Disposition` header in your request"))
 		return
 	}
+	h.logger.Debug("AttachmentCreateHTTPHandler: Create", slog.Any("Content-Disposition", contentDisposition))
 	filename := getFilenameFromContentDispositionText(contentDisposition)
 	if filename == "" {
 		httperror.ResponseError(w, httperror.NewForBadRequestWithSingleField("error", "missing or corrupt `filename` from your requests `Content-Disposition` text"))
@@ -71,7 +72,7 @@ func (h *UploadUnassignedAttachmentHTTPHandler) Execute(w http.ResponseWriter, r
 	}
 
 	// Initialize our array which will store all the results from the remote server.
-	requestData := &service.UploadUnassignedAttachmentRequestIDO{
+	requestData := &service.AttachmentCreateRequestIDO{
 		Filename:    filename,
 		ContentType: contentType,
 		Data:        data,
@@ -110,7 +111,7 @@ func (h *UploadUnassignedAttachmentHTTPHandler) Execute(w http.ResponseWriter, r
 		return
 	}
 
-	resp := result.(*service.UploadUnassignedAttachmentResponseIDO)
+	resp := result.(*service.AttachmentCreateResponseIDO)
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(&resp); err != nil {
@@ -123,16 +124,23 @@ func (h *UploadUnassignedAttachmentHTTPHandler) Execute(w http.ResponseWriter, r
 
 func getFilenameFromContentDispositionText(contentDispositionText string) string {
 	// Define the regular expression pattern to extract the filename
-	pattern := `filename=([^;]+)`
+	pattern := `filename="?([^"]+)"?`
 	re := regexp.MustCompile(pattern)
 
 	// Find the first match
 	matches := re.FindStringSubmatch(contentDispositionText)
 	if len(matches) > 1 {
-		// Trim any leading or trailing whitespace around the filename
-		return strings.TrimSpace(matches[1])
-	} else {
-		log.Println("contentDispositionText:", contentDispositionText)
-		return ""
+		// Clean the filename:
+		// 1. Trim any leading or trailing whitespace
+		// 2. Remove any quotes
+		// 3. Replace any potentially problematic characters
+		filename := strings.TrimSpace(matches[1])
+		filename = strings.Trim(filename, `"`)           // Remove any remaining quotes
+		filename = strings.ReplaceAll(filename, `\`, "") // Remove any backslashes
+
+		return filename
 	}
+
+	log.Println("contentDispositionText:", contentDispositionText)
+	return ""
 }

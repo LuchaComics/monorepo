@@ -3,16 +3,100 @@ import {
   Upload, X, AlertCircle,
   ArrowLeft, Camera, Info
 } from 'lucide-react';
+import { Link } from "react-router-dom";
 
 import Topbar from "../../../Components/Navigation/Topbar";
+import { postAttachmentCreateAPI, deleteAttachmentAPI } from "../../../API/Attachment";
 
 
 const SubmitComicPage = () => {
-  const [frontCover, setFrontCover] = useState(null);
-  const [backCover, setBackCover] = useState(null);
-  const [comicName, setComicName] = useState('');
-  const [agreed, setAgreed] = useState(false);
-  const [showPhotoTips, setShowPhotoTips] = useState(false);
+    const [frontCover, setFrontCover] = useState(null);
+    const [backCover, setBackCover] = useState(null);
+    const [frontCoverFilename, setFrontCoverFilename] = useState('');
+    const [backCoverFilename, setBackCoverFilename] = useState('');
+    const [frontCoverAssetID, setFrontCoverAssetID] = useState('');
+    const [backCoverAssetID, setBackCoverAssetID] = useState('');
+    const [comicName, setComicName] = useState('');
+    const [agreed, setAgreed] = useState(false);
+    const [showPhotoTips, setShowPhotoTips] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [isFetching, setFetching] = useState(false);
+
+    // API handlers
+    const handleFileUpload = (file, setAssetID, setFilename, coverType) => {
+  setFetching(true);
+  setErrors({});
+
+  const formData = new FormData();
+
+  // Add the file with explicit content type
+  formData.append('file', file, file.name);
+
+  // Add additional metadata if needed
+  formData.append('filename', file.name);
+  formData.append('mimeType', file.type || 'application/octet-stream');
+
+  postAttachmentCreateAPI(
+    file.name,
+    file.type || "application/octet-stream",
+    formData,
+    (response) => {
+      console.log(`${coverType} upload success:`, response);
+      setAssetID(response.id);
+      setFilename(response.filename);
+    },
+    (apiErr) => {
+      console.error(`${coverType} upload error:`, apiErr);
+      setErrors(prev => ({ ...prev, [coverType]: apiErr }));
+    },
+    () => {
+      setFetching(false);
+    },
+    () => {
+      window.location.href = "/login?unauthorized=true";
+    }
+  );
+};
+
+    const handleDelete = (assetID, setAssetID, setFilename, coverType) => {
+      setFetching(true);
+      setErrors({});
+
+      deleteAttachmentAPI(
+        assetID,
+        () => {
+          setAssetID("");
+          setFilename("");
+        },
+        (apiErr) => {
+          setErrors(prev => ({ ...prev, [coverType]: apiErr }));
+        },
+        () => {
+          setFetching(false);
+        },
+        () => {
+          window.location.href = "/login?unauthorized=true";
+        }
+      );
+    };
+
+    // File change handlers
+  const handleFrontCoverChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setFrontCover(file);
+      handleFileUpload(file, setFrontCoverAssetID, setFrontCoverFilename, 'frontCover');
+    }
+  };
+
+  const handleBackCoverChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setBackCover(file);
+      handleFileUpload(file, setBackCoverAssetID, setBackCoverFilename, 'backCover');
+    }
+  };
+
 
   const rules = [
     "You must only upload pictures of a physical comic book",
@@ -29,10 +113,10 @@ const SubmitComicPage = () => {
       <main className="p-4 lg:p-8 max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <button className="flex items-center text-purple-600 hover:text-purple-700 mb-4">
+          <Link to="/dashboard" className="flex items-center text-purple-600 hover:text-purple-700 mb-4">
             <ArrowLeft className="h-5 w-5 mr-1" />
             Back to Dashboard
-          </button>
+          </Link>
           <h1 className="text-2xl lg:text-3xl font-bold text-purple-800 mb-2" style={{fontFamily: 'Comic Sans MS, cursive'}}>
             Submit a Comic
           </h1>
@@ -125,43 +209,105 @@ const SubmitComicPage = () => {
 
             {/* Upload Sections */}
             <div className="grid md:grid-cols-2 gap-6">
-              {/* Front Cover Upload */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Front Cover * <span className="text-gray-500">(required)</span>
-                </label>
-                <div className="border-2 border-dashed border-purple-200 rounded-lg p-6 hover:border-purple-400 transition-colors">
-                  <div className="flex flex-col items-center">
-                    <Upload className="h-12 w-12 text-purple-400 mb-4" />
-                    <p className="text-sm text-gray-500 text-center mb-4">
-                      Click here to upload or drag and drop your front cover photo
-                    </p>
-                    <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                      Choose Front Cover
-                    </button>
-                    <p className="mt-2 text-xs text-gray-500">Accepted formats: JPG, PNG (max 10MB)</p>
-                  </div>
+            {/* Front Cover Upload */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Front Cover * <span className="text-gray-500">(required)</span>
+        </label>
+        <div className="border-2 border-dashed border-purple-200 rounded-lg p-6 hover:border-purple-400 transition-colors">
+          <div className="flex flex-col items-center">
+            {frontCoverFilename ? (
+              <div className="w-full">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm text-gray-600">{frontCoverFilename}</span>
+                  <button
+                    onClick={() => handleDelete(frontCoverAssetID, setFrontCoverAssetID, setFrontCoverFilename, 'frontCover')}
+                    className="text-red-500 hover:text-red-700"
+                    disabled={isFetching}
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
                 </div>
               </div>
+            ) : (
+              <>
+                <Upload className="h-12 w-12 text-purple-400 mb-4" />
+                <p className="text-sm text-gray-500 text-center mb-4">
+                  Click here to upload or drag and drop your front cover photo
+                </p>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFrontCoverChange}
+                  className="hidden"
+                  id="frontCoverUpload"
+                  disabled={isFetching}
+                />
+                <label
+                  htmlFor="frontCoverUpload"
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  Choose Front Cover
+                </label>
+              </>
+            )}
+            {errors.frontCover && (
+              <p className="mt-2 text-sm text-red-600">{errors.frontCover}</p>
+            )}
+            <p className="mt-2 text-xs text-gray-500">Accepted formats: JPG, PNG (max 10MB)</p>
+          </div>
+        </div>
+      </div>
 
-              {/* Back Cover Upload */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Back Cover * <span className="text-gray-500">(required)</span>
-                </label>
-                <div className="border-2 border-dashed border-purple-200 rounded-lg p-6 hover:border-purple-400 transition-colors">
-                  <div className="flex flex-col items-center">
-                    <Upload className="h-12 w-12 text-purple-400 mb-4" />
-                    <p className="text-sm text-gray-500 text-center mb-4">
-                      Click here to upload or drag and drop your back cover photo
-                    </p>
-                    <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                      Choose Back Cover
-                    </button>
-                    <p className="mt-2 text-xs text-gray-500">Accepted formats: JPG, PNG (max 10MB)</p>
-                  </div>
+      {/* Back Cover Upload */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Back Cover * <span className="text-gray-500">(required)</span>
+        </label>
+        <div className="border-2 border-dashed border-purple-200 rounded-lg p-6 hover:border-purple-400 transition-colors">
+          <div className="flex flex-col items-center">
+            {backCoverFilename ? (
+              <div className="w-full">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm text-gray-600">{backCoverFilename}</span>
+                  <button
+                    onClick={() => handleDelete(backCoverAssetID, setBackCoverAssetID, setBackCoverFilename, 'backCover')}
+                    className="text-red-500 hover:text-red-700"
+                    disabled={isFetching}
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
                 </div>
               </div>
+            ) : (
+              <>
+                <Upload className="h-12 w-12 text-purple-400 mb-4" />
+                <p className="text-sm text-gray-500 text-center mb-4">
+                  Click here to upload or drag and drop your back cover photo
+                </p>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleBackCoverChange}
+                  className="hidden"
+                  id="backCoverUpload"
+                  disabled={isFetching}
+                />
+                <label
+                  htmlFor="backCoverUpload"
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  Choose Back Cover
+                </label>
+              </>
+            )}
+            {errors.backCover && (
+              <p className="mt-2 text-sm text-red-600">{errors.backCover}</p>
+            )}
+            <p className="mt-2 text-xs text-gray-500">Accepted formats: JPG, PNG (max 10MB)</p>
+          </div>
+        </div>
+      </div>
             </div>
 
             {/* Terms Agreement */}

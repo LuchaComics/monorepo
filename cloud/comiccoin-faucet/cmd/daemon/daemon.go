@@ -400,7 +400,8 @@ func doRunDaemon() {
 	)
 
 	// Attachment
-	uploadUnassignedAttachmentService := service.NewUploadUnassignedAttachmentService(
+	attachmentCreateService := service.NewAttachmentCreateService(
+		cfg,
 		logger,
 		cloudStorageUploadUseCase,
 		createAttachmentUseCase,
@@ -482,10 +483,10 @@ func doRunDaemon() {
 		dbClient,
 		gatewayAddWalletAddressToFaucetService,
 	)
-	uploadUnassignedAttachmentHTTPHandler := httphandler.NewUploadUnassignedAttachmentHTTPHandler(
+	attachmentCreateHTTPHandler := httphandler.NewAttachmentCreateHTTPHandler(
 		logger,
 		dbClient,
-		uploadUnassignedAttachmentService,
+		attachmentCreateService,
 	)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
@@ -510,7 +511,7 @@ func doRunDaemon() {
 		gatewayForgotPasswordHTTPHandler,
 		gatewayResetPasswordHTTPHandler,
 		gatewayProfileWalletAddressHTTPHandler,
-		uploadUnassignedAttachmentHTTPHandler,
+		attachmentCreateHTTPHandler,
 	)
 
 	//

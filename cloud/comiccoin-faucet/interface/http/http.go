@@ -48,7 +48,7 @@ type httpServerImpl struct {
 	gatewayResetPasswordHTTPHandler        *handler.GatewayResetPasswordHTTPHandler
 	gatewayProfileWalletAddressHTTPHandler *handler.GatewayProfileWalletAddressHTTPHandler
 
-	uploadUnassignedAttachmentHTTPHandler *handler.UploadUnassignedAttachmentHTTPHandler
+	attachmentCreateHTTPHandler *handler.AttachmentCreateHTTPHandler
 }
 
 // NewHTTPServer creates a new HTTP server instance.
@@ -69,7 +69,7 @@ func NewHTTPServer(
 	h11 *handler.GatewayForgotPasswordHTTPHandler,
 	h12 *handler.GatewayResetPasswordHTTPHandler,
 	h13 *handler.GatewayProfileWalletAddressHTTPHandler,
-	h14 *handler.UploadUnassignedAttachmentHTTPHandler,
+	h14 *handler.AttachmentCreateHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.HTTPAddress == "" {
@@ -106,7 +106,7 @@ func NewHTTPServer(
 		gatewayForgotPasswordHTTPHandler:       h11,
 		gatewayResetPasswordHTTPHandler:        h12,
 		gatewayProfileWalletAddressHTTPHandler: h13,
-		uploadUnassignedAttachmentHTTPHandler:  h14,
+		attachmentCreateHTTPHandler:            h14,
 	}
 	// Attach the HTTP server controller to the ServeMux.
 	mux.HandleFunc("/", mid.Attach(port.HandleRequests))
@@ -183,6 +183,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		port.gatewayForgotPasswordHTTPHandler.Execute(w, r)
 	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "password-reset" && r.Method == http.MethodPost:
 		port.gatewayResetPasswordHTTPHandler.Execute(w, r)
+	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "attachments" && r.Method == http.MethodPost:
+		port.attachmentCreateHTTPHandler.Execute(w, r)
 	// --- CATCH ALL: D.N.E. ---
 	default:
 		// Log a message to indicate that the request is not found.

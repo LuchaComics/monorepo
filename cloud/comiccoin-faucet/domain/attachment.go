@@ -30,13 +30,13 @@ type Attachment struct {
 	Description               string             `bson:"description" json:"description"`
 	Filename                  string             `bson:"filename" json:"filename"`
 	ObjectKey                 string             `bson:"object_key" json:"object_key"`
-	ObjectURL                 string             `bson:"object_url" json:"object_url"`
+	ObjectURL                 string             `bson:"-" json:"object_url"`
 	Status                    int8               `bson:"status" json:"status"`
-	ContentType               int8               `bson:"content_type" json:"content_type"`
+	ContentType               string             `bson:"content_type" json:"content_type"`
 	UserID                    primitive.ObjectID `bson:"user_id" json:"user_id"`
 	TenantID                  primitive.ObjectID `bson:"tenant_id" json:"tenant_id"`
 	BelongsToUniqueIdentifier primitive.ObjectID `bson:"belongs_to_unique_identifier" json:"belongs_to_unique_identifier"`
-	BelongsToType             primitive.ObjectID `bson:"belongs_type" json:"belongs_type"`
+	BelongsToType             int8               `bson:"belongs_type" json:"belongs_type"`
 }
 
 // AttachmentRepository Interface for a file that has content which lives in the cloud.
