@@ -9,28 +9,28 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/domain"
 )
 
-type CreateAttachmentUseCase struct {
+type ComicSubmissionCreateUseCase struct {
 	config *config.Configuration
 	logger *slog.Logger
-	repo   domain.AttachmentRepository
+	repo   domain.ComicSubmissionRepository
 }
 
-func NewCreateAttachmentUseCase(
+func NewComicSubmissionCreateUseCase(
 	config *config.Configuration,
 	logger *slog.Logger,
-	repo domain.AttachmentRepository,
-) *CreateAttachmentUseCase {
-	return &CreateAttachmentUseCase{config, logger, repo}
+	repo domain.ComicSubmissionRepository,
+) *ComicSubmissionCreateUseCase {
+	return &ComicSubmissionCreateUseCase{config, logger, repo}
 }
 
-func (uc *CreateAttachmentUseCase) Execute(ctx context.Context, attachment *domain.Attachment) error {
+func (uc *ComicSubmissionCreateUseCase) Execute(ctx context.Context, comicSubmission *domain.ComicSubmission) error {
 	//
 	// STEP 1: Validation.
 	//
 
 	e := make(map[string]string)
-	if attachment == nil {
-		e["attachment"] = "Attachment is required"
+	if comicSubmission == nil {
+		e["comic_submission"] = "Comic submission is required"
 	} else {
 
 	}
@@ -44,5 +44,5 @@ func (uc *CreateAttachmentUseCase) Execute(ctx context.Context, attachment *doma
 	// STEP 2: Insert into database.
 	//
 
-	return uc.repo.Create(ctx, attachment)
+	return uc.repo.Create(ctx, comicSubmission)
 }

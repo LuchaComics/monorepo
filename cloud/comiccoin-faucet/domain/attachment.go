@@ -23,9 +23,11 @@ type Attachment struct {
 	CreatedAt                 time.Time          `bson:"created_at,omitempty" json:"created_at,omitempty"`
 	CreatedByUserName         string             `bson:"created_by_user_name" json:"created_by_user_name"`
 	CreatedByUserID           primitive.ObjectID `bson:"created_by_user_id" json:"created_by_user_id"`
+	CreatedFromIPAddress      string             `bson:"created_from_ip_address" json:"created_from_ip_address"`
 	ModifiedAt                time.Time          `bson:"modified_at,omitempty" json:"modified_at,omitempty"`
 	ModifiedByUserName        string             `bson:"modified_by_user_name" json:"modified_by_user_name"`
 	ModifiedByUserID          primitive.ObjectID `bson:"modified_by_user_id" json:"modified_by_user_id"`
+	ModifiedFromIPAddress     string             `bson:"modified_from_ip_address" json:"modified_from_ip_address"`
 	Name                      string             `bson:"name" json:"name"`
 	Description               string             `bson:"description" json:"description"`
 	Filename                  string             `bson:"filename" json:"filename"`
@@ -42,9 +44,9 @@ type Attachment struct {
 // AttachmentRepository Interface for a file that has content which lives in the cloud.
 type AttachmentRepository interface {
 	Create(ctx context.Context, m *Attachment) error
+	GetByID(ctx context.Context, id primitive.ObjectID) (*Attachment, error)
 	// GetByName(ctx context.Context, name string) (*Attachment, error)
-	// GetByID(ctx context.Context, id primitive.ObjectID) (*Attachment, error)
-	// UpdateByID(ctx context.Context, m *Attachment) error
+	UpdateByID(ctx context.Context, m *Attachment) error
 	// DeleteByID(ctx context.Context, id primitive.ObjectID) error
 	// CheckIfExistsByID(ctx context.Context, id primitive.ObjectID) (bool, error)
 	// ListByFilter(ctx context.Context, m *AttachmentPaginationListFilter) (*AttachmentPaginationListResult, error)

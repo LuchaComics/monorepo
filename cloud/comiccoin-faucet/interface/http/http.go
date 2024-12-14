@@ -49,6 +49,8 @@ type httpServerImpl struct {
 	gatewayProfileWalletAddressHTTPHandler *handler.GatewayProfileWalletAddressHTTPHandler
 
 	attachmentCreateHTTPHandler *handler.AttachmentCreateHTTPHandler
+
+	comicSubmissionCreateHTTPHandler *handler.ComicSubmissionCreateHTTPHandler
 }
 
 // NewHTTPServer creates a new HTTP server instance.
@@ -70,6 +72,7 @@ func NewHTTPServer(
 	h12 *handler.GatewayResetPasswordHTTPHandler,
 	h13 *handler.GatewayProfileWalletAddressHTTPHandler,
 	h14 *handler.AttachmentCreateHTTPHandler,
+	h15 *handler.ComicSubmissionCreateHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.HTTPAddress == "" {
@@ -107,6 +110,7 @@ func NewHTTPServer(
 		gatewayResetPasswordHTTPHandler:        h12,
 		gatewayProfileWalletAddressHTTPHandler: h13,
 		attachmentCreateHTTPHandler:            h14,
+		comicSubmissionCreateHTTPHandler:       h15,
 	}
 	// Attach the HTTP server controller to the ServeMux.
 	mux.HandleFunc("/", mid.Attach(port.HandleRequests))
@@ -185,6 +189,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		port.gatewayResetPasswordHTTPHandler.Execute(w, r)
 	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "attachments" && r.Method == http.MethodPost:
 		port.attachmentCreateHTTPHandler.Execute(w, r)
+	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "comic-submissions" && r.Method == http.MethodPost:
+		port.comicSubmissionCreateHTTPHandler.Execute(w, r)
 	// --- CATCH ALL: D.N.E. ---
 	default:
 		// Log a message to indicate that the request is not found.

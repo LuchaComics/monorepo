@@ -96,15 +96,18 @@ func (s *AttachmentCreateService) Execute(sessCtx mongo.SessionContext, req *Att
 	// Extract from our session the following data.
 	userID, _ := sessCtx.Value(constants.SessionUserID).(primitive.ObjectID)
 	userName, _ := sessCtx.Value(constants.SessionUserName).(string)
+	ipAddress, _ := sessCtx.Value(constants.SessionIPAddress).(string)
 
 	attach := &domain.Attachment{
 		ID:                        primitive.NewObjectID(),
 		CreatedAt:                 time.Now(),
 		CreatedByUserName:         userName,
 		CreatedByUserID:           userID,
+		CreatedFromIPAddress:      ipAddress,
 		ModifiedAt:                time.Now(),
 		ModifiedByUserName:        userName,
 		ModifiedByUserID:          userID,
+		ModifiedFromIPAddress:     ipAddress,
 		Name:                      req.Name,
 		Description:               "{}",
 		Filename:                  req.Filename,

@@ -57,9 +57,11 @@ type User struct {
 	HowDidYouHearAboutUsOther string             `bson:"how_did_you_hear_about_us_other" json:"how_did_you_hear_about_us_other,omitempty"`
 	AgreeTermsOfService       bool               `bson:"agree_terms_of_service" json:"agree_terms_of_service,omitempty"`
 	AgreePromotions           bool               `bson:"agree_promotions" json:"agree_promotions,omitempty"`
+	CreatedFromIPAddress      string             `bson:"created_from_ip_address" json:"created_from_ip_address"`
 	CreatedByUserID           primitive.ObjectID `bson:"created_by_user_id" json:"created_by_user_id"`
 	CreatedAt                 time.Time          `bson:"created_at" json:"created_at,omitempty"`
 	CreatedByName             string             `bson:"created_by_name" json:"created_by_name"`
+	ModifiedFromIPAddress     string             `bson:"modified_from_ip_address" json:"modified_from_ip_address"`
 	ModifiedByUserID          primitive.ObjectID `bson:"modified_by_user_id" json:"modified_by_user_id"`
 	ModifiedAt                time.Time          `bson:"modified_at" json:"modified_at,omitempty"`
 	ModifiedByName            string             `bson:"modified_by_name" json:"modified_by_name"`

@@ -99,6 +99,7 @@ func doRunDaemon() {
 	mempoolTransactionDTOConfigurationProvider := repo.NewMempoolTransactionDTOConfigurationProvider(cfg.App.AuthorityHTTPAddress)
 	mempoolTxDTORepo := repo.NewMempoolTransactionDTORepo(mempoolTransactionDTOConfigurationProvider, logger)
 	attachmentRepo := repo.NewAttachmentRepository(cfg, logger, dbClient)
+	comicSubmissionRepo := repo.NewComicSubmissionRepository(cfg, logger, dbClient)
 
 	//
 	// Use-case
@@ -113,6 +114,8 @@ func doRunDaemon() {
 
 	// Attachment
 	createAttachmentUseCase := usecase.NewCreateAttachmentUseCase(cfg, logger, attachmentRepo)
+	attachmentGetUseCase := usecase.NewAttachmentGetUseCase(cfg, logger, attachmentRepo)
+	attachmentUpdateUseCase := usecase.NewAttachmentUpdateUseCase(cfg, logger, attachmentRepo)
 
 	// Wallet
 	walletDecryptKeyUseCase := usecase.NewWalletDecryptKeyUseCase(
@@ -280,6 +283,12 @@ func doRunDaemon() {
 		logger,
 		userRepo)
 
+	// Comic Submission.
+	comicSubmissionCreateUseCase := usecase.NewComicSubmissionCreateUseCase(
+		cfg,
+		logger,
+		comicSubmissionRepo)
+
 	//
 	// Service
 	//
@@ -408,6 +417,15 @@ func doRunDaemon() {
 		cloudStoragePresignedURLUseCase,
 	)
 
+	// Comic Submission
+	comicSubmissionCreateService := service.NewComicSubmissionCreateService(
+		logger,
+		userGetByIDUseCase,
+		attachmentGetUseCase,
+		attachmentUpdateUseCase,
+		comicSubmissionCreateUseCase,
+	)
+
 	//
 	// Interface.
 	//
@@ -488,6 +506,11 @@ func doRunDaemon() {
 		dbClient,
 		attachmentCreateService,
 	)
+	comicSubmissionCreateHTTPHandler := httphandler.NewComicSubmissionCreateHTTPHandler(
+		logger,
+		dbClient,
+		comicSubmissionCreateService,
+	)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
 		blackp,
@@ -512,6 +535,7 @@ func doRunDaemon() {
 		gatewayResetPasswordHTTPHandler,
 		gatewayProfileWalletAddressHTTPHandler,
 		attachmentCreateHTTPHandler,
+		comicSubmissionCreateHTTPHandler,
 	)
 
 	//

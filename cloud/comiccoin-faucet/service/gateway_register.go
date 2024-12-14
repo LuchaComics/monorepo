@@ -17,6 +17,7 @@ import (
 	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/securestring"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/storage/database/mongodbcache"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config/constants"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/domain"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/usecase"
 )
@@ -230,6 +231,8 @@ func (s *GatewayUserRegisterService) createCustomerUserForRequest(sessCtx mongo.
 		return nil, err
 	}
 
+	ipAddress, _ := sessCtx.Value(constants.SessionIPAddress).(string)
+
 	userID := primitive.NewObjectID()
 	u := &domain.User{
 		TenantID:                   t.ID,
@@ -255,9 +258,11 @@ func (s *GatewayUserRegisterService) createCustomerUserForRequest(sessCtx mongo.
 		CreatedByUserID:            userID,
 		CreatedAt:                  time.Now(),
 		CreatedByName:              fmt.Sprintf("%s %s", req.FirstName, req.LastName),
+		CreatedFromIPAddress:       ipAddress,
 		ModifiedByUserID:           userID,
 		ModifiedAt:                 time.Now(),
 		ModifiedByName:             fmt.Sprintf("%s %s", req.FirstName, req.LastName),
+		ModifiedFromIPAddress:      ipAddress,
 		WasEmailVerified:           false,
 		EmailVerificationCode:      primitive.NewObjectID().Hex(),
 		EmailVerificationExpiry:    time.Now().Add(72 * time.Hour),
