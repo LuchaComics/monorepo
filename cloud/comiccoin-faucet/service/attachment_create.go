@@ -84,7 +84,7 @@ func (s *AttachmentCreateService) Execute(sessCtx mongo.SessionContext, req *Att
 		slog.Int("content_length", len(req.Data)),
 	)
 
-	if err := s.cloudStorageUploadUseCase.Execute(sessCtx, objectKey, req.Data); err != nil {
+	if err := s.cloudStorageUploadUseCase.Execute(sessCtx, objectKey, req.Data, req.ContentType); err != nil {
 		s.logger.Error("Failed uploading to cloud storage", slog.Any("err", err))
 		return nil, err
 	}

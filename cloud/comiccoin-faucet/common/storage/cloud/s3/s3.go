@@ -108,24 +108,13 @@ func NewCloudStorage(appConf *c.Configuration, logger *slog.Logger) cloudinterfa
 	return s3Storage
 }
 
-func (s *s3Adapter) UploadContent(ctx context.Context, objectKey string, content []byte) error {
-	_, err := s.S3Client.PutObject(ctx, &s3.PutObjectInput{
-		Bucket: aws.String(s.BucketName),
-		Key:    aws.String(objectKey),
-		Body:   bytes.NewReader(content),
-	})
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *s3Adapter) UploadContentFromMulipart(ctx context.Context, objectKey string, file multipart.File) error {
+func (s *s3Adapter) UploadContentFromMulipart(ctx context.Context, objectKey string, file multipart.File, contentType string) error {
 	// Create the S3 upload input parameters
 	params := &s3.PutObjectInput{
-		Bucket: aws.String(s.BucketName),
-		Key:    aws.String(objectKey),
-		Body:   file,
+		Bucket:      aws.String(s.BucketName),
+		Key:         aws.String(objectKey),
+		Body:        file,
+		ContentType: aws.String(contentType),
 	}
 
 	// Perform the file upload to S3
@@ -136,12 +125,13 @@ func (s *s3Adapter) UploadContentFromMulipart(ctx context.Context, objectKey str
 	return nil
 }
 
-func (s *s3Adapter) UploadContentFromBytes(ctx context.Context, objectKey string, content []byte) error {
+func (s *s3Adapter) UploadContentFromBytes(ctx context.Context, objectKey string, content []byte, contentType string) error {
 	// Create the S3 upload input parameters
 	params := &s3.PutObjectInput{
-		Bucket: aws.String(s.BucketName),
-		Key:    aws.String(objectKey),
-		Body:   bytes.NewReader(content), // Convert content []byte to io.Reader using bytes.NewReader
+		Bucket:      aws.String(s.BucketName),
+		Key:         aws.String(objectKey),
+		Body:        bytes.NewReader(content), // Convert content []byte to io.Reader using bytes.NewReader
+		ContentType: aws.String(contentType),
 	}
 
 	// Perform the file upload to S3

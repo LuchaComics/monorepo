@@ -23,7 +23,7 @@ func NewCloudStorageUploadUseCase(
 	return &CloudStorageUploadUseCase{config, logger, cloudstorage}
 }
 
-func (uc *CloudStorageUploadUseCase) Execute(ctx context.Context, objectKey string, dataBytes []byte) error {
+func (uc *CloudStorageUploadUseCase) Execute(ctx context.Context, objectKey string, dataBytes []byte, contentType string) error {
 	//
 	// STEP 1: Validation.
 	//
@@ -35,6 +35,9 @@ func (uc *CloudStorageUploadUseCase) Execute(ctx context.Context, objectKey stri
 	if dataBytes == nil {
 		e["dataBytes"] = "Data is required"
 	}
+	if contentType == "" {
+		e["content_type"] = "Content type is required"
+	}
 	if len(e) != 0 {
 		uc.logger.Warn("Failed validating",
 			slog.Any("error", e))
@@ -44,9 +47,9 @@ func (uc *CloudStorageUploadUseCase) Execute(ctx context.Context, objectKey stri
 	//
 	// STEP 2: Upload file to cloud storage (in background).
 	//
-	go func(dataBin []byte, objkey string) {
+	go func(dataBin []byte, objkey string, binType string) {
 		uc.logger.Debug("beginning private s3 image upload...")
-		if err := uc.cloudstorage.UploadContentFromBytes(context.Background(), objkey, dataBin); err != nil {
+		if err := uc.cloudstorage.UploadContentFromBytes(context.Background(), objkey, dataBin, binType); err != nil {
 			uc.logger.Error("Cloud storage upload failure",
 				slog.Any("error", err))
 			// Do not return an error, simply continue this function as there might
@@ -54,7 +57,7 @@ func (uc *CloudStorageUploadUseCase) Execute(ctx context.Context, objectKey stri
 			// or some other reason.
 		}
 		uc.logger.Debug("Finished cloud storage upload with success")
-	}(dataBytes, objectKey)
+	}(dataBytes, objectKey, contentType)
 
 	return nil
 }

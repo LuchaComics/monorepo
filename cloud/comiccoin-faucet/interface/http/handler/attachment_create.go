@@ -42,41 +42,37 @@ func (h *AttachmentCreateHTTPHandler) Execute(w http.ResponseWriter, r *http.Req
 	////
 
 	// Set the maximum upload size (100 MB in this example)
-	r.Body = http.MaxBytesReader(w, r.Body, 100<<20) // 100 MB
+	r.Body = http.MaxBytesReader(w, r.Body, 100<<20)
 
-	// Extract the filename from the "Content-Disposition" header, if provided
-	contentDisposition := r.Header.Get("Content-Disposition")
-	if contentDisposition == "" {
-		httperror.ResponseError(w, httperror.NewForBadRequestWithSingleField("error", "missing `Content-Disposition` header in your request"))
-		return
-	}
-	h.logger.Debug("AttachmentCreateHTTPHandler: Create", slog.Any("Content-Disposition", contentDisposition))
-	filename := getFilenameFromContentDispositionText(contentDisposition)
-	if filename == "" {
-		httperror.ResponseError(w, httperror.NewForBadRequestWithSingleField("error", "missing or corrupt `filename` from your requests `Content-Disposition` text"))
+	// Parse the multipart form data
+	if err := r.ParseMultipartForm(100 << 20); err != nil {
+		httperror.ResponseError(w, httperror.NewForBadRequestWithSingleField("error", "failed to parse multipart form"))
 		return
 	}
 
-	// Extract the content-type from the request header
-	contentType := r.Header.Get("Content-Type")
-	if contentType == "" {
-		httperror.ResponseError(w, httperror.NewForBadRequestWithSingleField("error", "missing `Content-Type` header in your request"))
-		return
-	}
-
-	// Read the binary data from the request body into a byte slice
-	data, err := io.ReadAll(r.Body)
+	// Get the file from the form data
+	file, header, err := r.FormFile("file")
 	if err != nil {
-		http.Error(w, "Failed to read request body", http.StatusInternalServerError)
+		httperror.ResponseError(w, httperror.NewForBadRequestWithSingleField("error", "failed to get file from form"))
+		return
+	}
+	defer file.Close()
+
+	// Read the file data
+	data, err := io.ReadAll(file)
+	if err != nil {
+		http.Error(w, "Failed to read file data", http.StatusInternalServerError)
 		return
 	}
 
 	// Initialize our array which will store all the results from the remote server.
 	requestData := &service.AttachmentCreateRequestIDO{
-		Filename:    filename,
-		ContentType: contentType,
+		Filename:    header.Filename,
+		ContentType: header.Header.Get("Content-Type"),
 		Data:        data,
 	}
+
+	// Rest of your code remains the same...
 
 	////
 	//// Start the transaction.
