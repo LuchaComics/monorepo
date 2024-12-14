@@ -140,11 +140,11 @@ const SubmitComicPage = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  {formatDate(fileData.created_at)}
+                  {formatDate(fileData.createdAt)}
                 </div>
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  {fileData.created_by_user_name}
+                  {fileData.createdByUserName}
                 </div>
               </div>
 
