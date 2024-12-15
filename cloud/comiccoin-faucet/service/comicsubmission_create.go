@@ -189,6 +189,7 @@ func (s *ComicSubmissionCreateService) Execute(sessCtx mongo.SessionContext, req
 		ModifiedByUserName:    u.Name,
 		ModifiedByUserID:      u.ID,
 		ModifiedFromIPAddress: ipAddress,
+		CoinsReward:           5, //TODO: Replace magic number with configuration variable.
 		TenantID:              u.TenantID,
 	}
 	if err := s.comicSubmissionCreateUseCase.Execute(sessCtx, comicSubmission); err != nil {

@@ -288,6 +288,14 @@ func doRunDaemon() {
 		cfg,
 		logger,
 		comicSubmissionRepo)
+	comicSubmissionGetByIDUseCase := usecase.NewComicSubmissionGetByIDUseCase(
+		cfg,
+		logger,
+		comicSubmissionRepo)
+	comicSubmissionCountTotalCreatedTodayByUserUseCase := usecase.NewComicSubmissionCountTotalCreatedTodayByUserUseCase(
+		cfg,
+		logger,
+		comicSubmissionRepo)
 
 	//
 	// Service
@@ -425,6 +433,14 @@ func doRunDaemon() {
 		attachmentUpdateUseCase,
 		comicSubmissionCreateUseCase,
 	)
+	comicSubmissionGetService := service.NewComicSubmissionGetService(
+			logger,
+			comicSubmissionGetByIDUseCase,
+	)
+	comicSubmissionCountTotalCreatedTodayByUserService := service.NewComicSubmissionCountTotalCreatedTodayByUserService(
+		logger,
+		comicSubmissionCountTotalCreatedTodayByUserUseCase,
+	)
 
 	//
 	// Interface.
@@ -511,6 +527,16 @@ func doRunDaemon() {
 		dbClient,
 		comicSubmissionCreateService,
 	)
+	comicSubmissionGetHTTPHandler := httphandler.NewComicSubmissionGetHTTPHandler(
+		logger,
+		dbClient,
+		comicSubmissionGetService,
+	)
+	comicSubmissionCountTotalCreatedTodayByUserHTTPHandler := httphandler.NewComicSubmissionCountTotalCreatedTodayByUserHTTPHandler(
+		logger,
+		dbClient,
+		comicSubmissionCountTotalCreatedTodayByUserService,
+	)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
 		blackp,
@@ -536,6 +562,8 @@ func doRunDaemon() {
 		gatewayProfileWalletAddressHTTPHandler,
 		attachmentCreateHTTPHandler,
 		comicSubmissionCreateHTTPHandler,
+		comicSubmissionGetHTTPHandler,
+		comicSubmissionCountTotalCreatedTodayByUserHTTPHandler,
 	)
 
 	//

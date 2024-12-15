@@ -55,6 +55,7 @@ export const COMICCOIN_FAUCET_USER_CREATE_COMMENT_OPERATION_API_ENDPOINT =
   HTTP_API_SERVER + "/api/v1/users/operation/create-comment";
 export const COMICCOIN_FAUCET_USER_STAR_OPERATION_API_ENDPOINT =
   HTTP_API_SERVER + "/api/v1/users/operation/star";
+
 export const COMICCOIN_FAUCET_COMIC_SUBMISSIONS_API_ENDPOINT =
   HTTP_API_SERVER + "/api/v1/comic-submissions";
 export const COMICCOIN_FAUCET_COMIC_SUBMISSION_API_ENDPOINT =
@@ -65,10 +66,14 @@ export const COMICCOIN_FAUCET_COMIC_SUBMISSION_CREATE_COMMENT_OPERATION_API_ENDP
   HTTP_API_SERVER + "/api/v1/comic-submissions/operation/create-comment";
 export const COMICCOIN_FAUCET_COMIC_SUBMISSION_FILE_ATTACHMENTS_API_ENDPOINT =
   HTTP_API_SERVER + "/api/v1/comic-submission/{id}/file-attachments";
+
+export const COMICCOIN_FAUCET_COMIC_SUBMISSIONS_COUNT_TOTAL_CREATED_TODAY_BY_USER_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/comic-submissions/count-total-created-today-by-user?user_id={user_id}";
+
 export const COMICCOIN_FAUCET_ATTACHMENTS_API_ENDPOINT =
   HTTP_API_SERVER + "/api/v1/attachments";
 export const COMICCOIN_FAUCET_ATTACHMENT_API_ENDPOINT =
   HTTP_API_SERVER + "/api/v1/attachment/{id}";
+
 export const COMICCOIN_FAUCET_OFFERS_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/offers";
 export const COMICCOIN_FAUCET_OFFER_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/offer/{id}";
 export const COMICCOIN_FAUCET_OFFER_BY_SERVICE_TYPE_API_ENDPOINT =

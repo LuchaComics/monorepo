@@ -5,6 +5,7 @@ import { DateTime } from "luxon";
 import {
   COMICCOIN_FAUCET_COMIC_SUBMISSIONS_API_ENDPOINT,
   COMICCOIN_FAUCET_COMIC_SUBMISSION_API_ENDPOINT,
+  COMICCOIN_FAUCET_COMIC_SUBMISSIONS_COUNT_TOTAL_CREATED_TODAY_BY_USER_API_ENDPOINT,
   COMICCOIN_FAUCET_COMIC_SUBMISSION_CUSTOMER_SWAP_OPERATION_API_ENDPOINT,
   COMICCOIN_FAUCET_COMIC_SUBMISSION_CREATE_COMMENT_OPERATION_API_ENDPOINT,
   COMICCOIN_FAUCET_COMIC_SUBMISSION_FILE_ATTACHMENTS_API_ENDPOINT,
@@ -138,6 +139,35 @@ export function getComicSubmissionDetailAPI(
         data.showsSignsOfTamperingOrRestoration,
       );
       // data.issueCoverDate = DateTime.fromISO(data.issueCoverDate).toJSDate();
+
+      // // For debugging purposeso pnly.
+      // console.log(data);
+
+      // Return the callback data.
+      onSuccessCallback(data);
+    })
+    .catch((exception) => {
+      let errors = camelizeKeys(exception);
+      onErrorCallback(errors);
+    })
+    .then(onDoneCallback);
+}
+
+export function getComicSubmissionsCountTotalCreatedTodayByUserAPI(
+  userID,
+  onSuccessCallback,
+  onErrorCallback,
+  onDoneCallback,
+  onUnauthorizedCallback,
+) {
+  const axios = getCustomAxios(onUnauthorizedCallback);
+  axios
+    .get(COMICCOIN_FAUCET_COMIC_SUBMISSIONS_COUNT_TOTAL_CREATED_TODAY_BY_USER_API_ENDPOINT.replace("{user_id}", userID))
+    .then((successResponse) => {
+      const responseData = successResponse.data;
+
+      // Snake-case from API to camel-case for React.
+      const data = camelizeKeys(responseData);
 
       // // For debugging purposeso pnly.
       // console.log(data);

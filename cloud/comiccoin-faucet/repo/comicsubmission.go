@@ -4,7 +4,9 @@ import (
 	"context"
 	"log"
 	"log/slog"
+	"time"
 
+	"github.com/bartmika/timekit"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -88,6 +90,37 @@ func (impl comicSubmissionImplImpl) GetByID(ctx context.Context, id primitive.Ob
 		return nil, err
 	}
 	return &result, nil
+}
+
+func (impl comicSubmissionImplImpl) CountTotalCreatedTodayByUserID(ctx context.Context, userID primitive.ObjectID) (uint64, error) {
+	filter := bson.M{
+		"user_id": userID,
+	}
+
+	thisDayStart := timekit.MidnightYesterday(time.Now)
+	thisDayEnd := timekit.MidnightTomorrow(time.Now)
+
+	var conditions []bson.M
+	conditions = append(conditions, bson.M{"created_at": bson.M{"$gte": thisDayStart}})
+	conditions = append(conditions, bson.M{"created_at": bson.M{"$lt": thisDayEnd}})
+	filter["$and"] = conditions
+
+	// impl.Logger.Debug("counting total created today",
+	// 	slog.Any("thisDayStart", thisDayStart),
+	// 	slog.Any("thisDayNow", time.Now()),
+	// 	slog.Any("thisDayEnd", thisDayEnd),
+	// 	slog.Any("filter", filter))
+
+	count, err := impl.Collection.CountDocuments(ctx, filter)
+	if err != nil {
+		impl.Logger.Error("database check if exists by ID error", slog.Any("error", err))
+		return uint64(0), err
+	}
+
+	// impl.Logger.Debug("finished counting total created today",
+	// 	slog.Any("count", count))
+
+	return uint64(count), nil
 }
 
 // func (impl comicSubmissionImplImpl) GetByEmail(ctx context.Context, email string) (*domain.ComicSubmission, error) {

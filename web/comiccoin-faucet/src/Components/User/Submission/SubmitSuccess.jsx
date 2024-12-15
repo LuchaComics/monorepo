@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   CheckCircle,
   Clock,
@@ -8,15 +8,94 @@ import {
   Upload,
   BadgeCheck
 } from 'lucide-react';
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { useRecoilState } from "recoil";
 
 import Topbar from "../../../Components/Navigation/Topbar";
+import {
+    getComicSubmissionDetailAPI,
+    getComicSubmissionsCountTotalCreatedTodayByUserAPI
+} from "../../../API/ComicSubmission";
+import { currentUserState } from "../../../AppState";
 
 const SubmitComicSuccessPage = () => {
-  const [isNavOpen, setIsNavOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedSubmission, setSelectedSubmission] = useState(null);
-  const itemsPerPage = 12;
+  const [searchParams] = useSearchParams(); // Special thanks via https://stackoverflow.com/a/65451140
+  const comicSubmissionID = searchParams.get("id");
+
+  // Variable controls the global state of the app.
+  const [currentUser] = useRecoilState(currentUserState);
+
+  const [totalSubmissionsToday, setTotalSubmissionsToday] = useState(0);
+  const [submission, setSubmission] = useState({});
+
+  const [isFetching, setFetching] = useState(false);
+  const [forceURL, setForceURL] = useState("");
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    let mounted = true;
+
+    if (mounted) {
+      window.scrollTo(0, 0); // Start the page at the top of the page.
+
+      setFetching(true);
+      getComicSubmissionsCountTotalCreatedTodayByUserAPI(
+        currentUser.id,
+        (resp) => {
+          // For debugging purposes only.
+          console.log("getComicSubmissionsCountTotalCreatedTodayByUserAPI: Starting...");
+          console.log(resp);
+          setTotalSubmissionsToday(resp.count);
+        },
+        (apiErr) => {
+          console.log("getComicSubmissionsCountTotalCreatedTodayByUserAPI: apiErr:", apiErr);
+          setErrors(apiErr);
+        },
+        () => {
+          console.log("getComicSubmissionsCountTotalCreatedTodayByUserAPI: Starting...");
+          setFetching(false);
+        },
+        () => {
+          console.log("getComicSubmissionsCountTotalCreatedTodayByUserAPI: unauthorized...");
+          window.location.href = "/login?unauthorized=true";
+        },
+      );
+
+      //
+
+      setFetching(true);
+      getComicSubmissionDetailAPI(
+        comicSubmissionID,
+        (resp) => {
+          // For debugging purposes only.
+          console.log("getComicSubmissionDetailAPI: Starting...");
+          console.log(resp);
+          setSubmission(resp);
+        },
+        (apiErr) => {
+          console.log("getComicSubmissionDetailAPI: apiErr:", apiErr);
+          setErrors(apiErr);
+        },
+        () => {
+          console.log("getComicSubmissionDetailAPI: Starting...");
+          setFetching(false);
+        },
+        () => {
+          console.log("getComicSubmissionDetailAPI: unauthorized...");
+          window.location.href = "/login?unauthorized=true";
+        },
+      );
+
+      //
+    }
+
+    return () => {
+      mounted = false;
+    };
+  }, [currentUser, comicSubmissionID]);
+
+  const totalSubmissionsTodayPercent = 100 * (totalSubmissionsToday / 3);
+  const totalSubmissionsTodayPercentStr = totalSubmissionsTodayPercent + "%";
 
   return (
       <div className="min-h-screen bg-purple-50">
@@ -31,7 +110,7 @@ const SubmitComicSuccessPage = () => {
              Submission Successful!
            </h1>
            <p className="text-gray-600 text-lg mb-6">
-             Your comic "<span className="font-semibold">Amazing Spider-Man #123</span>" has been submitted for review
+             Your comic "<span className="font-semibold">{submission && <>{submission.name}</>}</span>" has been submitted for review
            </p>
            <div className="flex items-center justify-center space-x-2 text-purple-600">
              <Clock className="h-5 w-5" />
@@ -48,7 +127,7 @@ const SubmitComicSuccessPage = () => {
              <div className="flex items-center justify-between mb-4">
                <div className="flex items-center space-x-3">
                  <Clock className="h-6 w-6 text-purple-600" />
-                 <span className="text-lg font-semibold text-purple-800">5 ComicCoins</span>
+                 <span className="text-lg font-semibold text-purple-800">{submission && <>{submission.coinsReward}</>} ComicCoins</span>
                </div>
                <span className="px-3 py-1 bg-purple-100 text-purple-600 rounded-full text-sm">
                  Pending Approval
@@ -75,9 +154,9 @@ const SubmitComicSuccessPage = () => {
                  <Upload className="h-5 w-5" />
                  <span>Standard User</span>
                </h3>
-               <p className="text-gray-600 mb-3">You have used 1/3 submissions today</p>
+               <p className="text-gray-600 mb-3">You have used {totalSubmissionsToday}/3 submissions today</p>
                <div className="w-full bg-purple-200 rounded-full h-2">
-                 <div className="bg-purple-600 h-2 rounded-full" style={{width: '33%'}}></div>
+                 <div className="bg-purple-600 h-2 rounded-full" style={{width: totalSubmissionsTodayPercentStr}}></div>
                </div>
                <p className="mt-3 text-sm text-gray-500">Limit resets daily at midnight UTC</p>
              </div>

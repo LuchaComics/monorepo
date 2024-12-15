@@ -32,14 +32,15 @@ type ComicSubmission struct {
 	ModifiedByUserName    string             `bson:"modified_by_user_name" json:"modified_by_user_name"`
 	ModifiedByUserID      primitive.ObjectID `bson:"modified_by_user_id" json:"modified_by_user_id"`
 	ModifiedFromIPAddress string             `bson:"modified_from_ip_address" json:"modified_from_ip_address"`
+	CoinsReward           uint64             `bson:"coins_reward" json:"coins_reward"`
 	TenantID              primitive.ObjectID `bson:"tenant_id" json:"tenant_id"`
 }
 
 // ComicSubmissionRepository Interface for a file that has content which lives in the cloud.
 type ComicSubmissionRepository interface {
 	Create(ctx context.Context, m *ComicSubmission) error
-	// GetByName(ctx context.Context, name string) (*ComicSubmission, error)
-	// GetByID(ctx context.Context, id primitive.ObjectID) (*ComicSubmission, error)
+	CountTotalCreatedTodayByUserID(ctx context.Context, userID primitive.ObjectID) (uint64, error)
+	GetByID(ctx context.Context, id primitive.ObjectID) (*ComicSubmission, error)
 	// UpdateByID(ctx context.Context, m *ComicSubmission) error
 	// DeleteByID(ctx context.Context, id primitive.ObjectID) error
 	// CheckIfExistsByID(ctx context.Context, id primitive.ObjectID) (bool, error)

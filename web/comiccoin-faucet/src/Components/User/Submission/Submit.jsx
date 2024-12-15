@@ -226,7 +226,11 @@ const SubmitComicPage = () => {
       comicSubmission,
       (response) => {
         console.log(`submit success:`, response);
-        setForceURL("/submit/success");
+        if (response) {
+            setForceURL("/submit/success?id="+response.id);
+        } else {
+            setForceURL("/submit/success");                    
+        }
       },
       (apiErr) => {
         console.error(`submit error:`, apiErr);
