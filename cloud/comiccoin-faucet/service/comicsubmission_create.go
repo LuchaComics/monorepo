@@ -85,12 +85,16 @@ func (s *ComicSubmissionCreateService) Execute(sessCtx mongo.SessionContext, req
 	frontCover, err := s.attachmentGetUseCase.Execute(sessCtx, req.FrontCover)
 	if err != nil {
 		s.logger.Error("Failed retrieving front cover attachment",
+			slog.Any("user_id", userID),
+			slog.Any("name", req.Name),
 			slog.Any("err", err))
 		return nil, err
 	}
 	if frontCover == nil {
 		err := fmt.Errorf("Front cover does not exist for: %v", req.FrontCover)
 		s.logger.Error("Failed getting front cover",
+			slog.Any("user_id", userID),
+			slog.Any("name", req.Name),
 			slog.Any("front_cover", req.FrontCover),
 			slog.Any("error", err))
 		return nil, err
@@ -98,12 +102,16 @@ func (s *ComicSubmissionCreateService) Execute(sessCtx mongo.SessionContext, req
 	backCover, err := s.attachmentGetUseCase.Execute(sessCtx, req.BackCover)
 	if err != nil {
 		s.logger.Error("Failed retrieving back cover attachment",
+			slog.Any("user_id", userID),
+			slog.Any("name", req.Name),
 			slog.Any("err", err))
 		return nil, err
 	}
 	if backCover == nil {
 		err := fmt.Errorf("Back cover does not exist for: %v", req.BackCover)
 		s.logger.Error("Failed getting back cover",
+			slog.Any("user_id", userID),
+			slog.Any("name", req.Name),
 			slog.Any("back_cover", req.BackCover),
 			slog.Any("error", err))
 		return nil, err
@@ -112,7 +120,10 @@ func (s *ComicSubmissionCreateService) Execute(sessCtx mongo.SessionContext, req
 	// Lookup the user in our database, else return a `400 Bad Request` error.
 	u, err := s.userGetByIDUseCase.Execute(sessCtx, userID)
 	if err != nil {
-		s.logger.Error("database error", slog.Any("err", err))
+		s.logger.Error("database error",
+			slog.Any("user_id", userID),
+			slog.Any("name", req.Name),
+			slog.Any("err", err))
 		return nil, err
 	}
 	if u == nil {
@@ -137,7 +148,10 @@ func (s *ComicSubmissionCreateService) Execute(sessCtx mongo.SessionContext, req
 	frontCover.ModifiedByUserID = u.ID
 	frontCover.ModifiedFromIPAddress = ipAddress
 	if err := s.attachmentUpdateUseCase.Execute(sessCtx, frontCover); err != nil {
-		s.logger.Error("Failed updating attachment", slog.Any("err", err))
+		s.logger.Error("Failed updating attachment",
+			slog.Any("user_id", userID),
+			slog.Any("name", req.Name),
+			slog.Any("err", err))
 		return nil, err
 	}
 
@@ -148,7 +162,10 @@ func (s *ComicSubmissionCreateService) Execute(sessCtx mongo.SessionContext, req
 	backCover.ModifiedByUserID = u.ID
 	backCover.ModifiedFromIPAddress = ipAddress
 	if err := s.attachmentUpdateUseCase.Execute(sessCtx, backCover); err != nil {
-		s.logger.Error("Failed updating attachment", slog.Any("err", err))
+		s.logger.Error("Failed updating attachment",
+			slog.Any("user_id", userID),
+			slog.Any("name", req.Name),
+			slog.Any("err", err))
 		return nil, err
 	}
 
@@ -175,7 +192,10 @@ func (s *ComicSubmissionCreateService) Execute(sessCtx mongo.SessionContext, req
 		TenantID:              u.TenantID,
 	}
 	if err := s.comicSubmissionCreateUseCase.Execute(sessCtx, comicSubmission); err != nil {
-		s.logger.Error("Failed creating comic submission", slog.Any("err", err))
+		s.logger.Error("Failed creating comic submission",
+			slog.Any("user_id", userID),
+			slog.Any("name", req.Name),
+			slog.Any("err", err))
 		return nil, err
 	}
 

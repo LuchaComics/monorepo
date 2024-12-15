@@ -209,6 +209,7 @@ import UserAddWalletToFaucetSuccess from "./Components/Gateway/FaucetAddWalletSu
 import DashboardPage from "./Components/User/Dashboard";
 import SubmitComicPage from "./Components/User/Submission/Submit";
 import SubmitComicSuccessPage from "./Components/User/Submission/SubmitSuccess";
+import VerificationApplicationPage from "./Components/User/Verification/View";
 import SubmissionsPage from "./Components/User/Submission/List";
 import MyWalletPage from "./Components/User/MyWallet/View";
 import HelpPage from "./Components/User/Help/View";
@@ -1060,6 +1061,12 @@ function AppRoute() {
               path="/submit/success"
               element={<SubmitComicSuccessPage />}
             />
+            <Route
+              exact
+              path="/apply-for-verification"
+              element={<VerificationApplicationPage />}
+            />
+
             <Route exact path="/submissions" element={<SubmissionsPage />} />
             <Route exact path="/my-wallet" element={<MyWalletPage />} />
             <Route exact path="/help" element={<HelpPage />} />

@@ -19,7 +19,7 @@ import (
 type AttachmentCreateService struct {
 	config                          *config.Configuration
 	logger                          *slog.Logger
-	cloudStorageUploadUseCase       *usecase.CloudStorageUploadUseCase
+	cloudStorageSyncUploadUseCase   *usecase.CloudStorageSyncUploadUseCase
 	createAttachmentUseCase         *usecase.CreateAttachmentUseCase
 	cloudStoragePresignedURLUseCase *usecase.CloudStoragePresignedURLUseCase
 }
@@ -27,7 +27,7 @@ type AttachmentCreateService struct {
 func NewAttachmentCreateService(
 	cfg *config.Configuration,
 	logger *slog.Logger,
-	uc1 *usecase.CloudStorageUploadUseCase,
+	uc1 *usecase.CloudStorageSyncUploadUseCase,
 	uc2 *usecase.CreateAttachmentUseCase,
 	uc3 *usecase.CloudStoragePresignedURLUseCase,
 ) *AttachmentCreateService {
@@ -84,7 +84,7 @@ func (s *AttachmentCreateService) Execute(sessCtx mongo.SessionContext, req *Att
 		slog.Int("content_length", len(req.Data)),
 	)
 
-	if err := s.cloudStorageUploadUseCase.Execute(sessCtx, objectKey, req.Data, req.ContentType); err != nil {
+	if err := s.cloudStorageSyncUploadUseCase.Execute(sessCtx, objectKey, req.Data, req.ContentType); err != nil {
 		s.logger.Error("Failed uploading to cloud storage", slog.Any("err", err))
 		return nil, err
 	}

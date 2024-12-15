@@ -9,21 +9,21 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config"
 )
 
-type CloudStorageUploadUseCase struct {
+type CloudStorageAsyncUploadUseCase struct {
 	config       *config.Configuration
 	logger       *slog.Logger
 	cloudstorage cloudinterface.CloudStorage
 }
 
-func NewCloudStorageUploadUseCase(
+func NewCloudStorageAsyncUploadUseCase(
 	config *config.Configuration,
 	logger *slog.Logger,
 	cloudstorage cloudinterface.CloudStorage,
-) *CloudStorageUploadUseCase {
-	return &CloudStorageUploadUseCase{config, logger, cloudstorage}
+) *CloudStorageAsyncUploadUseCase {
+	return &CloudStorageAsyncUploadUseCase{config, logger, cloudstorage}
 }
 
-func (uc *CloudStorageUploadUseCase) Execute(ctx context.Context, objectKey string, dataBytes []byte, contentType string) error {
+func (uc *CloudStorageAsyncUploadUseCase) Execute(ctx context.Context, objectKey string, dataBytes []byte, contentType string) error {
 	//
 	// STEP 1: Validation.
 	//

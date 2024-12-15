@@ -106,7 +106,7 @@ func doRunDaemon() {
 	//
 
 	// Cloud storage
-	cloudStorageUploadUseCase := usecase.NewCloudStorageUploadUseCase(cfg, logger, cloudstore)
+	cloudStorageSyncUploadUseCase := usecase.NewCloudStorageSyncUploadUseCase(cfg, logger, cloudstore)
 	cloudStoragePresignedURLUseCase := usecase.NewCloudStoragePresignedURLUseCase(cfg, logger, cloudstore)
 
 	// Email
@@ -412,7 +412,7 @@ func doRunDaemon() {
 	attachmentCreateService := service.NewAttachmentCreateService(
 		cfg,
 		logger,
-		cloudStorageUploadUseCase,
+		cloudStorageSyncUploadUseCase,
 		createAttachmentUseCase,
 		cloudStoragePresignedURLUseCase,
 	)
