@@ -31,7 +31,7 @@ export default function UserAddWalletToFaucet() {
         // ---------------
 
         // For debugging purposes only.
-        console.log("onLoginSuccess: Starting...");
+        console.log("putProfileWalletAddressAPI: Starting...");
         console.log(resp);
 
         // Store in persistance storage in the browser.
@@ -43,15 +43,19 @@ export default function UserAddWalletToFaucet() {
         // end SUCCESS HANDLER
       },
       (apiErr) => {
-        console.log("onLoginError: apiErr:", apiErr);
+        console.log("putProfileWalletAddressAPI: apiErr:", apiErr);
         if (apiErr.walletAddress.includes("Wallet address already set")) {
           setForceURL("/added-my-wallet-to-faucet-successfully");
         }
         setErrors(apiErr);
       },
       () => {
-        console.log("onLoginDone: Starting...");
+        console.log("putProfileWalletAddressAPI: Starting...");
         setIsSubmitting(false);
+      },
+      () => {
+        console.log("putProfileWalletAddressAPI: unauthorized...");
+        window.location.href = "/login?unauthorized=true";
       },
     );
   };

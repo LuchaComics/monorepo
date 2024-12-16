@@ -20,13 +20,11 @@ const (
 
 type User struct {
 	ID                        primitive.ObjectID `bson:"_id" json:"id"`
-	TenantID                  primitive.ObjectID `bson:"tenant_id" json:"tenant_id,omitempty"`
-	TenantName                string             `bson:"tenant_name" json:"tenant_name"`
+	Email                     string             `bson:"email" json:"email"`
 	FirstName                 string             `bson:"first_name" json:"first_name"`
 	LastName                  string             `bson:"last_name" json:"last_name"`
 	Name                      string             `bson:"name" json:"name"`
 	LexicalName               string             `bson:"lexical_name" json:"lexical_name"`
-	Email                     string             `bson:"email" json:"email"`
 	PasswordHashAlgorithm     string             `bson:"password_hash_algorithm" json:"password_hash_algorithm,omitempty"`
 	PasswordHash              string             `bson:"password_hash" json:"password_hash,omitempty"`
 	Role                      int8               `bson:"role" json:"role"`
@@ -114,6 +112,9 @@ type User struct {
 	// LastCoinsDepositAt variable keeps track of when this faucet sent coins
 	// to this user's account.
 	LastCoinsDepositAt time.Time `bson:"last_coins_deposit_at" json:"last_coins_deposit_at"`
+
+	TenantID   primitive.ObjectID `bson:"tenant_id" json:"tenant_id,omitempty"`
+	TenantName string             `bson:"tenant_name" json:"tenant_name"`
 }
 
 type UserComment struct {

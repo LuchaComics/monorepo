@@ -68,10 +68,10 @@ const Topbar = (props) => {
 
           {/* Desktop Logout */}
           <div className="hidden lg:flex">
-            <button onClick={(e)=>setForceURL("/logout")} className="flex items-center space-x-1 px-3 py-2 rounded-md hover:bg-purple-600 hover:bg-opacity-25 text-purple-200 hover:text-white">
+            <Link to="/logout" className="flex items-center space-x-1 px-3 py-2 rounded-md hover:bg-purple-600 hover:bg-opacity-25 text-purple-200 hover:text-white">
               <LogOut className="h-4 w-4" />
               <span>Logout</span>
-            </button>
+            </Link>
           </div>
         </div>
       </div>

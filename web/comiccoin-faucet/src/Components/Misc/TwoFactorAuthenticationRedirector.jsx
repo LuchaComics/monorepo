@@ -58,7 +58,7 @@ function TwoFactorAuthenticationRedirector() {
 
   // console.log("TwoFactorAuthenticationRedirector | currentUser:", currentUser)
 
-  if (currentUser === null) {
+  if (currentUser === undefined || currentUser === null || currentUser === "" || currentUser === {}) {
     console.log("No current user detected, redirecting back to login page.");
     return <Navigate to={`/login?unauthorized=true`} />;
   } else {
