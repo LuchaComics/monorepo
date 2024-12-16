@@ -2,10 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
 import Scroll from "react-scroll";
-import { postEmailVerificationAPI } from "../../API/Gateway";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheckCircle, faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import { Coins, Mail, ArrowRight, ArrowLeft, CheckCircle } from 'lucide-react';
 
+import { postEmailVerificationAPI } from "../../API/Gateway";
 function EmailVerification() {
   ////
   //// URL Parameters
@@ -19,6 +18,7 @@ function EmailVerification() {
 
   const [errors, setErrors] = useState({});
   const [emailVerification, setEmailVerification] = useState("");
+  const [forceURL, setForceURL] = useState("");
 
   ////
   //// API.
@@ -75,65 +75,88 @@ function EmailVerification() {
   ////
 
   return (
-    <div class="column is-12 container">
-      <div class="section">
-        <section class="hero is-fullheight">
-          <div class="hero-body">
-            <div class="container">
-              <div class="columns is-centered p-7">
-                <div class="is-rounded column is-two-third-tablet">
-                  <article class="message is-primary">
-                    <div class="message-body">
-                      <h1 className="title is-4 has-text-centered has-text-success">
-                        <FontAwesomeIcon className="fas" icon={faCheckCircle} />
-                        &nbsp;Email Verified
-                      </h1>
-                      <p>
-                      {emailVerification && emailVerification.message
-                          ? <>
-                              {emailVerification.message}
-                          </> : <>
-                              Loading...
-                          </>
-                      }
-                      </p>
-                      <p>
-                        <br />
-                        {emailVerification && emailVerification.userRole === 2
-                            ?
-                            <Link to="/">
-                              <b>
-                                Back to index&nbsp;
-                                <FontAwesomeIcon
-                                  className="fas"
-                                  icon={faArrowRight}
-                                />
-                              </b>
-                            </Link>
-                            :
-                            <Link to="/login">
-                              <b>
-                                Back to login&nbsp;
-                                <FontAwesomeIcon
-                                  className="fas"
-                                  icon={faArrowRight}
-                                />
-                              </b>
-                            </Link>
-                        }
-                      </p>
-                    </div>
-                  </article>
-                </div>
-                {/* End box */}
-              </div>
-            </div>
-            {/* End container */}
-          </div>
-          {/* End hero-body */}
-        </section>
-      </div>
-    </div>
+      <div className="min-h-screen flex flex-col bg-gradient-to-b from-purple-100 to-white">
+     {/* Navigation */}
+     <nav className="bg-gradient-to-r from-purple-700 to-indigo-800 text-white p-4">
+       <div className="max-w-7xl mx-auto flex justify-between items-center">
+         <div className="flex items-center space-x-2">
+           <Coins className="h-8 w-8" />
+           <span className="text-2xl font-bold">ComicCoin Faucet</span>
+         </div>
+         <button
+           onClick={() => setForceURL("/")}
+           className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
+         >
+           <ArrowLeft className="h-5 w-5" />
+           <span>Back to Home</span>
+         </button>
+       </div>
+     </nav>
+
+     {/* Main Content */}
+     <main className="flex-grow flex items-center justify-center">
+       <div className="w-full max-w-2xl mx-4">
+         <div className="bg-white rounded-xl p-8 shadow-lg border-2 border-purple-200">
+           <div className="flex flex-col items-center space-y-6">
+             {/* Success Icon */}
+             <div className="text-green-500">
+               <CheckCircle className="h-16 w-16" />
+             </div>
+
+             {/* Header */}
+             <div className="flex flex-col items-center space-y-2">
+               <div className="flex items-center space-x-2 text-purple-600">
+                 <Mail className="h-8 w-8" />
+                 <h1 className="text-2xl font-bold">Email Verified Successfully!</h1>
+               </div>
+               <p className="text-gray-500">Your email address has been confirmed</p>
+             </div>
+
+             {/* Message */}
+             <div className="text-center space-y-4">
+               <p className="text-gray-700">
+                 Thank you for verifying your email address. You can now access all features of ComicCoin Faucet.
+               </p>
+               <p className="text-gray-600">
+                 Start exploring the platform and earn ComicCoins by submitting your comic books!
+               </p>
+             </div>
+
+             {/* Action Buttons */}
+             <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4 pt-4">
+               <Link
+                 to={"/login"}
+                 className="w-full sm:w-auto px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+               >
+                 Login
+               </Link>
+               <Link
+                 to={"/"}
+                 className="w-full sm:w-auto px-6 py-2 border border-purple-600 text-purple-600 rounded-lg hover:bg-purple-50 transition-colors flex items-center justify-center space-x-2"
+               >
+                 <span>Back to Home</span>
+                 <ArrowRight className="h-4 w-4" />
+               </Link>
+             </div>
+           </div>
+         </div>
+       </div>
+     </main>
+
+     {/* Footer */}
+     <footer className="bg-gradient-to-r from-purple-700 to-indigo-800 text-white py-8">
+       <div className="max-w-7xl mx-auto px-4 text-center">
+         <p className="mb-4">© 2024 ComicCoin Faucet. All rights reserved.</p>
+         <p>
+           <a href="#" className="underline hover:text-purple-200">Accessibility Statement</a>
+           {' | '}
+           <a href="#" className="underline hover:text-purple-200">Terms of Service</a>
+           {' | '}
+           <a href="#" className="underline hover:text-purple-200">Privacy Policy</a>
+         </p>
+       </div>
+     </footer>
+   </div>
   );
 }
 
