@@ -59,6 +59,7 @@ type RegisterCustomerRequestIDO struct {
 	Phone               string `json:"phone,omitempty"`
 	Country             string `json:"country,omitempty"`
 	CountryOther        string `json:"country_other,omitempty"`
+	Timezone            string `bson:"timezone" json:"timezone"`
 	AgreeTermsOfService bool   `json:"agree_terms_of_service,omitempty"`
 	AgreePromotions     bool   `json:"agree_promotions,omitempty"`
 }
@@ -126,6 +127,9 @@ func (s *GatewayUserRegisterService) Execute(
 		if req.Country == "Other" && req.CountryOther == "" {
 			e["country_other"] = "Specify country is required"
 		}
+	}
+	if req.Timezone == "" {
+		e["timezone"] = "Password confirm is required"
 	}
 	if req.AgreeTermsOfService == false {
 		e["agree_terms_of_service"] = "Agreeing to terms of service is required and you must agree to the terms before proceeding"
@@ -248,6 +252,7 @@ func (s *GatewayUserRegisterService) createCustomerUserForRequest(sessCtx mongo.
 		Role:                       domain.UserRoleCustomer,
 		Phone:                      "",
 		Country:                    req.Country,
+		Timezone:                   req.Timezone,
 		Region:                     "",
 		City:                       "",
 		PostalCode:                 "",
@@ -287,6 +292,9 @@ func (s *GatewayUserRegisterService) createCustomerUserForRequest(sessCtx mongo.
 		// HasPreviouslyPurchasedFromAuctionSite:           "",
 		// HasPreviouslyPurchasedFromFacebookMarketplace:   "",
 		// HasRegularlyAttendedComicConsOrCollectibleShows: "",
+	}
+	if req.CountryOther != "" {
+		u.Country = req.CountryOther
 	}
 	err = s.userCreateUseCase.Execute(sessCtx, u)
 	if err != nil {

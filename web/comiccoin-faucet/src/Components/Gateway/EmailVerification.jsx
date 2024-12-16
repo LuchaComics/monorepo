@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
 import Scroll from "react-scroll";
 import { postEmailVerificationAPI } from "../../API/Gateway";
-import FormErrorBox from "../Reusable/FormErrorBox";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckCircle, faArrowRight } from "@fortawesome/free-solid-svg-icons";
 
@@ -89,7 +88,6 @@ function EmailVerification() {
                         <FontAwesomeIcon className="fas" icon={faCheckCircle} />
                         &nbsp;Email Verified
                       </h1>
-                      <FormErrorBox errors={errors} />
                       <p>
                       {emailVerification && emailVerification.message
                           ? <>

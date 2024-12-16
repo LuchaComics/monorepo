@@ -35,6 +35,7 @@ type User struct {
 	EmailVerificationExpiry   time.Time          `bson:"email_verification_expiry,omitempty" json:"email_verification_expiry,omitempty"`
 	Phone                     string             `bson:"phone" json:"phone,omitempty"`
 	Country                   string             `bson:"country" json:"country,omitempty"`
+	Timezone                  string             `bson:"timezone" json:"timezone"`
 	Region                    string             `bson:"region" json:"region,omitempty"`
 	City                      string             `bson:"city" json:"city,omitempty"`
 	PostalCode                string             `bson:"postal_code" json:"postal_code,omitempty"`

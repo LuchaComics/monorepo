@@ -3,14 +3,18 @@ import { Coins, AlertCircle, ArrowLeft } from "lucide-react";
 import { Navigate } from "react-router-dom";
 
 import { postRegisterAPI } from "../../API/Gateway";
+import FormTimezoneSelectField from "../Reusable/FormTimezoneSelectField";
 
 const RegisterPage = () => {
+  const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     country: "",
     countryOther: "",
+    timezone: timezone,
     password: "",
     passwordConfirm: "",
     agreeTermsOfService: false,
@@ -331,6 +335,15 @@ const RegisterPage = () => {
               </div>
             )}
 
+            <FormTimezoneSelectField
+                label="Timezone"
+                name="timezone"
+                selectedTimezone={timezone}
+                setSelectedTimezone={setTimezone}
+                errorText={errors.timezone}
+                isRequired={true}
+            />
+
             {/* Password fields */}
             <div className="grid md:grid-cols-2 gap-6">
               <div>
@@ -440,7 +453,7 @@ const RegisterPage = () => {
                   htmlFor="agreePromotional"
                   className="ml-2 block text-sm text-gray-700"
                 >
-                  I would like to receive promotional emails
+                  I would like to receive promotional communications
                 </label>
               </div>
             </div>
