@@ -282,6 +282,9 @@ func (s *comicSubmissionImplImpl) ListByFilter(ctx context.Context, filter *doma
 	matchStage := bson.D{{"$match", buildMatchStage(filter)}}
 	pipeline = append(pipeline, matchStage)
 
+	// s.Logger.Debug("applying filter",
+	// 	slog.Any("pipeline", pipeline))
+
 	// Sort stage
 	sortStage := bson.D{{"$sort", bson.D{
 		{"created_at", -1},

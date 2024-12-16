@@ -74,7 +74,7 @@ func (h *ComicSubmissionListByFilterHTTPHandler) Execute(w http.ResponseWriter, 
 		return
 	}
 
-	resp := result.(*service.ComicSubmissionResponseIDO)
+	resp := result.(*service.ComicSubmissionFilterResultResponseIDO)
 
 	if err := json.NewEncoder(w).Encode(&resp); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

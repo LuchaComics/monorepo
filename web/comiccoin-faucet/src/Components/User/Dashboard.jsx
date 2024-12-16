@@ -9,7 +9,10 @@ import { useRecoilState } from "recoil";
 
 import { currentUserState } from "../../AppState";
 import Topbar from "../../Components/Navigation/Topbar";
-import { getComicSubmissionsCountTotalCreatedTodayByUserAPI } from "../../API/ComicSubmission";
+import {
+    getComicSubmissionsCountTotalCreatedTodayByUserAPI,
+    getComicSubmissionListAPI
+} from "../../API/ComicSubmission";
 
 
 const DashboardPage = () => {
@@ -183,6 +186,47 @@ const DashboardPage = () => {
           console.log("getComicSubmissionsCountTotalCreatedTodayByUserAPI: Starting...");
           console.log(resp);
           setTotalSubmissionsToday(resp.count);
+        },
+        (apiErr) => {
+          console.log("getComicSubmissionsCountTotalCreatedTodayByUserAPI: apiErr:", apiErr);
+          setErrors(apiErr);
+        },
+        () => {
+          console.log("getComicSubmissionsCountTotalCreatedTodayByUserAPI: Starting...");
+          setFetching(false);
+        },
+        () => {
+          console.log("getComicSubmissionsCountTotalCreatedTodayByUserAPI: unauthorized...");
+          window.location.href = "/login?unauthorized=true";
+        },
+      );
+
+
+      let params = new Map();
+      // params.set("page_size", limit); // Pagination
+      // params.set("sort_field", "created_at"); // Sorting
+      // params.set("sort_order", -1); // Sorting - descending, meaning most recent start date to oldest start date.
+      // params.set("status", status);
+      //
+      // params.set("store_id", sid);
+      //
+      // if (cur !== "") {
+      //   // Pagination
+      //   params.set("cursor", cur);
+      // }
+      //
+      // // Filtering
+      // if (keywords !== undefined && keywords !== null && keywords !== "") {
+      //   // Searhcing
+      //   params.set("search", keywords);
+      // }
+      getComicSubmissionListAPI(
+        params,
+        (resp) => {
+          // For debugging purposes only.
+          console.log("getComicSubmissionsCountTotalCreatedTodayByUserAPI: Starting...");
+          console.log(resp);
+          // setTotalSubmissionsToday(resp.count);
         },
         (apiErr) => {
           console.log("getComicSubmissionsCountTotalCreatedTodayByUserAPI: apiErr:", apiErr);
