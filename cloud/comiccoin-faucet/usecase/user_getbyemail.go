@@ -27,8 +27,6 @@ func (uc *UserGetByEmailUseCase) Execute(ctx context.Context, email string) (*do
 	e := make(map[string]string)
 	if email == "" {
 		e["email"] = "missing value"
-	} else {
-		//TODO: IMPL.
 	}
 	if len(e) != 0 {
 		uc.logger.Warn("Validation failed for upsert",
@@ -37,11 +35,7 @@ func (uc *UserGetByEmailUseCase) Execute(ctx context.Context, email string) (*do
 	}
 
 	//
-	// STEP 2: Upsert our strucutre.
-	//
-
-	//
-	// STEP 3: Insert into database.
+	// STEP 2: Get from database.
 	//
 
 	return uc.repo.GetByEmail(ctx, email)

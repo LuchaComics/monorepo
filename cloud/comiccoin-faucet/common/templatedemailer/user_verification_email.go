@@ -29,7 +29,7 @@ func (impl *templatedEmailer) SendUserVerificationEmail(ctx context.Context, ema
 		FirstName        string
 	}{
 		Email:            email,
-		VerificationLink: "https://" + impl.Emailer.GetDomainName() + "/verify?q=" + verificationCode,
+		VerificationLink: "https://" + impl.Emailer.GetFrontendDomainName() + "/verify?q=" + verificationCode,
 		FirstName:        firstName,
 	}
 	if err := tmpl.Execute(&processed, data); err != nil {
