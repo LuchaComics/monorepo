@@ -1,27 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Coins, Home, Image, History, Wallet,
   Settings, HelpCircle, LogOut, Clock, CheckCircle, XCircle,
   Menu, X, Upload, ArrowRight, Sparkles
 } from 'lucide-react';
 import { Navigate } from "react-router-dom";
+import { useRecoilState } from "recoil";
 
+import { currentUserState } from "../../AppState";
 import Topbar from "../../Components/Navigation/Topbar";
+import { getComicSubmissionsCountTotalCreatedTodayByUserAPI } from "../../API/ComicSubmission";
 
 
 const DashboardPage = () => {
+
+  // Variable controls the global state of the app.
+  const [currentUser] = useRecoilState(currentUserState);
+
+  // GUI related
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [forceURL, setForceURL] = useState("");
+  const [isFetching, setFetching] = useState(false);
+  const [errors, setErrors] = useState({});
 
-
-  const navigation = [
-    { name: 'Dashboard', icon: Home, current: true },
-    { name: 'Submit Comic', icon: Image, current: false },
-    { name: 'My Submissions', icon: History, current: false },
-    { name: 'My Wallet', icon: Wallet, current: false },
-    { name: 'Help', icon: HelpCircle, current: false },
-    { name: 'Settings', icon: Settings, current: false },
-  ];
+  // Data related.
+  const [totalSubmissionsToday, setTotalSubmissionsToday] = useState(0);
 
   // Mock data for pending submissions
   const pendingSubmissions = [
@@ -165,6 +168,43 @@ const DashboardPage = () => {
       </div>
     </div>
   );
+
+  useEffect(() => {
+    let mounted = true;
+
+    if (mounted) {
+      window.scrollTo(0, 0); // Start the page at the top of the page.
+
+      setFetching(true);
+      getComicSubmissionsCountTotalCreatedTodayByUserAPI(
+        currentUser.id,
+        (resp) => {
+          // For debugging purposes only.
+          console.log("getComicSubmissionsCountTotalCreatedTodayByUserAPI: Starting...");
+          console.log(resp);
+          setTotalSubmissionsToday(resp.count);
+        },
+        (apiErr) => {
+          console.log("getComicSubmissionsCountTotalCreatedTodayByUserAPI: apiErr:", apiErr);
+          setErrors(apiErr);
+        },
+        () => {
+          console.log("getComicSubmissionsCountTotalCreatedTodayByUserAPI: Starting...");
+          setFetching(false);
+        },
+        () => {
+          console.log("getComicSubmissionsCountTotalCreatedTodayByUserAPI: unauthorized...");
+          window.location.href = "/login?unauthorized=true";
+        },
+      );
+
+      //
+    }
+
+    return () => {
+      mounted = false;
+    };
+  }, [currentUser]);
 
   return (
       <div className="min-h-screen bg-purple-50">
