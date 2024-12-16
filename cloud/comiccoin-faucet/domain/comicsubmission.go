@@ -39,7 +39,7 @@ type ComicSubmission struct {
 // ComicSubmissionRepository Interface for a file that has content which lives in the cloud.
 type ComicSubmissionRepository interface {
 	Create(ctx context.Context, m *ComicSubmission) error
-	CountTotalCreatedTodayByUserID(ctx context.Context, userID primitive.ObjectID) (uint64, error)
+	CountTotalCreatedTodayByUserID(ctx context.Context, userID primitive.ObjectID, timezone string) (uint64, error)
 	GetByID(ctx context.Context, id primitive.ObjectID) (*ComicSubmission, error)
 	// UpdateByID(ctx context.Context, m *ComicSubmission) error
 	// DeleteByID(ctx context.Context, id primitive.ObjectID) error

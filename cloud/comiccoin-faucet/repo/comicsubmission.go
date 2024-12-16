@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/bartmika/timekit"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -92,13 +91,24 @@ func (impl comicSubmissionImplImpl) GetByID(ctx context.Context, id primitive.Ob
 	return &result, nil
 }
 
-func (impl comicSubmissionImplImpl) CountTotalCreatedTodayByUserID(ctx context.Context, userID primitive.ObjectID) (uint64, error) {
+func (impl comicSubmissionImplImpl) CountTotalCreatedTodayByUserID(ctx context.Context, userID primitive.ObjectID, timezone string) (uint64, error) {
+	loc, err := time.LoadLocation(timezone)
+	if err != nil {
+		impl.Logger.Warn("Failed validating",
+			slog.Any("error", err))
+		return 0, err
+	}
+	now := time.Now()
+	userTime := now.In(loc)
+
+	thisDayStart := time.Date(userTime.Year(), userTime.Month(), userTime.Day()-1, 0, 0, 0, 0, userTime.Location())
+	thisDayEnd := time.Date(userTime.Year(), userTime.Month(), userTime.Day()+1, 0, 0, 0, 0, userTime.Location())
+
+	///
+
 	filter := bson.M{
 		"user_id": userID,
 	}
-
-	thisDayStart := timekit.MidnightYesterday(time.Now)
-	thisDayEnd := timekit.MidnightTomorrow(time.Now)
 
 	var conditions []bson.M
 	conditions = append(conditions, bson.M{"created_at": bson.M{"$gte": thisDayStart}})

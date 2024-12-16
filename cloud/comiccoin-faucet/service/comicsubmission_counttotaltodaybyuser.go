@@ -26,7 +26,7 @@ type ComicSubmissionCountTotalCreatedTodayByUserServiceResponseIDO struct {
 	Count uint64 `bson:"count" json:"count"`
 }
 
-func (s *ComicSubmissionCountTotalCreatedTodayByUserService) Execute(sessCtx mongo.SessionContext, userID primitive.ObjectID) (*ComicSubmissionCountTotalCreatedTodayByUserServiceResponseIDO, error) {
+func (s *ComicSubmissionCountTotalCreatedTodayByUserService) Execute(sessCtx mongo.SessionContext, userID primitive.ObjectID, userTimezone string) (*ComicSubmissionCountTotalCreatedTodayByUserServiceResponseIDO, error) {
 	//
 	// STEP 1: Validation.
 	//
@@ -46,7 +46,7 @@ func (s *ComicSubmissionCountTotalCreatedTodayByUserService) Execute(sessCtx mon
 	//
 
 	// Lookup the user in our database, else return a `400 Bad Request` error.
-	count, err := s.comicSubmissionCountTotalCreatedTodayByUserUseCase.Execute(sessCtx, userID)
+	count, err := s.comicSubmissionCountTotalCreatedTodayByUserUseCase.Execute(sessCtx, userID, userTimezone)
 	if err != nil {
 		s.logger.Error("database error", slog.Any("err", err))
 		return nil, err

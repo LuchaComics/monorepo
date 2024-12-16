@@ -16,21 +16,23 @@ import (
 )
 
 type ComicSubmissionCreateService struct {
-	logger                       *slog.Logger
-	userGetByIDUseCase           *usecase.UserGetByIDUseCase
-	attachmentGetUseCase         *usecase.AttachmentGetUseCase
-	attachmentUpdateUseCase      *usecase.AttachmentUpdateUseCase
-	comicSubmissionCreateUseCase *usecase.ComicSubmissionCreateUseCase
+	logger                                             *slog.Logger
+	userGetByIDUseCase                                 *usecase.UserGetByIDUseCase
+	comicSubmissionCountTotalCreatedTodayByUserUseCase *usecase.ComicSubmissionCountTotalCreatedTodayByUserUseCase
+	attachmentGetUseCase                               *usecase.AttachmentGetUseCase
+	attachmentUpdateUseCase                            *usecase.AttachmentUpdateUseCase
+	comicSubmissionCreateUseCase                       *usecase.ComicSubmissionCreateUseCase
 }
 
 func NewComicSubmissionCreateService(
 	logger *slog.Logger,
 	uc1 *usecase.UserGetByIDUseCase,
-	uc2 *usecase.AttachmentGetUseCase,
-	uc3 *usecase.AttachmentUpdateUseCase,
-	uc4 *usecase.ComicSubmissionCreateUseCase,
+	uc2 *usecase.ComicSubmissionCountTotalCreatedTodayByUserUseCase,
+	uc3 *usecase.AttachmentGetUseCase,
+	uc4 *usecase.AttachmentUpdateUseCase,
+	uc5 *usecase.ComicSubmissionCreateUseCase,
 ) *ComicSubmissionCreateService {
-	return &ComicSubmissionCreateService{logger, uc1, uc2, uc3, uc4}
+	return &ComicSubmissionCreateService{logger, uc1, uc2, uc3, uc4, uc5}
 }
 
 type ComicSubmissionCreateRequestIDO struct {
@@ -82,6 +84,19 @@ func (s *ComicSubmissionCreateService) Execute(sessCtx mongo.SessionContext, req
 	userID := sessCtx.Value(constants.SessionUserID).(primitive.ObjectID)
 	ipAddress, _ := sessCtx.Value(constants.SessionIPAddress).(string)
 
+	// Lookup the user in our database, else return a `400 Bad Request` error.
+	u, err := s.userGetByIDUseCase.Execute(sessCtx, userID)
+	if err != nil {
+		s.logger.Error("database error",
+			slog.Any("user_id", userID),
+			slog.Any("name", req.Name),
+			slog.Any("err", err))
+		return nil, err
+	}
+	if u == nil {
+		s.logger.Warn("user does not exist validation error")
+		return nil, httperror.NewForBadRequestWithSingleField("user_id", "does not exist")
+	}
 	frontCover, err := s.attachmentGetUseCase.Execute(sessCtx, req.FrontCover)
 	if err != nil {
 		s.logger.Error("Failed retrieving front cover attachment",
@@ -117,28 +132,35 @@ func (s *ComicSubmissionCreateService) Execute(sessCtx mongo.SessionContext, req
 		return nil, err
 	}
 
-	// Lookup the user in our database, else return a `400 Bad Request` error.
-	u, err := s.userGetByIDUseCase.Execute(sessCtx, userID)
-	if err != nil {
-		s.logger.Error("database error",
-			slog.Any("user_id", userID),
-			slog.Any("name", req.Name),
-			slog.Any("err", err))
-		return nil, err
-	}
-	if u == nil {
-		s.logger.Warn("user does not exist validation error")
-		return nil, httperror.NewForBadRequestWithSingleField("user_id", "does not exist")
+	//
+	// STEP 3: If user is not verified, then enforce daily limit restriction.
+	//
+
+	if !u.WasVerified {
+		todaysCount, err := s.comicSubmissionCountTotalCreatedTodayByUserUseCase.Execute(sessCtx, u.ID, u.Timezone)
+		if err != nil {
+			s.logger.Error("Failed creating comic submission",
+				slog.Any("user_id", userID),
+				slog.Any("name", req.Name),
+				slog.Any("err", err))
+			return nil, err
+		}
+		if todaysCount > 3 {
+			e["message"] = "Daily limit of 3 reached today"
+			s.logger.Warn("validation failure",
+				slog.Any("e", e))
+			return nil, httperror.NewForBadRequest(&e)
+		}
 	}
 
 	//
-	// STEP 3: Create our unique identifier for our comic submission.
+	// STEP 4: Create our unique identifier for our comic submission.
 	//
 
 	comicSubmissionID := primitive.NewObjectID()
 
 	//
-	// STEP 4: Attach the front and back covers to our comic submission.
+	// STEP 5: Attach the front and back covers to our comic submission.
 	//
 
 	frontCover.BelongsToUniqueIdentifier = comicSubmissionID
@@ -170,7 +192,7 @@ func (s *ComicSubmissionCreateService) Execute(sessCtx mongo.SessionContext, req
 	}
 
 	//
-	// STEP 5: Create our comic submission.
+	// STEP 6: Create our comic submission.
 	//
 
 	comicSubmission := &domain.ComicSubmission{

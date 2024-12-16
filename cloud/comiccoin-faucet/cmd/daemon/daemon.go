@@ -429,13 +429,14 @@ func doRunDaemon() {
 	comicSubmissionCreateService := service.NewComicSubmissionCreateService(
 		logger,
 		userGetByIDUseCase,
+		comicSubmissionCountTotalCreatedTodayByUserUseCase,
 		attachmentGetUseCase,
 		attachmentUpdateUseCase,
 		comicSubmissionCreateUseCase,
 	)
 	comicSubmissionGetService := service.NewComicSubmissionGetService(
-			logger,
-			comicSubmissionGetByIDUseCase,
+		logger,
+		comicSubmissionGetByIDUseCase,
 	)
 	comicSubmissionCountTotalCreatedTodayByUserService := service.NewComicSubmissionCountTotalCreatedTodayByUserService(
 		logger,

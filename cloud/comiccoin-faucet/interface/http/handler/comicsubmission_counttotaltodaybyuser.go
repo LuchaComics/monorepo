@@ -35,6 +35,7 @@ func NewComicSubmissionCountTotalCreatedTodayByUserHTTPHandler(
 func (h *ComicSubmissionCountTotalCreatedTodayByUserHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userID, _ := ctx.Value(constants.SessionUserID).(primitive.ObjectID)
+	userTimezone, _ := ctx.Value(constants.SessionUserTimezone).(string)
 
 	////
 	//// Start the transaction.
@@ -51,7 +52,7 @@ func (h *ComicSubmissionCountTotalCreatedTodayByUserHTTPHandler) Execute(w http.
 
 	// Define a transaction function with a series of operations
 	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
-		resp, err := h.service.Execute(sessCtx, userID)
+		resp, err := h.service.Execute(sessCtx, userID, userTimezone)
 		if err != nil {
 			// httperror.ResponseError(w, err)
 			return nil, err

@@ -68,6 +68,7 @@ func (mid *middleware) PostJWTProcessorMiddleware(fn http.HandlerFunc) http.Hand
 			ctx = context.WithValue(ctx, constants.SessionUserName, user.Name)
 			ctx = context.WithValue(ctx, constants.SessionUserFirstName, user.FirstName)
 			ctx = context.WithValue(ctx, constants.SessionUserLastName, user.LastName)
+			ctx = context.WithValue(ctx, constants.SessionUserTimezone, user.Timezone)
 			// ctx = context.WithValue(ctx, constants.SessionUserStoreID, user.StoreID)
 			// ctx = context.WithValue(ctx, constants.SessionUserStoreName, user.StoreName)
 			// ctx = context.WithValue(ctx, constants.SessionUserStoreLevel, user.StoreLevel)

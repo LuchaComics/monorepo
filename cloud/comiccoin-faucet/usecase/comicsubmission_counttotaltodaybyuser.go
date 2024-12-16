@@ -24,7 +24,7 @@ func NewComicSubmissionCountTotalCreatedTodayByUserUseCase(
 	return &ComicSubmissionCountTotalCreatedTodayByUserUseCase{config, logger, repo}
 }
 
-func (uc *ComicSubmissionCountTotalCreatedTodayByUserUseCase) Execute(ctx context.Context, userID primitive.ObjectID) (uint64, error) {
+func (uc *ComicSubmissionCountTotalCreatedTodayByUserUseCase) Execute(ctx context.Context, userID primitive.ObjectID, userTimezone string) (uint64, error) {
 	//
 	// STEP 1: Validation.
 	//
@@ -43,5 +43,5 @@ func (uc *ComicSubmissionCountTotalCreatedTodayByUserUseCase) Execute(ctx contex
 	// STEP 2: Count in database.
 	//
 
-	return uc.repo.CountTotalCreatedTodayByUserID(ctx, userID)
+	return uc.repo.CountTotalCreatedTodayByUserID(ctx, userID, userTimezone)
 }
