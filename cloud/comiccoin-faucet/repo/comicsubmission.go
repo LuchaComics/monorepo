@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/domain"
@@ -24,6 +25,14 @@ func NewComicSubmissionRepository(appCfg *config.Configuration, loggerp *slog.Lo
 	// ctx := context.Background()
 	uc := client.Database(appCfg.DB.Name).Collection("comic_submissions")
 
+	// // For debugging purposes only or if you are going to recreate new indexes.
+	// if _, err := uc.Indexes().DropAll(context.TODO()); err != nil {
+	// 	loggerp.Warn("failed deleting all indexes",
+	// 		slog.Any("err", err))
+	//
+	// 	// Do not crash app, just continue.
+	// }
+
 	// Note:
 	// * 1 for ascending
 	// * -1 for descending
@@ -32,11 +41,36 @@ func NewComicSubmissionRepository(appCfg *config.Configuration, loggerp *slog.Lo
 	// The following few lines of code will create the index for our app for this
 	// colleciton.
 	_, err := uc.Indexes().CreateMany(context.TODO(), []mongo.IndexModel{
-		{Keys: bson.D{{Key: "user_id", Value: 1}}},
+		{Keys: bson.D{
+			{Key: "tenant_id", Value: 1},
+			{Key: "created_at", Value: -1},
+		}},
+		{Keys: bson.D{
+			{Key: "tenant_id", Value: 1},
+			{Key: "status", Value: 1},
+			{Key: "created_at", Value: -1},
+		}},
+		{Keys: bson.D{
+			{Key: "tenant_id", Value: 1},
+			{Key: "user_id", Value: 1},
+			{Key: "status", Value: 1},
+			{Key: "created_at", Value: -1},
+		}},
+		{Keys: bson.D{
+			{Key: "tenant_id", Value: 1},
+			{Key: "user_id", Value: 1},
+			{Key: "created_at", Value: -1},
+		}},
 		{Keys: bson.D{
 			{Key: "name", Value: "text"},
 		}},
 	})
+
+	// db.comic_submissions.createIndex({ "tenant_id": 1, "created_at": -1 })
+	// db.comic_submissions.createIndex({ "tenant_id": 1, "status": 1, "created_at": -1 })
+	// db.comic_submissions.createIndex({ "tenant_id": 1, "user_id": 1, "created_at": -1 })
+	// db.comic_submissions.createIndex({ "tenant_id": 1, "name": "text" })
+
 	if err != nil {
 		// It is important that we crash the app on startup to meet the
 		// requirements of `google/wire` framework.
@@ -230,6 +264,122 @@ func (impl comicSubmissionImplImpl) CountCoinsRewardByStatusAndByUserID(ctx cont
 	}
 
 	return 0, nil
+}
+
+func (s *comicSubmissionImplImpl) ListByFilter(ctx context.Context, filter *domain.ComicSubmissionFilter) (*domain.ComicSubmissionFilterResult, error) {
+	// Default limit if not specified
+	if filter.Limit <= 0 {
+		filter.Limit = 100
+	}
+
+	// Request one more document than needed to determine if there are more results
+	limit := filter.Limit + 1
+
+	// Build the aggregation pipeline
+	pipeline := make([]bson.D, 0)
+
+	// Match stage - initial filtering
+	matchStage := bson.D{{"$match", buildMatchStage(filter)}}
+	pipeline = append(pipeline, matchStage)
+
+	// Sort stage
+	sortStage := bson.D{{"$sort", bson.D{
+		{"created_at", -1},
+		{"_id", -1},
+	}}}
+	pipeline = append(pipeline, sortStage)
+
+	// Limit stage
+	limitStage := bson.D{{"$limit", limit}}
+	pipeline = append(pipeline, limitStage)
+
+	// Execute aggregation
+	opts := options.Aggregate().SetAllowDiskUse(true)
+	cursor, err := s.Collection.Aggregate(ctx, pipeline, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	// Decode results
+	var submissions []*domain.ComicSubmission
+	if err := cursor.All(ctx, &submissions); err != nil {
+		return nil, err
+	}
+
+	// Check if there are more results
+	hasMore := false
+	if len(submissions) > int(filter.Limit) {
+		hasMore = true
+		submissions = submissions[:len(submissions)-1]
+	}
+
+	// Get last document info for next page
+	var lastID primitive.ObjectID
+	var lastCreatedAt time.Time
+	if len(submissions) > 0 {
+		lastDoc := submissions[len(submissions)-1]
+		lastID = lastDoc.ID
+		lastCreatedAt = lastDoc.CreatedAt
+	}
+
+	return &domain.ComicSubmissionFilterResult{
+		Submissions:   submissions,
+		HasMore:       hasMore,
+		LastID:        lastID,
+		LastCreatedAt: lastCreatedAt,
+	}, nil
+}
+
+func buildMatchStage(filter *domain.ComicSubmissionFilter) bson.M {
+	match := bson.M{
+		"tenant_id": filter.TenantID, // Always include tenant_id for data partitioning
+	}
+
+	// Build cursor-based pagination condition
+	if filter.LastID != nil && filter.LastCreatedAt != nil {
+		match["$or"] = []bson.M{
+			{
+				"created_at": bson.M{"$lt": filter.LastCreatedAt},
+			},
+			{
+				"created_at": filter.LastCreatedAt,
+				"_id":        bson.M{"$lt": filter.LastID},
+			},
+		}
+	}
+
+	// Add other filters
+	if filter.Status != nil {
+		match["status"] = *filter.Status
+	}
+
+	if filter.Type != nil {
+		match["type"] = *filter.Type
+	}
+
+	if !filter.UserID.IsZero() {
+		match["user_id"] = filter.UserID
+	}
+
+	// Date range
+	if filter.CreatedAtStart != nil || filter.CreatedAtEnd != nil {
+		createdAtFilter := bson.M{}
+		if filter.CreatedAtStart != nil {
+			createdAtFilter["$gte"] = filter.CreatedAtStart
+		}
+		if filter.CreatedAtEnd != nil {
+			createdAtFilter["$lte"] = filter.CreatedAtEnd
+		}
+		match["created_at"] = createdAtFilter
+	}
+
+	// Text search (if name is provided)
+	if filter.Name != nil && *filter.Name != "" {
+		match["$text"] = bson.M{"$search": *filter.Name}
+	}
+
+	return match
 }
 
 // func (impl comicSubmissionImplImpl) GetByEmail(ctx context.Context, email string) (*domain.ComicSubmission, error) {

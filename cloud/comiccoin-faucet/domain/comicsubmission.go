@@ -36,6 +36,28 @@ type ComicSubmission struct {
 	TenantID              primitive.ObjectID `bson:"tenant_id" json:"tenant_id"`
 }
 
+type ComicSubmissionFilter struct {
+	TenantID       primitive.ObjectID `json:"tenant_id"` // Required for data partitioning
+	Name           *string            `json:"name,omitempty"`
+	Status         *int8              `json:"status,omitempty"`
+	Type           *int8              `json:"type,omitempty"`
+	UserID         primitive.ObjectID `json:"user_id,omitempty"`
+	CreatedAtStart *time.Time         `json:"created_at_start,omitempty"`
+	CreatedAtEnd   *time.Time         `json:"created_at_end,omitempty"`
+
+	// Cursor-based pagination
+	LastID        *primitive.ObjectID `json:"last_id,omitempty"`
+	LastCreatedAt *time.Time          `json:"last_created_at,omitempty"`
+	Limit         int64               `json:"limit"`
+}
+
+type ComicSubmissionFilterResult struct {
+	Submissions   []*ComicSubmission `json:"submissions"`
+	HasMore       bool               `json:"has_more"`
+	LastID        primitive.ObjectID `json:"last_id,omitempty"`
+	LastCreatedAt time.Time          `json:"last_created_at,omitempty"`
+}
+
 // ComicSubmissionRepository Interface for a file that has content which lives in the cloud.
 type ComicSubmissionRepository interface {
 	Create(ctx context.Context, m *ComicSubmission) error
@@ -45,7 +67,7 @@ type ComicSubmissionRepository interface {
 	CountCoinsRewardByUserID(ctx context.Context, userID primitive.ObjectID) (uint64, error)
 	CountCoinsRewardByStatusAndByUserID(ctx context.Context, status int8, userID primitive.ObjectID) (uint64, error)
 	GetByID(ctx context.Context, id primitive.ObjectID) (*ComicSubmission, error)
-	// ListLiteByFilter(ctx context.Context, m *ComicSubmissionPaginationListFilter) (*ComicSubmissionPaginationListResult, error)
+	ListByFilter(ctx context.Context, m *ComicSubmissionFilter) (*ComicSubmissionFilterResult, error)
 	// UpdateByID(ctx context.Context, m *ComicSubmission) error
 	// DeleteByID(ctx context.Context, id primitive.ObjectID) error
 	// CheckIfExistsByID(ctx context.Context, id primitive.ObjectID) (bool, error)

@@ -52,6 +52,7 @@ type httpServerImpl struct {
 
 	comicSubmissionCreateHTTPHandler                       *handler.ComicSubmissionCreateHTTPHandler
 	comicSubmissionGetHTTPHandler                          *handler.ComicSubmissionGetHTTPHandler
+	comicSubmissionListByFilterHTTPHandler                 *handler.ComicSubmissionListByFilterHTTPHandler
 	comicSubmissionCountTotalCreatedTodayByUserHTTPHandler *handler.ComicSubmissionCountTotalCreatedTodayByUserHTTPHandler
 }
 
@@ -76,7 +77,8 @@ func NewHTTPServer(
 	h14 *handler.AttachmentCreateHTTPHandler,
 	h15 *handler.ComicSubmissionCreateHTTPHandler,
 	h16 *handler.ComicSubmissionGetHTTPHandler,
-	h17 *handler.ComicSubmissionCountTotalCreatedTodayByUserHTTPHandler,
+	h17 *handler.ComicSubmissionListByFilterHTTPHandler,
+	h18 *handler.ComicSubmissionCountTotalCreatedTodayByUserHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.HTTPAddress == "" {
@@ -97,26 +99,27 @@ func NewHTTPServer(
 
 	// Create a new HTTP server instance.
 	port := &httpServerImpl{
-		cfg:                                    cfg,
-		logger:                                 logger,
-		server:                                 srv,
-		getVersionHTTPHandler:                  h1,
-		getHealthCheckHTTPHandler:              h2,
-		gatewayUserRegisterHTTPHandler:         h3,
-		gatewayLoginHTTPHandler:                h4,
-		gatewayLogoutHTTPHandler:               h5,
-		gatewayRefreshTokenHTTPHandler:         h6,
-		gatewayProfileDetailHTTPHandler:        h7,
-		gatewayProfileUpdateHTTPHandler:        h8,
-		gatewayVerifyHTTPHandler:               h9,
-		gatewayChangePasswordHTTPHandler:       h10,
-		gatewayForgotPasswordHTTPHandler:       h11,
-		gatewayResetPasswordHTTPHandler:        h12,
-		gatewayProfileWalletAddressHTTPHandler: h13,
-		attachmentCreateHTTPHandler:            h14,
-		comicSubmissionCreateHTTPHandler:       h15,
-		comicSubmissionGetHTTPHandler:          h16,
-		comicSubmissionCountTotalCreatedTodayByUserHTTPHandler: h17,
+		cfg:                                                    cfg,
+		logger:                                                 logger,
+		server:                                                 srv,
+		getVersionHTTPHandler:                                  h1,
+		getHealthCheckHTTPHandler:                              h2,
+		gatewayUserRegisterHTTPHandler:                         h3,
+		gatewayLoginHTTPHandler:                                h4,
+		gatewayLogoutHTTPHandler:                               h5,
+		gatewayRefreshTokenHTTPHandler:                         h6,
+		gatewayProfileDetailHTTPHandler:                        h7,
+		gatewayProfileUpdateHTTPHandler:                        h8,
+		gatewayVerifyHTTPHandler:                               h9,
+		gatewayChangePasswordHTTPHandler:                       h10,
+		gatewayForgotPasswordHTTPHandler:                       h11,
+		gatewayResetPasswordHTTPHandler:                        h12,
+		gatewayProfileWalletAddressHTTPHandler:                 h13,
+		attachmentCreateHTTPHandler:                            h14,
+		comicSubmissionCreateHTTPHandler:                       h15,
+		comicSubmissionGetHTTPHandler:                          h16,
+		comicSubmissionListByFilterHTTPHandler:                 h17,
+		comicSubmissionCountTotalCreatedTodayByUserHTTPHandler: h18,
 	}
 	// Attach the HTTP server controller to the ServeMux.
 	mux.HandleFunc("/", mid.Attach(port.HandleRequests))
@@ -197,6 +200,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		port.attachmentCreateHTTPHandler.Execute(w, r)
 	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "comic-submissions" && r.Method == http.MethodPost:
 		port.comicSubmissionCreateHTTPHandler.Execute(w, r)
+	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "comic-submissions" && r.Method == http.MethodGet:
+		port.comicSubmissionListByFilterHTTPHandler.Execute(w, r)
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "comic-submission" && r.Method == http.MethodGet:
 		port.comicSubmissionGetHTTPHandler.Execute(w, r, p[3])
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "comic-submissions" && p[3] == "count-total-created-today-by-user" && r.Method == http.MethodGet:
