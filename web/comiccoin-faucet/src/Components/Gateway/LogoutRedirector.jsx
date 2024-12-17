@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { postLogoutAPI } from "../../API/Gateway";
 import Scroll from "react-scroll";
-// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-// import { faSpinner } from '@fortawesome/free-solid-svg-icons';
+
+import { Coins, Loader } from 'lucide-react'
+
 
 function LogoutRedirector() {
   ////
@@ -60,28 +61,39 @@ function LogoutRedirector() {
     let mounted = true;
 
     if (mounted) {
-      postLogoutAPI(onLogoutnSuccess, onLogoutnError, onLogoutnDone);
+        postLogoutAPI(onLogoutnSuccess, onLogoutnError, onLogoutnDone);
     }
 
     return () => (mounted = false);
   }, []);
 
   return (
-    <div class="column is-12 container">
-      <div class="section">
-        <section class="hero is-fullheight">
-          <div class="hero-body">
-            <div class="container">
-              <div class="columns is-centered">
-                <div class="column is-one-third-tablet">
-                  <h1 className="is-size-1">LOGGING OFF...</h1>
-                </div>
-              </div>
+      <div className="min-h-screen flex flex-col bg-gradient-to-b from-purple-100 to-white">
+        {/* Header */}
+        <nav className="bg-gradient-to-r from-purple-700 to-indigo-800 text-white p-4">
+          <div className="max-w-7xl mx-auto flex justify-between items-center">
+            <div className="flex items-center space-x-2">
+              <Coins className="h-8 w-8" />
+              <span className="text-2xl font-bold">ComicCoin Faucet</span>
             </div>
           </div>
-        </section>
+        </nav>
+
+        {/* Main Content - Now properly centered */}
+        <div className="flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <div className="flex justify-center mb-6">
+              <Loader className="w-12 h-12 text-purple-600 animate-spin" />
+            </div>
+            <h1 className="text-2xl font-bold text-purple-800 mb-4" style={{fontFamily: 'Comic Sans MS, cursive'}}>
+              Logging Out...
+            </h1>
+            <p className="text-gray-600">
+              Please wait while we securely log you out of your account
+            </p>
+          </div>
+        </div>
       </div>
-    </div>
   );
 }
 
