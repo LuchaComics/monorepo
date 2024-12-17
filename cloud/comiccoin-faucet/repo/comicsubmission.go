@@ -403,17 +403,30 @@ func (s *comicSubmissionImplImpl) CountCoinsRewardByFilter(ctx context.Context, 
 	return uint64(results[0].TotalCoins), nil
 }
 
-// buildMatchStage creates the match stage for the aggregation pipeline
 func buildMatchStage(filter *domain.ComicSubmissionFilter) bson.M {
 	match := bson.M{
 		"tenant_id": filter.TenantID,
 	}
 
+	// Handle cursor-based pagination
+	if filter.LastID != nil && filter.LastCreatedAt != nil {
+		match["$or"] = []bson.M{
+			{
+				"created_at": bson.M{"$lt": filter.LastCreatedAt},
+			},
+			{
+				"created_at": filter.LastCreatedAt,
+				"_id":        bson.M{"$lt": filter.LastID},
+			},
+		}
+	}
+
+	// Add other filters
 	if filter.Status != 0 {
 		match["status"] = filter.Status
 	}
 
-	if filter.UserID.IsZero() {
+	if !filter.UserID.IsZero() {
 		match["user_id"] = filter.UserID
 	}
 
@@ -428,6 +441,7 @@ func buildMatchStage(filter *domain.ComicSubmissionFilter) bson.M {
 		match["created_at"] = createdAtFilter
 	}
 
+	// Text search for name
 	if filter.Name != nil && *filter.Name != "" {
 		match["$text"] = bson.M{"$search": *filter.Name}
 	}
@@ -436,6 +450,10 @@ func buildMatchStage(filter *domain.ComicSubmissionFilter) bson.M {
 }
 
 func (s *comicSubmissionImplImpl) ListByFilter(ctx context.Context, filter *domain.ComicSubmissionFilter) (*domain.ComicSubmissionFilterResult, error) {
+	if filter == nil {
+		return nil, errors.New("filter cannot be nil")
+	}
+
 	// Default limit if not specified
 	if filter.Limit <= 0 {
 		filter.Limit = 100
@@ -450,9 +468,6 @@ func (s *comicSubmissionImplImpl) ListByFilter(ctx context.Context, filter *doma
 	// Match stage - initial filtering
 	matchStage := bson.D{{"$match", buildMatchStage(filter)}}
 	pipeline = append(pipeline, matchStage)
-
-	// s.Logger.Debug("applying filter",
-	// 	slog.Any("pipeline", pipeline))
 
 	// Sort stage
 	sortStage := bson.D{{"$sort", bson.D{
@@ -479,6 +494,15 @@ func (s *comicSubmissionImplImpl) ListByFilter(ctx context.Context, filter *doma
 		return nil, err
 	}
 
+	// Handle empty results case
+	if len(submissions) == 0 {
+		s.Logger.Debug("Empty list", slog.Any("filter", filter))
+		return &domain.ComicSubmissionFilterResult{
+			Submissions: make([]*domain.ComicSubmission, 0),
+			HasMore:     false,
+		}, nil
+	}
+
 	// Check if there are more results
 	hasMore := false
 	if len(submissions) > int(filter.Limit) {
@@ -487,19 +511,13 @@ func (s *comicSubmissionImplImpl) ListByFilter(ctx context.Context, filter *doma
 	}
 
 	// Get last document info for next page
-	var lastID primitive.ObjectID
-	var lastCreatedAt time.Time
-	if len(submissions) > 0 {
-		lastDoc := submissions[len(submissions)-1]
-		lastID = lastDoc.ID
-		lastCreatedAt = lastDoc.CreatedAt
-	}
+	lastDoc := submissions[len(submissions)-1]
 
 	return &domain.ComicSubmissionFilterResult{
 		Submissions:   submissions,
 		HasMore:       hasMore,
-		LastID:        lastID,
-		LastCreatedAt: lastCreatedAt,
+		LastID:        lastDoc.ID,
+		LastCreatedAt: lastDoc.CreatedAt,
 	}, nil
 }
 

@@ -138,6 +138,7 @@ const DashboardPage = () => {
       // params.set("sort_field", "created_at"); // Sorting
       // params.set("sort_order", -1); // Sorting - descending, meaning most recent start date to oldest start date.
       params.set("status", 1); // ComicSubmissionStatusInReview
+      params.set("user_id", currentUser.id);
       //
       // params.set("store_id", sid);
       //
@@ -272,20 +273,21 @@ const DashboardPage = () => {
 
           {/* Pending Reviews Section */}
           <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border-2 border-purple-200">
-            <h2 className="text-xl lg:text-2xl font-bold text-purple-800 mb-4" style={{fontFamily: 'Comic Sans MS, cursive'}}>
-              Pending Reviews
-            </h2>
-            {pendingSubmissions.length === 0 ? <div className="text-center py-12 bg-purple-50 rounded-lg">
-              <Image className="h-16 w-16 text-purple-300 mx-auto mb-4" />
-              <p className="text-gray-500 mb-4">No pending submissions yet</p>
-              <Link to="/submit" className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                Submit Your First Comic
-              </Link>
-            </div> : <>
-              {pendingSubmissions.map(submission => (
-                <GalleryItem key={submission.id} submission={submission} />
-              ))}
-            </>}
+              <h2 className="text-xl lg:text-2xl font-bold text-purple-800 mb-4" style={{fontFamily: 'Comic Sans MS, cursive'}}>
+                Pending Reviews
+              </h2>
+              {pendingSubmissions.length === 0 ? <div className="text-center py-12 bg-purple-50 rounded-lg">
+                <Image className="h-16 w-16 text-purple-300 mx-auto mb-4" />
+                <p className="text-gray-500 mb-4">No pending submissions yet</p>
+                <Link to="/submit" className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                  Submit Your First Comic
+                </Link>
+              </div> :
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                {pendingSubmissions.map(submission => (
+                  <GalleryItem key={submission.id} submission={submission} />
+                ))}
+              </div>}
           </div>
 
           {/* Recent Submissions Section */}
