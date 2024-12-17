@@ -11,6 +11,7 @@ import { currentUserState } from "../../AppState";
 import Topbar from "../../Components/Navigation/Topbar";
 import {
     getComicSubmissionsCountByFilterAPI,
+    getComicSubmissionsCountCoinsRewardByFilterAPI,
     getComicSubmissionsCountTotalCreatedTodayByUserAPI,
     getComicSubmissionListAPI
 } from "../../API/ComicSubmission";
@@ -30,6 +31,7 @@ const DashboardPage = () => {
   // Data related.
   const [totalSubmissions, setTotalSubmissions] = useState(0);
   const [totalApprovedSubmissions, setTotalApprovedSubmissions] = useState(0);
+  const [totalCoinsEarned, setTotalCoinsEarned] = useState(0);
   const [pendingSubmissions, setPendingSubmissions] = useState([]);
   const [recentSubmissions, setRecentSubmissions] = useState([]);
 
@@ -245,6 +247,33 @@ const DashboardPage = () => {
 
       //------------------------------------------------------------------------
 
+      setFetching(true);
+      params = new Map();
+      params.set("user_id", currentUser.id);
+      params.set("status", 3); // ComicSubmissionStatusAccepted
+      getComicSubmissionsCountCoinsRewardByFilterAPI(
+        params,
+        (resp) => {
+          // For debugging purposes only.
+          console.log("getComicSubmissionsCountCoinsRewardByFilterAPI: Results:", resp);
+          setTotalCoinsEarned(resp.count);
+        },
+        (apiErr) => {
+          console.log("getComicSubmissionsCountCoinsRewardByFilterAPI: apiErr:", apiErr);
+          setErrors(apiErr);
+        },
+        () => {
+          console.log("getComicSubmissionsCountCoinsRewardByFilterAPI: Starting...");
+          setFetching(false);
+        },
+        () => {
+          console.log("getComicSubmissionsCountCoinsRewardByFilterAPI: unauthorized...");
+          window.location.href = "/login?unauthorized=true";
+        },
+      );
+
+      //------------------------------------------------------------------------
+
     }
 
     return () => {
@@ -305,11 +334,11 @@ const DashboardPage = () => {
             </div>
             <div className="flex-1 bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
               <div className="text-purple-600 text-lg font-semibold">Comics Approved</div>
-              <div className="text-3xl font-bold">0</div>
+              <div className="text-3xl font-bold">{totalApprovedSubmissions}</div>
             </div>
             <div className="flex-1 bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
               <div className="text-purple-600 text-lg font-semibold">ComicCoins Earned</div>
-              <div className="text-3xl font-bold">0</div>
+              <div className="text-3xl font-bold">{totalCoinsEarned}</div>
             </div>
           </div>
 

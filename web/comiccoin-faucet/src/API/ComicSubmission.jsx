@@ -6,6 +6,7 @@ import {
   COMICCOIN_FAUCET_COMIC_SUBMISSIONS_API_ENDPOINT,
   COMICCOIN_FAUCET_COMIC_SUBMISSION_API_ENDPOINT,
   COMICCOIN_FAUCET_COMIC_SUBMISSIONS_COUNT_BY_FILTER_API_ENDPOINT,
+  COMICCOIN_FAUCET_COMIC_SUBMISSIONS_COUNT_COINS_REWARD_BY_FILTER_API_ENDPOINT,
   COMICCOIN_FAUCET_COMIC_SUBMISSIONS_COUNT_TOTAL_CREATED_TODAY_BY_USER_API_ENDPOINT,
   COMICCOIN_FAUCET_COMIC_SUBMISSION_CUSTOMER_SWAP_OPERATION_API_ENDPOINT,
   COMICCOIN_FAUCET_COMIC_SUBMISSION_CREATE_COMMENT_OPERATION_API_ENDPOINT,
@@ -163,6 +164,47 @@ export function getComicSubmissionsCountByFilterAPI(
 ) {
   // The following code will generate the query parameters for the url based on the map.
   let aURL = COMICCOIN_FAUCET_COMIC_SUBMISSIONS_COUNT_BY_FILTER_API_ENDPOINT;
+  filtersMap.forEach((value, key) => {
+    let decamelizedkey = decamelize(key);
+    if (aURL.indexOf("?") > -1) {
+      aURL += "&" + decamelizedkey + "=" + value;
+    } else {
+      aURL += "?" + decamelizedkey + "=" + value;
+    }
+  });
+
+  const axios = getCustomAxios(onUnauthorizedCallback);
+  axios
+    .get(aURL)
+    .then((successResponse) => {
+      const responseData = successResponse.data;
+
+      // Snake-case from API to camel-case for React.
+      const data = camelizeKeys(responseData);
+
+      // // For debugging purposeso pnly.
+      // console.log(data);
+
+      // Return the callback data.
+      onSuccessCallback(data);
+    })
+    .catch((exception) => {
+      let errors = camelizeKeys(exception);
+      onErrorCallback(errors);
+    })
+    .then(onDoneCallback);
+}
+
+
+export function getComicSubmissionsCountCoinsRewardByFilterAPI(
+  filtersMap = new Map(),
+  onSuccessCallback,
+  onErrorCallback,
+  onDoneCallback,
+  onUnauthorizedCallback,
+) {
+  // The following code will generate the query parameters for the url based on the map.
+  let aURL = COMICCOIN_FAUCET_COMIC_SUBMISSIONS_COUNT_COINS_REWARD_BY_FILTER_API_ENDPOINT;
   filtersMap.forEach((value, key) => {
     let decamelizedkey = decamelize(key);
     if (aURL.indexOf("?") > -1) {

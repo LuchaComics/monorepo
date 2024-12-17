@@ -69,6 +69,7 @@ export const COMICCOIN_FAUCET_COMIC_SUBMISSION_FILE_ATTACHMENTS_API_ENDPOINT =
 
 export const COMICCOIN_FAUCET_COMIC_SUBMISSIONS_COUNT_TOTAL_CREATED_TODAY_BY_USER_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/comic-submissions/count-total-created-today-by-user?user_id={user_id}";
 export const COMICCOIN_FAUCET_COMIC_SUBMISSIONS_COUNT_BY_FILTER_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/comic-submissions/count";
+export const COMICCOIN_FAUCET_COMIC_SUBMISSIONS_COUNT_COINS_REWARD_BY_FILTER_API_ENDPOINT = HTTP_API_SERVER + "/api/v1/comic-submissions/count-coins-reward";
 
 export const COMICCOIN_FAUCET_ATTACHMENTS_API_ENDPOINT =
   HTTP_API_SERVER + "/api/v1/attachments";

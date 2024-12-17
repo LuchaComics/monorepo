@@ -304,6 +304,10 @@ func doRunDaemon() {
 		cfg,
 		logger,
 		comicSubmissionRepo)
+	comicSubmissionCountCoinsRewardByFilterUseCase := usecase.NewComicSubmissionCountCoinsRewardByFilterUseCase(
+		cfg,
+		logger,
+		comicSubmissionRepo)
 
 	//
 	// Service
@@ -459,6 +463,10 @@ func doRunDaemon() {
 		cloudStoragePresignedURLUseCase,
 		comicSubmissionListByFilterUseCase,
 	)
+	comicSubmissionCountCoinsRewardByFilterService := service.NewComicSubmissionCountCoinsRewardByFilterService(
+		logger,
+		comicSubmissionCountCoinsRewardByFilterUseCase,
+	)
 
 	//
 	// Interface.
@@ -565,6 +573,11 @@ func doRunDaemon() {
 		dbClient,
 		comicSubmissionCountTotalCreatedTodayByUserService,
 	)
+	comicSubmissionCountCoinsRewardByFilterHTTPHandler := httphandler.NewComicSubmissionCountCoinsRewardByFilterHTTPHandler(
+		logger,
+		dbClient,
+		comicSubmissionCountCoinsRewardByFilterService,
+	)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
 		blackp,
@@ -593,6 +606,7 @@ func doRunDaemon() {
 		comicSubmissionGetHTTPHandler,
 		comicSubmissionListByFilterHTTPHandler,
 		comicSubmissionCountByFilterHTTPHandler,
+		comicSubmissionCountCoinsRewardByFilterHTTPHandler,
 		comicSubmissionCountTotalCreatedTodayByUserHTTPHandler,
 	)
 

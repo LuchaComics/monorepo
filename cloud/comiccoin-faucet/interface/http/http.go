@@ -54,6 +54,7 @@ type httpServerImpl struct {
 	comicSubmissionGetHTTPHandler                          *handler.ComicSubmissionGetHTTPHandler
 	comicSubmissionListByFilterHTTPHandler                 *handler.ComicSubmissionListByFilterHTTPHandler
 	comicSubmissionCountByFilterHTTPHandler                *handler.ComicSubmissionCountByFilterHTTPHandler
+	comicSubmissionCountCoinsRewardByFilterHTTPHandler     *handler.ComicSubmissionCountCoinsRewardByFilterHTTPHandler
 	comicSubmissionCountTotalCreatedTodayByUserHTTPHandler *handler.ComicSubmissionCountTotalCreatedTodayByUserHTTPHandler
 }
 
@@ -80,7 +81,8 @@ func NewHTTPServer(
 	h16 *handler.ComicSubmissionGetHTTPHandler,
 	h17 *handler.ComicSubmissionListByFilterHTTPHandler,
 	h18 *handler.ComicSubmissionCountByFilterHTTPHandler,
-	h19 *handler.ComicSubmissionCountTotalCreatedTodayByUserHTTPHandler,
+	h19 *handler.ComicSubmissionCountCoinsRewardByFilterHTTPHandler,
+	h20 *handler.ComicSubmissionCountTotalCreatedTodayByUserHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.HTTPAddress == "" {
@@ -122,7 +124,8 @@ func NewHTTPServer(
 		comicSubmissionGetHTTPHandler:                          h16,
 		comicSubmissionListByFilterHTTPHandler:                 h17,
 		comicSubmissionCountByFilterHTTPHandler:                h18,
-		comicSubmissionCountTotalCreatedTodayByUserHTTPHandler: h19,
+		comicSubmissionCountCoinsRewardByFilterHTTPHandler:     h19,
+		comicSubmissionCountTotalCreatedTodayByUserHTTPHandler: h20,
 	}
 	// Attach the HTTP server controller to the ServeMux.
 	mux.HandleFunc("/", mid.Attach(port.HandleRequests))
@@ -209,6 +212,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		port.comicSubmissionGetHTTPHandler.Execute(w, r, p[3])
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "comic-submissions" && p[3] == "count" && r.Method == http.MethodGet:
 		port.comicSubmissionCountByFilterHTTPHandler.Execute(w, r)
+	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "comic-submissions" && p[3] == "count-coins-reward" && r.Method == http.MethodGet:
+		port.comicSubmissionCountCoinsRewardByFilterHTTPHandler.Execute(w, r)
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "comic-submissions" && p[3] == "count-total-created-today-by-user" && r.Method == http.MethodGet:
 		port.comicSubmissionCountTotalCreatedTodayByUserHTTPHandler.Execute(w, r)
 
