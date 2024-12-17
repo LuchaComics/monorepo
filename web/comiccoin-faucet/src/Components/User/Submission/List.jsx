@@ -1,292 +1,272 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Coins, Home, Image, History, Wallet,
   Settings, HelpCircle, LogOut, Clock, CheckCircle, XCircle,
-  Menu, X, ChevronLeft, ChevronRight
+  Menu, X, ChevronLeft, ChevronRight, Archive, AlertTriangle
 } from 'lucide-react';
+import { Navigate, Link } from "react-router-dom";
+import { useRecoilState } from "recoil";
 
+import { currentUserState } from "../../../AppState";
 import Topbar from "../../../Components/Navigation/Topbar";
+import { getComicSubmissionListAPI } from "../../../API/ComicSubmission";
 
-
-const SubmissionsPage = () => {
-  const [isNavOpen, setIsNavOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedSubmission, setSelectedSubmission] = useState(null);
-  const itemsPerPage = 12;
-
-  const navigation = [
-    { name: 'Dashboard', icon: Home, current: false },
-    { name: 'Submit Comic', icon: Image, current: false },
-    { name: 'My Submissions', icon: History, current: true },
-    { name: 'My Wallet', icon: Wallet, current: false },
-    { name: 'Help', icon: HelpCircle, current: false },
-    { name: 'Settings', icon: Settings, current: false },
-  ];
-
-  // Mock submissions data
-  const submissions = [
-    {
-      id: 1,
-      title: "Amazing Spider-Man #300",
-      coverImage: "/api/placeholder/120/160",
-      submittedAt: "2024-12-12T10:30:00",
-      status: "accepted",
-      coinsAwarded: 150,
-      description: "First appearance of Venom",
-      grade: "9.8",
-      publisher: "Marvel Comics",
-      year: "1988"
-    },
-    {
-      id: 2,
-      title: "Detective Comics #27",
-      coverImage: "/api/placeholder/120/160",
-      submittedAt: "2024-12-11T15:20:00",
-      status: "in-review",
-      description: "First appearance of Batman",
-      grade: "4.0",
-      publisher: "DC Comics",
-      year: "1939"
-    },
-    {
-      id: 3,
-      title: "Fantastic Four #1",
-      coverImage: "/api/placeholder/120/160",
-      submittedAt: "2024-12-10T09:45:00",
-      status: "rejected",
-      reason: "Insufficient documentation",
-      description: "Origin of the Fantastic Four",
-      grade: "6.5",
-      publisher: "Marvel Comics",
-      year: "1961"
-    }
-  ];
-
-  // Generate more mock submissions
-  for (let i = 4; i <= 50; i++) {
-    const status = i % 3 === 0 ? "accepted" : i % 3 === 1 ? "in-review" : "rejected";
-    submissions.push({
-      id: i,
-      title: `Comic #${i}`,
-      coverImage: "/api/placeholder/120/160",
-      submittedAt: new Date(Date.now() - i * 3600000).toISOString(),
-      status,
-      coinsAwarded: status === "accepted" ? Math.floor(Math.random() * 200) + 50 : null,
-      reason: status === "rejected" ? "Verification failed" : null,
-      description: `Sample comic book #${i}`,
-      grade: `${Math.floor(Math.random() * 3) + 7}.${Math.floor(Math.random() * 10)}`,
-      publisher: i % 2 === 0 ? "Marvel Comics" : "DC Comics",
-      year: `${1960 + Math.floor(Math.random() * 60)}`
-    });
+const getStatusInfo = (status) => {
+  switch (status) {
+    case 1: // ComicSubmissionStatusInReview
+      return { icon: <Clock className="w-4 h-4 text-yellow-500" />, color: 'text-yellow-500', text: 'In Review' };
+    case 2: // ComicSubmissionStatusRejected
+      return { icon: <XCircle className="w-4 h-4 text-red-500" />, color: 'text-red-500', text: 'Rejected' };
+    case 3: // ComicSubmissionStatusAccepted
+      return { icon: <CheckCircle className="w-4 h-4 text-green-500" />, color: 'text-green-500', text: 'Accepted' };
+    case 4: // ComicSubmissionStatusError
+      return { icon: <AlertTriangle className="w-4 h-4 text-orange-500" />, color: 'text-orange-500', text: 'Error' };
+    case 5: // ComicSubmissionStatusArchived
+      return { icon: <Archive className="w-4 h-4 text-gray-500" />, color: 'text-gray-500', text: 'Archived' };
+    default:
+      return { icon: null, color: '', text: 'Unknown' };
   }
+};
 
-  const totalPages = Math.ceil(submissions.length / itemsPerPage);
-  const paginatedSubmissions = submissions.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+const SubmissionModal = ({ submission, onClose }) => {
+  if (!submission) return null;
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'in-review':
-        return <Clock className="w-4 h-4 text-yellow-500" />;
-      case 'accepted':
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'rejected':
-        return <XCircle className="w-4 h-4 text-red-500" />;
-      default:
-        return null;
-    }
-  };
+  const statusInfo = getStatusInfo(submission.status);
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'in-review':
-        return 'text-yellow-500';
-      case 'accepted':
-        return 'text-green-500';
-      case 'rejected':
-        return 'text-red-500';
-      default:
-        return '';
-    }
-  };
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl max-w-2xl w-full p-6 relative max-h-[90vh] overflow-y-auto">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+        >
+          <X className="w-6 h-6" />
+        </button>
 
-  const SubmissionCard = ({ submission }) => (
-    <div
-      className="w-32 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-purple-100 cursor-pointer"
-      onClick={() => setSelectedSubmission(submission)}
-    >
-      <div className="relative w-32 h-44">
-        <img
-          src={submission.coverImage}
-          alt={submission.title}
-          className="w-full h-full object-cover rounded-t-lg"
-        />
-        <div className="absolute top-1 right-1 bg-white rounded-full p-1 shadow">
-          {getStatusIcon(submission.status)}
-        </div>
-      </div>
-      <div className="p-2">
-        <h3 className="font-medium text-xs truncate" title={submission.title}>
-          {submission.title}
-        </h3>
-        <p className="text-xs mt-1">
-          <span className={`font-medium ${getStatusColor(submission.status)}`}>
-            {submission.status.charAt(0).toUpperCase() + submission.status.slice(1)}
-          </span>
-        </p>
-        {submission.coinsAwarded && (
-          <p className="text-xs text-green-600 mt-1">
-            +{submission.coinsAwarded} ComicCoins
-          </p>
-        )}
-        {submission.reason && (
-          <p className="text-xs text-red-500 mt-1 truncate" title={submission.reason}>
-            {submission.reason}
-          </p>
-        )}
-        <p className="text-xs text-gray-500 mt-1">
-          {new Date(submission.submittedAt).toLocaleDateString()}
-        </p>
-      </div>
-    </div>
-  );
-
-  const SubmissionModal = ({ submission, onClose }) => {
-    if (!submission) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-xl max-w-2xl w-full p-6 relative">
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-          >
-            <X className="w-6 h-6" />
-          </button>
-
-          <div className="flex gap-6">
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="w-full md:w-auto">
             <img
-              src={submission.coverImage}
-              alt={submission.title}
-              className="w-48 h-64 object-cover rounded-lg"
+              src={submission.frontCover?.objectUrl || "/api/placeholder/256/320"}
+              alt={submission.name}
+              className="w-full md:w-64 h-80 object-cover rounded-lg"
             />
+            {submission.backCover && (
+              <img
+                src={submission.backCover.objectUrl}
+                alt="Back cover"
+                className="w-full md:w-64 h-80 object-cover rounded-lg mt-4"
+              />
+            )}
+          </div>
 
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold text-purple-800 mb-4">
-                {submission.title}
-              </h2>
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold text-purple-800 mb-4">
+              {submission.name}
+            </h2>
 
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full ${
-                    getStatusColor(submission.status)} bg-opacity-10`}>
-                    {getStatusIcon(submission.status)}
-                    <span className="font-medium">
-                      {submission.status.charAt(0).toUpperCase() + submission.status.slice(1)}
-                    </span>
-                  </span>
-                  {submission.coinsAwarded && (
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full ${statusInfo.color} bg-opacity-10`}>
+                  {statusInfo.icon}
+                  <span className="font-medium">{statusInfo.text}</span>
+                </span>
+                {submission.coinsReward > 0 && (
+                  <>{submission.status === 3 ?
                     <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-100 text-green-600">
                       <Coins className="w-4 h-4" />
-                      {submission.coinsAwarded} ComicCoins
+                      {submission.coinsReward} Coins
                     </span>
-                  )}
-                </div>
+                    :
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-red-100 text-red-600">
+                      <Coins className="w-4 h-4" />
+                      0 Coins
+                    </span>}
+                  </>
+                )}
+              </div>
 
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-gray-500">Publisher</p>
-                    <p className="font-medium">{submission.publisher}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Year</p>
-                    <p className="font-medium">{submission.year}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Grade</p>
-                    <p className="font-medium">{submission.grade}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Submitted</p>
-                    <p className="font-medium">
-                      {new Date(submission.submittedAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-gray-500">Description</p>
-                  <p className="font-medium">{submission.description}</p>
+                  <p className="text-gray-500">Submitted By</p>
+                  <p className="font-medium">{submission.createdByUserName}</p>
                 </div>
-
-                {submission.reason && (
-                  <div>
-                    <p className="text-red-500">Rejection Reason</p>
-                    <p className="font-medium text-red-600">{submission.reason}</p>
-                  </div>
+                <div>
+                  <p className="text-gray-500">Submission Date</p>
+                  <p className="font-medium">
+                    {new Date(submission.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                {submission.modifiedAt && (
+                  <>
+                    <div>
+                      <p className="text-gray-500">Last Modified By</p>
+                      <p className="font-medium">{submission.modifiedByUserName}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Modified Date</p>
+                      <p className="font-medium">
+                        {new Date(submission.modifiedAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </>
                 )}
               </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
+  );
+};
+
+const SubmissionCard = ({ submission, onClick }) => {
+  const statusInfo = getStatusInfo(submission.status);
+
+  return (
+    <div
+      className="w-64 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-purple-100 cursor-pointer"
+      onClick={() => onClick(submission)}
+    >
+      <div className="relative w-full h-80">
+        <img
+          src={submission.frontCover?.objectUrl || "/api/placeholder/256/320"}
+          alt={submission.name}
+          className="w-full h-full object-cover rounded-t-lg"
+        />
+        <div className="absolute top-2 right-2 bg-white rounded-full p-1.5 shadow">
+          {statusInfo.icon}
+        </div>
+      </div>
+      <div className="p-4">
+        <h3 className="font-medium text-sm truncate" title={submission.name}>
+          {submission.name}
+        </h3>
+        <p className="text-sm mt-2">
+          <span className={`font-medium ${statusInfo.color}`}>
+            {statusInfo.text}
+          </span>
+        </p>
+        {submission.coinsReward > 0 && (
+          <>{submission.status === 3 ?
+              <p className="text-sm text-green-600 mt-2 flex items-center gap-1">
+                <Coins className="w-4 h-4" />
+                {submission.coinsReward} Coins
+              </p>
+              :
+              <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
+                <Coins className="w-4 h-4" />
+                0 Coins
+              </p>
+          }
+          </>
+        )}
+        <p className="text-xs text-gray-500 mt-2">
+          Submitted by: {submission.createdByUserName}
+        </p>
+        <p className="text-xs text-gray-500 mt-1">
+          {new Date(submission.createdAt).toLocaleDateString()}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+const SubmissionsPage = () => {
+  // Variable controls the global state of the app.
+  const [currentUser] = useRecoilState(currentUserState);
+
+  // Component state
+  const [isFetching, setFetching] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [submissions, setSubmissions] = useState([]);
+  const [hasMore, setHasMore] = useState(false);
+  const [lastID, setLastID] = useState(null);
+  const [lastCreatedAt, setLastCreatedAt] = useState(null);
+  const [selectedSubmission, setSelectedSubmission] = useState(null);
+
+  const fetchSubmissions = (resetList = false) => {
+    setFetching(true);
+    const params = new Map();
+
+    if (!resetList && lastID && lastCreatedAt) {
+      params.set("last_id", lastID);
+      params.set("last_created_at", lastCreatedAt);
+    }
+
+    params.set("limit", 12);
+    params.set("user_id", currentUser.id);
+
+    getComicSubmissionListAPI(
+      params,
+      (resp) => {
+        setSubmissions(prev => resetList ? resp.submissions : [...prev, ...resp.submissions]);
+        setHasMore(resp.hasMore);
+        setLastID(resp.lastId);
+        setLastCreatedAt(resp.lastCreatedAt);
+      },
+      setErrors,
+      () => setFetching(false),
+      () => window.location.href = "/login?unauthorized=true"
     );
   };
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    fetchSubmissions(true);
+  }, [currentUser]);
 
   return (
     <div className="min-h-screen bg-purple-50">
       <Topbar currentPage="My Submissions" />
 
-      {/* Main Content with responsive padding */}
-      <main className="max-w-[2000px] mx-auto px-4 md:px-8 lg:px-12 xl:px-24 2xl:px-32 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-3xl font-bold text-purple-800 mb-8" style={{fontFamily: 'Comic Sans MS, cursive'}}>
           My Submissions
         </h1>
 
-        {/* Submissions Grid */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border-2 border-purple-200">
-          <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
-            {paginatedSubmissions.map(submission => (
-              <SubmissionCard key={submission.id} submission={submission} />
-            ))}
+        {submissions.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-lg p-8 text-center border-2 border-purple-200">
+            <Image className="w-16 h-16 text-purple-300 mx-auto mb-4" />
+            <p className="text-gray-600 mb-4">No submissions found</p>
+            <Link to="/submit" className="inline-block px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+              Submit Your First Comic
+            </Link>
           </div>
+        ) : (
+          <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {submissions.map(submission => (
+                <SubmissionCard
+                  key={submission.id}
+                  submission={submission}
+                  onClick={setSelectedSubmission}
+                />
+              ))}
+            </div>
 
-          {/* Pagination */}
-          <div className="mt-8 flex justify-center items-center gap-4">
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-              className="p-2 rounded-lg hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronLeft className="w-5 h-5 text-purple-600" />
-            </button>
-
-            <span className="text-sm text-purple-600">
-              Page {currentPage} of {totalPages}
-            </span>
-
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-              className="p-2 rounded-lg hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronRight className="w-5 h-5 text-purple-600" />
-            </button>
+            {hasMore && (
+              <div className="mt-8 text-center">
+                <button
+                  onClick={() => fetchSubmissions()}
+                  disabled={isFetching}
+                  className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
+                >
+                  {isFetching ? 'Loading...' : 'Load More'}
+                </button>
+              </div>
+            )}
           </div>
-        </div>
+        )}
       </main>
 
-      {/* Modal */}
       {selectedSubmission && (
-         <SubmissionModal
-           submission={selectedSubmission}
-           onClose={() => setSelectedSubmission(null)}
-         />
-       )}
-     </div>
-   );
- };
+        <SubmissionModal
+          submission={selectedSubmission}
+          onClose={() => setSelectedSubmission(null)}
+        />
+      )}
+    </div>
+  );
+};
 
- export default SubmissionsPage;
+export default SubmissionsPage;
