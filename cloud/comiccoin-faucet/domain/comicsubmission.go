@@ -22,7 +22,6 @@ type ComicSubmission struct {
 	FrontCover            *Attachment        `bson:"front_cover" json:"front_cover"`
 	BackCover             *Attachment        `bson:"back_cover" json:"back_cover"`
 	Status                int8               `bson:"status" json:"status"`
-	Type                  int8               `bson:"type" json:"type"`
 	UserID                primitive.ObjectID `bson:"user_id" json:"user_id"`
 	CreatedAt             time.Time          `bson:"created_at,omitempty" json:"created_at,omitempty"`
 	CreatedByUserName     string             `bson:"created_by_user_name" json:"created_by_user_name"`
@@ -39,8 +38,7 @@ type ComicSubmission struct {
 type ComicSubmissionFilter struct {
 	TenantID       primitive.ObjectID `json:"tenant_id"` // Required for data partitioning
 	Name           *string            `json:"name,omitempty"`
-	Status         *int8              `json:"status,omitempty"`
-	Type           *int8              `json:"type,omitempty"`
+	Status         int8               `json:"status,omitempty"`
 	UserID         primitive.ObjectID `json:"user_id,omitempty"`
 	CreatedAtStart *time.Time         `json:"created_at_start,omitempty"`
 	CreatedAtEnd   *time.Time         `json:"created_at_end,omitempty"`
@@ -67,7 +65,8 @@ type ComicSubmissionRepository interface {
 	CountCoinsRewardByUserID(ctx context.Context, userID primitive.ObjectID) (uint64, error)
 	CountCoinsRewardByStatusAndByUserID(ctx context.Context, status int8, userID primitive.ObjectID) (uint64, error)
 	GetByID(ctx context.Context, id primitive.ObjectID) (*ComicSubmission, error)
-	ListByFilter(ctx context.Context, m *ComicSubmissionFilter) (*ComicSubmissionFilterResult, error)
+	CountByFilter(ctx context.Context, filter *ComicSubmissionFilter) (uint64, error)
+	ListByFilter(ctx context.Context, filter *ComicSubmissionFilter) (*ComicSubmissionFilterResult, error)
 	// UpdateByID(ctx context.Context, m *ComicSubmission) error
 	// DeleteByID(ctx context.Context, id primitive.ObjectID) error
 	// CheckIfExistsByID(ctx context.Context, id primitive.ObjectID) (bool, error)

@@ -53,6 +53,8 @@ type httpServerImpl struct {
 	comicSubmissionCreateHTTPHandler                       *handler.ComicSubmissionCreateHTTPHandler
 	comicSubmissionGetHTTPHandler                          *handler.ComicSubmissionGetHTTPHandler
 	comicSubmissionListByFilterHTTPHandler                 *handler.ComicSubmissionListByFilterHTTPHandler
+	comicSubmissionCountByUserHTTPHandler                  *handler.ComicSubmissionCountByUserHTTPHandler
+	comicSubmissionCountByFilterHTTPHandler                *handler.ComicSubmissionCountByFilterHTTPHandler
 	comicSubmissionCountTotalCreatedTodayByUserHTTPHandler *handler.ComicSubmissionCountTotalCreatedTodayByUserHTTPHandler
 }
 
@@ -78,7 +80,9 @@ func NewHTTPServer(
 	h15 *handler.ComicSubmissionCreateHTTPHandler,
 	h16 *handler.ComicSubmissionGetHTTPHandler,
 	h17 *handler.ComicSubmissionListByFilterHTTPHandler,
-	h18 *handler.ComicSubmissionCountTotalCreatedTodayByUserHTTPHandler,
+	h18 *handler.ComicSubmissionCountByUserHTTPHandler,
+	h19 *handler.ComicSubmissionCountByFilterHTTPHandler,
+	h20 *handler.ComicSubmissionCountTotalCreatedTodayByUserHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.HTTPAddress == "" {
@@ -119,7 +123,9 @@ func NewHTTPServer(
 		comicSubmissionCreateHTTPHandler:                       h15,
 		comicSubmissionGetHTTPHandler:                          h16,
 		comicSubmissionListByFilterHTTPHandler:                 h17,
-		comicSubmissionCountTotalCreatedTodayByUserHTTPHandler: h18,
+		comicSubmissionCountByUserHTTPHandler:                  h18,
+		comicSubmissionCountByFilterHTTPHandler:                h19,
+		comicSubmissionCountTotalCreatedTodayByUserHTTPHandler: h20,
 	}
 	// Attach the HTTP server controller to the ServeMux.
 	mux.HandleFunc("/", mid.Attach(port.HandleRequests))
@@ -204,6 +210,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		port.comicSubmissionListByFilterHTTPHandler.Execute(w, r)
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "comic-submission" && r.Method == http.MethodGet:
 		port.comicSubmissionGetHTTPHandler.Execute(w, r, p[3])
+	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "comic-submissions" && p[3] == "count" && r.Method == http.MethodGet:
+		port.comicSubmissionCountByFilterHTTPHandler.Execute(w, r)
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "comic-submissions" && p[3] == "count-total-created-today-by-user" && r.Method == http.MethodGet:
 		port.comicSubmissionCountTotalCreatedTodayByUserHTTPHandler.Execute(w, r)
 

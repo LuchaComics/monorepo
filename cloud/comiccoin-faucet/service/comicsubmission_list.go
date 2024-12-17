@@ -12,14 +12,16 @@ import (
 
 type ComicSubmissionListByFilterService struct {
 	logger                             *slog.Logger
+	cloudStoragePresignedURLUseCase    *usecase.CloudStoragePresignedURLUseCase
 	comicSubmissionListByFilterUseCase *usecase.ComicSubmissionListByFilterUseCase
 }
 
 func NewComicSubmissionListByFilterService(
 	logger *slog.Logger,
-	uc1 *usecase.ComicSubmissionListByFilterUseCase,
+	uc1 *usecase.CloudStoragePresignedURLUseCase,
+	uc2 *usecase.ComicSubmissionListByFilterUseCase,
 ) *ComicSubmissionListByFilterService {
-	return &ComicSubmissionListByFilterService{logger, uc1}
+	return &ComicSubmissionListByFilterService{logger, uc1, uc2}
 }
 
 type ComicSubmissionFilterRequestID domain.ComicSubmissionFilter
@@ -48,16 +50,34 @@ func (s *ComicSubmissionListByFilterService) Execute(sessCtx mongo.SessionContex
 	filter2 := (*domain.ComicSubmissionFilter)(filter)
 
 	// Lookup the user in our database, else return a `400 Bad Request` error.
-	detail, err := s.comicSubmissionListByFilterUseCase.Execute(sessCtx, filter2)
+	listResp, err := s.comicSubmissionListByFilterUseCase.Execute(sessCtx, filter2)
 	if err != nil {
 		s.logger.Error("database error",
 			slog.Any("err", err))
 		return nil, err
 	}
 
+	for _, submission := range listResp.Submissions {
+		// Front cover.
+		frontPresignedURL, err := s.cloudStoragePresignedURLUseCase.Execute(sessCtx, submission.FrontCover.ObjectKey)
+		if err != nil {
+			s.logger.Error("Failed generating presigned url via cloud storage", slog.Any("err", err))
+			return nil, err
+		}
+		submission.FrontCover.ObjectURL = frontPresignedURL
+
+		// Back cover.
+		backPresignedURL, err := s.cloudStoragePresignedURLUseCase.Execute(sessCtx, submission.BackCover.ObjectKey)
+		if err != nil {
+			s.logger.Error("Failed generating presigned url via cloud storage", slog.Any("err", err))
+			return nil, err
+		}
+		submission.BackCover.ObjectURL = backPresignedURL
+	}
+
 	// s.logger.Debug("fetched",
 	// 	slog.Any("id", id),
 	// 	slog.Any("detail", detail))
 
-	return (*ComicSubmissionFilterResultResponseIDO)(detail), nil
+	return (*ComicSubmissionFilterResultResponseIDO)(listResp), nil
 }

@@ -296,6 +296,14 @@ func doRunDaemon() {
 		cfg,
 		logger,
 		comicSubmissionRepo)
+	comicSubmissionCountByUserUseCase := usecase.NewComicSubmissionCountByUserUseCase(
+		cfg,
+		logger,
+		comicSubmissionRepo)
+	comicSubmissionCountByFilterUseCase := usecase.NewComicSubmissionCountByFilterUseCase(
+		cfg,
+		logger,
+		comicSubmissionRepo)
 	comicSubmissionCountTotalCreatedTodayByUserUseCase := usecase.NewComicSubmissionCountTotalCreatedTodayByUserUseCase(
 		cfg,
 		logger,
@@ -442,12 +450,21 @@ func doRunDaemon() {
 		logger,
 		comicSubmissionGetByIDUseCase,
 	)
+	comicSubmissionCountByUserService := service.NewComicSubmissionCountByUserService(
+		logger,
+		comicSubmissionCountByUserUseCase,
+	)
+	comicSubmissionCountByFilterService := service.NewComicSubmissionCountByFilterService(
+		logger,
+		comicSubmissionCountByFilterUseCase,
+	)
 	comicSubmissionCountTotalCreatedTodayByUserService := service.NewComicSubmissionCountTotalCreatedTodayByUserService(
 		logger,
 		comicSubmissionCountTotalCreatedTodayByUserUseCase,
 	)
 	comicSubmissionListByFilterService := service.NewComicSubmissionListByFilterService(
 		logger,
+		cloudStoragePresignedURLUseCase,
 		comicSubmissionListByFilterUseCase,
 	)
 
@@ -546,6 +563,17 @@ func doRunDaemon() {
 		dbClient,
 		comicSubmissionListByFilterService,
 	)
+
+	comicSubmissionCountByUserHTTPHandler := httphandler.NewComicSubmissionCountByUserHTTPHandler(
+		logger,
+		dbClient,
+		comicSubmissionCountByUserService,
+	)
+	comicSubmissionCountByFilterHTTPHandler := httphandler.NewComicSubmissionCountByFilterHTTPHandler(
+		logger,
+		dbClient,
+		comicSubmissionCountByFilterService,
+	)
 	comicSubmissionCountTotalCreatedTodayByUserHTTPHandler := httphandler.NewComicSubmissionCountTotalCreatedTodayByUserHTTPHandler(
 		logger,
 		dbClient,
@@ -578,6 +606,8 @@ func doRunDaemon() {
 		comicSubmissionCreateHTTPHandler,
 		comicSubmissionGetHTTPHandler,
 		comicSubmissionListByFilterHTTPHandler,
+		comicSubmissionCountByUserHTTPHandler,
+		comicSubmissionCountByFilterHTTPHandler,
 		comicSubmissionCountTotalCreatedTodayByUserHTTPHandler,
 	)
 

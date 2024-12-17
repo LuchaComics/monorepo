@@ -10,21 +10,21 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type ComicSubmissionCountByStatusAndByUserUseCase struct {
+type ComicSubmissionCountByUserUseCase struct {
 	config *config.Configuration
 	logger *slog.Logger
 	repo   domain.ComicSubmissionRepository
 }
 
-func NewComicSubmissionCountByStatusAndByUserUseCase(
+func NewComicSubmissionCountByUserUseCase(
 	config *config.Configuration,
 	logger *slog.Logger,
 	repo domain.ComicSubmissionRepository,
-) *ComicSubmissionCountByStatusAndByUserUseCase {
-	return &ComicSubmissionCountByStatusAndByUserUseCase{config, logger, repo}
+) *ComicSubmissionCountByUserUseCase {
+	return &ComicSubmissionCountByUserUseCase{config, logger, repo}
 }
 
-func (uc *ComicSubmissionCountByStatusAndByUserUseCase) Execute(ctx context.Context, status int8, userID primitive.ObjectID) (uint64, error) {
+func (uc *ComicSubmissionCountByUserUseCase) Execute(ctx context.Context, userID primitive.ObjectID) (uint64, error) {
 	//
 	// STEP 1: Validation.
 	//
@@ -43,5 +43,5 @@ func (uc *ComicSubmissionCountByStatusAndByUserUseCase) Execute(ctx context.Cont
 	// STEP 2: Count in database.
 	//
 
-	return uc.repo.CountByStatusAndByUserID(ctx, status, userID)
+	return uc.repo.CountByUserID(ctx, userID)
 }

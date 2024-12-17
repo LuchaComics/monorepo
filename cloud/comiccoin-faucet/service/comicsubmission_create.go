@@ -201,7 +201,6 @@ func (s *ComicSubmissionCreateService) Execute(sessCtx mongo.SessionContext, req
 		FrontCover:            frontCover,
 		BackCover:             backCover,
 		Status:                domain.ComicSubmissionStatusInReview,
-		Type:                  domain.ComicSubmissionTypeComic,
 		UserID:                u.ID,
 		CreatedAt:             time.Now(),
 		CreatedByUserName:     u.Name,

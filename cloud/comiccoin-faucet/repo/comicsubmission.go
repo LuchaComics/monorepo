@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"errors"
 	"log"
 	"log/slog"
 	"time"
@@ -266,6 +267,96 @@ func (impl comicSubmissionImplImpl) CountCoinsRewardByStatusAndByUserID(ctx cont
 	return 0, nil
 }
 
+// hasActiveFilters checks if any filters besides tenant_id are active
+func hasActiveFilters(filter *domain.ComicSubmissionFilter) bool {
+	return filter.Name != nil ||
+		filter.Status != 0 ||
+		!filter.UserID.IsZero() ||
+		filter.CreatedAtStart != nil ||
+		filter.CreatedAtEnd != nil
+}
+
+// buildCountMatchStage creates the match stage for the aggregation pipeline
+func buildCountMatchStage(filter *domain.ComicSubmissionFilter) bson.M {
+	match := bson.M{
+		"tenant_id": filter.TenantID,
+	}
+
+	if filter.Status != 0 {
+		match["status"] = filter.Status
+	}
+
+	if !filter.UserID.IsZero() {
+		match["user_id"] = filter.UserID
+	}
+
+	// Date range filtering
+	if filter.CreatedAtStart != nil || filter.CreatedAtEnd != nil {
+		createdAtFilter := bson.M{}
+		if filter.CreatedAtStart != nil {
+			createdAtFilter["$gte"] = filter.CreatedAtStart
+		}
+		if filter.CreatedAtEnd != nil {
+			createdAtFilter["$lte"] = filter.CreatedAtEnd
+		}
+		match["created_at"] = createdAtFilter
+	}
+
+	// Text search for name
+	if filter.Name != nil && *filter.Name != "" {
+		match["$text"] = bson.M{"$search": *filter.Name}
+	}
+
+	return match
+}
+
+func (s *comicSubmissionImplImpl) CountByFilter(ctx context.Context, filter *domain.ComicSubmissionFilter) (uint64, error) {
+	if filter == nil {
+		return 0, errors.New("filter cannot be nil")
+	}
+
+	// For exact counts with filters
+	if hasActiveFilters(filter) {
+		pipeline := []bson.D{
+			{{Key: "$match", Value: buildCountMatchStage(filter)}},
+			{{Key: "$count", Value: "total"}},
+		}
+
+		// Use aggregation with allowDiskUse for large datasets
+		opts := options.Aggregate().SetAllowDiskUse(true)
+		cursor, err := s.Collection.Aggregate(ctx, pipeline, opts)
+		if err != nil {
+			return 0, err
+		}
+		defer cursor.Close(ctx)
+
+		// Decode the result
+		var results []struct {
+			Total int64 `bson:"total"`
+		}
+		if err := cursor.All(ctx, &results); err != nil {
+			return 0, err
+		}
+
+		if len(results) == 0 {
+			return 0, nil
+		}
+
+		return uint64(results[0].Total), nil
+	}
+
+	// For unfiltered counts (much faster for basic tenant-only filtering)
+	countOpts := options.Count().SetHint("tenant_id_1_created_at_-1")
+	match := bson.M{"tenant_id": filter.TenantID}
+
+	count, err := s.Collection.CountDocuments(ctx, match, countOpts)
+	if err != nil {
+		return 0, err
+	}
+
+	return uint64(count), nil
+}
+
 func (s *comicSubmissionImplImpl) ListByFilter(ctx context.Context, filter *domain.ComicSubmissionFilter) (*domain.ComicSubmissionFilterResult, error) {
 	// Default limit if not specified
 	if filter.Limit <= 0 {
@@ -353,12 +444,8 @@ func buildMatchStage(filter *domain.ComicSubmissionFilter) bson.M {
 	}
 
 	// Add other filters
-	if filter.Status != nil {
-		match["status"] = *filter.Status
-	}
-
-	if filter.Type != nil {
-		match["type"] = *filter.Type
+	if filter.Status != 0 {
+		match["status"] = filter.Status
 	}
 
 	if !filter.UserID.IsZero() {
