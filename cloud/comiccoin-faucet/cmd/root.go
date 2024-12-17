@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/cmd/account"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/cmd/daemon"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/cmd/initialize"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/cmd/version"
@@ -27,6 +28,7 @@ var rootCmd = &cobra.Command{
 
 func Execute() {
 	// Attach sub-commands to our main root.
+	rootCmd.AddCommand(account.AccountCmd())
 	rootCmd.AddCommand(daemon.DaemonCmd())
 	rootCmd.AddCommand(version.VersionCmd())
 	rootCmd.AddCommand(initialize.InitCmd())
