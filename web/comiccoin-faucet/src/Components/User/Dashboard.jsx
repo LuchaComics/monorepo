@@ -31,6 +31,7 @@ const DashboardPage = () => {
   const [totalSubmissions, setTotalSubmissions] = useState(0);
   const [totalApprovedSubmissions, setTotalApprovedSubmissions] = useState(0);
   const [pendingSubmissions, setPendingSubmissions] = useState([]);
+  const [recentSubmissions, setRecentSubmissions] = useState([]);
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -183,8 +184,7 @@ const DashboardPage = () => {
         params,
         (resp) => {
           // For debugging purposes only.
-          console.log("getComicSubmissionsCountByFilterAPI: Starting...");
-          console.log(resp);
+          console.log("getComicSubmissionsCountByFilterAPI: ",resp);
           setTotalApprovedSubmissions(resp.count);
         },
         (apiErr) => {
@@ -197,6 +197,48 @@ const DashboardPage = () => {
         },
         () => {
           console.log("getComicSubmissionsCountByFilterAPI: unauthorized...");
+          window.location.href = "/login?unauthorized=true";
+        },
+      );
+
+      //------------------------------------------------------------------------
+
+      params = new Map();
+      params.set("limit", 5);
+      // params.set("sort_field", "created_at"); // Sorting
+      // params.set("sort_order", -1); // Sorting - descending, meaning most recent start date to oldest start date.
+      params.set("status", 3); // ComicSubmissionStatusAccepted
+      params.set("user_id", currentUser.id);
+      //
+      // params.set("store_id", sid);
+      //
+      // if (cur !== "") {
+      //   // Pagination
+      //   params.set("cursor", cur);
+      // }
+      //
+      // // Filtering
+      // if (keywords !== undefined && keywords !== null && keywords !== "") {
+      //   // Searhcing
+      //   params.set("search", keywords);
+      // }
+      getComicSubmissionListAPI(
+        params,
+        (resp) => {
+          // For debugging purposes only.
+          console.log("getComicSubmissionListAPI: Recent Submissions:", resp);
+          setRecentSubmissions(resp.submissions);
+        },
+        (apiErr) => {
+          console.log("getComicSubmissionListAPI: Recent Submissions: apiErr:", apiErr);
+          setErrors(apiErr);
+        },
+        () => {
+          console.log("getComicSubmissionListAPI: Recent Submissions: Starting...");
+          setFetching(false);
+        },
+        () => {
+          console.log("getComicSubmissionListAPI: Recent Submissions: unauthorized...");
           window.location.href = "/login?unauthorized=true";
         },
       );
@@ -293,7 +335,7 @@ const DashboardPage = () => {
           {/* Recent Submissions Section */}
           <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
             <h2 className="text-xl lg:text-2xl font-bold text-purple-800 mb-4" style={{fontFamily: 'Comic Sans MS, cursive'}}>
-              Recent Submissions
+              Recent Approvals
             </h2>
             <div className="text-center py-12 bg-purple-50 rounded-lg">
               <History className="h-16 w-16 text-purple-300 mx-auto mb-4" />
