@@ -53,7 +53,6 @@ type httpServerImpl struct {
 	comicSubmissionCreateHTTPHandler                       *handler.ComicSubmissionCreateHTTPHandler
 	comicSubmissionGetHTTPHandler                          *handler.ComicSubmissionGetHTTPHandler
 	comicSubmissionListByFilterHTTPHandler                 *handler.ComicSubmissionListByFilterHTTPHandler
-	comicSubmissionCountByUserHTTPHandler                  *handler.ComicSubmissionCountByUserHTTPHandler
 	comicSubmissionCountByFilterHTTPHandler                *handler.ComicSubmissionCountByFilterHTTPHandler
 	comicSubmissionCountTotalCreatedTodayByUserHTTPHandler *handler.ComicSubmissionCountTotalCreatedTodayByUserHTTPHandler
 }
@@ -80,9 +79,8 @@ func NewHTTPServer(
 	h15 *handler.ComicSubmissionCreateHTTPHandler,
 	h16 *handler.ComicSubmissionGetHTTPHandler,
 	h17 *handler.ComicSubmissionListByFilterHTTPHandler,
-	h18 *handler.ComicSubmissionCountByUserHTTPHandler,
-	h19 *handler.ComicSubmissionCountByFilterHTTPHandler,
-	h20 *handler.ComicSubmissionCountTotalCreatedTodayByUserHTTPHandler,
+	h18 *handler.ComicSubmissionCountByFilterHTTPHandler,
+	h19 *handler.ComicSubmissionCountTotalCreatedTodayByUserHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.HTTPAddress == "" {
@@ -123,9 +121,8 @@ func NewHTTPServer(
 		comicSubmissionCreateHTTPHandler:                       h15,
 		comicSubmissionGetHTTPHandler:                          h16,
 		comicSubmissionListByFilterHTTPHandler:                 h17,
-		comicSubmissionCountByUserHTTPHandler:                  h18,
-		comicSubmissionCountByFilterHTTPHandler:                h19,
-		comicSubmissionCountTotalCreatedTodayByUserHTTPHandler: h20,
+		comicSubmissionCountByFilterHTTPHandler:                h18,
+		comicSubmissionCountTotalCreatedTodayByUserHTTPHandler: h19,
 	}
 	// Attach the HTTP server controller to the ServeMux.
 	mux.HandleFunc("/", mid.Attach(port.HandleRequests))

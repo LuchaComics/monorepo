@@ -296,10 +296,6 @@ func doRunDaemon() {
 		cfg,
 		logger,
 		comicSubmissionRepo)
-	comicSubmissionCountByUserUseCase := usecase.NewComicSubmissionCountByUserUseCase(
-		cfg,
-		logger,
-		comicSubmissionRepo)
 	comicSubmissionCountByFilterUseCase := usecase.NewComicSubmissionCountByFilterUseCase(
 		cfg,
 		logger,
@@ -450,10 +446,6 @@ func doRunDaemon() {
 		logger,
 		comicSubmissionGetByIDUseCase,
 	)
-	comicSubmissionCountByUserService := service.NewComicSubmissionCountByUserService(
-		logger,
-		comicSubmissionCountByUserUseCase,
-	)
 	comicSubmissionCountByFilterService := service.NewComicSubmissionCountByFilterService(
 		logger,
 		comicSubmissionCountByFilterUseCase,
@@ -563,12 +555,6 @@ func doRunDaemon() {
 		dbClient,
 		comicSubmissionListByFilterService,
 	)
-
-	comicSubmissionCountByUserHTTPHandler := httphandler.NewComicSubmissionCountByUserHTTPHandler(
-		logger,
-		dbClient,
-		comicSubmissionCountByUserService,
-	)
 	comicSubmissionCountByFilterHTTPHandler := httphandler.NewComicSubmissionCountByFilterHTTPHandler(
 		logger,
 		dbClient,
@@ -606,7 +592,6 @@ func doRunDaemon() {
 		comicSubmissionCreateHTTPHandler,
 		comicSubmissionGetHTTPHandler,
 		comicSubmissionListByFilterHTTPHandler,
-		comicSubmissionCountByUserHTTPHandler,
 		comicSubmissionCountByFilterHTTPHandler,
 		comicSubmissionCountTotalCreatedTodayByUserHTTPHandler,
 	)
