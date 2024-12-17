@@ -236,7 +236,10 @@ func (impl comicSubmissionImplImpl) CountCoinsRewardByStatusAndByUserID(ctx cont
 	// Define the aggregation pipeline
 	pipeline := mongo.Pipeline{
 		// Match documents with the given user_id
-		{{"$match", bson.D{{"user_id", userID}}}},
+		{{"$match", bson.D{
+			{"user_id", userID},
+			{"status", status},
+		}}},
 		// Group by user_id and calculate the total coins_reward
 		{{"$group", bson.D{
 			{"_id", nil}, // No grouping key, we just want the total
@@ -357,6 +360,81 @@ func (s *comicSubmissionImplImpl) CountByFilter(ctx context.Context, filter *dom
 	return uint64(count), nil
 }
 
+func (s *comicSubmissionImplImpl) CountCoinsRewardByFilter(ctx context.Context, filter *domain.ComicSubmissionFilter) (uint64, error) {
+	if filter == nil {
+		return 0, errors.New("filter cannot be nil")
+	}
+
+	// Build aggregation pipeline
+	pipeline := []bson.D{
+		// Match stage
+		{{Key: "$match", Value: buildMatchStage(filter)}},
+
+		// Group stage to sum coins
+		{{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: nil},
+			{Key: "totalCoins", Value: bson.D{
+				{Key: "$sum", Value: "$coins_reward"},
+			}},
+		}}},
+	}
+
+	// Use aggregation with allowDiskUse for large datasets
+	opts := options.Aggregate().SetAllowDiskUse(true)
+	cursor, err := s.Collection.Aggregate(ctx, pipeline, opts)
+	if err != nil {
+		return 0, err
+	}
+	defer cursor.Close(ctx)
+
+	// Decode the result
+	var results []struct {
+		TotalCoins int64 `bson:"totalCoins"`
+	}
+	if err := cursor.All(ctx, &results); err != nil {
+		return 0, err
+	}
+
+	// If no results found, return 0
+	if len(results) == 0 {
+		return 0, nil
+	}
+
+	return uint64(results[0].TotalCoins), nil
+}
+
+// buildMatchStage creates the match stage for the aggregation pipeline
+func buildMatchStage(filter *domain.ComicSubmissionFilter) bson.M {
+	match := bson.M{
+		"tenant_id": filter.TenantID,
+	}
+
+	if filter.Status != 0 {
+		match["status"] = filter.Status
+	}
+
+	if filter.UserID.IsZero() {
+		match["user_id"] = filter.UserID
+	}
+
+	if filter.CreatedAtStart != nil || filter.CreatedAtEnd != nil {
+		createdAtFilter := bson.M{}
+		if filter.CreatedAtStart != nil {
+			createdAtFilter["$gte"] = filter.CreatedAtStart
+		}
+		if filter.CreatedAtEnd != nil {
+			createdAtFilter["$lte"] = filter.CreatedAtEnd
+		}
+		match["created_at"] = createdAtFilter
+	}
+
+	if filter.Name != nil && *filter.Name != "" {
+		match["$text"] = bson.M{"$search": *filter.Name}
+	}
+
+	return match
+}
+
 func (s *comicSubmissionImplImpl) ListByFilter(ctx context.Context, filter *domain.ComicSubmissionFilter) (*domain.ComicSubmissionFilterResult, error) {
 	// Default limit if not specified
 	if filter.Limit <= 0 {
@@ -423,53 +501,6 @@ func (s *comicSubmissionImplImpl) ListByFilter(ctx context.Context, filter *doma
 		LastID:        lastID,
 		LastCreatedAt: lastCreatedAt,
 	}, nil
-}
-
-func buildMatchStage(filter *domain.ComicSubmissionFilter) bson.M {
-	match := bson.M{
-		"tenant_id": filter.TenantID, // Always include tenant_id for data partitioning
-	}
-
-	// Build cursor-based pagination condition
-	if filter.LastID != nil && filter.LastCreatedAt != nil {
-		match["$or"] = []bson.M{
-			{
-				"created_at": bson.M{"$lt": filter.LastCreatedAt},
-			},
-			{
-				"created_at": filter.LastCreatedAt,
-				"_id":        bson.M{"$lt": filter.LastID},
-			},
-		}
-	}
-
-	// Add other filters
-	if filter.Status != 0 {
-		match["status"] = filter.Status
-	}
-
-	if !filter.UserID.IsZero() {
-		match["user_id"] = filter.UserID
-	}
-
-	// Date range
-	if filter.CreatedAtStart != nil || filter.CreatedAtEnd != nil {
-		createdAtFilter := bson.M{}
-		if filter.CreatedAtStart != nil {
-			createdAtFilter["$gte"] = filter.CreatedAtStart
-		}
-		if filter.CreatedAtEnd != nil {
-			createdAtFilter["$lte"] = filter.CreatedAtEnd
-		}
-		match["created_at"] = createdAtFilter
-	}
-
-	// Text search (if name is provided)
-	if filter.Name != nil && *filter.Name != "" {
-		match["$text"] = bson.M{"$search": *filter.Name}
-	}
-
-	return match
 }
 
 // func (impl comicSubmissionImplImpl) GetByEmail(ctx context.Context, email string) (*domain.ComicSubmission, error) {
