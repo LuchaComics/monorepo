@@ -11,6 +11,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { useRecoilState } from "recoil";
+import { Navigate, Link } from "react-router-dom";
 
 
 import Topbar from "../../../Components/Navigation/Topbar";
@@ -49,8 +50,8 @@ const SettingsPage = () => {
     </div>
   );
 
-  const SettingLink = ({ icon: Icon, title, description }) => (
-    <div className="flex items-center justify-between p-4 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer">
+  const SettingLink = ({ icon: Icon, title, description, to }) => (
+    <Link className="flex items-center justify-between p-4 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer" to={to}>
       <div className="flex items-start space-x-4">
         <div className="p-2 bg-purple-100 rounded-lg">
           <Icon className="w-5 h-5 text-purple-600" />
@@ -61,7 +62,7 @@ const SettingsPage = () => {
         </div>
       </div>
       <ChevronRight className="w-5 h-5 text-gray-400" />
-    </div>
+    </Link>
   );
 
   return (
@@ -82,11 +83,13 @@ const SettingsPage = () => {
           </div>
           <div className="p-4 space-y-2">
             <SettingLink
+              to="/settings/info"
               icon={Mail}
               title="Email Settings"
               description="Update your email address and communication preferences"
             />
             <SettingLink
+              to="/settings/pass"
               icon={Shield}
               title="Password & Security"
               description="Manage your password and security settings"

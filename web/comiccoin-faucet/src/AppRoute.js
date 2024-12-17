@@ -213,7 +213,9 @@ import ApplyForVerificationPage from "./Components/User/Verification/View";
 import SubmissionsPage from "./Components/User/Submission/List";
 import MyWalletPage from "./Components/User/MyWallet/View";
 import HelpPage from "./Components/User/Help/View";
-import SettingsPage from "./Components/User/Settings/View";
+import SettingsPage from "./Components/User/Settings/SettingsView";
+import InfoPage from "./Components/User/Settings/InfoView";
+import PassPage from "./Components/User/Settings/PassView";
 
 // //-----------------//
 // // Customer Portal //
@@ -1071,6 +1073,8 @@ function AppRoute() {
             <Route exact path="/my-wallet" element={<MyWalletPage />} />
             <Route exact path="/help" element={<HelpPage />} />
             <Route exact path="/settings" element={<SettingsPage />} />
+            <Route exact path="/settings/info" element={<InfoPage />} />
+            <Route exact path="/settings/pass" element={<PassPage />} />
             <Route exact path="/" element={<Index />} />
             <Route path="*" element={<NotFoundError />} />
           </Routes>
