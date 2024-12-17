@@ -17,7 +17,7 @@ const Topbar = (props) => {
     { name: 'Dashboard', icon: Home, current: currentPage === "Dashboard", url: '/dashboard' },
     { name: 'Submit Comic', icon: Image, current: currentPage === "Submit Comic", url: '/submit' },
     { name: 'My Submissions', icon: History, current: currentPage === "My Submissions", url: '/submissions' },
-    { name: 'My Wallet', icon: Wallet, current: currentPage === "My Wallet", url: '/my-wallet' },
+    // { name: 'My Wallet', icon: Wallet, current: currentPage === "My Wallet", url: '/my-wallet' },
     { name: 'Help', icon: HelpCircle, current: currentPage === "Help", url: '/help' },
     { name: 'Settings', icon: Settings, current: currentPage === "Settings", url: '/settings' },
   ];
