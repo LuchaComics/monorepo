@@ -11,6 +11,8 @@ import { currentUserState } from "../../../AppState";
 import Topbar from "../../../Components/Navigation/Topbar";
 import { getComicSubmissionListAPI } from "../../../API/ComicSubmission";
 
+const ITEMS_PER_PAGE = 12;
+
 const getStatusInfo = (status) => {
   switch (status) {
     case 1: // ComicSubmissionStatusInReview
@@ -27,6 +29,7 @@ const getStatusInfo = (status) => {
       return { icon: null, color: '', text: 'Unknown' };
   }
 };
+
 
 const SubmissionModal = ({ submission, onClose }) => {
   if (!submission) return null;
@@ -171,48 +174,127 @@ const SubmissionCard = ({ submission, onClick }) => {
   );
 };
 
+const PaginationControls = ({ currentPage, totalPages, onPageChange, disabled }) => {
+  return (
+    <div className="flex items-center justify-center gap-2 mt-6">
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1 || disabled}
+        className="p-2 rounded-lg hover:bg-purple-100 disabled:opacity-50 disabled:hover:bg-transparent"
+      >
+        <ChevronLeft className="w-5 h-5 text-purple-600" />
+      </button>
+
+      <div className="flex items-center gap-1">
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <button
+            key={page}
+            onClick={() => onPageChange(page)}
+            disabled={disabled}
+            className={`w-8 h-8 rounded-lg ${
+              currentPage === page
+                ? 'bg-purple-600 text-white'
+                : 'hover:bg-purple-100'
+            } disabled:opacity-50`}
+          >
+            {page}
+          </button>
+        ))}
+      </div>
+
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages || disabled}
+        className="p-2 rounded-lg hover:bg-purple-100 disabled:opacity-50 disabled:hover:bg-transparent"
+      >
+        <ChevronRight className="w-5 h-5 text-purple-600" />
+      </button>
+    </div>
+  );
+};
+
 const SubmissionsPage = () => {
-  // Variable controls the global state of the app.
   const [currentUser] = useRecoilState(currentUserState);
 
   // Component state
   const [isFetching, setFetching] = useState(false);
   const [errors, setErrors] = useState({});
   const [submissions, setSubmissions] = useState([]);
-  const [hasMore, setHasMore] = useState(false);
-  const [lastID, setLastID] = useState(null);
-  const [lastCreatedAt, setLastCreatedAt] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [pageStates, setPageStates] = useState([]);
   const [selectedSubmission, setSelectedSubmission] = useState(null);
 
-  const fetchSubmissions = (resetList = false) => {
+  const fetchSubmissions = async (page) => {
     setFetching(true);
     const params = new Map();
-
-    if (!resetList && lastID && lastCreatedAt) {
-      params.set("last_id", lastID);
-      params.set("last_created_at", lastCreatedAt);
-    }
-
-    params.set("limit", 12);
+    params.set("limit", ITEMS_PER_PAGE);
     params.set("user_id", currentUser.id);
 
-    getComicSubmissionListAPI(
-      params,
-      (resp) => {
-        setSubmissions(prev => resetList ? resp.submissions : [...prev, ...resp.submissions]);
-        setHasMore(resp.hasMore);
-        setLastID(resp.lastId);
-        setLastCreatedAt(resp.lastCreatedAt);
-      },
-      setErrors,
-      () => setFetching(false),
-      () => window.location.href = "/login?unauthorized=true"
-    );
+    // Get the last ID and created_at from previous page state
+    if (page > 1 && pageStates[page - 2]) {
+      const prevState = pageStates[page - 2];
+      params.set("last_id", prevState.lastId);
+      params.set("last_created_at", prevState.lastCreatedAt);
+    }
+
+    try {
+      getComicSubmissionListAPI(
+        params,
+        (resp) => {
+          // Update page states
+          const newPageStates = [...pageStates];
+          newPageStates[page - 1] = {
+            submissions: resp.submissions,
+            lastId: resp.lastId,
+            lastCreatedAt: resp.lastCreatedAt,
+            hasMore: resp.hasMore
+          };
+          setPageStates(newPageStates);
+
+          // Update current page submissions
+          setSubmissions(resp.submissions);
+
+          // Update total pages if this is first page
+          if (page === 1) {
+            const calculatedTotalPages = resp.hasMore ?
+              Math.ceil((ITEMS_PER_PAGE * 2) / ITEMS_PER_PAGE) :
+              Math.ceil(resp.submissions.length / ITEMS_PER_PAGE);
+            setTotalPages(calculatedTotalPages);
+          }
+        },
+        setErrors,
+        () => setFetching(false),
+        () => window.location.href = "/login?unauthorized=true"
+      );
+    } catch (error) {
+      setErrors(error);
+      setFetching(false);
+    }
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage === currentPage || isFetching) return;
+
+    setCurrentPage(newPage);
+
+    // If we already have the page data, use it
+    if (pageStates[newPage - 1]) {
+      setSubmissions(pageStates[newPage - 1].submissions);
+    } else {
+      // Otherwise fetch new data
+      fetchSubmissions(newPage);
+    }
+
+    // Update total pages if we're moving to a new page and there's more data
+    if (newPage === totalPages && pageStates[newPage - 1]?.hasMore) {
+      setTotalPages(prev => prev + 1);
+    }
   };
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    fetchSubmissions(true);
+    fetchSubmissions(1);
   }, [currentUser]);
 
   return (
@@ -244,17 +326,12 @@ const SubmissionsPage = () => {
               ))}
             </div>
 
-            {hasMore && (
-              <div className="mt-8 text-center">
-                <button
-                  onClick={() => fetchSubmissions()}
-                  disabled={isFetching}
-                  className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
-                >
-                  {isFetching ? 'Loading...' : 'Load More'}
-                </button>
-              </div>
-            )}
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              disabled={isFetching}
+            />
           </div>
         )}
       </main>
