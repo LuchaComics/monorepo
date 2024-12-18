@@ -89,7 +89,7 @@ const AdminDashboard = () => {
         // Prepare request body for the approval
         const submissionReq = {
           comic_submission_id: submissionId,
-          status: 3,  // Assuming 2 is the status code for "approved"
+          status: 3,  // 3 is the status code for "approved"
           judgement_notes: "Approved by administrator"
         };
 
@@ -134,16 +134,45 @@ const AdminDashboard = () => {
       // Here you would call your reject API endpoint
       console.log(`Rejecting submission ${submissionId}`);
 
-      // After successful API call, refresh the submissions list
-      const params = new Map();
-      params.set("status", 1);
-      await getComicSubmissionListAPI(
-        params,
-        (resp) => setPendingSubmissions(resp.submissions),
-        setErrors,
+      // Show we are processing
+      setFetching(true);
+
+      // Prepare request body for the approval
+      const submissionReq = {
+        comic_submission_id: submissionId,
+        status: 2,  // 2 is the status code for "rejected"
+        judgement_notes: "Approved by administrator"
+      };
+
+      await postComicSubmissionJudgementOperationAPI(
+        submissionReq,
+        // onSuccess callback
+        async (resp) => {
+          console.log("Successfully approved submission:", submissionId);
+
+          // Refresh the submissions list
+          const params = new Map();
+          params.set("status", 1); // Get pending submissions
+          await getComicSubmissionListAPI(
+            params,
+            (resp) => setPendingSubmissions(resp.submissions),
+            (err) => setErrors(err),
+            () => setFetching(false),
+            () => window.location.href = "/login?unauthorized=true"
+          );
+        },
+        // onError callback
+        (apiErr) => {
+          console.error("Failed to approve submission:", apiErr);
+          setErrors(apiErr);
+          setFetching(false);
+        },
+        // onFinally callback
         () => setFetching(false),
+        // onUnauthorized callback
         () => window.location.href = "/login?unauthorized=true"
       );
+
     } catch (error) {
       console.error("Failed to reject submission:", error);
     }
