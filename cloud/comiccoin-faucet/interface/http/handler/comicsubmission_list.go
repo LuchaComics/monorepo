@@ -13,6 +13,7 @@ import (
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/httperror"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config/constants"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/domain"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/service"
 )
 
@@ -37,7 +38,6 @@ func NewComicSubmissionListByFilterHTTPHandler(
 func (h *ComicSubmissionListByFilterHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	tenantID, _ := ctx.Value(constants.SessionUserTenantID).(primitive.ObjectID)
-	userID, _ := ctx.Value(constants.SessionUserID).(primitive.ObjectID)
 
 	// Get query parameters
 	query := r.URL.Query()
@@ -45,7 +45,6 @@ func (h *ComicSubmissionListByFilterHTTPHandler) Execute(w http.ResponseWriter, 
 	// Initialize the filter with required fields
 	filter := &service.ComicSubmissionFilterRequestID{
 		TenantID: tenantID,
-		UserID:   userID,
 	}
 
 	// Handle name filter
@@ -116,6 +115,29 @@ func (h *ComicSubmissionListByFilterHTTPHandler) Execute(w http.ResponseWriter, 
 				slog.Any("error", err),
 				slog.String("limit", limitStr))
 		}
+	}
+
+	// Filter by user account.
+	loggedInUserRole, _ := ctx.Value(constants.SessionUserRole).(int8)
+	if userIDStr := query.Get("user_id"); userIDStr != "" {
+		if userID, err := primitive.ObjectIDFromHex(userIDStr); err == nil {
+			filter.UserID = userID
+		} else {
+			h.logger.Error("user_id parse error",
+				slog.Any("error", err),
+				slog.String("user_id", userID.Hex()))
+			httperror.ResponseError(w, err)
+			return
+		}
+	}
+
+	// Permission handling: Non-administrators cannot filter other userIDs.
+	if loggedInUserRole != domain.UserRoleRoot {
+		loggedInUserID, _ := ctx.Value(constants.SessionUserID).(primitive.ObjectID)
+		filter.UserID = loggedInUserID
+		h.logger.Debug("Forcing filtering",
+			slog.Any("loggedInUserID", loggedInUserID),
+			slog.Any("loggedInUserRole", loggedInUserRole))
 	}
 
 	// Start the transaction
