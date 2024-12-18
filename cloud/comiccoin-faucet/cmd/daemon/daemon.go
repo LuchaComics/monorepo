@@ -124,13 +124,11 @@ func doRunDaemon() {
 		keystore,
 		walletRepo,
 	)
-	_ = walletDecryptKeyUseCase
 	getWalletUseCase := usecase.NewGetWalletUseCase(
 		cfg,
 		logger,
 		walletRepo,
 	)
-	_ = getWalletUseCase
 
 	// Account
 	createAccountUseCase := usecase.NewCreateAccountUseCase(
@@ -467,6 +465,18 @@ func doRunDaemon() {
 		logger,
 		comicSubmissionCountCoinsRewardByFilterUseCase,
 	)
+
+	// ComicCoin Blockchain Operation
+	coinTransferService := service.NewCoinTransferService(
+		cfg,
+		logger,
+		getAccountUseCase,
+		getWalletUseCase,
+		walletDecryptKeyUseCase,
+		submitMempoolTransactionDTOToBlockchainAuthorityUseCase,
+	)
+
+	_ = coinTransferService //TODO: Implement coin transfer.
 
 	//
 	// Interface.

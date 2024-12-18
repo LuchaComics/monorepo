@@ -521,84 +521,83 @@ func (s *comicSubmissionImplImpl) ListByFilter(ctx context.Context, filter *doma
 	}, nil
 }
 
-// func (impl comicSubmissionImplImpl) GetByEmail(ctx context.Context, email string) (*domain.ComicSubmission, error) {
-// 	filter := bson.M{"email": email}
+//	func (impl comicSubmissionImplImpl) GetByEmail(ctx context.Context, email string) (*domain.ComicSubmission, error) {
+//		filter := bson.M{"email": email}
 //
-// 	var result domain.ComicSubmission
-// 	err := impl.Collection.FindOne(ctx, filter).Decode(&result)
-// 	if err != nil {
-// 		if err == mongo.ErrNoDocuments {
-// 			// This error means your query did not match any documents.
-// 			return nil, nil
-// 		}
-// 		impl.Logger.Error("database get by email error", slog.Any("error", err))
-// 		return nil, err
-// 	}
-// 	return &result, nil
-// }
+//		var result domain.ComicSubmission
+//		err := impl.Collection.FindOne(ctx, filter).Decode(&result)
+//		if err != nil {
+//			if err == mongo.ErrNoDocuments {
+//				// This error means your query did not match any documents.
+//				return nil, nil
+//			}
+//			impl.Logger.Error("database get by email error", slog.Any("error", err))
+//			return nil, err
+//		}
+//		return &result, nil
+//	}
 //
-// func (impl comicSubmissionImplImpl) GetByVerificationCode(ctx context.Context, verificationCode string) (*domain.ComicSubmission, error) {
-// 	filter := bson.M{"email_verification_code": verificationCode}
+//	func (impl comicSubmissionImplImpl) GetByVerificationCode(ctx context.Context, verificationCode string) (*domain.ComicSubmission, error) {
+//		filter := bson.M{"email_verification_code": verificationCode}
 //
-// 	var result domain.ComicSubmission
-// 	err := impl.Collection.FindOne(ctx, filter).Decode(&result)
-// 	if err != nil {
-// 		if err == mongo.ErrNoDocuments {
-// 			// This error means your query did not match any documents.
-// 			return nil, nil
-// 		}
-// 		impl.Logger.Error("database get by verification code error", slog.Any("error", err))
-// 		return nil, err
-// 	}
-// 	return &result, nil
-// }
+//		var result domain.ComicSubmission
+//		err := impl.Collection.FindOne(ctx, filter).Decode(&result)
+//		if err != nil {
+//			if err == mongo.ErrNoDocuments {
+//				// This error means your query did not match any documents.
+//				return nil, nil
+//			}
+//			impl.Logger.Error("database get by verification code error", slog.Any("error", err))
+//			return nil, err
+//		}
+//		return &result, nil
+//	}
 //
-// func (impl comicSubmissionImplImpl) DeleteByID(ctx context.Context, id primitive.ObjectID) error {
-// 	_, err := impl.Collection.DeleteOne(ctx, bson.M{"_id": id})
-// 	if err != nil {
-// 		impl.Logger.Error("database failed deletion error",
-// 			slog.Any("error", err))
-// 		return err
-// 	}
-// 	return nil
-// }
+//	func (impl comicSubmissionImplImpl) DeleteByID(ctx context.Context, id primitive.ObjectID) error {
+//		_, err := impl.Collection.DeleteOne(ctx, bson.M{"_id": id})
+//		if err != nil {
+//			impl.Logger.Error("database failed deletion error",
+//				slog.Any("error", err))
+//			return err
+//		}
+//		return nil
+//	}
 //
-// func (impl comicSubmissionImplImpl) CheckIfExistsByID(ctx context.Context, id primitive.ObjectID) (bool, error) {
-// 	filter := bson.M{"_id": id}
-// 	count, err := impl.Collection.CountDocuments(ctx, filter)
-// 	if err != nil {
-// 		impl.Logger.Error("database check if exists by ID error", slog.Any("error", err))
-// 		return false, err
-// 	}
-// 	return count >= 1, nil
-// }
+//	func (impl comicSubmissionImplImpl) CheckIfExistsByID(ctx context.Context, id primitive.ObjectID) (bool, error) {
+//		filter := bson.M{"_id": id}
+//		count, err := impl.Collection.CountDocuments(ctx, filter)
+//		if err != nil {
+//			impl.Logger.Error("database check if exists by ID error", slog.Any("error", err))
+//			return false, err
+//		}
+//		return count >= 1, nil
+//	}
 //
-// func (impl comicSubmissionImplImpl) CheckIfExistsByEmail(ctx context.Context, email string) (bool, error) {
-// 	filter := bson.M{"email": email}
-// 	count, err := impl.Collection.CountDocuments(ctx, filter)
-// 	if err != nil {
-// 		impl.Logger.Error("database check if exists by email error", slog.Any("error", err))
-// 		return false, err
-// 	}
-// 	return count >= 1, nil
-// }
-//
-// func (impl comicSubmissionImplImpl) UpdateByID(ctx context.Context, m *domain.ComicSubmission) error {
-// 	filter := bson.M{"_id": m.ID}
-//
-// 	update := bson.M{ // DEVELOPERS NOTE: https://stackoverflow.com/a/60946010
-// 		"$set": m,
-// 	}
-//
-// 	// execute the UpdateOne() function to update the first matching document
-// 	_, err := impl.Collection.UpdateOne(ctx, filter, update)
-// 	if err != nil {
-// 		impl.Logger.Error("database update by id error", slog.Any("error", err))
-// 		return err
-// 	}
-//
-// 	// // display the number of documents updated
-// 	// impl.Logger.Debug("number of documents updated", slog.Int64("modified_count", result.ModifiedCount))
-//
-// 	return nil
-// }
+//	func (impl comicSubmissionImplImpl) CheckIfExistsByEmail(ctx context.Context, email string) (bool, error) {
+//		filter := bson.M{"email": email}
+//		count, err := impl.Collection.CountDocuments(ctx, filter)
+//		if err != nil {
+//			impl.Logger.Error("database check if exists by email error", slog.Any("error", err))
+//			return false, err
+//		}
+//		return count >= 1, nil
+//	}
+func (impl comicSubmissionImplImpl) UpdateByID(ctx context.Context, m *domain.ComicSubmission) error {
+	filter := bson.M{"_id": m.ID}
+
+	update := bson.M{ // DEVELOPERS NOTE: https://stackoverflow.com/a/60946010
+		"$set": m,
+	}
+
+	// execute the UpdateOne() function to update the first matching document
+	_, err := impl.Collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		impl.Logger.Error("database update by id error", slog.Any("error", err))
+		return err
+	}
+
+	// // display the number of documents updated
+	// impl.Logger.Debug("number of documents updated", slog.Int64("modified_count", result.ModifiedCount))
+
+	return nil
+}

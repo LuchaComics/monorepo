@@ -66,7 +66,7 @@ type ComicSubmissionRepository interface {
 	GetByID(ctx context.Context, id primitive.ObjectID) (*ComicSubmission, error)
 	CountByFilter(ctx context.Context, filter *ComicSubmissionFilter) (uint64, error)
 	ListByFilter(ctx context.Context, filter *ComicSubmissionFilter) (*ComicSubmissionFilterResult, error)
-	// UpdateByID(ctx context.Context, m *ComicSubmission) error
+	UpdateByID(ctx context.Context, m *ComicSubmission) error
 	// DeleteByID(ctx context.Context, id primitive.ObjectID) error
 	// CheckIfExistsByID(ctx context.Context, id primitive.ObjectID) (bool, error)
 	// ListByFilter(ctx context.Context, m *ComicSubmissionPaginationListFilter) (*ComicSubmissionPaginationListResult, error)
