@@ -10,6 +10,7 @@ import { useRecoilState } from "recoil";
 import { currentUserState } from "../../AppState";
 import {
     getComicSubmissionListAPI,
+    getComicSubmissionsCountByFilterAPI,
     postComicSubmissionJudgementOperationAPI
 } from "../../API/ComicSubmission";
 
@@ -18,6 +19,7 @@ const AdminDashboard = () => {
   const [currentUser] = useRecoilState(currentUserState);
 
   // Data states
+  const [totalPendingSubmissions, setTotalPendingSubmissions] = useState(0);
   const [pendingSubmissions, setPendingSubmissions] = useState([]);
   const [isFetching, setFetching] = useState(false);
   const [errors, setErrors] = useState({});
@@ -75,6 +77,47 @@ const AdminDashboard = () => {
     };
 
     fetchSubmissions();
+
+    const fetchTotalPendingSubmissions = async () => {
+      if (!mounted) return;
+
+      setFetching(true);
+      const params = new Map();
+      params.set("status", 1); // ComicSubmissionStatusInReview
+
+      try {
+        await getComicSubmissionsCountByFilterAPI(
+          params,
+          (resp) => {
+            if (mounted) {
+              console.log("getComicSubmissionsCountByFilterAPI: Success", resp);
+              setTotalPendingSubmissions(resp.submissions);
+            }
+          },
+          (apiErr) => {
+            if (mounted) {
+              console.log("getComicSubmissionsCountByFilterAPI: Error:", apiErr);
+              setErrors(apiErr);
+              setTotalPendingSubmissions(0);
+            }
+          },
+          () => {
+            if (mounted) {
+              setFetching(false);
+            }
+          },
+          () => {
+            if (mounted) {
+              window.location.href = "/login?unauthorized=true";
+            }
+          }
+        );
+      } catch (error) {
+        console.error("Failed to fetch total count submissions:", error);
+      }
+    };
+
+    fetchTotalPendingSubmissions();
 
     return () => {
       mounted = false;

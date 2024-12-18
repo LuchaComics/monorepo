@@ -8,12 +8,17 @@ import (
 )
 
 const (
-	ComicSubmissionStatusInReview = 1
-	ComicSubmissionStatusRejected = 2
-	ComicSubmissionStatusAccepted = 3
-	ComicSubmissionStatusError    = 4
-	ComicSubmissionStatusArchived = 5
-	ComicSubmissionTypeComic      = 1
+	ComicSubmissionStatusInReview                = 1
+	ComicSubmissionStatusRejected                = 2
+	ComicSubmissionStatusAccepted                = 3
+	ComicSubmissionStatusError                   = 4
+	ComicSubmissionStatusArchived                = 5
+	ComicSubmissionTypeComic                     = 1
+	ComicSubmissionFlagIssueOther                = 1
+	ComicSubmissionFlagIssueDuplicateSubmission  = 2
+	ComicSubmissionFlagIssuePoorImageQuality     = 3
+	ComicSubmissionFlagIssueCounterfeit          = 4
+	ComicSubmissionFlagIssueInappropriateContent = 5
 )
 
 type ComicSubmission struct {
@@ -33,6 +38,9 @@ type ComicSubmission struct {
 	ModifiedFromIPAddress string             `bson:"modified_from_ip_address" json:"modified_from_ip_address"`
 	CoinsReward           uint64             `bson:"coins_reward" json:"coins_reward"`
 	WasAwarded            bool               `bson:"was_awarded" json:"was_awarded"`
+	WasFlagged            bool               `bson:"was_flagged" json:"was_flagged"`
+	FlagIssue             int8               `bson:"flag_issue" json:"flag_issue"`
+	FlagIssueOther        string             `bson:"flag_issue_other" json:"flag_issue_other"`
 	TenantID              primitive.ObjectID `bson:"tenant_id" json:"tenant_id"`
 }
 
