@@ -466,18 +466,6 @@ func doRunDaemon() {
 		comicSubmissionCountCoinsRewardByFilterUseCase,
 	)
 
-	// ComicCoin Blockchain Operation
-	coinTransferService := service.NewCoinTransferService(
-		cfg,
-		logger,
-		getAccountUseCase,
-		getWalletUseCase,
-		walletDecryptKeyUseCase,
-		submitMempoolTransactionDTOToBlockchainAuthorityUseCase,
-	)
-
-	_ = coinTransferService //TODO: Implement coin transfer.
-
 	//
 	// Interface.
 	//
