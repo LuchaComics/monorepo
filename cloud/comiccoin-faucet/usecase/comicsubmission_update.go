@@ -9,21 +9,21 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/domain"
 )
 
-type ComicSubmissionAcceptOperationUseCase struct {
+type ComicSubmissionUpdateUseCase struct {
 	config *config.Configuration
 	logger *slog.Logger
 	repo   domain.ComicSubmissionRepository
 }
 
-func NewComicSubmissionAcceptOperationUseCase(
+func NewComicSubmissionUpdateUseCase(
 	config *config.Configuration,
 	logger *slog.Logger,
 	repo domain.ComicSubmissionRepository,
-) *ComicSubmissionAcceptOperationUseCase {
-	return &ComicSubmissionAcceptOperationUseCase{config, logger, repo}
+) *ComicSubmissionUpdateUseCase {
+	return &ComicSubmissionUpdateUseCase{config, logger, repo}
 }
 
-func (uc *ComicSubmissionAcceptOperationUseCase) Execute(ctx context.Context, comicSubmission *domain.ComicSubmission) error {
+func (uc *ComicSubmissionUpdateUseCase) Execute(ctx context.Context, comicSubmission *domain.ComicSubmission) error {
 	//
 	// STEP 1: Validation.
 	//

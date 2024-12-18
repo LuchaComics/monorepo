@@ -306,6 +306,10 @@ func doRunDaemon() {
 		cfg,
 		logger,
 		comicSubmissionRepo)
+	comicSubmissionUpdateUseCase := usecase.NewComicSubmissionUpdateUseCase(
+		cfg,
+		logger,
+		comicSubmissionRepo)
 
 	//
 	// Service
@@ -465,6 +469,15 @@ func doRunDaemon() {
 		logger,
 		comicSubmissionCountCoinsRewardByFilterUseCase,
 	)
+	comicSubmissionJudgeService := service.NewComicSubmissionJudgeService(
+		cfg,
+		logger,
+		faucetCoinTransferService,
+		userGetByIDUseCase,
+		comicSubmissionGetByIDUseCase,
+		comicSubmissionUpdateUseCase,
+	)
+	_ = comicSubmissionJudgeService
 
 	//
 	// Interface.

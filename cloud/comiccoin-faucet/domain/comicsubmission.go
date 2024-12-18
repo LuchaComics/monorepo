@@ -32,6 +32,7 @@ type ComicSubmission struct {
 	ModifiedByUserID      primitive.ObjectID `bson:"modified_by_user_id" json:"modified_by_user_id"`
 	ModifiedFromIPAddress string             `bson:"modified_from_ip_address" json:"modified_from_ip_address"`
 	CoinsReward           uint64             `bson:"coins_reward" json:"coins_reward"`
+	WasAwarded            bool               `bson:"was_awarded" json:"was_awarded"`
 	TenantID              primitive.ObjectID `bson:"tenant_id" json:"tenant_id"`
 }
 
