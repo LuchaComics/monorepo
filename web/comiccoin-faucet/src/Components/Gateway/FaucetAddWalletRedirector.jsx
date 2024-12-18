@@ -73,6 +73,16 @@ function FaucetAddWalletRedirector() {
 
   //
   // Step 3:
+  // Check the role of the user and skip if system administrator.
+  //
+
+  if (currentUser.role === 1) {
+      console.log("FaucetAddWalletRedirector: Detected admin role - done.");
+      return null;
+  }
+
+  //
+  // Step 4:
   // Check if wallet address set if not then redirect immediately!
   //
 

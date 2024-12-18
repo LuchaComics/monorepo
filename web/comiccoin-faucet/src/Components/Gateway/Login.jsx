@@ -58,8 +58,14 @@ export default function LoginPage() {
         setCurrentUser(resp.user);
 
         if (resp.user.otpEnabled === false) {
-          console.log("onLoginSuccess | redirecting to dashboard");
-          setForceURL("/dashboard");
+          if (resp.user.role === 1) { // Administrator
+              console.log("onLoginSuccess | redirecting to dashboard");
+              setForceURL("/admin/dashboard");
+          } else { // Non-administrator
+              console.log("onLoginSuccess | redirecting to dashboard");
+              setForceURL("/dashboard");
+          }
+
         } else {
           if (resp.user.otpVerified === false) {
             console.log("onLoginSuccess | redirecting to 2fa setup wizard");

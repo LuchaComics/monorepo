@@ -136,7 +136,7 @@ func (s *UserCreateService) Execute(
 		e["role"] = "Role is required"
 	}
 	if len(e) != 0 {
-		s.logger.Warn("Failed validation register",
+		s.logger.Warn("Failed validation",
 			slog.Any("error", e))
 		return nil, httperror.NewForBadRequest(&e)
 	}
@@ -163,10 +163,10 @@ func (s *UserCreateService) Execute(
 		return nil, err
 	}
 
-	return s.registerWithUser(sessCtx, u)
+	return s.createUser(sessCtx, u)
 }
 
-func (s *UserCreateService) registerWithUser(sessCtx mongo.SessionContext, u *domain.User) (*UserCreateResponseIDO, error) {
+func (s *UserCreateService) createUser(sessCtx mongo.SessionContext, u *domain.User) (*UserCreateResponseIDO, error) {
 	uBin, err := json.Marshal(u)
 	if err != nil {
 		s.logger.Error("marshalling error", slog.Any("err", err))
@@ -261,7 +261,7 @@ func (s *UserCreateService) createUserForRequest(sessCtx mongo.SessionContext, r
 		ModifiedAt:                 time.Now(),
 		ModifiedByName:             fmt.Sprintf("%s %s", req.FirstName, req.LastName),
 		ModifiedFromIPAddress:      ipAddress,
-		WasEmailVerified:           false,
+		WasEmailVerified:           true,
 		EmailVerificationCode:      primitive.NewObjectID().Hex(),
 		EmailVerificationExpiry:    time.Now().Add(72 * time.Hour),
 		Status:                     domain.UserStatusActive,
