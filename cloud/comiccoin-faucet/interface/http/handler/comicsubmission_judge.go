@@ -18,25 +18,25 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/service"
 )
 
-type ComicSubmissionJudgeHTTPHandler struct {
+type ComicSubmissionJudgeOperationHTTPHandler struct {
 	logger   *slog.Logger
 	dbClient *mongo.Client
-	service  *service.ComicSubmissionJudgeService
+	service  *service.ComicSubmissionJudgeOperationService
 }
 
-func NewComicSubmissionJudgeHTTPHandler(
+func NewComicSubmissionJudgeOperationHTTPHandler(
 	logger *slog.Logger,
 	dbClient *mongo.Client,
-	service *service.ComicSubmissionJudgeService,
-) *ComicSubmissionJudgeHTTPHandler {
-	return &ComicSubmissionJudgeHTTPHandler{
+	service *service.ComicSubmissionJudgeOperationService,
+) *ComicSubmissionJudgeOperationHTTPHandler {
+	return &ComicSubmissionJudgeOperationHTTPHandler{
 		logger:   logger,
 		dbClient: dbClient,
 		service:  service,
 	}
 }
 
-func (h *ComicSubmissionJudgeHTTPHandler) unmarshalLoginRequest(
+func (h *ComicSubmissionJudgeOperationHTTPHandler) unmarshalRequest(
 	ctx context.Context,
 	r *http.Request,
 ) (*service.ComicSubmissionJudgeVerdictRequestIDO, error) {
@@ -62,11 +62,13 @@ func (h *ComicSubmissionJudgeHTTPHandler) unmarshalLoginRequest(
 	return &requestData, nil
 }
 
-func (h *ComicSubmissionJudgeHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
+func (h *ComicSubmissionJudgeOperationHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	data, err := h.unmarshalLoginRequest(ctx, r)
+	data, err := h.unmarshalRequest(ctx, r)
 	if err != nil {
+		h.logger.Warn("Failed to unmarshal",
+			slog.Any("err", err))
 		httperror.ResponseError(w, err)
 		return
 	}

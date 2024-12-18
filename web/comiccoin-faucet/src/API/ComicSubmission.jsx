@@ -11,6 +11,7 @@ import {
   COMICCOIN_FAUCET_COMIC_SUBMISSION_CUSTOMER_SWAP_OPERATION_API_ENDPOINT,
   COMICCOIN_FAUCET_COMIC_SUBMISSION_CREATE_COMMENT_OPERATION_API_ENDPOINT,
   COMICCOIN_FAUCET_COMIC_SUBMISSION_FILE_ATTACHMENTS_API_ENDPOINT,
+  COMICCOIN_FAUCET_COMIC_SUBMISSIONS_JUDGE_OPERATION_API_ENDPOINT,
 } from "../Constants/API";
 
 export function getComicSubmissionListAPI(
@@ -418,6 +419,57 @@ export function postComicSubmissionFileAttachmentCreateAPI(
 
       // Snake-case from API to camel-case for React.
       const data = camelizeKeys(responseData);
+
+      // Return the callback data.
+      onSuccessCallback(data);
+    })
+    .catch((exception) => {
+      let errors = camelizeKeys(exception);
+      onErrorCallback(errors);
+    })
+    .then(onDoneCallback);
+}
+
+
+export function postComicSubmissionJudgementOperationAPI(
+  data,
+  onSuccessCallback,
+  onErrorCallback,
+  onDoneCallback,
+  onUnauthorizedCallback,
+) {
+  const axios = getCustomAxios(onUnauthorizedCallback);
+
+  // console.log("postComicSubmissionCreateAPI | pre-modified | data:", data);
+
+  // To Snake-case for API from camel-case in React.
+  let decamelizedData = decamelizeKeys(data);
+
+  // Minor bugfixes.
+  decamelizedData.store_id = decamelizedData.store_i_d;
+  delete decamelizedData.store_i_d;
+  decamelizedData.customer_id = data.customerID;
+  delete decamelizedData.customer_i_d;
+
+  // if (data.issueCoverDate !==undefined && data.issueCoverDate !==null && data.issueCoverDate !=="") {
+  //     decamelizedData.issue_cover_date = new Date(data.issueCoverDate).toISOString();
+  // }
+
+  // console.log("postComicSubmissionCreateAPI | post-modified | data:", decamelizedData);
+
+  axios
+    .post(COMICCOIN_FAUCET_COMIC_SUBMISSIONS_JUDGE_OPERATION_API_ENDPOINT, decamelizedData)
+    .then((successResponse) => {
+      const responseData = successResponse.data;
+
+      // Snake-case from API to camel-case for React.
+      const data = camelizeKeys(responseData);
+
+      // Minor bugfix.
+      data.showsSignsOfTamperingOrRestoration = parseInt(
+        data.showsSignsOfTamperingOrRestoration,
+      );
+      // data.issueCoverDate = DateTime.fromISO(data.issueCoverDate).toJSDate();
 
       // Return the callback data.
       onSuccessCallback(data);

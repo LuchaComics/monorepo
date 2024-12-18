@@ -8,7 +8,10 @@ import { Navigate, Link } from "react-router-dom";
 import { useRecoilState } from "recoil";
 
 import { currentUserState } from "../../AppState";
-import { getComicSubmissionListAPI } from "../../API/ComicSubmission";
+import {
+    getComicSubmissionListAPI,
+    postComicSubmissionJudgementOperationAPI
+} from "../../API/ComicSubmission";
 
 const AdminDashboard = () => {
   // Global state
@@ -79,23 +82,51 @@ const AdminDashboard = () => {
   }, [currentPage, currentUser]);
 
   const handleApproveSubmission = useCallback(async (submissionId) => {
-    try {
-      // Here you would call your approve API endpoint
-      console.log(`Approving submission ${submissionId}`);
+      try {
+        // Show we are processing
+        setFetching(true);
 
-      // After successful API call, refresh the submissions list
-      const params = new Map();
-      params.set("status", 1);
-      await getComicSubmissionListAPI(
-        params,
-        (resp) => setPendingSubmissions(resp.submissions),
-        setErrors,
-        () => setFetching(false),
-        () => window.location.href = "/login?unauthorized=true"
-      );
-    } catch (error) {
-      console.error("Failed to approve submission:", error);
-    }
+        // Prepare request body for the approval
+        const submissionReq = {
+          comic_submission_id: submissionId,
+          status: 3,  // Assuming 2 is the status code for "approved"
+          judgement_notes: "Approved by administrator"
+        };
+
+        await postComicSubmissionJudgementOperationAPI(
+          submissionReq,
+          // onSuccess callback
+          async (resp) => {
+            console.log("Successfully approved submission:", submissionId);
+
+            // Refresh the submissions list
+            const params = new Map();
+            params.set("status", 1); // Get pending submissions
+            await getComicSubmissionListAPI(
+              params,
+              (resp) => setPendingSubmissions(resp.submissions),
+              (err) => setErrors(err),
+              () => setFetching(false),
+              () => window.location.href = "/login?unauthorized=true"
+            );
+          },
+          // onError callback
+          (apiErr) => {
+            console.error("Failed to approve submission:", apiErr);
+            setErrors(apiErr);
+            setFetching(false);
+          },
+          // onFinally callback
+          () => setFetching(false),
+          // onUnauthorized callback
+          () => window.location.href = "/login?unauthorized=true"
+        );
+
+      } catch (error) {
+        console.error("Error in handleApproveSubmission:", error);
+        setErrors(error);
+        setFetching(false);
+      }
   }, []);
 
   const handleRejectSubmission = useCallback(async (submissionId) => {

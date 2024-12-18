@@ -9,12 +9,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/httperror"
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/usecase"
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/domain"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/domain"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/usecase"
 )
 
-type ComicSubmissionJudgeService struct {
+type ComicSubmissionJudgeOperationService struct {
 	config                        *config.Configuration
 	logger                        *slog.Logger
 	faucetCoinTransferService     *FaucetCoinTransferService
@@ -23,28 +23,35 @@ type ComicSubmissionJudgeService struct {
 	comicSubmissionUpdateUseCase  *usecase.ComicSubmissionUpdateUseCase
 }
 
-func NewComicSubmissionJudgeService(
+func NewComicSubmissionJudgeOperationService(
 	cfg *config.Configuration,
 	logger *slog.Logger,
 	s1 *FaucetCoinTransferService,
 	uc1 *usecase.UserGetByIDUseCase,
 	uc2 *usecase.ComicSubmissionGetByIDUseCase,
 	uc3 *usecase.ComicSubmissionUpdateUseCase,
-) *ComicSubmissionJudgeService {
-	return &ComicSubmissionJudgeService{cfg, logger, s1, uc1, uc2, uc3}
+) *ComicSubmissionJudgeOperationService {
+	return &ComicSubmissionJudgeOperationService{cfg, logger, s1, uc1, uc2, uc3}
 }
 
 type ComicSubmissionJudgeVerdictRequestIDO struct {
-	ComicSubmissionID  primitive.ObjectID
-	Status             int8
-	AdminUserID        primitive.ObjectID
-	AdminUserIPAddress string
+	ComicSubmissionID  primitive.ObjectID `bson:"comic_submission_id" json:"comic_submission_id"`
+	Status             int8               `bson:"status" json:"status"`
+	AdminUserID        primitive.ObjectID `bson:"admin_user_id" json:"admin_user_id"`
+	AdminUserIPAddress string             `bson:"admin_user_ip_address" json:"admin_user_ip_address"`
 }
 
-func (s *ComicSubmissionJudgeService) Execute(
+func (s *ComicSubmissionJudgeOperationService) Execute(
 	sessCtx mongo.SessionContext,
 	req *ComicSubmissionJudgeVerdictRequestIDO,
 ) (*domain.ComicSubmission, error) {
+	s.logger.Warn("Begin to validate",
+		slog.Any("ComicSubmissionID", req.ComicSubmissionID),
+		slog.Any("Status", req.Status),
+		slog.Any("AdminUserID", req.AdminUserID),
+		slog.Any("AdminUserIPAddress", req.AdminUserIPAddress),
+	)
+
 	//
 	// STEP 1: Validation.
 	//
@@ -53,17 +60,18 @@ func (s *ComicSubmissionJudgeService) Execute(
 	if req.ComicSubmissionID.IsZero() {
 		e["comic_submission_id"] = "Comic submission identifier is required"
 	}
-	if req.Status != 0 {
+	if req.Status == 0 {
 		e["status"] = "Status is required"
 	}
 	if req.AdminUserID.IsZero() {
 		e["admin_user_id"] = "Admin user identifier is required"
 	}
-	if req.AdminUserIPAddress != "" {
+	if req.AdminUserIPAddress == "" {
 		e["admin_user_ip_address"] = "Admin user IP address is required"
 	}
 	if len(e) != 0 {
 		s.logger.Warn("Failed validating",
+			slog.Any("req", req),
 			slog.Any("error", e))
 		return nil, httperror.NewForBadRequest(&e)
 	}
@@ -117,12 +125,12 @@ func (s *ComicSubmissionJudgeService) Execute(
 
 	if req.Status == domain.ComicSubmissionStatusAccepted && !comicSubmission.WasAwarded {
 		req := &FaucetCoinTransferRequestIDO{
-			ChainID: s.config.Blockchain.ChainID,
-			FromAccountAddress: s.config.App.WalletAddress,
+			ChainID:               s.config.Blockchain.ChainID,
+			FromAccountAddress:    s.config.App.WalletAddress,
 			AccountWalletPassword: s.config.App.WalletPassword,
 			To:                    customerUser.WalletAddress,
-			Value: 2,
-			Data: ([]byte)(s.config.App.FrontendDomain),
+			Value:                 comicSubmission.CoinsReward,
+			Data:                  ([]byte)(s.config.App.FrontendDomain),
 		}
 		if err := s.faucetCoinTransferService.Execute(sessCtx, req); err != nil {
 			s.logger.Error("Failed faucet coin transfer",
@@ -152,9 +160,6 @@ func (s *ComicSubmissionJudgeService) Execute(
 			slog.Any("err", err))
 		return nil, err
 	}
-
-
-
 
 	// s.logger.Debug("fetched",
 	// 	slog.Any("id", id),
