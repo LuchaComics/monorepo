@@ -25,6 +25,7 @@ import (
 	httphandler "github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/interface/http/handler"
 	httpmiddle "github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/interface/http/middleware"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/interface/task"
+	taskhandler "github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/interface/task/handler"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/repo"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/service"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/usecase"
@@ -117,6 +118,8 @@ func doRunDaemon() {
 	createAttachmentUseCase := usecase.NewCreateAttachmentUseCase(cfg, logger, attachmentRepo)
 	attachmentGetUseCase := usecase.NewAttachmentGetUseCase(cfg, logger, attachmentRepo)
 	attachmentUpdateUseCase := usecase.NewAttachmentUpdateUseCase(cfg, logger, attachmentRepo)
+	attachmentListByFilterUseCase := usecase.NewAttachmentListByFilterUseCase(cfg, logger, attachmentRepo)
+	attachmentDeleteUseCase := usecase.NewAttachmentDeleteUseCase(cfg, logger, attachmentRepo)
 
 	// Wallet
 	walletDecryptKeyUseCase := usecase.NewWalletDecryptKeyUseCase(
@@ -447,6 +450,12 @@ func doRunDaemon() {
 		createAttachmentUseCase,
 		cloudStoragePresignedURLUseCase,
 	)
+	attachmentGarbageCollectorService := service.NewAttachmentGarbageCollectorService(
+		logger,
+		attachmentListByFilterUseCase,
+		attachmentDeleteUseCase,
+		cloudStorageDeleteUseCase,
+	)
 
 	// Comic Submission
 	comicSubmissionCreateService := service.NewComicSubmissionCreateService(
@@ -511,14 +520,16 @@ func doRunDaemon() {
 	//
 
 	// --- Task Manager --- //
-	// poaConsensusMechanismTask := taskhandler.NewProofOfFaucetConsensusMechanismTaskHandler(
-	// 	cfg,
-	// 	logger,
-	// 	proofOfFaucetConsensusMechanismService,
-	// )
+	attachmentGarbageCollectorTask := taskhandler.NewAttachmentGarbageCollectorTaskHandler(
+		cfg,
+		logger,
+		dbClient,
+		attachmentGarbageCollectorService,
+	)
 	taskManager := task.NewTaskManager(
 		cfg,
 		logger,
+		attachmentGarbageCollectorTask,
 	)
 
 	// --- HTTP --- //
