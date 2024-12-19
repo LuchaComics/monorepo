@@ -21,6 +21,7 @@ const AdminDashboard = () => {
 
   // Data states
   const [totalPendingSubmissions, setTotalPendingSubmissions] = useState(0);
+  const [totalCoinsAwarded, setTotalCoinsAwarded] = useState(0);
   const [pendingSubmissions, setPendingSubmissions] = useState([]);
   const [isFetching, setFetching] = useState(false);
   const [errors, setErrors] = useState({});
@@ -51,7 +52,7 @@ const AdminDashboard = () => {
             (resp) => {
                 if (mounted) {
                   console.log("getComicSubmissionListAPI: Success", resp);
-                  // setPendingSubmissions(resp.submissions);
+                  setTotalCoinsAwarded(resp.count);
                 }
             },
             (apiErr) => {
@@ -479,7 +480,7 @@ const AdminDashboard = () => {
           </div>
           <div className="flex-1 bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
             <div className="text-purple-600 text-lg font-semibold">Total ComicCoins Paid</div>
-            <div className="text-3xl font-bold">156,750</div>
+            <div className="text-3xl font-bold">{totalCoinsAwarded}</div>
           </div>
         </div>
 
