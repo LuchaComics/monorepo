@@ -15,6 +15,7 @@ import {
     postComicSubmissionJudgementOperationAPI
 } from "../../API/ComicSubmission";
 import { getUsersCountJoinedThisWeekAPI } from "../../API/user";
+import AdminTopbar from "../Navigation/AdminTopbar";
 
 
 const AdminDashboard = () => {
@@ -432,63 +433,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-purple-50">
-      <nav className="bg-gradient-to-r from-purple-700 to-indigo-800 text-white shadow-lg">
-        <div className="max-w-full px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-2">
-              <Coins className="h-8 w-8" />
-              <span className="text-xl font-bold" style={{fontFamily: 'Comic Sans MS, cursive'}}>
-                ComicCoin Admin
-              </span>
-            </div>
-
-            <div className="flex lg:hidden">
-              <button
-                onClick={() => setIsNavOpen(!isNavOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-md text-white hover:bg-purple-600 focus:outline-none"
-              >
-                {isNavOpen ? (
-                  <X className="h-6 w-6" />
-                ) : (
-                  <Menu className="h-6 w-6" />
-                )}
-              </button>
-            </div>
-
-            <div className="hidden lg:flex lg:items-center lg:space-x-4">
-              <Link to="/admin/dashboard" className="flex items-center space-x-1 px-3 py-2 rounded-md bg-purple-600 bg-opacity-50">
-                <Home className="h-4 w-4" />
-                <span>Dashboard</span>
-              </Link>
-              <Link to="/admin/settings" className="flex items-center space-x-1 px-3 py-2 rounded-md hover:bg-purple-600 hover:bg-opacity-25">
-                <Settings className="h-4 w-4" />
-                <span>Settings</span>
-              </Link>
-              <button className="flex items-center space-x-1 px-3 py-2 rounded-md hover:bg-purple-600 hover:bg-opacity-25 text-purple-200 hover:text-white">
-                <LogOut className="h-4 w-4" />
-                <span>Logout</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className={`lg:hidden ${isNavOpen ? 'block' : 'hidden'}`}>
-          <div className="px-2 pt-2 pb-3 space-y-1">
-            <Link to="/admin/dashboard" className="flex items-center space-x-1 px-3 py-2 rounded-md bg-purple-600 bg-opacity-50">
-              <Home className="h-4 w-4" />
-              <span>Dashboard</span>
-            </Link>
-            <Link to="/admin/settings" className="flex items-center space-x-1 px-3 py-2 rounded-md hover:bg-purple-600 hover:bg-opacity-25">
-              <Settings className="h-4 w-4" />
-              <span>Settings</span>
-            </Link>
-            <button className="w-full flex items-center space-x-1 px-3 py-2 rounded-md hover:bg-purple-600 hover:bg-opacity-25 text-purple-200 hover:text-white">
-              <LogOut className="h-4 w-4" />
-              <span>Logout</span>
-            </button>
-          </div>
-        </div>
-      </nav>
+      <AdminTopbar currentPage="Dashboard" />
 
       <main className="p-8">
         <h1 className="text-3xl font-bold text-purple-800 mb-8" style={{fontFamily: 'Comic Sans MS, cursive'}}>

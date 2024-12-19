@@ -53,6 +53,9 @@ import PassPage from "./Components/User/Settings/PassView";
 
 // Admin facing app
 import AdminDashboardPage from "./Components/Admin/Dashboard";
+import AdminSettingsPage from "./Components/Admin/Settings/SettingsView";
+import AdminInfoPage from "./Components/Admin/Settings/InfoView";
+import AdminChangePasswordPage from "./Components/Admin/Settings/PassView";
 
 // //-----------------//
 // //    App Routes   //
@@ -107,6 +110,9 @@ function AppRoute() {
             <Route exact path="/settings/info" element={<InfoPage />} />
             <Route exact path="/settings/pass" element={<PassPage />} />
             <Route exact path="/admin/dashboard" element={<AdminDashboardPage />} />
+            <Route exact path="/admin/settings" element={<AdminSettingsPage />} />
+            <Route exact path="/admin/settings/info" element={<AdminInfoPage />} />
+            <Route exact path="/admin/settings/pass" element={<AdminChangePasswordPage />} />
             <Route exact path="/" element={<Index />} />
             <Route path="*" element={<NotFoundError />} />
           </Routes>
