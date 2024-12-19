@@ -521,6 +521,80 @@ func (s *comicSubmissionImplImpl) ListByFilter(ctx context.Context, filter *doma
 	}, nil
 }
 
+func (impl comicSubmissionImplImpl) TotalCoinsAwarded(ctx context.Context) (uint64, error) {
+	// Define the aggregation pipeline
+	pipeline := mongo.Pipeline{
+		// Match documents with the given criteria.
+		{{"$match", bson.D{{"was_awarded", true}}}},
+		// Group by user_id and calculate the total coins_reward
+		{{"$group", bson.D{
+			{"_id", nil}, // No grouping key, we just want the total
+			{"totalCoins", bson.D{{"$sum", "$coins_reward"}}},
+		}}},
+	}
+
+	// Execute the aggregation
+	cursor, err := impl.Collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return 0, err
+	}
+	defer cursor.Close(ctx)
+
+	// Parse the result
+	var result []struct {
+		TotalCoins uint64 `bson:"totalCoins"`
+	}
+	if err := cursor.All(ctx, &result); err != nil {
+		return 0, err
+	}
+
+	// Return the total coins if found, otherwise 0
+	if len(result) > 0 {
+		return result[0].TotalCoins, nil
+	}
+
+	return 0, nil
+}
+
+func (impl comicSubmissionImplImpl) TotalCoinsAwardedByUserID(ctx context.Context, userID primitive.ObjectID) (uint64, error) {
+	filter := &domain.ComicSubmissionFilter{
+		UserID: userID,
+	}
+
+	// Define the aggregation pipeline
+	pipeline := mongo.Pipeline{
+		// Match documents with the given criteria.
+		{{"$match", buildMatchStage(filter)}},
+		// Group by user_id and calculate the total coins_reward
+		{{"$group", bson.D{
+			{"_id", nil}, // No grouping key, we just want the total
+			{"totalCoins", bson.D{{"$sum", "$coins_reward"}}},
+		}}},
+	}
+
+	// Execute the aggregation
+	cursor, err := impl.Collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return 0, err
+	}
+	defer cursor.Close(ctx)
+
+	// Parse the result
+	var result []struct {
+		TotalCoins uint64 `bson:"totalCoins"`
+	}
+	if err := cursor.All(ctx, &result); err != nil {
+		return 0, err
+	}
+
+	// Return the total coins if found, otherwise 0
+	if len(result) > 0 {
+		return result[0].TotalCoins, nil
+	}
+
+	return 0, nil
+}
+
 //	func (impl comicSubmissionImplImpl) GetByEmail(ctx context.Context, email string) (*domain.ComicSubmission, error) {
 //		filter := bson.M{"email": email}
 //

@@ -11,6 +11,7 @@ import { currentUserState } from "../../AppState";
 import {
     getComicSubmissionListAPI,
     getComicSubmissionsCountByFilterAPI,
+    getComicSubmissionsTotalCoinsAwardedAPI,
     postComicSubmissionJudgementOperationAPI
 } from "../../API/ComicSubmission";
 
@@ -46,6 +47,33 @@ const AdminDashboard = () => {
       params.set("page", currentPage);
 
       try {
+        await getComicSubmissionsTotalCoinsAwardedAPI(
+            (resp) => {
+                if (mounted) {
+                  console.log("getComicSubmissionListAPI: Success", resp);
+                  // setPendingSubmissions(resp.submissions);
+                }
+            },
+            (apiErr) => {
+                if (mounted) {
+                  console.log("getComicSubmissionListAPI: Error:", apiErr);
+                  setErrors(apiErr);
+                }
+            },
+            () => {
+                if (mounted) {
+                  setFetching(false);
+                }
+            },
+            () => {
+                if (mounted) {
+                  window.location.href = "/login?unauthorized=true";
+                }
+            }
+        );
+
+
+
         await getComicSubmissionListAPI(
           params,
           (resp) => {

@@ -310,6 +310,10 @@ func doRunDaemon() {
 		cfg,
 		logger,
 		comicSubmissionRepo)
+	comicSubmissionTotalCoinsAwardedUseCase := usecase.NewComicSubmissionTotalCoinsAwardedUseCase(
+		cfg,
+		logger,
+		comicSubmissionRepo)
 
 	//
 	// Service
@@ -477,6 +481,10 @@ func doRunDaemon() {
 		comicSubmissionGetByIDUseCase,
 		comicSubmissionUpdateUseCase,
 	)
+	comicSubmissionTotalCoinsAwardedService := service.NewComicSubmissionTotalCoinsAwardedService(
+		logger,
+		comicSubmissionTotalCoinsAwardedUseCase,
+	)
 
 	//
 	// Interface.
@@ -593,6 +601,11 @@ func doRunDaemon() {
 		dbClient,
 		comicSubmissionJudgeOperationService,
 	)
+	comicSubmissionTotalCoinsAwardedHTTPHandler := httphandler.NewComicSubmissionTotalCoinsAwardedHTTPHandler(
+		logger,
+		dbClient,
+		comicSubmissionTotalCoinsAwardedService,
+	)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
 		blackp,
@@ -622,6 +635,7 @@ func doRunDaemon() {
 		comicSubmissionListByFilterHTTPHandler,
 		comicSubmissionCountByFilterHTTPHandler,
 		comicSubmissionCountCoinsRewardByFilterHTTPHandler,
+		comicSubmissionTotalCoinsAwardedHTTPHandler,
 		comicSubmissionCountTotalCreatedTodayByUserHTTPHandler,
 		comicSubmissionJudgeOperationHTTPHandler,
 	)
