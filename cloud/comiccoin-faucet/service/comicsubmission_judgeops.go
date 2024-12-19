@@ -18,6 +18,7 @@ type ComicSubmissionJudgeOperationService struct {
 	config                        *config.Configuration
 	logger                        *slog.Logger
 	faucetCoinTransferService     *FaucetCoinTransferService
+	cloudStorageDeleteUseCase     *usecase.CloudStorageDeleteUseCase
 	userGetByIDUseCase            *usecase.UserGetByIDUseCase
 	comicSubmissionGetByIDUseCase *usecase.ComicSubmissionGetByIDUseCase
 	comicSubmissionUpdateUseCase  *usecase.ComicSubmissionUpdateUseCase
@@ -27,11 +28,12 @@ func NewComicSubmissionJudgeOperationService(
 	cfg *config.Configuration,
 	logger *slog.Logger,
 	s1 *FaucetCoinTransferService,
-	uc1 *usecase.UserGetByIDUseCase,
-	uc2 *usecase.ComicSubmissionGetByIDUseCase,
-	uc3 *usecase.ComicSubmissionUpdateUseCase,
+	uc1 *usecase.CloudStorageDeleteUseCase,
+	uc2 *usecase.UserGetByIDUseCase,
+	uc3 *usecase.ComicSubmissionGetByIDUseCase,
+	uc4 *usecase.ComicSubmissionUpdateUseCase,
 ) *ComicSubmissionJudgeOperationService {
-	return &ComicSubmissionJudgeOperationService{cfg, logger, s1, uc1, uc2, uc3}
+	return &ComicSubmissionJudgeOperationService{cfg, logger, s1, uc1, uc2, uc3, uc4}
 }
 
 type ComicSubmissionJudgeVerdictRequestIDO struct {
@@ -174,7 +176,16 @@ func (s *ComicSubmissionJudgeOperationService) Execute(
 
 		// TODO: Save the hash value to block future images by
 
-		// TODO: Delete the image from our S3 bucket instance.
+		if err := s.cloudStorageDeleteUseCase.Execute(sessCtx, []string{comicSubmission.FrontCover.ObjectKey}); err != nil {
+			s.logger.Error("Failed deleting front cover attachment from cloud storage",
+				slog.Any("err", err))
+			return nil, err
+		}
+		if err := s.cloudStorageDeleteUseCase.Execute(sessCtx, []string{comicSubmission.BackCover.ObjectKey}); err != nil {
+			s.logger.Error("Failed deleting front cover attachment from cloud storage",
+				slog.Any("err", err))
+			return nil, err
+		}
 	}
 
 	//

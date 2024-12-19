@@ -14,5 +14,5 @@ type CloudStorage interface {
 	GetPresignedURL(ctx context.Context, key string, duration time.Duration) (string, error)
 	GetContentByKey(ctx context.Context, objectKey string) ([]byte, error)
 	GetMultipartFileByKey(ctx context.Context, objectKey string) (multipart.File, error)
-	DeleteByKeys(ctx context.Context, key []string) error
+	DeleteByKeys(ctx context.Context, objectKeys []string) error
 }

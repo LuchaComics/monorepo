@@ -37,6 +37,7 @@ const SubmissionModal = ({ submission, onClose }) => {
   if (!submission) return null;
 
   const statusInfo = getStatusInfo(submission.status);
+  const isFlagged = submission.status === 6; // ComicSubmissionStatusFlagged
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -50,17 +51,25 @@ const SubmissionModal = ({ submission, onClose }) => {
 
         <div className="flex flex-col md:flex-row gap-6">
           <div className="w-full md:w-auto">
-            <img
-              src={submission.frontCover?.objectUrl || "/api/placeholder/256/320"}
-              alt={submission.name}
-              className="w-full md:w-64 h-80 object-cover rounded-lg"
-            />
-            {submission.backCover && (
-              <img
-                src={submission.backCover.objectUrl}
-                alt="Back cover"
-                className="w-full md:w-64 h-80 object-cover rounded-lg mt-4"
-              />
+            {isFlagged ? (
+              <div className="w-full md:w-64 h-80 flex items-center justify-center bg-gray-100 rounded-lg">
+                <Flag className="w-32 h-32 text-red-500" />
+              </div>
+            ) : (
+              <>
+                <img
+                  src={submission.frontCover?.objectUrl || "/api/placeholder/256/320"}
+                  alt={submission.name}
+                  className="w-full md:w-64 h-80 object-cover rounded-lg"
+                />
+                {submission.backCover && (
+                  <img
+                    src={submission.backCover.objectUrl}
+                    alt="Back cover"
+                    className="w-full md:w-64 h-80 object-cover rounded-lg mt-4"
+                  />
+                )}
+              </>
             )}
           </div>
 
@@ -126,6 +135,7 @@ const SubmissionModal = ({ submission, onClose }) => {
 
 const SubmissionCard = ({ submission, onClick }) => {
   const statusInfo = getStatusInfo(submission.status);
+  const isFlagged = submission.status === 6; // ComicSubmissionStatusFlagged
 
   return (
     <div
@@ -133,11 +143,17 @@ const SubmissionCard = ({ submission, onClick }) => {
       onClick={() => onClick(submission)}
     >
       <div className="relative w-full h-80">
-        <img
-          src={submission.frontCover?.objectUrl || "/api/placeholder/256/320"}
-          alt={submission.name}
-          className="w-full h-full object-cover rounded-t-lg"
-        />
+        {isFlagged ? (
+          <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-t-lg">
+            <Flag className="w-24 h-24 text-red-500" />
+          </div>
+        ) : (
+          <img
+            src={submission.frontCover?.objectUrl || "/api/placeholder/256/320"}
+            alt={submission.name}
+            className="w-full h-full object-cover rounded-t-lg"
+          />
+        )}
         <div className="absolute top-2 right-2 bg-white rounded-full p-1.5 shadow">
           {statusInfo.icon}
         </div>

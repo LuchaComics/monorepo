@@ -108,6 +108,7 @@ func doRunDaemon() {
 	// Cloud storage
 	cloudStorageSyncUploadUseCase := usecase.NewCloudStorageSyncUploadUseCase(cfg, logger, cloudstore)
 	cloudStoragePresignedURLUseCase := usecase.NewCloudStoragePresignedURLUseCase(cfg, logger, cloudstore)
+	cloudStorageDeleteUseCase := usecase.NewCloudStorageDeleteUseCase(cfg, logger, cloudstore)
 
 	// Email
 	sendUserVerificationEmailUseCase := usecase.NewSendUserVerificationEmailUseCase(cfg, logger, templatedEmailer)
@@ -481,6 +482,7 @@ func doRunDaemon() {
 		cfg,
 		logger,
 		faucetCoinTransferService,
+		cloudStorageDeleteUseCase,
 		userGetByIDUseCase,
 		comicSubmissionGetByIDUseCase,
 		comicSubmissionUpdateUseCase,
