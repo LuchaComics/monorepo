@@ -280,6 +280,10 @@ func doRunDaemon() {
 		cfg,
 		logger,
 		userRepo)
+	userCountByFilterUseCase := usecase.NewUserCountByFilterUseCase(
+		cfg,
+		logger,
+		userRepo)
 
 	// Comic Submission.
 	comicSubmissionCreateUseCase := usecase.NewComicSubmissionCreateUseCase(
@@ -486,6 +490,12 @@ func doRunDaemon() {
 		comicSubmissionTotalCoinsAwardedUseCase,
 	)
 
+	// User
+	userCountJoinedThisWeekService := service.NewUserCountJoinedThisWeekService(
+		logger,
+		userCountByFilterUseCase,
+	)
+
 	//
 	// Interface.
 	//
@@ -606,6 +616,11 @@ func doRunDaemon() {
 		dbClient,
 		comicSubmissionTotalCoinsAwardedService,
 	)
+	userCountJoinedThisWeekHTTPHandler := httphandler.NewUserCountJoinedThisWeekHTTPHandler(
+		logger,
+		dbClient,
+		userCountJoinedThisWeekService,
+	)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
 		blackp,
@@ -638,6 +653,7 @@ func doRunDaemon() {
 		comicSubmissionTotalCoinsAwardedHTTPHandler,
 		comicSubmissionCountTotalCreatedTodayByUserHTTPHandler,
 		comicSubmissionJudgeOperationHTTPHandler,
+		userCountJoinedThisWeekHTTPHandler,
 	)
 
 	//

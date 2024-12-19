@@ -2,12 +2,14 @@ package repo
 
 import (
 	"context"
+	"errors"
 	"log"
 	"log/slog"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/domain"
@@ -23,29 +25,48 @@ func NewUserRepository(appCfg *config.Configuration, loggerp *slog.Logger, clien
 	// ctx := context.Background()
 	uc := client.Database(appCfg.DB.Name).Collection("users")
 
+	// // For debugging purposes only or if you are going to recreate new indexes.
+	// if _, err := uc.Indexes().DropAll(context.TODO()); err != nil {
+	// 	loggerp.Warn("failed deleting all indexes",
+	// 		slog.Any("err", err))
+	//
+	// 	// Do not crash app, just continue.
+	// }
+
+	// Note:
+	// * 1 for ascending
+	// * -1 for descending
+	// * "text" for text indexes
+
 	// The following few lines of code will create the index for our app for this
-	// colleciton.
-	indexModel := mongo.IndexModel{
-		Keys: bson.D{
-			{"tenant_name", "text"},
-			{"name", "text"},
-			{"lexical_name", "text"},
-			{"email", "text"},
-			{"phone", "text"},
-			{"country", "text"},
-			{"region", "text"},
-			{"city", "text"},
-			{"postal_code", "text"},
-			{"address_line1", "text"},
-		},
-	}
-	_, err := uc.Indexes().CreateOne(context.TODO(), indexModel)
+	// collection.
+	_, err := uc.Indexes().CreateMany(context.TODO(), []mongo.IndexModel{
+		{Keys: bson.D{
+			{Key: "tenant_id", Value: 1},
+			{Key: "created_at", Value: -1},
+		}},
+		{Keys: bson.D{
+			{Key: "tenant_id", Value: 1},
+			{Key: "status", Value: 1},
+			{Key: "created_at", Value: -1},
+		}},
+		{Keys: bson.D{
+			{Key: "name", Value: "text"},
+			{Key: "lexical_name", Value: "text"},
+			{Key: "email", Value: "text"},
+			{Key: "phone", Value: "text"},
+			{Key: "country", Value: "text"},
+			{Key: "region", Value: "text"},
+			{Key: "city", Value: "text"},
+			{Key: "postal_code", Value: "text"},
+			{Key: "address_line1", Value: "text"},
+		}},
+	})
 	if err != nil {
 		// It is important that we crash the app on startup to meet the
 		// requirements of `google/wire` framework.
 		log.Fatal(err)
 	}
-
 	s := &userStorerImpl{
 		Logger:     loggerp,
 		DbClient:   client,
@@ -174,4 +195,89 @@ func (impl userStorerImpl) UpdateByID(ctx context.Context, m *domain.User) error
 	// impl.Logger.Debug("number of documents updated", slog.Int64("modified_count", result.ModifiedCount))
 
 	return nil
+}
+
+// buildCountMatchStage creates the match stage for the aggregation pipeline
+func (s *userStorerImpl) buildCountMatchStage(filter *domain.UserFilter) bson.M {
+	match := bson.M{
+		"tenant_id": filter.TenantID,
+	}
+
+	if filter.Status != 0 {
+		match["status"] = filter.Status
+	}
+
+	// Date range filtering
+	if filter.CreatedAtStart != nil || filter.CreatedAtEnd != nil {
+		createdAtFilter := bson.M{}
+		if filter.CreatedAtStart != nil {
+			createdAtFilter["$gte"] = filter.CreatedAtStart
+		}
+		if filter.CreatedAtEnd != nil {
+			createdAtFilter["$lte"] = filter.CreatedAtEnd
+		}
+		match["created_at"] = createdAtFilter
+	}
+
+	// Text search for name
+	if filter.Name != nil && *filter.Name != "" {
+		match["$text"] = bson.M{"$search": *filter.Name}
+	}
+
+	return match
+}
+
+// hasActiveFilters checks if any filters besides tenant_id are active
+func (s *userStorerImpl) hasActiveFilters(filter *domain.UserFilter) bool {
+	return filter.Name != nil ||
+		filter.Status != 0 ||
+		filter.CreatedAtStart != nil ||
+		filter.CreatedAtEnd != nil
+}
+
+func (s *userStorerImpl) CountByFilter(ctx context.Context, filter *domain.UserFilter) (uint64, error) {
+	if filter == nil {
+		return 0, errors.New("filter cannot be nil")
+	}
+
+	// For exact counts with filters
+	if s.hasActiveFilters(filter) {
+		pipeline := []bson.D{
+			{{Key: "$match", Value: s.buildCountMatchStage(filter)}},
+			{{Key: "$count", Value: "total"}},
+		}
+
+		// Use aggregation with allowDiskUse for large datasets
+		opts := options.Aggregate().SetAllowDiskUse(true)
+		cursor, err := s.Collection.Aggregate(ctx, pipeline, opts)
+		if err != nil {
+			return 0, err
+		}
+		defer cursor.Close(ctx)
+
+		// Decode the result
+		var results []struct {
+			Total int64 `bson:"total"`
+		}
+		if err := cursor.All(ctx, &results); err != nil {
+			return 0, err
+		}
+
+		if len(results) == 0 {
+			return 0, nil
+		}
+
+		return uint64(results[0].Total), nil
+	}
+
+	// For unfiltered counts (much faster for basic tenant-only filtering)
+	countOpts := options.Count().SetHint("tenant_id_1_created_at_-1")
+	match := bson.M{"tenant_id": filter.TenantID}
+
+	count, err := s.Collection.CountDocuments(ctx, match, countOpts)
+	if err != nil {
+		return 0, err
+	}
+
+	return uint64(count), nil
 }

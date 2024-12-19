@@ -173,6 +173,26 @@ type UserPaginationListResult struct {
 	HasNextPage bool    `json:"has_next_page"`
 }
 
+type UserFilter struct {
+	TenantID       primitive.ObjectID `json:"tenant_id"` // Required for data partitioning
+	Name           *string            `json:"name,omitempty"`
+	Status         int8               `json:"status,omitempty"`
+	CreatedAtStart *time.Time         `json:"created_at_start,omitempty"`
+	CreatedAtEnd   *time.Time         `json:"created_at_end,omitempty"`
+
+	// Cursor-based pagination
+	LastID        *primitive.ObjectID `json:"last_id,omitempty"`
+	LastCreatedAt *time.Time          `json:"last_created_at,omitempty"`
+	Limit         int64               `json:"limit"`
+}
+
+type UserFilterResult struct {
+	Users         []*User            `json:"users"`
+	HasMore       bool               `json:"has_more"`
+	LastID        primitive.ObjectID `json:"last_id,omitempty"`
+	LastCreatedAt time.Time          `json:"last_created_at,omitempty"`
+}
+
 // UserStorer Interface for user.
 type UserRepository interface {
 	Create(ctx context.Context, m *User) error
@@ -182,6 +202,7 @@ type UserRepository interface {
 	DeleteByID(ctx context.Context, id primitive.ObjectID) error
 	CheckIfExistsByEmail(ctx context.Context, email string) (bool, error)
 	UpdateByID(ctx context.Context, m *User) error
+	CountByFilter(ctx context.Context, filter *UserFilter) (uint64, error)
 	// ListByFilter(ctx context.Context, f *UserPaginationListFilter) (*UserPaginationListResult, error)
 	// ListAsSelectOptionByFilter(ctx context.Context, f *UserPaginationListFilter) ([]*UserAsSelectOption, error)
 	// ListAllRootStaff(ctx context.Context) (*UserPaginationListResult, error)

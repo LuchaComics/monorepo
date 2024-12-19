@@ -14,6 +14,8 @@ import {
     getComicSubmissionsTotalCoinsAwardedAPI,
     postComicSubmissionJudgementOperationAPI
 } from "../../API/ComicSubmission";
+import { getUsersCountJoinedThisWeekAPI } from "../../API/user";
+
 
 const AdminDashboard = () => {
   // Global state
@@ -22,6 +24,7 @@ const AdminDashboard = () => {
   // Data states
   const [totalPendingSubmissions, setTotalPendingSubmissions] = useState(0);
   const [totalCoinsAwarded, setTotalCoinsAwarded] = useState(0);
+  const [totalUsersJoinedThisWeek, setTotalUsersJoinedThisWeek] = useState(0);
   const [pendingSubmissions, setPendingSubmissions] = useState([]);
   const [isFetching, setFetching] = useState(false);
   const [errors, setErrors] = useState({});
@@ -73,8 +76,6 @@ const AdminDashboard = () => {
             }
         );
 
-
-
         await getComicSubmissionListAPI(
           params,
           (resp) => {
@@ -86,6 +87,31 @@ const AdminDashboard = () => {
           (apiErr) => {
             if (mounted) {
               console.log("getComicSubmissionListAPI: Error:", apiErr);
+              setErrors(apiErr);
+            }
+          },
+          () => {
+            if (mounted) {
+              setFetching(false);
+            }
+          },
+          () => {
+            if (mounted) {
+              window.location.href = "/login?unauthorized=true";
+            }
+          }
+        );
+
+        await getUsersCountJoinedThisWeekAPI(
+          (resp) => {
+            if (mounted) {
+              console.log("getUsersCountJoinedThisWeekAPI: Success", resp);
+              setTotalUsersJoinedThisWeek(resp.count);
+            }
+          },
+          (apiErr) => {
+            if (mounted) {
+              console.log("getUsersCountJoinedThisWeekAPI: Error:", apiErr);
               setErrors(apiErr);
             }
           },
@@ -472,7 +498,7 @@ const AdminDashboard = () => {
         <div className="flex flex-col md:flex-row justify-between items-stretch gap-6 mb-8">
           <div className="flex-1 bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
             <div className="text-purple-600 text-lg font-semibold">New Users This Week</div>
-            <div className="text-3xl font-bold">47</div>
+            <div className="text-3xl font-bold">{totalUsersJoinedThisWeek}</div>
           </div>
           <div className="flex-1 bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
             <div className="text-purple-600 text-lg font-semibold">Pending Reviews</div>

@@ -14,6 +14,7 @@ import {
   COMICCOIN_FAUCET_USER_AVATAR_OPERATION_API_ENDPOINT,
   COMICCOIN_FAUCET_USER_CHANGE_PASSWORD_OPERATION_API_ENDPOINT,
   COMICCOIN_FAUCET_USER_CHANGE_2FA_OPERATION_API_URL,
+  COMICCOIN_FAUCET_USERS_COUNT_JOINED_THIS_WEEK_API_ENDPOINT,
 } from "../Constants/API";
 
 export function getUserListAPI(
@@ -538,6 +539,36 @@ export function postUserChangeTwoFactorAuthenticationAPI(
 
       // Snake-case from API to camel-case for React.
       const data = camelizeKeys(responseData);
+
+      // Return the callback data.
+      onSuccessCallback(data);
+    })
+    .catch((exception) => {
+      let errors = camelizeKeys(exception);
+      onErrorCallback(errors);
+    })
+    .then(onDoneCallback);
+}
+
+export function getUsersCountJoinedThisWeekAPI(
+  onSuccessCallback,
+  onErrorCallback,
+  onDoneCallback,
+  onUnauthorizedCallback,
+) {
+  // The following code will generate the query parameters for the url based on the map.
+  let aURL = COMICCOIN_FAUCET_USERS_COUNT_JOINED_THIS_WEEK_API_ENDPOINT;
+  const axios = getCustomAxios(onUnauthorizedCallback);
+  axios
+    .get(aURL)
+    .then((successResponse) => {
+      const responseData = successResponse.data;
+
+      // Snake-case from API to camel-case for React.
+      const data = camelizeKeys(responseData);
+
+      // // For debugging purposeso pnly.
+      // console.log(data);
 
       // Return the callback data.
       onSuccessCallback(data);

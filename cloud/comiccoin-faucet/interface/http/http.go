@@ -58,6 +58,8 @@ type httpServerImpl struct {
 	comicSubmissionTotalCoinsAwardedHTTPHandler            *handler.ComicSubmissionTotalCoinsAwardedHTTPHandler
 	comicSubmissionCountTotalCreatedTodayByUserHTTPHandler *handler.ComicSubmissionCountTotalCreatedTodayByUserHTTPHandler
 	comicSubmissionJudgeOperationHTTPHandler               *handler.ComicSubmissionJudgeOperationHTTPHandler
+
+	userCountJoinedThisWeekHTTPHandler *handler.UserCountJoinedThisWeekHTTPHandler
 }
 
 // NewHTTPServer creates a new HTTP server instance.
@@ -87,6 +89,7 @@ func NewHTTPServer(
 	h20 *handler.ComicSubmissionTotalCoinsAwardedHTTPHandler,
 	h21 *handler.ComicSubmissionCountTotalCreatedTodayByUserHTTPHandler,
 	h22 *handler.ComicSubmissionJudgeOperationHTTPHandler,
+	h23 *handler.UserCountJoinedThisWeekHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.HTTPAddress == "" {
@@ -132,6 +135,7 @@ func NewHTTPServer(
 		comicSubmissionTotalCoinsAwardedHTTPHandler:            h20,
 		comicSubmissionCountTotalCreatedTodayByUserHTTPHandler: h21,
 		comicSubmissionJudgeOperationHTTPHandler:               h22,
+		userCountJoinedThisWeekHTTPHandler:                     h23,
 	}
 	// Attach the HTTP server controller to the ServeMux.
 	mux.HandleFunc("/", mid.Attach(port.HandleRequests))
@@ -226,6 +230,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		port.comicSubmissionJudgeOperationHTTPHandler.Execute(w, r)
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "comic-submissions" && p[3] == "total-coins-awarded" && r.Method == http.MethodGet:
 		port.comicSubmissionTotalCoinsAwardedHTTPHandler.Execute(w, r)
+	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "users" && p[3] == "count-joined-this-week" && r.Method == http.MethodGet:
+		port.userCountJoinedThisWeekHTTPHandler.Execute(w, r)
 
 	// --- CATCH ALL: D.N.E. ---
 	default:

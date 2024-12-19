@@ -40,7 +40,7 @@ func NewComicSubmissionRepository(appCfg *config.Configuration, loggerp *slog.Lo
 	// * "text" for text indexes
 
 	// The following few lines of code will create the index for our app for this
-	// colleciton.
+	// collection.
 	_, err := uc.Indexes().CreateMany(context.TODO(), []mongo.IndexModel{
 		{Keys: bson.D{
 			{Key: "tenant_id", Value: 1},
