@@ -138,6 +138,10 @@ func (s *ComicSubmissionJudgeOperationService) Execute(
 	//
 
 	if req.Status == domain.ComicSubmissionStatusAccepted && !comicSubmission.WasAwarded {
+		s.logger.Debug("Faucet is granting user some ComicCoins...",
+			slog.Any("wallet_address", customerUser.WalletAddress),
+			slog.Any("comiccoins_rewarded", comicSubmission.CoinsReward))
+
 		req := &FaucetCoinTransferRequestIDO{
 			ChainID:               s.config.Blockchain.ChainID,
 			FromAccountAddress:    s.config.App.WalletAddress,
@@ -151,9 +155,8 @@ func (s *ComicSubmissionJudgeOperationService) Execute(
 				slog.Any("err", err))
 			return nil, err
 		}
-		s.logger.Debug("Faucet is granting user some ComicCoins",
-			slog.Any("comiccoins_rewarded", comicSubmission.CoinsReward),
-		)
+		s.logger.Debug("Faucet is granted user some ComicCoins",
+			slog.Any("comiccoins_rewarded", comicSubmission.CoinsReward))
 
 		// Update the comic submission to indicate we successfully sent
 		// the reward.

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Coins, Home, Image, History, Wallet,
+  Coins, Home, Image, History, Wallet, Flag,
   Settings, HelpCircle, LogOut, Clock, CheckCircle, XCircle,
   Menu, X, ChevronLeft, ChevronRight, Archive, AlertTriangle
 } from 'lucide-react';
@@ -25,6 +25,8 @@ const getStatusInfo = (status) => {
       return { icon: <AlertTriangle className="w-4 h-4 text-orange-500" />, color: 'text-orange-500', text: 'Error' };
     case 5: // ComicSubmissionStatusArchived
       return { icon: <Archive className="w-4 h-4 text-gray-500" />, color: 'text-gray-500', text: 'Archived' };
+    case 6: // ComicSubmissionStatusFlagged
+        return { icon: <Flag className="w-4 h-4 text-gray-500" />, color: 'text-red-500', text: 'Flagged' };
     default:
       return { icon: null, color: '', text: 'Unknown' };
   }
