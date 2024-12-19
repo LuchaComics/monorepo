@@ -37,6 +37,9 @@ func NewComicSubmissionJudgeOperationService(
 type ComicSubmissionJudgeVerdictRequestIDO struct {
 	ComicSubmissionID  primitive.ObjectID `bson:"comic_submission_id" json:"comic_submission_id"`
 	Status             int8               `bson:"status" json:"status"`
+	FlagIssue          int8               `bson:"flag_issue" json:"flag_issue"`
+	FlagIssueOther     string             `bson:"flag_issue_other" json:"flag_issue_other"`
+	FlagAction         int8               `bson:"flag_action" json:"flag_action"`
 	AdminUserID        primitive.ObjectID `bson:"admin_user_id" json:"admin_user_id"`
 	AdminUserIPAddress string             `bson:"admin_user_ip_address" json:"admin_user_ip_address"`
 }
@@ -62,6 +65,17 @@ func (s *ComicSubmissionJudgeOperationService) Execute(
 	}
 	if req.Status == 0 {
 		e["status"] = "Status is required"
+	} else {
+		if req.Status == domain.ComicSubmissionStatusFlagged {
+			if req.FlagIssue == 0 {
+				e["flag_issue"] = "Flag issue is required"
+			} else if req.FlagIssue == domain.ComicSubmissionFlagIssueOther && req.FlagIssueOther == "" {
+				e["flag_issue_other"] = "Flag issue (other) is required"
+			}
+			if req.FlagAction == 0 {
+				e["flag_action"] = "Flag action is required"
+			}
+		}
 	}
 	if req.AdminUserID.IsZero() {
 		e["admin_user_id"] = "Admin user identifier is required"
@@ -137,7 +151,7 @@ func (s *ComicSubmissionJudgeOperationService) Execute(
 				slog.Any("err", err))
 			return nil, err
 		}
-		s.logger.Debug("Granting user ComicCoins",
+		s.logger.Debug("Faucet is granting user some ComicCoins",
 			slog.Any("comiccoins_rewarded", comicSubmission.CoinsReward),
 		)
 
@@ -151,6 +165,9 @@ func (s *ComicSubmissionJudgeOperationService) Execute(
 	//
 
 	comicSubmission.Status = req.Status
+	comicSubmission.FlagIssue = req.FlagIssue
+	comicSubmission.FlagIssueOther = req.FlagIssueOther
+	comicSubmission.FlagAction = req.FlagAction
 	comicSubmission.ModifiedAt = time.Now()
 	comicSubmission.ModifiedByUserName = adminUser.Name
 	comicSubmission.ModifiedByUserID = req.AdminUserID
@@ -159,6 +176,16 @@ func (s *ComicSubmissionJudgeOperationService) Execute(
 		s.logger.Error("Failed update",
 			slog.Any("err", err))
 		return nil, err
+	}
+
+	//
+	// STEP 5: Execute flag action.
+	//
+
+	if req.Status == domain.ComicSubmissionStatusFlagged && req.FlagAction > domain.ComicSubmissionFlagActionDoNothing {
+		s.logger.Debug("Executing flag action",
+			slog.Any("flag_action", req.FlagAction),
+		)
 	}
 
 	// s.logger.Debug("fetched",
