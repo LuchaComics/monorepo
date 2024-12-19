@@ -93,6 +93,11 @@ func (s *BlockchainSyncManagerService) Execute(ctx context.Context, chainID uint
 
 	// Subscribe to the Blockchain Authority to receive `server sent events`
 	// when the blockchain changes globally to our local machine.
+	//
+	// DEVELOPERS NOTE: Absolutely do not surround this code with a MongoDB
+	// transaction because this code hangs a lot (it's dependent on Authority
+	// sending latest updates) and thus would hang the MongoDB transaction
+	// and cause errors. Leave this context as is!
 	ch, err := s.subscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase.Execute(ctx, chainID)
 	if err != nil {
 		if strings.Contains(err.Error(), "received non-OK HTTP status: 524") {
