@@ -31,6 +31,7 @@ type Attachment struct {
 	Name                      string             `bson:"name" json:"name"`
 	Description               string             `bson:"description" json:"description"`
 	Filename                  string             `bson:"filename" json:"filename"`
+	Sha256Hash                string             `bson:"sha_256_hash" json:"sha_256_hash"`
 	ObjectKey                 string             `bson:"object_key" json:"object_key"`
 	ObjectURL                 string             `bson:"-" json:"object_url"`
 	Status                    int8               `bson:"status" json:"status"`

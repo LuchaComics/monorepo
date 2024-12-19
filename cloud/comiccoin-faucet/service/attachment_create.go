@@ -1,6 +1,8 @@
 package service
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -71,6 +73,17 @@ func (s *AttachmentCreateService) Execute(sessCtx mongo.SessionContext, req *Att
 	}
 
 	//
+	// STEP 2: Take hash
+	//
+
+	hasher := sha256.New()
+	hasher.Write(req.Data)
+	sha256Hash := hex.EncodeToString(hasher.Sum(nil))
+
+	s.logger.Debug("Hash generated of attachment data",
+		slog.String("sha256", sha256Hash))
+
+	//
 	// STEP 2: Upload to cloud storage.
 	//
 
@@ -111,6 +124,7 @@ func (s *AttachmentCreateService) Execute(sessCtx mongo.SessionContext, req *Att
 		Name:                      req.Name,
 		Description:               "{}",
 		Filename:                  req.Filename,
+		Sha256Hash:                sha256Hash,
 		ObjectKey:                 objectKey,
 		ObjectURL:                 "",
 		Status:                    domain.AttachmentStatusActive,

@@ -164,7 +164,21 @@ func (s *ComicSubmissionJudgeOperationService) Execute(
 	}
 
 	//
-	// STEP 4: Update the state in the database.
+	// STEP 4: Status is flagged
+	//
+
+	if req.Status == domain.ComicSubmissionStatusFlagged {
+		s.logger.Debug("Executing flag issue",
+			slog.Any("flag_issue", req.FlagIssue),
+		)
+
+		// TODO: Save the hash value to block future images by
+
+		// TODO: Delete the image from our S3 bucket instance.
+	}
+
+	//
+	// STEP 5: Update the state in the database.
 	//
 
 	comicSubmission.Status = req.Status
@@ -182,7 +196,7 @@ func (s *ComicSubmissionJudgeOperationService) Execute(
 	}
 
 	//
-	// STEP 5: Execute flag action.
+	// STEP 6: Execute flag action (if submission was flagged),
 	//
 
 	if req.Status == domain.ComicSubmissionStatusFlagged && req.FlagAction > domain.ComicSubmissionFlagActionDoNothing {
