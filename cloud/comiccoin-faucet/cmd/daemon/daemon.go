@@ -1,7 +1,6 @@
 package daemon
 
 import (
-	"context"
 	"log"
 	"os"
 	"os/signal"
@@ -526,10 +525,17 @@ func doRunDaemon() {
 		dbClient,
 		attachmentGarbageCollectorService,
 	)
+	blockchainSyncManagerTaskHandler := taskhandler.NewBlockchainSyncManagerTaskHandler(
+		cfg,
+		logger,
+		dbClient,
+		blockchainSyncManagerService,
+	)
 	taskManager := task.NewTaskManager(
 		cfg,
 		logger,
 		attachmentGarbageCollectorTask,
+		blockchainSyncManagerTaskHandler,
 	)
 
 	// --- HTTP --- //
@@ -694,15 +700,6 @@ func doRunDaemon() {
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL, syscall.SIGUSR1)
 
-	// Run in background
-	go func() {
-		for {
-			ctx := context.Background()
-			if err := blockchainSyncManagerService.Execute(ctx, cfg.Blockchain.ChainID, cfg.App.TenantID); err != nil {
-				log.Fatalf("Failed to manage syncing: %v\n", err)
-			}
-		}
-	}()
 	go httpServ.Run()
 	defer httpServ.Shutdown()
 	go taskManager.Run()

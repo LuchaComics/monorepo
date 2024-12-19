@@ -98,5 +98,7 @@ func (s *AttachmentGarbageCollectorService) Execute(sessCtx mongo.SessionContext
 		// }
 	}
 
+	time.Sleep(30 * time.Second)
+
 	return nil
 }

@@ -17,18 +17,21 @@ type taskManagerImpl struct {
 	cfg                                   *config.Configuration
 	logger                                *slog.Logger
 	attachmentGarbageCollectorTaskHandler *taskhandler.AttachmentGarbageCollectorTaskHandler
+	blockchainSyncManagerTaskHandler      *taskhandler.BlockchainSyncManagerTaskHandler
 }
 
 func NewTaskManager(
 	cfg *config.Configuration,
 	logger *slog.Logger,
 	t1 *taskhandler.AttachmentGarbageCollectorTaskHandler,
+	t2 *taskhandler.BlockchainSyncManagerTaskHandler,
 
 ) TaskManager {
 	port := &taskManagerImpl{
 		cfg:                                   cfg,
 		logger:                                logger,
 		attachmentGarbageCollectorTaskHandler: t1,
+		blockchainSyncManagerTaskHandler:      t2,
 	}
 	return port
 }
@@ -38,18 +41,32 @@ func (port *taskManagerImpl) Run() {
 	port.logger.Info("Running Task Manager")
 
 	go func(task *taskhandler.AttachmentGarbageCollectorTaskHandler, loggerp *slog.Logger) {
-		loggerp.Info("Starting attachment garbage collection...")
+		loggerp.Info("Starting attachment garbage collector...")
 
 		for {
 			if err := task.Execute(backgroundCtx); err != nil {
-				loggerp.Error("Failed executing attachment garbage collection",
+				loggerp.Error("Failed executing attachment garbage collector",
 					slog.Any("error", err))
 			}
 			// DEVELOPERS NOTE:
 			// No need for delays, automatically start executing again.
-			port.logger.Debug("Attachment garbage collection will run again ...")
+			port.logger.Debug("Attachment garbage collector will run again ...")
 		}
 	}(port.attachmentGarbageCollectorTaskHandler, port.logger)
+
+	go func(task *taskhandler.BlockchainSyncManagerTaskHandler, loggerp *slog.Logger) {
+		loggerp.Info("Starting blockchain manager...")
+
+		for {
+			if err := task.Execute(backgroundCtx); err != nil {
+				loggerp.Error("Failed executing blockchain manager",
+					slog.Any("error", err))
+			}
+			// DEVELOPERS NOTE:
+			// No need for delays, automatically start executing again.
+			port.logger.Debug("Blockchain manager will run again ...")
+		}
+	}(port.blockchainSyncManagerTaskHandler, port.logger)
 }
 
 func (port *taskManagerImpl) Shutdown() {

@@ -160,6 +160,7 @@ func (s *GatewayInitService) Execute(
 		WasEmailVerified:      true,
 		CreatedAt:             time.Now(),
 		ModifiedAt:            time.Now(),
+		WasVerified:           true,
 	}
 
 	if createUserErr := s.userCreate.Execute(sessCtx, user); err != nil {
