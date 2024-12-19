@@ -73,8 +73,6 @@ func (s *AttachmentGarbageCollectorService) Execute(sessCtx mongo.SessionContext
 		s.logger.Debug("Fetched attachment",
 			slog.Any("attch", attch))
 
-		time.Sleep(10 * time.Second)
-
 		//TODO: UNCOMMENT WHEN READY!
 
 		// //
@@ -97,8 +95,6 @@ func (s *AttachmentGarbageCollectorService) Execute(sessCtx mongo.SessionContext
 		// 	return err
 		// }
 	}
-
-	time.Sleep(30 * time.Second)
 
 	return nil
 }

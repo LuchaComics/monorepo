@@ -3,6 +3,7 @@ package task
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config"
 	taskhandler "github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/interface/task/handler"
@@ -37,20 +38,20 @@ func NewTaskManager(
 }
 
 func (port *taskManagerImpl) Run() {
-	backgroundCtx := context.Background()
 	port.logger.Info("Running Task Manager")
 
 	go func(task *taskhandler.AttachmentGarbageCollectorTaskHandler, loggerp *slog.Logger) {
 		loggerp.Info("Starting attachment garbage collector...")
 
 		for {
-			if err := task.Execute(backgroundCtx); err != nil {
+			if err := task.Execute(context.Background()); err != nil {
 				loggerp.Error("Failed executing attachment garbage collector",
 					slog.Any("error", err))
 			}
 			// DEVELOPERS NOTE:
 			// No need for delays, automatically start executing again.
-			port.logger.Debug("Attachment garbage collector will run again ...")
+			port.logger.Debug("Attachment garbage collector will run again in 15 seconds...")
+			time.Sleep(15 * time.Second)
 		}
 	}(port.attachmentGarbageCollectorTaskHandler, port.logger)
 
@@ -58,7 +59,7 @@ func (port *taskManagerImpl) Run() {
 		loggerp.Info("Starting blockchain manager...")
 
 		for {
-			if err := task.Execute(backgroundCtx); err != nil {
+			if err := task.Execute(context.Background()); err != nil {
 				loggerp.Error("Failed executing blockchain manager",
 					slog.Any("error", err))
 			}

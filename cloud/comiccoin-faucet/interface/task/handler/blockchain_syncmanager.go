@@ -26,25 +26,9 @@ func NewBlockchainSyncManagerTaskHandler(
 }
 
 func (h *BlockchainSyncManagerTaskHandler) Execute(ctx context.Context) error {
-	session, err := h.dbClient.StartSession()
-	if err != nil {
-		h.logger.Error("start session error",
-			slog.Any("error", err))
-		return err
-	}
-	defer session.EndSession(ctx)
-
-	// Define a transaction function with a series of operations
-	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
-		return nil, h.blockchainSyncManagerService.Execute(sessCtx, h.config.Blockchain.ChainID, h.config.App.TenantID)
-	}
-
-	// Start a transaction
-	_, txErr := session.WithTransaction(ctx, transactionFunc)
-	if txErr != nil {
-		h.logger.Error("session failed error",
-			slog.Any("error", txErr))
-		return txErr
-	}
-	return nil
+	// DEVELOPERS NOTE:
+	// Do not use MongoDB transactions here, this service handles
+	// them internally. If you do then you will get errors such as:
+	// - "MongoServerError: WriteConflict error: this operation conflicted with another operation. Please retry your operation or multi-document transaction"
+	return h.blockchainSyncManagerService.Execute(ctx, h.config.Blockchain.ChainID, h.config.App.TenantID)
 }

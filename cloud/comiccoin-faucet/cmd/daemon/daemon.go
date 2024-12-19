@@ -1,7 +1,7 @@
 package daemon
 
 import (
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -35,7 +35,6 @@ func DaemonCmd() *cobra.Command {
 		Use:   "daemon",
 		Short: "Run the ComicCoin Faucet",
 		Run: func(cmd *cobra.Command, args []string) {
-			log.Println("Running daemon......")
 			doRunDaemon()
 		},
 	}
@@ -50,8 +49,11 @@ func doRunDaemon() {
 
 	// Common
 	logger := logger.NewProvider()
-	kmutex := kmutexutil.NewKMutexProvider()
 	cfg := config.NewProviderUsingEnvironmentVariables()
+	logger.Debug("faucet configuration ready", // For debugging purposes only.
+		slog.Any("tenant_id", cfg.App.TenantID),
+		slog.Any("wallet_address", cfg.App.WalletAddress))
+	kmutex := kmutexutil.NewKMutexProvider()
 	dbClient := mongodb.NewProvider(cfg, logger)
 	keystore := keystore.NewAdapter()
 	passp := password.NewProvider()
@@ -437,6 +439,7 @@ func doRunDaemon() {
 
 	blockchainSyncManagerService := service.NewBlockchainSyncManagerService(
 		logger,
+		dbClient,
 		blockchainSyncService,
 		subscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase,
 	)

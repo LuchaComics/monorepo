@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"log"
 	"log/slog"
 	"strings"
 	"time"
@@ -11,20 +10,23 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/httperror"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/usecase"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type BlockchainSyncManagerService struct {
 	logger                                                               *slog.Logger
+	dbClient                                                             *mongo.Client
 	blockchainSyncWithBlockchainAuthorityService                         *BlockchainSyncWithBlockchainAuthorityService
 	subscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase *usecase.SubscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase
 }
 
 func NewBlockchainSyncManagerService(
 	logger *slog.Logger,
+	dbClient *mongo.Client,
 	s1 *BlockchainSyncWithBlockchainAuthorityService,
 	uc1 *usecase.SubscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase,
 ) *BlockchainSyncManagerService {
-	return &BlockchainSyncManagerService{logger, s1, uc1}
+	return &BlockchainSyncManagerService{logger, dbClient, s1, uc1}
 }
 
 func (s *BlockchainSyncManagerService) Execute(ctx context.Context, chainID uint16, tenantID primitive.ObjectID) error {
@@ -50,13 +52,34 @@ func (s *BlockchainSyncManagerService) Execute(ctx context.Context, chainID uint
 	// On startup sync with Blockchain Authority.
 	//
 
-	s.logger.Debug("Syncing...")
+	session, err := s.dbClient.StartSession()
+	if err != nil {
+		s.logger.Error("start session error",
+			slog.Any("error", err))
+		return err
+	}
+	defer session.EndSession(ctx)
 
-	if err := s.blockchainSyncWithBlockchainAuthorityService.Execute(ctx, chainID, tenantID); err != nil {
-		log.Fatalf("Failed to sync blockchain: %v\n", err)
+	// Define a transaction function with a series of operations
+	transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
+		if err := s.blockchainSyncWithBlockchainAuthorityService.Execute(sessCtx, chainID, tenantID); err != nil {
+			s.logger.Warn("Failed getting entire blockchain from authority",
+				slog.Any("chainID", chainID),
+				slog.Any("error", err))
+			return nil, err
+		}
+		return nil, nil
 	}
 
-	s.logger.Debug("Syncing finished")
+	// Start a transaction
+	_, txErr := session.WithTransaction(ctx, transactionFunc)
+	if txErr != nil {
+		s.logger.Error("session failed error",
+			slog.Any("error", txErr))
+		return txErr
+	}
+
+	s.logger.Debug("Syncing entire blockchain finished")
 
 	//
 	// STEP 3:
@@ -90,8 +113,31 @@ func (s *BlockchainSyncManagerService) Execute(ctx context.Context, chainID uint
 	for value := range ch {
 		fmt.Printf("Received update from chain ID: %d\n", value)
 
-		if err := s.blockchainSyncWithBlockchainAuthorityService.Execute(ctx, chainID, tenantID); err != nil {
-			log.Fatalf("Failed to sync blockchain: %v\n", err)
+		session, err := s.dbClient.StartSession()
+		if err != nil {
+			s.logger.Error("start session error",
+				slog.Any("error", err))
+			return err
+		}
+		defer session.EndSession(ctx)
+
+		// Define a transaction function with a series of operations
+		transactionFunc := func(sessCtx mongo.SessionContext) (interface{}, error) {
+			if err := s.blockchainSyncWithBlockchainAuthorityService.Execute(sessCtx, chainID, tenantID); err != nil {
+				s.logger.Warn("Failed syncing with authority",
+					slog.Any("chainID", chainID),
+					slog.Any("error", err))
+				return nil, err
+			}
+			return nil, nil
+		}
+
+		// Start a transaction
+		_, txErr := session.WithTransaction(ctx, transactionFunc)
+		if txErr != nil {
+			s.logger.Error("session failed error",
+				slog.Any("error", txErr))
+			return txErr
 		}
 
 		// DEVELOPERS NOTE:
