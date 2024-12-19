@@ -496,6 +496,14 @@ func doRunDaemon() {
 		userCountByFilterUseCase,
 	)
 
+	// Faucet
+	faucetBalanceService := service.NewFaucetBalanceService(
+		cfg,
+		logger,
+		kmutex,
+		getAccountUseCase,
+	)
+
 	//
 	// Interface.
 	//
@@ -621,6 +629,11 @@ func doRunDaemon() {
 		dbClient,
 		userCountJoinedThisWeekService,
 	)
+	faucetBalanceHTTPHandler := httphandler.NewFaucetBalanceHTTPHandler(
+		logger,
+		dbClient,
+		faucetBalanceService,
+	)
 	httpMiddleware := httpmiddle.NewMiddleware(
 		logger,
 		blackp,
@@ -654,6 +667,7 @@ func doRunDaemon() {
 		comicSubmissionCountTotalCreatedTodayByUserHTTPHandler,
 		comicSubmissionJudgeOperationHTTPHandler,
 		userCountJoinedThisWeekHTTPHandler,
+		faucetBalanceHTTPHandler,
 	)
 
 	//

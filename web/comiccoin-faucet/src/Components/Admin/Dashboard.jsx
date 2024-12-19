@@ -15,6 +15,7 @@ import {
     postComicSubmissionJudgementOperationAPI
 } from "../../API/ComicSubmission";
 import { getUsersCountJoinedThisWeekAPI } from "../../API/user";
+import { getFaucetBalanceAPI } from "../../API/Faucet";
 import AdminTopbar from "../Navigation/AdminTopbar";
 
 
@@ -26,6 +27,7 @@ const AdminDashboard = () => {
   const [totalPendingSubmissions, setTotalPendingSubmissions] = useState(0);
   const [totalCoinsAwarded, setTotalCoinsAwarded] = useState(0);
   const [totalUsersJoinedThisWeek, setTotalUsersJoinedThisWeek] = useState(0);
+  const [faucetBalance, setFaucetBalance] = useState(0);
   const [pendingSubmissions, setPendingSubmissions] = useState([]);
   const [isFetching, setFetching] = useState(false);
   const [errors, setErrors] = useState({});
@@ -126,6 +128,31 @@ const AdminDashboard = () => {
               window.location.href = "/login?unauthorized=true";
             }
           }
+        );
+
+        await getFaucetBalanceAPI(
+            (resp) => {
+                if (mounted) {
+                  console.log("getFaucetBalanceAPI: Success", resp);
+                  setFaucetBalance(resp.count);
+                }
+            },
+            (apiErr) => {
+                if (mounted) {
+                  console.log("getFaucetBalanceAPI: Error:", apiErr);
+                  setErrors(apiErr);
+                }
+            },
+            () => {
+                if (mounted) {
+                  setFetching(false);
+                }
+            },
+            () => {
+                if (mounted) {
+                  window.location.href = "/login?unauthorized=true";
+                }
+            }
         );
       } catch (error) {
         console.error("Failed to fetch submissions:", error);
@@ -440,20 +467,24 @@ const AdminDashboard = () => {
           Admin Dashboard
         </h1>
 
-        <div className="flex flex-col md:flex-row justify-between items-stretch gap-6 mb-8">
-          <div className="flex-1 bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
-            <div className="text-purple-600 text-lg font-semibold">New Users This Week</div>
-            <div className="text-3xl font-bold">{totalUsersJoinedThisWeek}</div>
-          </div>
-          <div className="flex-1 bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
-            <div className="text-purple-600 text-lg font-semibold">Pending Reviews</div>
-            <div className="text-3xl font-bold">{pendingSubmissions.length}</div>
-          </div>
-          <div className="flex-1 bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
-            <div className="text-purple-600 text-lg font-semibold">Total ComicCoins Paid</div>
-            <div className="text-3xl font-bold">{totalCoinsAwarded}</div>
-          </div>
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+         <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
+           <div className="text-purple-600 text-lg font-semibold">New Users This Week</div>
+           <div className="text-3xl font-bold">{totalUsersJoinedThisWeek}</div>
+         </div>
+         <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
+           <div className="text-purple-600 text-lg font-semibold">Pending Reviews</div>
+           <div className="text-3xl font-bold">{pendingSubmissions.length}</div>
+         </div>
+         <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
+           <div className="text-purple-600 text-lg font-semibold">Total ComicCoins Paid</div>
+           <div className="text-3xl font-bold">{totalCoinsAwarded}&nbsp;CC</div>
+         </div>
+         <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
+           <div className="text-purple-600 text-lg font-semibold">Faucet Balance</div>
+           <div className="text-3xl font-bold">{faucetBalance}&nbsp;CC</div>
+         </div>
+       </div>
 
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border-2 border-purple-200">
           <h2 className="text-2xl font-bold text-purple-800 mb-6" style={{fontFamily: 'Comic Sans MS, cursive'}}>
