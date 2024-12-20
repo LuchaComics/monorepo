@@ -176,13 +176,14 @@ const SubmissionsPage = () => {
           </div>
         ) : (
           <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
               {submissions.map(submission => (
-                <GalleryItem
-                  key={submission.id}
-                  submission={submission}
-                  onClick={setSelectedSubmission}
-                />
+                <div key={submission.id} className="w-full">
+                  <GalleryItem
+                    submission={submission}
+                    onClick={setSelectedSubmission}
+                  />
+                </div>
               ))}
             </div>
 

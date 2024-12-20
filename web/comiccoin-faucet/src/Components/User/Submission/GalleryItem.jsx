@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Flag, Coins, Clock, XCircle, CheckCircle  } from 'lucide-react';
+import { X, Flag, Coins, Clock, XCircle, CheckCircle } from 'lucide-react';
 
 const getStatusInfo = (status) => {
   switch (status) {
@@ -55,53 +55,53 @@ const GalleryItem = ({ submission, onClick }) => {
 
   return (
     <div
-      className={`w-32 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer border ${getBorderStyle()}`}
+      className={`w-full bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer border-2 ${getBorderStyle()}`}
       onClick={() => onClick?.(submission)}
     >
-      <div className="relative w-32 h-44">
-        <div className="relative">
+      <div className="relative w-full aspect-[2/3]">
+        <div className="relative h-full">
           <img
-            src={submission.frontCover?.objectUrl || "/api/placeholder/128/176"}
+            src={submission.frontCover?.objectUrl || "/api/placeholder/256/384"}
             alt={submission.name}
-            className={`w-full h-44 object-cover rounded-t-lg ${isRejected ? 'opacity-50 grayscale' : ''}`}
+            className={`w-full h-full object-cover rounded-t-lg ${isRejected ? 'opacity-50 grayscale' : ''}`}
           />
           {statusInfo.overlayClass && (
             <div className={`absolute inset-0 ${statusInfo.overlayClass} rounded-t-lg`} />
           )}
         </div>
-        <div className="absolute top-1 right-1 bg-white rounded-full p-1 shadow">
+        <div className="absolute top-2 right-2 bg-white rounded-full p-1.5 shadow-md">
           {statusInfo.icon}
         </div>
       </div>
 
-      <div className="p-2">
-        <h3 className="font-medium text-xs truncate" title={submission.name}>
+      <div className="p-3">
+        <h3 className="font-medium text-sm truncate" title={submission.name}>
           {submission.name}
         </h3>
-        <p className="text-xs text-gray-600 truncate">
+        <p className="text-sm text-gray-600 truncate">
           by {submission.createdByUserName}
         </p>
-        <div className="flex items-center justify-between mt-1">
-          <span className={`text-xs font-medium ${statusInfo.color} inline-flex items-center gap-1`}>
+        <div className="flex items-center justify-between mt-2">
+          <span className={`text-sm font-medium ${statusInfo.color} inline-flex items-center gap-1`}>
             {statusInfo.text}
           </span>
           {isAccepted && submission.coinsAwarded > 0 && (
-            <span className="text-xs text-green-600 flex items-center gap-1">
-              <Coins className="w-3 h-3" />
+            <span className="text-sm text-green-600 flex items-center gap-1">
+              <Coins className="w-4 h-4" />
               {submission.coinsAwarded}
             </span>
           )}
         </div>
         {isRejected && submission.reason && (
-          <p className="text-xs text-red-600 mt-1 bg-red-50 p-1 rounded">
+          <p className="text-sm text-red-600 mt-2 bg-red-50 p-2 rounded">
             {submission.reason}
           </p>
         )}
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-sm text-gray-500 mt-2">
           {new Date(submission.createdAt).toLocaleDateString()}
         </p>
         {isAccepted && (
-          <p className="text-xs text-green-600 mt-1">
+          <p className="text-sm text-green-600 mt-1">
             Approved: {new Date(submission.modifiedAt).toLocaleDateString()}
           </p>
         )}
