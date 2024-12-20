@@ -15,6 +15,8 @@ import {
     getComicSubmissionsCountTotalCreatedTodayByUserAPI,
     getComicSubmissionListAPI
 } from "../../API/ComicSubmission";
+import SubmissionModal from './Submission/ListModal';
+import GalleryItem from './Submission/GalleryItem';
 
 
 const DashboardPage = () => {
@@ -27,6 +29,8 @@ const DashboardPage = () => {
   const [forceURL, setForceURL] = useState("");
   const [isFetching, setFetching] = useState(false);
   const [errors, setErrors] = useState({});
+  const [selectedSubmission, setSelectedSubmission] = useState(null);
+
 
   // Data related.
   const [totalSubmissions, setTotalSubmissions] = useState(0);
@@ -34,72 +38,6 @@ const DashboardPage = () => {
   const [totalCoinsEarned, setTotalCoinsEarned] = useState(0);
   const [pendingSubmissions, setPendingSubmissions] = useState([]);
   const [recentSubmissions, setRecentSubmissions] = useState([]);
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 1: // ComicSubmissionStatusInReview
-        return <Clock className="w-4 h-4 text-yellow-500" />;
-      case 3: // ComicSubmissionStatusAccepted
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 2: // ComicSubmissionStatusRejected
-        return <XCircle className="w-4 h-4 text-red-500" />;
-      default:
-        return null;
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 1: // ComicSubmissionStatusInReview
-        return 'text-yellow-500';
-      case 3: // ComicSubmissionStatusAccepted
-        return 'text-green-500';
-      case 2: // ComicSubmissionStatusRejected
-        return 'text-red-500';
-      default:
-        return '';
-    }
-  };
-
-  const GalleryItem = ({ submission }) => (
-    <div className="w-32 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-purple-100">
-      <div className="relative w-32 h-44">
-        <img
-          src={submission.frontCover.objectUrl}
-          alt={submission.name}
-          className="w-full h-full object-cover rounded-t-lg"
-        />
-        <div className="absolute top-1 right-1 bg-white rounded-full p-1 shadow">
-          {getStatusIcon(submission.status)}
-        </div>
-      </div>
-      <div className="p-2">
-        <h3 className="font-medium text-xs truncate" title={submission.title}>
-          {submission.name}
-        </h3>
-        <p className="text-xs text-gray-600 truncate">by {submission.createdByUserName}</p>
-        <p className="text-xs mt-1">
-          <span className={`font-medium ${getStatusColor(submission.status)}`}>
-            {submission.status === 1 ? 'In Review' :
-             submission.status === 2 ? 'Approved' : 'Rejected'}
-          </span>
-        </p>
-        {submission.coinsAwarded && (
-          <p className="text-xs text-green-600 mt-1">
-            +{submission.coinsAwarded} ComicCoins
-          </p>
-        )}
-        {submission.reason && (
-          <p className="text-xs text-red-500 mt-1">
-            {submission.reason}
-          </p>
-        )}
-        <p className="text-xs text-gray-500 mt-1">
-          {new Date(submission.createdAt).toLocaleDateString()}
-        </p>
-      </div>
-    </div>
-  );
 
   useEffect(() => {
     let mounted = true;
@@ -363,7 +301,11 @@ const DashboardPage = () => {
               </div> :
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                 {pendingSubmissions.map(submission => (
-                  <GalleryItem key={submission.id} submission={submission} />
+                    <GalleryItem
+                      key={submission.id}
+                      submission={submission}
+                      onClick={setSelectedSubmission}
+                    />
                 ))}
               </div>}
           </div>
@@ -379,6 +321,12 @@ const DashboardPage = () => {
             </div>
           </div>
         </main>
+        {selectedSubmission && (
+          <SubmissionModal
+            submission={selectedSubmission}
+            onClose={() => setSelectedSubmission(null)}
+          />
+        )}
       </div>
     );
   };

@@ -103,7 +103,7 @@ const SubmitComicSuccessPage = () => {
     };
   }, [currentUser, comicSubmissionID]);
 
-  const totalSubmissionsTodayPercent = 100 * (totalSubmissionsToday / 3);
+  const totalSubmissionsTodayPercent = 100 * (totalSubmissionsToday / 6);
   const totalSubmissionsTodayPercentStr = totalSubmissionsTodayPercent + "%";
 
   return (
@@ -177,7 +177,7 @@ const SubmitComicSuccessPage = () => {
                 <span>Standard User</span>
               </h3>
               <p className="text-gray-600 mb-3">
-                You have used {totalSubmissionsToday}/3 submissions today
+                You have used {totalSubmissionsToday}/6 submissions today
               </p>
               <div className="w-full bg-purple-200 rounded-full h-2">
                 <div
