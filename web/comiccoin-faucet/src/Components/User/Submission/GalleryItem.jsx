@@ -24,6 +24,13 @@ const getStatusInfo = (status) => {
         text: 'Approved',
         overlayClass: 'bg-green-500 bg-opacity-20'
       };
+    case 6: // ComicSubmissionStatusFlagged
+      return {
+        icon: <Flag className="w-4 h-4 text-red-500" />,
+        color: 'text-red-500',
+        text: 'Flagged',
+        overlayClass: 'bg-red-500 bg-opacity-10'
+      };
     default:
       return {
         icon: null,
@@ -39,6 +46,7 @@ const GalleryItem = ({ submission, onClick }) => {
   const isAccepted = submission.status === 3;
   const isRejected = submission.status === 2;
   const isInReview = submission.status === 1;
+  const isFlagged = submission.status === 6;
 
   const getBorderStyle = () => {
     switch (submission.status) {
@@ -48,6 +56,8 @@ const GalleryItem = ({ submission, onClick }) => {
         return 'border-red-500';
       case 3:
         return 'border-green-500';
+      case 6:
+        return 'border-red-500';
       default:
         return 'border-purple-100';
     }
@@ -59,16 +69,22 @@ const GalleryItem = ({ submission, onClick }) => {
       onClick={() => onClick?.(submission)}
     >
       <div className="relative w-full aspect-[2/3]">
-        <div className="relative h-full">
-          <img
-            src={submission.frontCover?.objectUrl || "/api/placeholder/256/384"}
-            alt={submission.name}
-            className={`w-full h-full object-cover rounded-t-lg ${isRejected ? 'opacity-50 grayscale' : ''}`}
-          />
-          {statusInfo.overlayClass && (
-            <div className={`absolute inset-0 ${statusInfo.overlayClass} rounded-t-lg`} />
-          )}
-        </div>
+        {isFlagged ? (
+          <div className="absolute inset-0 bg-gray-100 rounded-t-lg flex items-center justify-center">
+            <Flag className="w-20 h-20 text-red-500" />
+          </div>
+        ) : (
+          <div className="relative h-full">
+            <img
+              src={submission.frontCover?.objectUrl || "/api/placeholder/256/384"}
+              alt={submission.name}
+              className={`w-full h-full object-cover rounded-t-lg ${isRejected ? 'opacity-50 grayscale' : ''}`}
+            />
+            {statusInfo.overlayClass && (
+              <div className={`absolute inset-0 ${statusInfo.overlayClass} rounded-t-lg`} />
+            )}
+          </div>
+        )}
         <div className="absolute top-2 right-2 bg-white rounded-full p-1.5 shadow-md">
           {statusInfo.icon}
         </div>
@@ -92,19 +108,35 @@ const GalleryItem = ({ submission, onClick }) => {
             </span>
           )}
         </div>
-        {isRejected && submission.reason && (
+        {(isRejected || isFlagged) && submission.reason && (
           <p className="text-sm text-red-600 mt-2 bg-red-50 p-2 rounded">
             {submission.reason}
           </p>
         )}
-        <p className="text-sm text-gray-500 mt-2">
-          {new Date(submission.createdAt).toLocaleDateString()}
-        </p>
-        {isAccepted && (
-          <p className="text-sm text-green-600 mt-1">
-            Approved: {new Date(submission.modifiedAt).toLocaleDateString()}
+        <div className="mt-2">
+          <p className="text-sm text-gray-500">
+            {new Date(submission.createdAt).toLocaleDateString()}
           </p>
-        )}
+          <div className="h-5 text-sm">
+            {isAccepted ? (
+              <p className="text-green-600">
+                Approved: {new Date(submission.modifiedAt).toLocaleDateString()}
+              </p>
+            ) : isRejected ? (
+              <p className="text-red-600">
+                Rejected: {new Date(submission.modifiedAt).toLocaleDateString()}
+              </p>
+            ) : isFlagged ? (
+              <p className="text-red-600">
+                Flagged: {new Date(submission.modifiedAt).toLocaleDateString()}
+              </p>
+            ) : (
+              <p className="text-gray-400 italic">
+                Pending Review...
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
