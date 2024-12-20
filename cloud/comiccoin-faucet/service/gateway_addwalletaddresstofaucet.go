@@ -111,7 +111,7 @@ func (s *GatewayAddWalletAddressToFaucetService) Execute(
 		FromAccountAddress:    s.config.App.WalletAddress,
 		AccountWalletPassword: s.config.App.WalletPassword,
 		To:                    &walletAddress,
-		Value:                 10,
+		Value:                 s.config.App.RegistrationCoinsReward,
 		Data:                  make([]byte, 0),
 	}
 	if err := s.faucetCoinTransferService.Execute(sessCtx, idoReq); err != nil {

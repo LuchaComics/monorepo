@@ -22,18 +22,20 @@ type Configuration struct {
 }
 
 type serverConf struct {
-	DataDirectory         string
-	FrontendDomain        string
-	BackendDomain         string
-	Port                  string
-	IP                    string
-	HTTPAddress           string
-	TenantID              primitive.ObjectID
-	WalletAddress         *common.Address
-	WalletPassword        *sstring.SecureString
-	AuthorityHTTPAddress  string
-	NFTStorageHTTPAddress string
-	HMACSecret            *sbytes.SecureBytes
+	DataDirectory              string
+	FrontendDomain             string
+	BackendDomain              string
+	Port                       string
+	IP                         string
+	HTTPAddress                string
+	TenantID                   primitive.ObjectID
+	WalletAddress              *common.Address
+	WalletPassword             *sstring.SecureString
+	AuthorityHTTPAddress       string
+	NFTStorageHTTPAddress      string
+	HMACSecret                 *sbytes.SecureBytes
+	RegistrationCoinsReward    uint64
+	ComicSubmissionCoinsReward uint64
 }
 
 type awsConfig struct {
@@ -83,6 +85,8 @@ func NewProviderUsingEnvironmentVariables() *Configuration {
 	c.App.Port = getEnv("COMICCOIN_FAUCET_PORT", true)
 	c.App.IP = getEnv("COMICCOIN_FAUCET_IP", false)
 	c.App.HTTPAddress = fmt.Sprintf("%v:%v", c.App.IP, c.App.Port)
+	c.App.RegistrationCoinsReward = getUint64Env("COMICCOIN_FAUCET_APP_REGISTRATION_COINS_REWARD", true)
+	c.App.ComicSubmissionCoinsReward = getUint64Env("COMICCOIN_FAUCET_APP_COMIC_SUBMISSION_COINS_REWARD", true)
 	tenantIDHex := getEnv("COMICCOIN_FAUCET_TENANT_ID", true)
 	tenantID, err := primitive.ObjectIDFromHex(tenantIDHex)
 	if err != nil {
@@ -176,4 +180,16 @@ func getEnvBool(key string, required bool, defaultValue bool) bool {
 		log.Fatalf("Invalid boolean value for environment variable %s", key)
 	}
 	return value
+}
+
+func getUint64Env(key string, required bool) uint64 {
+	value := os.Getenv(key)
+	if value == "" && required {
+		log.Fatalf("Environment variable not found: %s", key)
+	}
+	uintValue, err := strconv.ParseUint(value, 10, 64)
+	if err != nil && (required || value != "") {
+		log.Fatalf("Failed to parse environment variable as uint64: %s = %q, error: %v", key, value, err)
+	}
+	return uintValue
 }

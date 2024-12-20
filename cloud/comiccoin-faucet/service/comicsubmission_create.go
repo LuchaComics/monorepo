@@ -10,12 +10,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/httperror"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config/constants"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/domain"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/usecase"
 )
 
 type ComicSubmissionCreateService struct {
+	config                                             *config.Configuration
 	logger                                             *slog.Logger
 	userGetByIDUseCase                                 *usecase.UserGetByIDUseCase
 	comicSubmissionCountTotalCreatedTodayByUserUseCase *usecase.ComicSubmissionCountTotalCreatedTodayByUserUseCase
@@ -25,6 +27,7 @@ type ComicSubmissionCreateService struct {
 }
 
 func NewComicSubmissionCreateService(
+	cfg *config.Configuration,
 	logger *slog.Logger,
 	uc1 *usecase.UserGetByIDUseCase,
 	uc2 *usecase.ComicSubmissionCountTotalCreatedTodayByUserUseCase,
@@ -32,7 +35,7 @@ func NewComicSubmissionCreateService(
 	uc4 *usecase.AttachmentUpdateUseCase,
 	uc5 *usecase.ComicSubmissionCreateUseCase,
 ) *ComicSubmissionCreateService {
-	return &ComicSubmissionCreateService{logger, uc1, uc2, uc3, uc4, uc5}
+	return &ComicSubmissionCreateService{cfg, logger, uc1, uc2, uc3, uc4, uc5}
 }
 
 type ComicSubmissionCreateRequestIDO struct {
@@ -210,7 +213,7 @@ func (s *ComicSubmissionCreateService) Execute(sessCtx mongo.SessionContext, req
 		ModifiedByUserName:    u.Name,
 		ModifiedByUserID:      u.ID,
 		ModifiedFromIPAddress: ipAddress,
-		CoinsReward:           5, //TODO: Replace magic number with configuration variable.
+		CoinsReward:           s.config.App.ComicSubmissionCoinsReward,
 		TenantID:              u.TenantID,
 	}
 	if err := s.comicSubmissionCreateUseCase.Execute(sessCtx, comicSubmission); err != nil {

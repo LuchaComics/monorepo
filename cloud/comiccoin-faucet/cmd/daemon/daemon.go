@@ -462,6 +462,7 @@ func doRunDaemon() {
 
 	// Comic Submission
 	comicSubmissionCreateService := service.NewComicSubmissionCreateService(
+		cfg,
 		logger,
 		userGetByIDUseCase,
 		comicSubmissionCountTotalCreatedTodayByUserUseCase,
