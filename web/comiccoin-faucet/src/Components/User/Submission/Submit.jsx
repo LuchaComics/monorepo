@@ -209,19 +209,15 @@ const SubmitComicPage = () => {
 
   const onSubmitClick = (e) => {
     console.log("onSubmitClick: Beginning...");
-    console.log("onSubmitClick: Generating payload for submission.");
     setFetching(true);
     setErrors({});
 
-    // Variable holds a complete clone of the submission.
     let comicSubmission = {
       name: comicName,
       frontCover: frontCoverData.id,
       backCover: backCoverData.id,
     };
 
-    // Submit to the backend.
-    console.log("onSubmitClick: payload:", comicSubmission);
     postComicSubmissionCreateAPI(
       comicSubmission,
       (response) => {
@@ -234,6 +230,11 @@ const SubmitComicPage = () => {
       },
       (apiErr) => {
         console.error(`submit error:`, apiErr);
+        setErrors(prev => ({
+          ...prev,
+          submit: apiErr?.message || "An error occurred while submitting your comic."
+        }));
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       },
       () => {
         setFetching(false);
@@ -341,6 +342,9 @@ const SubmitComicPage = () => {
 
         {/* Submission Form */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border-2 border-purple-200">
+
+          {errors.submit && <ErrorMessage message={errors.submit} />}
+
           <div className="space-y-6">
             {/* Comic Name */}
             <div>
@@ -440,3 +444,15 @@ const SubmitComicPage = () => {
 };
 
 export default SubmitComicPage;
+
+const ErrorMessage = ({ message }) => (
+  <div className="mb-4 p-4 bg-red-50 border-2 border-red-200 rounded-lg">
+    <div className="flex gap-2">
+      <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+      <div>
+        <h3 className="text-red-800 font-medium">Submission Error</h3>
+        <p className="text-red-600 text-sm mt-1">{message}</p>
+      </div>
+    </div>
+  </div>
+);

@@ -148,7 +148,7 @@ func (s *ComicSubmissionCreateService) Execute(sessCtx mongo.SessionContext, req
 				slog.Any("err", err))
 			return nil, err
 		}
-		if todaysCount > 6 {
+		if todaysCount >= 6 {
 			e["message"] = "Daily limit of 6 reached today"
 			s.logger.Warn("validation failure",
 				slog.Any("e", e))
