@@ -254,6 +254,7 @@ const SubmitComicPage = () => {
       <main className="p-4 lg:p-8 max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8">
+          {/*
           <Link
             to="/dashboard"
             className="flex items-center text-purple-600 hover:text-purple-700 mb-4"
@@ -261,6 +262,7 @@ const SubmitComicPage = () => {
             <ArrowLeft className="h-5 w-5 mr-1" />
             Back to Dashboard
           </Link>
+          */}
           <h1
             className="text-2xl lg:text-3xl font-bold text-purple-800 mb-2"
             style={{ fontFamily: "Comic Sans MS, cursive" }}
