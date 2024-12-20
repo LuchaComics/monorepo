@@ -151,6 +151,8 @@ func (s *ComicSubmissionJudgeOperationService) Execute(
 			To:                    customerUser.WalletAddress,
 			Value:                 comicSubmission.CoinsReward,
 			Data:                  ([]byte)(s.config.App.FrontendDomain),
+			UserID:                customerUser.ID,
+			UserName:              customerUser.Name,
 		}
 		if err := s.faucetCoinTransferService.Execute(sessCtx, req); err != nil {
 			s.logger.Error("Failed faucet coin transfer",

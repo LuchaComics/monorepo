@@ -72,6 +72,7 @@ func doRunDaemon() {
 	accountRepo := repo.NewAccountRepository(cfg, logger, dbClient)
 	tenantRepo := repo.NewTenantRepository(cfg, logger, dbClient)
 	userRepo := repo.NewUserRepository(cfg, logger, dbClient)
+	userTransactionRepo := repo.NewUserTransactionRepository(cfg, logger, dbClient)
 	tokRepo := repo.NewTokenRepository(cfg, logger, dbClient)
 	blockchainStateRepo := repo.NewBlockchainStateRepository(cfg, logger, dbClient)
 	blockchainStateChangeEventDTOConfigurationProvider := repo.NewBlockchainStateChangeEventDTOConfigurationProvider(cfg.App.AuthorityHTTPAddress)
@@ -290,6 +291,29 @@ func doRunDaemon() {
 		logger,
 		userRepo)
 
+	// User Transaction
+	createUserTransactionUseCase := usecase.NewCreateUserTransactionUseCase(
+		cfg,
+		logger,
+		userTransactionRepo,
+	)
+	userTransactionDeleteUseCase := usecase.NewUserTransactionDeleteUseCase(
+		cfg,
+		logger,
+		userTransactionRepo,
+	)
+	_ = userTransactionDeleteUseCase
+	userTransactionGetUseCase := usecase.NewUserTransactionGetUseCase(
+		cfg,
+		logger,
+		userTransactionRepo,
+	)
+	userTransactionUpdateUseCase := usecase.NewUserTransactionUpdateUseCase(
+		cfg,
+		logger,
+		userTransactionRepo,
+	)
+
 	// Comic Submission.
 	comicSubmissionCreateUseCase := usecase.NewComicSubmissionCreateUseCase(
 		cfg,
@@ -339,6 +363,7 @@ func doRunDaemon() {
 		getWalletUseCase,
 		walletDecryptKeyUseCase,
 		submitMempoolTransactionDTOToBlockchainAuthorityUseCase,
+		createUserTransactionUseCase,
 	)
 
 	gatewayUserRegisterService := service.NewGatewayUserRegisterService(
@@ -421,6 +446,7 @@ func doRunDaemon() {
 	)
 
 	blockchainSyncService := service.NewBlockchainSyncWithBlockchainAuthorityService(
+		cfg,
 		logger,
 		getGenesisBlockDataUseCase,
 		upsertGenesisBlockDataUseCase,
@@ -436,6 +462,8 @@ func doRunDaemon() {
 		upsertTokenIfPreviousTokenNonceGTEUseCase,
 		tenantGetByIDUseCase,
 		tenantUpdateUseCase,
+		userTransactionGetUseCase,
+		userTransactionUpdateUseCase,
 	)
 
 	blockchainSyncManagerService := service.NewBlockchainSyncManagerService(

@@ -412,12 +412,12 @@ const SubmitComicPage = () => {
 
             {/* Action Buttons */}
             <div className="flex justify-end space-x-4">
-              <button
+              <Link to="/dashboard"
                 className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                 disabled={isFetching}
               >
                 Cancel
-              </button>
+              </Link>
               <button
                 onClick={onSubmitClick}
                 className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

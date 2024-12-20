@@ -6,15 +6,18 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/blockchain/signature"
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/httperror"
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/domain"
-	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/usecase"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/blockchain/signature"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/httperror"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/domain"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/usecase"
 )
 
 type BlockchainSyncWithBlockchainAuthorityService struct {
+	config                                               *config.Configuration
 	logger                                               *slog.Logger
 	getGenesisBlockDataUseCase                           *usecase.GetGenesisBlockDataUseCase
 	upsertGenesisBlockDataUseCase                        *usecase.UpsertGenesisBlockDataUseCase
@@ -30,9 +33,12 @@ type BlockchainSyncWithBlockchainAuthorityService struct {
 	upsertTokenIfPreviousTokenNonceGTEUseCase            *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase
 	tenantGetByIDUseCase                                 *usecase.TenantGetByIDUseCase
 	tenantUpdateUseCase                                  *usecase.TenantUpdateUseCase
+	userTransactionGetUseCase                            *usecase.UserTransactionGetUseCase
+	userTransactionUpdateUseCase                         *usecase.UserTransactionUpdateUseCase
 }
 
 func NewBlockchainSyncWithBlockchainAuthorityService(
+	cfg *config.Configuration,
 	logger *slog.Logger,
 	uc1 *usecase.GetGenesisBlockDataUseCase,
 	uc2 *usecase.UpsertGenesisBlockDataUseCase,
@@ -48,8 +54,10 @@ func NewBlockchainSyncWithBlockchainAuthorityService(
 	uc12 *usecase.UpsertTokenIfPreviousTokenNonceGTEUseCase,
 	uc13 *usecase.TenantGetByIDUseCase,
 	uc14 *usecase.TenantUpdateUseCase,
+	uc15 *usecase.UserTransactionGetUseCase,
+	uc16 *usecase.UserTransactionUpdateUseCase,
 ) *BlockchainSyncWithBlockchainAuthorityService {
-	return &BlockchainSyncWithBlockchainAuthorityService{logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12, uc13, uc14}
+	return &BlockchainSyncWithBlockchainAuthorityService{cfg, logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12, uc13, uc14, uc15, uc16}
 }
 
 func (s *BlockchainSyncWithBlockchainAuthorityService) Execute(sessCtx mongo.SessionContext, chainID uint16, tenantID primitive.ObjectID) error {
@@ -150,7 +158,7 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) Execute(sessCtx mongo.Ses
 	// global blockchain network then we are done synching (because there is
 	// nothin left to sync). If we don't even have a blockchain state then we need to
 	// proceed to download the entire blockchain immediately. If there is any
-	// discrepency between the global and local state then we proceed with
+	// discrepancy between the global and local state then we proceed with
 	// this function and update our local blockchain with the available data
 	// on the global blockchain network.
 	//
@@ -321,7 +329,7 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) syncWithGlobalBlockchainN
 			return err
 		}
 
-		// Artifical delay as to not overload the network resources.
+		// Artificial delay as to not overload the network resources.
 		time.Sleep(1 * time.Second)
 
 		blockData := domain.BlockDataDTOToBlockData(blockDataDTO)
@@ -341,7 +349,7 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) syncWithGlobalBlockchainN
 
 		//
 		// STEP 3:
-		// Process account coins and tokens from the transactions.
+		// Process account 🪙 coins and 🎟️ tokens from the transactions.
 		//
 
 		for _, blockTx := range blockData.Trans {
@@ -362,7 +370,7 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) syncWithGlobalBlockchainN
 
 			//
 			// STEP 5:
-			// Process tokens.
+			// Process 🎟️ tokens.
 			//
 			if blockTx.Type == domain.TransactionTypeToken {
 				// Save our token to the local database ONLY if this transaction
@@ -386,6 +394,17 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) syncWithGlobalBlockchainN
 				}
 			}
 
+			//
+			// STEP 6:
+			// Process transactions which exist in our 🚰 faucet application.
+			//
+
+			if err := s.processUserTransactionForCoinTransaction(sessCtx, blockData, &blockTx); err != nil {
+				s.logger.Error("Failed processing transaction",
+					slog.Any("error", err))
+				return err
+			}
+
 			s.logger.Debug("Finished processing block tx",
 				slog.Any("type", blockTx.Type),
 				slog.Any("nonce", blockTx.GetNonce()),
@@ -393,7 +412,7 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) syncWithGlobalBlockchainN
 		}
 
 		//
-		// STEP 6:
+		// STEP 7:
 		// Check to see if we haven't reached the last block data we have
 		// in our local blockchain.
 		//
@@ -663,6 +682,64 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) processAccountForTokenTra
 		slog.Any("collected_fee", blockData.Header.TransactionFee),
 		slog.Any("new_balance", proofOfAuthorityAccount.Balance),
 	)
+
+	return nil
+}
+
+func (s *BlockchainSyncWithBlockchainAuthorityService) processUserTransactionForCoinTransaction(sessCtx mongo.SessionContext, blockData *domain.BlockData, blockTx *domain.BlockTransaction) error {
+	//
+	// STEP 1
+	// Check to see if our faucet sent the transaction and if it did then
+	// this transaction is for a user whom did *something* in our faucet
+	// application.
+	//
+
+	if blockTx.From != nil {
+		if *blockTx.From == *s.config.App.WalletAddress {
+			s.logger.Debug("Detect transaction from ComicCoin Faucet, beginning processing...",
+				slog.Any("nonce", blockTx.GetNonce()))
+
+			//
+			// Step 2:
+			// Lookup our existing transaction.
+			//
+
+			userTx, err := s.userTransactionGetUseCase.ExecuteForNonce(sessCtx, blockTx.GetNonce())
+			if err != nil {
+				s.logger.Error("Failed getting user transaction.",
+					slog.Any("error", err))
+				return err
+			}
+			if userTx == nil {
+				err := fmt.Errorf("User transaction d.n.e. for nonce: %v.", blockTx.GetNonce())
+				s.logger.Error("Failed getting user transaction",
+					slog.Any("error", err))
+				return err
+			}
+
+			//
+			// STEP 3:
+			// Set status to indicate our faucet successfully paid out.
+			//
+
+			userTx.Status = domain.UserTransactionStatusAccepted
+			userTx.ModifiedAt = time.Now()
+			if err := s.userTransactionUpdateUseCase.Execute(sessCtx, userTx); err != nil {
+				s.logger.Error("Failed updating user transaction.",
+					slog.Any("error", err))
+				return err
+			}
+
+			s.logger.Debug("Finished processing transaction from ComicCoin Faucet",
+				slog.Any("nonce", blockTx.GetNonce()))
+		}
+	}
+
+	// DEVELOPER NOTES:
+	// - Here is where you can write code if you want to handle coins being sent to the ComicCoin faucet
+	// if blockTx.To != nil {
+	// 	// Some code
+	// }
 
 	return nil
 }

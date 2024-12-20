@@ -16,7 +16,7 @@ const (
 
 // Transaction structure represents a transfer of coins between accounts
 // which have not been added to the blockchain yet and are waiting for the miner
-// to receive and verify. Once  transactions have been veriried
+// to receive and verify. Once  transactions have been verified
 // they will be deleted from our system as they will live in the blockchain
 // afterwords.
 type Transaction struct {

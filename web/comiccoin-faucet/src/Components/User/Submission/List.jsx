@@ -203,6 +203,28 @@ const SubmissionsPage = () => {
           onClose={() => setSelectedSubmission(null)}
         />
       )}
+
+      {/* Hidden image elements to preload */}
+      {submissions && <div style={{ display: "none" }}>
+          {submissions.map((submission, index) => (
+            <>
+                <img
+                  key={`front_${index}`}
+                  src={submission.frontCover?.objectUrl}
+                  alt={`Preloading ${index + 1}`}
+                  onLoad={() => console.log(`Image ${index + 1} loaded successfully`)}
+                  onError={() => console.error(`Image ${index + 1} failed to load`)}
+                />
+                <img
+                  key={`back_${index}`}
+                  src={submission.backCover?.objectUrl}
+                  alt={`Preloading ${index + 1}`}
+                  onLoad={() => console.log(`Image ${index + 1} loaded successfully`)}
+                  onError={() => console.error(`Image ${index + 1} failed to load`)}
+                />
+            </>
+          ))}
+      </div>}
     </div>
   );
 };

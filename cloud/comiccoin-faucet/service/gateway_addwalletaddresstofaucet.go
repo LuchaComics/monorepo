@@ -51,6 +51,7 @@ func (s *GatewayAddWalletAddressToFaucetService) Execute(
 
 	// Extract from our session the following data.
 	userID := sessCtx.Value(constants.SessionUserID).(primitive.ObjectID)
+	userName := sessCtx.Value(constants.SessionUserName).(string)
 
 	// Lookup the user in our database, else return a `400 Bad Request` error.
 	ou, err := s.userGetByIDUseCase.Execute(sessCtx, userID)
@@ -113,6 +114,8 @@ func (s *GatewayAddWalletAddressToFaucetService) Execute(
 		To:                    &walletAddress,
 		Value:                 s.config.App.RegistrationCoinsReward,
 		Data:                  make([]byte, 0),
+		UserID:                userID,
+		UserName:              userName,
 	}
 	if err := s.faucetCoinTransferService.Execute(sessCtx, idoReq); err != nil {
 		s.logger.Error("Failed transfering coins to address",

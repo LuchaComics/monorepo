@@ -354,6 +354,49 @@ const DashboardPage = () => {
             onClose={() => setSelectedSubmission(null)}
           />
         )}
+
+        {/* Hidden image elements to preload */}
+        {pendingSubmissions && <div style={{ display: "none" }}>
+            {pendingSubmissions.map((submission, index) => (
+              <>
+                  <img
+                    key={`front_${index}`}
+                    src={submission.frontCover?.objectUrl}
+                    alt={`Preloading ${index + 1}`}
+                    onLoad={() => console.log(`Image ${index + 1} loaded successfully`)}
+                    onError={() => console.error(`Image ${index + 1} failed to load`)}
+                  />
+                  <img
+                    key={`back_${index}`}
+                    src={submission.backCover?.objectUrl}
+                    alt={`Preloading ${index + 1}`}
+                    onLoad={() => console.log(`Image ${index + 1} loaded successfully`)}
+                    onError={() => console.error(`Image ${index + 1} failed to load`)}
+                  />
+              </>
+            ))}
+        </div>}
+        {/* Hidden image elements to preload */}
+        {recentSubmissions && <div style={{ display: "none" }}>
+            {recentSubmissions.map((submission, index) => (
+              <>
+                  <img
+                    key={`recent_front_${index}`}
+                    src={submission.frontCover?.objectUrl}
+                    alt={`Preloading ${index + 1}`}
+                    onLoad={() => console.log(`Image ${index + 1} loaded successfully`)}
+                    onError={() => console.error(`Image ${index + 1} failed to load`)}
+                  />
+                  <img
+                    key={`recent_back_${index}`}
+                    src={submission.backCover?.objectUrl}
+                    alt={`Preloading ${index + 1}`}
+                    onLoad={() => console.log(`Image ${index + 1} loaded successfully`)}
+                    onError={() => console.error(`Image ${index + 1} failed to load`)}
+                  />
+              </>
+            ))}
+        </div>}
       </div>
     );
   };

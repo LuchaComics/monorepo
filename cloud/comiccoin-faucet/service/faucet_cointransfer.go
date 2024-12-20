@@ -30,6 +30,7 @@ type FaucetCoinTransferService struct {
 	getWalletUseCase                                        *usecase.GetWalletUseCase
 	walletDecryptKeyUseCase                                 *usecase.WalletDecryptKeyUseCase
 	submitMempoolTransactionDTOToBlockchainAuthorityUseCase *usecase.SubmitMempoolTransactionDTOToBlockchainAuthorityUseCase
+	createUserTransactionUseCase                            *usecase.CreateUserTransactionUseCase
 }
 
 func NewFaucetCoinTransferService(
@@ -43,8 +44,9 @@ func NewFaucetCoinTransferService(
 	uc5 *usecase.GetWalletUseCase,
 	uc6 *usecase.WalletDecryptKeyUseCase,
 	uc7 *usecase.SubmitMempoolTransactionDTOToBlockchainAuthorityUseCase,
+	uc8 *usecase.CreateUserTransactionUseCase,
 ) *FaucetCoinTransferService {
-	return &FaucetCoinTransferService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7}
+	return &FaucetCoinTransferService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8}
 }
 
 type FaucetCoinTransferRequestIDO struct {
@@ -54,6 +56,8 @@ type FaucetCoinTransferRequestIDO struct {
 	To                    *common.Address       `json:"to"`
 	Value                 uint64                `json:"value"`
 	Data                  []byte                `json:"data"`
+	UserID                primitive.ObjectID    `json:"user_id"`
+	UserName              string                `json:"user_name"`
 }
 
 func (s *FaucetCoinTransferService) Execute(sessCtx mongo.SessionContext, req *FaucetCoinTransferRequestIDO) error {
@@ -230,6 +234,35 @@ func (s *FaucetCoinTransferService) Execute(sessCtx mongo.SessionContext, req *F
 
 	s.logger.Info("Pending signed transaction for coin transfer submitted to the blockchain authority",
 		slog.Any("tx_nonce", stx.GetNonce()))
+
+	//
+	// STEP 4:
+	// Keep a tailored record for our application of our blockchain transaction
+	// submitted to the Global blockchain network.
+	//
+
+	utx := &domain.UserTransaction{
+		Transaction:        *tx,
+		ID:                 primitive.NewObjectID(),
+		Status:             domain.UserTransactionStatusSubmitted,
+		UserID:             req.UserID,
+		CreatedAt:          time.Now(),
+		CreatedByUserName:  req.UserName,
+		CreatedByUserID:    req.UserID,
+		ModifiedAt:         time.Now(),
+		ModifiedByUserName: req.UserName,
+		ModifiedByUserID:   req.UserID,
+		TenantID:           s.config.App.TenantID,
+	}
+	if err := s.createUserTransactionUseCase.Execute(sessCtx, utx); err != nil {
+		s.logger.Error("Failed keep record of user transaction",
+			slog.Any("error", err))
+		return err
+	}
+
+	s.logger.Info("Keeping record of transaction for faucet application ",
+		slog.Any("id", utx.ID.Hex()),
+	)
 
 	return nil
 }
