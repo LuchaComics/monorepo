@@ -3,7 +3,14 @@ import { Coins, AlertCircle, LogOut, CheckCircle2, ArrowRight } from "lucide-rea
 import { Navigate } from "react-router-dom";
 import { useRecoilState } from "recoil";
 
+import { currentUserState } from "../../AppState";
+
+
 export default function UserAddWalletToFaucetSuccess() {
+    // Variable controls the global state of the app.
+    const [currentUser] = useRecoilState(currentUserState);
+    console.log("UserAddWalletToFaucetSuccess: currentUser:", currentUser);
+
     const [forceURL, setForceURL] = useState("");
 
     if (forceURL !== "") {

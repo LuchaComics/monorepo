@@ -27,6 +27,8 @@ function AnonymousCurrentUserRedirector() {
       "/register/user",
       "/register/store",
       "/register-successful",
+      "/add-my-wallet-to-faucet",
+      "/added-my-wallet-to-faucet-successfully",
       "/index",
       "/login",
       "/login/2fa",

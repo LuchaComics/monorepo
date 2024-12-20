@@ -28,7 +28,7 @@ function FaucetAddWalletRedirector() {
   // If user is not authenticated nor authorized then skip this redirector.
   //
 
-  if (currentUser === null) {
+  if (currentUser === undefined || currentUser === null || currentUser === "") {
       console.log("FaucetAddWalletRedirector: No user, exiting now...");
       return null;
   }
@@ -45,6 +45,7 @@ function FaucetAddWalletRedirector() {
       "/register/user",
       "/register/store",
       "/register-successful",
+      "/added-my-wallet-to-faucet-successfully",
       "/index",
       "/login",
       "/login/2fa",

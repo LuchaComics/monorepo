@@ -18,6 +18,14 @@ export default function UserAddWalletToFaucet() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Store in persistence storage in the browser by simply updating
+    // the existing logged in user.
+    const updatedCurrentUser = {...currentUser};
+    updatedCurrentUser.walletAddress = walletAddress
+    setCurrentUser(updatedCurrentUser);
+    console.log("putProfileWalletAddressAPI: currentUser:", currentUser);
+
     setIsSubmitting(true);
 
     const formData = {
@@ -34,9 +42,6 @@ export default function UserAddWalletToFaucet() {
         console.log("putProfileWalletAddressAPI: Starting...");
         console.log(resp);
 
-        // Store in persistance storage in the browser.
-        setCurrentUser(resp.user);
-
         setForceURL("/added-my-wallet-to-faucet-successfully");
 
         // -------------------
@@ -44,8 +49,9 @@ export default function UserAddWalletToFaucet() {
       },
       (apiErr) => {
         console.log("putProfileWalletAddressAPI: apiErr:", apiErr);
-        if (apiErr.walletAddress.includes("Wallet address already set")) {
+        if (JSON.stringify(apiErr).includes("Wallet address already set")) {
           setForceURL("/added-my-wallet-to-faucet-successfully");
+          return;
         }
         setErrors(apiErr);
       },
@@ -54,15 +60,18 @@ export default function UserAddWalletToFaucet() {
         setIsSubmitting(false);
       },
       () => {
-        console.log("putProfileWalletAddressAPI: unauthorized...");
-        window.location.href = "/login?unauthorized=true";
+        // console.log("putProfileWalletAddressAPI: unauthorized...");
+        // window.location.href = "/login?unauthorized=true";
       },
     );
   };
 
   if (forceURL !== "") {
+    console.log("UserAddWalletToFaucet: Redirecting to:", forceURL);
     return <Navigate to={forceURL} />;
   }
+
+ console.log("UserAddWalletToFaucet: Returning");
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-purple-100 to-white">

@@ -107,6 +107,13 @@ const DashboardPage = () => {
     if (mounted) {
       window.scrollTo(0, 0); // Start the page at the top of the page.
 
+      if (currentUser === undefined || currentUser === null || currentUser === "") {
+          console.log("DashboardPage: currentUser is null - not rendering view.");
+          return () => {
+            mounted = false;
+          }
+      }
+
       //------------------------------------------------------------------------
 
       setFetching(true);
