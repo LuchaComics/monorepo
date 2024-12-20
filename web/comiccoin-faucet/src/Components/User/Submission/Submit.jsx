@@ -251,7 +251,7 @@ const SubmitComicPage = () => {
   return (
     <div className="min-h-screen bg-purple-50">
       <Topbar currentPage="Submit Comic" />
-      <main className="p-4 lg:p-8 max-w-5xl mx-auto">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           {/*

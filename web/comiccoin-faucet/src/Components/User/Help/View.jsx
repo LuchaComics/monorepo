@@ -103,7 +103,7 @@ const HelpPage = () => {
       <Topbar currentPage="Help" />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-24 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Help Header */}
         <div className="flex items-center mb-8">
           <HelpCircle className="h-8 w-8 text-purple-600 mr-3" />

@@ -36,6 +36,7 @@ const DashboardPage = () => {
   const [totalSubmissions, setTotalSubmissions] = useState(0);
   const [totalApprovedSubmissions, setTotalApprovedSubmissions] = useState(0);
   const [totalCoinsEarned, setTotalCoinsEarned] = useState(0);
+  const [approvedSubmissions, setApprovedSubmissions] = useState([]);
   const [pendingSubmissions, setPendingSubmissions] = useState([]);
   const [recentSubmissions, setRecentSubmissions] = useState([]);
 
@@ -87,37 +88,54 @@ const DashboardPage = () => {
       // params.set("sort_order", -1); // Sorting - descending, meaning most recent start date to oldest start date.
       params.set("status", 1); // ComicSubmissionStatusInReview
       params.set("user_id", currentUser.id);
-      //
-      // params.set("store_id", sid);
-      //
-      // if (cur !== "") {
-      //   // Pagination
-      //   params.set("cursor", cur);
-      // }
-      //
-      // // Filtering
-      // if (keywords !== undefined && keywords !== null && keywords !== "") {
-      //   // Searhcing
-      //   params.set("search", keywords);
-      // }
       getComicSubmissionListAPI(
         params,
         (resp) => {
           // For debugging purposes only.
-          console.log("getComicSubmissionListAPI: Starting...");
+          console.log("getComicSubmissionListAPI (Pending): Starting...");
           console.log(resp);
           setPendingSubmissions(resp.submissions);
         },
         (apiErr) => {
-          console.log("getComicSubmissionListAPI: apiErr:", apiErr);
+          console.log("getComicSubmissionListAPI (Pending): apiErr:", apiErr);
           setErrors(apiErr);
         },
         () => {
-          console.log("getComicSubmissionListAPI: Starting...");
+          console.log("getComicSubmissionListAPI (Pending): Starting...");
           setFetching(false);
         },
         () => {
-          console.log("getComicSubmissionListAPI: unauthorized...");
+          console.log("getComicSubmissionListAPI (Pending): unauthorized...");
+          window.location.href = "/login?unauthorized=true";
+        },
+      );
+
+      //------------------------------------------------------------------------
+
+      params = new Map();
+      // params.set("page_size", limit); // Pagination
+      // params.set("sort_field", "created_at"); // Sorting
+      // params.set("sort_order", -1); // Sorting - descending, meaning most recent start date to oldest start date.
+      params.set("status", 3); // ComicSubmissionStatusInApproved
+      params.set("user_id", currentUser.id);
+      getComicSubmissionListAPI(
+        params,
+        (resp) => {
+          // For debugging purposes only.
+          console.log("getComicSubmissionListAPI (Recent): Starting...");
+          console.log(resp);
+          setApprovedSubmissions(resp.submissions);
+        },
+        (apiErr) => {
+          console.log("getComicSubmissionListAPI (Recent): apiErr:", apiErr);
+          setErrors(apiErr);
+        },
+        () => {
+          console.log("getComicSubmissionListAPI (Recent): Starting...");
+          setFetching(false);
+        },
+        () => {
+          console.log("getComicSubmissionListAPI (Recent): unauthorized...");
           window.location.href = "/login?unauthorized=true";
         },
       );
@@ -232,7 +250,7 @@ const DashboardPage = () => {
         <Topbar currentPage="Dashboard" />
 
         {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-24 py-8">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Dashboard Header */}
           <h1 className="text-3xl font-bold text-purple-800 mb-8" style={{fontFamily: 'Comic Sans MS, cursive'}}>
             Dashboard
@@ -311,14 +329,23 @@ const DashboardPage = () => {
           </div>
 
           {/* Recent Submissions Section */}
-          <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border-2 border-purple-200">
             <h2 className="text-xl lg:text-2xl font-bold text-purple-800 mb-4" style={{fontFamily: 'Comic Sans MS, cursive'}}>
               Recent Approvals
             </h2>
-            <div className="text-center py-12 bg-purple-50 rounded-lg">
+            {pendingSubmissions.length === 0 ? <div className="text-center py-12 bg-purple-50 rounded-lg">
               <History className="h-16 w-16 text-purple-300 mx-auto mb-4" />
               <p className="text-gray-500">Your approved submissions will appear here</p>
-            </div>
+            </div>:
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+              {recentSubmissions.map(submission => (
+                  <GalleryItem
+                    key={submission.id}
+                    submission={submission}
+                    onClick={setSelectedSubmission}
+                  />
+              ))}
+            </div>}
           </div>
         </main>
         {selectedSubmission && (
