@@ -9,8 +9,6 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
-// Copied from `github.com/LuchaComics/monorepo/cloud/comiccoin-authority/domain`
-//
 // Account struct represents an entity in our blockchain whom has transfered
 // between another account some amount of coins or non-fungible tokens.
 //

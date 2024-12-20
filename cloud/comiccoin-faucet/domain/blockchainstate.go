@@ -18,6 +18,9 @@ type BlockchainState struct {
 	LatestHash             string `bson:"latest_hash" json:"latest_hash"`
 	LatestTokenIDBytes     []byte `bson:"latest_token_id_bytes" json:"latest_token_id_bytes"`
 
+	// The current transaction fee to be apply for every transaction as of this moment in time that is received by the Authority from the Global Blockchain Network.
+	TransactionFee uint64 `bson:"transaction_fee" json:"transaction_fee"`
+
 	AccountHashState string `bson:"account_hash_state" json:"account_hash_state"`
 	TokenHashState   string `bson:"token_hash_state" json:"token_hash_state"`
 }

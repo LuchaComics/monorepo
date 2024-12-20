@@ -188,6 +188,7 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) Execute(sessCtx mongo.Ses
 			LatestBlockNumberBytes: genesis.Header.NumberBytes,
 			LatestHash:             genesis.Hash,
 			LatestTokenIDBytes:     genesis.Header.LatestTokenIDBytes,
+			TransactionFee:         genesis.Header.TransactionFee,
 			AccountHashState:       genesis.Header.StateRoot,
 			TokenHashState:         genesis.Header.TokensRoot,
 		}
@@ -353,7 +354,7 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) syncWithGlobalBlockchainN
 				slog.Any("type", blockTx.Type),
 				slog.Any("nonce", blockTx.GetNonce()),
 				slog.Any("timestamp", blockTx.TimeStamp))
-			if err := s.processAccountForTransaction(sessCtx, &blockTx); err != nil {
+			if err := s.processAccountForTransaction(sessCtx, blockData, &blockTx); err != nil {
 				s.logger.Error("Failed processing transaction",
 					slog.Any("error", err))
 				return err
@@ -409,27 +410,27 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) syncWithGlobalBlockchainN
 	return nil
 }
 
-func (s *BlockchainSyncWithBlockchainAuthorityService) processAccountForTransaction(sessCtx mongo.SessionContext, blockTx *domain.BlockTransaction) error {
+func (s *BlockchainSyncWithBlockchainAuthorityService) processAccountForTransaction(sessCtx mongo.SessionContext, blockData *domain.BlockData, blockTx *domain.BlockTransaction) error {
 	//
-	// CASE 1 OF 2: Token Transaction
+	// CASE 1 OF 2: 🎟️ Token Transaction
 	//
 
 	if blockTx.Type == domain.TransactionTypeToken {
-		return s.processAccountForTokenTransaction(sessCtx, blockTx)
+		return s.processAccountForTokenTransaction(sessCtx, blockData, blockTx)
 	}
 
 	//
-	// CASE 2 OF 2: Coin Transaction
+	// CASE 2 OF 2: 🪙 Coin Transaction
 	//
 
 	if blockTx.Type == domain.TransactionTypeCoin {
-		return s.processAccountForCoinTransaction(sessCtx, blockTx)
+		return s.processAccountForCoinTransaction(sessCtx, blockData, blockTx)
 	}
 
 	return nil
 }
 
-func (s *BlockchainSyncWithBlockchainAuthorityService) processAccountForCoinTransaction(sessCtx mongo.SessionContext, blockTx *domain.BlockTransaction) error {
+func (s *BlockchainSyncWithBlockchainAuthorityService) processAccountForCoinTransaction(sessCtx mongo.SessionContext, blockData *domain.BlockData, blockTx *domain.BlockTransaction) error {
 	//
 	// STEP 1
 	//
@@ -472,6 +473,11 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) processAccountForCoinTran
 	//
 
 	if blockTx.To != nil {
+
+		// Variable holds the value of coins to transfer to the account after
+		// the transaction fee was collected by the Authority.
+		var valueMinusFees uint64 = blockTx.Value - blockData.Header.TransactionFee
+
 		acc, _ := s.getAccountUseCase.Execute(sessCtx, blockTx.To)
 		if acc == nil {
 			if err := s.upsertAccountUseCase.Execute(sessCtx, blockTx.To, 0, big.NewInt(0)); err != nil {
@@ -485,10 +491,10 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) processAccountForCoinTran
 				// Always start by zero, increment by 1 after mining successful.
 				NonceBytes: big.NewInt(0).Bytes(),
 
-				Balance: blockTx.Value,
+				Balance: valueMinusFees,
 			}
 		} else {
-			acc.Balance += blockTx.Value
+			acc.Balance += valueMinusFees
 
 			// Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
 			noince := acc.GetNonce()
@@ -507,14 +513,50 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) processAccountForCoinTran
 			slog.Any("balance", acc.Balance),
 		)
 	}
+
+	//
+	// STEP 3
+	//
+
+	// Deposit the transaction fee back to the coinbase to be recirculated.
+	proofOfAuthorityAccount, err := s.getAccountUseCase.Execute(sessCtx, &blockData.Header.Beneficiary)
+	if err != nil {
+		s.logger.Error("Failed getting proof of authority account.",
+			slog.Any("error", err))
+		return err
+	}
+	if proofOfAuthorityAccount == nil {
+		s.logger.Error("Proof of authority account does not exist")
+		return fmt.Errorf("Proof of authority account does not exist")
+	}
+
+	// Collect transaction fee from this coin transaction.
+	proofOfAuthorityAccount.Balance += blockData.Header.TransactionFee
+
+	// Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
+	pofNonce := proofOfAuthorityAccount.GetNonce()
+	pofNonce.Add(pofNonce, big.NewInt(1))
+	proofOfAuthorityAccount.NonceBytes = pofNonce.Bytes()
+
+	if err := s.upsertAccountUseCase.Execute(sessCtx, proofOfAuthorityAccount.Address, proofOfAuthorityAccount.Balance, proofOfAuthorityAccount.GetNonce()); err != nil {
+		s.logger.Error("Failed upserting account.",
+			slog.Any("error", err))
+		return err
+	}
+	s.logger.Debug("Authority collected transaction fee from coin transfer",
+		slog.Any("authority_address", proofOfAuthorityAccount.Address),
+		slog.Any("collected_fee", blockData.Header.TransactionFee),
+		slog.Any("new_balance", proofOfAuthorityAccount.Balance),
+	)
+
 	return nil
 }
 
-func (s *BlockchainSyncWithBlockchainAuthorityService) processAccountForTokenTransaction(sessCtx mongo.SessionContext, blockTx *domain.BlockTransaction) error {
+func (s *BlockchainSyncWithBlockchainAuthorityService) processAccountForTokenTransaction(sessCtx mongo.SessionContext, blockData *domain.BlockData, blockTx *domain.BlockTransaction) error {
 	//
 	// STEP 1:
-	// Check to see if we have an account for this particular token, if not
-	// then create it. Do thise from the `From` side of the transaction.
+	// Check to see if we have an account for this particular token and
+	// collect the transaction fee.
 	//
 
 	if blockTx.From != nil {
@@ -539,13 +581,26 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) processAccountForTokenTra
 				slog.Any("account_address", acc.Address),
 				slog.Any("balance", acc.Balance),
 			)
+		} else {
+			acc.Balance -= blockTx.Value // Note: The value is equal to the transaction fee.
+
+			// Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
+			accNonce := acc.GetNonce()
+			accNonce.Add(accNonce, big.NewInt(1))
+			acc.NonceBytes = accNonce.Bytes()
+
+			if err := s.upsertAccountUseCase.Execute(sessCtx, acc.Address, acc.Balance, acc.GetNonce()); err != nil {
+				s.logger.Error("Failed upserting account.",
+					slog.Any("error", err))
+				return err
+			}
 		}
 	}
 
 	//
 	// STEP 2:
 	// Check to see if we have an account for this particular token, if not
-	// then create it.  Do thise from the `To` side of the transaction.
+	// then create it.  Do this from the `To` side of the transaction.
 	//
 
 	if blockTx.To != nil {
@@ -573,5 +628,41 @@ func (s *BlockchainSyncWithBlockchainAuthorityService) processAccountForTokenTra
 			)
 		}
 	}
+
+	//
+	// STEP 3:
+	// Deposit the transaction fee back to the coinbase to be recirculated.
+	//
+
+	proofOfAuthorityAccount, err := s.getAccountUseCase.Execute(sessCtx, &blockData.Header.Beneficiary)
+	if err != nil {
+		s.logger.Error("Failed getting proof of authority account.",
+			slog.Any("error", err))
+		return err
+	}
+	if proofOfAuthorityAccount == nil {
+		s.logger.Error("Proof of authority account does not exist")
+		return fmt.Errorf("Proof of authority account does not exist")
+	}
+
+	// Collect transaction fee from this token transaction.
+	proofOfAuthorityAccount.Balance += blockTx.Value // Note: The value is equal to the transaction fee.
+
+	// Note: We do this to prevent reply attacks. (See notes in either `domain/accounts.go` or `service/genesis_init.go`)
+	pofNonce := proofOfAuthorityAccount.GetNonce()
+	pofNonce.Add(pofNonce, big.NewInt(1))
+	proofOfAuthorityAccount.NonceBytes = pofNonce.Bytes()
+
+	if err := s.upsertAccountUseCase.Execute(sessCtx, proofOfAuthorityAccount.Address, proofOfAuthorityAccount.Balance, proofOfAuthorityAccount.GetNonce()); err != nil {
+		s.logger.Error("Failed upserting account.",
+			slog.Any("error", err))
+		return err
+	}
+	s.logger.Debug("Authority collected transaction fee from token transfer or burn",
+		slog.Any("authority_address", proofOfAuthorityAccount.Address),
+		slog.Any("collected_fee", blockData.Header.TransactionFee),
+		slog.Any("new_balance", proofOfAuthorityAccount.Balance),
+	)
+
 	return nil
 }

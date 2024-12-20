@@ -13,12 +13,14 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/httperror"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/kmutexutil"
 	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/securestring"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/domain"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/usecase"
 	"github.com/ethereum/go-ethereum/common"
 )
 
 type FaucetCoinTransferService struct {
+	config                                                  *config.Configuration
 	logger                                                  *slog.Logger
 	kmutex                                                  kmutexutil.KMutexProvider
 	tenantGetByIDUseCase                                    *usecase.TenantGetByIDUseCase
@@ -31,6 +33,7 @@ type FaucetCoinTransferService struct {
 }
 
 func NewFaucetCoinTransferService(
+	cfg *config.Configuration,
 	logger *slog.Logger,
 	kmutex kmutexutil.KMutexProvider,
 	uc1 *usecase.TenantGetByIDUseCase,
@@ -41,7 +44,7 @@ func NewFaucetCoinTransferService(
 	uc6 *usecase.WalletDecryptKeyUseCase,
 	uc7 *usecase.SubmitMempoolTransactionDTOToBlockchainAuthorityUseCase,
 ) *FaucetCoinTransferService {
-	return &FaucetCoinTransferService{logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7}
+	return &FaucetCoinTransferService{cfg, logger, kmutex, uc1, uc2, uc3, uc4, uc5, uc6, uc7}
 }
 
 type FaucetCoinTransferRequestIDO struct {
@@ -137,11 +140,13 @@ func (s *FaucetCoinTransferService) Execute(sessCtx mongo.SessionContext, req *F
 	if account == nil {
 		return fmt.Errorf("failed getting account: %s", "d.n.e.")
 	}
-	if account.Balance < req.Value {
+	if account.Balance < (req.Value + s.config.Blockchain.TransactionFee) {
 		s.logger.Warn("insufficient balance in account",
 			slog.Any("account_addr", req.FromAccountAddress),
 			slog.Any("account_balance", account.Balance),
-			slog.Any("value", req.Value))
+			slog.Any("value", req.Value),
+			slog.Any("fee", s.config.Blockchain.TransactionFee),
+			slog.Any("new_value", (req.Value+s.config.Blockchain.TransactionFee)))
 		return fmt.Errorf("insufficient balance: %d", account.Balance)
 	}
 
@@ -155,7 +160,7 @@ func (s *FaucetCoinTransferService) Execute(sessCtx mongo.SessionContext, req *F
 		NonceBytes: big.NewInt(time.Now().Unix()).Bytes(),
 		From:       wallet.Address,
 		To:         req.To,
-		Value:      req.Value,
+		Value:      req.Value + s.config.Blockchain.TransactionFee, // Note: The transaction fee gets reclaimed by the Authority, so it's fully recirculating when authority calls this.
 		Data:       req.Data,
 		Type:       domain.TransactionTypeCoin,
 	}
@@ -179,6 +184,7 @@ func (s *FaucetCoinTransferService) Execute(sessCtx mongo.SessionContext, req *F
 		slog.Any("nonce", stx.GetNonce()),
 		slog.Any("from", stx.From),
 		slog.Any("to", stx.To),
+		slog.Any("fee", s.config.Blockchain.TransactionFee),
 		slog.Any("value", stx.Value),
 		slog.Any("data", stx.Data),
 		slog.Any("type", stx.Type),

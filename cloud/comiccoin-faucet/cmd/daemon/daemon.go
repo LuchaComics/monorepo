@@ -329,6 +329,7 @@ func doRunDaemon() {
 	//
 
 	faucetCoinTransferService := service.NewFaucetCoinTransferService(
+		cfg,
 		logger,
 		kmutex,
 		tenantGetByIDUseCase,
