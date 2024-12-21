@@ -15,24 +15,24 @@ type TaskManager interface {
 }
 
 type taskManagerImpl struct {
-	cfg                                   *config.Configuration
-	logger                                *slog.Logger
-	attachmentGarbageCollectorTaskHandler *taskhandler.AttachmentGarbageCollectorTaskHandler
-	blockchainSyncManagerTaskHandler      *taskhandler.BlockchainSyncManagerTaskHandler
+	cfg                                              *config.Configuration
+	logger                                           *slog.Logger
+	attachmentGarbageCollectorTaskHandler            *taskhandler.AttachmentGarbageCollectorTaskHandler
+	blockchainSyncWithBlockchainAuthorityTaskHandler *taskhandler.BlockchainSyncWithBlockchainAuthorityTaskHandler
 }
 
 func NewTaskManager(
 	cfg *config.Configuration,
 	logger *slog.Logger,
 	t1 *taskhandler.AttachmentGarbageCollectorTaskHandler,
-	t2 *taskhandler.BlockchainSyncManagerTaskHandler,
+	t2 *taskhandler.BlockchainSyncWithBlockchainAuthorityTaskHandler,
 
 ) TaskManager {
 	port := &taskManagerImpl{
 		cfg:                                   cfg,
 		logger:                                logger,
 		attachmentGarbageCollectorTaskHandler: t1,
-		blockchainSyncManagerTaskHandler:      t2,
+		blockchainSyncWithBlockchainAuthorityTaskHandler: t2,
 	}
 	return port
 }
@@ -48,26 +48,23 @@ func (port *taskManagerImpl) Run() {
 				loggerp.Error("Failed executing attachment garbage collector",
 					slog.Any("error", err))
 			}
-			// DEVELOPERS NOTE:
-			// No need for delays, automatically start executing again.
 			// port.logger.Debug("Attachment garbage collector will run again in 15 seconds...")
 			time.Sleep(15 * time.Second)
 		}
 	}(port.attachmentGarbageCollectorTaskHandler, port.logger)
 
-	go func(task *taskhandler.BlockchainSyncManagerTaskHandler, loggerp *slog.Logger) {
-		loggerp.Info("Starting blockchain manager...")
+	go func(task *taskhandler.BlockchainSyncWithBlockchainAuthorityTaskHandler, loggerp *slog.Logger) {
+		loggerp.Info("Starting blockchain sync with the Authority...")
 
 		for {
 			if err := task.Execute(context.Background()); err != nil {
-				loggerp.Error("Failed executing blockchain manager",
+				loggerp.Error("Failed executing blockchain sync with the Authority.",
 					slog.Any("error", err))
 			}
-			// DEVELOPERS NOTE:
-			// No need for delays, automatically start executing again.
-			port.logger.Debug("Blockchain manager will run again ...")
+			port.logger.Debug("Blockchain sync with the Authority will rerun again in 15 seconds...")
+			time.Sleep(15 * time.Second)
 		}
-	}(port.blockchainSyncManagerTaskHandler, port.logger)
+	}(port.blockchainSyncWithBlockchainAuthorityTaskHandler, port.logger)
 }
 
 func (port *taskManagerImpl) Shutdown() {

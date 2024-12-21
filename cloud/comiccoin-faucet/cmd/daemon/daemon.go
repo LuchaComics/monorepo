@@ -445,7 +445,7 @@ func doRunDaemon() {
 		faucetCoinTransferService,
 	)
 
-	blockchainSyncService := service.NewBlockchainSyncWithBlockchainAuthorityService(
+	blockchainSyncWithBlockchainAuthorityService := service.NewBlockchainSyncWithBlockchainAuthorityService(
 		cfg,
 		logger,
 		getGenesisBlockDataUseCase,
@@ -464,13 +464,6 @@ func doRunDaemon() {
 		tenantUpdateUseCase,
 		userTransactionGetUseCase,
 		userTransactionUpdateUseCase,
-	)
-
-	blockchainSyncManagerService := service.NewBlockchainSyncManagerService(
-		logger,
-		dbClient,
-		blockchainSyncService,
-		subscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase,
 	)
 
 	// Attachment
@@ -558,17 +551,17 @@ func doRunDaemon() {
 		dbClient,
 		attachmentGarbageCollectorService,
 	)
-	blockchainSyncManagerTaskHandler := taskhandler.NewBlockchainSyncManagerTaskHandler(
+	blockchainSyncWithBlockchainAuthorityTaskHandler := taskhandler.NewBlockchainSyncWithBlockchainAuthorityTaskHandler(
 		cfg,
 		logger,
 		dbClient,
-		blockchainSyncManagerService,
+		blockchainSyncWithBlockchainAuthorityService,
 	)
 	taskManager := task.NewTaskManager(
 		cfg,
 		logger,
 		attachmentGarbageCollectorTask,
-		blockchainSyncManagerTaskHandler,
+		blockchainSyncWithBlockchainAuthorityTaskHandler,
 	)
 
 	// --- HTTP --- //

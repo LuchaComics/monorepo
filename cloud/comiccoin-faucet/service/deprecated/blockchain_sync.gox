@@ -6,9 +6,11 @@ import (
 	"math/big"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/blockchain/signature"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/httperror"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/domain"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/usecase"
@@ -58,13 +60,20 @@ func NewBlockchainSyncWithBlockchainAuthorityService(
 	return &BlockchainSyncWithBlockchainAuthorityService{cfg, logger, uc1, uc2, uc3, uc4, uc5, uc6, uc7, uc8, uc9, uc10, uc11, uc12, uc13, uc14, uc15, uc16}
 }
 
-func (s *BlockchainSyncWithBlockchainAuthorityService) Execute(sessCtx mongo.SessionContext) error {
+func (s *BlockchainSyncWithBlockchainAuthorityService) Execute(sessCtx mongo.SessionContext, chainID uint16, tenantID primitive.ObjectID) error {
 	//
-	// STEP 1: Get variables for convenience.
+	// STEP 1: Validation.
 	//
 
-	chainID := s.config.Blockchain.ChainID
-	tenantID := s.config.App.TenantID
+	e := make(map[string]string)
+	if chainID == 0 {
+		e["chainID"] = "missing value"
+	}
+	if len(e) != 0 {
+		s.logger.Warn("Validation failed",
+			slog.Any("error", e))
+		return httperror.NewForBadRequest(&e)
+	}
 
 	//
 	// Step 2:
