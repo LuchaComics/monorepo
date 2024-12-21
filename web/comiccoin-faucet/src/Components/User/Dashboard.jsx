@@ -113,9 +113,7 @@ const DashboardPage = () => {
       //------------------------------------------------------------------------
 
       params = new Map();
-      // params.set("page_size", limit); // Pagination
-      // params.set("sort_field", "created_at"); // Sorting
-      // params.set("sort_order", -1); // Sorting - descending, meaning most recent start date to oldest start date.
+      params.set("limit", 12); // Apply limits so this API endpoint will only return 12 results.
       params.set("status", 3); // ComicSubmissionStatusInApproved
       params.set("user_id", currentUser.id);
       getComicSubmissionListAPI(

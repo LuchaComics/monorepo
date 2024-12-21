@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Upload,
   X,
@@ -10,15 +10,25 @@ import {
   User,
 } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
+import { useRecoilState } from "recoil";
 
 import Topbar from "../../../Components/Navigation/Topbar";
 import {
   postAttachmentCreateAPI,
   deleteAttachmentAPI,
 } from "../../../API/Attachment";
-import { postComicSubmissionCreateAPI } from "../../../API/ComicSubmission";
+import {
+    postComicSubmissionCreateAPI,
+    getComicSubmissionsCountByFilterAPI
+} from "../../../API/ComicSubmission";
+import { currentUserState } from "../../../AppState";
+
 
 const SubmitComicPage = () => {
+  // Variable controls the global state of the app.
+  const [currentUser] = useRecoilState(currentUserState);
+
+  const [totalSubmissions, setTotalSubmissions] = useState(0);
   const [frontCover, setFrontCover] = useState(null);
   const [backCover, setBackCover] = useState(null);
   const [frontCoverData, setFrontCoverData] = useState(null);
@@ -28,6 +38,53 @@ const SubmitComicPage = () => {
   const [errors, setErrors] = useState({});
   const [isFetching, setFetching] = useState(false);
   const [forceURL, setForceURL] = useState("");
+
+  useEffect(() => {
+    let mounted = true;
+
+    if (mounted) {
+      window.scrollTo(0, 0); // Start the page at the top of the page.
+
+      if (currentUser === undefined || currentUser === null || currentUser === "") {
+          console.log("DashboardPage: currentUser is null - not rendering view.");
+          return () => {
+            mounted = false;
+          }
+      }
+
+      //------------------------------------------------------------------------
+
+      setFetching(true);
+      let params = new Map();
+      params.set("user_id", currentUser.id);
+      getComicSubmissionsCountByFilterAPI(
+        params,
+        (resp) => {
+          // For debugging purposes only.
+          console.log("getComicSubmissionsCountByFilterAPI: Starting...");
+          console.log(resp);
+          setTotalSubmissions(resp.count);
+        },
+        (apiErr) => {
+          console.log("getComicSubmissionsCountByFilterAPI: apiErr:", apiErr);
+          setErrors(apiErr);
+        },
+        () => {
+          console.log("getComicSubmissionsCountByFilterAPI: Starting...");
+          setFetching(false);
+        },
+        () => {
+          console.log("getComicSubmissionsCountByFilterAPI: unauthorized...");
+          window.location.href = "/login?unauthorized=true";
+        },
+      );
+
+    }
+
+    return () => {
+      mounted = false;
+    };
+  }, [currentUser]);
 
   const rules = [
     "You must only upload pictures of a physical comic book",
@@ -270,75 +327,78 @@ const SubmitComicPage = () => {
           >
             Submit a Comic
           </h1>
-          <p className="text-gray-600">
+          {totalSubmissions === 0 &&<p className="text-gray-600">
             Follow the steps below to submit your comic and earn ComicCoins!
-          </p>
+          </p>}
         </div>
 
-        {/* Step-by-Step Guide */}
-        <div className="mb-8 p-6 rounded-lg bg-white border-2 border-purple-200">
-          <h2 className="text-xl font-bold text-purple-800 mb-4">
-            How It Works
-          </h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="flex flex-col items-center p-4 bg-purple-50 rounded-lg">
-              <div className="bg-purple-100 p-3 rounded-full mb-3">
-                <Camera className="h-6 w-6 text-purple-600" />
-              </div>
-              <h3 className="font-semibold text-purple-800 mb-2">
-                1. Take Photos
-              </h3>
-              <p className="text-sm text-center text-gray-600">
-                Take clear photos of your comic's front and back covers in good
-                lighting
-              </p>
-            </div>
-            <div className="flex flex-col items-center p-4 bg-purple-50 rounded-lg">
-              <div className="bg-purple-100 p-3 rounded-full mb-3">
-                <Upload className="h-6 w-6 text-purple-600" />
-              </div>
-              <h3 className="font-semibold text-purple-800 mb-2">
-                2. Upload Photos
-              </h3>
-              <p className="text-sm text-center text-gray-600">
-                Upload both photos and fill in the comic's name below
-              </p>
-            </div>
-            <div className="flex flex-col items-center p-4 bg-purple-50 rounded-lg">
-              <div className="bg-purple-100 p-3 rounded-full mb-3">
-                <AlertCircle className="h-6 w-6 text-purple-600" />
-              </div>
-              <h3 className="font-semibold text-purple-800 mb-2">
-                3. Wait for Review
-              </h3>
-              <p className="text-sm text-center text-gray-600">
-                We'll review your submission and award your ComicCoins
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Rules Section */}
-        <div className="mb-8 p-4 rounded-lg border-2 border-purple-200 bg-purple-50">
-          <div className="flex items-start space-x-2">
-            <Info className="h-5 w-5 text-purple-600 mt-1" />
-            <div>
-              <h2 className="text-purple-800 font-bold text-lg mb-2">
-                Before You Start
+        {/* Provide friendly instructions if user has never submitted before. */}
+        {totalSubmissions === 0 && <>
+            {/* Step-by-Step Guide */}
+            <div className="mb-8 p-6 rounded-lg bg-white border-2 border-purple-200">
+              <h2 className="text-xl font-bold text-purple-800 mb-4">
+                How It Works
               </h2>
-              <p className="text-gray-600 mb-3">
-                Please make sure you meet all these requirements:
-              </p>
-              <ul className="list-disc pl-5 space-y-2">
-                {rules.map((rule, index) => (
-                  <li key={index} className="text-gray-600">
-                    {rule}
-                  </li>
-                ))}
-              </ul>
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="flex flex-col items-center p-4 bg-purple-50 rounded-lg">
+                  <div className="bg-purple-100 p-3 rounded-full mb-3">
+                    <Camera className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <h3 className="font-semibold text-purple-800 mb-2">
+                    1. Take Photos
+                  </h3>
+                  <p className="text-sm text-center text-gray-600">
+                    Take clear photos of your comic's front and back covers in good
+                    lighting
+                  </p>
+                </div>
+                <div className="flex flex-col items-center p-4 bg-purple-50 rounded-lg">
+                  <div className="bg-purple-100 p-3 rounded-full mb-3">
+                    <Upload className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <h3 className="font-semibold text-purple-800 mb-2">
+                    2. Upload Photos
+                  </h3>
+                  <p className="text-sm text-center text-gray-600">
+                    Upload both photos and fill in the comic's name below
+                  </p>
+                </div>
+                <div className="flex flex-col items-center p-4 bg-purple-50 rounded-lg">
+                  <div className="bg-purple-100 p-3 rounded-full mb-3">
+                    <AlertCircle className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <h3 className="font-semibold text-purple-800 mb-2">
+                    3. Wait for Review
+                  </h3>
+                  <p className="text-sm text-center text-gray-600">
+                    We'll review your submission and award your ComicCoins
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+
+            {/* Rules Section */}
+            <div className="mb-8 p-4 rounded-lg border-2 border-purple-200 bg-purple-50">
+              <div className="flex items-start space-x-2">
+                <Info className="h-5 w-5 text-purple-600 mt-1" />
+                <div>
+                  <h2 className="text-purple-800 font-bold text-lg mb-2">
+                    Before You Start
+                  </h2>
+                  <p className="text-gray-600 mb-3">
+                    Please make sure you meet all these requirements:
+                  </p>
+                  <ul className="list-disc pl-5 space-y-2">
+                    {rules.map((rule, index) => (
+                      <li key={index} className="text-gray-600">
+                        {rule}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+        </>}
 
         {/* Submission Form */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border-2 border-purple-200">
