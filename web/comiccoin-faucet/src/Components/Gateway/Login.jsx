@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Coins, AlertCircle, ArrowLeft } from 'lucide-react';
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { useRecoilState } from "recoil";
 
 import { postLoginAPI } from "../../API/Gateway";
@@ -251,11 +251,9 @@ export default function LoginPage() {
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="mb-4">© 2024 ComicCoin Faucet. All rights reserved.</p>
           <p>
-            <button className="underline hover:text-purple-200">Accessibility Statement</button>
+            <Link to="/terms" className="underline hover:text-purple-200">Terms of Service</Link>
             {' | '}
-            <button className="underline hover:text-purple-200">Terms of Service</button>
-            {' | '}
-            <button className="underline hover:text-purple-200">Privacy Policy</button>
+            <Link to="/privacy" className="underline hover:text-purple-200">Privacy Policy</Link>
           </p>
         </div>
       </footer>

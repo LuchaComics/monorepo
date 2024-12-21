@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Coins, AlertCircle, LogOut } from "lucide-react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { useRecoilState } from "recoil";
 
 import { putProfileWalletAddressAPI } from "../../API/Profile";
@@ -234,17 +234,13 @@ export default function UserAddWalletToFaucet() {
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="mb-4">© 2024 ComicCoin Faucet. All rights reserved.</p>
           <p>
-            <button className="underline hover:text-purple-200">
-              Accessibility Statement
-            </button>
-            {" | "}
-            <button className="underline hover:text-purple-200">
+            <Link to="/terms" className="underline hover:text-purple-200">
               Terms of Service
-            </button>
+            </Link>
             {" | "}
-            <button className="underline hover:text-purple-200">
+            <Link to="/privacy" className="underline hover:text-purple-200">
               Privacy Policy
-            </button>
+            </Link>
           </p>
         </div>
       </footer>

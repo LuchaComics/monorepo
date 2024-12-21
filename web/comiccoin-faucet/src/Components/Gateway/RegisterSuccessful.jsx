@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Coins, Mail, ArrowRight, ArrowLeft } from 'lucide-react';
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 
 export default function EmailConfirmationPage() {
   const [forceURL, setForceURL] = useState("");
@@ -66,11 +66,9 @@ export default function EmailConfirmationPage() {
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="mb-4">© 2024 ComicCoin Faucet. All rights reserved.</p>
           <p>
-            <a href="#" className="underline hover:text-purple-200">Accessibility Statement</a>
+            <Link to="/terms" className="underline hover:text-purple-200">Terms of Service</Link>
             {' | '}
-            <a href="#" className="underline hover:text-purple-200">Terms of Service</a>
-            {' | '}
-            <a href="#" className="underline hover:text-purple-200">Privacy Policy</a>
+            <Link to="/privacy" className="underline hover:text-purple-200">Privacy Policy</Link>
           </p>
         </div>
       </footer>

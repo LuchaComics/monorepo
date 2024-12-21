@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Coins, AlertCircle, ArrowLeft } from "lucide-react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 
 import { postRegisterAPI } from "../../API/Gateway";
 import FormTimezoneSelectField from "../Reusable/FormTimezoneSelectField";
@@ -491,17 +491,13 @@ const RegisterPage = () => {
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="mb-4">© 2024 ComicCoin Faucet. All rights reserved.</p>
           <p>
-            <a href="#" className="underline hover:text-purple-200">
-              Accessibility Statement
-            </a>{" "}
-            |{" "}
-            <a href="#" className="underline hover:text-purple-200">
+            <Link to="/terms" className="underline hover:text-purple-200">
               Terms of Service
-            </a>{" "}
+            </Link>{" "}
             |{" "}
-            <a href="#" className="underline hover:text-purple-200">
+            <Link to="/privacy" className="underline hover:text-purple-200">
               Privacy Policy
-            </a>
+            </Link>
           </p>
         </div>
       </footer>

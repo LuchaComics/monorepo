@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Coins, BookOpen, Camera, Gift, Github, ArrowRight } from 'lucide-react';
 import { Navigate } from "react-router-dom";
+import Footer from "./Footer";
 
 const IndexPage = () => {
   const [forceURL, setForceURL] = useState("");
@@ -165,18 +166,7 @@ const IndexPage = () => {
       </div>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-r from-purple-700 to-indigo-800 text-white py-8">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="mb-4">© 2024 ComicCoin Faucet. All rights reserved.</p>
-          <p>
-            <a href="#" className="underline hover:text-purple-200">Accessibility Statement</a>
-            {' '} | {' '}
-            <a href="#" className="underline hover:text-purple-200">Terms of Service</a>
-            {' '} | {' '}
-            <a href="#" className="underline hover:text-purple-200">Privacy Policy</a>
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
