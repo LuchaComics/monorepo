@@ -333,7 +333,7 @@ const DashboardPage = () => {
             <h2 className="text-xl lg:text-2xl font-bold text-purple-800 mb-4" style={{fontFamily: 'Comic Sans MS, cursive'}}>
               Recent Approvals
             </h2>
-            {pendingSubmissions.length === 0 ? <div className="text-center py-12 bg-purple-50 rounded-lg">
+            {recentSubmissions.length === 0 ? <div className="text-center py-12 bg-purple-50 rounded-lg">
               <History className="h-16 w-16 text-purple-300 mx-auto mb-4" />
               <p className="text-gray-500">Your approved submissions will appear here</p>
             </div>:
