@@ -61,7 +61,7 @@ func (port *taskManagerImpl) Run() {
 				loggerp.Error("Failed executing blockchain sync with the Authority.",
 					slog.Any("error", err))
 			}
-			port.logger.Debug("Blockchain sync with the Authority will rerun again in 15 seconds...")
+			// port.logger.Debug("Blockchain sync with the Authority will rerun again in 15 seconds...")
 			time.Sleep(15 * time.Second)
 		}
 	}(port.blockchainSyncWithBlockchainAuthorityTaskHandler, port.logger)
