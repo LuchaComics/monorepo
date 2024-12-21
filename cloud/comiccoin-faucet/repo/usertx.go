@@ -350,7 +350,7 @@ func (impl userTransactionImpl) ListByFilter(ctx context.Context, filter *domain
 
 	// Handle empty results case
 	if len(userTransactions) == 0 {
-		impl.Logger.Debug("Empty list", slog.Any("filter", filter))
+		// impl.Logger.Debug("Empty list", slog.Any("filter", filter))
 		return &domain.UserTransactionFilterResult{
 			UserTransactions: make([]*domain.UserTransaction, 0),
 			HasMore:          false,

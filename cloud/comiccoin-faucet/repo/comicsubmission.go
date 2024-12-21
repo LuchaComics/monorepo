@@ -496,7 +496,7 @@ func (s *comicSubmissionImplImpl) ListByFilter(ctx context.Context, filter *doma
 
 	// Handle empty results case
 	if len(submissions) == 0 {
-		s.Logger.Debug("Empty list", slog.Any("filter", filter))
+		// s.Logger.Debug("Empty list", slog.Any("filter", filter))
 		return &domain.ComicSubmissionFilterResult{
 			Submissions: make([]*domain.ComicSubmission, 0),
 			HasMore:     false,

@@ -268,7 +268,7 @@ const DashboardPage = () => {
             <div className="grid md:grid-cols-3 gap-6">
               <div className="flex flex-col items-center text-center p-6 bg-purple-50 rounded-lg">
                 <Upload className="h-12 w-12 text-purple-600 mb-4" />
-                <h3 className="font-semibold mb-2">1. Submit Your First Comic</h3>
+                <h3 className="font-semibold mb-2">1. Submit a Comic</h3>
                 <p className="text-sm text-gray-600 mb-4">Upload photos of your comic book covers to start earning ComicCoins</p>
                 <a href="#" className="text-purple-600 hover:text-purple-700 font-medium flex items-center">
                   Start Submission <ArrowRight className="h-4 w-4 ml-1" />
@@ -314,7 +314,7 @@ const DashboardPage = () => {
                 <Image className="h-16 w-16 text-purple-300 mx-auto mb-4" />
                 <p className="text-gray-500 mb-4">No pending submissions yet</p>
                 <Link to="/submit" className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                  Submit Your First Comic
+                  Submit a Comic
                 </Link>
               </div> :
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
