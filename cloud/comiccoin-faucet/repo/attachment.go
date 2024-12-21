@@ -339,7 +339,9 @@ func (impl attachmentImpl) ListByFilter(ctx context.Context, filter *domain.Atta
 
 	// Handle empty results case
 	if len(attachments) == 0 {
-		impl.Logger.Debug("Empty list", slog.Any("filter", filter))
+		// For debugging purposes only.
+		// impl.Logger.Debug("Empty list",
+		// 	slog.Any("filter", filter))
 		return &domain.AttachmentFilterResult{
 			Attachments: make([]*domain.Attachment, 0),
 			HasMore:     false,

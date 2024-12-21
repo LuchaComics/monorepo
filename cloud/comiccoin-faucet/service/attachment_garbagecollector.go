@@ -54,7 +54,7 @@ func (s *AttachmentGarbageCollectorService) Execute(sessCtx mongo.SessionContext
 		TenantID:      tenantID,
 		Status:        domain.AttachmentStatusActive,
 		BelongsToType: domain.AttachmentBelongsToTypeUnassigned,
-		LastCreatedAt: &nowMinus24Hours,
+		CreatedAtEnd:  &nowMinus24Hours,
 	}
 
 	// Lookup the user in our database, else return a `400 Bad Request` error.
@@ -70,30 +70,33 @@ func (s *AttachmentGarbageCollectorService) Execute(sessCtx mongo.SessionContext
 	//
 
 	for _, attch := range resp.Attachments {
-		s.logger.Debug("Fetched attachment",
-			slog.Any("attch", attch))
+		s.logger.Debug("Fetched old attachment",
+			slog.Any("id", attch.ID),
+			slog.Any("created", attch.CreatedAt),
+			slog.Any("status", attch.Status))
 
-		//TODO: UNCOMMENT WHEN READY!
+		//
+		// STEP 4: Delete uploaded data in cloud storage.
+		//
 
-		// //
-		// // STEP 4: Delete uploaded data in cloud storage.
-		// //
+		if err := s.cloudStorageDeleteUseCase.Execute(sessCtx, []string{attch.ObjectKey}); err != nil {
+			s.logger.Error("Failed deleting attachment from cloud storage",
+				slog.Any("err", err))
+			return err
+		}
+
 		//
-		// if err := s.cloudStorageDeleteUseCase.Execute(sessCtx, []string{attch.ObjectKey}); err != nil {
-		// 	s.logger.Error("Failed deleting attachment from cloud storage",
-		// 		slog.Any("err", err))
-		// 	return err
-		// }
+		// STEP 5: Delete attachment record from our database.
 		//
-		// //
-		// // STEP 5: Delete attachment record from our database.
-		// //
-		//
-		// if err := s.attachmentDeleteUseCase.Execute(sessCtx, attch.ID); err != nil {
-		// 	s.logger.Error("failed deleting attachment",
-		// 		slog.Any("err", err))
-		// 	return err
-		// }
+
+		if err := s.attachmentDeleteUseCase.Execute(sessCtx, attch.ID); err != nil {
+			s.logger.Error("failed deleting attachment",
+				slog.Any("err", err))
+			return err
+		}
+
+		s.logger.Debug("Deleted old attachment",
+			slog.Any("id", attch.ID))
 	}
 
 	return nil
