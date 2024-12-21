@@ -50,7 +50,7 @@ func (port *taskManagerImpl) Run() {
 			}
 			// DEVELOPERS NOTE:
 			// No need for delays, automatically start executing again.
-			port.logger.Debug("Attachment garbage collector will run again in 15 seconds...")
+			// port.logger.Debug("Attachment garbage collector will run again in 15 seconds...")
 			time.Sleep(15 * time.Second)
 		}
 	}(port.attachmentGarbageCollectorTaskHandler, port.logger)
