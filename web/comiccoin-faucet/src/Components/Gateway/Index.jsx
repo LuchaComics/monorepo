@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Coins, BookOpen, Camera, Gift, Github, ArrowRight } from 'lucide-react';
+import { Coins, BookOpen, Camera, Gift, Github, ArrowRight, ExternalLink } from 'lucide-react';
 import { Navigate } from "react-router-dom";
 import Footer from "./Footer";
 
@@ -147,9 +147,9 @@ const IndexPage = () => {
                 Register Now
                 <ArrowRight className="w-5 h-5" />
               </button>
-              <button onClick={(e)=>setForceURL("/login")} className="px-6 py-3 bg-white hover:bg-purple-50 text-purple-700 font-bold rounded-lg border-2 border-purple-200 transition-colors">
-                Learn More
-              </button>
+              <a href="https://comiccoin.ca" className="px-6 py-3 bg-gray-600 hover:bg-white-700 text-white font-bold rounded-lg transition-colors flex items-center gap-2">
+                Learn More&nbsp;<ExternalLink className="w-5 h-5" />
+              </a>
             </div>
           </div>
 
