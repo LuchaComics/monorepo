@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -58,7 +57,9 @@ func (repo *GenesisBlockDataDTORepo) GetFromBlockchainAuthorityByChainID(ctx con
 
 	r, err := http.NewRequest("GET", httpEndpoint, nil)
 	if err != nil {
-		log.Fatalf("failed to setup get request: %v", err)
+		repo.logger.Error("failed to setup get request",
+			slog.Any("err", err))
+		return nil, err
 	}
 
 	r.Header.Add("Content-Type", "application/json")
@@ -70,13 +71,18 @@ func (repo *GenesisBlockDataDTORepo) GetFromBlockchainAuthorityByChainID(ctx con
 	client := &http.Client{}
 	res, err := client.Do(r)
 	if err != nil {
-		log.Fatalf("failed to do post request: %v", err)
+		repo.logger.Error("failed to do post request",
+			slog.Any("err", err))
+		return nil, err
 	}
 
 	defer res.Body.Close()
 
 	if res.StatusCode == http.StatusNotFound {
-		log.Fatalf("http endpoint does not exist for: %v", httpEndpoint)
+		err := fmt.Errorf("http endpoint does not exist for: %v", httpEndpoint)
+		repo.logger.Error("failed to do post request",
+			slog.Any("err", err))
+		return nil, err
 	}
 
 	if res.StatusCode == http.StatusBadRequest {

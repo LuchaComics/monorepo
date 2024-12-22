@@ -186,7 +186,7 @@ const SubmitComicSuccessPage = () => {
                 ></div>
               </div>
               <p className="mt-3 text-sm text-gray-500">
-                Limit resets daily at midnight UTC
+                Limit resets daily at midnight
               </p>
             </div>
 

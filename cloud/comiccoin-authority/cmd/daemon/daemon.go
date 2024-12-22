@@ -334,6 +334,9 @@ func doRunDaemon() {
 	blockchainStateChangeEventsHTTPHandler := httphandler.NewBlockchainStateChangeEventDTOHTTPHandler(
 		logger,
 		blockchainStateChangeSubscriptionService)
+	blockchainStateServerSentEventsHTTPHandler := httphandler.NewBlockchainStateServerSentEventsHTTPHandler(
+		logger,
+		getBlockchainStateService)
 	signedTransactionSubmissionHTTPHandler := httphandler.NewSignedTransactionSubmissionHTTPHandler(
 		logger,
 		signedTransactionSubmissionService)
@@ -357,6 +360,7 @@ func doRunDaemon() {
 		getBlockchainStateHTTPHandler,
 		listBlockTransactionsByAddressHTTPHandler,
 		blockchainStateChangeEventsHTTPHandler,
+		blockchainStateServerSentEventsHTTPHandler,
 		getBlockDataHTTPHandler,
 		signedTransactionSubmissionHTTPHandler,
 		mempoolTransactionReceiveDTOFromNetworkServiceHTTPHandler,

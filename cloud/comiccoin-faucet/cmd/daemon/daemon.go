@@ -79,6 +79,10 @@ func doRunDaemon() {
 	blockchainStateChangeEventDTORepo := repo.NewBlockchainStateChangeEventDTORepo(
 		blockchainStateChangeEventDTOConfigurationProvider,
 		logger)
+	blockchainStateServerSentEventsDTOConfigurationProvider := repo.NewBlockchainStateServerSentEventsDTOConfigurationProvider(cfg.App.AuthorityHTTPAddress)
+	blockchainStateServerSentEventsDTORepo := repo.NewBlockchainStateServerSentEventsDTORepository(
+		blockchainStateServerSentEventsDTOConfigurationProvider,
+		logger)
 	blockchainStateDTOConfigurationProvider := repo.NewBlockchainStateDTOConfigurationProvider(cfg.App.AuthorityHTTPAddress)
 	blockchainStateDTORepo := repo.NewBlockchainStateDTORepo(
 		blockchainStateDTOConfigurationProvider,
@@ -188,6 +192,12 @@ func doRunDaemon() {
 	)
 	_ = upsertBlockchainStateUseCase
 
+	// Blockchain State DTO
+	getBlockchainStateDTOFromBlockchainAuthorityUseCase := usecase.NewGetBlockchainStateDTOFromBlockchainAuthorityUseCase(
+		logger,
+		blockchainStateDTORepo,
+	)
+
 	// Block Data
 	getBlockDataUseCase := usecase.NewGetBlockDataUseCase(
 		cfg,
@@ -237,13 +247,12 @@ func doRunDaemon() {
 	subscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase := usecase.NewSubscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase(
 		logger,
 		blockchainStateChangeEventDTORepo)
-
 	_ = subscribeToBlockchainStateChangeEventsFromBlockchainAuthorityUseCase
 
-	// Blockchain State DTO
-	getBlockchainStateDTOFromBlockchainAuthorityUseCase := usecase.NewGetBlockchainStateDTOFromBlockchainAuthorityUseCase(
+	// Blockchain State Server Sent Events DTO
+	subscribeToBlockchainStateServerSentEventsFromBlockchainAuthorityUseCase := usecase.NewSubscribeToBlockchainStateServerSentEventsFromBlockchainAuthorityUseCase(
 		logger,
-		blockchainStateDTORepo)
+		blockchainStateServerSentEventsDTORepo)
 
 	// Mempooltx DTO
 	submitMempoolTransactionDTOToBlockchainAuthorityUseCase := usecase.NewSubmitMempoolTransactionDTOToBlockchainAuthorityUseCase(
@@ -466,6 +475,15 @@ func doRunDaemon() {
 		userTransactionUpdateUseCase,
 	)
 
+	blockchainSyncWithBlockchainAuthorityViaServerSentEventsService := service.NewBlockchainSyncWithBlockchainAuthorityViaServerSentEventsService(
+		cfg,
+		logger,
+		dbClient,
+		blockchainSyncWithBlockchainAuthorityService,
+		getBlockchainStateUseCase,
+		subscribeToBlockchainStateServerSentEventsFromBlockchainAuthorityUseCase,
+	)
+
 	// Attachment
 	attachmentCreateService := service.NewAttachmentCreateService(
 		cfg,
@@ -557,11 +575,18 @@ func doRunDaemon() {
 		dbClient,
 		blockchainSyncWithBlockchainAuthorityService,
 	)
+	blockchainSyncWithBlockchainAuthorityViaServerSentEventsTaskHandler := taskhandler.NewBlockchainSyncWithBlockchainAuthorityViaServerSentEventsTaskHandler(
+		cfg,
+		logger,
+		dbClient,
+		blockchainSyncWithBlockchainAuthorityViaServerSentEventsService,
+	)
 	taskManager := task.NewTaskManager(
 		cfg,
 		logger,
 		attachmentGarbageCollectorTask,
 		blockchainSyncWithBlockchainAuthorityTaskHandler,
+		blockchainSyncWithBlockchainAuthorityViaServerSentEventsTaskHandler,
 	)
 
 	// --- HTTP --- //

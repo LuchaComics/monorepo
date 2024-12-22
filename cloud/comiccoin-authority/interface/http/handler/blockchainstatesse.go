@@ -6,24 +6,26 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"time"
 
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/common/httperror"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/config/constants"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-authority/service"
 )
 
-type BlockchainStateChangeEventDTOHTTPHandler struct {
+type BlockchainStateServerSentEventsHTTPHandler struct {
 	logger  *slog.Logger
-	service *service.BlockchainStateChangeSubscriptionService
+	service *service.GetBlockchainStateService
 }
 
-func NewBlockchainStateChangeEventDTOHTTPHandler(
+func NewBlockchainStateServerSentEventsHTTPHandler(
 	logger *slog.Logger,
-	s *service.BlockchainStateChangeSubscriptionService,
-) *BlockchainStateChangeEventDTOHTTPHandler {
-	return &BlockchainStateChangeEventDTOHTTPHandler{logger, s}
+	s *service.GetBlockchainStateService,
+) *BlockchainStateServerSentEventsHTTPHandler {
+	return &BlockchainStateServerSentEventsHTTPHandler{logger, s}
 }
 
-func (h *BlockchainStateChangeEventDTOHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
+func (h *BlockchainStateServerSentEventsHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	ipAddress, _ := ctx.Value(constants.SessionIPAddress).(string)
 
@@ -51,36 +53,43 @@ func (h *BlockchainStateChangeEventDTOHTTPHandler) Execute(w http.ResponseWriter
 		chainID = uint16(chainIDInt64)
 	}
 
-	h.logger.Debug("Blockchain state change events requested",
+	h.logger.Debug("Blockchain state server sent events connected client",
 		slog.Any("chain_id", chainIDStr),
 		slog.Any("ip_address", ipAddress))
 
-	defer func() {
-		// Simulate closing the connection
-		closeNotify := w.(http.CloseNotifier).CloseNotify()
-		<-closeNotify
-	}()
+	// Create a channel for client disconnection
+	clientGone := r.Context().Done()
 
+	// Create ticker that will send a SSE to the client every ten seconds.
+	t := time.NewTicker(10 * time.Second)
+	defer t.Stop()
 	for {
 		select {
-		case <-ctx.Done():
-			h.logger.Debug("Context canceled. Stopping server sent event stream.",
+		case <-clientGone:
+			h.logger.Debug("Client disconnected",
+				slog.Any("chain_id", chainIDStr),
 				slog.Any("ip_address", ipAddress))
 			return
-		default:
-			updatedBlockchainState, err := h.service.Execute(ctx)
+		case <-t.C:
+
+			blockchainState, err := h.service.Execute(ctx, uint16(chainID))
 			if err != nil {
-				h.logger.Error("Failed detecting blockchain state changes",
-					slog.Any("error", err),
-					slog.Any("ip_address", ipAddress))
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				httperror.ResponseError(w, err)
 				return
 			}
 
-			if updatedBlockchainState.ChainID == chainID {
-				fmt.Fprintf(w, "data: %v\n\n", chainID)
+			if blockchainState.ChainID == chainID {
+				h.logger.Debug("Sending sse to client...",
+					slog.Any("chain_id", chainIDStr),
+					slog.Any("latest_hash", blockchainState.LatestHash),
+					slog.Any("ip_address", ipAddress))
+
+				// Send an event to the client.
+				fmt.Fprintf(w, "data: %v\n\n", blockchainState.LatestHash)
 			}
+
 			w.(http.Flusher).Flush()
+			time.Sleep(1 * time.Second)
 		}
 	}
 }
