@@ -136,53 +136,18 @@ type UserComment struct {
 	Content          string             `bson:"content" json:"content"`
 }
 
-type UserListFilter struct {
-	// Pagination related.
-	Cursor    primitive.ObjectID
-	PageSize  int64
-	SortField string
-	SortOrder int8 // 1=ascending | -1=descending
-
-	// Filter related.
-	TenantID        primitive.ObjectID
-	Role            int8
-	Status          int8
-	UUIDs           []string
-	ExcludeArchived bool
-	SearchText      string
-	FirstName       string
-	LastName        string
-	Email           string
-	Phone           string
-	CreatedAtGTE    time.Time
-	IsStarred       int8 //0=All, 1=True, 2=False
-}
-
-type UserListResult struct {
-	Results     []*User            `json:"results"`
-	NextCursor  primitive.ObjectID `json:"next_cursor"`
-	HasNextPage bool               `json:"has_next_page"`
-}
-
 type UserAsSelectOption struct {
 	Value primitive.ObjectID `bson:"_id" json:"value"` // Extract from the database `_id` field and output through API as `value`.
 	Label string             `bson:"name" json:"label"`
 }
 
-// UserPaginationListResult represents the paginated list results for
-// the associate records.
-type UserPaginationListResult struct {
-	Results     []*User `json:"results"`
-	NextCursor  string  `json:"next_cursor"`
-	HasNextPage bool    `json:"has_next_page"`
-}
-
 type UserFilter struct {
-	TenantID       primitive.ObjectID `json:"tenant_id"` // Required for data partitioning
-	Name           *string            `json:"name,omitempty"`
-	Status         int8               `json:"status,omitempty"`
-	CreatedAtStart *time.Time         `json:"created_at_start,omitempty"`
-	CreatedAtEnd   *time.Time         `json:"created_at_end,omitempty"`
+	TenantID                  primitive.ObjectID `json:"tenant_id"` // Required for data partitioning
+	Name                      *string            `json:"name,omitempty"`
+	Status                    int8               `json:"status,omitempty"`
+	CreatedAtStart            *time.Time         `json:"created_at_start,omitempty"`
+	CreatedAtEnd              *time.Time         `json:"created_at_end,omitempty"`
+	ProfileVerificationStatus int8               `bson:"profile_verification_status" json:"profile_verification_status,omitempty"`
 
 	// Cursor-based pagination
 	LastID        *primitive.ObjectID `json:"last_id,omitempty"`
@@ -207,7 +172,7 @@ type UserRepository interface {
 	CheckIfExistsByEmail(ctx context.Context, email string) (bool, error)
 	UpdateByID(ctx context.Context, m *User) error
 	CountByFilter(ctx context.Context, filter *UserFilter) (uint64, error)
-	// ListByFilter(ctx context.Context, f *UserPaginationListFilter) (*UserPaginationListResult, error)
+	ListByFilter(ctx context.Context, filter *UserFilter) (*UserFilterResult, error)
 	// ListAsSelectOptionByFilter(ctx context.Context, f *UserPaginationListFilter) ([]*UserAsSelectOption, error)
 	// ListAllRootStaff(ctx context.Context) (*UserPaginationListResult, error)
 	// ListAllRetailerStaffForTenantID(ctx context.Context, storeID primitive.ObjectID) (*UserPaginationListResult, error)

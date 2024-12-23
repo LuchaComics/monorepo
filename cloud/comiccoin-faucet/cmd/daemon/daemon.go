@@ -299,6 +299,10 @@ func doRunDaemon() {
 		cfg,
 		logger,
 		userRepo)
+	userListByFilterUseCase := usecase.NewUserListByFilterUseCase(
+		cfg,
+		logger,
+		userRepo)
 
 	// User Transaction
 	createUserTransactionUseCase := usecase.NewCreateUserTransactionUseCase(
@@ -555,6 +559,11 @@ func doRunDaemon() {
 		logger,
 		userCountByFilterUseCase,
 	)
+	userListByFilterService := service.NewUserListByFilterService(
+		logger,
+		cloudStoragePresignedURLUseCase,
+		userListByFilterUseCase,
+	)
 
 	// Faucet
 	faucetBalanceService := service.NewFaucetBalanceService(
@@ -710,6 +719,11 @@ func doRunDaemon() {
 		dbClient,
 		userCountJoinedThisWeekService,
 	)
+	userListByFilterHTTPHandler := httphandler.NewUserListByFilterHTTPHandler(
+		logger,
+		dbClient,
+		userListByFilterService,
+	)
 	faucetBalanceHTTPHandler := httphandler.NewFaucetBalanceHTTPHandler(
 		logger,
 		dbClient,
@@ -749,6 +763,7 @@ func doRunDaemon() {
 		comicSubmissionCountTotalCreatedTodayByUserHTTPHandler,
 		comicSubmissionJudgeOperationHTTPHandler,
 		userCountJoinedThisWeekHTTPHandler,
+		userListByFilterHTTPHandler,
 		faucetBalanceHTTPHandler,
 	)
 

@@ -61,6 +61,7 @@ type httpServerImpl struct {
 	comicSubmissionJudgeOperationHTTPHandler               *handler.ComicSubmissionJudgeOperationHTTPHandler
 
 	userCountJoinedThisWeekHTTPHandler *handler.UserCountJoinedThisWeekHTTPHandler
+	userListByFilterHTTPHandler        *handler.UserListByFilterHTTPHandler
 
 	faucetBalanceHTTPHandler *handler.FaucetBalanceHTTPHandler
 }
@@ -94,7 +95,8 @@ func NewHTTPServer(
 	h22 *handler.ComicSubmissionCountTotalCreatedTodayByUserHTTPHandler,
 	h23 *handler.ComicSubmissionJudgeOperationHTTPHandler,
 	h24 *handler.UserCountJoinedThisWeekHTTPHandler,
-	h25 *handler.FaucetBalanceHTTPHandler,
+	h25 *handler.UserListByFilterHTTPHandler,
+	h26 *handler.FaucetBalanceHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.HTTPAddress == "" {
@@ -142,7 +144,8 @@ func NewHTTPServer(
 		comicSubmissionCountTotalCreatedTodayByUserHTTPHandler: h22,
 		comicSubmissionJudgeOperationHTTPHandler:               h23,
 		userCountJoinedThisWeekHTTPHandler:                     h24,
-		faucetBalanceHTTPHandler:                               h25,
+		userListByFilterHTTPHandler:                            h25,
+		faucetBalanceHTTPHandler:                               h26,
 	}
 	// Attach the HTTP server controller to the ServeMux.
 	mux.HandleFunc("/", mid.Attach(port.HandleRequests))
@@ -239,6 +242,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		port.comicSubmissionJudgeOperationHTTPHandler.Execute(w, r)
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "comic-submissions" && p[3] == "total-coins-awarded" && r.Method == http.MethodGet:
 		port.comicSubmissionTotalCoinsAwardedHTTPHandler.Execute(w, r)
+	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "users" && r.Method == http.MethodGet:
+		port.userListByFilterHTTPHandler.Execute(w, r)
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "users" && p[3] == "count-joined-this-week" && r.Method == http.MethodGet:
 		port.userCountJoinedThisWeekHTTPHandler.Execute(w, r)
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "faucet" && p[3] == "balance" && r.Method == http.MethodGet:

@@ -281,3 +281,126 @@ func (s *userStorerImpl) CountByFilter(ctx context.Context, filter *domain.UserF
 
 	return uint64(count), nil
 }
+
+func (impl userStorerImpl) buildMatchStage(filter *domain.UserFilter) bson.M {
+	match := bson.M{
+		"tenant_id": filter.TenantID,
+	}
+
+	// Handle cursor-based pagination
+	if filter.LastID != nil && filter.LastCreatedAt != nil {
+		match["$or"] = []bson.M{
+			{
+				"created_at": bson.M{"$lt": filter.LastCreatedAt},
+			},
+			{
+				"created_at": filter.LastCreatedAt,
+				"_id":        bson.M{"$lt": filter.LastID},
+			},
+		}
+	}
+
+	// Add other filters
+	if filter.Status != 0 {
+		match["status"] = filter.Status
+	}
+
+	if filter.ProfileVerificationStatus != 0 {
+		match["profile_verification_status"] = filter.ProfileVerificationStatus
+	}
+
+	// if !filter.UserID.IsZero() {
+	// 	match["user_id"] = filter.UserID
+	// }
+
+	if filter.CreatedAtStart != nil || filter.CreatedAtEnd != nil {
+		createdAtFilter := bson.M{}
+		if filter.CreatedAtStart != nil {
+			createdAtFilter["$gte"] = filter.CreatedAtStart
+		}
+		if filter.CreatedAtEnd != nil {
+			createdAtFilter["$lte"] = filter.CreatedAtEnd
+		}
+		match["created_at"] = createdAtFilter
+	}
+
+	// Text search for name
+	if filter.Name != nil && *filter.Name != "" {
+		match["$text"] = bson.M{"$search": *filter.Name}
+	}
+
+	return match
+}
+
+func (impl userStorerImpl) ListByFilter(ctx context.Context, filter *domain.UserFilter) (*domain.UserFilterResult, error) {
+	if filter == nil {
+		return nil, errors.New("filter cannot be nil")
+	}
+
+	// Default limit if not specified
+	if filter.Limit <= 0 {
+		filter.Limit = 100
+	}
+
+	// Request one more document than needed to determine if there are more results
+	limit := filter.Limit + 1
+
+	// Build the aggregation pipeline
+	pipeline := make([]bson.D, 0)
+
+	// Match stage - initial filtering
+	matchStage := bson.D{{"$match", impl.buildMatchStage(filter)}}
+	pipeline = append(pipeline, matchStage)
+
+	// Sort stage
+	sortStage := bson.D{{"$sort", bson.D{
+		{"created_at", -1},
+		{"_id", -1},
+	}}}
+	pipeline = append(pipeline, sortStage)
+
+	// Limit stage
+	limitStage := bson.D{{"$limit", limit}}
+	pipeline = append(pipeline, limitStage)
+
+	// Execute aggregation
+	opts := options.Aggregate().SetAllowDiskUse(true)
+	cursor, err := impl.Collection.Aggregate(ctx, pipeline, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	// Decode results
+	var Users []*domain.User
+	if err := cursor.All(ctx, &Users); err != nil {
+		return nil, err
+	}
+
+	// Handle empty results case
+	if len(Users) == 0 {
+		// For debugging purposes only.
+		// impl.Logger.Debug("Empty list", slog.Any("filter", filter))
+		return &domain.UserFilterResult{
+			Users:   make([]*domain.User, 0),
+			HasMore: false,
+		}, nil
+	}
+
+	// Check if there are more results
+	hasMore := false
+	if len(Users) > int(filter.Limit) {
+		hasMore = true
+		Users = Users[:len(Users)-1]
+	}
+
+	// Get last document info for next page
+	lastDoc := Users[len(Users)-1]
+
+	return &domain.UserFilterResult{
+		Users:         Users,
+		HasMore:       hasMore,
+		LastID:        lastDoc.ID,
+		LastCreatedAt: lastDoc.CreatedAt,
+	}, nil
+}

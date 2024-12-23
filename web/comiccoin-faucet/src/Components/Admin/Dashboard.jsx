@@ -1,4 +1,3 @@
-// Dashboard.jsx
 import React, { useState, useCallback, useEffect } from "react";
 import {
   Coins,
@@ -25,8 +24,13 @@ import {
   getComicSubmissionsTotalCoinsAwardedAPI,
   postComicSubmissionJudgementOperationAPI,
 } from "../../API/ComicSubmission";
-import { getUsersCountJoinedThisWeekAPI } from "../../API/user";
-import { getFaucetBalanceAPI } from "../../API/Faucet";
+import {
+  getUsersCountJoinedThisWeekAPI,
+  getUserListAPI
+} from "../../API/user";
+import {
+  getFaucetBalanceAPI
+} from "../../API/Faucet";
 import AdminTopbar from "../Navigation/AdminTopbar";
 import GalleryItem from './GalleryItem';
 
@@ -43,38 +47,35 @@ const AdminDashboard = () => {
   const [isFetching, setFetching] = useState(false);
   const [errors, setErrors] = useState({});
   const [isNavOpen, setIsNavOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
 
-  const itemsPerPage = 8;
-  const pageCount = Math.ceil(pendingSubmissions.length / itemsPerPage);
-  const currentSubmissions = pendingSubmissions.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
-  );
+  // User list states with pagination
+  const [users, setUsers] = useState([]);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [currentUserPage, setCurrentUserPage] = useState(1);
+  const [currentSubmissionPage, setCurrentSubmissionPage] = useState(1);
+
+  const itemsPerPage = 8; // For submissions
+  const usersPerPage = 10; // For users list
 
   useEffect(() => {
     let mounted = true;
 
-    const fetchSubmissions = async () => {
+    const fetchInitialData = async () => {
       if (!mounted) return;
 
       setFetching(true);
-      const params = new Map();
-      params.set("status", 1); // ComicSubmissionStatusInReview
-      params.set("page_size", itemsPerPage);
-      params.set("page", currentPage);
-
       try {
+        // Get total coins awarded
         await getComicSubmissionsTotalCoinsAwardedAPI(
           (resp) => {
             if (mounted) {
-              console.log("getComicSubmissionListAPI: Success", resp);
+              console.log("getComicSubmissionsTotalCoinsAwardedAPI: Success", resp);
               setTotalCoinsAwarded(resp.count);
             }
           },
           (apiErr) => {
             if (mounted) {
-              console.log("getComicSubmissionListAPI: Error:", apiErr);
+              console.log("getComicSubmissionsTotalCoinsAwardedAPI: Error:", apiErr);
               setErrors(apiErr);
             }
           },
@@ -87,35 +88,10 @@ const AdminDashboard = () => {
             if (mounted) {
               window.location.href = "/login?unauthorized=true";
             }
-          },
+          }
         );
 
-        await getComicSubmissionListAPI(
-          params,
-          (resp) => {
-            if (mounted) {
-              console.log("getComicSubmissionListAPI: Success", resp);
-              setPendingSubmissions(resp.submissions);
-            }
-          },
-          (apiErr) => {
-            if (mounted) {
-              console.log("getComicSubmissionListAPI: Error:", apiErr);
-              setErrors(apiErr);
-            }
-          },
-          () => {
-            if (mounted) {
-              setFetching(false);
-            }
-          },
-          () => {
-            if (mounted) {
-              window.location.href = "/login?unauthorized=true";
-            }
-          },
-        );
-
+        // Get users joined this week
         await getUsersCountJoinedThisWeekAPI(
           (resp) => {
             if (mounted) {
@@ -138,9 +114,10 @@ const AdminDashboard = () => {
             if (mounted) {
               window.location.href = "/login?unauthorized=true";
             }
-          },
+          }
         );
 
+        // Get faucet balance
         await getFaucetBalanceAPI(
           (resp) => {
             if (mounted) {
@@ -163,25 +140,57 @@ const AdminDashboard = () => {
             if (mounted) {
               window.location.href = "/login?unauthorized=true";
             }
-          },
+          }
         );
       } catch (error) {
-        console.error("Failed to fetch submissions:", error);
+        console.error("Failed to fetch initial data:", error);
+        setFetching(false);
       }
     };
 
-    fetchSubmissions();
-
-    const fetchTotalPendingSubmissions = async () => {
+    const fetchPaginatedData = async () => {
       if (!mounted) return;
 
       setFetching(true);
-      const params = new Map();
-      params.set("status", 1); // ComicSubmissionStatusInReview
-
       try {
+        // Fetch users with pagination
+        const userParams = new Map();
+        userParams.set("page_size", usersPerPage);
+        userParams.set("page", currentUserPage);
+        userParams.set("profile_verification_status", 2);
+
+        await getUserListAPI(
+          userParams,
+          (resp) => {
+            if (mounted) {
+              console.log("getUserListAPI: Success", resp);
+              setUsers(resp.users);
+              setTotalUsers(resp.count);
+            }
+          },
+          (apiErr) => {
+            if (mounted) {
+              console.log("getUserListAPI: Error:", apiErr);
+              setErrors(apiErr);
+            }
+          },
+          () => {
+            if (mounted) {
+              setFetching(false);
+            }
+          },
+          () => {
+            if (mounted) {
+              window.location.href = "/login?unauthorized=true";
+            }
+          }
+        );
+
+        // Fetch submissions count
+        const countParams = new Map();
+        countParams.set("status", 1); // ComicSubmissionStatusInReview
         await getComicSubmissionsCountByFilterAPI(
-          params,
+          countParams,
           (resp) => {
             if (mounted) {
               console.log("getComicSubmissionsCountByFilterAPI: Success", resp);
@@ -190,10 +199,7 @@ const AdminDashboard = () => {
           },
           (apiErr) => {
             if (mounted) {
-              console.log(
-                "getComicSubmissionsCountByFilterAPI: Error:",
-                apiErr,
-              );
+              console.log("getComicSubmissionsCountByFilterAPI: Error:", apiErr);
               setErrors(apiErr);
               setTotalPendingSubmissions(0);
             }
@@ -207,189 +213,208 @@ const AdminDashboard = () => {
             if (mounted) {
               window.location.href = "/login?unauthorized=true";
             }
+          }
+        );
+
+        // Fetch paginated submissions
+        const submissionParams = new Map();
+        submissionParams.set("status", 1); // ComicSubmissionStatusInReview
+        submissionParams.set("page_size", itemsPerPage);
+        submissionParams.set("page", currentSubmissionPage);
+
+        await getComicSubmissionListAPI(
+          submissionParams,
+          (resp) => {
+            if (mounted) {
+              console.log("getComicSubmissionListAPI: Success", resp);
+              setPendingSubmissions(resp.submissions);
+            }
           },
+          (apiErr) => {
+            if (mounted) {
+              console.log("getComicSubmissionListAPI: Error:", apiErr);
+              setErrors(apiErr);
+            }
+          },
+          () => {
+            if (mounted) {
+              setFetching(false);
+            }
+          },
+          () => {
+            if (mounted) {
+              window.location.href = "/login?unauthorized=true";
+            }
+          }
         );
       } catch (error) {
-        console.error("Failed to fetch total count submissions:", error);
+        console.error("Failed to fetch paginated data:", error);
+        setFetching(false);
       }
     };
 
-    fetchTotalPendingSubmissions();
+    fetchInitialData();
+    fetchPaginatedData();
 
     return () => {
       mounted = false;
     };
-  }, [currentPage, currentUser]);
+  }, [currentUserPage, currentSubmissionPage]);
 
   const handleApproveSubmission = useCallback(async (submissionId) => {
     try {
-      // Show we are processing
       setFetching(true);
-
-      // Prepare request body for the approval
       const submissionReq = {
         comic_submission_id: submissionId,
-        status: 3, // 3 is the status code for "approved"
+        status: 3, // Approved
         judgement_notes: "Approved by administrator",
       };
 
       await postComicSubmissionJudgementOperationAPI(
         submissionReq,
-        // onSuccess callback
         async (resp) => {
           console.log("Successfully approved submission:", submissionId);
 
-          // Refresh the submissions list
+          // Refresh submissions list
           const params = new Map();
-          params.set("status", 1); // Get pending submissions
+          params.set("status", 1);
+          params.set("page_size", itemsPerPage);
+          params.set("page", currentSubmissionPage);
+
           await getComicSubmissionListAPI(
             params,
             (resp) => setPendingSubmissions(resp.submissions),
             (err) => setErrors(err),
             () => setFetching(false),
-            () => (window.location.href = "/login?unauthorized=true"),
+            () => (window.location.href = "/login?unauthorized=true")
           );
         },
-        // onError callback
         (apiErr) => {
           console.error("Failed to approve submission:", apiErr);
           setErrors(apiErr);
           setFetching(false);
         },
-        // onFinally callback
         () => setFetching(false),
-        // onUnauthorized callback
-        () => (window.location.href = "/login?unauthorized=true"),
+        () => (window.location.href = "/login?unauthorized=true")
       );
     } catch (error) {
       console.error("Error in handleApproveSubmission:", error);
       setErrors(error);
       setFetching(false);
     }
-  }, []);
+  }, [currentSubmissionPage]);
 
   const handleRejectSubmission = useCallback(async (submissionId) => {
     try {
-      // Here you would call your reject API endpoint
-      console.log(`Rejecting submission ${submissionId}`);
-
-      // Show we are processing
       setFetching(true);
-
-      // Prepare request body for the approval
       const submissionReq = {
         comic_submission_id: submissionId,
-        status: 2, // 2 is the status code for "rejected"
-        judgement_notes: "Approved by administrator",
+        status: 2, // Rejected
+        judgement_notes: "Rejected by administrator",
       };
 
       await postComicSubmissionJudgementOperationAPI(
         submissionReq,
-        // onSuccess callback
         async (resp) => {
-          console.log("Successfully approved submission:", submissionId);
+          console.log("Successfully rejected submission:", submissionId);
 
-          // Refresh the submissions list
+          // Refresh submissions list
           const params = new Map();
-          params.set("status", 1); // Get pending submissions
+          params.set("status", 1);
+          params.set("page_size", itemsPerPage);
+          params.set("page", currentSubmissionPage);
+
           await getComicSubmissionListAPI(
             params,
             (resp) => setPendingSubmissions(resp.submissions),
             (err) => setErrors(err),
             () => setFetching(false),
-            () => (window.location.href = "/login?unauthorized=true"),
+            () => (window.location.href = "/login?unauthorized=true")
           );
         },
-        // onError callback
         (apiErr) => {
-          console.error("Failed to approve submission:", apiErr);
+          console.error("Failed to reject submission:", apiErr);
           setErrors(apiErr);
           setFetching(false);
         },
-        // onFinally callback
         () => setFetching(false),
-        // onUnauthorized callback
-        () => (window.location.href = "/login?unauthorized=true"),
+        () => (window.location.href = "/login?unauthorized=true")
       );
     } catch (error) {
-      console.error("Failed to reject submission:", error);
+      console.error("Error in handleRejectSubmission:", error);
+      setErrors(error);
+      setFetching(false);
     }
-  }, []);
+  }, [currentSubmissionPage]);
 
   const handleFlagSubmission = useCallback(async (submissionId, flagData) => {
     try {
-      // Here you would call your flag API endpoint
-      console.log(`Flagging submission ${submissionId} for:`, flagData);
-
-      // Show we are processing
       setFetching(true);
-
-      // Prepare request body for the approval
       const submissionReq = {
         comic_submission_id: submissionId,
-        status: 6, // 6 is the status code for "flagged"
+        status: 6, // Flagged
         flag_issue: flagData.flagIssue,
-        flag_issue_other:
-          flagData.flagIssue === "other" ? flagData.flagIssueOther : "",
+        flag_issue_other: flagData.flagIssue === "other" ? flagData.flagIssueOther : "",
         flag_action: flagData.flagAction,
       };
 
       await postComicSubmissionJudgementOperationAPI(
         submissionReq,
-        // onSuccess callback
         async (resp) => {
           console.log("Successfully flagged submission:", submissionId);
 
-          // Refresh the submissions list
+          // Refresh submissions list
           const params = new Map();
-          params.set("status", 1); // Get pending submissions
+          params.set("status", 1);
+          params.set("page_size", itemsPerPage);
+          params.set("page", currentSubmissionPage);
+
           await getComicSubmissionListAPI(
             params,
             (resp) => setPendingSubmissions(resp.submissions),
             (err) => setErrors(err),
             () => setFetching(false),
-            () => (window.location.href = "/login?unauthorized=true"),
+            () => (window.location.href = "/login?unauthorized=true")
           );
         },
-        // onError callback
         (apiErr) => {
           console.error("Failed to flag submission:", apiErr);
           setErrors(apiErr);
           setFetching(false);
         },
-        // onFinally callback
         () => setFetching(false),
-        // onUnauthorized callback
-        () => (window.location.href = "/login?unauthorized=true"),
+        () => (window.location.href = "/login?unauthorized=true")
       );
     } catch (error) {
-      console.error("Failed to flag submission:", error);
+      console.error("Error in handleFlagSubmission:", error);
       setFetching(false);
     }
-  }, []);
+  }, [currentSubmissionPage]);
 
-  const handlePageChange = useCallback(
+  const handleUserPageChange = useCallback(
     (newPage) => {
-      if (newPage >= 1 && newPage <= pageCount) {
-        setCurrentPage(newPage);
+      const maxPages = Math.ceil(totalUsers / usersPerPage);
+      if (newPage >= 1 && newPage <= maxPages) {
+        setCurrentUserPage(newPage);
       }
     },
-    [pageCount],
+    [totalUsers]
   );
 
-  const handleNextPage = useCallback(() => {
-    handlePageChange(currentPage + 1);
-  }, [currentPage, handlePageChange]);
-
-  const handlePrevPage = useCallback(() => {
-    handlePageChange(currentPage - 1);
-  }, [currentPage, handlePageChange]);
-
+  const handleSubmissionPageChange = useCallback(
+    (newPage) => {
+      const maxPages = Math.ceil(totalPendingSubmissions / itemsPerPage);
+      if (newPage >= 1 && newPage <= maxPages) {
+        setCurrentSubmissionPage(newPage);
+      }
+    },
+    [totalPendingSubmissions]
+  );
 
   if (isFetching) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl text-purple-600">Loading submissions...</div>
+        <div className="text-xl text-purple-600">Loading...</div>
       </div>
     );
   }
@@ -397,147 +422,195 @@ const AdminDashboard = () => {
   if (Object.keys(errors).length > 0) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl text-red-600">Error loading submissions</div>
+        <div className="text-xl text-red-600">Error loading data</div>
       </div>
     );
   }
 
+  console.log("users:", users);
+
   return (
-  <div className="min-h-screen bg-purple-50">
-    <AdminTopbar currentPage="Dashboard" />
+    <div className="min-h-screen bg-purple-50">
+      <AdminTopbar currentPage="Dashboard" />
 
-    {/* Main Content with proper horizontal spacing */}
-    <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1
-        className="text-3xl font-bold text-purple-800 mb-8"
-        style={{ fontFamily: "Comic Sans MS, cursive" }}
-      >
-        Admin Dashboard
-      </h1>
+      <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 className="text-3xl font-bold text-purple-800 mb-8" style={{ fontFamily: "Comic Sans MS, cursive" }}>
+          Admin Dashboard
+        </h1>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
-          <div className="text-purple-600 text-lg font-semibold">
-            New Users This Week
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
+            <div className="text-purple-600 text-lg font-semibold">
+              Pending Reviews
+            </div>
+            <div className="text-3xl font-bold">{totalPendingSubmissions}</div>
           </div>
-          <div className="text-3xl font-bold">{totalUsersJoinedThisWeek}</div>
-        </div>
-        <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
-          <div className="text-purple-600 text-lg font-semibold">
-            Pending Reviews
+          <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
+            <div className="text-purple-600 text-lg font-semibold">
+              Total ComicCoins Paid
+            </div>
+            <div className="text-3xl font-bold">{totalCoinsAwarded} CC</div>
           </div>
-          <div className="text-3xl font-bold">
-            {pendingSubmissions.length}
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
-          <div className="text-purple-600 text-lg font-semibold">
-            Total ComicCoins Paid
-          </div>
-          <div className="text-3xl font-bold">
-            {totalCoinsAwarded}&nbsp;CC
+          <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
+            <div className="text-purple-600 text-lg font-semibold">
+              Faucet Balance
+            </div>
+            <div className="text-3xl font-bold">{faucetBalance} CC</div>
           </div>
         </div>
-        <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-purple-200">
-          <div className="text-purple-600 text-lg font-semibold">
-            Faucet Balance
-          </div>
-          <div className="text-3xl font-bold">{faucetBalance}&nbsp;CC</div>
-        </div>
-      </div>
 
-      {/* Submissions Section */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border-2 border-purple-200">
-        <h2
-          className="text-2xl font-bold text-purple-800 mb-6"
-          style={{ fontFamily: "Comic Sans MS, cursive" }}
-        >
-          Submissions Awaiting Review
-        </h2>
+        {/* Users Section */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border-2 border-purple-200">
+          <h2 className="text-2xl font-bold text-purple-800 mb-6" style={{ fontFamily: "Comic Sans MS, cursive" }}>
+            User List
+          </h2>
 
-        {pendingSubmissions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-            <Coins className="w-12 h-12 mb-4 text-purple-300" />
-            <p className="text-lg font-medium mb-2">No Pending Reviews</p>
-            <p className="text-sm text-gray-400">
-              There are currently no comic submissions waiting for review.
-            </p>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-purple-50">
+                  <th className="px-4 py-2 text-left text-purple-600">Username</th>
+                  <th className="px-4 py-2 text-left text-purple-600">Email</th>
+                  <th className="px-4 py-2 text-left text-purple-600">Join Date</th>
+                  <th className="px-4 py-2 text-left text-purple-600">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users && users.map((user) => (
+                  <tr key={user.id} className="border-t border-purple-100 hover:bg-purple-50">
+                    <td className="px-4 py-2">{user.username}</td>
+                    <td className="px-4 py-2">{user.email}</td>
+                    <td className="px-4 py-2">{user.createdAt}</td>
+                    <td className="px-4 py-2">
+                      <span className={`px-2 py-1 rounded-full text-sm ${
+                        user.status === 'active' ? 'bg-green-100 text-green-800' :
+                        user.status === 'inactive' ? 'bg-gray-100 text-gray-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {user.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
-            {currentSubmissions.map((submission) => (
-              <div className="max-w-[300px] mx-auto w-full">
-                <GalleryItem
-                  key={submission.id}
-                  submission={submission}
-                  onFlag={handleFlagSubmission}
-                  handleApproveSubmission={handleApproveSubmission}
-                  handleRejectSubmission={handleRejectSubmission}
-                />
-              </div>
-            ))}
-          </div>
-        )}
 
-        {/* Pagination */}
-        <div className="mt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="text-sm text-gray-600">
-            {pendingSubmissions.length === 0
-              ? "No submissions to display"
-              : `Showing ${(currentPage - 1) * itemsPerPage + 1} to ${Math.min(
-                  currentPage * itemsPerPage,
-                  pendingSubmissions.length,
-                )} of ${pendingSubmissions.length} submissions`}
-          </div>
-          {pendingSubmissions.length > 0 && pageCount > 1 && (
+          {/* User Pagination */}
+          <div className="mt-4 flex items-center justify-between">
+            <div className="text-sm text-gray-600">
+              Showing {((currentUserPage - 1) * usersPerPage) + 1} to {Math.min(currentUserPage * usersPerPage, totalUsers)} of {totalUsers} users
+            </div>
             <div className="flex items-center space-x-2">
               <button
-                onClick={handlePrevPage}
-                disabled={currentPage === 1}
+                onClick={() => handleUserPageChange(currentUserPage - 1)}
+                disabled={currentUserPage === 1}
                 className="p-2 rounded-lg border border-purple-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-50"
               >
                 <ChevronLeft className="w-5 h-5 text-purple-600" />
               </button>
               <span className="text-sm text-gray-600">
-                Page {currentPage} of {pageCount}
+                Page {currentUserPage} of {Math.ceil(totalUsers / usersPerPage)}
               </span>
               <button
-                onClick={handleNextPage}
-                disabled={currentPage === pageCount}
+                onClick={() => handleUserPageChange(currentUserPage + 1)}
+                disabled={currentUserPage >= Math.ceil(totalUsers / usersPerPage)}
                 className="p-2 rounded-lg border border-purple-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-50"
               >
                 <ChevronRight className="w-5 h-5 text-purple-600" />
               </button>
             </div>
-          )}
+          </div>
         </div>
-      </div>
-    </main>
 
-    {/* Hidden image elements to preload */}
-    {pendingSubmissions && <div style={{ display: "none" }}>
-        {pendingSubmissions.map((submission, index) => (
-          <>
-              <img
-                key={`front_${index}`}
-                src={submission.frontCover?.objectUrl}
-                alt={`Preloading ${index + 1}`}
-                onLoad={() => console.log(`Image ${index + 1} loaded successfully`)}
-                onError={() => console.error(`Image ${index + 1} failed to load`)}
-              />
-              <img
-                key={`back_${index}`}
-                src={submission.backCover?.objectUrl}
-                alt={`Preloading ${index + 1}`}
-                onLoad={() => console.log(`Image ${index + 1} loaded successfully`)}
-                onError={() => console.error(`Image ${index + 1} failed to load`)}
-              />
-          </>
-        ))}
-    </div>}
-  </div>
-);
-}
+        {/* Submissions Section */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border-2 border-purple-200">
+          <h2 className="text-2xl font-bold text-purple-800 mb-6" style={{ fontFamily: "Comic Sans MS, cursive" }}>
+            Submissions Awaiting Review
+          </h2>
+
+          {pendingSubmissions.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+              <Coins className="w-12 h-12 mb-4 text-purple-300" />
+              <p className="text-lg font-medium mb-2">No Pending Reviews</p>
+              <p className="text-sm text-gray-400">
+                There are currently no comic submissions waiting for review.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {pendingSubmissions.map((submission) => (
+                <div key={submission.id} className="max-w-[300px] mx-auto w-full">
+                  <GalleryItem
+                    submission={submission}
+                    onFlag={handleFlagSubmission}
+                    handleApproveSubmission={handleApproveSubmission}
+                    handleRejectSubmission={handleRejectSubmission}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Submission Pagination */}
+          <div className="mt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="text-sm text-gray-600">
+              {pendingSubmissions.length === 0
+                ? "No submissions to display"
+                : `Showing ${((currentSubmissionPage - 1) * itemsPerPage) + 1} to ${Math.min(
+                    currentSubmissionPage * itemsPerPage,
+                    totalPendingSubmissions
+                  )} of ${totalPendingSubmissions} submissions`}
+            </div>
+            {totalPendingSubmissions > 0 && Math.ceil(totalPendingSubmissions / itemsPerPage) > 1 && (
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => handleSubmissionPageChange(currentSubmissionPage - 1)}
+                  disabled={currentSubmissionPage === 1}
+                  className="p-2 rounded-lg border border-purple-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-50"
+                >
+                  <ChevronLeft className="w-5 h-5 text-purple-600" />
+                </button>
+                <span className="text-sm text-gray-600">
+                  Page {currentSubmissionPage} of {Math.ceil(totalPendingSubmissions / itemsPerPage)}
+                </span>
+                <button
+                  onClick={() => handleSubmissionPageChange(currentSubmissionPage + 1)}
+                  disabled={currentSubmissionPage >= Math.ceil(totalPendingSubmissions / itemsPerPage)}
+                  className="p-2 rounded-lg border border-purple-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-50"
+                >
+                  <ChevronRight className="w-5 h-5 text-purple-600" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Hidden image preload */}
+        {pendingSubmissions && (
+          <div style={{ display: "none" }}>
+            {pendingSubmissions.map((submission, index) => (
+              <React.Fragment key={submission.id}>
+                <img
+                  src={submission.frontCover?.objectUrl}
+                  alt={`Preloading front ${index + 1}`}
+                  onLoad={() => console.log(`Front image ${index + 1} loaded successfully`)}
+                  onError={() => console.error(`Front image ${index + 1} failed to load`)}
+                />
+                <img
+                  src={submission.backCover?.objectUrl}
+                  alt={`Preloading back ${index + 1}`}
+                  onLoad={() => console.log(`Back image ${index + 1} loaded successfully`)}
+                  onError={() => console.error(`Back image ${index + 1} failed to load`)}
+                />
+              </React.Fragment>
+            ))}
+          </div>
+        )}
+      </main>
+    </div>
+  );
+};
 
 export default AdminDashboard;
