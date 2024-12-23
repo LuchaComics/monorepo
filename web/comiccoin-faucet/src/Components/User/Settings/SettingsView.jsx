@@ -95,7 +95,7 @@ const SettingsPage = () => {
               title="Password & Security"
               description="Manage your password and security settings"
             />
-            {!currentUser.wasVerifiedByAdmin && <>
+            {currentUser.profileVerificationStatus === 1 && <>
                 <SettingLink
                   to="/apply-for-verification"
                   icon={Signature}
@@ -103,6 +103,40 @@ const SettingsPage = () => {
                   description="Get increased daily submission limits and extra benefits"
                 />
             </>}
+            {currentUser.profileVerificationStatus === 2 && <>
+                <div className="p-4">
+                  <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                      <p className="text-yellow-700 font-medium">Pending Verification Review</p>
+                    </div>
+                    <p className="text-sm text-yellow-600 mt-1">Submitted Profile for verification, please wait 1 week</p>
+                  </div>
+                </div>
+            </>}
+            {currentUser.profileVerificationStatus === 3 && <>
+                <div className="p-4">
+                  <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <p className="text-green-700 font-medium">Verified Profile</p>
+                    </div>
+                    <p className="text-sm text-green-600 mt-1">Your profile has been verified successfully</p>
+                  </div>
+                </div>
+            </>}
+            {currentUser.profileVerificationStatus === 4 && <>
+                <div className="p-4">
+                  <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                      <p className="text-red-700 font-medium">Profile Rejected</p>
+                    </div>
+                    <p className="text-sm text-red-600 mt-1">Your profile has been rejected</p>
+                  </div>
+                </div>
+            </>}
+
             {/*
             <SettingToggle
               icon={Smartphone}

@@ -145,22 +145,22 @@ func (s *GatewayInitService) Execute(
 	}
 
 	user := &domain.User{
-		ID:                    userID,
-		TenantID:              tenant.ID,
-		TenantName:            tenantName,
-		FirstName:             "System",
-		LastName:              "Administrator",
-		Name:                  "System Administrator",
-		LexicalName:           "Administrator, System",
-		Email:                 email,
-		Status:                domain.UserStatusActive,
-		PasswordHash:          passwordHash,
-		PasswordHashAlgorithm: s.passwordProvider.AlgorithmName(),
-		Role:                  domain.UserRoleRoot,
-		WasEmailVerified:      true,
-		CreatedAt:             time.Now(),
-		ModifiedAt:            time.Now(),
-		WasVerifiedByAdmin:    true,
+		ID:                        userID,
+		TenantID:                  tenant.ID,
+		TenantName:                tenantName,
+		FirstName:                 "System",
+		LastName:                  "Administrator",
+		Name:                      "System Administrator",
+		LexicalName:               "Administrator, System",
+		Email:                     email,
+		Status:                    domain.UserStatusActive,
+		PasswordHash:              passwordHash,
+		PasswordHashAlgorithm:     s.passwordProvider.AlgorithmName(),
+		Role:                      domain.UserRoleRoot,
+		WasEmailVerified:          true,
+		CreatedAt:                 time.Now(),
+		ModifiedAt:                time.Now(),
+		ProfileVerificationStatus: domain.UserProfileVerificationStatusApproved,
 	}
 
 	if createUserErr := s.userCreate.Execute(sessCtx, user); err != nil {

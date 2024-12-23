@@ -8,7 +8,7 @@ import {
   ChevronLeft,
   AlertCircle
 } from 'lucide-react';
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { useRecoilState } from "recoil";
 
 import Topbar from "../../../Components/Navigation/Topbar";
@@ -121,6 +121,10 @@ const ApplyForVerificationPage = () => {
     { value: 1, label: 'Yes' },
     { value: 2, label: 'No' }
   ];
+
+  if (forceURL !== "") {
+    return <Navigate to={forceURL} />;
+  }
 
   return (
     <div className="min-h-screen bg-purple-50">
@@ -405,7 +409,97 @@ const ApplyForVerificationPage = () => {
                         <p className="mt-1 text-sm text-red-600">{errors.shippingCountry}</p>
                       )}
                     </div>
-                    {/* Continue with other shipping address fields... */}
+                    <div>
+                      <label htmlFor="shippingRegion" className="block text-sm font-medium text-gray-700 mb-1">
+                        Region/State *
+                      </label>
+                      <input
+                        id="shippingRegion"
+                        name="shippingRegion"
+                        type="text"
+                        className={`w-full h-11 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                          errors.shippingRegion ? "border-red-500" : "border-gray-300"
+                        }`}
+                        value={formData.shippingRegion}
+                        onChange={handleChange}
+                      />
+                      {errors.shippingRegion && (
+                        <p className="mt-1 text-sm text-red-600">{errors.shippingRegion}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label htmlFor="shippingCity" className="block text-sm font-medium text-gray-700 mb-1">
+                        City *
+                      </label>
+                      <input
+                        id="shippingCity"
+                        name="shippingCity"
+                        type="text"
+                        className={`w-full h-11 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                          errors.shippingCity ? "border-red-500" : "border-gray-300"
+                        }`}
+                        value={formData.shippingCity}
+                        onChange={handleChange}
+                      />
+                      {errors.shippingCity && (
+                        <p className="mt-1 text-sm text-red-600">{errors.shippingCity}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label htmlFor="shippingPostalCode" className="block text-sm font-medium text-gray-700 mb-1">
+                        Postal Code *
+                      </label>
+                      <input
+                        id="shippingPostalCode"
+                        name="shippingPostalCode"
+                        type="text"
+                        className={`w-full h-11 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                          errors.shippingPostalCode ? "border-red-500" : "border-gray-300"
+                        }`}
+                        value={formData.shippingPostalCode}
+                        onChange={handleChange}
+                      />
+                      {errors.shippingPostalCode && (
+                        <p className="mt-1 text-sm text-red-600">{errors.shippingPostalCode}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label htmlFor="shippingAddressLine1" className="block text-sm font-medium text-gray-700 mb-1">
+                        Address Line 1 *
+                      </label>
+                      <input
+                        id="shippingAddressLine1"
+                        name="shippingAddressLine1"
+                        type="text"
+                        className={`w-full h-11 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                          errors.shippingAddressLine1 ? "border-red-500" : "border-gray-300"
+                        }`}
+                        value={formData.shippingAddressLine1}
+                        onChange={handleChange}
+                      />
+                      {errors.shippingAddressLine1 && (
+                        <p className="mt-1 text-sm text-red-600">{errors.shippingAddressLine1}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label htmlFor="shippingAddressLine2" className="block text-sm font-medium text-gray-700 mb-1">
+                        Address Line 2
+                      </label>
+                      <input
+                        id="shippingAddressLine2"
+                        name="shippingAddressLine2"
+                        type="text"
+                        className={`w-full h-11 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                          errors.shippingAddressLine2 ? "border-red-500" : "border-gray-300"
+                        }`}
+                        value={formData.shippingAddressLine2}
+                        onChange={handleChange}
+                      />
+                      {errors.shippingAddressLine2 && (
+                        <p className="mt-1 text-sm text-red-600">{errors.shippingAddressLine2}</p>
+                      )}
+                    </div>
+
                   </div>
                 )}
               </section>
@@ -511,12 +605,12 @@ const ApplyForVerificationPage = () => {
                       Have you owned graded comic books? *
                     </label>
                     <select
-                      id="hasOwnedGraded"
-                      name="hasOwnedGradedComicBooksComicBookForGrading"
-                      value={formData.hasOwnedGradedComicBooksComicBookForGrading}
+                      id="hasOwnedGradedComicBooks"
+                      name="hasOwnedGradedComicBooks"
+                      value={formData.hasOwnedGradedComicBooks}
                       onChange={handleChange}
                       className={`w-full h-11 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white ${
-                        errors.hasOwnedGradedComicBooksComicBookForGrading ? "border-red-500" : "border-gray-300"
+                        errors.hasOwnedGradedComicBooks ? "border-red-500" : "border-gray-300"
                       }`}
                     >
                       <option value="">Select an option</option>
@@ -524,8 +618,8 @@ const ApplyForVerificationPage = () => {
                         <option key={option.value} value={option.value}>{option.label}</option>
                       ))}
                     </select>
-                    {errors.hasOwnedGradedComicBooksComicBookForGrading && (
-                      <p className="mt-1 text-sm text-red-600">{errors.hasOwnedGradedComicBooksComicBookForGrading}</p>
+                    {errors.hasOwnedGradedComicBooks && (
+                      <p className="mt-1 text-sm text-red-600">{errors.hasOwnedGradedComicBooks}</p>
                     )}
                   </div>
 

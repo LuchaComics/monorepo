@@ -158,7 +158,13 @@ func (s *GatewayProfileApplyForVerificationService) Execute(sessCtx mongo.Sessio
 		return nil, httperror.NewForBadRequestWithSingleField("id", "does not exist")
 	}
 
-	ou.DidApplyForVerification = true
+	// Verify profile status.
+	if ou.ProfileVerificationStatus != domain.UserProfileVerificationStatusUnverified {
+		s.logger.Warn("Profile verification status already set")
+		return nil, httperror.NewForBadRequestWithSingleField("message", "You cannot apply again for verification")
+	}
+
+	ou.ProfileVerificationStatus = domain.UserProfileVerificationStatusSubmittedForReview
 	ou.Phone = req.Phone
 	ou.Country = req.Country
 	ou.Region = req.Region

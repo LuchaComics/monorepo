@@ -11,11 +11,15 @@ import (
 )
 
 const (
-	UserStatusActive   = 1
-	UserStatusArchived = 100
-	UserRoleRoot       = 1
-	UserRoleRetailer   = 2
-	UserRoleCustomer   = 3
+	UserStatusActive                                = 1
+	UserStatusArchived                              = 100
+	UserRoleRoot                                    = 1
+	UserRoleRetailer                                = 2
+	UserRoleCustomer                                = 3
+	UserProfileVerificationStatusUnverified         = 1
+	UserProfileVerificationStatusSubmittedForReview = 2
+	UserProfileVerificationStatusApproved           = 3
+	UserProfileVerificationStatusRejected           = 4
 )
 
 type User struct {
@@ -113,11 +117,8 @@ type User struct {
 	// to this user's account.
 	LastCoinsDepositAt time.Time `bson:"last_coins_deposit_at" json:"last_coins_deposit_at"`
 
-	// WasVerifiedByAdmin refers to if the Faucet has verified the user by Admi.
-	WasVerifiedByAdmin bool `bson:"was_verified_by_admin" json:"was_verified_by_admin,omitempty"`
-
-	// DidApplyForVerification is set true when user submits their profile for verification.
-	DidApplyForVerification bool `bson:"did_apply_for_verification" json:"did_apply_for_verification,omitempty"`
+	// ProfileVerificationStatus indicates the profile verification status of this user account.
+	ProfileVerificationStatus int8 `bson:"profile_verification_status" json:"profile_verification_status,omitempty"`
 
 	TenantID   primitive.ObjectID `bson:"tenant_id" json:"tenant_id,omitempty"`
 	TenantName string             `bson:"tenant_name" json:"tenant_name"`
