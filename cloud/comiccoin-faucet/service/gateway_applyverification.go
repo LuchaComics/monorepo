@@ -120,7 +120,7 @@ func (s *GatewayProfileApplyForVerificationService) Execute(sessCtx mongo.Sessio
 		e["how_long_collecting_comic_books_for_grading"] = "How long collecting comic books for grading is required"
 	}
 	if req.HasPreviouslySubmittedComicBookForGrading == 0 {
-		e["how_long_collecting_comic_books_for_grading"] = "Has previously submitted comic book for grading is required"
+		e["has_previously_submitted_comic_book_for_grading"] = "Has previously submitted comic book for grading is required"
 	}
 	if req.HasOwnedGradedComicBooks == 0 {
 		e["has_owned_graded_comic_books"] = "Has owned graded comic books is required"
