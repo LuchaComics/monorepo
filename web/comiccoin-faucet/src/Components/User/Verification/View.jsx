@@ -19,7 +19,7 @@ import { putProfileApplyForVerificationAPI } from "../../../API/Profile";
 const ApplyForVerificationPage = () => {
 
   // Variable controls the global state of the app.
-  const [currentUser] = useRecoilState(currentUserState);
+  const [currentUser, setCurrentUser] = useRecoilState(currentUserState);
 
   const [formData, setFormData] = useState({
     phone: '',
@@ -38,15 +38,15 @@ const ApplyForVerificationPage = () => {
     shippingPostalCode: '',
     shippingAddressLine1: '',
     shippingAddressLine2: '',
-    howDidYouHearAboutUs: '',
+    howDidYouHearAboutUs: 0,
     howDidYouHearAboutUsOther: '',
-    howLongCollectingComicBooksForGrading: '',
-    hasPreviouslySubmittedComicBookForGrading: '',
-    hasOwnedGradedComicBooks: '',
-    hasRegularComicBookShop: '',
-    hasPreviouslyPurchasedFromAuctionSite: '',
-    hasPreviouslyPurchasedFromFacebookMarketplace: '',
-    hasRegularlyAttendedComicConsOrCollectibleShows: ''
+    howLongCollectingComicBooksForGrading: 0,
+    hasPreviouslySubmittedComicBookForGrading: 0,
+    hasOwnedGradedComicBooks: 0,
+    hasRegularComicBookShop: 0,
+    hasPreviouslyPurchasedFromAuctionSite: 0,
+    hasPreviouslyPurchasedFromFacebookMarketplace: 0,
+    hasRegularlyAttendedComicConsOrCollectibleShows: 0
   });
 
   const [forceURL, setForceURL] = useState("");
@@ -77,19 +77,22 @@ const ApplyForVerificationPage = () => {
       formData,
       (resp) => {
         // For debugging purposes only.
-        console.log("onRegisterSuccess: Starting...");
+        console.log("putProfileApplyForVerificationAPI: Starting...");
         console.log(resp);
+
+        // Update the user profile.
+        setCurrentUser(resp);
 
         // Redirect the user to a new page.
         setForceURL("/settings");
       },
       (apiErr) => {
-        console.log("onRegisterError: apiErr:", apiErr);
+        console.log("putProfileApplyForVerificationAPI: apiErr:", apiErr);
         setErrors(apiErr);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       },
       () => {
-        console.log("onRegisterDone: Starting...");
+        console.log("putProfileApplyForVerificationAPI: Starting...");
 
       },
     );
@@ -407,7 +410,6 @@ const ApplyForVerificationPage = () => {
                 )}
               </section>
 
-              {/* Experience Questions */}
               <section>
                 <h2 className="text-xl font-bold text-purple-800 mb-4 flex items-center">
                   <HelpCircle className="h-5 w-5 mr-2" />
@@ -481,62 +483,145 @@ const ApplyForVerificationPage = () => {
                     )}
                   </div>
 
-                  {/* Additional Experience Questions */}
-                  {[
-                    {
-                      id: "hasPreviouslySubmitted",
-                      name: "hasPreviouslySubmittedComicBookForGrading",
-                      label: "Have you previously submitted comic books for grading?"
-                    },
-                    {
-                      id: "hasOwnedGraded",
-                      name: "hasOwnedGradedComicBooks",
-                      label: "Have you owned graded comic books?"
-                    },
-                    {
-                      id: "hasRegularShop",
-                      name: "hasRegularComicBookShop",
-                      label: "Do you have a regular comic book shop?"
-                    },
-                    {
-                      id: "hasAuctionExperience",
-                      name: "hasPreviouslyPurchasedFromAuctionSite",
-                      label: "Have you previously purchased from auction sites?"
-                    },
-                    {
-                      id: "hasFacebookExperience",
-                      name: "hasPreviouslyPurchasedFromFacebookMarketplace",
-                      label: "Have you previously purchased from Facebook Marketplace?"
-                    },
-                    {
-                      id: "hasConventionExperience",
-                      name: "hasRegularlyAttendedComicConsOrCollectibleShows",
-                      label: "Have you regularly attended comic cons or collectible shows?"
-                    }
-                  ].map((question) => (
-                    <div key={question.id}>
-                      <label htmlFor={question.id} className="block text-sm font-medium text-gray-700 mb-1">
-                        {question.label} *
-                      </label>
-                      <select
-                        id={question.id}
-                        name={question.name}
-                        value={formData[question.name]}
-                        onChange={handleChange}
-                        className={`w-full h-11 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white ${
-                          errors[question.name] ? "border-red-500" : "border-gray-300"
-                        }`}
-                      >
-                        <option value="">Select an option</option>
-                        {yesNoOptions.map(option => (
-                          <option key={option.value} value={option.value}>{option.label}</option>
-                        ))}
-                      </select>
-                      {errors[question.name] && (
-                        <p className="mt-1 text-sm text-red-600">{errors[question.name]}</p>
-                      )}
-                    </div>
-                  ))}
+                  <div>
+                    <label htmlFor="hasPreviouslySubmitted" className="block text-sm font-medium text-gray-700 mb-1">
+                      Have you previously submitted comic books for grading? *
+                    </label>
+                    <select
+                      id="hasPreviouslySubmitted"
+                      name="hasPreviouslySubmittedComicBookForGrading"
+                      value={formData.hasPreviouslySubmittedComicBookForGrading}
+                      onChange={handleChange}
+                      className={`w-full h-11 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white ${
+                        errors.hasPreviouslySubmittedComicBookForGrading ? "border-red-500" : "border-gray-300"
+                      }`}
+                    >
+                      <option value="">Select an option</option>
+                      {yesNoOptions.map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                    {errors.hasPreviouslySubmittedComicBookForGrading && (
+                      <p className="mt-1 text-sm text-red-600">{errors.hasPreviouslySubmittedComicBookForGrading}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label htmlFor="hasOwnedGradedComicBooks" className="block text-sm font-medium text-gray-700 mb-1">
+                      Have you owned graded comic books? *
+                    </label>
+                    <select
+                      id="hasOwnedGraded"
+                      name="hasOwnedGradedComicBooksComicBookForGrading"
+                      value={formData.hasOwnedGradedComicBooksComicBookForGrading}
+                      onChange={handleChange}
+                      className={`w-full h-11 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white ${
+                        errors.hasOwnedGradedComicBooksComicBookForGrading ? "border-red-500" : "border-gray-300"
+                      }`}
+                    >
+                      <option value="">Select an option</option>
+                      {yesNoOptions.map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                    {errors.hasOwnedGradedComicBooksComicBookForGrading && (
+                      <p className="mt-1 text-sm text-red-600">{errors.hasOwnedGradedComicBooksComicBookForGrading}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label htmlFor="hasRegularComicBookShop" className="block text-sm font-medium text-gray-700 mb-1">
+                      Do you have a regular comic book shop? *
+                    </label>
+                    <select
+                      id="hasRegularShop"
+                      name="hasRegularComicBookShop"
+                      value={formData.hasRegularComicBookShop}
+                      onChange={handleChange}
+                      className={`w-full h-11 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white ${
+                        errors.hasRegularComicBookShop ? "border-red-500" : "border-gray-300"
+                      }`}
+                    >
+                      <option value="">Select an option</option>
+                      {yesNoOptions.map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                    {errors.hasRegularComicBookShop && (
+                      <p className="mt-1 text-sm text-red-600">{errors.hasRegularComicBookShop}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label htmlFor="hasPreviouslyPurchasedFromAuctionSite" className="block text-sm font-medium text-gray-700 mb-1">
+                      Have you previously purchased from auction sites? *
+                    </label>
+                    <select
+                      id="hasAuctionExperience"
+                      name="hasPreviouslyPurchasedFromAuctionSite"
+                      value={formData.hasPreviouslyPurchasedFromAuctionSite}
+                      onChange={handleChange}
+                      className={`w-full h-11 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white ${
+                        errors.hasPreviouslyPurchasedFromAuctionSite ? "border-red-500" : "border-gray-300"
+                      }`}
+                    >
+                      <option value="">Select an option</option>
+                      {yesNoOptions.map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                    {errors.hasPreviouslyPurchasedFromAuctionSite && (
+                      <p className="mt-1 text-sm text-red-600">{errors.hasPreviouslyPurchasedFromAuctionSite}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label htmlFor="hasPreviouslyPurchasedFromFacebookMarketplace" className="block text-sm font-medium text-gray-700 mb-1">
+                      Have you previously purchased from Facebook Marketplace? *
+                    </label>
+                    <select
+                      id="hasFacebookExperience"
+                      name="hasPreviouslyPurchasedFromFacebookMarketplace"
+                      value={formData.hasPreviouslyPurchasedFromFacebookMarketplace}
+                      onChange={handleChange}
+                      className={`w-full h-11 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white ${
+                        errors.hasPreviouslyPurchasedFromFacebookMarketplace ? "border-red-500" : "border-gray-300"
+                      }`}
+                    >
+                      <option value="">Select an option</option>
+                      {yesNoOptions.map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                    {errors.hasPreviouslyPurchasedFromFacebookMarketplace && (
+                      <p className="mt-1 text-sm text-red-600">{errors.hasPreviouslyPurchasedFromFacebookMarketplace}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label htmlFor="hasRegularlyAttendedComicConsOrCollectibleShows" className="block text-sm font-medium text-gray-700 mb-1">
+                      Have you regularly attended comic cons or collectible shows? *
+                    </label>
+                    <select
+                      id="hasConventionExperience"
+                      name="hasRegularlyAttendedComicConsOrCollectibleShows"
+                      value={formData.hasRegularlyAttendedComicConsOrCollectibleShows}
+                      onChange={handleChange}
+                      className={`w-full h-11 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white ${
+                        errors.hasRegularlyAttendedComicConsOrCollectibleShows ? "border-red-500" : "border-gray-300"
+                      }`}
+                    >
+                      <option value="">Select an option</option>
+                      {yesNoOptions.map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                    {errors.hasRegularlyAttendedComicConsOrCollectibleShows && (
+                      <p className="mt-1 text-sm text-red-600">{errors.hasRegularlyAttendedComicConsOrCollectibleShows}</p>
+                    )}
+                  </div>
+
+
                 </div>
               </section>
 
