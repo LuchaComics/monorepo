@@ -12,20 +12,20 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/usecase"
 )
 
-type GatewayVerifyService struct {
+type GatewayVerifyEmailService struct {
 	logger                           *slog.Logger
 	kmutex                           kmutexutil.KMutexProvider
 	userGetByVerificationCodeUseCase *usecase.UserGetByVerificationCodeUseCase
 	userUpdateUseCase                *usecase.UserUpdateUseCase
 }
 
-func NewGatewayVerifyService(
+func NewGatewayVerifyEmailService(
 	logger *slog.Logger,
 	kmutex kmutexutil.KMutexProvider,
 	uc1 *usecase.UserGetByVerificationCodeUseCase,
 	uc2 *usecase.UserUpdateUseCase,
-) *GatewayVerifyService {
-	return &GatewayVerifyService{logger, kmutex, uc1, uc2}
+) *GatewayVerifyEmailService {
+	return &GatewayVerifyEmailService{logger, kmutex, uc1, uc2}
 }
 
 type GatewayVerifyRequestIDO struct {
@@ -37,7 +37,7 @@ type GatwayVerifyResponseIDO struct {
 	UserRole int8   `bson:"user_role" json:"user_role"`
 }
 
-func (s *GatewayVerifyService) Execute(sessCtx mongo.SessionContext, req *GatewayVerifyRequestIDO) (*GatwayVerifyResponseIDO, error) {
+func (s *GatewayVerifyEmailService) Execute(sessCtx mongo.SessionContext, req *GatewayVerifyRequestIDO) (*GatwayVerifyResponseIDO, error) {
 	s.kmutex.Acquire(req.Code)
 	defer func() {
 		s.kmutex.Release(req.Code)

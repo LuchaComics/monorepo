@@ -419,7 +419,7 @@ func doRunDaemon() {
 		userGetByIDUseCase,
 		userUpdateUseCase,
 	)
-	gatewayVerifyService := service.NewGatewayVerifyService(
+	gatewayVerifyEmailService := service.NewGatewayVerifyEmailService(
 		logger,
 		kmutex,
 		userGetByVerificationCodeUseCase,
@@ -453,6 +453,12 @@ func doRunDaemon() {
 		userUpdateUseCase,
 		faucetCoinTransferService,
 	)
+	gatewayProfileApplyForVerificationService := service.NewGatewayProfileApplyForVerificationService(
+		logger,
+		userGetByIDUseCase,
+		userUpdateUseCase,
+	)
+	_ = gatewayProfileApplyForVerificationService
 
 	blockchainSyncWithBlockchainAuthorityService := service.NewBlockchainSyncWithBlockchainAuthorityService(
 		cfg,
@@ -627,7 +633,7 @@ func doRunDaemon() {
 	gatewayVerifyHTTPHandler := httphandler.NewGatewayVerifyHTTPHandler(
 		logger,
 		dbClient,
-		gatewayVerifyService,
+		gatewayVerifyEmailService,
 	)
 	gatewayChangePasswordHTTPHandler := httphandler.NewGatewayChangePasswordHTTPHandler(
 		logger,
@@ -648,6 +654,11 @@ func doRunDaemon() {
 		logger,
 		dbClient,
 		gatewayAddWalletAddressToFaucetService,
+	)
+	gatewayProfileApplyForVerificationHTTPHandler := httphandler.NewGatewayProfileApplyForVerificationHTTPHandler(
+		logger,
+		dbClient,
+		gatewayProfileApplyForVerificationService,
 	)
 	attachmentCreateHTTPHandler := httphandler.NewAttachmentCreateHTTPHandler(
 		logger,
@@ -727,6 +738,7 @@ func doRunDaemon() {
 		gatewayForgotPasswordHTTPHandler,
 		gatewayResetPasswordHTTPHandler,
 		gatewayProfileWalletAddressHTTPHandler,
+		gatewayProfileApplyForVerificationHTTPHandler,
 		attachmentCreateHTTPHandler,
 		comicSubmissionCreateHTTPHandler,
 		comicSubmissionGetHTTPHandler,

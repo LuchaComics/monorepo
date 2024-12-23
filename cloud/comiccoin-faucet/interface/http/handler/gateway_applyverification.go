@@ -7,7 +7,6 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"strings"
 	_ "time/tzdata"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -17,30 +16,30 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/service"
 )
 
-type GatewayVerifyHTTPHandler struct {
+type GatewayProfileApplyForVerificationHTTPHandler struct {
 	logger   *slog.Logger
 	dbClient *mongo.Client
-	service  *service.GatewayVerifyEmailService
+	service  *service.GatewayProfileApplyForVerificationService
 }
 
-func NewGatewayVerifyHTTPHandler(
+func NewGatewayProfileApplyForVerificationHTTPHandler(
 	logger *slog.Logger,
 	dbClient *mongo.Client,
-	service *service.GatewayVerifyEmailService,
-) *GatewayVerifyHTTPHandler {
-	return &GatewayVerifyHTTPHandler{
+	service *service.GatewayProfileApplyForVerificationService,
+) *GatewayProfileApplyForVerificationHTTPHandler {
+	return &GatewayProfileApplyForVerificationHTTPHandler{
 		logger:   logger,
 		dbClient: dbClient,
 		service:  service,
 	}
 }
 
-func (h *GatewayVerifyHTTPHandler) unmarshalVerifyRequest(
+func (h *GatewayProfileApplyForVerificationHTTPHandler) unmarshalProfileUpdateRequest(
 	ctx context.Context,
 	r *http.Request,
-) (*service.GatewayVerifyRequestIDO, error) {
+) (*service.GatewayProfileApplyForVerificationRequestIDO, error) {
 	// Initialize our array which will store all the results from the remote server.
-	var requestData service.GatewayVerifyRequestIDO
+	var requestData service.GatewayProfileApplyForVerificationRequestIDO
 
 	defer r.Body.Close()
 
@@ -58,16 +57,13 @@ func (h *GatewayVerifyHTTPHandler) unmarshalVerifyRequest(
 		return nil, httperror.NewForSingleField(http.StatusBadRequest, "non_field_error", "payload structure is wrong")
 	}
 
-	// Defensive Code: For security purposes we need to remove all whitespaces from the email and lower the characters.
-	requestData.Code = strings.ReplaceAll(requestData.Code, " ", "")
-
 	return &requestData, nil
 }
 
-func (h *GatewayVerifyHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
+func (h *GatewayProfileApplyForVerificationHTTPHandler) Execute(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	data, err := h.unmarshalVerifyRequest(ctx, r)
+	data, err := h.unmarshalProfileUpdateRequest(ctx, r)
 	if err != nil {
 		httperror.ResponseError(w, err)
 		return

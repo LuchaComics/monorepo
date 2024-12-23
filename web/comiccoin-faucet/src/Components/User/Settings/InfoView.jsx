@@ -131,7 +131,6 @@ const EmailSettingsPage = () => {
       <Topbar currentPage="Settings" />
 
       <div className="p-8">
-        {/* Header with Back Button - Redesigned */}
         <div className="max-w-2xl mx-auto">
           <nav className="mb-8">
             <button
@@ -148,7 +147,6 @@ const EmailSettingsPage = () => {
           </h1>
         </div>
 
-        {/* Rest of the component remains exactly the same */}
         <div className="max-w-2xl mx-auto">
           {hasSubmitted && Object.keys(errors).length > 0 && (
             <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">

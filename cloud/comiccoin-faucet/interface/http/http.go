@@ -36,17 +36,18 @@ type httpServerImpl struct {
 
 	getHealthCheckHTTPHandler *handler.GetHealthCheckHTTPHandler
 
-	gatewayUserRegisterHTTPHandler         *handler.GatewayUserRegisterHTTPHandler
-	gatewayLoginHTTPHandler                *handler.GatewayLoginHTTPHandler
-	gatewayLogoutHTTPHandler               *handler.GatewayLogoutHTTPHandler
-	gatewayRefreshTokenHTTPHandler         *handler.GatewayRefreshTokenHTTPHandler
-	gatewayProfileDetailHTTPHandler        *handler.GatewayProfileDetailHTTPHandler
-	gatewayProfileUpdateHTTPHandler        *handler.GatewayProfileUpdateHTTPHandler
-	gatewayVerifyHTTPHandler               *handler.GatewayVerifyHTTPHandler
-	gatewayChangePasswordHTTPHandler       *handler.GatewayChangePasswordHTTPHandler
-	gatewayForgotPasswordHTTPHandler       *handler.GatewayForgotPasswordHTTPHandler
-	gatewayResetPasswordHTTPHandler        *handler.GatewayResetPasswordHTTPHandler
-	gatewayProfileWalletAddressHTTPHandler *handler.GatewayProfileWalletAddressHTTPHandler
+	gatewayUserRegisterHTTPHandler                *handler.GatewayUserRegisterHTTPHandler
+	gatewayLoginHTTPHandler                       *handler.GatewayLoginHTTPHandler
+	gatewayLogoutHTTPHandler                      *handler.GatewayLogoutHTTPHandler
+	gatewayRefreshTokenHTTPHandler                *handler.GatewayRefreshTokenHTTPHandler
+	gatewayProfileDetailHTTPHandler               *handler.GatewayProfileDetailHTTPHandler
+	gatewayProfileUpdateHTTPHandler               *handler.GatewayProfileUpdateHTTPHandler
+	gatewayVerifyHTTPHandler                      *handler.GatewayVerifyHTTPHandler
+	gatewayChangePasswordHTTPHandler              *handler.GatewayChangePasswordHTTPHandler
+	gatewayForgotPasswordHTTPHandler              *handler.GatewayForgotPasswordHTTPHandler
+	gatewayResetPasswordHTTPHandler               *handler.GatewayResetPasswordHTTPHandler
+	gatewayProfileWalletAddressHTTPHandler        *handler.GatewayProfileWalletAddressHTTPHandler
+	gatewayProfileApplyForVerificationHTTPHandler *handler.GatewayProfileApplyForVerificationHTTPHandler
 
 	attachmentCreateHTTPHandler *handler.AttachmentCreateHTTPHandler
 
@@ -82,17 +83,18 @@ func NewHTTPServer(
 	h11 *handler.GatewayForgotPasswordHTTPHandler,
 	h12 *handler.GatewayResetPasswordHTTPHandler,
 	h13 *handler.GatewayProfileWalletAddressHTTPHandler,
-	h14 *handler.AttachmentCreateHTTPHandler,
-	h15 *handler.ComicSubmissionCreateHTTPHandler,
-	h16 *handler.ComicSubmissionGetHTTPHandler,
-	h17 *handler.ComicSubmissionListByFilterHTTPHandler,
-	h18 *handler.ComicSubmissionCountByFilterHTTPHandler,
-	h19 *handler.ComicSubmissionCountCoinsRewardByFilterHTTPHandler,
-	h20 *handler.ComicSubmissionTotalCoinsAwardedHTTPHandler,
-	h21 *handler.ComicSubmissionCountTotalCreatedTodayByUserHTTPHandler,
-	h22 *handler.ComicSubmissionJudgeOperationHTTPHandler,
-	h23 *handler.UserCountJoinedThisWeekHTTPHandler,
-	h24 *handler.FaucetBalanceHTTPHandler,
+	h14 *handler.GatewayProfileApplyForVerificationHTTPHandler,
+	h15 *handler.AttachmentCreateHTTPHandler,
+	h16 *handler.ComicSubmissionCreateHTTPHandler,
+	h17 *handler.ComicSubmissionGetHTTPHandler,
+	h18 *handler.ComicSubmissionListByFilterHTTPHandler,
+	h19 *handler.ComicSubmissionCountByFilterHTTPHandler,
+	h20 *handler.ComicSubmissionCountCoinsRewardByFilterHTTPHandler,
+	h21 *handler.ComicSubmissionTotalCoinsAwardedHTTPHandler,
+	h22 *handler.ComicSubmissionCountTotalCreatedTodayByUserHTTPHandler,
+	h23 *handler.ComicSubmissionJudgeOperationHTTPHandler,
+	h24 *handler.UserCountJoinedThisWeekHTTPHandler,
+	h25 *handler.FaucetBalanceHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.HTTPAddress == "" {
@@ -129,17 +131,18 @@ func NewHTTPServer(
 		gatewayForgotPasswordHTTPHandler:                       h11,
 		gatewayResetPasswordHTTPHandler:                        h12,
 		gatewayProfileWalletAddressHTTPHandler:                 h13,
-		attachmentCreateHTTPHandler:                            h14,
-		comicSubmissionCreateHTTPHandler:                       h15,
-		comicSubmissionGetHTTPHandler:                          h16,
-		comicSubmissionListByFilterHTTPHandler:                 h17,
-		comicSubmissionCountByFilterHTTPHandler:                h18,
-		comicSubmissionCountCoinsRewardByFilterHTTPHandler:     h19,
-		comicSubmissionTotalCoinsAwardedHTTPHandler:            h20,
-		comicSubmissionCountTotalCreatedTodayByUserHTTPHandler: h21,
-		comicSubmissionJudgeOperationHTTPHandler:               h22,
-		userCountJoinedThisWeekHTTPHandler:                     h23,
-		faucetBalanceHTTPHandler:                               h24,
+		gatewayProfileApplyForVerificationHTTPHandler:          h14,
+		attachmentCreateHTTPHandler:                            h15,
+		comicSubmissionCreateHTTPHandler:                       h16,
+		comicSubmissionGetHTTPHandler:                          h17,
+		comicSubmissionListByFilterHTTPHandler:                 h18,
+		comicSubmissionCountByFilterHTTPHandler:                h19,
+		comicSubmissionCountCoinsRewardByFilterHTTPHandler:     h20,
+		comicSubmissionTotalCoinsAwardedHTTPHandler:            h21,
+		comicSubmissionCountTotalCreatedTodayByUserHTTPHandler: h22,
+		comicSubmissionJudgeOperationHTTPHandler:               h23,
+		userCountJoinedThisWeekHTTPHandler:                     h24,
+		faucetBalanceHTTPHandler:                               h25,
 	}
 	// Attach the HTTP server controller to the ServeMux.
 	mux.HandleFunc("/", mid.Attach(port.HandleRequests))
@@ -212,6 +215,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		port.gatewayChangePasswordHTTPHandler.Execute(w, r)
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "profile" && p[3] == "wallet-password" && r.Method == http.MethodPut:
 		port.gatewayProfileWalletAddressHTTPHandler.Execute(w, r)
+	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "profile" && p[3] == "apply-for-verification" && r.Method == http.MethodPut:
+		port.gatewayProfileApplyForVerificationHTTPHandler.Execute(w, r)
 	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "forgot-password" && r.Method == http.MethodPost:
 		port.gatewayForgotPasswordHTTPHandler.Execute(w, r)
 	case n == 3 && p[0] == "api" && p[1] == "v1" && p[2] == "password-reset" && r.Method == http.MethodPost:

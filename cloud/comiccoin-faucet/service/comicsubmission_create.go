@@ -139,7 +139,7 @@ func (s *ComicSubmissionCreateService) Execute(sessCtx mongo.SessionContext, req
 	// STEP 3: If user is not verified, then enforce daily limit restriction.
 	//
 
-	if !u.WasVerified {
+	if !u.WasVerifiedByAdmin {
 		todaysCount, err := s.comicSubmissionCountTotalCreatedTodayByUserUseCase.Execute(sessCtx, u.ID, u.Timezone)
 		if err != nil {
 			s.logger.Error("Failed creating comic submission",

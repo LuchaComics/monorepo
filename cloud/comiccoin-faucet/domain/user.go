@@ -113,8 +113,11 @@ type User struct {
 	// to this user's account.
 	LastCoinsDepositAt time.Time `bson:"last_coins_deposit_at" json:"last_coins_deposit_at"`
 
-	// WasVerified refers to if the Fauct has verified the user and removed the daily limit.
-	WasVerified bool `bson:"was_verified" json:"was_verified,omitempty"`
+	// WasVerifiedByAdmin refers to if the Faucet has verified the user by Admi.
+	WasVerifiedByAdmin bool `bson:"was_verified_by_admin" json:"was_verified_by_admin,omitempty"`
+
+	// DidApplyForVerification is set true when user submits their profile for verification.
+	DidApplyForVerification bool `bson:"did_apply_for_verification" json:"did_apply_for_verification,omitempty"`
 
 	TenantID   primitive.ObjectID `bson:"tenant_id" json:"tenant_id,omitempty"`
 	TenantName string             `bson:"tenant_name" json:"tenant_name"`

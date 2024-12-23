@@ -8,7 +8,8 @@ import {
   Globe,
   ToggleLeft,
   ToggleRight,
-  ChevronRight
+  ChevronRight,
+  Signature
 } from 'lucide-react';
 import { useRecoilState } from "recoil";
 import { Navigate, Link } from "react-router-dom";
@@ -94,6 +95,14 @@ const SettingsPage = () => {
               title="Password & Security"
               description="Manage your password and security settings"
             />
+            {!currentUser.wasVerifiedByAdmin && <>
+                <SettingLink
+                  to="/apply-for-verification"
+                  icon={Signature}
+                  title="Apply for Verification"
+                  description="Get increased daily submission limits and extra benefits"
+                />
+            </>}
             {/*
             <SettingToggle
               icon={Smartphone}
