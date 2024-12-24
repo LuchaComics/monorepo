@@ -77,7 +77,7 @@ func (s *GatewayUserRegisterService) Execute(
 	req *RegisterCustomerRequestIDO,
 ) (*RegisterCustomerResponseIDO, error) {
 	//
-	// STEP 1: Sanization of input.
+	// STEP 1: Sanitization of the input.
 	//
 
 	// Defensive Code: For security purposes we need to perform some sanitization on the inputs.

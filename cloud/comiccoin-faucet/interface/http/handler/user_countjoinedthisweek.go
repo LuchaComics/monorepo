@@ -39,6 +39,7 @@ func (h *UserCountJoinedThisWeekHTTPHandler) Execute(w http.ResponseWriter, r *h
 	loggedInUserTimezone, _ := ctx.Value(constants.SessionUserTimezone).(string)
 	loggedInUserRole, _ := ctx.Value(constants.SessionUserRole).(int8)
 
+	// Defensive Code: Only admins can call this API endpoint.
 	if loggedInUserRole != domain.UserRoleRoot {
 		h.logger.Error("Attempting to access an administrative protected endpoin")
 		http.Error(w, "Attempting to access an administrative protected endpoint", http.StatusForbidden)

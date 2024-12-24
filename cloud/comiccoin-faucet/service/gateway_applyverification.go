@@ -2,7 +2,9 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,21 +15,21 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/usecase"
 )
 
-type GatewayProfileApplyForVerificationService struct {
+type GatewayApplyProfileForVerificationService struct {
 	logger             *slog.Logger
 	userGetByIDUseCase *usecase.UserGetByIDUseCase
 	userUpdateUseCase  *usecase.UserUpdateUseCase
 }
 
-func NewGatewayProfileApplyForVerificationService(
+func NewGatewayApplyProfileForVerificationService(
 	logger *slog.Logger,
 	uc1 *usecase.UserGetByIDUseCase,
 	uc2 *usecase.UserUpdateUseCase,
-) *GatewayProfileApplyForVerificationService {
-	return &GatewayProfileApplyForVerificationService{logger, uc1, uc2}
+) *GatewayApplyProfileForVerificationService {
+	return &GatewayApplyProfileForVerificationService{logger, uc1, uc2}
 }
 
-type GatewayProfileApplyForVerificationRequestIDO struct {
+type GatewayApplyProfileForVerificationRequestIDO struct {
 	Phone                                           string `bson:"phone" json:"phone,omitempty"`
 	Country                                         string `bson:"country" json:"country,omitempty"`
 	Region                                          string `bson:"region" json:"region,omitempty"`
@@ -55,7 +57,7 @@ type GatewayProfileApplyForVerificationRequestIDO struct {
 	HasRegularlyAttendedComicConsOrCollectibleShows int8   `bson:"has_regularly_attended_comic_cons_or_collectible_shows" json:"has_regularly_attended_comic_cons_or_collectible_shows"`
 }
 
-func (s *GatewayProfileApplyForVerificationService) Execute(sessCtx mongo.SessionContext, req *GatewayProfileApplyForVerificationRequestIDO) (*domain.User, error) {
+func (s *GatewayApplyProfileForVerificationService) Execute(sessCtx mongo.SessionContext, req *GatewayApplyProfileForVerificationRequestIDO) (*domain.User, error) {
 	//
 	// STEP 1: Validation
 	//
@@ -146,6 +148,7 @@ func (s *GatewayProfileApplyForVerificationService) Execute(sessCtx mongo.Sessio
 
 	// Extract from our session the following data.
 	userID := sessCtx.Value(constants.SessionUserID).(primitive.ObjectID)
+	ipAddress, _ := sessCtx.Value(constants.SessionIPAddress).(string)
 
 	// Lookup the user in our database, else return a `400 Bad Request` error.
 	ou, err := s.userGetByIDUseCase.Execute(sessCtx, userID)
@@ -165,6 +168,10 @@ func (s *GatewayProfileApplyForVerificationService) Execute(sessCtx mongo.Sessio
 	}
 
 	ou.ProfileVerificationStatus = domain.UserProfileVerificationStatusSubmittedForReview
+	ou.ModifiedByUserID = userID
+	ou.ModifiedAt = time.Now()
+	ou.ModifiedByName = fmt.Sprintf("%s %s", ou.FirstName, ou.LastName)
+	ou.ModifiedFromIPAddress = ipAddress
 	ou.Phone = req.Phone
 	ou.Country = req.Country
 	ou.Region = req.Region

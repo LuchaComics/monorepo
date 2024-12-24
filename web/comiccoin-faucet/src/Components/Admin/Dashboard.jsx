@@ -27,7 +27,8 @@ import {
 } from "../../API/ComicSubmission";
 import {
   getUsersCountJoinedThisWeekAPI,
-  getUserListAPI
+  getUserListAPI,
+  postUserProfileVerificationJudgeOperationAPI
 } from "../../API/user";
 import {
   getFaucetBalanceAPI
@@ -170,7 +171,7 @@ const AdminDashboard = () => {
               if (resp) {
                   setUsers(resp.users);
                   setTotalUsers(resp.users.length);
-              }              
+              }
             }
           },
           (apiErr) => {
@@ -267,7 +268,7 @@ const AdminDashboard = () => {
   }, [currentUserPage, currentSubmissionPage]);
 
 
-    const handleUserClick = useCallback((user) => {
+  const handleUserClick = useCallback((user) => {
     setSelectedUser(user);
   }, []);
 
@@ -276,14 +277,112 @@ const AdminDashboard = () => {
   }, []);
 
   const handleAcceptUser = useCallback(async () => {
-    // Implement your accept logic here
+    console.log("handleAcceptUser: Beginning...");
+    console.log("handleAcceptUser: selectedUser:", selectedUser);
+    console.log("handleAcceptUser: status:", 3); // Approved
+    try {
+        setFetching(true);
+        const judgeReq = {
+            user_id: selectedUser.id,
+            profile_verification_status: 3, // Approved
+        };
+
+        await postUserProfileVerificationJudgeOperationAPI(
+          judgeReq,
+          async (resp) => {
+            console.log("Successfully approved user profile:", selectedUser.id);
+
+            // Refresh submissions list
+            const userParams = new Map();
+            userParams.set("page_size", usersPerPage);
+            userParams.set("page", currentUserPage);
+            userParams.set("profile_verification_status", 2); // Submitted for review.
+
+            await getUserListAPI(
+              userParams,
+              (resp) => {
+                  setUsers(resp.users);
+                  setTotalUsers(resp.users.length);
+              },
+              (err) => {
+                  console.log("getUserListAPI: Error:", err);
+                  setErrors(err);
+              },
+              () => setFetching(false),
+              () => (window.location.href = "/login?unauthorized=true")
+            );
+          },
+          (apiErr) => {
+            console.error("Failed to approve submission:", apiErr);
+            setErrors(apiErr);
+            setFetching(false);
+          },
+          () => setFetching(false),
+          () => (window.location.href = "/login?unauthorized=true")
+        );
+
+        //----
+    } catch (error) {
+      console.error("Error in handleApproveSubmission:", error);
+      setErrors(error);
+      setFetching(false);
+    }
     setSelectedUser(null);
-  }, []);
+  }, [selectedUser, currentUserPage, usersPerPage]);
 
   const handleRejectUser = useCallback(async () => {
-    // Implement your reject logic here
+    console.log("handleRejectUser: Beginning...");
+    console.log("handleRejectUser: selectedUser:", selectedUser);
+    console.log("handleRejectUser: status:", 4); // Rejected
+    try {
+        setFetching(true);
+        const judgeReq = {
+            user_id: selectedUser.id,
+            profile_verification_status: 4, // Rejected
+        };
+
+        await postUserProfileVerificationJudgeOperationAPI(
+          judgeReq,
+          async (resp) => {
+            console.log("Successfully approved user profile:", selectedUser.id);
+
+            // Refresh submissions list
+            const userParams = new Map();
+            userParams.set("page_size", usersPerPage);
+            userParams.set("page", currentUserPage);
+            userParams.set("profile_verification_status", 2); // Submitted for review.
+
+            await getUserListAPI(
+              userParams,
+              (resp) => {
+                  setUsers(resp.users);
+                  setTotalUsers(resp.users.length);
+              },
+              (err) => {
+                  console.log("getUserListAPI: Error:", err);
+                  setErrors(err);
+              },
+              () => setFetching(false),
+              () => (window.location.href = "/login?unauthorized=true")
+            );
+          },
+          (apiErr) => {
+            console.error("Failed to approve submission:", apiErr);
+            setErrors(apiErr);
+            setFetching(false);
+          },
+          () => setFetching(false),
+          () => (window.location.href = "/login?unauthorized=true")
+        );
+
+        //----
+    } catch (error) {
+      console.error("Error in handleApproveSubmission:", error);
+      setErrors(error);
+      setFetching(false);
+    }
     setSelectedUser(null);
-  }, []);
+  }, [selectedUser, currentUserPage, usersPerPage]);
 
   const handleApproveSubmission = useCallback(async (submissionId) => {
     try {

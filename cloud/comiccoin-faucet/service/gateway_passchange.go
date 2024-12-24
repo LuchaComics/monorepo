@@ -1,7 +1,9 @@
 package service
 
 import (
+	"fmt"
 	"log/slog"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -41,6 +43,7 @@ type GatewayChangePasswordRequestIDO struct {
 func (s *GatewayChangePasswordService) Execute(sessCtx mongo.SessionContext, req *GatewayChangePasswordRequestIDO) error {
 	// Extract from our session the following data.
 	userID := sessCtx.Value(constants.SessionUserID).(primitive.ObjectID)
+	ipAddress, _ := sessCtx.Value(constants.SessionIPAddress).(string)
 
 	// Lookup the user in our database, else return a `400 Bad Request` error.
 	u, err := s.userGetByIDUseCase.Execute(sessCtx, userID)
@@ -83,6 +86,10 @@ func (s *GatewayChangePasswordService) Execute(sessCtx mongo.SessionContext, req
 	}
 	u.PasswordHash = passwordHash
 	u.PasswordHashAlgorithm = s.passwordProvider.AlgorithmName()
+	u.ModifiedByUserID = userID
+	u.ModifiedAt = time.Now()
+	u.ModifiedByName = fmt.Sprintf("%s %s", u.FirstName, u.LastName)
+	u.ModifiedFromIPAddress = ipAddress
 	if err := s.userUpdateUseCase.Execute(sessCtx, u); err != nil {
 		s.logger.Error("user update by id error", slog.Any("error", err))
 		return err

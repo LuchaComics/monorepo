@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"log/slog"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -56,6 +57,7 @@ type GatewayProfileUpdateRequestIDO struct {
 func (s *GatewayProfileUpdateService) Execute(sessCtx mongo.SessionContext, nu *GatewayProfileUpdateRequestIDO) (*domain.User, error) {
 	// Extract from our session the following data.
 	userID := sessCtx.Value(constants.SessionUserID).(primitive.ObjectID)
+	ipAddress, _ := sessCtx.Value(constants.SessionIPAddress).(string)
 
 	// Lookup the user in our database, else return a `400 Bad Request` error.
 	ou, err := s.userGetByIDUseCase.Execute(sessCtx, userID)
@@ -92,6 +94,10 @@ func (s *GatewayProfileUpdateService) Execute(sessCtx mongo.SessionContext, nu *
 	ou.ShippingPostalCode = nu.ShippingPostalCode
 	ou.ShippingAddressLine1 = nu.ShippingAddressLine1
 	ou.ShippingAddressLine2 = nu.ShippingAddressLine2
+	ou.ModifiedByUserID = userID
+	ou.ModifiedAt = time.Now()
+	ou.ModifiedByName = fmt.Sprintf("%s %s", ou.FirstName, ou.LastName)
+	ou.ModifiedFromIPAddress = ipAddress
 
 	if err := s.userUpdateUseCase.Execute(sessCtx, ou); err != nil {
 		s.logger.Error("user update by id error", slog.Any("error", err))

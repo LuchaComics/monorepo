@@ -10,6 +10,7 @@ import (
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/kmutexutil"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/password"
 	sstring "github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/security/securestring"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config/constants"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/usecase"
 )
 
@@ -70,12 +71,18 @@ func (s *GatewayResetPasswordService) Execute(sessCtx mongo.SessionContext, req 
 		return err
 	}
 
+	// Extract from our session the following data.
+	ipAddress, _ := sessCtx.Value(constants.SessionIPAddress).(string)
+
 	// Verify the user.
 	u.PasswordHash = passwordHash
 	u.PasswordHashAlgorithm = s.passwordProvider.AlgorithmName()
 	u.EmailVerificationCode = "" // Remove email active code so it cannot be used agian.
 	u.EmailVerificationExpiry = time.Now()
 	u.ModifiedAt = time.Now()
+	// u.ModifiedByUserID = userID
+	// u.ModifiedByName = fmt.Sprintf("%s %s", u.FirstName, u.LastName)
+	u.ModifiedFromIPAddress = ipAddress
 	if err := s.userUpdateUseCase.Execute(sessCtx, u); err != nil {
 		s.logger.Error("update error", slog.Any("err", err))
 		return err

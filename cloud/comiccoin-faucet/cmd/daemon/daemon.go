@@ -457,7 +457,7 @@ func doRunDaemon() {
 		userUpdateUseCase,
 		faucetCoinTransferService,
 	)
-	gatewayProfileApplyForVerificationService := service.NewGatewayProfileApplyForVerificationService(
+	gatewayProfileApplyForVerificationService := service.NewGatewayApplyProfileForVerificationService(
 		logger,
 		userGetByIDUseCase,
 		userUpdateUseCase,
@@ -564,6 +564,11 @@ func doRunDaemon() {
 		cloudStoragePresignedURLUseCase,
 		userListByFilterUseCase,
 	)
+	userProfileVerificationJudgeOperationService := service.NewUserProfileVerificationJudgeOperationService(
+		logger,
+		userGetByIDUseCase,
+		userUpdateUseCase,
+	)
 
 	// Faucet
 	faucetBalanceService := service.NewFaucetBalanceService(
@@ -664,7 +669,7 @@ func doRunDaemon() {
 		dbClient,
 		gatewayAddWalletAddressToFaucetService,
 	)
-	gatewayProfileApplyForVerificationHTTPHandler := httphandler.NewGatewayProfileApplyForVerificationHTTPHandler(
+	gatewayProfileApplyForVerificationHTTPHandler := httphandler.NewGatewayApplyProfileForVerificationHTTPHandler(
 		logger,
 		dbClient,
 		gatewayProfileApplyForVerificationService,
@@ -724,6 +729,11 @@ func doRunDaemon() {
 		dbClient,
 		userListByFilterService,
 	)
+	userProfileVerificationJudgeOperationHTTPHandler := httphandler.NewUserProfileVerificationJudgeOperationHTTPHandler(
+		logger,
+		dbClient,
+		userProfileVerificationJudgeOperationService,
+	)
 	faucetBalanceHTTPHandler := httphandler.NewFaucetBalanceHTTPHandler(
 		logger,
 		dbClient,
@@ -765,6 +775,7 @@ func doRunDaemon() {
 		userCountJoinedThisWeekHTTPHandler,
 		userListByFilterHTTPHandler,
 		faucetBalanceHTTPHandler,
+		userProfileVerificationJudgeOperationHTTPHandler,
 	)
 
 	//

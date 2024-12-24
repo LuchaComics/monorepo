@@ -8,6 +8,7 @@ import (
 
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/httperror"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/common/kmutexutil"
+	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/config/constants"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/domain"
 	"github.com/LuchaComics/monorepo/cloud/comiccoin-faucet/usecase"
 )
@@ -61,9 +62,16 @@ func (s *GatewayVerifyEmailService) Execute(sessCtx mongo.SessionContext, req *G
 
 	//TODO: Handle expiry dates.
 
+	// Extract from our session the following data.
+	// userID := sessCtx.Value(constants.SessionUserID).(primitive.ObjectID)
+	ipAddress, _ := sessCtx.Value(constants.SessionIPAddress).(string)
+
 	// Verify the user.
 	u.WasEmailVerified = true
+	// ou.ModifiedByUserID = userID
 	u.ModifiedAt = time.Now()
+	// ou.ModifiedByName = fmt.Sprintf("%s %s", ou.FirstName, ou.LastName)
+	u.ModifiedFromIPAddress = ipAddress
 	if err := s.userUpdateUseCase.Execute(sessCtx, u); err != nil {
 		s.logger.Error("update error", slog.Any("err", err))
 		return nil, err

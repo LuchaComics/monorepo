@@ -47,7 +47,7 @@ type httpServerImpl struct {
 	gatewayForgotPasswordHTTPHandler              *handler.GatewayForgotPasswordHTTPHandler
 	gatewayResetPasswordHTTPHandler               *handler.GatewayResetPasswordHTTPHandler
 	gatewayProfileWalletAddressHTTPHandler        *handler.GatewayProfileWalletAddressHTTPHandler
-	gatewayProfileApplyForVerificationHTTPHandler *handler.GatewayProfileApplyForVerificationHTTPHandler
+	gatewayProfileApplyForVerificationHTTPHandler *handler.GatewayApplyProfileForVerificationHTTPHandler
 
 	attachmentCreateHTTPHandler *handler.AttachmentCreateHTTPHandler
 
@@ -60,8 +60,9 @@ type httpServerImpl struct {
 	comicSubmissionCountTotalCreatedTodayByUserHTTPHandler *handler.ComicSubmissionCountTotalCreatedTodayByUserHTTPHandler
 	comicSubmissionJudgeOperationHTTPHandler               *handler.ComicSubmissionJudgeOperationHTTPHandler
 
-	userCountJoinedThisWeekHTTPHandler *handler.UserCountJoinedThisWeekHTTPHandler
-	userListByFilterHTTPHandler        *handler.UserListByFilterHTTPHandler
+	userCountJoinedThisWeekHTTPHandler               *handler.UserCountJoinedThisWeekHTTPHandler
+	userListByFilterHTTPHandler                      *handler.UserListByFilterHTTPHandler
+	userProfileVerificationJudgeOperationHTTPHandler *handler.UserProfileVerificationJudgeOperationHTTPHandler
 
 	faucetBalanceHTTPHandler *handler.FaucetBalanceHTTPHandler
 }
@@ -84,7 +85,7 @@ func NewHTTPServer(
 	h11 *handler.GatewayForgotPasswordHTTPHandler,
 	h12 *handler.GatewayResetPasswordHTTPHandler,
 	h13 *handler.GatewayProfileWalletAddressHTTPHandler,
-	h14 *handler.GatewayProfileApplyForVerificationHTTPHandler,
+	h14 *handler.GatewayApplyProfileForVerificationHTTPHandler,
 	h15 *handler.AttachmentCreateHTTPHandler,
 	h16 *handler.ComicSubmissionCreateHTTPHandler,
 	h17 *handler.ComicSubmissionGetHTTPHandler,
@@ -97,6 +98,7 @@ func NewHTTPServer(
 	h24 *handler.UserCountJoinedThisWeekHTTPHandler,
 	h25 *handler.UserListByFilterHTTPHandler,
 	h26 *handler.FaucetBalanceHTTPHandler,
+	h27 *handler.UserProfileVerificationJudgeOperationHTTPHandler,
 ) HTTPServer {
 	// Check if the HTTP address is set in the configuration.
 	if cfg.App.HTTPAddress == "" {
@@ -146,6 +148,7 @@ func NewHTTPServer(
 		userCountJoinedThisWeekHTTPHandler:                     h24,
 		userListByFilterHTTPHandler:                            h25,
 		faucetBalanceHTTPHandler:                               h26,
+		userProfileVerificationJudgeOperationHTTPHandler:       h27,
 	}
 	// Attach the HTTP server controller to the ServeMux.
 	mux.HandleFunc("/", mid.Attach(port.HandleRequests))
@@ -246,6 +249,8 @@ func (port *httpServerImpl) HandleRequests(w http.ResponseWriter, r *http.Reques
 		port.userListByFilterHTTPHandler.Execute(w, r)
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "users" && p[3] == "count-joined-this-week" && r.Method == http.MethodGet:
 		port.userCountJoinedThisWeekHTTPHandler.Execute(w, r)
+	case n == 5 && p[0] == "api" && p[1] == "v1" && p[2] == "users" && p[3] == "operations" && p[4] == "profile-verification-judge" && r.Method == http.MethodPost:
+		port.userProfileVerificationJudgeOperationHTTPHandler.Execute(w, r)
 	case n == 4 && p[0] == "api" && p[1] == "v1" && p[2] == "faucet" && p[3] == "balance" && r.Method == http.MethodGet:
 		port.faucetBalanceHTTPHandler.Execute(w, r)
 
