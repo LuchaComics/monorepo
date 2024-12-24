@@ -67,7 +67,7 @@ func (h *UserListByFilterHTTPHandler) Execute(w http.ResponseWriter, r *http.Req
 	if profileVerificationStatusStr := query.Get("profile_verification_status"); profileVerificationStatusStr != "" {
 		if profileVerificationStatus, err := strconv.ParseInt(profileVerificationStatusStr, 10, 8); err == nil {
 			profileVerificationStatusInt8 := int8(profileVerificationStatus)
-			filter.Status = profileVerificationStatusInt8
+			filter.ProfileVerificationStatus = profileVerificationStatusInt8
 		} else {
 			h.logger.Error("Profile verification status parse error",
 				slog.Any("error", err),

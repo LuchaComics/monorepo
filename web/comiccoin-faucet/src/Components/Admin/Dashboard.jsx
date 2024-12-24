@@ -12,6 +12,7 @@ import {
   ChevronRight,
   AlertTriangle,
   Menu,
+  Users,
   X,
 } from "lucide-react";
 import { Navigate, Link } from "react-router-dom";
@@ -33,6 +34,7 @@ import {
 } from "../../API/Faucet";
 import AdminTopbar from "../Navigation/AdminTopbar";
 import GalleryItem from './GalleryItem';
+import UserDetailModal from "./UserDetailModal";
 
 const AdminDashboard = () => {
   // Global state
@@ -49,6 +51,7 @@ const AdminDashboard = () => {
   const [isNavOpen, setIsNavOpen] = useState(false);
 
   // User list states with pagination
+  const [selectedUser, setSelectedUser] = useState(null);
   const [users, setUsers] = useState([]);
   const [totalUsers, setTotalUsers] = useState(0);
   const [currentUserPage, setCurrentUserPage] = useState(1);
@@ -164,8 +167,10 @@ const AdminDashboard = () => {
           (resp) => {
             if (mounted) {
               console.log("getUserListAPI: Success", resp);
-              setUsers(resp.users);
-              setTotalUsers(resp.count);
+              if (resp) {
+                  setUsers(resp.users);
+                  setTotalUsers(resp.users.length);
+              }              
             }
           },
           (apiErr) => {
@@ -260,6 +265,25 @@ const AdminDashboard = () => {
       mounted = false;
     };
   }, [currentUserPage, currentSubmissionPage]);
+
+
+    const handleUserClick = useCallback((user) => {
+    setSelectedUser(user);
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setSelectedUser(null);
+  }, []);
+
+  const handleAcceptUser = useCallback(async () => {
+    // Implement your accept logic here
+    setSelectedUser(null);
+  }, []);
+
+  const handleRejectUser = useCallback(async () => {
+    // Implement your reject logic here
+    setSelectedUser(null);
+  }, []);
 
   const handleApproveSubmission = useCallback(async (submissionId) => {
     try {
@@ -427,8 +451,6 @@ const AdminDashboard = () => {
     );
   }
 
-  console.log("users:", users);
-
   return (
     <div className="min-h-screen bg-purple-50">
       <AdminTopbar currentPage="Dashboard" />
@@ -463,39 +485,45 @@ const AdminDashboard = () => {
         {/* Users Section */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border-2 border-purple-200">
           <h2 className="text-2xl font-bold text-purple-800 mb-6" style={{ fontFamily: "Comic Sans MS, cursive" }}>
-            User List
+            Users Awaiting Review
           </h2>
 
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-purple-50">
-                  <th className="px-4 py-2 text-left text-purple-600">Username</th>
-                  <th className="px-4 py-2 text-left text-purple-600">Email</th>
-                  <th className="px-4 py-2 text-left text-purple-600">Join Date</th>
-                  <th className="px-4 py-2 text-left text-purple-600">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users && users.map((user) => (
-                  <tr key={user.id} className="border-t border-purple-100 hover:bg-purple-50">
-                    <td className="px-4 py-2">{user.username}</td>
-                    <td className="px-4 py-2">{user.email}</td>
-                    <td className="px-4 py-2">{user.createdAt}</td>
-                    <td className="px-4 py-2">
-                      <span className={`px-2 py-1 rounded-full text-sm ${
-                        user.status === 'active' ? 'bg-green-100 text-green-800' :
-                        user.status === 'inactive' ? 'bg-gray-100 text-gray-800' :
-                        'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {user.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {users.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+              <Users className="w-12 h-12 mb-4 text-purple-300" />
+              <p className="text-lg font-medium mb-2">No Pending Reviews</p>
+              <p className="text-sm text-gray-400">
+                There are currently no users waiting for review.
+              </p>
+            </div>
+          ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-purple-50">
+                      <th className="px-4 py-2 text-left text-purple-600">Full Name</th>
+                      <th className="px-4 py-2 text-left text-purple-600">Email</th>
+                      <th className="px-4 py-2 text-left text-purple-600">Country</th>
+                      <th className="px-4 py-2 text-left text-purple-600">Region</th>
+                      <th className="px-4 py-2 text-left text-purple-600">City</th>
+                      <th className="px-4 py-2 text-left text-purple-600">Join Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users && users.map((user) => (
+                      <tr key={user.id} className="border-t border-purple-100 hover:bg-purple-50 cursor-pointer" onClick={() => handleUserClick(user)}>
+                        <td className="px-4 py-2">{user.name}</td>
+                        <td className="px-4 py-2">{user.email}</td>
+                        <td className="px-4 py-2">{user.country}</td>
+                        <td className="px-4 py-2">{user.region}</td>
+                        <td className="px-4 py-2">{user.city}</td>
+                        <td className="px-4 py-2">{user.createdAt}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
           {/* User Pagination */}
           <div className="mt-4 flex items-center justify-between">
@@ -609,6 +637,14 @@ const AdminDashboard = () => {
           </div>
         )}
       </main>
+      {selectedUser && (
+          <UserDetailModal
+            user={selectedUser}
+            onClose={handleCloseModal}
+            onAccept={handleAcceptUser}
+            onReject={handleRejectUser}
+          />
+       )}
     </div>
   );
 };
