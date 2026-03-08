@@ -69,3 +69,6 @@ _md/*
 
 # MongoDB database dumps
 dump/
+
+# Large language models
+.claude

@@ -7,7 +7,7 @@ This guide walks through exporting the production MongoDB database (DigitalOcean
 - **MongoDB Database Tools** installed locally (`mongodump`, `mongorestore`, `mongosh`)
   - macOS: `brew install mongodb-database-tools mongosh`
   - Ubuntu/Debian: Follow [MongoDB docs](https://www.mongodb.com/docs/database-tools/installation/)
-- **Local development environment running** via `task dev` (from `cloud/backend/`)
+- **Local development environment running** via `task start` (from `cloud/cps-backend/`)
 - **Production connection string** from DigitalOcean (ask your team lead)
 
 ## Step 1: Export from Production
@@ -66,7 +66,7 @@ You should see `.bson` and `.metadata.json` files for each collection.
 From the `cloud/backend/` directory:
 
 ```bash
-task dev
+task start
 ```
 
 This starts the local 3-node MongoDB replica set:
@@ -178,7 +178,7 @@ Failed: error connecting to db server: authentication error
 Failed: error connecting to db server: no reachable servers
 ```
 
-- Wait a few seconds after `task dev` for the replica set to initialize.
+- Wait a few seconds after `task start` for the replica set to initialize.
 - Check replica set status:
   ```bash
   mongosh "mongodb://localhost:27017/?replicaSet=rs0" --eval "rs.status()"
